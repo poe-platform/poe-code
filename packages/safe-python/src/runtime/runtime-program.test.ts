@@ -39,6 +39,34 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["negative", "oversized", "invalid", "raises"])("validates guest bytes needles (%s)", mode => {
+    const state = fixture("result=b'abc'.find(needle)\n"), v = state.values;
+    const failure = new PythonRuntimeError("TypeError", "guest failure");
+    state.globals.set("needle", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: value => value.kind === "none" ? "NoneType" : "Index", warn() {},
+      lookupIndex: () => () => {
+        if (mode === "raises") throw failure;
+        return mode === "invalid" ? v.none : v.integer(mode === "negative" ? -1n : 1n << 100n);
+      }
+    } });
+    expect(() => state.run()).toThrow(mode === "raises" ? failure : mode === "invalid" ? "__index__ returned non-int (type NoneType)" : "byte must be in range(0, 256)");
+    expect(state.globals.has("result")).toBe(false);
+  });
+  it.each(["find", "rfind", "index", "rindex", "count"])("converts bytes %s needles after search bounds", method => {
+    const state = fixture(`result=b'ababa'.${method}(needle,start,stop)\nexpected=b'ababa'.${method}(98,1,5)\n`), v = state.values;
+    const needle = v.cell({}), start = v.cell({}), stop = v.cell({}), events: string[] = [];
+    state.globals.set("needle", needle); state.globals.set("start", start); state.globals.set("stop", stop);
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Index", warn() {},
+      lookupIndex: value => () => { events.push(value === needle ? "needle" : value === start ? "start" : "stop"); return v.integer(value === needle ? 98 : value === start ? 1 : 5); }
+    } });
+    state.run();
+    expect(events).toEqual(["start", "stop", "needle"]);
+    expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+  });
   it.each(["find", "rfind", "index", "rindex", "count", "startswith", "endswith"])("converts guest bounds for text %s methods", method => {
     for (const prefix of ["", "b"]) {
       const state = fixture(`text=${prefix}'ababa'\nresult=text.${method}(${prefix}'ba',start,stop)\nexpected=text.${method}(${prefix}'ba',1,None)\n`), v = state.values;

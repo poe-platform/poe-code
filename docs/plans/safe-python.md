@@ -6590,6 +6590,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Guest bytes needles,
   remaining native-method protocols, automatic object/builtin assembly and
   broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes find/rfind/index/rindex/count integer needles to guest index
+  conversion after both search bounds. Exact bytes retain their storage path;
+  integer results must lie in 0..255, including arbitrarily large guest results.
+  Missing slots retain bytes-specific diagnostics, while invalid results and
+  guest exceptions retain shared protocol behavior.
+- Nine compiled regression cases cover ordering, successful searches, negative
+  and oversized results, invalid returns and guest TypeErrors. All 5,098 tests
+  in 440 files pass; 875 CPython bytes-search comparisons match results/errors
+  and traces. Typecheck and selected workspace build pass. Remaining native
+  protocols, buffer capabilities, automatic object/builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

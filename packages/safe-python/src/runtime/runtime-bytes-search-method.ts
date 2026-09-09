@@ -2,7 +2,8 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { ImmutableBytes } from "./immutable-bytes.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
-import type { IntegerIndexContext } from "./index-protocol.js";
+import { validateIndexResult, type IntegerIndexContext } from "./index-protocol.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export function createRuntimeBytesSearchMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "find" | "rfind" | "index" | "rindex" | "count", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
@@ -18,13 +19,20 @@ export function createRuntimeBytesSearchMethod(receiver: Extract<RuntimeValue, {
       const needle = positional[0];
       let pattern: ImmutableBytes | number;
       if (needle.kind === "bytes") pattern = needle.value;
-      else if (needle.kind === "int" || needle.kind === "bool") {
-        const byte = needle.kind === "bool" ? needle.value ? 1n : 0n : needle.value;
+      else {
+        let byte = needle.kind === "int" ? needle.value : needle.kind === "bool" ? (needle.value ? 1n : 0n) : context?.integer(needle);
+        if (byte === undefined && context !== undefined) {
+          const slot = context.lookupIndex(needle);
+          meter.checkpoint();
+          if (slot !== undefined) byte = context.integer(validateIndexResult(slot(), context, meter));
+        }
+        meter.checkpoint();
+        if (byte === undefined) {
+          const type = context === undefined ? needle.kind === "none" ? "NoneType" : needle.kind === "not-implemented" ? "NotImplementedType" : needle.kind : diagnosticTypeName(context.typeName(needle), meter);
+          throw new PythonRuntimeError("TypeError", `argument should be integer or bytes-like object, not '${type}'`);
+        }
         if (byte < 0n || byte > 255n) throw new PythonRuntimeError("ValueError", "byte must be in range(0, 256)");
         pattern = Number(byte);
-      } else {
-        const type = needle.kind === "none" ? "NoneType" : needle.kind === "not-implemented" ? "NotImplementedType" : needle.kind;
-        throw new PythonRuntimeError("TypeError", `argument should be integer or bytes-like object, not '${type}'`);
       }
       const mode = name === "index" ? "find" : name === "rindex" ? "rfind" : name;
       const index = receiver.value.search(pattern, mode, start, stop, meter);

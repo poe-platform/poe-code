@@ -131,6 +131,7 @@ import { sandboxGetProperty } from "./guest-proxy-get.js";
 import { sandboxSetProperty } from "./guest-proxy-set.js";
 import { sandboxOwnKeys } from "./guest-proxy-own-keys.js";
 import { sandboxGetOwnPropertyDescriptor } from "./guest-proxy-descriptor.js";
+import { sandboxGetPrototypeOf } from "./guest-proxy-prototype.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -2202,11 +2203,13 @@ async function evaluateForInStatement(
   }
 
   const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
+  let keys: string[] = [];
+  const release = retainValues(context.budget, () => [right.value, keys]);
   try {
   const restoredIteration = consumeRestoredLoopIteration(node, context);
-  const keys = restored?.keys ?? (
+  keys = restored?.keys ?? (
     restoredIteration === undefined || typeof restoredIteration === "number"
-      ? forInKeys(object, context.budget)
+      ? await forInKeys(object, context.budget, createCoercionContext(context))
       : restoredIteration.values.map(String));
   const restoredIndex = restored?.index ?? (
     typeof restoredIteration === "number" ? restoredIteration : (restoredIteration?.index ?? 0));
@@ -2214,7 +2217,7 @@ async function evaluateForInStatement(
     context.activeLoopIterations.set(node.nodeId ?? -1, { index, values: keys });
     const key = keys[index]!;
     const resuming = restored !== undefined && index === restored.index;
-    if (!resuming && !hasForInProperty(object, key, context.budget)) {
+    if (!resuming && !await hasForInProperty(object, key, context.budget, createCoercionContext(context))) {
       continue;
     }
 
@@ -2254,6 +2257,7 @@ async function evaluateForInStatement(
   context.activeLoopIterations.delete(node.nodeId ?? -1);
   return completion?.normal() ?? normalEmptyResult();
   } finally {
+    release();
     completion?.close();
   }
 }
@@ -2274,14 +2278,25 @@ function forInObject(value: SandboxValue): object | undefined {
   return undefined;
 }
 
-function forInKeys(object: object, budget: Budget): string[] {
+async function forInKeys(object: object, budget: Budget, context: SandboxCallContext): Promise<string[]> {
   if (isGuestHostObject(object)) return getHostObjectKeys(object);
   const keys: string[] = [];
   const seen = new Set<string>();
   let depth = 0;
-  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
+  let current: object | null = object;
+  const release = retainValues(budget, () => [object as SandboxValue, current as SandboxValue, keys]);
+  try {
+  for (; current !== null; current = await sandboxGetPrototypeOf(current as SandboxValue, budget, context) as object | null) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
+    if (guestProxyStates.has(current)) {
+      for (const key of await sandboxOwnKeys(current as SandboxValue, budget, context)) {
+        if (typeof key !== "string" || seen.has(key)) continue;
+        seen.add(key);
+        keys.push(key);
+      }
+      continue;
+    }
     const properties = isSandboxGenerator(current) ? getGeneratorProperties(current) : isSandboxPromise(current) ? getPromiseProperties(current) : isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     for (const key of Object.getOwnPropertyNames(properties)) {
       if (seen.has(key)) continue;
@@ -2290,18 +2305,32 @@ function forInKeys(object: object, budget: Budget): string[] {
     }
   }
   return keys;
+  } finally {
+    release();
+  }
 }
 
-function hasForInProperty(object: object, key: string, budget: Budget): boolean {
+async function hasForInProperty(object: object, key: string, budget: Budget, context: SandboxCallContext): Promise<boolean> {
   if (isGuestHostObject(object)) return hasHostObjectMember(object, key, true);
   let depth = 0;
-  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
+  let current: object | null = object;
+  const release = retainValues(budget, () => [object as SandboxValue, current as SandboxValue, key]);
+  try {
+  for (; current !== null; current = await sandboxGetPrototypeOf(current as SandboxValue, budget, context) as object | null) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
+    if (guestProxyStates.has(current)) {
+      const descriptor = await sandboxGetOwnPropertyDescriptor(current as SandboxValue, key, budget, context);
+      if (descriptor !== undefined) return descriptor.enumerable === true;
+      continue;
+    }
     const properties = isSandboxGenerator(current) ? getGeneratorProperties(current) : isSandboxPromise(current) ? getPromiseProperties(current) : isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     if (Object.hasOwn(properties, key)) return true;
   }
   return false;
+  } finally {
+    release();
+  }
 }
 
 function isArrayIndexKey(key: string): boolean {

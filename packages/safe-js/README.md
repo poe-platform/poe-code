@@ -546,6 +546,9 @@ Ordinary enumeration also handles existing string/symbol properties made
 enumerable by an earlier getter.
 Ordinary `for-in` includes enumerable non-index string properties on arrays and
 array ancestors, including when a generator resumes from a checkpoint.
+Internal Proxy `for-in` now uses own-key, prototype, and descriptor operations,
+including virtual keys, inherited properties, deletion, and early loop exits.
+The saved key-list format is unchanged; serializing Proxy graphs remains pending.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.
@@ -565,7 +568,7 @@ Proxy extensibility and descriptor operations, with tested early exits.
 At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
 24 files. This is not a full-package gate or evidence of public Proxy support.
 Callable proxies, public construction/revocation, Proxy checkpoint state, and
-remaining consumers such as for-in and array-method bridges still need integration.
+remaining consumers such as array-method bridges still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 

@@ -1,5 +1,6 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
+import { getGeneratorOrigin } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
@@ -1025,6 +1026,7 @@ export function measureSandboxData(
         usage += typeof key === "string" ? key.length + 1 : 1;
         if ("value" in descriptor) visit(descriptor.value, depth + 1);
         else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+      visit(getGeneratorOrigin(value)?.resultPrototype, depth + 1);
       }
       return;
     }

@@ -1082,7 +1082,9 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         const reject = deserializeValue(request.capability.reject, state);
         if (!isSandboxPromise(promise) || !isSandboxClosure(resolve) || !isSandboxClosure(reject)) throw new TypeError("Invalid async generator capability.");
         asyncGeneratorRequestOwners.set(promise, driver);
-        return {method: request.method, value: deserializeValue(request.value, state) as SandboxValue, capability: {promise, resolve, reject}};
+        return {method: request.method, value: deserializeValue(request.value, state) as SandboxValue,
+          ...(request.resultPrototype === undefined ? {} : {resultPrototype: deserializeValue(request.resultPrototype, state) as SandboxValue & (object | null)}),
+          capability: {promise, resolve, reject}};
       });
       Object.assign(driver, {generator, requests, phase: serialized.phase, suspension: serialized.suspension, awaitKind: serialized.awaitKind, generation: serialized.generation});
       asyncGeneratorDrivers.set(generator, driver);
@@ -1601,9 +1603,9 @@ function restoreGuestGenerator(
           origin.suspendedScope = current; origin.blockScopes = blocks; origin.finallyCompletions = completions;
           origin.expressionStates = expressions;
         },
-        generatorYield: (value, yieldNodeId) => {
+        generatorYield: (value, yieldNodeId, yieldedResult) => {
           generator.state = "suspended";
-          return generatorYield(value, yieldNodeId);
+          return generatorYield(value, yieldNodeId, yieldedResult);
         }
       });
       if (result.kind === "error") throw result.error;
@@ -1627,6 +1629,8 @@ function restoreGuestGenerator(
     for (const completion of serialized.sent) sent.push({ type: completion.type, value: deserializeValue(completion.value, state) });
     const completions = new Map<number, CompletionResult>();
     for (const [id, completion] of Object.entries(serialized.finallyCompletions ?? {})) {
+  if (serialized.resultPrototype !== undefined)
+    origin.resultPrototype = deserializeValue(serialized.resultPrototype, state) as object | null;
       const { nodeId, value, ...metadata } = completion;
       const node = nodeId === undefined ? undefined : nodes.get(nodeId);
       if (nodeId !== undefined && node?.type !== "BreakStatement" && node?.type !== "ContinueStatement")

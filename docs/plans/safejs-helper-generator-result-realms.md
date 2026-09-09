@@ -179,8 +179,53 @@ or release. The recorded full-package gate predates this fix.
 
 ## Verification boundary
 
-These are built-SDK/native audit observations, not completed fixes or passing
-regression tests. The active full-suite source/test SHA256 is
+The full-suite source/test SHA256 for the earlier gate was
 `958f252f6325d13c3381d9be5042572b07c402b85857258f1f9d45569160fcad`;
-it was unchanged when rechecked during this audit. The full test run remains
-separate evidence and must be polled to a terminal result.
+it was unchanged across that run. The terminal result was 24,317 passed,
+two Promise-import policy failures and 37 skipped. This gate predates the
+helper, wrapper and generator transport changes; it does not validate them.
+
+## Generator transport work in progress
+
+The synchronous channel now carries the yielded guest result separately from
+its internal completion state. Ordinary yields create a result in the generator
+realm; yield-star forwards the exact delegated object without reading its value
+getter. The three internal restoration assertions now verify that explicit
+payload, including identity between the delegated payload and forwarded result.
+Restoration and delegated-result tests pass: 95 tests across two files, including
+three public Proxy/getter-order replay cases. Package TypeScript passed before
+the final queued-test refinement. These changes are not committed yet.
+
+The async implementation started from three failing sequential regression cases.
+A fourth test holds the generator on an explicit promise gate while four next
+requests from two method realms are queued. Native results use the generator
+realm for the yield, body completion, and the already-queued requests drained
+at completion. A later request instead uses its called method's realm.
+All four baseline SafeJS prototype comparisons fail;
+their copied value/done contents match. This validates queued request coverage
+in addition to the sequential cases, without asserting a cause from failure
+alone. The baseline driver stored no per-request realm metadata and resolved
+fresh plain records using its active budget.
+
+The working implementation captures the generator's originating Object
+prototype and the active request's result prototype. Body execution selects the
+generator prototype, and completion propagates it while draining queued
+requests. Later calls capture their own method prototype. Both generator and
+request metadata are serialized and restored; generator memory measurement
+visits the retained prototype. Fresh ordinary result allocation records the
+default link separately from custom prototype mutation, preserving safe SDK
+data-copy classification.
+
+The focused run now passes all 35 tests across the result-realm,
+delegated-result and malformed async-continuation files. This includes public
+queued replay and rejection of lossy copying after the originating prototype
+changes. TypeScript and scoped ESLint pass. The maintained selected-workspace
+build passes all 23 build tasks and four fresh-process import checks. A built
+SDK probe also verifies four queued results in the generator realm, followed
+by a later result in the called method's realm. Broader generator/snapshot tests
+pass: 1,944 tests across 135 files in 116.75 seconds. This is not full-package
+or full JavaScript conformance validation.
+
+No push or release was performed. The earlier broad generator/snapshot run
+passed 1,935 tests and failed six before the restoration assertions changed;
+the later 1,944-test run above supersedes it for this focused scope.

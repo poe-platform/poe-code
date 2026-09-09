@@ -7,11 +7,13 @@ export type GeneratorCompletion = {
 };
 
 export type GeneratorChannel = {
-  next(value?: unknown, record?: boolean): Promise<IteratorResult<unknown>>;
-  return(value?: unknown, record?: boolean): Promise<IteratorResult<unknown>>;
-  throw(error?: unknown, record?: boolean): Promise<IteratorResult<unknown>>;
+  next(value?: unknown, record?: boolean): Promise<GeneratorChannelResult>;
+  return(value?: unknown, record?: boolean): Promise<GeneratorChannelResult>;
+  throw(error?: unknown, record?: boolean): Promise<GeneratorChannelResult>;
   snapshot(): GeneratorChannelSnapshot;
 };
+
+export type GeneratorChannelResult = IteratorResult<unknown> & { yieldedResult?: unknown };
 
 export type GeneratorChannelSnapshot = {
   yieldNodeId?: number;
@@ -27,11 +29,11 @@ type Deferred<T> = {
 type ChannelSignal =
   | { type: "complete"; value: unknown }
   | { type: "error"; error: unknown }
-  | { type: "yield"; value: unknown };
+  | { type: "yield"; value: unknown; yieldedResult?: unknown };
 
 export function createGeneratorChannel(
   body: (
-    yieldValue: (value?: unknown, yieldNodeId?: number) => Promise<GeneratorCompletion>
+    yieldValue: (value?: unknown, yieldNodeId?: number, yieldedResult?: unknown) => Promise<GeneratorCompletion>
   ) => Promise<unknown>
 ): GeneratorChannel {
   let state: "unstarted" | "running" | "suspended" | "done" = "unstarted";
@@ -63,15 +65,15 @@ export function createGeneratorChannel(
     void bodyPromise.catch(() => undefined);
   }
 
-  async function yieldValue(value?: unknown, nodeId?: number): Promise<GeneratorCompletion> {
+  async function yieldValue(value?: unknown, nodeId?: number, yieldedResult?: unknown): Promise<GeneratorCompletion> {
     resume = deferred<GeneratorCompletion>();
     yieldNodeId = nodeId;
     state = "suspended";
-    signal.resolve({ type: "yield", value });
+    signal.resolve({ type: "yield", value, yieldedResult });
     return resume.promise;
   }
 
-  async function deliver(completion: GeneratorCompletion, record: boolean): Promise<IteratorResult<unknown>> {
+  async function deliver(completion: GeneratorCompletion, record: boolean): Promise<GeneratorChannelResult> {
     const leaveRunning = enterRunningState(channelIdentity);
     try {
       if (state === "done") {
@@ -108,7 +110,7 @@ export function createGeneratorChannel(
 
       const settled = await signal.promise;
       if (settled.type === "yield") {
-        return { value: settled.value, done: false };
+        return { value: settled.value, done: false, ...(settled.yieldedResult === undefined ? {} : { yieldedResult: settled.yieldedResult }) };
       }
       if (settled.type === "error") {
         throw settled.error;
@@ -154,7 +156,7 @@ export function restoreGeneratorChannel(
     method: "next" | "return" | "throw",
     value?: unknown,
     record = true
-  ): Promise<IteratorResult<unknown>> => {
+  ): Promise<GeneratorChannelResult> => {
     await ensureRestored();
     if (record) sent.push({
       type: method === "next" ? "normal" : method,

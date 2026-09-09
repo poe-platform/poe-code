@@ -3,6 +3,7 @@ import type { AsyncEvaluationContext } from "./async.js";
 import type { Scope } from "./scope.js";
 import type { SandboxClosure, SandboxGenerator } from "./values.js";
 import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
+import { getSandboxPrototype } from "./object-model.js";
 
 export type ClosureOrigin = {
   node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression;
@@ -13,6 +14,7 @@ export type ClosureOrigin = {
 const origins = new WeakMap<object, ClosureOrigin>();
 
 export type GeneratorOrigin = ClosureOrigin & {
+  resultPrototype?: object | null;
   asyncFunction?: boolean;
   awaitPhase?: "await" | "yield" | "return" | "resume-return";
   closureScope: Scope;
@@ -34,7 +36,8 @@ export function getClosureOrigin(value: object): ClosureOrigin | undefined {
 }
 
 export function registerGeneratorOrigin(generator: SandboxGenerator, node: ClosureOrigin["node"], scope: Scope, context: AsyncEvaluationContext): GeneratorOrigin {
-  const origin = { node, scope, closureScope: context.scope, environment: context.functionEnvironment };
+  const origin = { node, scope, closureScope: context.scope, environment: context.functionEnvironment,
+    resultPrototype: getSandboxPrototype({}, context.budget) };
   generatorOrigins.set(generator, origin);
   const source = dynamicNodeSources.get(node);
   if (source !== undefined) dynamicValueSources.set(generator, source);

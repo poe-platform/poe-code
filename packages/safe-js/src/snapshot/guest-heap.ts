@@ -81,7 +81,7 @@ export type GuestHeapNode<T> =
   | {kind: "guest-source"; functionKind: Exclude<DynamicSource["kind"], "eval">; parameters: string; body: string}
   | {kind: "guest-script"; context: EvalSourceContext; body: string}
   | {kind: "mapped-arguments"; scope: T; parameters: Array<[string, string]>; state: GuestObjectState<T>; nativeIterator: boolean}
-  | {kind: "async-generator-driver"; generator: T; requests: Array<{method:"next"|"return"|"throw";value:T;capability:{promise:T;resolve:T;reject:T}}>;
+  | {kind: "async-generator-driver"; generator: T; requests: Array<{method:"next"|"return"|"throw";value:T;resultPrototype?:T;capability:{promise:T;resolve:T;reject:T}}>;
       phase:"idle"|"waiting";suspension:"await"|"yield";awaitKind:"body"|"return";generation:number}
   | {kind: "async-generator-handler"; driver:T;owner:T;action:"fulfilled"|"rejected";generation:number;state:GuestObjectState<T>}
   | {kind: "async-function-driver"; generator: T; capability: {promise:T;resolve:T;reject:T}; phase:"waiting"|"done";generation:number}
@@ -137,6 +137,7 @@ export type GuestHeapNode<T> =
   | { kind: "guest-generator"; state: "start" | "running" | "suspended" | "done"; astNodeId: number;
       dynamicSource?: T;
       asyncFunction?: true;
+      resultPrototype?: T;
       driver?: T;
       awaitPhase?: "await" | "yield" | "return" | "resume-return";
       async: boolean; scope: T; closureScope: T; suspendedScope?: T; yieldNodeId?: number;
@@ -200,6 +201,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
   const driver = asyncFunctionDrivers.get(value);
   if (driver !== undefined) {
     if (driver.phase === "running" || driver.generator === undefined) throw new SnapshotNotReadyError("Cannot snapshot an active async function.");
+        ...(request.resultPrototype === undefined ? {} : {resultPrototype: encode(request.resultPrototype)}),
     return {kind: "async-function-driver", generator: encode(driver.generator), phase: driver.phase, generation: driver.generation,
       capability: {promise: encode(driver.capability.promise), resolve: encode(driver.capability.resolve), reject: encode(driver.capability.reject)}};
   }
@@ -462,6 +464,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       scope: encode(origin.scope), closureScope: encode(origin.closureScope),
       ...(value.state !== "suspended" || origin.suspendedScope === undefined ? {} : { suspendedScope: encode(origin.suspendedScope) }),
       ...(value.state !== "suspended" || origin.blockScopes === undefined ? {} : {
+      ...(origin.resultPrototype === undefined ? {} : {resultPrototype: encode(origin.resultPrototype)}),
         blockScopes: Object.fromEntries([...origin.blockScopes].map(([id, scope]) => [String(id), encode(scope)]))
       }),
       ...(value.state !== "suspended" || origin.finallyCompletions === undefined ? {} : {

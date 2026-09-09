@@ -25,6 +25,8 @@ import { invokeBuiltinClosure } from "./builtin-call.js";
 import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype } from "./object-model.js";
 import { getIntrinsicIdentity } from "./intrinsics.js";
 import { readPropertyDescriptor } from "./accessors.js";
+import { createIteratorResult } from "./iterator-result.js";
+import { sandboxGetProperty } from "./guest-proxy-get.js";
 
 export type IteratorAwaitState = {kind: "result"} | {kind: "value"; done: boolean; closeOnReject: boolean};
 
@@ -594,9 +596,11 @@ export function generatorIterator(generator: SandboxGenerator, budget?: Budget, 
     const leaveRunning = enterRunningState(generator);
     generator.state = "running";
     try {
-      const result = (await generator.channel[method](value)) as IteratorResult<SandboxValue>;
+      const result = await generator.channel[method](value);
       generator.state = result.done ? "done" : "suspended";
-      return result;
+      return result.yieldedResult !== undefined
+        ? result.yieldedResult as IteratorResult<SandboxValue>
+        : createIteratorResult(result.value as SandboxValue, result.done === true, budget);
     } catch (error) {
       generator.state = "done";
       throw error;
@@ -613,6 +617,9 @@ export function generatorIterator(generator: SandboxGenerator, budget?: Budget, 
   return {
     generator: true,
     snapshot: () => ({ kind: "builtin", value: generator, index: 0 }),
+    readResultProperty: async (result, property) => ({ value: context?.getProperty !== undefined
+      ? await context.getProperty(result as unknown as SandboxValue, property)
+      : await sandboxGetProperty(result as unknown as SandboxValue, property, result as unknown as SandboxValue, budget ?? new Budget(), context) }),
     next: (value) => request("next", value),
     return: (value) => request("return", value),
     throw: (error) => request("throw", error)

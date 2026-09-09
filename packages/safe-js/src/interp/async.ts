@@ -110,7 +110,7 @@ export type AsyncEvaluationContext = {
     nodeVisits: number;
     peakDataSize: number;
   };
-  generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
+  generatorYield?: (value?: SandboxValue, yieldNodeId?: number, yieldedResult?: SandboxValue) => Promise<GeneratorCompletion>;
   asyncGenerator?: boolean;
   asyncGeneratorFrame?: SandboxGenerator;
   asyncFunction?: boolean;
@@ -282,9 +282,9 @@ export function createInterpretedClosure(
               origin.suspendedScope = current; origin.blockScopes = blocks;
               origin.finallyCompletions = completions; origin.expressionStates = expressions;
             },
-            generatorYield: (value, nodeId) => {
+            generatorYield: (value, nodeId, yieldedResult) => {
               generator.state = "suspended";
-              return generatorYield(value, nodeId);
+              return generatorYield(value, nodeId, yieldedResult);
             }
           });
           const value = "hasValue" in result && result.hasValue ? result.value : undefined;
@@ -396,9 +396,9 @@ function createGeneratorClosure(
                 origin.finallyCompletions = completions;
                 origin.expressionStates = expressions;
               },
-              generatorYield: (value, yieldNodeId) => {
+              generatorYield: (value, yieldNodeId, yieldedResult) => {
                 generator.state = "suspended";
-                return generatorYield(value, yieldNodeId);
+                return generatorYield(value, yieldNodeId, yieldedResult);
               },
               scope
             });

@@ -147,6 +147,7 @@ import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods
 import { createPendingPromiseCapability, getPromiseMember } from "./promise.js";
 import { resolveModuleNamespace } from "../modules/registry.js";
 import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
+import { createIteratorResult } from "./iterator-result.js";
 import type { GeneratorExpressionState } from "./generator-expression-state.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
@@ -268,7 +269,7 @@ export type InterpretOptions = {
   signal?: AbortSignal;
   surfaceUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
-  generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
+  generatorYield?: (value?: SandboxValue, yieldNodeId?: number, yieldedResult?: SandboxValue) => Promise<GeneratorCompletion>;
   asyncGenerator?: boolean;
   generatorResume?: {
     sent: GeneratorCompletion[];
@@ -2759,7 +2760,10 @@ async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, c
     driver.suspension = "yield";
   }
   context.captureGeneratorScope?.(context.scope, context.generatorBlockScopes, context.finallyCompletions, context.generatorExpressionStates);
-  const completionPromise = context.generatorYield!(allocateProducedSandboxValue(value, context.budget), node.nodeId);
+  const produced = allocateProducedSandboxValue(value, context.budget);
+  const yieldedResult = context.asyncGenerator ? undefined
+    : node.delegate ? produced : createIteratorResult(produced, false, context.budget);
+  const completionPromise = context.generatorYield!(produced, node.nodeId, yieldedResult);
   emitResumeBreakpoint(context, {
     kind: "generator-yield",
     nodeId: node.nodeId,
@@ -2868,7 +2872,9 @@ async function evaluateYieldDelegate(
         throw new TypeError("Iterator result must be an object.");
       }
       const done = (await readIteratorResult(iterator, result, "done")).value;
-      const value = (await readIteratorResult(iterator, result, "value")).value;
+      const value = done || context.asyncGenerator
+        ? (await readIteratorResult(iterator, result, "value")).value
+        : result as unknown as SandboxValue;
       if (done) {
         if (completion.type === "return") {
           return generatorCompletionResult({ type: "return", value });

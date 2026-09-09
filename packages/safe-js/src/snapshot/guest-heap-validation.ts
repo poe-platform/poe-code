@@ -697,7 +697,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     const owners = new Set<object>();
     for (const value of node.requests) {
       const request = record(value);
-      fields(request, ["method", "value", "capability"]);
+      fields(request, ["method", "value", "capability"], ["resultPrototype"]);
+      if (request.resultPrototype !== undefined && request.resultPrototype !== null) reference(request.resultPrototype);
       if (!["next", "return", "throw"].includes(String(request.method))) throw new TypeError("Invalid async generator request operation.");
       const capability = record(request.capability);
       fields(capability, ["promise", "resolve", "reject"]);
@@ -896,7 +897,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "guest-generator") {
-    fields(node, ["kind", "state", "astNodeId", "async", "scope", "closureScope", "sent"], ["suspendedScope", "yieldNodeId", "environment", "blockScopes", "finallyCompletions", "expressionStates", "objectState", "asyncFunction", "driver", "awaitPhase", "dynamicSource"]);
+    fields(node, ["kind", "state", "astNodeId", "async", "scope", "closureScope", "sent"], ["suspendedScope", "yieldNodeId", "environment", "blockScopes", "finallyCompletions", "expressionStates", "objectState", "asyncFunction", "driver", "awaitPhase", "dynamicSource", "resultPrototype"]);
+    if (node.resultPrototype !== undefined && node.resultPrototype !== null) reference(node.resultPrototype);
     if (node.dynamicSource !== undefined) reference(node.dynamicSource, ["guest-source", "guest-script"]);
     if (node.asyncFunction !== undefined && (node.asyncFunction !== true || node.async !== false)) throw new TypeError("Invalid async function suspension frame.");
     if (node.driver !== undefined && (node.async !== true || reference(reference(node.driver, ["async-generator-driver"]).generator) !== node)) throw new TypeError("Invalid async generator frame owner.");

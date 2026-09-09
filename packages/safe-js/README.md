@@ -634,6 +634,14 @@ prototype through yielding, early return, exhaustion and public replay.
 `Iterator.from` fallback return results retain the called method's Object
 prototype when the underlying return method is absent or null. Custom next
 and return results are forwarded unchanged.
+Synchronous generators preserve delegated `yield*` result identity, including
+Proxy results, without eagerly reading their `value` property. Ordinary yields
+retain the generator realm's Object prototype; completed synchronous results
+use the called method's realm. Async generators retain the execution realm for
+body results and requests drained at completion, while later calls on a finished
+generator use the called method's realm. Focused checks cover borrowed calls,
+queued requests and public replay. The generator/snapshot validation run passed
+1,944 tests; this is focused evidence, not a full JavaScript conformance claim.
 RegExp iterator results follow the same rule for built-in and custom `exec`
 paths, including non-global matching. Custom match results retain identity.
 For `RegExp.prototype[Symbol.matchAll]` iterators, borrowed `next` calls

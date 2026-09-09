@@ -559,6 +559,13 @@ export function getSandboxDataProperty(
   return undefined;
 }
 
+export function createOrdinaryObject(prototype: object | null, properties: SandboxObject = {}): SandboxObject {
+  const value = { ...properties };
+  storePrototype(value, prototype);
+  if (prototype !== null) defaultPrototypeLinks.set(value, prototype);
+  return value;
+}
+
 export function setSandboxPrototype(
   value: object,
   prototype: object | null,

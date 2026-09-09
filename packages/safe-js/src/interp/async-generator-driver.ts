@@ -1,4 +1,6 @@
 import { isFatalSandboxError, type Budget } from "./budget.js";
+import { getGeneratorOrigin } from "./closure-origin.js";
+import { createOrdinaryObject, getSandboxPrototype } from "./object-model.js";
 import { createThrowCompletion } from "./exceptions.js";
 import { runAsyncPrefix, runPromiseJob } from "./jobs.js";
 import { attachPendingPromiseReaction, createPendingPromiseCapability, pendingPromiseRejectors, requiresPromiseResolution } from "./promise.js";
@@ -9,6 +11,7 @@ import { retainValues } from "./resources.js";
 import { allocateProducedSandboxValue, createSandboxClosure, isSandboxPromise, type SandboxCallContext, type SandboxClosure, type SandboxGenerator, type SandboxPromise, type SandboxValue } from "./values.js";
 
 export type AsyncGeneratorRequest = {
+  resultPrototype?: SandboxValue & (object | null);
   method: "next" | "return" | "throw";
   value: SandboxValue;
   capability: {promise: SandboxPromise; resolve: SandboxClosure; reject: SandboxClosure};
@@ -75,7 +78,8 @@ export function enqueueAsyncGeneratorRequest(generator: SandboxGenerator, method
   let completePrefix: (() => void) | undefined;
   const prefix = startsRequest ? new Promise<void>(resolve => {completePrefix = resolve;}) : undefined;
   const capability = createPendingPromiseCapability(budget, context, prefix);
-  driver.requests.push({method, value, capability: {promise: capability.promise, resolve: capability.resolve, reject: capability.reject}});
+  driver.requests.push({method, value, resultPrototype: getSandboxPrototype({}, budget) as SandboxValue & (object | null),
+    capability: {promise: capability.promise, resolve: capability.resolve, reject: capability.reject}});
   asyncGeneratorRequestOwners.set(capability.promise, driver);
   if (startsRequest) {
     driver.phase = "running";
@@ -118,13 +122,19 @@ export function createAsyncGeneratorHandler(driver: AsyncGeneratorDriver, action
 async function settleGeneratorRequest(driver: AsyncGeneratorDriver, action: "fulfilled" | "rejected", value: SandboxValue, done: boolean, budget: Budget, context?: SandboxCallContext): Promise<void> {
   const request = driver.requests[0];
   if (request === undefined) throw new TypeError("Missing async generator request.");
-  if (action === "fulfilled") await request.capability.resolve.call([allocateProducedSandboxValue({value, done}, budget)], context);
+  if (action === "fulfilled") {
+    const result = createOrdinaryObject(request.resultPrototype === undefined ? getSandboxPrototype({}, budget) : request.resultPrototype, {value, done});
+    await request.capability.resolve.call([allocateProducedSandboxValue(result, budget)], context);
+  }
   else await request.capability.reject.call([value], context);
   driver.requests.shift();
   asyncGeneratorRequestOwners.delete(request.capability.promise);
   const next = driver.requests[0];
   if (next === undefined) driver.phase = "idle";
-  else await advanceAsyncGenerator(driver, next.method, next.value, budget, context);
+  else {
+    if (driver.generator.state === "done") next.resultPrototype = request.resultPrototype;
+    await advanceAsyncGenerator(driver, next.method, next.value, budget, context);
+  }
 }
 
 async function awaitGeneratorRequest(driver: AsyncGeneratorDriver, value: SandboxValue, kind: "body" | "return", budget: Budget, context?: SandboxCallContext): Promise<void> {
@@ -154,6 +164,11 @@ async function advanceAsyncGenerator(driver: AsyncGeneratorDriver, method: Async
   try {
     driver.phase = "running";
     const initial = generator.state;
+    if (initial === "suspended" || (initial === "start" && method === "next")) {
+      const request = driver.requests[0];
+      const prototype = getGeneratorOrigin(generator)?.resultPrototype;
+      if (request !== undefined && prototype !== undefined) request.resultPrototype = prototype as SandboxValue & (object | null);
+    }
     generator.state = "running";
     const result = await generator.channel[method](value, record);
     generator.state = result.done ? "done" : "suspended";

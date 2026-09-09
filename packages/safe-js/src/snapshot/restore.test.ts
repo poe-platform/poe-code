@@ -508,7 +508,11 @@ describe("snapshot restore", () => {
 
     expect(start.value.async === true).toBe(async);
     expect(done.value.async === true).toBe(async);
-    await expect(start.value.channel.next()).resolves.toEqual({ value: 1, done: false });
+    await expect(start.value.channel.next()).resolves.toEqual({
+      value: 1,
+      done: false,
+      ...(async ? {} : { yieldedResult: { value: 1, done: false } })
+    });
     await expect(start.value.channel.next()).resolves.toEqual({ value: 2, done: true });
     await expect(done.value.channel.next()).resolves.toEqual({ value: undefined, done: true });
   });
@@ -552,7 +556,11 @@ describe("snapshot restore", () => {
     }
     const generator = binding.value;
 
-    await expect(generator.channel.next()).resolves.toEqual({ value: 2, done: false });
+    await expect(generator.channel.next()).resolves.toEqual({
+      value: 2,
+      done: false,
+      yieldedResult: { value: 2, done: false }
+    });
     await expect(generator.channel.next()).resolves.toEqual({ value: 3, done: true });
   });
 
@@ -584,7 +592,13 @@ describe("snapshot restore", () => {
       yieldNodeId: getNodeIdByType(module, "YieldExpression")
     });
 
-    await expect(generator.channel.next("second")).resolves.toEqual({ value: 3, done: false });
+    const delegated = await generator.channel.next("second");
+    expect(delegated).toEqual({
+      value: { value: 3, done: false },
+      done: false,
+      yieldedResult: { value: 3, done: false }
+    });
+    expect(delegated.yieldedResult).toBe(delegated.value);
     await expect(generator.channel.next("third")).resolves.toEqual({
       value: undefined,
       done: true

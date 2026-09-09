@@ -45,7 +45,7 @@ export function callGeneratorMethod(
       throw new TypeError(`${async ? "AsyncGenerator" : "Generator"}.${method} requires a matching generator receiver.`);
     const iterator = generatorIterator(target, budget, context);
     const result = await iterator[method]!(value);
-    return allocateProducedSandboxValue({ value: result.value, done: result.done === true }, budget);
+    return allocateProducedSandboxValue(result as unknown as SandboxValue, budget);
   })();
   return async ? createSandboxPromise(result) : result;
 }

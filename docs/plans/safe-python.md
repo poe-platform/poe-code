@@ -1476,6 +1476,25 @@ extension, integration, or validation requirement is missing or unverified.
   and selected dependency build passed. Reference: Python with-statement rules.
   Async with, except*, match, suspension, concrete guest object/frame integration
   and complete allocation accounting remain pending; the interpreter is unfinished.
+- Added ordinary exception-type matching over opaque guest-class identities.
+  Handler tuples are fully validated before matching, including entries after an
+  otherwise matching class; nested tuples and non-exception classes raise the
+  matching TypeError diagnostic. Tuple subclasses use internal storage without
+  guest iteration/index/length hooks. Matching scans the raised type's actual MRO
+  without virtual subclass hooks. Internal exception-class eligibility is separate
+  from MRO membership because custom metaclasses can omit BaseException from a
+  still-valid exception class's MRO. Empty tuples do not inspect the raised MRO.
+- Matching validation: missing-module red suite preceded implementation. All
+  1,971 tests in 96 files pass, including invalid trailing entries, custom MROs,
+  tuple overrides, budgets and statement-engine integration where an outer handler
+  catches a matching-validation TypeError. CPython matched 7,000 generated type/
+  tuple targets over built-in and generated multiple-inheritance classes, checking
+  match results and exact errors. The oracle armed virtual hooks only at header
+  evaluation, separating matching from raise-time normalization's hook behavior.
+  Scoped lint, source typecheck and selected build passed. Reference: Python
+  ordinary except-clause rules. Concrete class metadata, raise normalization,
+  exception-group matching and complete temporary-set heap accounting remain
+  pending/adapter-owned, along with the remaining interpreter work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

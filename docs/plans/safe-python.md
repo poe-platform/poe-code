@@ -630,10 +630,23 @@ extension, integration, or validation requirement is missing or unverified.
   CPython's later closure-slot optimizations. Scoped lint, source typecheck, and
   the selected workspace build passed. Runtime
   class-cell initialization, super behavior, and public execution remain pending.
+- Added future-directive validation for known Python 3.14 features and their
+  module-prefix placement, allowing a leading string docstring, consecutive
+  directives, and aliases while rejecting nested/misplaced or unknown features.
+  Relative/dotted lookalikes remain ordinary imports. Lazy parser feature state
+  enables Barry's <> comparison spelling, rejects != in that mode, and preserves
+  canonical inequality ASTs in nested and interpolated expressions. Added a shared
+  direct-statement child enumerator for context-independent validation traversals.
+- Future validation: the initial suite failed on the missing validator; all 1,155
+  package tests pass. A 328-case CPython compilation comparison matched feature
+  placement/names and inequality spelling. Scoped lint, source typecheck, and the
+  selected workspace build passed. Directive
+  validation remains a separate analysis phase; inherited compile flags, runtime
+  imports, and unified public analysis/execution orchestration remain pending.
 - Next:
-  compound statements, type aliases, and enclosing-scope validation
-  normalization, the complete grammar/parser and evaluator, then runtime modules
-  and safe-fs integration. Tokenization does not establish interpreter execution.
+  unified analysis API, remaining scope/compiler audits, interpreter runtime,
+  resource controls, runtime modules, and safe-fs integration. Parsing and static
+  analysis do not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.
 - Package README creation awaits the requested permission under repository rules.
 - No push or release was requested.

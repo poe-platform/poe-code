@@ -12,6 +12,7 @@ export function createTokenCursor(text: string, options: LexerOptions = {}): Tok
 
 /** Lazy tokens, retaining consumed tokens only while a grammar alternative needs them. */
 export class TokenCursor {
+  readonly futureFeatures = new Set<string>();
   private buffered: Token[] = [];
   private offset = 0;
   private attempts = 0;

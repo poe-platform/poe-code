@@ -2,6 +2,7 @@ import type { DeclaredName, ImportItem, Statement } from "./statement-ast.js";
 import type { TokenCursor } from "./token-cursor.js";
 import { reservedWords } from "./keywords.js";
 import { normalizeNfkc } from "./normalization.js";
+import { isFutureImport } from "./future-imports.js";
 
 /** Import parsing records requests only; module loading belongs to the runtime. */
 export function readImportStatement(cursor: TokenCursor): Statement {
@@ -31,9 +32,11 @@ export function readImportStatement(cursor: TokenCursor): Statement {
     if (parenthesized && cursor.peek().text === ")") break;
   }
   const end = parenthesized ? cursor.expect(")").end : imports[imports.length - 1].end;
-  return from
+  const statement: Statement = from
     ? { kind: "import-from", module, level, imports, start: opening.start, end }
     : { kind: "import", imports, start: opening.start, end };
+  if (isFutureImport(statement)) for (const item of imports) cursor.futureFeatures.add(item.path[0]!.name);
+  return statement;
 }
 
 function readPath(cursor: TokenCursor): DeclaredName[] {

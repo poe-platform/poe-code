@@ -14,7 +14,7 @@ const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
   "+": 10, "-": 10, "*": 11, "@": 11, "/": 11, "//": 11, "%": 11, "**": 13
 };
-const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "in", "is", "not"]);
+const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "<>", "in", "is", "not"]);
 
 /** Parse a single expression. Statement grammar and additional expression forms are still being implemented. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
@@ -56,7 +56,10 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
       const operands = [left];
       const operators: string[] = [];
       while (comparisons.has(cursor.peek().text)) {
+        const spelling = cursor.peek().text;
+        if ((spelling === "!=" || spelling === "<>") && (spelling === "<>") !== cursor.futureFeatures.has("barry_as_FLUFL")) throw cursor.error("invalid inequality spelling for active future features");
         let operator = cursor.take().text;
+        if (operator === "<>") operator = "!=";
         if (operator === "not") { cursor.expect("in"); operator = "not in"; }
         else if (operator === "is" && cursor.peek().text === "not") { cursor.take(); operator = "is not"; }
         operators.push(operator);

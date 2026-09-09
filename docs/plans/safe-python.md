@@ -5269,6 +5269,26 @@ extension, integration, or validation requirement is missing or unverified.
   build pass. Dict/set representations, bytes percent operator integration, full
   guest objects, suspended execution, complete accounting and SDK/safe-fs
   integration remain outstanding.
+- Added a generic metered dictionary representation renderer with an explicit
+  trusted live-cursor contract. It captures key/value pairs before guest repr,
+  renders keys before values, preserves code points, checks cycles before empty
+  traversal and restores active paths on cursor/representation failure without
+  invoking cursor close. This is not native dictionary integration yet.
+- CPython probes established that repr permits dictionary size mutation and
+  reads later pairs live, while retaining the current value across key repr.
+  Clearing an active owner and reentering repr yields the recursive marker, not
+  an empty dict. Clear-and-refill retains the numeric traversal position and
+  skips earlier new slots. OrderedKeyMap's ordinary iterator rejects size changes;
+  a raw positional cursor (including deletion holes and compaction behavior) is
+  required before wiring this renderer into native dictionary slots. Neither a
+  snapshot nor the current host Set iterator is an adequate substitute.
+- Five tests first failed on the missing renderer. All 4,531 tests in 371 files
+  pass. The production renderer matches CPython for 2,000 dictionary graphs
+  (9,000 roots) using audit-only row cursors; this does not verify OrderedKeyMap
+  traversal or native dictionary formatting. Source typecheck, scoped lint and selected
+  workspace build pass. Native dict/set representations, bytes percent operator
+  integration, full guest objects, suspended execution, complete accounting and
+  SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -118,14 +118,18 @@ export class OrderedKeyMap<Key, Value> {
     return result;
   }
 
-  /** LIFO removal without guest hashing/equality. Empty storage is reported as
-   * absence; the guest method layer raises its popitem-specific KeyError. */
-  popitem(): readonly [Key, Value] | undefined {
+  /** LIFO removal without guest hashing/equality. A trusted projection may
+   * allocate the guest result before removal; it must not mutate this storage
+   * or invoke guest code. Empty storage is reported as absence. */
+  popitem(): readonly [Key, Value] | undefined;
+  popitem<Result>(project: (key: Key, value: Value) => Result): Result | undefined;
+  popitem<Result>(project?: (key: Key, value: Value) => Result): Result | readonly [Key, Value] | undefined {
     this.meter.checkpoint();
     const entry = this.#last;
     if (entry === undefined) return undefined;
     this.meter.checkpoint(0, 48);
-    const result = Object.freeze([entry.key, entry.value] as const);
+    const result = project ? project(entry.key, entry.value) : Object.freeze([entry.key, entry.value] as const);
+    this.meter.checkpoint();
     this.#remove(entry);
     return result;
   }

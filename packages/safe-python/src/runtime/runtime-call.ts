@@ -14,7 +14,8 @@ export interface RuntimeCallContext {
   keywordName(key: RuntimeValue): string;
   /** Guest call-slot presence, queried only after all expansion succeeds. */
   callable(callee: RuntimeValue): boolean;
-  /** Execute after callability and keyword validation. Keyword
+  /** Execute after callability and caller-side keyword validation. Explicit
+   * native capabilities may own name validation inside their invocation. Keyword
    * keys retain Python code points, including surrogate sequences: converting
    * them to host Map<string, ...> can collapse distinct Python strings.
    */
@@ -23,7 +24,8 @@ export interface RuntimeCallContext {
 
 /** Per-expression collector. No callability checks or formatting during setup.
  * Exact dict keyword merges reject duplicates with cached hashes; non-string
- * validation waits until invocation. Guest mapping/length-hint slots and full
+ * validation waits until invocation (or an opted-in native callee's checks).
+ * Guest mapping/length-hint slots and full
  * temporary accounting remain wider object-runtime responsibilities.
  */
 export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallContext, meter: ExecutionMeter): ExpressionCall<RuntimeValue> {
@@ -76,10 +78,12 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
         const name = callee.kind === "none" ? "NoneType" : callee.kind === "not-implemented" ? "NotImplementedType" : callee.kind;
         throw new PythonRuntimeError("TypeError", `'${name}' object is not callable`);
       }
-      const iterator = keywords.items.iterate(key => key);
-      for (let item = iterator.next(); !item.done; item = iterator.next()) {
-        meter.checkpoint();
-        if (item.value.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
+      if (callee.kind !== "builtin_function_or_method" || callee.value.keywordValidation !== "callee") {
+        const iterator = keywords.items.iterate(key => key);
+        for (let item = iterator.next(); !item.done; item = iterator.next()) {
+          meter.checkpoint();
+          if (item.value.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
+        }
       }
       const result = context.invoke(callee, Object.freeze(positional), keywords);
       meter.checkpoint(); return result;

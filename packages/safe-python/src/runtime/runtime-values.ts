@@ -51,6 +51,9 @@ export type DictionaryViewValue = { readonly value: DictionaryValue } & (
  */
 export interface BuiltinFunctionCapability {
   readonly name: string;
+  /** Native keyword-dict calling conventions may validate names after their
+   * positional work. Opted-in callees must perform their own keyword checks. */
+  readonly keywordValidation?: "callee";
   invoke(positional: readonly RuntimeValue[], keywords: DictionaryValue, meter: ExecutionMeter): RuntimeValue;
 }
 

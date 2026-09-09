@@ -9,6 +9,22 @@ function fixture() {
 }
 
 describe("ordered mapping popitem storage", () => {
+  it("constructs a projected result before removal and preserves storage on failure", () => {
+    const { map } = fixture(); map.set(1, "a");
+    expect(() => map.popitem(() => { throw new ExecutionLimitError("allocation"); })).toThrow(ExecutionLimitError);
+    expect(map.snapshot()).toEqual([[1, "a"]]);
+    expect(map.popitem((key, value) => ({ key, value }))).toEqual({ key: 1, value: "a" });
+    expect(map.size).toBe(0);
+  });
+  it("checks cancellation after result construction before unlinking", () => {
+    let cancelled = false;
+    const map = new OrderedKeyMap<number, string>({ hash: BigInt, equal: (a, b) => a === b }, {
+      checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); }
+    });
+    map.set(1, "a");
+    expect(() => map.popitem(() => { cancelled = true; return 1; })).toThrow(ExecutionLimitError);
+    cancelled = false; expect(map.snapshot()).toEqual([[1, "a"]]);
+  });
   it("removes the most recently inserted entry, not the most recently updated", () => {
     const { map } = fixture(); map.set(1, "a"); map.set(2, "b"); map.set(1, "updated");
     const pair = map.popitem(); expect(pair).toEqual([2, "b"]); expect(Object.isFrozen(pair)).toBe(true);

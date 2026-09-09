@@ -3606,6 +3606,27 @@ extension, integration, or validation requirement is missing or unverified.
   Automatic builtin/type registration, iterator subtype metadata/introspection,
   state restoration, set-producing view operations, full object construction,
   suspension, accounting and public SDK/safe-fs integration remain unfinished.
+- Added exact-dictionary bound clear, pop, popitem, setdefault and update methods.
+  Pop preserves stored None/default distinctions and original KeyError arguments,
+  including the empty-dictionary no-hash path; setdefault hashes once and retains
+  existing keys/positions. Popitem constructs its guest tuple before unlinking
+  the latest entry, with a trusted non-mutating storage projection and a
+  post-construction checkpoint, preserving storage on allocation/cancellation.
+  Updates preserve exact keyword records, mapping/pair order and partial writes.
+- Tests first failed on missing methods/projection support. A CPython trace audit
+  exposed that native dict.update applies positional data before rejecting bad
+  keyword names. New failing call-collection tests confirmed the mismatch. Native
+  capabilities can now explicitly own keyword-name validation; only update opts
+  in here, and ordinary call validation/duplicate detection remains unchanged.
+  All 3,521 tests in 244 files pass; typecheck, scoped lint and selected workspace
+  build pass. The corrected 1,800-case audit matched 43,200 mutation operations,
+  errors, KeyError arguments and final ordered state. Regressions passed for
+  dictionary item access (1,500 / 30,000 operations), update/construction (2,400
+  each) and call collection (2,400). An assembled program exercises all five
+  mutation methods through explicit dictionary-only attribute hooks. Native
+  descriptor discovery/introspection, dict.fromkeys, remaining native calling
+  conventions, full object construction, sets, suspension, accounting and public
+  SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

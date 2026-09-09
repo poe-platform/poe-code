@@ -32,6 +32,29 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([
+    "def outer(a):\n def inner(b):\n  return a + b + token\n return inner\n",
+    "def outer(a):\n return lambda b: a + b + token\n",
+    "def outer(a):\n def make(x):\n  return lambda y: x + y + token\n return make(a)\n",
+    "def outer(a):\n def deco(fn):\n  return lambda b: fn(b) + a\n @deco\n def inner(b): return b + token\n return inner\n",
+    "def outer(a):\n def inner(b, fn=lambda x: x + token):\n  return a + fn(b)\n return inner\n"
+  ])("retains definition ownership across separate compiled programs: %s", source => {
+    const state = fixture(source); state.globals.set("token", state.values.integer(10)); state.run();
+    const globals = new Map<string, RuntimeValue>([["outer", state.globals.get("outer")!], ["token", state.values.integer(99)]]);
+    const caller = compileProgram<RuntimeValue>(analyzeModule("f = outer(2)\nresult = f(3)\n"), { stripDocstring: false }, state.values, state.meter);
+    executeRuntimeProgram(caller, { ...state, globals }, state.meter);
+    expect(globals.get("result")).toEqual(state.values.integer(15));
+    expect(state.globals.has("f")).toBe(false); expect(state.calls.depth).toBe(0);
+  });
+  it("retains originating code through a bound method invoked by another program", () => {
+    const state = fixture("def outer(self):\n return lambda b: self[0] + b + token\n");
+    state.globals.set("token", state.values.integer(10)); state.run();
+    const fn = state.globals.get("outer"); if (fn?.kind !== "function") throw new Error("expected function");
+    const globals = new Map<string, RuntimeValue>([["method", state.values.boundMethod(fn, state.values.list([state.values.integer(2)]))]]);
+    const caller = compileProgram<RuntimeValue>(analyzeModule("f = method()\nresult = f(3)\n"), { stripDocstring: false }, state.values, state.meter);
+    executeRuntimeProgram(caller, { ...state, globals }, state.meter);
+    expect(globals.get("result")).toEqual(state.values.integer(15)); expect(state.calls.depth).toBe(0);
+  });
   it("executes against live Python dictionary locals without leaking them into function globals", () => {
     const state = fixture("x = 2\ndef f():\n return x\nresult = f()\ndel x\n");
     const dictionary = state.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(state.keys, state.meter));

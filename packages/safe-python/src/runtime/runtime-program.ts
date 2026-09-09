@@ -49,7 +49,7 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, R
 export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
   meter.checkpoint(1, 192);
   const { values, keys, hooks, calls } = context;
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>) => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions) => {
     meter.checkpoint(1, 384);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -66,13 +66,13 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         }
         if (fn.kind !== "function") return hooks.invoke(fn, args, keywords, frame);
         const invocation: RuntimeFunctionContext = {
-          values, keys, calls, body: child => body(child, fn.value)
+          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions)
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
         return invokeRuntimeFunction(fn, args, keywords, invocation, meter);
       }
     }, meter);
-    const definitions = createRuntimeFunctionDefinitions(program, {
+    const definitions = createRuntimeFunctionDefinitions({ functions }, {
       globals: namespaces.globals, builtins: namespaces.builtins,
       capture: frame instanceof LexicalFrame || frame instanceof ClassFrame ? frame.capture.bind(frame) : undefined,
       resolveBuiltins: hooks.resolveBuiltins?.bind(hooks),

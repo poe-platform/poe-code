@@ -1,6 +1,6 @@
 import type { ModuleAnalysis } from "../analysis.js";
 import type { Expression } from "../ast.js";
-import type { FunctionExecutionKind } from "../expression-context.js";
+import type { FunctionExecutionKind, FunctionNode } from "../expression-context.js";
 import type { Statement } from "../statement-ast.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
 import type { CodeConstants } from "./code-constants.js";
@@ -8,6 +8,10 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { compileSuite } from "./suite-compilation.js";
 
 export interface CompiledFunction<Value> {
+  /** Originating program's code registry. Nested definitions follow their code,
+   * not the caller's currently executing module. Standalone compilation may omit
+   * it when the embedding runtime supplies its own definition resolver. */
+  readonly definitions?: ReadonlyMap<FunctionNode, CompiledFunction<Value>>;
   readonly scope: ResolvedScope;
   readonly kind: FunctionExecutionKind;
   readonly name: Value;

@@ -3373,6 +3373,20 @@ extension, integration, or validation requirement is missing or unverified.
   representation, arbitrary prepared mappings, bases/metaclass/type construction,
   and concrete instance dispatch still need integration. Suspension, complete
   resource accounting and public SDK/safe-fs integration also remain unfinished.
+- Class-body callable inspection exposed a cross-program code-ownership defect:
+  a function defined by one compiled program failed when called by another if it
+  created a nested def or lambda. Both initial reproductions failed with missing
+  compiled code. Whole-program compiled functions now retain their originating
+  function registry, and frame assembly follows that registry through ordinary
+  and bound-method calls. Ownership is shared per code object rather than copied
+  into every closure; standalone compiled code can retain an embedding resolver.
+- All 3,407 tests in 231 files pass, including six cross-program regressions for
+  nested definitions, lambdas, default lambdas, decorators and bound methods. A
+  1,500-case CPython cross-program audit matched function factories and captured
+  globals. Assembled-program (1,300) and class-suite (1,200) differential regressions
+  also passed. Source typecheck, scoped lint and selected workspace build passed.
+  Class-body callable representation and class-statement construction remain
+  unfinished; this fixes a prerequisite rather than completing those features.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

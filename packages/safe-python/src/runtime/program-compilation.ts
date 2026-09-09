@@ -41,7 +41,11 @@ export function compileProgram<Value>(
   while (pending.length) {
     meter.checkpoint();
     const scope = pending.pop()!, node = scope.scope.node;
-    if (node.kind === "function" || node.kind === "lambda") functions.set(node, compileFunction(scope, analysis, options, constants, meter));
+    if (node.kind === "function" || node.kind === "lambda") {
+      const code = compileFunction(scope, analysis, options, constants, meter);
+      meter.checkpoint(0, 96);
+      functions.set(node, { ...code, definitions: functions });
+    }
     else if (node.kind === "class") classes.set(node, compileClassBody(scope, analysis, options, constants, meter));
     for (let index = scope.children.length - 1; index >= 0; index--) { meter.checkpoint(); pending.push(scope.children[index]); }
   }

@@ -20,7 +20,6 @@ import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-val
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
 import { validateTemplateObjects } from "./template-validation.js";
 
-const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
 const DEFAULT_MAX_ENTRIES = 100_000;
 const DEFAULT_MAX_STRING_LENGTH = 1_000_000;
 const DEFAULT_MAX_DATA_SIZE = 16_000_000;
@@ -1032,7 +1031,7 @@ function limitsFromBudget(budget: Budget): ValidationLimits {
   return {
     maxAggregateEntries: DEFAULT_MAX_ENTRIES,
     maxCallDepth: budget.limits.maxCallDepth ?? 10_000,
-    maxDepth: Math.min(DEFAULT_MAX_DEPTH, budget.limits.maxCallDepth ?? DEFAULT_MAX_DEPTH),
+    maxDepth: Math.min(MAX_DATA_DEPTH, budget.limits.maxCallDepth ?? MAX_DATA_DEPTH),
     maxEntries: budget.limits.arrayLength ?? DEFAULT_MAX_ENTRIES,
     maxStringLength: budget.limits.stringLength ?? DEFAULT_MAX_STRING_LENGTH,
     maxDataSize: budget.limits.dataSize ?? DEFAULT_MAX_DATA_SIZE
@@ -1043,7 +1042,7 @@ function defaultLimits(): ValidationLimits {
   return {
     maxAggregateEntries: DEFAULT_MAX_ENTRIES,
     maxCallDepth: 10_000,
-    maxDepth: DEFAULT_MAX_DEPTH,
+    maxDepth: MAX_DATA_DEPTH,
     maxEntries: DEFAULT_MAX_ENTRIES,
     maxStringLength: DEFAULT_MAX_STRING_LENGTH,
     maxDataSize: DEFAULT_MAX_DATA_SIZE

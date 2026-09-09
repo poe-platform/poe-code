@@ -6308,6 +6308,21 @@ extension, integration, or validation requirement is missing or unverified.
   names and nested functions. Typecheck, scoped lint and selected workspace build pass.
   Automatic namespace assembly and concrete shared attribute/object adapters,
   plus broader interpreter/SDK/safe-fs integration, remain unfinished.
+- Added execution-local weak object identities and an explicitly registered id
+  builtin. IDs are opaque, stable, monotonically allocated and do not expose
+  host addresses or keep guest objects alive. A derived identity-hash policy is
+  available from the same registry. New registry entries and boxed return values
+  are metered; repeated lookups retain IDs without allocating another entry.
+- Four tests cover identity stability/distinctness, execution isolation,
+  allocation limits, non-interned return integers and builtin validation. All
+  4,953 tests in 433 files pass; typecheck, scoped lint and selected workspace
+  build pass. Of 53 compiled CPython identity comparisons, 51 match. Two expose
+  existing compiler pooling differences: repeated (1,) tuple literals and -10
+  unary expressions produce distinct objects here. id correctly tracks those
+  objects, but CPython pools the constants. The full differential retains these
+  mismatches for the compiler audit. Numeric IDs are intentionally opaque rather
+  than reproducing process-specific addresses. Automatic identity/builtin policy
+  assembly and broader interpreter/object/SDK/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

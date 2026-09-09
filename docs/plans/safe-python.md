@@ -5228,6 +5228,19 @@ extension, integration, or validation requirement is missing or unverified.
   dispatch/operator integration, guest reflected slots and global string
   canonicalization remain incomplete. Full guest objects, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Added a generic list representation kernel over live ListStorage and the
+  shared representation protocol/active-path guard. It renders repeated siblings
+  fully, marks cycles, observes element-repr mutations, checks emptiness before
+  recursive reentry, preserves separate surrogate code points, restores guard
+  state on failure and assembles a single final output buffer from metered parts.
+  Native list slots and percent/operator dispatch are not yet wired to this helper.
+- Six tests first failed on the missing module. All 4,516 tests in 368 files
+  pass. The production helper matches CPython for 2,000 shared/cyclic graphs
+  (9,000 roots); direct CPython probes confirm append/delete/clear and empty-reentry
+  behavior. Source typecheck, scoped lint and selected workspace build pass.
+  Other container representations, bytes percent operator integration, full guest
+  objects, suspended execution, complete accounting and SDK/safe-fs integration
+  remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

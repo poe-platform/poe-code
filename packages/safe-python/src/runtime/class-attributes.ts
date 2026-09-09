@@ -13,6 +13,7 @@ export function lookupMroAttribute<Type, Name, Value>(
   for (const owner of mro) {
     meter?.checkpoint();
     const attribute = lookupOwn(owner, name);
+    meter?.checkpoint();
     if (attribute !== undefined) return { owner, value: attribute.value };
   }
   return undefined;
@@ -32,20 +33,27 @@ export function readClassAttribute<Instance, Value, Class, Metaclass>(
   const slots = metaclassAttribute?.slots;
   if (slots?.get !== undefined && (slots.set !== undefined || slots.delete !== undefined)) {
     meter?.checkpoint();
-    return { value: slots.get(cls, metaclass) };
+    const value = slots.get(cls, metaclass);
+    meter?.checkpoint();
+    return { value };
   }
   meter?.checkpoint();
   const attribute = readClass();
+  meter?.checkpoint();
   if (attribute !== undefined) {
     if (attribute.slots?.get !== undefined) {
       meter?.checkpoint();
-      return { value: attribute.slots.get(null, cls) };
+      const value = attribute.slots.get(null, cls);
+      meter?.checkpoint();
+      return { value };
     }
     return { value: attribute.value };
   }
   if (slots?.get !== undefined) {
     meter?.checkpoint();
-    return { value: slots.get(cls, metaclass) };
+    const value = slots.get(cls, metaclass);
+    meter?.checkpoint();
+    return { value };
   }
   return metaclassAttribute === undefined ? undefined : { value: metaclassAttribute.value };
 }

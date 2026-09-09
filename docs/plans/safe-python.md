@@ -3301,6 +3301,22 @@ extension, integration, or validation requirement is missing or unverified.
   inputs, function __get__ argument handling, concrete types/instance attribute
   wiring, class construction, suspension, complete accounting and public SDK/
   safe-fs integration remain unfinished.
+- Connected concrete Python-function descriptor binding to the existing instance
+  and class precedence kernels. Exact functions supply their intrinsic non-data
+  get slot, ignoring a function instance's own __get__ attribute. Class access
+  retains the function; instance access creates a bound method unless instance
+  storage shadows it. Other descriptor slots remain explicitly type-resolved by
+  a supplied policy, retaining their owner. The function get kernel handles None
+  instance/owner semantics after argument binding.
+- The new bridge suite first failed on its missing module. Ten cancellation tests
+  then reproduced attribute/MRO callbacks returning after cancellation; kernels
+  now check after successful callbacks before returning or continuing lookup.
+  All 3,373 tests in 227 files pass. A 1,200-case CPython audit matched 3,600 direct,
+  instance and class lookup outcomes; bound-method (960) and assembled-program
+  (1,300) regressions also passed. Source typecheck, scoped lint and selected
+  workspace build passed. Concrete type/instance storage, MRO-to-attribute wiring,
+  override/fallback slots, exposed descriptor-wrapper binding, class construction,
+  suspension, full accounting and public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -10,6 +10,8 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { UnsupportedStatementError } from "./statement-execution.js";
 import { ModuleFrame, type LocalNamespace } from "./module-frame.js";
 import { createLenBuiltin } from "./builtin-len.js";
+import { resolveRuntimeClassAttribute } from "./runtime-descriptor.js";
+import { readInstanceAttribute } from "./instance-attributes.js";
 
 function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000, signal }), values = new RuntimeValues(meter);
@@ -28,6 +30,18 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("calls methods produced by default function-descriptor lookup", () => {
+    const state = fixture("def f(self, x=2):\n return self[0] + x\ninstance = [10]\nresult = instance.method(3)\n");
+    state.hooks.expressions = () => ({
+      attribute(instance, name) {
+        expect(name).toBe("method"); const fn = state.globals.get("f")!;
+        const attribute = resolveRuntimeClassAttribute(fn, { slots: () => undefined }, state.values, state.meter);
+        return readInstanceAttribute(instance, state.values.integer(1), attribute, () => undefined, state.meter)!.value;
+      },
+      beginSet() { throw new Error("unused"); }, warn() { throw new Error("unused"); }
+    });
+    state.run(); expect(state.globals.get("result")).toEqual(state.values.integer(13));
+  });
   it("prepends the bound instance before function argument binding", () => {
     const state = fixture("def f(self, x=2, **kw):\n return self[0] + x + kw['y']\nm = bind(f, [10])\nresult = m(y=3)\n");
     state.builtins.set("bind", state.values.builtinFunction({ name: "bind", invoke(positional) {

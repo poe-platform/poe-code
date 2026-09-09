@@ -31,14 +31,19 @@ export function readInstanceAttribute<Instance, Value, Owner>(
   const slots = attribute?.slots;
   if (slots?.get !== undefined && (slots.set !== undefined || slots.delete !== undefined)) {
     meter?.checkpoint();
-    return { value: slots.get(instance, owner) };
+    const value = slots.get(instance, owner);
+    meter?.checkpoint();
+    return { value };
   }
   meter?.checkpoint();
   const stored = readInstance();
+  meter?.checkpoint();
   if (stored !== undefined) return stored;
   if (slots?.get !== undefined) {
     meter?.checkpoint();
-    return { value: slots.get(instance, owner) };
+    const value = slots.get(instance, owner);
+    meter?.checkpoint();
+    return { value };
   }
   return attribute === undefined ? undefined : { value: attribute.value };
 }
@@ -57,6 +62,7 @@ export function writeInstanceAttribute<Instance, Value, Owner>(
     meter?.checkpoint();
     writeInstance(value);
   }
+  meter?.checkpoint();
 }
 
 export function deleteInstanceAttribute<Instance, Value, Owner>(
@@ -73,4 +79,5 @@ export function deleteInstanceAttribute<Instance, Value, Owner>(
     meter?.checkpoint();
     deleteInstance();
   }
+  meter?.checkpoint();
 }

@@ -3231,6 +3231,23 @@ extension, integration, or validation requirement is missing or unverified.
   concrete builtin/method dispatch, suspension backends, stack-independent call
   execution, full resource/guest exception accounting and public execution/safe-fs
   integration remain unfinished.
+- Added concrete function-definition/lambda adapters against precompiled AST
+  identities. Creation captures the defining namespace, selected builtin adapter,
+  closure cells and evaluated defaults without running a body. The shared
+  definition engine handles decorator evaluation/application and final name
+  installation; decorator application now uses the concrete call collector.
+  Lambda creation uses the same code/state path. Nested definitions preserve
+  nonlocal cells after return, and failed decoration leaves earlier bindings intact.
+- The new suite first failed on its missing adapter module. All 3,333 tests in
+  221 files pass, including ignored annotations, mutable defaults, decorator order,
+  lambda defaults/live cells, nonlocal mutation, recursion and definition of all
+  suspended function kinds without executing them. A 1,200-module CPython audit
+  matched definitions, closures, decorators, defaults, recursion and failure/frame
+  cleanup; the 1,536-case collected-function-call audit also passed. Source
+  typecheck, scoped lint and selected workspace build passed. Runtime context
+  assembly remains explicit in integration harnesses; class/builtin/method
+  dispatch, suspended execution, stack-independent calls, complete accounting and
+  public execution/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1826,6 +1826,21 @@ extension, integration, or validation requirement is missing or unverified.
   Qualified-name compilation, static-attribute tuple analysis, concrete guest
   statement protocols, builder/body binding and full allocation accounting remain
   unfinished; metadata inputs are required, not silently defaulted to empty values.
+- Added lexical code qualified-name analysis to analyzeModule, keyed by exact
+  SymbolScope identities. Function/lambda descendants receive <locals> components;
+  classes preserve enclosing paths. Explicit global function/class definitions
+  reset the path after private-name-aware declaration lookup, while nonlocal
+  definitions retain lexical paths. Display names retain normalized source names,
+  not mangled storage keys. Inlined list/set/dict comprehensions have no code-name
+  entry, while generator expressions retain their code scope. The traversal uses
+  an explicit work stack and precollects declarations per code scope.
+- Qualified-name validation: all 12 new cases initially failed for missing metadata.
+  All 2,303 tests in 118 files pass. CPython matched 252 compiled code-name trees
+  combining nested classes/functions/async functions, lambdas/defaults, comprehension
+  nesting, global declarations and private/normalized identifiers. Source typecheck,
+  scoped lint and selected build passed. Rules were checked against CPython 3.14
+  Python/compile.c compiler_set_qualname. Static-attribute analysis, concrete
+  function/class value metadata, executor wiring and full runtime remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

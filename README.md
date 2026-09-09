@@ -287,7 +287,7 @@ tests and before smoke testing or publication. See the
 
 These features are available but subject to breaking changes.
 
-- **[SafeJS](packages/safe-js/README.md)** — Budgeted JavaScript execution with explicit host capabilities and resumable checkpoints. The package README tracks current capabilities, unreleased dynamic-function work, and remaining compatibility gaps.
+- **[SafeJS](packages/safe-js/README.md)** — Budgeted JavaScript execution with explicit host capabilities and resumable checkpoints. The package README tracks current capabilities, unreleased runtime work, and remaining compatibility gaps.
 - **[Pipeline](packages/pipeline/)** — Run YAML task plans through agents with configurable steps
 - **[Ralph](packages/ralph/)** — Agentic build loop that iterates on a markdown doc
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.

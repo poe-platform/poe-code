@@ -476,12 +476,13 @@ These have focused native-comparison and checkpoint tests.
 Initial guest `eval` support is also in progress locally: script parsing, direct
 and indirect calls, basic scope handling, and block/branch/try completion values.
 It is not complete eval support; declaration edge cases, loop completions and
-evaluated-source checkpoint ownership still need work.
+broader integration still need work. Retained eval source is now budgeted, with
+focused recovery coverage for closures, classes, generators and tagged templates.
 
 These changes have focused native-comparison and recovery tests, but the full
 integration gate is not green. The latest completed candidate run passed 22,266
-tests with one array-context test instrumentation failure. The corrected test
-passes focused checks; the full rerun is pending and excludes the newer eval work.
+tests with one namespace-replay timeout. The earlier array-context test
+instrumentation failure is fixed; the full candidate still excludes newer eval work.
 Pushes and releases are paused; local implementation,
 remote delivery, and successful publication are separate milestones.
 

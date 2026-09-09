@@ -122,3 +122,25 @@ resize/replay files. Scoped ESLint, package TypeScript and the maintained
 build passed (23 workspace builds and four fresh-process import checks).
 Built SDK probes passed for Array, Uint8Array, Float32Array, Map and Set entry
 pairs after cleanup. No visual CLI changes, push or release occurred.
+
+## Iterator.toArray implementation
+
+Three source regressions failed on originating Array.prototype identity for
+non-empty, empty, and mapped iterators. The native VM controls passed. The
+custom-iterator control also passed before the fix: repeated values preserve
+identity and an explicit null prototype.
+
+The consumer now records the originating Array prototype on its fresh result
+array. It does not re-prototype collected values or change other consumers.
+The regressions also check contents, later prototype mutation, and rejection
+of lossy data copying. A direct SDK call with a foreign iterator verifies
+that the result uses the method's realm rather than the receiver's realm.
+
+Targeted validation passed 168 tests across six consumer, lazy-helper,
+SDK Proxy, built-in-input and collection snapshot files. Iterator-result
+wrappers remain pending. The latest full-package run predates this change.
+
+Scoped ESLint, package TypeScript, and the maintained build passed (23
+workspace builds and four fresh-process import checks). Built ESM SDK probes
+passed for empty and non-empty foreign iterators. No visual CLI changes,
+push or release occurred.

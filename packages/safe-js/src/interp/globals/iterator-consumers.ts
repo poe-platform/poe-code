@@ -4,7 +4,7 @@ import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { closeIterator, type SandboxIterator } from "../iteration.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { registerIntrinsicObject } from "../object-model.js";
+import { getSandboxPrototype, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
@@ -30,6 +30,10 @@ export function installIteratorConsumers(prototype: SandboxObject,budget: Budget
         let accumulator: SandboxValue=args[1];
         let value: SandboxValue;
         const values: SandboxValue[]=[];
+        if (name === "toArray") {
+          const prototype=getSandboxPrototype(values,budget);
+          if (prototype !== null) setSandboxPrototype(values,prototype,budget);
+        }
         const release=retainValues(budget,()=>[receiver,callback,next,accumulator,value,values]);
         const checkpoint=createDataCheckpoint(budget,context);
         const iterator: SandboxIterator={

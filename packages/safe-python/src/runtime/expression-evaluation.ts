@@ -13,6 +13,15 @@ export interface ExpressionCall<Value> {
   invoke(): Value;
 }
 
+/** Absent properties denote omitted bounds; a present guest value is never
+ * interpreted as absence. Slice construction does not perform __index__ calls.
+ */
+export interface SliceValues<Value> {
+  readonly lower?: Value;
+  readonly upper?: Value;
+  readonly step?: Value;
+}
+
 /** Guest object operations, never host eval. Implementations own guest types,
  * name resolution, descriptor/operator dispatch and metering inside each call.
  */
@@ -30,6 +39,13 @@ export interface ExpressionContext<Value> {
    * non-callable callee here. Callability/binding are checked at invoke time.
    */
   beginCall(callee: Value): ExpressionCall<Value>;
+  tuple(values: readonly Value[]): Value;
+  slice(parts: SliceValues<Value>): Value;
+  getItem(object: Value, key: Value): Value;
+  /** Adapt the guest iteration protocol to next/done. Internal guest calls and
+   * allocations remain metered by the context; the evaluator meters each next.
+   */
+  iterate(value: Value): Iterator<Value>;
 }
 
 /** Host implementation gap, not a catchable guest exception. */
@@ -78,6 +94,52 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
         break;
       case "assignment-expression":
         work.push(() => { context.store(node.target.name, value); knownTruth = undefined; }, { node: node.value, test: "value" });
+        break;
+      case "subscript":
+        work.push(() => {
+          const object = value, keys: Value[] = [];
+          let index = 0;
+          const nextItem = () => {
+            const item = node.items[index++];
+            if (item === undefined) {
+              work.push(() => { value = context.getItem(object, value); knownTruth = undefined; });
+              if (node.tuple) work.push(() => { value = context.tuple(keys); });
+              else value = keys[0];
+              return;
+            }
+            if (item.kind === "slice") {
+              const parts: { lower?: Value; upper?: Value; step?: Value } = {};
+              const fields = ["lower", "upper", "step"] as const;
+              let part = 0;
+              const nextPart = () => {
+                while (part < fields.length) {
+                  meter.checkpoint();
+                  const field = fields[part++], bound = item[field];
+                  if (bound === null) continue;
+                  work.push(() => { parts[field] = value; work.push(nextPart); }, { node: bound, test: "value" });
+                  return;
+                }
+                meter.checkpoint();
+                keys.push(context.slice(parts));
+                work.push(nextItem);
+              };
+              work.push(nextPart);
+            } else if (item.kind === "unpack") {
+              work.push(() => {
+                const iterator = context.iterate(value);
+                const nextValue = () => {
+                  const entry = iterator.next();
+                  if (entry.done) work.push(nextItem);
+                  else { keys.push(entry.value); work.push(nextValue); }
+                };
+                work.push(nextValue);
+              }, { node: item.value, test: "value" });
+            } else {
+              work.push(() => { keys.push(value); work.push(nextItem); }, { node: item, test: "value" });
+            }
+          };
+          work.push(nextItem);
+        }, { node: node.object, test: "value" });
         break;
       case "call":
         work.push(() => {

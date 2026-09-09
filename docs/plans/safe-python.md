@@ -1258,6 +1258,26 @@ extension, integration, or validation requirement is missing or unverified.
   and internal metering. beginCall is host-only preparation and must not run guest
   code or reject non-callables early. Call scheduling is implemented, but complete
   guest callables, frame execution, suspensions and heap accounting remain pending.
+- Added subscription execution: object evaluation precedes key expressions;
+  slice bounds execute lower/upper/step in order, with omitted fields distinguished
+  from present undefined guest values. Slice construction does not eagerly apply
+  __index__, constrain bounds or reject step zero. Comma/star keys form tuples,
+  including trailing-comma singletons and empty starred tuples. Starred key
+  iteration finishes before subsequent keys are evaluated, and each next call is
+  a metered continuation. Failed expansion does not run later keys/getitem or
+  implicitly close a caller-owned iterator. Final getitem follows key construction.
+- Subscription validation: eleven execution tests failed on unsupported subscript
+  nodes before implementation; all 1,800 tests in 85 files now pass. CPython matched
+  3,100 generated key/results/traces, including 600 cases with potentially invalid
+  starred values. The previous 3,000 call traces still match. Tests also exercise
+  budget termination of infinite unpacking and preservation of iterator ownership.
+  Scoped lint, source typecheck and the dependency build passed. Reference:
+  https://docs.python.org/3/reference/expressions.html#subscriptions .
+  The guest context still supplies tuple/slice objects, concrete __getitem__ or
+  __class_getitem__ dispatch and iterator adaptation (including applicable length-
+  hint behavior and guest exception conversion). Internal protocol work and guest
+  allocations remain context-metered; continuation/key-buffer heap accounting,
+  container literals, statements and complete guest objects remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -28,6 +28,10 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
     truth: value => { events.push("truth"); return Boolean(value); },
     boolean: value => value,
     beginCall: () => { throw new Error("fixture calls unsupported"); },
+    tuple: () => { throw new Error("fixture tuples unsupported"); },
+    slice: () => { throw new Error("fixture slices unsupported"); },
+    getItem: () => { throw new Error("fixture subscriptions unsupported"); },
+    iterate: () => { throw new Error("fixture iteration unsupported"); },
     attribute: (value, name) => { events.push(`attribute:${name}`); return `${value}.${name}`; }
   };
   return { context, names, events };

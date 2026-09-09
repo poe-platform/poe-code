@@ -14,6 +14,7 @@ function environment(initial: Record<string, unknown> = {}) {
     store: (name, value) => { names.set(name, value); },
     truth: value => Boolean(value), boolean: value => value,
     unary: () => { throw new Error("unused"); }, binary: () => { throw new Error("unused"); }, compare: () => { throw new Error("unused"); }, attribute: () => { throw new Error("unused"); },
+    tuple: () => { throw new Error("unused"); }, slice: () => { throw new Error("unused"); }, getItem: () => { throw new Error("unused"); }, iterate: () => { throw new Error("unused"); },
     beginCall: callee => {
       const positional: unknown[] = [], keywords = new Map<string, unknown>();
       const merge = (entries: Iterable<readonly [string, unknown]>) => {

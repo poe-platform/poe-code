@@ -4153,6 +4153,19 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Unicode case mappings, other native methods/builtins,
   subclasses/global interning, suspension, full accounting and SDK/safe-fs
   remain unfinished.
+- Connected str.islower/isupper/istitle using pinned Unicode 16 derived
+  Lowercase/Uppercase properties and the Lt category. Empty or entirely uncased
+  strings return false; titlecase scans track cased runs, resetting at uncased
+  marks/digits/punctuation rather than applying linguistic word segmentation.
+  No host case conversion or per-scan string copy is used.
+- Eight method tests and one generator test first reproduced the missing
+  behavior. Exhaustive checks match CPython for all 1,114,112 individual code
+  points and 3,612 compiled method calls, including argument diagnostics.
+  All 3,913 tests in 286 files, scoped lint, source typecheck and the selected
+  workspace build pass. Added generated case-interval invariants, malformed
+  range rejection and cased/uncased scan-budget tests. Unicode case transformations, other native
+  methods/builtins, subclasses/global interning, suspension, full accounting
+  and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,7 +1,7 @@
-import { alphaRanges, decimalRanges, digitRanges, numericRanges, printableRanges } from "../unicode-classification-data.js";
+import { alphaRanges, decimalRanges, digitRanges, numericRanges, printableRanges, lowerRanges, upperRanges, titleRanges } from "../unicode-classification-data.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 
-const ranges = { isalpha: alphaRanges, isdecimal: decimalRanges, isdigit: digitRanges, isnumeric: numericRanges, isprintable: printableRanges };
+const ranges = { isalpha: alphaRanges, isdecimal: decimalRanges, isdigit: digitRanges, isnumeric: numericRanges, isprintable: printableRanges, islower: lowerRanges, isupper: upperRanges, istitle: titleRanges };
 export type UnicodeClassification = keyof typeof ranges;
 
 /** Binary lookup in pinned Unicode ranges. These are Python's Letter category,

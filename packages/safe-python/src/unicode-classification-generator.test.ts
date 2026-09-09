@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { compileClassificationData } from "../scripts/unicode-classification-data.js";
 
 describe("Unicode classification range generation", () => {
+  it("uses derived lowercase/uppercase properties and the titlecase category", () => {
+    const result = compileClassificationData("01C5;TITLE;Lt\n", "", "0061..0062;Lowercase\n00AA;Lowercase\n0041;Uppercase\n0042;Uppercase\n0301;Case_Ignorable\n");
+    expect(result.lower).toEqual([0x61, 0x62, 0xaa, 0xaa]);
+    expect(result.upper).toEqual([0x41, 0x42]);
+    expect(result.title).toEqual([0x1c5, 0x1c5]);
+  });
   it("uses Letter categories rather than the broader Alphabetic property", () => {
     const result = compileClassificationData("0041;A;Lu\n0042;B;Lu\n0061;a;Ll\n0301;MARK;Mn\n2160;ROMAN;Nl\n", "");
     expect(result.alpha).toEqual([65, 66, 97, 97]);
@@ -28,5 +34,10 @@ describe("Unicode classification range generation", () => {
     expect(() => compileClassificationData("", "0041ZZ;Numeric")).toThrow("invalid Unicode code point");
     expect(() => compileClassificationData("", "0039..0030;Decimal")).toThrow("invalid Unicode numeric range");
     expect(() => compileClassificationData("", "0030..0031..0032;Decimal")).toThrow("invalid Unicode numeric range");
+  });
+  it("rejects invalid derived case ranges", () => {
+    expect(() => compileClassificationData("", "", "110000;Lowercase")).toThrow("invalid Unicode code point");
+    expect(() => compileClassificationData("", "", "0042..0041;Uppercase")).toThrow("invalid Unicode case range");
+    expect(() => compileClassificationData("", "", "0041..0042..0043;Uppercase")).toThrow("invalid Unicode case range");
   });
 });

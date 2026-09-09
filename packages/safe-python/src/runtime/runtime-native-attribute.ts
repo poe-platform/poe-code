@@ -34,7 +34,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (receiver.kind === "str") {
     switch (name) {
       case "isascii": case "isspace": case "isidentifier": case "isalpha": case "isdecimal":
-      case "isdigit": case "isnumeric": case "isalnum": case "isprintable":
+      case "isdigit": case "isnumeric": case "isalnum": case "isprintable": case "islower": case "isupper": case "istitle":
         return createRuntimeStringClassificationMethod(receiver, name, values, meter);
     }
     if (name === "expandtabs") return createRuntimeStringExpandtabsMethod(receiver, values, meter);

@@ -1,10 +1,10 @@
 import { expect, it } from "vitest";
-import { alphaRanges, decimalRanges, digitRanges, numericRanges, printableRanges } from "../unicode-classification-data.js";
+import { alphaRanges, decimalRanges, digitRanges, numericRanges, printableRanges, lowerRanges, upperRanges, titleRanges } from "../unicode-classification-data.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { isUnicodeCharacter } from "./unicode-character-classification.js";
 
 it("retains sorted, disjoint, coalesced generated intervals", () => {
-  for (const ranges of [alphaRanges, decimalRanges, digitRanges, numericRanges, printableRanges]) {
+  for (const ranges of [alphaRanges, decimalRanges, digitRanges, numericRanges, printableRanges, lowerRanges, upperRanges, titleRanges]) {
     const invalid: number[] = [];
     for (let index = 0; index < ranges.length; index += 2) {
       if (ranges[index] > ranges[index + 1] || ranges[index] < 0 || ranges[index + 1] > 0x10ffff

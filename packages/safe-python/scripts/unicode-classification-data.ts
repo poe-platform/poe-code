@@ -1,10 +1,10 @@
-type ClassificationData = Record<"alpha" | "decimal" | "digit" | "numeric" | "printable", number[]>;
+type ClassificationData = Record<"alpha" | "decimal" | "digit" | "numeric" | "printable" | "lower" | "upper" | "title", number[]>;
 type Range = [number, number];
 
 /** Compile category and derived numeric properties from pinned UCD inputs.
  * DerivedNumericType includes Unihan numeric values absent from UnicodeData. */
-export function compileClassificationData(unicodeData: string, numericTypes: string): ClassificationData {
-  const ranges: Record<keyof ClassificationData, Range[]> = { alpha: [], decimal: [], digit: [], numeric: [], printable: [[32, 32]] };
+export function compileClassificationData(unicodeData: string, numericTypes: string, coreProperties = ""): ClassificationData {
+  const ranges: Record<keyof ClassificationData, Range[]> = { alpha: [], decimal: [], digit: [], numeric: [], printable: [[32, 32]], lower: [], upper: [], title: [] };
   let pending: { first: number; name: string; category: string } | undefined;
   for (const line of unicodeData.split("\n")) {
     if (!line.trim()) continue;
@@ -20,6 +20,7 @@ export function compileClassificationData(unicodeData: string, numericTypes: str
       first = pending.first; pending = undefined;
     } else if (pending) throw new Error("incomplete Unicode category range");
     if (category.startsWith("L")) ranges.alpha.push([first, last]);
+    if (category === "Lt") ranges.title.push([first, last]);
     if ("LMNPS".includes(category[0])) ranges.printable.push([first, last]);
   }
   if (pending) throw new Error("incomplete Unicode category range");
@@ -34,7 +35,16 @@ export function compileClassificationData(unicodeData: string, numericTypes: str
     if (kind !== "Numeric") ranges.digit.push([first, last]);
     if (kind === "Decimal") ranges.decimal.push([first, last]);
   }
-  const result: ClassificationData = { alpha: [], decimal: [], digit: [], numeric: [], printable: [] };
+  for (const line of coreProperties.split("\n")) {
+    const [encoded, kind] = line.split("#", 1)[0].split(";").map(field => field.trim());
+    if (kind !== "Lowercase" && kind !== "Uppercase") continue;
+    const parts = encoded.split("..");
+    if (parts.length > 2) throw new Error("invalid Unicode case range");
+    const first = codePoint(parts[0]), last = codePoint(parts[1] ?? parts[0]);
+    if (first > last) throw new Error("invalid Unicode case range");
+    ranges[kind === "Lowercase" ? "lower" : "upper"].push([first, last]);
+  }
+  const result: ClassificationData = { alpha: [], decimal: [], digit: [], numeric: [], printable: [], lower: [], upper: [], title: [] };
   for (const kind of Object.keys(ranges) as Array<keyof ClassificationData>) {
     const target = result[kind];
     for (const [first, last] of ranges[kind].sort((a, b) => a[0] - b[0])) {

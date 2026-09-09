@@ -17,6 +17,27 @@ function fixture(source: string) {
 
 describe("native basic Unicode string classifications", () => {
   it.each([
+    ["islower", "abcµⅰª 123", "Abc"],
+    ["isupper", "ABCⅣ 123", "ABc"],
+    ["istitle", "Hello World ǅuro", "Hello world"]
+  ])("classifies cased strings with %s", (name, yes, no) => {
+    for (const [source, expected] of [[yes, true], [no, false], ["", false], ["123变量😀", false]] as const) {
+      const { call, v } = fixture(source); expect(call(name)).toBe(v.boolean(expected));
+    }
+  });
+  it("treats titlecase letters as neither uppercase nor lowercase", () => {
+    const { call, v } = fixture("ǅ");
+    expect(call("istitle")).toBe(v.true); expect(call("isupper")).toBe(v.false); expect(call("islower")).toBe(v.false);
+  });
+  it("resets title word state on uncased marks, digits and punctuation", () => {
+    for (const source of ["A\u0301B", "A1B", "They'Re", "ǅǆ", "A\ud800B"]) {
+      const { call, v } = fixture(source); expect(call("istitle")).toBe(v.true);
+    }
+    for (const source of ["A\u0301b", "They're", "AA", "ǅǅ", "ªA"]) {
+      const { call, v } = fixture(source); expect(call("istitle")).toBe(v.false);
+    }
+  });
+  it.each([
     ["isalpha", "Lettersµ变量", "Ⅳ"],
     ["isdecimal", "٠١٢３", "²"],
     ["isdigit", "²٠９", "¼"],
@@ -56,7 +77,7 @@ describe("native basic Unicode string classifications", () => {
       const { call, v } = fixture(source); expect(call("isidentifier")).toBe(v.false);
     }
   });
-  it.each(["isascii", "isspace", "isidentifier", "isalpha", "isdecimal", "isdigit", "isnumeric", "isalnum", "isprintable"])("rejects arguments and keywords for %s", name => {
+  it.each(["isascii", "isspace", "isidentifier", "isalpha", "isdecimal", "isdigit", "isnumeric", "isalnum", "isprintable", "islower", "isupper", "istitle"])("rejects arguments and keywords for %s", name => {
     const { call, v, keywords } = fixture("");
     expect(() => call(name, [v.true])).toThrow(`str.${name}() takes no arguments (1 given)`);
     keywords.items.set(v.string("x"), v.true);
@@ -75,5 +96,15 @@ describe("native basic Unicode string classifications", () => {
     const method = runtimeNativeAttribute(text, "isidentifier", v, meter);
     if (method.kind !== "builtin_function_or_method") throw new Error("expected method");
     expect(() => method.value.invoke([], keywords, meter)).toThrow(ExecutionLimitError);
+  });
+  it.each(["islower", "isupper", "istitle"])("meters cased and uncased scans for %s", name => {
+    for (const source of ["a".repeat(2000), "A".repeat(2000), "1".repeat(2000)]) {
+      if (source[0] === "a" && name !== "islower" || source[0] === "A" && name !== "isupper") continue;
+      const { v, text, keywords } = fixture(source);
+      const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 64 });
+      const method = runtimeNativeAttribute(text, name, v, meter);
+      if (method.kind !== "builtin_function_or_method") throw new Error("expected method");
+      expect(() => method.value.invoke([], keywords, meter)).toThrow(ExecutionLimitError);
+    }
   });
 });

@@ -44,7 +44,7 @@ const normalizationOutput = `/*\n${license}\n*/\n` +
   `export const compositions: Readonly<Record<number, number>> = ${JSON.stringify(normalization.compositions)};\n`;
 await writeFile(new URL("../src/normalization-data.ts", import.meta.url), normalizationOutput);
 console.log(`Generated ${Object.keys(normalization.decompositions).length} decompositions and ${Object.keys(normalization.compositions).length} compositions.`);
-const classification = compileClassificationData(texts[3], texts[5]);
+const classification = compileClassificationData(texts[3], texts[5], texts[2]);
 const classificationOutput = `/*\n${license}\n*/\n` +
   "// Generated from Unicode 16.0.0 by scripts/generate-unicode.ts. Do not edit.\n" +
   Object.entries(classification).map(([kind, ranges]) => `export const ${kind}Ranges: readonly number[] = ${JSON.stringify(ranges)};\n`).join("");

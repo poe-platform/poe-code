@@ -17,6 +17,21 @@ export function createRuntimeStringClassificationMethod(receiver: Extract<Runtim
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `str.${name}() takes no keyword arguments`);
       if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `str.${name}() takes no arguments (${positional.length} given)`);
       if (receiver.value.length === 0) return values.boolean(name === "isascii" || name === "isprintable");
+      if (name === "islower" || name === "isupper" || name === "istitle") {
+        let cased = false, previousCased = false;
+        for (const point of receiver.value) {
+          meter.checkpoint();
+          const lower = isUnicodeCharacter(point, "islower", meter);
+          const upper = !lower && isUnicodeCharacter(point, "isupper", meter);
+          const title = !lower && !upper && isUnicodeCharacter(point, "istitle", meter);
+          if (name === "istitle") {
+            if ((upper || title) && previousCased || lower && !previousCased) return values.false;
+          } else if (name === "islower" ? upper || title : lower || title) return values.false;
+          previousCased = lower || upper || title;
+          cased ||= previousCased;
+        }
+        return values.boolean(cased);
+      }
       let first = true;
       for (const point of receiver.value) {
         meter.checkpoint();

@@ -5,19 +5,15 @@ import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
-import { isSandboxModuleNamespace } from "../module-namespace.js";
-import { assertSandboxDataDepth } from "../../graph-depth.js";
-import { accessorClosure } from "../accessors.js";
+import { sandboxSetProperty } from "../guest-proxy-set.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { createIntrinsicObject, getSandboxPrototype, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
+import { createIntrinsicObject, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
 import { toPropertyKey } from "../property-key.js";
 import { retainValues } from "../resources.js";
 import { allocateProducedSandboxValue, createSandboxClosure, isSandboxClosure, ownSandboxSymbolKeys, type SandboxCallContext, type SandboxObject, type SandboxValue } from "../values.js";
 import { defineDataProperty, exposePropertyDescriptor, objectProperties, propertyDescriptor } from "./object-array.js";
 import { callFunctionMethod } from "../methods/function.js";
-import { isNumericTypedArray, isTypedArrayIndex } from "../typed-array.js";
-import { setTypedArrayMember } from "./numeric-typed-array.js";
 
 const nativeReflectPropertyNames = Object.getOwnPropertyNames(Reflect);
 
@@ -63,34 +59,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
       objectProperties(target,true);
       const property = await toPropertyKey(key,budget,context);
       const receiver = args.length > 3 ? args[3] : target;
-      let descriptor: PropertyDescriptor | undefined;
-      let depth = 0;
-      for (let current = target; current !== null; current = getSandboxPrototype(current as object,budget) as SandboxValue) {
-        budget.visitNode();
-        assertSandboxDataDepth(depth++);
-        if (isSandboxModuleNamespace(current)) return false;
-        if (isNumericTypedArray(current) && typeof property === "string" && isTypedArrayIndex(property)) {
-          if (current === receiver) {
-            await setTypedArrayMember(current,property,value,budget,context);
-            return true;
-          }
-          if (Object.getOwnPropertyDescriptor(current,property) === undefined) return true;
-        }
-        descriptor = Object.getOwnPropertyDescriptor(objectProperties(current),property);
-        if (descriptor !== undefined) break;
-      }
-      if (descriptor !== undefined && !("value" in descriptor)) {
-        const setter = accessorClosure(descriptor.set);
-        if (setter === undefined) return false;
-        await context.invokeClosure!(setter,[value],receiver);
-        return true;
-      }
-      if (descriptor !== undefined && !descriptor.writable) return false;
-      if (receiver === null || typeof receiver !== "object") return false;
-      const existing = Object.getOwnPropertyDescriptor(objectProperties(receiver,true),property);
-      if (existing !== undefined && (!("value" in existing) || !existing.writable)) return false;
-      return await defineDataProperty(receiver,property,existing === undefined
-        ? {value,writable:true,enumerable:true,configurable:true} : {value},budget,context,false);
+      return sandboxSetProperty(target, property, value, receiver, budget, context);
     } },
     apply: { length: 3, call: ([target,receiver,values],context) => {
       if (!isSandboxClosure(target)) throw new TypeError("Reflect.apply requires a callable target.");

@@ -1,10 +1,15 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeBytesInput } from "./runtime-bytes-input.js";
+import { runtimeBytesInput, type RuntimeBytesInputContext } from "./runtime-bytes-input.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 
-export function createRuntimeIntegerFromBytesMethod(booleanClass: boolean, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export interface RuntimeIntegerFromBytesContext extends RuntimeBytesInputContext {
+  readonly truth?: ExpressionContext<RuntimeValue>["truth"];
+}
+
+export function createRuntimeIntegerFromBytesMethod(booleanClass: boolean, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeIntegerFromBytesContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "from_bytes",
@@ -29,14 +34,15 @@ export function createRuntimeIntegerFromBytesMethod(booleanClass: boolean, value
         const type = orderArgument.kind === "none" ? "None" : orderArgument.kind === "not-implemented" ? "NotImplementedType" : orderArgument.kind;
         throw new PythonRuntimeError("TypeError", `from_bytes() argument 'byteorder' must be str, not ${type}`);
       }
-      const signed = runtimeTruth(signedArgument, meter);
+      const signed = context.truth === undefined ? runtimeTruth(signedArgument, meter) : context.truth(signedArgument);
+      meter.checkpoint();
       let order = "big";
       if (orderArgument !== undefined) {
         order = "";
         if (orderArgument.value.length === 3 || orderArgument.value.length === 6) for (const point of orderArgument.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); order += String.fromCodePoint(point); }
       }
       if (order !== "big" && order !== "little") throw new PythonRuntimeError("ValueError", "byteorder must be either 'little' or 'big'");
-      const result = runtimeBytesInput(source, values, meter).toInteger(order === "little", signed, meter);
+      const result = runtimeBytesInput(source, values, meter, context).toInteger(order === "little", signed, meter);
       return booleanClass ? values.boolean(result !== 0n) : values.integer(result);
     }
   });

@@ -78,11 +78,13 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
   }
 
   /** Inspect this guest cursor, not a replacement returned by reacquisition.
+   * Byte collectors can explicitly select the original iterable instead.
    * The result is advisory and must not control how many items are consumed. */
-  lengthHint(fallback = 0n): bigint {
+  lengthHint(fallback = 0n, source?: Value): bigint {
     this.meter.checkpoint();
     const hints = this.context.hints;
     if (hints === undefined) return fallback;
+    if (source !== undefined) return lengthHint(source, hints, this.meter, fallback);
     return this.#sequence !== undefined ? this.#sequence.lengthHint(hints, fallback)
       : lengthHint(this.#source!.value, hints, this.meter, fallback);
   }

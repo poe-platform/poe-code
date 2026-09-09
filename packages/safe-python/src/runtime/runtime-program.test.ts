@@ -39,6 +39,37 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([false, true, "invalid-hint"])("decodes guest byte iterables with signed truth (%s)", signed => {
+    const state = fixture("result=(0).from_bytes(source,signed=flag)\n"), v = state.values;
+    const source = v.cell({}), cursor = v.cell({}), byte = v.cell({}), flag = v.cell({}), events: string[] = []; let index = 0;
+    const stop = new PythonRuntimeError("StopIteration", "done");
+    state.globals.set("source", source); state.globals.set("flag", flag);
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: value => () => { expect(value).toBe(source); events.push("iter"); return cursor; },
+      hasNext: value => value === cursor,
+      next() { events.push("next"); if (index++ === 0) return byte; throw stop; },
+      hasSequenceItem: () => false, getItem() { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Source",
+      hints: {
+        length: value => { expect(value).toBe(source); return undefined; },
+        lookupHint: () => () => { events.push("hint"); return signed === "invalid-hint" ? v.none : v.integer(0); },
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isNotImplemented: () => false, isTypeError: () => false, typeName: () => "Source"
+      }
+    };
+    state.hooks.expressions = () => ({ warn() {}, iteration, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Byte", warn() {},
+      lookupIndex: value => () => { expect(value).toBe(byte); events.push("index"); return v.integer(255); }
+    }, truth(value) { expect(value).toBe(flag); events.push("signed"); return signed === true; } });
+    if (signed === "invalid-hint") {
+      expect(() => state.run()).toThrow("__length_hint__ must be an integer, not Source");
+      expect(events).toEqual(["signed", "iter", "hint"]);
+      return;
+    }
+    state.run(); expect(state.globals.get("result")).toEqual(v.integer(signed ? -1 : 255));
+    expect(events).toEqual(["signed", "iter", "hint", "next", "index", "next"]);
+  });
   it.each([true, false])("converts guest to_bytes length and signed flag (%s)", signed => {
     const state = fixture(`result=(255).to_bytes(length,'little',signed=flag)\nexpected=(255).to_bytes(2,'little',signed=${signed ? "True" : "False"})\n`), v = state.values;
     const length = v.cell({}), flag = v.cell({}), events: string[] = [];

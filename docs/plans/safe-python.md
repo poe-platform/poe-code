@@ -6666,6 +6666,16 @@ extension, integration, or validation requirement is missing or unverified.
   range errors. Typecheck and selected workspace build pass. Remaining native
   protocols, automatic object/builtin assembly and broader interpreter/SDK/
   safe-fs integration remain unfinished.
+- Connected from_bytes signed truth, guest input iteration and yielded byte
+  index conversion. Byte collection acquires once and hints the original source,
+  not its cursor. ProtocolIterator can explicitly select a source for hints.
+  Hint validation runs outside the initial iterator-TypeError rewrite boundary;
+  a failing regression caught and corrected that boundary during implementation.
+- Three compiled regressions verify signedness, source-hint ordering and invalid
+  hints. All 5,124 tests in 440 files pass; 48 CPython comparisons match results,
+  byte-range errors and traces. Typecheck and selected workspace build pass.
+  Guest __bytes__, buffers, automatic object/builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

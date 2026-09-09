@@ -4,26 +4,35 @@ import { ImmutableBytes } from "./immutable-bytes.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
+import { ProtocolIterator } from "./protocol-iterator.js";
+
+export interface RuntimeBytesInputContext {
+  readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
+  readonly iterate?: ExpressionContext<RuntimeValue>["iterate"];
+}
 
 /** Exact bytes or an iterable of byte indices; unlike bytes(n), an integer is
  * not a zero-filled allocation request. Guest __bytes__/buffers remain separate. */
-export function runtimeBytesInput(source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): ImmutableBytes {
+export function runtimeBytesInput(source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeBytesInputContext = {}): ImmutableBytes {
   meter.checkpoint();
   if (source.kind === "bytes") return source.value;
   const type = source.kind === "none" ? "NoneType" : source.kind === "not-implemented" ? "NotImplementedType" : source.kind;
   if (source.kind === "str") throw new PythonRuntimeError("TypeError", `cannot convert '${type}' object to bytes`);
   let iterator: Iterator<RuntimeValue>;
-  try { iterator = runtimeIterate(source, values, meter); }
+  try { iterator = context.iterate === undefined ? runtimeIterate(source, values, meter) : context.iterate(source); }
   catch (error) {
     if (error instanceof PythonRuntimeError && error.name === "TypeError") throw new PythonRuntimeError("TypeError", `cannot convert '${type}' object to bytes`);
     throw error;
   }
+  if (iterator instanceof ProtocolIterator) iterator.lengthHint(8n, source);
   meter.checkpoint(0, 32);
   const items: number[] = [];
   while (true) {
     meter.checkpoint(); const step = iterator.next(); meter.checkpoint();
     if (step.done) break;
-    const byte = runtimeIntegerIndex(step.value, meter);
+    const byte = runtimeIntegerIndex(step.value, meter, context.integerIndex);
     if (byte < 0n || byte > 255n) throw new PythonRuntimeError("ValueError", "bytes must be in range(0, 256)");
     meter.checkpoint(0, 8); items.push(Number(byte));
   }

@@ -6283,6 +6283,19 @@ extension, integration, or validation requirement is missing or unverified.
   and malformed arguments. Typecheck, scoped lint and selected workspace build
   pass. Automatic namespace assembly, concrete guest types and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Added explicit getattr/hasattr builtin registration over a full attribute
+  access capability. Names stay as their original guest string objects; optional
+  classification supports string subclasses without coercion. Lookup runs once,
+  and only AttributeError enables a getattr default or false hasattr result.
+  Non-default getattr preserves the error directly; fatal execution signals
+  cannot be suppressed through guest exception classification.
+- Nine tests cover lookup/name identity, fallback identity, non-AttributeError
+  propagation, argument validation, guest subclass classification and fatal
+  error isolation. All 4,943 tests in 430 files pass. Seventy-six compiled CPython
+  comparisons match results/errors and lookup/fallback traces in module and
+  nested-function execution. Typecheck, scoped lint and selected workspace build pass.
+  Concrete shared attribute adapters, automatic builtin namespace assembly and
+  broader interpreter/object/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -13,8 +13,7 @@ import type {
   ParseResult,
   RestElement,
   ThrowStatement,
-  TryStatement,
-  VariableDeclaration
+  TryStatement
 } from "../parse.js";
 import {
   attachErrorSpan,
@@ -111,6 +110,10 @@ type EvaluateExceptionNode<TContext, TError> = (
   context: TContext
 ) => Promise<EvaluationResult<TError>>;
 
+type BlockExceptionContext = ExceptionContext & {
+  instantiateBlock(node: BlockStatement, scope: Scope): void;
+};
+
 export async function evaluateThrowStatement<TContext extends ExceptionContext, TError>(
   node: ThrowStatement,
   context: TContext,
@@ -130,7 +133,7 @@ export async function evaluateThrowStatement<TContext extends ExceptionContext, 
   };
 }
 
-export async function evaluateTryStatement<TContext extends ExceptionContext, TError>(
+export async function evaluateTryStatement<TContext extends BlockExceptionContext, TError>(
   node: TryStatement,
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
@@ -549,7 +552,7 @@ function isBudgetExceeded(error: unknown): error is SandboxError {
   return error instanceof SandboxError && error.code === "budgetExceeded";
 }
 
-async function evaluateCatchClause<TContext extends ExceptionContext, TError>(
+async function evaluateCatchClause<TContext extends BlockExceptionContext, TError>(
   node: CatchClause,
   thrownValue: SandboxValue,
   context: TContext,
@@ -577,7 +580,7 @@ async function evaluateCatchClause<TContext extends ExceptionContext, TError>(
   return evaluateBlockCompletion(node.body, catchContext, evaluateNode);
 }
 
-async function evaluateBlockCompletion<TContext extends ExceptionContext, TError>(
+async function evaluateBlockCompletion<TContext extends BlockExceptionContext, TError>(
   node: BlockStatement,
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
@@ -592,7 +595,7 @@ async function evaluateBlockCompletion<TContext extends ExceptionContext, TError
       generatorBlockScopes: new Map([...(context.generatorBlockScopes ?? []), [node.nodeId, scope]])
     })
   };
-  if (restoredScope === undefined) predeclareBlockBindings(node, blockContext.scope);
+  if (restoredScope === undefined) context.instantiateBlock(node, blockContext.scope);
   return evaluateResourceScope(scope, context.budget, {...resourceSuspension(blockContext, node), stack: context.callStack, thisValue: undefined, getProperty: context.getProperty, onSuspend: context.onSuspend, signal: context.signal}, async () => {
   let result: EvaluationResult<TError> = {
     kind: "normal",
@@ -613,29 +616,6 @@ async function evaluateBlockCompletion<TContext extends ExceptionContext, TError
 
   return result;
   });
-}
-
-function predeclareBlockBindings(node: BlockStatement, scope: Scope): void {
-  const names = new Set<string>();
-
-  for (const statement of node.body) {
-    if (statement.type !== "VariableDeclaration" || statement.kind === "var") {
-      continue;
-    }
-
-    for (const name of getDeclarationBindingNames(statement)) {
-      if (names.has(name) || scope.hasOwnBinding(name)) {
-        throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
-      }
-
-      names.add(name);
-      scope.predeclare(name, statement.kind);
-    }
-  }
-}
-
-function getDeclarationBindingNames(node: VariableDeclaration): string[] {
-  return node.declarations.flatMap((declarator) => getPatternBindingNames(declarator.id));
 }
 
 function getPatternBindingNames(

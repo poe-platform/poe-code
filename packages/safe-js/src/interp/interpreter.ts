@@ -2755,6 +2755,7 @@ async function evaluateTryStatement(
 ): Promise<EvaluationResult> {
   return evaluateTryStatementResult(node, {
     ...context,
+    instantiateBlock: (block: BlockStatement, scope: Scope) => predeclareStatementListBindings(block.body, {...context, scope}),
     toPropertyKey: (value: SandboxValue) => toPropertyKey(value, context.budget, createCoercionContext(context)),
     getProperty: (value: SandboxValue, key: PropertyKey) => getPropertyValue(value, key, context)
   }, evaluateNode);

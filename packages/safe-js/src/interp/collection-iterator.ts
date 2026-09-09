@@ -1,6 +1,6 @@
 import type { Budget } from "./budget.js";
 import type { SandboxMap, SandboxSet, SandboxValue, SandboxObject } from "./values.js";
-import { setSandboxPrototype } from "./object-model.js";
+import { getSandboxPrototype, setSandboxPrototype } from "./object-model.js";
 
 export const collectionIteratorPrototypes = new WeakMap<Budget, Partial<Record<"map" | "set", SandboxObject>>>();
 
@@ -88,7 +88,13 @@ export function nextCollectionIterator(
     state.iterator = undefined;
     return { value: undefined, done: true };
   }
-  if (state.method === "entries") budget?.allocateArrayLength(2);
+  if (state.method === "entries") {
+    budget?.allocateArrayLength(2);
+    if (Array.isArray(result.value)) {
+      const prototype = getSandboxPrototype(result.value, budget);
+      if (prototype !== null) setSandboxPrototype(result.value, prototype, budget);
+    }
+  }
   return { value: result.value, done: false };
 }
 

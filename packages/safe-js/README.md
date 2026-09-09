@@ -620,6 +620,9 @@ special-key data properties keep their native behavior.
 `Object.groupBy` and `Map.groupBy` bucket arrays retain their originating
 Array prototype after SDK cleanup. Group keys and elements retain identity,
 and the outer Object grouping result remains null-prototype.
+Array, typed-array, Map, and Set entry iterators preserve the originating
+Array prototype of each new entry pair. Keys and values inside those pairs
+retain identity; values-only iteration does not re-prototype payload arrays.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

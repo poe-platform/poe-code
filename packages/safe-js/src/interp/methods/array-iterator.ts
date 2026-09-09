@@ -2,7 +2,7 @@ import type { Budget } from "../budget.js";
 import { arrayIteratorState, isSandboxArrayIterator } from "../array-iterator.js";
 import { typedArrayStorage, isNumericTypedArray } from "../typed-array.js";
 import { readPropertyDescriptor } from "../accessors.js";
-import { getSandboxPropertyDescriptor } from "../object-model.js";
+import { getSandboxPropertyDescriptor, getSandboxPrototype, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber } from "../string-coercion.js";
 import type { SandboxCallContext, SandboxValue } from "../values.js";
@@ -29,8 +29,14 @@ export async function nextArrayIterator(value: SandboxValue, budget: Budget, con
     state.index = index + 1;
     if (state.method === "keys") return { value: index, done: false };
     const entry = await read(String(index));
-    if (state.method === "entries") budget.allocateArrayLength(2);
-    return { value: state.method === "entries" ? [index, entry] : entry, done: false };
+    if (state.method === "entries") {
+      budget.allocateArrayLength(2);
+      const pair = [index, entry];
+      const prototype = getSandboxPrototype(pair, budget);
+      if (prototype !== null) setSandboxPrototype(pair, prototype, budget);
+      return { value: pair, done: false };
+    }
+    return { value: entry, done: false };
   } finally {
     release();
   }

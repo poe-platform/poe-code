@@ -106,3 +106,19 @@ and four fresh-process import checks. Built ESM probes verified all five
 synchronous SDK Object reflection results and the entries/fromEntries
 round-trip. No visual CLI changes, push or release. This is targeted
 verification; the earlier full-package result predates this implementation.
+
+## Iterator entry-pair implementation
+
+Five source tests failed on originating Array.prototype identity before the
+change: Array, Uint8Array, Float32Array, Map and Set entries. The payload
+control already passed, including a null-prototype array used as a collection
+value. Entry-pair allocation now stores the originating Array prototype;
+keys/values branches do not touch payload prototypes. The tests also compare
+native pair contents, observe later prototype mutation, and reject lossy data
+copying. Iterator-result wrappers and Iterator.toArray remain pending.
+
+Final entry-pair verification passed 157 tests across six entry/iterator/
+resize/replay files. Scoped ESLint, package TypeScript and the maintained
+build passed (23 workspace builds and four fresh-process import checks).
+Built SDK probes passed for Array, Uint8Array, Float32Array, Map and Set entry
+pairs after cleanup. No visual CLI changes, push or release occurred.

@@ -5439,6 +5439,20 @@ extension, integration, or validation requirement is missing or unverified.
   This capability kernel currently propagates lookup exceptions. Full native
   bytes percent field rendering/operator dispatch and guest buffer adapters are
   still pending; this is not a completed bytes percent implementation.
+- Added bytes percent field dispatch for integer/float codes, c, b/s and r/a.
+  Numeric fields use owned byte buffers; b/s retain raw bytes, while both r/a
+  perform ASCII representation before byte precision/padding. Character fields
+  ignore precision and numeric flags. Unsupported codes retain byte-specific
+  diagnostics. A metered trusted-ASCII storage conversion avoids UTF-16 and
+  intermediate host strings; non-ASCII input is an invariant failure.
+- Eight tests cover all conversion codes, Unicode/surrogates, raw high bytes,
+  field flags, mixed assembly, invalid inputs and cancellation/allocation limits.
+  All 4,592 tests in 381 files pass; typecheck, scoped lint and selected workspace build pass.
+  The renderer plus existing binder matches CPython for 5,018 mixed formats,
+  including dynamic widths/precisions, invalid operands and surplus arguments.
+  Native bytes percent wrapper/operator wiring remains pending. CPython probes
+  confirm even unchanged multi-byte literal formats and sole b/s fields produce
+  fresh guest bytes objects; do not reuse text formatting's identity policy.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

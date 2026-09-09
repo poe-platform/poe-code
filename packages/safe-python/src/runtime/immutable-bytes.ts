@@ -36,6 +36,20 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(owned);
   }
 
+  /** Copy trusted ASCII text directly into one owned byte buffer. This is not
+   * the guest encode protocol: non-ASCII input is a caller invariant failure. */
+  static fromAscii(source: CodePointString, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint(1, source.length);
+    const bytes = new Uint8Array(source.length);
+    let index = 0;
+    for (const point of source) {
+      meter.checkpoint();
+      if (point > 127) throw new RangeError("expected ASCII code points");
+      bytes[index++] = point;
+    }
+    return new ImmutableBytes(bytes);
+  }
+
   /** Adopt the shared integer renderer's fresh byte buffer without an intermediate
    * code-point buffer or second copy. Numeric output is entirely ASCII bytes. */
   static fromIntegerPercentField(value: bigint, field: IntegerPercentField, meter: ExecutionMeter, maxDecimalDigits?: number): ImmutableBytes {

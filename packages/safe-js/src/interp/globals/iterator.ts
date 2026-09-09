@@ -2,11 +2,12 @@ import type { Budget } from "../budget.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { wellKnownSymbols } from "../symbols.js";
 import { resolveIntrinsicIdentity } from "../intrinsics.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { completeIntrinsicObjectInitialization, getSandboxPropertyDescriptor, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
-import { createSandboxClosure, defineOwnDataProperty, isSandboxClosure, type SandboxClosure, type SandboxObject } from "../values.js";
+import { createSandboxClosure, defineOwnDataProperty, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject } from "../values.js";
 import { objectProperties } from "./object-array.js";
 import { installIteratorFrom } from "./iterator-from.js";
 import { installIteratorConsumers } from "./iterator-consumers.js";
@@ -21,9 +22,16 @@ export function createIteratorGlobal(budget: Budget): SandboxClosure {
       const target = context?.newTarget;
       if (target === undefined || target === constructor)
         throw new TypeError("Iterator is an abstract constructor.");
-      const parent = context?.getProperty !== undefined
-        ? await context.getProperty(target, "prototype")
-        : await readPropertyDescriptor(getSandboxPropertyDescriptor(target, "prototype", budget) ?? {value:undefined}, target, context);
+      const caller: SandboxCallContext = {
+        ...context, stack: context?.stack ?? [], thisValue: undefined,
+        getProperty: context?.getProperty ?? ((value,key)=>sandboxGetProperty(value,key,value,budget,bridge))
+      };
+      const bridge: SandboxCallContext = {
+        ...caller,
+        invokeClosure: context?.invokeClosure ?? ((callee,args,receiver,construct,newTarget)=>
+          invokeBuiltinClosure(callee,args,budget,caller,receiver,construct,newTarget))
+      };
+      const parent = await bridge.getProperty!(target, "prototype");
       const instance: SandboxObject = Object.create(null);
       setSandboxPrototype(instance, parent !== null && typeof parent === "object" ? parent : prototype, budget);
       createDataCheckpoint(budget, context)(instance, 0, true);

@@ -594,6 +594,8 @@ instead of treating their private carriers as ordinary objects.
 Direct SDK `Iterator.from` and its wrapper methods dispatch Proxy iterator
 factories, iterator objects, and methods through guest operations. Wrappers cache
 `next`, read `return` lazily, and preserve iterator receivers and revocation checks.
+SDK Iterator subclass construction observes Proxy `newTarget.prototype` reads,
+including nested/accessor-backed traps, and rejects revoked constructor targets.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

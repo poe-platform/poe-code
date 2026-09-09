@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { accessorAdapter } from "../accessors.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
@@ -31,7 +32,9 @@ export function createIteratorGlobal(budget: Budget): SandboxClosure {
         invokeClosure: context?.invokeClosure ?? ((callee,args,receiver,construct,newTarget)=>
           invokeBuiltinClosure(callee,args,budget,caller,receiver,construct,newTarget))
       };
-      const parent = await bridge.getProperty!(target, "prototype");
+      const candidate = await bridge.getProperty!(target, "prototype");
+      const parent = candidate !== null && typeof candidate === "object" ? candidate
+        : getFunctionRealmPrototype(target, "Iterator", prototype);
       const instance: SandboxObject = Object.create(null);
       setSandboxPrototype(instance, parent !== null && typeof parent === "object" ? parent : prototype, budget);
       createDataCheckpoint(budget, context)(instance, 0, true);

@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { advanceAsyncCleanup, asyncCleanupStates, asyncDisposableStackStates, type AsyncCleanupState, type AsyncDisposableStackState } from "../async-disposable-stack.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
@@ -16,7 +17,10 @@ export function createAsyncDisposableStackGlobal(budget: Budget): SandboxClosure
     guest: true, sandbox: true, name: "AsyncDisposableStack", length: 0,
     call: () => {throw new TypeError("AsyncDisposableStack requires new.");},
     construct: async (_args, context) => {
-      const parent = await read(context?.newTarget ?? constructor, "prototype", context);
+      const target = context?.newTarget ?? constructor;
+      const candidate = await read(target, "prototype", context);
+      const parent = candidate !== null && typeof candidate === "object" ? candidate
+        : getFunctionRealmPrototype(target, "AsyncDisposableStack", prototype);
       const instance: SandboxObject = Object.create(null);
       asyncDisposableStackStates.set(instance, {disposed: false, resources: []});
       setSandboxPrototype(instance, parent !== null && typeof parent === "object" ? parent : prototype, budget);

@@ -1,4 +1,5 @@
 import { isFatalSandboxError, type Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
@@ -17,7 +18,10 @@ export function createDisposableStackGlobal(budget: Budget): SandboxClosure {
     guest: true, sandbox: true, name: "DisposableStack", length: 0,
     call: () => { throw new TypeError("DisposableStack requires new."); },
     construct: async (_args, context) => {
-      const parent = await read(context?.newTarget ?? constructor, "prototype", context);
+      const target = context?.newTarget ?? constructor;
+      const candidate = await read(target, "prototype", context);
+      const parent = candidate !== null && typeof candidate === "object" ? candidate
+        : getFunctionRealmPrototype(target, "DisposableStack", prototype);
       const instance: SandboxObject = Object.create(null);
       disposableStackStates.set(instance, { disposed: false, active: false, resources: [] });
       setSandboxPrototype(instance, parent !== null && typeof parent === "object" ? parent : prototype, budget);

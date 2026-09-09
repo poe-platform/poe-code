@@ -669,6 +669,10 @@ originating Promise prototype after cleanup.
 Promise construction honors foreign newTarget default prototypes, including
 bound and Proxy targets and replay. Prototype lookup failures occur before
 the executor is invoked; invalid executors are checked before prototype lookup.
+Iterator subclass construction and both disposable-stack constructors use the
+foreign newTarget realm's default prototype when its prototype is not an object.
+This includes bound and Proxy targets after cleanup and replay; explicit custom
+prototypes still win, and stack instances retain working disposal state.
 Borrowed `then`, `resolve` and `reject` calls respect a foreign intrinsic
 constructor instead of allocating in the method's realm.
 Promise aggregate arrays, `allSettled` records and `withResolvers` capability

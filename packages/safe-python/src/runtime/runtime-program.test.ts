@@ -32,6 +32,29 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("constructs native set displays and unpackings without a construction hook", () => {
+    const state = fixture("def f():\n return {True, 1, *[2, 2], *{'x': 3}}\ns = f()\ns.add(4)\nresult = s == {1, 2, 'x', 4}\n");
+    state.hooks.expressions = () => ({ warn() {} });
+    state.run(); expect(state.globals.get("result")).toBe(state.values.true);
+    const s = state.globals.get("s"); if (s?.kind !== "set") throw new Error("expected set");
+    expect(s.items.size).toBe(4);
+  });
+  it("stops set unpacking on an unhashable element without publishing the set", () => {
+    const state = fixture("result = {0, *source}\nafter = 1\n"), iterator = [state.values.integer(1), state.values.list([]), state.values.integer(2)][Symbol.iterator]();
+    state.hooks.expressions = () => ({ warn() {} });
+    state.globals.set("source", state.values.iterator(iterator));
+    expect(state.run).toThrow("unhashable type: 'list'");
+    expect(state.globals.has("result")).toBe(false); expect(state.globals.has("after")).toBe(false);
+    expect(iterator.next().value).toEqual(state.values.integer(2));
+  });
+  it("retains explicit set construction policies", () => {
+    const state = fixture("result = {1}\n");
+    state.hooks.expressions = () => ({ warn() {}, beginSet(initial) {
+      expect(initial).toEqual([state.values.integer(1)]);
+      return { add() { throw new Error("unused"); }, update() { throw new Error("unused"); }, finish: () => state.values.true };
+    } });
+    state.run(); expect(state.globals.get("result")).toBe(state.values.true);
+  });
   it("resolves native dictionary, proxy and view attributes without object hooks", () => {
     const state = fixture("d = {'a': 1}\nd.update(b=2)\nk = d.keys()\np = k.mapping\nresult = p.get('b')\ncommon = k.isdisjoint(['z'])\nc = p.copy()\nc.clear()\n");
     state.hooks.expressions = () => ({ beginSet() { throw new Error("unused"); }, warn() {} });

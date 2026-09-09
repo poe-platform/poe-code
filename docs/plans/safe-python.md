@@ -3852,6 +3852,21 @@ extension, integration, or validation requirement is missing or unverified.
   kinds. Full type-descriptor registration, inherited members, native method
   introspection, remaining container methods, builtin constructors, suspension,
   full resource accounting and SDK/safe-fs integration remain pending.
+- Connected native set-display construction to expression contexts with a key
+  policy. Compiled modules and nested function bodies now construct sets and
+  starred unpackings without a custom builder. Explicit builders still take
+  precedence, and contexts without a key policy must supply their construction
+  capabilities. Native sets share the execution's dictionary hash/equality
+  policy and resource meter.
+- Set-display integration began with two failing compiled-program tests. All
+  3,686 tests in 262 files pass, with scoped lint, source typecheck and selected
+  workspace build. An 800-program CPython audit matches results, evaluation traces and
+  failures, including small/large display evaluation timing, duplicate keys,
+  dictionary unpacking and unhashable elements. An interrupted unpacking leaves
+  later iterator elements unconsumed and does not publish its partial result.
+  The 1,300-module closure/decorator/failure-cleanup regression audit also passes.
+  Public constructors, full native descriptors/introspection, comprehension
+  runtime integration, suspension, accounting and SDK/safe-fs remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -12,19 +12,22 @@ import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
 import type { KeyOperations } from "./ordered-key-map.js";
 import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
+import { beginRuntimeSet } from "./runtime-set.js";
 
 /** Explicit scope/object capabilities, supplied by the surrounding runtime.
  * Attribute lookup defaults to implemented exact native container members;
  * an explicit hook replaces that policy. No host property lookup, callable
  * execution or mapping access is implicit.
+ * Supplying a key policy enables native dictionary and set construction;
+ * callers without one must supply both construction capabilities explicitly.
  * Hooks must implement guest semantics and charge their execution internally.
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
-  "load" | "store" | "beginCall" | "beginSet" | "createLambda"> &
+  "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute">> &
   Pick<ConstantUnaryContext, "warn"> & (
-    Pick<ExpressionContext<RuntimeValue>, "beginDictionary"> |
-    { readonly dictionaryKeys: KeyOperations<RuntimeValue> }
+    Pick<ExpressionContext<RuntimeValue>, "beginDictionary" | "beginSet"> |
+    { readonly dictionaryKeys: KeyOperations<RuntimeValue> } & Partial<Pick<ExpressionContext<RuntimeValue>, "beginSet">>
   );
 
 /** Assemble concrete exact-value operations with scope/object hooks. Setup runs
@@ -45,7 +48,9 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     store: bindings.store.bind(bindings),
     attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => runtimeNativeAttribute(receiver, name, values, meter)),
     beginCall: bindings.beginCall.bind(bindings),
-    beginSet: bindings.beginSet.bind(bindings),
+    beginSet: "dictionaryKeys" in bindings
+      ? bindings.beginSet?.bind(bindings) ?? (initial => beginRuntimeSet(initial, values, bindings.dictionaryKeys, meter))
+      : bindings.beginSet.bind(bindings),
     beginDictionary: "beginDictionary" in bindings
       ? bindings.beginDictionary.bind(bindings)
       : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),

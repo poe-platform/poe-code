@@ -6513,6 +6513,17 @@ extension, integration, or validation requirement is missing or unverified.
   comparisons still pass. Text search and other native-method index consumers,
   automatic object/builtin assembly and broader interpreter/SDK/safe-fs work
   remain unfinished.
+- Connected list.insert/pop to the shared guest integer-index protocol, removing
+  their duplicated exact-value conversion. Signed-width overflow still raises
+  before the operation mutates storage. Index callbacks run before storage
+  normalization, so their own list mutations remain visible and are not undone.
+- Six regression cases cover compiled execution, conversion-side mutation,
+  positive/negative overflow and guest failures. All 5,052 tests in 439 files
+  pass; 42 direct native-method comparisons against CPython match for ordinary
+  and oversized bounds with unchanged, cleared or shortened receivers.
+  Typecheck, scoped lint and selected workspace build pass. Remaining index
+  consumers, automatic object/builtin assembly and broader interpreter/SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

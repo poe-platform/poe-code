@@ -17,6 +17,30 @@ function fixture(meter: ExecutionMeter = new ExecutionBudget({ maxSteps: 10000, 
 }
 
 describe("native list methods", () => {
+  it.each(["insert", "pop"])("rejects oversized guest %s indices before list mutation", name => {
+    const { v, list, meter, keywords } = fixture(), guest = v.cell({});
+    for (const sign of [-1n, 1n]) {
+      const method = runtimeNativeAttribute(list, name, v, meter, undefined, undefined, { integerIndex: {
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isExactInteger: value => value.kind === "int", typeName: () => "Index", warn() {},
+        lookupIndex: () => () => v.integer(sign * (1n << 100n))
+      } });
+      if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+      expect(() => method.value.invoke(name === "insert" ? [guest, v.none] : [guest], keywords, meter))
+        .toThrow("Python int too large to convert to C ssize_t");
+      expect(list.items.snapshot()).toEqual([v.integer(1), v.integer(2), v.integer(1)]);
+    }
+  });
+  it.each(["insert", "pop"])("propagates guest %s index errors before list mutation", name => {
+    const { v, list, meter, keywords } = fixture(), guest = v.cell({}), failure = new Error("index failed");
+    const method = runtimeNativeAttribute(list, name, v, meter, undefined, undefined, { integerIndex: {
+      integer: () => undefined, isExactInteger: () => false, typeName: () => "Index", warn() {},
+      lookupIndex: () => () => { throw failure; }
+    } });
+    if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+    expect(() => method.value.invoke(name === "insert" ? [guest, v.none] : [guest], keywords, meter)).toThrow(failure);
+    expect(list.items.length).toBe(3);
+  });
   it("creates independent live reverse iterators retaining member identity", () => {
     const { v, list, call } = fixture(), first = call("__reversed__"), second = call("__reversed__");
     if (first.kind !== "iterator" || second.kind !== "iterator") throw new Error("expected iterators");

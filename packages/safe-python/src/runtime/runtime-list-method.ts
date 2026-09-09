@@ -4,13 +4,15 @@ import type { ExpressionContext } from "./expression-evaluation.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { BuiltinFunctionValue, ListValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
+import { integerIndex } from "./index-protocol.js";
+import { runtimeIntegerIndex } from "./runtime-integer-index.js";
 import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 
 export type RuntimeListMethodContext = RuntimeSearchEqualityContext & Partial<Pick<ExpressionContext<RuntimeValue>, "iterate">>;
 
 /** Exact list capabilities backed by owned, metered storage. Optional expression
- * capabilities supply guest iteration, equality and truth. Guest index slots,
- * descriptors and finalizers remain separate object-layer work. */
+ * capabilities supply guest iteration, equality, truth and integer indices.
+ * Descriptors and finalizers remain separate object-layer work. */
 export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter, context: RuntimeListMethodContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   const equal = createRuntimeSearchEquality(values, meter, context);
@@ -33,12 +35,9 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
         const value = positional[0];
         let index = -1n;
         if (value !== undefined) {
-          if (value.kind === "int") index = value.value;
-          else if (value.kind === "bool") index = value.value ? 1n : 0n;
-          else {
-            const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
-            throw new PythonRuntimeError("TypeError", `'${type}' object cannot be interpreted as an integer`);
-          }
+          index = context.integerIndex === undefined || value.kind === "int" || value.kind === "bool"
+            ? runtimeIntegerIndex(value, meter) : integerIndex(value, context.integerIndex, meter);
+          meter.checkpoint();
           if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C ssize_t");
         }
         if (name === "pop") return receiver.items.pop(index);

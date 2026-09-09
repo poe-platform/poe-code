@@ -39,6 +39,25 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["insert", "pop"])("converts guest %s indices before observing current list storage", method => {
+    const state = fixture(`items=[False,True]\nresult=items.${method}(guest${method === "insert" ? ",False" : ""})\n`), v = state.values;
+    state.globals.set("guest", v.cell({})); let calls = 0;
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Index", warn() {},
+      lookupIndex: () => () => {
+        calls++;
+        const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+        items.items.pop(0n);
+        return v.integer(0);
+      }
+    } });
+    state.run();
+    expect(calls).toBe(1);
+    expect(state.globals.get("result")).toBe(method === "pop" ? v.true : v.none);
+    const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+    expect(items.items.snapshot()).toEqual(method === "pop" ? [] : [v.false, v.true]);
+  });
   it.each(["[False,True,True]", "(False,True,True)"])("converts guest search bounds left to right: %s", source => {
     const state = fixture(`items=${source}\nresult=items.index(True,start,stop)\n`), v = state.values;
     const start = v.cell({}), stop = v.cell({}), events: string[] = [];

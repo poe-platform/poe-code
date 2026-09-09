@@ -7,6 +7,7 @@ export type ExceptionHandler = SourceSpan & { readonly exception: Expression | n
 export type WithItem = SourceSpan & { readonly context: Expression; readonly target: Expression | null };
 
 export type Statement = SourceSpan & (
+  | { readonly kind: "type-alias"; readonly name: DeclaredName }
   | { readonly kind: "class"; readonly name: DeclaredName; readonly arguments: readonly CallArgument[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }
   | { readonly kind: "function"; readonly name: DeclaredName; readonly async: boolean; readonly parameters: readonly Parameter[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }
   | { readonly kind: "with"; readonly async: boolean; readonly items: readonly WithItem[]; readonly body: readonly Statement[] }

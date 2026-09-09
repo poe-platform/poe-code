@@ -479,6 +479,19 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck, and the selected workspace build passed.
   Type aliases, the remaining grammar, and runtime
   implementation remain pending.
+- Added ignored type-alias statements with normalized names, generic parameter
+  lists, and parsed-but-discarded values. Soft-keyword recognition speculates only
+  over the `type NAME` prefix, leaving ordinary type calls, subscripts, operators,
+  annotations, and assignments intact. Alias nodes retain identity/spans but expose
+  no executable expressions; this intentionally does not implement TypeAliasType
+  objects or lazy alias evaluation under the requested ignored-types behavior.
+- Type-alias validation: four positive tests failed before implementation; all 934
+  package tests pass. A 512-case CPython compilation comparison matched syntax
+  acceptance, statement kinds, and normalized alias names. Tests separately verify
+  aliases in nested suites, discarded values, and continued validation of adjacent
+  executable statements. Scoped lint, source typecheck, and the selected workspace
+  build passed. Pattern matching, enclosing-scope
+  validation, execution, and safe-fs integration remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

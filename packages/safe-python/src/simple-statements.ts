@@ -7,10 +7,12 @@ import { reservedWords } from "./keywords.js";
 import { normalizeNfkc } from "./normalization.js";
 import { validateTarget } from "./targets.js";
 import { readImportStatement } from "./import-statements.js";
+import { readTypeAlias } from "./type-aliases.js";
 
 export function readSimpleStatement(cursor: TokenCursor): Statement {
   const token = cursor.peek();
   switch (token.text) {
+    case "type": return readTypeAlias(cursor) ?? readAssignmentOrExpression(cursor);
     case "import": case "from": return readImportStatement(cursor);
     case "global": case "nonlocal": {
       cursor.take();

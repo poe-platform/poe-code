@@ -672,6 +672,9 @@ by intrinsic realm identity, so a reused budget does not select an earlier run.
 Foreign intrinsic calls receive their owner's compilation context. Borrowed
 RegExp construction and recompilation therefore preserve ownership checks
 without rejecting valid cross-realm calls, including bound/Proxy calls and replay.
+Errors created by foreign intrinsics use the owner's error prototypes, including
+asynchronously implemented calls. Already-captured caller errors retain their
+identity and prototypes when propagated through those calls.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

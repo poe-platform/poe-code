@@ -4648,6 +4648,10 @@ async function invokeSandboxClosure(
   directEval = false
 ): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
+  const realm = functionRealms.get(callee);
+  const foreignContext = realm !== undefined && realm !== activeFunctionRealmPrototypes.get(context.budget)
+    ? intrinsicRealmContexts.get(realm) : undefined;
+  const errorBudget = callee.sandbox === true ? foreignContext?.budget : undefined;
 
   try {
     if (guestProxyStates.has(callee)) {
@@ -4658,9 +4662,8 @@ async function invokeSandboxClosure(
     }
     const invoke = construct ? callee.construct : callee.call;
     if (invoke === undefined) throw new TypeError("Value is not a constructor.");
-    const realm = functionRealms.get(callee);
     const compilation = realm !== undefined && realm !== activeFunctionRealmPrototypes.get(context.budget)
-      ? intrinsicRealmContexts.get(realm)?.compilation : context.compilation;
+      ? foreignContext?.compilation : context.compilation;
     const result = Reflect.apply(invoke, undefined, [
       args,
       {
@@ -4692,16 +4695,16 @@ async function invokeSandboxClosure(
 
     return !construct && callee.async === true
       ? normalizeClosureResult(
-          wrapHostResult(result, stack, callee.sandbox === true),
+          wrapHostResult(result, stack, callee.sandbox === true, errorBudget),
           context.budget
         )
-      : await wrapHostResult(result, stack, callee.sandbox === true);
+      : await wrapHostResult(result, stack, callee.sandbox === true, errorBudget);
   } catch (error) {
     if (isFatalSandboxError(error)) {
       throw error;
     }
 
-    throw captureException(error, stack, callee.sandbox === true);
+    throw captureException(error, stack, callee.sandbox === true, errorBudget);
   } finally {
     leaveCall();
   }
@@ -4885,7 +4888,8 @@ function defineSandboxProperty(
 function wrapHostResult(
   result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>,
   stack: readonly string[],
-  sandbox: boolean
+  sandbox: boolean,
+  errorBudget?: Budget
 ): InterpreterValue | Promise<InterpreterValue> {
   if (!isPromiseLikeResult(result)) {
     return result;
@@ -4897,13 +4901,15 @@ function wrapHostResult(
       Promise.reject(
         isInterpreterError(reason) || reason instanceof SandboxError || isCapturedException(reason)
           ? reason
-          : createCapturedException(reason, stack, sandbox)
+          : captureException(reason, stack, sandbox, errorBudget)
       )
   );
 }
 
-function captureException(error: unknown, stack: readonly string[], sandbox: boolean) {
-  return isCapturedException(error) ? error : createCapturedException(error, stack, sandbox);
+function captureException(error: unknown, stack: readonly string[], sandbox: boolean, errorBudget?: Budget) {
+  return isCapturedException(error) ? error : createCapturedException(
+    errorBudget === undefined ? error : coerceThrownValue(error, errorBudget, stack, undefined, sandbox), stack, sandbox
+  );
 }
 
 function isPromiseLikeResult(

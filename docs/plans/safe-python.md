@@ -643,8 +643,19 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build passed. Directive
   validation remains a separate analysis phase; inherited compile flags, runtime
   imports, and unified public analysis/execution orchestration remain pending.
+- Added public analyzeModule orchestration, returning a shared module AST, declared
+  future features, and resolved scope tree after parsing, future validation,
+  control-flow validation, and declaration/binding resolution. Exported result,
+  symbol, binding, and pattern types. Syntax-only parseModule remains available;
+  analysis does not execute code, load imports, or resolve discarded annotations.
+  Readonly result collections are API contracts, not isolation boundaries.
+- Analysis API validation: all 13 new tests failed before implementation; all
+  1,168 package tests now pass. Tests cover phase-specific source errors, ignored
+  type syntax, closure ownership, isolated future state, and single-delivery lexer
+  callbacks. Source typecheck, selected workspace build, and a built-export smoke
+  check passed. Scoped lint passed.
 - Next:
-  unified analysis API, remaining scope/compiler audits, interpreter runtime,
+  remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static
   analysis do not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

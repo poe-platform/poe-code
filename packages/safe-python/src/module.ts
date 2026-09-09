@@ -5,7 +5,7 @@ import { readStatements } from "./compound-statements.js";
 import { statementExpressions } from "./statement-expressions.js";
 import { validateExpression } from "./expression-validation.js";
 
-/** Parse module statements. Compound and remaining simple statements are in progress. */
+/** Parse module syntax; use analyzeModule to also validate contexts and resolve scopes. */
 export function parseModule(text: string, options: LexerOptions = {}): Module {
   const cursor = createTokenCursor(text, options);
   const start = cursor.peek().start;

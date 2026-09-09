@@ -5694,6 +5694,20 @@ extension, integration, or validation requirement is missing or unverified.
   also pass. Typecheck, scoped lint and selected workspace build pass. Locale-aware
   n, guest subclass behavior, remaining native object families and the broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Added immutable POSIX digit-grouping metadata with prefix boundaries, repeat/
+  stop markers and implicit NUL termination. Boundary/count queries use prefix
+  sums and a repeating tail; minimum zero-padded digit count uses bounded binary
+  search with separator widths measured in code points. Locale acquisition and
+  platform CHAR_MAX normalization remain the caller's responsibility.
+- Five tests first failed on the missing engine. All 4,677 tests in 396 files
+  pass, plus a focused rerun covering zero-length dimensions. A 5,000-case audit
+  compares nonempty grouped strings and minimum digit counts with CPython's
+  locale grouping, normalizing implicit terminators; the initial empty-string
+  oracle attempt hit locale._group's IndexError, so zero length is unit-covered
+  rather than counted as a passing differential case. The near-32-bit width
+  test finishes within a 500-step budget. Typecheck, scoped lint and selected workspace build
+  pass. Locale snapshots, renderer/native n integration and broader interpreter/
+  SDK/safe-fs work remain unfinished; no host locale settings were changed.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

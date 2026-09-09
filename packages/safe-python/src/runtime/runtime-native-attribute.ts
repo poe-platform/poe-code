@@ -11,6 +11,7 @@ import { createRuntimeListSortMethod } from "./runtime-list-sort-method.js";
 import { createRuntimeTupleMethod } from "./runtime-tuple-method.js";
 import { readRuntimeRangeAttribute } from "./runtime-range-attributes.js";
 import { createRuntimeStringSearchMethod } from "./runtime-string-search-method.js";
+import { createRuntimeStringAffixMethod } from "./runtime-string-affix-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
@@ -22,6 +23,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str") {
+    if (name === "startswith" || name === "endswith") return createRuntimeStringAffixMethod(receiver, name, values, meter);
     switch (name) {
       case "find": case "rfind": case "index": case "rindex": case "count":
         return createRuntimeStringSearchMethod(receiver, name, values, meter);

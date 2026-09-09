@@ -3976,6 +3976,19 @@ extension, integration, or validation requirement is missing or unverified.
   and selected workspace build. Other string methods, native descriptors, guest index
   slots, remaining builtins, suspension, accounting and SDK/safe-fs remain
   unfinished.
+- Connected str.startswith/endswith with individual and tuple candidates.
+  Bounds are validated before candidate inspection; tuple validation stops at
+  the first successful match and reports invalid members only when reached.
+  The code-point boundary matcher handles empty candidates and out-of-range
+  starts without slicing or scanning unrelated text. First/last-point checks
+  reject mismatches before traversing an affix's interior.
+- Affix verification began with six failing tests, including a zero-allocation,
+  small-step-budget check against a long receiver. All 3,749 tests in 268 files
+  pass, with scoped lint, source typecheck and selected workspace build. A 1,936-call compiled
+  CPython audit matches Unicode results, tuple short-circuiting, bounds and
+  errors; the 2,440-call string-search regression also passes. Additional string
+  methods, native descriptors, guest index slots, remaining builtins,
+  comprehension/suspension integration, accounting and SDK/safe-fs are pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

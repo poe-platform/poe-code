@@ -100,6 +100,28 @@ export class CodePointString implements Iterable<number> {
     return searchSubstring(this.#points, needle.#points, Number(start), Number(stop), mode, meter);
   }
 
+  /** Match a boundary in-place; neither slice nor scan the rest of the text. */
+  hasAffix(affix: CodePointString, side: "start" | "end", start = 0n, stop: bigint | null = null, meter?: ExecutionMeter): boolean {
+    meter?.checkpoint();
+    const length = BigInt(this.length);
+    if (start < 0n) start += length;
+    if (start < 0n) start = 0n;
+    stop ??= length;
+    if (stop < 0n) stop += length;
+    if (stop < 0n) stop = 0n;
+    if (stop > length) stop = length;
+    if (start > stop || BigInt(affix.length) > stop - start) return false;
+    if (affix.length === 0) return true;
+    const offset = side === "start" ? Number(start) : Number(stop) - affix.length;
+    meter?.checkpoint();
+    if (this.#points[offset] !== affix.#points[0] || this.#points[offset + affix.length - 1] !== affix.#points[affix.length - 1]) return false;
+    for (let index = 1; index < affix.length - 1; index++) {
+      meter?.checkpoint();
+      if (this.#points[offset + index] !== affix.#points[index]) return false;
+    }
+    return true;
+  }
+
   compare(other: CodePointString, meter?: ExecutionMeter): -1 | 0 | 1 {
     meter?.checkpoint();
     const common = Math.min(this.length, other.length);

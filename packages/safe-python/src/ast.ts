@@ -10,15 +10,23 @@ export type CallArgument = SourceSpan & (
   | { readonly kind: "keyword"; readonly spelling: string; readonly value: Expression }
 );
 
-export type SubscriptItem = Expression | (SourceSpan & (
-  | { readonly kind: "slice"; readonly lower: Expression | null; readonly upper: Expression | null; readonly step: Expression | null }
-  | { readonly kind: "unpack"; readonly value: Expression }
+export type CollectionItem = Expression | (SourceSpan & { readonly kind: "unpack"; readonly value: Expression });
+
+export type DictionaryEntry = SourceSpan & (
+  | { readonly kind: "entry"; readonly key: Expression; readonly value: Expression }
+  | { readonly kind: "mapping"; readonly value: Expression }
+);
+
+export type SubscriptItem = CollectionItem | (SourceSpan & (
+  { readonly kind: "slice"; readonly lower: Expression | null; readonly upper: Expression | null; readonly step: Expression | null }
 ));
 
 export type Expression = SourceSpan & (
   | { readonly kind: "literal"; readonly literalKind: "integer" | "float" | "imaginary" | "string" | "bytes" | "boolean" | "none" | "ellipsis";
       readonly value: bigint | number | Uint32Array | Uint8Array | boolean | null }
   | { readonly kind: "name"; readonly spelling: string }
+  | { readonly kind: "tuple" | "list" | "set"; readonly items: readonly CollectionItem[] }
+  | { readonly kind: "dictionary"; readonly entries: readonly DictionaryEntry[] }
   | { readonly kind: "attribute"; readonly object: Expression; readonly spelling: string }
   | { readonly kind: "call"; readonly callee: Expression; readonly arguments: readonly CallArgument[] }
   | { readonly kind: "subscript"; readonly object: Expression; readonly items: readonly SubscriptItem[]; readonly tuple: boolean }

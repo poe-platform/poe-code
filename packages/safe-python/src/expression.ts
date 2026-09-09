@@ -4,6 +4,7 @@ import type { Expression } from "./ast.js";
 import { TokenCursor } from "./token-cursor.js";
 import { readTrailers } from "./primary.js";
 import { reservedWords } from "./keywords.js";
+import { readDisplay } from "./displays.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -14,7 +15,19 @@ const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "in", "is", "not"
 /** Parse a single expression. Statement grammar and additional expression forms are still being implemented. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
   const cursor = new TokenCursor(lex(text, options), options.filename);
-  const result = readExpression(cursor);
+  let result = readExpression(cursor);
+  if (cursor.peek().text === ",") {
+    const items = [result];
+    let end = result.end;
+    while (cursor.peek().text === ",") {
+      end = cursor.take().end;
+      if (cursor.peek().kind === "newline" || cursor.peek().kind === "end") break;
+      const item = readExpression(cursor);
+      items.push(item);
+      end = item.end;
+    }
+    result = { kind: "tuple", items, start: result.start, end };
+  }
   while (cursor.peek().kind === "newline") cursor.take();
   if (cursor.peek().kind !== "end") throw cursor.error("unexpected token after expression");
   return result;
@@ -71,12 +84,7 @@ function readPrefix(cursor: TokenCursor, minimum: number): Expression {
 
 function readAtom(cursor: TokenCursor): Expression {
   const token = cursor.peek();
-  if (token.text === "(") {
-    cursor.take();
-    const expression = readExpression(cursor);
-    const close = cursor.expect(")");
-    return { ...expression, start: token.start, end: close.end };
-  }
+  if (["(", "[", "{"].includes(token.text)) return readDisplay(cursor, readExpression);
   if (token.kind === "integer" || token.kind === "float" || token.kind === "imaginary" || token.kind === "string" || token.kind === "bytes") {
     cursor.take();
     return { kind: "literal", literalKind: token.kind, value: token.value, start: token.start, end: token.end };

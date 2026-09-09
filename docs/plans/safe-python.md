@@ -164,7 +164,20 @@ extension, integration, or validation requirement is missing or unverified.
   check, not runtime argument evaluation evidence. Focused lint, source typecheck,
   and selected workspace build passed. Normalized duplicate-keyword checks still
   depend on the pending pinned identifier normalization/binding work.
-- Next: collection literals,
+- Added tuple/list/set/dictionary display parsing, including empty collections,
+  grouping versus singleton tuples, top-level unparenthesized tuples, iterable
+  unpacking, and mapping unpacking. Commas are owned by their grammar context so
+  tuple parsing does not absorb call arguments or subscription dimensions.
+  Dictionary entries remain ordered and retain duplicate keys for later evaluation.
+  Unparenthesized unpacking operands follow the display grammar's bitwise-or
+  precedence boundary; conditionals/boolean expressions require grouping there.
+- Display validation: 406 package unit cases pass. A 515-case comparison with
+  CPython compilation and ASTs covered ordinary, starred, mapping, key/value,
+  and mixed-invalid displays with and without trailing commas, with no differences.
+  Source typecheck, scoped ESLint, and selected workspace build passed. Collection
+  construction, key equality/hashing, duplicate-key replacement, and unpacking
+  protocols are still runtime work; this evidence proves syntax/tree behavior only.
+- Next:
   comprehensions, lambdas, interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.

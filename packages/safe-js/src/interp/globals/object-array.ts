@@ -5,7 +5,7 @@ import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-pro
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
 import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
-import { setGuestProxyIntegrity } from "../guest-proxy-integrity.js";
+import { setGuestProxyIntegrity, testGuestProxyIntegrity } from "../guest-proxy-integrity.js";
 import { defineGuestProxyProperty } from "../guest-proxy-define.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
@@ -344,7 +344,9 @@ export function createObjectArrayGlobals(options: {
         }),
         isSealed: createSandboxClosure({
           sandbox: true,
-          call: ([value]) =>
+          call: ([value], context) =>
+            typeof value === "object" && value !== null && guestProxyStates.has(value)
+              ? testGuestProxyIntegrity(value, "sealed", options.budget, context) :
             Object.isSealed(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
           name: "isSealed"
         }),
@@ -365,7 +367,9 @@ export function createObjectArrayGlobals(options: {
         }),
         isFrozen: createSandboxClosure({
           sandbox: true,
-          call: ([value]) =>
+          call: ([value], context) =>
+            typeof value === "object" && value !== null && guestProxyStates.has(value)
+              ? testGuestProxyIntegrity(value, "frozen", options.budget, context) :
             Object.isFrozen(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
           name: "isFrozen"
         }),

@@ -5540,6 +5540,20 @@ extension, integration, or validation requirement is missing or unverified.
   the passing audit explicitly uses retrieved bound methods for those failures.
   Descriptor/direct-call optimization, remaining native families, format-spec
   parsing, default f-string wiring and the wider interpreter work remain pending.
+- Added shared Python 3.14 format-spec parsing for code-point fill/alignment,
+  signs, z, alternate form, zero padding, Unicode-decimal width/precision, integer
+  and fractional grouping, and presentation type. Numeric accumulation is bounded
+  to signed 64-bit platform size. Shared grouping/precision/syntax diagnostics
+  retain precedence; type-specific restrictions remain the renderer's job.
+- Seven tests first failed on the missing parser. All 4,629 tests in 387 files
+  pass. A 12,760-case CPython audit compares exact parser diagnostics on failures
+  and formatting equivalence after reconstructing specs from successful parses,
+  including every decimal code point in the package's Unicode table. This tests
+  syntax normalization, not a native renderer. Source typecheck passes after
+  explicitly annotating the bounded bigint accumulator. Scoped lint and selected
+  workspace build pass. Text/numeric format
+  renderers, their native slots, default f-string wiring and the broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

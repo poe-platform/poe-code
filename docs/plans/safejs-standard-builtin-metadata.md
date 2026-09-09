@@ -112,3 +112,17 @@ all 82 tests (22094). The built CLI screenshot (45319) was reviewed and reports
 length one and bound length zero for both globals. Scoped lint passed both files
 (63333). These checks do not resolve the separate full-suite type-contract
 timeout or prove complete builtin conformance.
+
+## Broader callable metadata check
+
+Source probe 80702 on September 9 inspected own function-valued properties and
+accessor functions on 44 selected globals, their prototypes, and Intl
+constructors/prototypes. It compared function name and length, including
+symbol-keyed methods. Native Node 22.23.2 produced 547 rows; current main,
+including pending weak-reference work, produced 528. All 500 shared rows
+matched. The 47 native-only rows were 38 legacy RegExp accessor functions,
+two V8 Error stack hooks and seven older Intl.Locale getters, whose standards
+dispositions were already audited separately. No new metadata repair is
+justified by this probe. The 28 guest-only rows were not validated against a
+newer native runtime, and this check does not establish behavior, descriptor
+attribute correctness, snapshot recovery or overall conformance.

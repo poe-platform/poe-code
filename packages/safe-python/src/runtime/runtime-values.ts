@@ -6,6 +6,7 @@ import type { FunctionState } from "./function-state.js";
 import type { OrderedKeyMap } from "./ordered-key-map.js";
 import { PythonRuntimeError } from "./error.js";
 import type { CellStorage } from "./lexical-frame.js";
+import type { RuntimeTypeLayout } from "./runtime-type-layout.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -56,6 +57,23 @@ export interface CellValue {
   readonly value: CellStorage<RuntimeValue>;
 }
 
+export interface TypeValue {
+  readonly kind: "type";
+  readonly value: RuntimeTypeLayout;
+  readonly metaclass: TypeValue;
+}
+
+/** Finish the self-reference before publishing the immutable record. */
+class RuntimeTypeRecord implements TypeValue {
+  readonly kind = "type";
+  readonly metaclass: TypeValue;
+
+  constructor(readonly value: RuntimeTypeLayout, metaclass: TypeValue | "self") {
+    this.metaclass = metaclass === "self" ? this : metaclass;
+    Object.freeze(this);
+  }
+}
+
 export type RuntimeValue =
   | PrimitiveConstant
   | TupleConstant<RuntimeValue>
@@ -67,6 +85,7 @@ export type RuntimeValue =
   | BuiltinFunctionValue
   | BoundMethodValue
   | CellValue
+  | TypeValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -131,5 +150,13 @@ export class RuntimeValues extends ConstantValues {
   cell(value: CellValue["value"]): CellValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "cell", value });
+  }
+
+  /** Adopt a validated layout and explicit metaclass. "self" is a host-only
+   * bootstrap marker for type, not a guest metaclass argument or inferred default.
+   * The object layer owns canonical publication and metaclass/layout validation. */
+  type(layout: RuntimeTypeLayout, metaclass: TypeValue | "self"): TypeValue {
+    this.runtimeMeter.checkpoint(1, 48);
+    return new RuntimeTypeRecord(layout, metaclass);
   }
 }

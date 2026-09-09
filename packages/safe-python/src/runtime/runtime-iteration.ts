@@ -14,6 +14,7 @@ import { PythonRuntimeError } from "./error.js";
 export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
+    case "type": throw new PythonRuntimeError("TypeError", "'type' object is not iterable");
     case "cell": throw new PythonRuntimeError("TypeError", "'cell' object is not iterable");
     case "function": throw new PythonRuntimeError("TypeError", "'function' object is not iterable");
     case "method": throw new PythonRuntimeError("TypeError", "'method' object is not iterable");

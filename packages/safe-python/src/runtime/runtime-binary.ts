@@ -16,7 +16,7 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     case "&": case "|": case "^": case "<<": case ">>": case "@": break;
     default: throw new Error(`unsupported runtime binary operator: ${operator}`);
   }
-  if (left.kind === "cell" || right.kind === "cell") return values.notImplemented;
+  if (left.kind === "cell" || right.kind === "cell" || left.kind === "type" || right.kind === "type") return values.notImplemented;
   if (left.kind === "list" || right.kind === "list") {
     if (operator === "+" && left.kind === "list" && right.kind === "list") return values.list(left.items.concat(right.items));
     if (operator === "*") {

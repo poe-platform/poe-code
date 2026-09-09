@@ -58,7 +58,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const statementHooks = hooks.statements(frame); meter.checkpoint();
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
       values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
-      callable: value => value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method" || hooks.callable(value),
+      callable: value => value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method" || value.kind === "type" || hooks.callable(value),
       invoke(value, positional, keywords) {
         if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter);
         const fn = value.kind === "method" ? value.value.function : value;

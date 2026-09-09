@@ -3452,6 +3452,22 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build passed. Default type/metaclass/instance integration,
   full guest mapping protocols, suspension, complete accounting and public SDK/
   safe-fs integration remain unfinished; custom mappings still require a policy.
+- Added concrete immutable type records retaining an inheritance layout and an
+  explicit metaclass. A host-only self marker completes the type bootstrap cycle
+  before publication. Type records participate in intrinsic identity comparison,
+  hashing, truth and dictionary keys; class descriptors now accept actual type
+  owners. Type callability reaches the explicit object invocation policy, while
+  unsupported intrinsic arithmetic/iteration operations remain explicit failures.
+- All seven initial tests failed on the absent type factory. All 3,449 tests in
+  236 files pass, including custom metaclass references, live namespaces, inherited
+  function descriptor ownership, identity keys and allocation limits. A 1,000-case
+  CPython type-graph audit matched intrinsic comparisons, truth, iteration errors,
+  MROs and dictionary identity using matching identity-hash policies. Runtime hash
+  (3,000), comparison (3,600) and assembled-program (1,300) differential regressions
+  passed. Source typecheck, scoped lint and selected workspace build passed.
+  Canonical type publication/bootstrap registry, type construction, metaclass slot
+  overrides and instance dispatch remain unfinished. Suspension, complete resource
+  accounting and public SDK/safe-fs integration also remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

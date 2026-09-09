@@ -721,6 +721,21 @@ extension, integration, or validation requirement is missing or unverified.
   NaN payloads. Scoped lint, source typecheck, and selected workspace build passed.
   Reference: https://docs.python.org/3/library/functions.html#round . Guest round
   dispatch and __round__ protocol integration remain pending.
+- Added exact mixed integer/float ordering and shared real numeric hashes using
+  the fixed 64-bit Python hash modulus. Bigints are not converted to floats for
+  comparison; finite float hashes use their exact ratios and modular inverses.
+  Equal numeric values share hashes; negative-one hashes are remapped to negative
+  two, and infinity has the Python hash constant. NaN ordering is explicitly
+  unordered and its hash is deferred to guest object identity, not a numeric hash.
+- Real comparison/hash validation: the new suite failed on the missing module;
+  all 1,341 package tests pass, including 29 cases covering mixed precision,
+  cross-type equality, collisions, signed zero, infinities, and NaN deferral.
+  CPython comparisons covered hashes for 6,015 values (excluding identity-dependent
+  NaN hashes) and 9,222 orderings. Scoped lint, source typecheck, and selected
+  workspace build passed. Reference:
+  https://docs.python.org/3/library/stdtypes.html#hashing-of-numeric-types . Guest
+  dictionary/set lookup, complex/rational hashing, and identity allocation remain
+  pending; numeric hashes alone do not establish collection semantics.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

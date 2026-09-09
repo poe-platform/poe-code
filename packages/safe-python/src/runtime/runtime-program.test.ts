@@ -32,6 +32,46 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("resolves native dictionary, proxy and view attributes without object hooks", () => {
+    const state = fixture("d = {'a': 1}\nd.update(b=2)\nk = d.keys()\np = k.mapping\nresult = p.get('b')\ncommon = k.isdisjoint(['z'])\nc = p.copy()\nc.clear()\n");
+    state.hooks.expressions = () => ({ beginSet() { throw new Error("unused"); }, warn() {} });
+    state.run();
+    expect(state.globals.get("result")).toEqual(state.values.integer(2));
+    expect(state.globals.get("common")).toBe(state.values.true);
+    const d = state.globals.get("d"), c = state.globals.get("c");
+    if (d?.kind !== "dict" || c?.kind !== "dict") throw new Error("expected dictionaries");
+    expect(d.items.size).toBe(2); expect(c.items.size).toBe(0);
+  });
+  it("resolves native set methods from compiled function bodies", () => {
+    const state = fixture("def f(s):\n s.add(2)\n return s.union([3]).difference([1])\nresult = f(s)\ncopy = frozen.copy()\n");
+    state.hooks.expressions = () => ({ beginSet() { throw new Error("unused"); }, warn() {} });
+    const items = new OrderedKeyMap<RuntimeValue, RuntimeValue>(state.keys, state.meter);
+    items.set(state.values.integer(1), state.values.none);
+    const frozen = state.values.frozenSet(items.copy());
+    state.globals.set("s", state.values.set(items)); state.globals.set("frozen", frozen);
+    state.run();
+    const result = state.globals.get("result");
+    if (result?.kind !== "set") throw new Error("expected set");
+    expect(result.items.containsKey(state.values.integer(2))).toBe(true);
+    expect(result.items.containsKey(state.values.integer(3))).toBe(true);
+    expect(result.items.size).toBe(2); expect(state.globals.get("copy")).toBe(frozen);
+  });
+  it.each(["d.items.storage", "d.storage", "d.keys().mapping.clear"])("rejects unavailable native attributes: %s", expression => {
+    const state = fixture(`d = {}\nresult = ${expression}\n`);
+    state.hooks.expressions = () => ({ beginSet() { throw new Error("unused"); }, warn() {} });
+    expect(state.run).toThrow(expect.objectContaining({ name: "AttributeError" }));
+    expect(state.globals.has("result")).toBe(false);
+  });
+  it("keeps extracted native methods bound to their original receiver", () => {
+    const state = fixture("d = {'a': 1}\nget = d.get\nd = {'a': 9}\nresult = get('a')\n");
+    state.hooks.expressions = () => ({ beginSet() { throw new Error("unused"); }, warn() {} });
+    state.run(); expect(state.globals.get("result")).toEqual(state.values.integer(1));
+  });
+  it("preserves explicit attribute policies even for native method names", () => {
+    const state = fixture("result = {}.get\n");
+    state.hooks.expressions = () => ({ attribute: () => state.values.true, beginSet() { throw new Error("unused"); }, warn() {} });
+    state.run(); expect(state.globals.get("result")).toBe(state.values.true);
+  });
   it.each([
     "def outer(a):\n def inner(b):\n  return a + b + token\n return inner\n",
     "def outer(a):\n return lambda b: a + b + token\n",

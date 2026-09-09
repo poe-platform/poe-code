@@ -101,7 +101,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
     const expressions = createRuntimeExpressionContext(values, {
       load: frame.load.bind(frame), store: frame.store.bind(frame),
-      attribute: expressionHooks.attribute.bind(expressionHooks), beginSet: expressionHooks.beginSet.bind(expressionHooks),
+      attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet.bind(expressionHooks),
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)
     }, meter);

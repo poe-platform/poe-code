@@ -3838,6 +3838,20 @@ extension, integration, or validation requirement is missing or unverified.
   (3,200). Automatic method/type installation, native introspection, iterator
   table-position parity, complete accounting, suspension and public SDK/safe-fs
   integration remain unfinished.
+- Connected implemented dictionary, proxy, view and set/frozen-set instance
+  methods to default runtime attribute lookup. Compiled module and function
+  bodies can now call them without an external attribute dispatcher. Explicit
+  hooks retain precedence for custom object policies. Lookup uses fixed Python
+  member names, never host properties or prototype discovery; unavailable
+  members raise guest AttributeError. Extracted capabilities retain their
+  original receiver after name rebinding.
+- Native-lookup verification started with five failing compiled-program cases.
+  All 3,683 tests in 262 files pass, with scoped lint, source typecheck and
+  selected workspace build. A 231-outcome CPython audit covers the implemented member families,
+  readonly mutation exclusions and host-field rejection across seven receiver
+  kinds. Full type-descriptor registration, inherited members, native method
+  introspection, remaining container methods, builtin constructors, suspension,
+  full resource accounting and SDK/safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

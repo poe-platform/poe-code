@@ -11,13 +11,17 @@ import { runtimeUnary } from "./runtime-unary.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
 import type { KeyOperations } from "./ordered-key-map.js";
+import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
 
 /** Explicit scope/object capabilities, supplied by the surrounding runtime.
- * No host property lookup, callable execution or mapping access is implicit.
+ * Attribute lookup defaults to implemented exact native container members;
+ * an explicit hook replaces that policy. No host property lookup, callable
+ * execution or mapping access is implicit.
  * Hooks must implement guest semantics and charge their execution internally.
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
-  "load" | "store" | "attribute" | "beginCall" | "beginSet" | "createLambda"> &
+  "load" | "store" | "beginCall" | "beginSet" | "createLambda"> &
+  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute">> &
   Pick<ConstantUnaryContext, "warn"> & (
     Pick<ExpressionContext<RuntimeValue>, "beginDictionary"> |
     { readonly dictionaryKeys: KeyOperations<RuntimeValue> }
@@ -39,7 +43,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     slice: parts => values.slice(parts),
     load: bindings.load.bind(bindings),
     store: bindings.store.bind(bindings),
-    attribute: bindings.attribute.bind(bindings),
+    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => runtimeNativeAttribute(receiver, name, values, meter)),
     beginCall: bindings.beginCall.bind(bindings),
     beginSet: bindings.beginSet.bind(bindings),
     beginDictionary: "beginDictionary" in bindings

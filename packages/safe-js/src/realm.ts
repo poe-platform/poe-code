@@ -636,7 +636,8 @@ class RealmState {
     for (const extension of this.extensions) {
       const context: ExtensionContext = Object.freeze({
         signal: this.controller.signal,
-        onCleanup: this.onCleanup,
+        // Detachment is internal, not an extension capability.
+        onCleanup: cleanup => { this.onCleanup(cleanup); },
         chargeWork: this.chargeWork,
         createHostObject: this.createHostObject,
         startCallback: this.startCallback,

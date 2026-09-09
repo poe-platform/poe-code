@@ -1,6 +1,21 @@
 import { expect, it, vi } from "vitest";
 import { createRealm } from "./realm.js";
 import { runResources } from "./interp/resources.js";
+import { defineExtension } from "./extensions.js";
+
+it("does not expose the internal cleanup detach handle to extensions", async () => {
+  const close = vi.fn();
+  const extension = defineExtension({manifest:{version:1,name:"cleanup-shorthand"},
+    setup(context) {
+      expect(context.onCleanup(close)).toBeUndefined();
+      return {};
+    }});
+  const realm = createRealm({extensions:[extension]});
+  try {
+    expect(await realm.evaluate("return 7")).toMatchObject({ok:true,returnValue:7});
+  } finally { await realm.close(); }
+  expect(close).toHaveBeenCalledTimes(1);
+});
 
 it("detaches a rolled-back operation's cleanup from a persistent realm", async () => {
   const close = vi.fn(async () => {});

@@ -582,6 +582,10 @@ Direct SDK typed-array `slice`, `subarray`, `map`, `filter`, `toReversed`,
 including calls made after the originating run has completed.
 SDK typed-array construction also retains its intrinsic prototype fallback when
 `newTarget.prototype` is a primitive, after the originating run has completed.
+SDK typed-array input conversion follows Proxy reads and calls for array-like
+inputs, iterator factories, iterator objects, and result objects. Iterator
+acquisition also observes methods supplied by Proxy traps or Proxy ancestors,
+including async iteration and its synchronous fallback.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

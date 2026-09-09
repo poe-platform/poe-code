@@ -93,7 +93,9 @@ export async function acquireSandboxIterator(
       : getSandboxIterator(value, budget, context);
   const lookupTarget = value !== undefined && value !== null && typeof value !== "object"
     ? getBoxedPrototype(value, budget) : value;
-  if (getSandboxPropertyDescriptor(lookupTarget, key, budget) === undefined &&
+  let proxy = false;
+  const descriptor = getSandboxPropertyDescriptor(lookupTarget, key, budget, () => { proxy = true; });
+  if (descriptor === undefined && !proxy &&
       !(isSandboxRegExpIterator(value) && !asyncProtocol && getSandboxPropertyDescriptor(value, "next", budget) !== undefined)) {
     if (isSandboxGenerator(value)) {
       if (!hasExplicitSandboxPrototype(value) && (value.async === true) === asyncProtocol && getSandboxPropertyDescriptor(value, "next", budget) !== undefined)

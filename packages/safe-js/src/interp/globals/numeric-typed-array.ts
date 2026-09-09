@@ -140,16 +140,14 @@ export function createNumericTypedArrayGlobal(budget: Budget, nativePrototype = 
 }
 
 async function allocateTypedArrayInput(source: SandboxValue, budget: Budget, Native: NumericTypedArrayConstructor, context?: SandboxCallContext): Promise<NumericTypedArray> {
-  const callerContext = context;
+  const callerContext: SandboxCallContext = {
+    ...context, stack: context?.stack ?? [], thisValue: undefined,
+    getProperty: context?.getProperty ?? ((value, key) => sandboxGetProperty(value, key, value, budget, bridge))
+  };
   const bridge: SandboxCallContext = {
-    ...callerContext, stack: callerContext?.stack ?? [], thisValue: undefined,
-    getProperty: callerContext?.getProperty ?? ((value, key) => {
-      const descriptor = getSandboxPropertyDescriptor(value, key, budget);
-      return descriptor === undefined ? getSandboxDataProperty(value, key, budget)
-        : readPropertyDescriptor(descriptor, value, bridge);
-    }),
-    invokeClosure: callerContext?.invokeClosure ?? ((callee, values, receiver, construct) =>
-      invokeBuiltinClosure(callee, values, budget, callerContext, receiver, construct))
+    ...callerContext,
+    invokeClosure: context?.invokeClosure ?? ((callee, values, receiver, construct, newTarget) =>
+      invokeBuiltinClosure(callee, values, budget, callerContext, receiver, construct, newTarget))
   };
   const values: SandboxValue[] = [];
   let iterator: SandboxIterator | undefined;

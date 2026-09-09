@@ -37,10 +37,11 @@ export function createPrimitiveConstructor(
   const prototype = createSandboxBox(initial);
   const allocate = (value: BoxedPrimitive, context?: SandboxCallContext) => {
     const box = createSandboxBox(value);
-    const finish = (prototype: SandboxValue) => {
-      if (typeof prototype === "object" && prototype !== null)
-        setSandboxPrototype(box, prototype, budget);
+    const finish = (selectedPrototype: SandboxValue) => {
       budget.chargeDataUsage(measureSandboxData([box]));
+      setSandboxPrototype(box,
+        typeof selectedPrototype === "object" && selectedPrototype !== null ? selectedPrototype : prototype,
+        budget);
       return box;
     };
     if (context?.newTarget !== undefined && context.newTarget !== constructor) {

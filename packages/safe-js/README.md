@@ -602,6 +602,11 @@ prototype, including assignment and parameter patterns used by exported
 functions after run cleanup.
 Function rest-parameter arrays retain the function's originating array
 prototype as well, including calls made through exported SDK functions.
+Number, String, and Boolean construction and primitive `Object(value)`
+wrappers retain their originating prototypes after cleanup. Pristine wrappers
+remain copyable as data; modified prototype chains reject lossy copying.
+Boxed prototype mutation records are counted once when their owner is also
+reachable through a wrapper, without raising cleanup-test budget limits.
 Dates retain their originating prototype after run cleanup, including Dates
 created later by exported closures. Pristine Dates remain copyable as data;
 modified prototype chains reject copying rather than losing guest behavior.

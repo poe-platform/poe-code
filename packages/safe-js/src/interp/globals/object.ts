@@ -16,6 +16,7 @@ import { collectionIteratorState, isSandboxCollectionIterator } from "../collect
 import { isSandboxRegExpIterator } from "../regexp-iterator.js";
 import {
   createIntrinsicObject,
+  getBoxedPrototype,
   getSandboxPropertyDescriptor,
   hasExplicitSandboxPrototype,
   installObjectPrototype,
@@ -55,6 +56,8 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
     if (typeof value !== "object") {
       const box = createSandboxBox(value);
       budget.chargeDataUsage(measureSandboxData([box]));
+      const boxedPrototype = getBoxedPrototype(value, budget);
+      if (boxedPrototype !== undefined) setSandboxPrototype(box, boxedPrototype, budget);
       return box;
     }
     return value;

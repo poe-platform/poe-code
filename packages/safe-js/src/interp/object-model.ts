@@ -9,6 +9,7 @@ import { releaseTemplateObjects } from "./template-objects.js";
 import { isSandboxDate } from "./date.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { internalSymbols } from "./internal-symbols.js";
+import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
 import { errorPrototypes } from "./error-prototypes.js";
@@ -320,6 +321,7 @@ function captureIntrinsicRecords(targets: Array<SandboxObject | SandboxClosure>)
     })
     .map((record) => ({
       ...record,
+      dataRoot: {},
       revision: functionPropertyRevisions.get(record.value),
       capturedRevision: -1,
       captured: undefined as unknown[] | undefined,
@@ -380,9 +382,10 @@ function trackIntrinsicState(
     // Capture every change before measurement invokes retained-value callbacks.
     let retained: unknown[] | undefined;
     for (const record of retainedRecords) {
+      let contributions: unknown[] | undefined;
       const { value, descriptors, prototype: parent, revision } = record;
       const currentPrototype = record.tracked.current;
-      if (currentPrototype !== parent) (retained ??= []).push(currentPrototype);
+      if (currentPrototype !== parent) (contributions ??= []).push(currentPrototype);
       if (revision === undefined || revision.revision !== record.capturedRevision) {
         let captured: unknown[] | undefined;
         for (const key of Reflect.ownKeys(value)) {
@@ -394,7 +397,19 @@ function trackIntrinsicState(
         record.capturedRevision = revision?.revision ?? -1;
       }
       if (record.captured !== undefined) {
-        for (const item of record.captured) (retained ??= []).push(item);
+        for (const item of record.captured) (contributions ??= []).push(item);
+      }
+      if (contributions !== undefined) {
+        // Box measurement traverses every mutable property. Other intrinsic
+        // kinds may omit baseline fields, so their projections stay explicit.
+        if (isSandboxBox(record.target)) {
+          intrinsicDataRoots.set(record.dataRoot, { target: record.target, values: contributions });
+          (retained ??= []).push(record.dataRoot);
+        } else {
+          for (const item of contributions) (retained ??= []).push(item);
+        }
+      } else {
+        intrinsicDataRoots.delete(record.dataRoot);
       }
     }
     return retained;
@@ -408,11 +423,10 @@ export function releaseObjectPrototype(budget: Budget): void {
   intrinsicPrototypeRoots.delete(budget);
   intrinsicRetentionTargets.delete(budget);
   intrinsicRetentionGroups.delete(budget);
-  boxedPrototypes.delete(budget);
   regexPrototypes.delete(budget);
   collectionPrototypes.delete(budget);
   promisePrototypes.delete(budget);
-  // Keep object, array, Date and generator prototype lookups for live SDK closures
+  // Keep object, array, boxed, Date and generator prototype lookups for live SDK closures
   // that create values in this realm. Weak budget keys bound their lifetimes;
   // accounting roots above are still released.
   functionPrototypes.delete(budget);

@@ -1,5 +1,6 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
+import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { NativeSuppressedError } from "../error/native-suppressed-error.js";
@@ -703,6 +704,7 @@ export function measureSandboxData(
   const seen = new WeakSet<object>();
   const seenSymbols = new Set<symbol>();
   let usage = 0;
+  const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];
 
   const visit = (value: unknown, depth = 0): void => {
     if (typeof value === "bigint") {
@@ -722,6 +724,17 @@ export function measureSandboxData(
     }
     if (typeof value !== "object" || value === null) return;
     if (seen.has(value)) return;
+    const intrinsicRoot = intrinsicDataRoots.get(value);
+    if (intrinsicRoot !== undefined) {
+      seen.add(value);
+      if (seen.has(intrinsicRoot.target)) return;
+      projectedPrimitives.push({ ...intrinsicRoot, depth });
+      // Traverse references now, so another projection can expose an owner
+      // before its otherwise duplicated primitive property data is charged.
+      for (const item of intrinsicRoot.values)
+        if ((typeof item === "object" && item !== null) || typeof item === "symbol") visit(item, depth);
+      return;
+    }
     const bindingRoot = scopeDataRoots.get(value);
     if (bindingRoot !== undefined) {
       seen.add(value);
@@ -1082,6 +1095,11 @@ export function measureSandboxData(
   };
 
   for (const value of values) visit(value);
+  for (const projection of projectedPrimitives) {
+    if (seen.has(projection.target)) continue;
+    for (const item of projection.values)
+      if ((typeof item !== "object" || item === null) && typeof item !== "symbol") visit(item, projection.depth);
+  }
   return usage;
 }
 

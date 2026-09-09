@@ -2212,6 +2212,19 @@ extension, integration, or validation requirement is missing or unverified.
   3,000 concatenations, 6,036 repetitions and 3,000 slices. Source typecheck,
   scoped lint and selected workspace build passed. Full host object/array
   overhead accounting remains unfinished.
+- Added concrete bool/int three-argument modular power, including negative
+  exponents, signed moduli and canonical integer results. Noninteger operands
+  decline before numeric validation; full ternary reflected dispatch, float/type
+  errors and the None-modulus two-argument route remain caller responsibilities.
+  Semantics follow https://docs.python.org/3/library/functions.html#pow and local
+  CPython 3.14 checks.
+- Instrumented modular exponentiation and extended-Euclid inverse loops with
+  cooperative checkpoints. Guest adapters supply a mandatory meter; existing
+  trusted host numeric utilities retain an optional meter. Regressions reproduced
+  ignored step limits and cancellation before implementation. All 2,578 tests in
+  146 files pass, and 11,333 modular-power outcomes match CPython. Source
+  typecheck, scoped lint and selected workspace build passed. Bigint payload
+  allocation and size-dependent host CPU accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

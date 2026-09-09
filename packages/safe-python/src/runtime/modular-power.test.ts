@@ -1,7 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { integerModularPower } from "./modular-power.js";
+import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 
 describe("integer modular power", () => {
+  it("checks the meter before even validating a zero modulus", () => {
+    const meter = new ExecutionBudget({ maxSteps: 0, maxAllocatedBytes: 0 });
+    expect(() => integerModularPower(2n, 3n, 0n, meter)).toThrow(ExecutionLimitError);
+  });
+  it("interrupts exponentiation and modular inversion loops", () => {
+    for (const [base, exponent, modulus] of [[2n, 1n << 100n, 7n], [55n, -1n, 89n]]) {
+      const meter = new ExecutionBudget({ maxSteps: 3, maxAllocatedBytes: 0 });
+      expect(() => integerModularPower(base, exponent, modulus, meter)).toThrow(ExecutionLimitError);
+      expect(meter.usage.steps).toBe(3);
+    }
+  });
+  it("honors cancellation even on modulus-one shortcuts", () => {
+    const controller = new AbortController(); controller.abort();
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0, signal: controller.signal });
+    expect(() => integerModularPower(0n, -1n, 1n, meter)).toThrow(ExecutionLimitError);
+  });
   it.each([
     [2n, 10n, 1000n, 24n], [-2n, 3n, 5n, 2n], [-2n, 3n, -5n, -3n],
     [2n, 0n, 5n, 1n], [2n, 0n, -5n, -4n], [0n, 0n, 7n, 1n],

@@ -6,7 +6,7 @@ import { executeStatements, type StatementContext } from "./statement-execution.
 import type { CallStack } from "./call-stack.js";
 import type { CompiledFunction } from "./function-compilation.js";
 
-export interface FunctionInvocationContext<Value> extends FunctionFrameContext<Value> {
+export interface FunctionInvocationContext<Value, Key = string> extends FunctionFrameContext<Value, Key> {
   readonly none: Value;
   /** Shared across all nested calls in this execution context. */
   readonly calls: Pick<CallStack<LexicalFrame<Value>>, "enter">;
@@ -36,9 +36,9 @@ export class UnsupportedFunctionExecutionError extends Error {
  * runtime supplies shared depth policy and still owns guest traceback bookkeeping,
  * stack-independent call dispatch, full heap accounting and suspension protocols.
  */
-export function invokeFunction<Value>(
-  code: CompiledFunction<Value>, call: FunctionCallArguments<Value>,
-  context: FunctionInvocationContext<Value>, meter: ExecutionMeter
+export function invokeFunction<Value, Key = string>(
+  code: CompiledFunction<Value>, call: FunctionCallArguments<Value, Key>,
+  context: FunctionInvocationContext<Value, Key>, meter: ExecutionMeter
 ): Value {
   meter.checkpoint();
   const frame = createFunctionFrame(code.scope, call, context, meter);

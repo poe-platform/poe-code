@@ -1,26 +1,28 @@
 import { manglePrivateName } from "../private-names.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
-import { bindArguments, type CallParameter } from "./argument-binding.js";
+import { bindArguments, type CallParameter, type KeywordNames } from "./argument-binding.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
 
-export interface FunctionCallArguments<Value> {
+export interface FunctionCallArguments<Value, Key = string> {
   /** Current function-qualified name for argument diagnostics. */
   readonly name: string;
   readonly positional: readonly Value[];
-  /** Already expanded, duplicate-checked keywords. Keys remain exact strings. */
-  readonly keywords: ReadonlyMap<string, Value>;
+  /** Already expanded, duplicate-checked keywords. Original string records may
+   * be retained with keywordNames supplying exact source-name matching. */
+  readonly keywords: ReadonlyMap<Key, Value>;
+  readonly keywordNames?: KeywordNames<Key>;
   /** Already evaluated defaults, keyed by normalized source or mangled names. */
   readonly defaults: ReadonlyMap<string, Value>;
 }
 
-export interface FunctionFrameContext<Value> extends LexicalNamespaces<Value> {
+export interface FunctionFrameContext<Value, Key = string> extends LexicalNamespaces<Value> {
   /** Allocate builtin containers, without invoking guest-overridable constructors.
    * These operations own internal allocation metering. Dictionary construction
    * must produce independent storage even when the input is empty.
    */
   tuple(values: readonly Value[]): Value;
-  dictionary(values: ReadonlyMap<string, Value>): Value;
+  dictionary(values: ReadonlyMap<Key, Value>): Value;
 }
 
 /** Bind an expanded function/lambda call and populate a fresh lexical activation.
@@ -30,9 +32,9 @@ export interface FunctionFrameContext<Value> extends LexicalNamespaces<Value> {
  * defining class context; caller keyword keys are never normalized or mangled.
  * Complete activation/temporary heap accounting remains a runtime responsibility.
  */
-export function createFunctionFrame<Value>(
-  scope: ResolvedScope, call: FunctionCallArguments<Value>,
-  context: FunctionFrameContext<Value>, meter: ExecutionMeter
+export function createFunctionFrame<Value, Key = string>(
+  scope: ResolvedScope, call: FunctionCallArguments<Value, Key>,
+  context: FunctionFrameContext<Value, Key>, meter: ExecutionMeter
 ): LexicalFrame<Value> {
   meter.checkpoint();
   const node = scope.scope.node;
@@ -48,7 +50,7 @@ export function createFunctionFrame<Value>(
     meter.checkpoint();
     defaults.set(manglePrivateName(name, scope.scope.privateName), value);
   }
-  const bound = bindArguments(call.name, parameters, call.positional, call.keywords, defaults, meter);
+  const bound = bindArguments(call.name, parameters, call.positional, call.keywords, defaults, meter, call.keywordNames);
   const frame = new LexicalFrame(scope, context, meter);
   for (const parameter of parameters) {
     meter.checkpoint();

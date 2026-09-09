@@ -3212,6 +3212,25 @@ extension, integration, or validation requirement is missing or unverified.
   resource/exception accounting and public execution/safe-fs integration remain
   unfinished. Python keyword code points must remain intact through future
   function argument binding and **kwargs construction.
+- Connected concrete collected calls to captured compiled functions. Argument
+  binding, frame construction and invocation now preserve an optional original
+  keyword-key type, using a separate exact-name/diagnostic adapter. Runtime calls
+  retain original string records through matching and fresh **kwargs construction;
+  surrogate-containing keys cannot accidentally match an astral source identifier.
+  Positional tuples and keyword dictionaries share member values, while globals
+  and closures remain live. Invocation uses current qualified-name metadata and
+  the supplied shared frame-depth policy/body and optional suspension backend.
+- Four generic-key tests first reproduced failed parameter matching, collapsed
+  naming assumptions and wrong diagnostics; the concrete call suite then failed
+  on its missing implementation module. All 3,326 tests in 220 files pass,
+  including every parameter kind, surrogate keys, fresh kwargs, live globals,
+  recursive calls and depth-error frame cleanup. A 1,536-case CPython audit matched
+  collected source calls into compiled functions, results and binding failures;
+  the prior 768-case function-call audit also passed. Source typecheck, scoped lint
+  and selected workspace build passed. Function definition/lambda installation,
+  concrete builtin/method dispatch, suspension backends, stack-independent call
+  execution, full resource/guest exception accounting and public execution/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -3162,6 +3162,17 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Dictionary literals/constructors, concrete call keyword dictionaries,
   guest key slots, complete resource accounting and public execution/safe-fs
   integration remain unfinished.
+- Connected optional guest length capabilities to runtimeLength and the len
+  builtin. Non-native operands use the existing __len__/__index__ conversion,
+  negative/overflow validation and warning policy. Missing slots use bounded
+  guest type names; existing exact native container paths avoid guest callbacks.
+- Six tests first exposed missing guest length dispatch. All 4,910 tests in 426
+  files pass, covering direct/zero/negative/overflow lengths, index conversion,
+  native bypass and missing-slot diagnostics. Forty-eight compiled programs
+  match CPython values/errors and exact len/index traces in module, nested
+  function and conditional execution. Typecheck, scoped lint and selected
+  workspace build pass. Automatic builtin namespace assembly and concrete guest
+  object adapters, plus broader SDK/safe-fs integration, remain unfinished.
 - Added concrete dictionary literal construction and exact-dictionary ** unpacking.
   Expression bindings can supply the execution's shared key policy for the
   built-in builder or retain an explicit custom builder hook. Construction uses

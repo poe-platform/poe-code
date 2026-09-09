@@ -586,6 +586,8 @@ SDK typed-array input conversion follows Proxy reads and calls for array-like
 inputs, iterator factories, iterator objects, and result objects. Iterator
 acquisition also observes methods supplied by Proxy traps or Proxy ancestors,
 including async iteration and its synchronous fallback.
+Direct SDK `TypedArray.from` calls observe Proxy inputs, mapping callbacks, and
+constructor receivers, preserving mapper `this` and index arguments.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

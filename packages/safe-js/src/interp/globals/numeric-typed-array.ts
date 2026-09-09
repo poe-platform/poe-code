@@ -234,18 +234,14 @@ export function createNumericTypedArrayPrototypes(budget: Budget, bindings: Reco
           throw new TypeError("TypedArray.from mapper must be callable.");
         if (source === null || source === undefined)
           throw new TypeError("TypedArray.from requires a non-null source.");
-        const callerContext = context;
+        const callerContext: SandboxCallContext = {
+          ...context, stack: context?.stack ?? [], thisValue: target,
+          getProperty: context?.getProperty ?? ((value, key) => sandboxGetProperty(value, key, value, budget, context))
+        };
         context = {
           ...callerContext,
-          stack: callerContext?.stack ?? [],
-          thisValue: target,
-          getProperty: callerContext?.getProperty ?? ((value, key) => {
-            const descriptor = getSandboxPropertyDescriptor(value, key, budget);
-            return descriptor === undefined ? getSandboxDataProperty(value, key, budget)
-              : readPropertyDescriptor(descriptor, value, context);
-          }),
-          invokeClosure: callerContext?.invokeClosure ?? ((callee, values, thisValue, construct) =>
-            invokeBuiltinClosure(callee, values, budget, callerContext, thisValue, construct))
+          invokeClosure: callerContext.invokeClosure ?? ((callee, values, thisValue, construct, newTarget) =>
+            invokeBuiltinClosure(callee, values, budget, callerContext, thisValue, construct, newTarget))
         };
         let result: SandboxValue;
         let current: SandboxValue;

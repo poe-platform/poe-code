@@ -32,6 +32,30 @@ export class ListStorage<Value> {
     this.#items.push(value);
   }
 
+  /** Exact list fast path; capture the source length before growth so extending
+   * a list with itself duplicates its original slots exactly once. */
+  extend(source: ListStorage<Value>): void {
+    const offset = this.#items.length, count = source.#items.length;
+    this.meter.checkpoint(1 + count, count * 8);
+    if (offset + count > 0xffffffff) exhaustAllocation(this.meter);
+    this.#items.length = offset + count;
+    for (let i = 0; i < count; i++) this.#items[offset + i] = source.#items[i];
+  }
+
+  /** The guest layer prepares the iterator and evaluates its length hint before
+   * this streaming path. Earlier additions survive next failures; no implicit
+   * iterator close occurs. A live iterator over this list is not self-extension
+   * and can continue growing until the execution budget terminates it. */
+  extendIterator(iterator: Iterator<Value>): void {
+    while (true) {
+      this.meter.checkpoint();
+      const item = iterator.next();
+      this.meter.checkpoint();
+      if (item.done) return;
+      this.append(item.value);
+    }
+  }
+
   insert(index: bigint, value: Value): void {
     this.meter.checkpoint();
     if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C ssize_t");

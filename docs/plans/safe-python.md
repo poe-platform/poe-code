@@ -2459,6 +2459,19 @@ extension, integration, or validation requirement is missing or unverified.
   slice component conversion, replacement iterable materialization and finalizer
   deferral remain the protocol layer's responsibility, not implemented by these
   storage methods. Complete host allocation accounting is still pending.
+- Added exact-list extension and prepared-iterator streaming extension. The
+  exact-list path captures the original count, including self-extension, and
+  preflights slot growth without a temporary copy. The iterator path appends
+  after each next call, preserves partial progress on iterator failure and does
+  not implicitly close the iterator. Extending from a live iterator over the
+  destination retains streaming behavior rather than using the self-list fast
+  path; unbounded growth is terminated by the execution budget.
+- Nine extension tests first failed on missing methods. All 2,746 tests in 164
+  files pass; a 6,000-case CPython comparison matched exact/self extension,
+  iterator-side mutations, next-call traces, failures and existing cursor
+  observations. Source typecheck, scoped lint and selected workspace build passed.
+  Guest iterable preparation, length-hint protocol evaluation,
+  builtin method dispatch and complete native allocation accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -572,6 +572,8 @@ Exported SDK `Reflect.construct` also preserves explicit constructor identity
 through ordinary, bound, and Proxy targets, including accessor-backed traps.
 SDK-created bound functions also retain explicit `newTarget` through nested
 bindings while preserving the normal default-constructor substitution.
+Public Proxy binding reads the prototype and own length descriptor through traps
+before reading length and name, including null prototypes and nested Proxies.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

@@ -20,6 +20,9 @@ import { retainValues, runResources } from "../resources.js";
 import { createBoundFunction } from "../bound-function.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { readPropertyDescriptor } from "../accessors.js";
+import { guestProxyStates } from "../guest-proxy.js";
+import { sandboxGetPrototypeOf } from "../guest-proxy-prototype.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 
 export type FunctionMethodOptions = {
   budget?: Budget;
@@ -100,33 +103,36 @@ export function callFunctionMethod(
 
   if (methodName === "bind") {
     const boundArgs = args.slice(1);
-    const prototype = getSandboxPrototype(target, options.budget);
-    const preservePrototype = prototype !== null || hasExplicitSandboxPrototype(target);
+    const proxy = guestProxyStates.has(target);
+    let prototype = proxy ? null : getSandboxPrototype(target, options.budget);
+    const preservePrototype = proxy || prototype !== null || hasExplicitSandboxPrototype(target);
     const bind = (length: number | undefined, name: string) => {
       const bound = createBoundFunction({ target, thisValue, args: boundArgs }, `bound ${name}`, length, options.callClosure);
       if (preservePrototype) setSandboxPrototype(bound, prototype, options.budget);
       return bound;
     };
-    if (context?.getProperty === undefined)
+    if (context?.getProperty === undefined && !proxy)
       return bind(
         target.length === undefined ? undefined : Math.max(0, target.length - boundArgs.length),
         target.name ?? ""
       );
     return (async () => {
-      const release = options.budget !== undefined && prototype !== null
-        ? retainValues(options.budget, () => [prototype]) : undefined;
+      const budget = options.budget ?? new Budget();
+      const release = retainValues(budget, () => [target, prototype, ...boundArgs]);
       try {
+        if (proxy) prototype = await sandboxGetPrototypeOf(target, budget, context) as object | null;
         const properties = target.properties;
         const defaultName = target.name;
-        const hasLength =
-          !isGuestClosure(target) ||
+        const hasLength = proxy
+          ? await sandboxGetOwnPropertyDescriptor(target, "length", budget, context) !== undefined
+          : !isGuestClosure(target) ||
           target.properties === undefined ||
           Object.hasOwn(target.properties, "length");
-        const length = hasLength ? await context.getProperty!(target, "length") : undefined;
+        const length = hasLength ? await context!.getProperty!(target, "length") : undefined;
         const name =
           !isGuestClosure(target) && !Object.hasOwn(properties ?? {}, "name")
             ? defaultName
-            : await context.getProperty!(target, "name");
+            : await context!.getProperty!(target, "name");
         return bind(
           typeof length === "number" && !Number.isNaN(length)
             ? Math.max(0, Math.trunc(length) - boundArgs.length)

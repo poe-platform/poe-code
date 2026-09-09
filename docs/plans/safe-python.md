@@ -682,6 +682,21 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck, and selected workspace build passed. Reference:
   https://docs.python.org/3/library/functions.html#pow . Cooperative execution
   budgeting and guest exception/builtin integration remain pending.
+- Added floating-point true division and divmod runtime primitives. Divmod derives
+  its quotient from the remainder with sign and rounding correction rather than
+  flooring rounded true division; signed zero, subnormals, infinities, and NaNs
+  follow CPython behavior. Zero divisors produce Python numeric faults even with
+  non-finite numerators. Float overflow remains infinity rather than the integer
+  true-division conversion error.
+- Float division validation: the suite initially failed on the missing module;
+  all 1,247 package tests pass, including 35 float cases. A 5,289-case CPython
+  differential comparison matched quotient/remainder/true-division bits and error
+  messages, excluding NaN payload/sign bits. Added a CPython-confirmed regression
+  for quotient rounding correction from 26 to 27. Source typecheck and selected
+  workspace build passed; scoped lint passed. References:
+  https://docs.python.org/3/reference/expressions.html and
+  https://github.com/python/cpython/blob/main/Objects/floatobject.c . Mixed numeric
+  dispatch, guest values, and interpreter execution remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

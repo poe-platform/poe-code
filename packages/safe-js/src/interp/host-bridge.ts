@@ -105,14 +105,14 @@ export type HostBridgeOptions = {
 type HostCallbacks = {
   record?: HostCallRecord;
   journal?: HostCallJournal;
-  entries: Map<number, (args: SandboxValue[], token?: string) => Promise<unknown>>;
+  entries: Map<number, (args: SandboxValue[], token?: string, receiver?: SandboxValue) => Promise<unknown>>;
   hostFunctions: Map<number, (...args: readonly unknown[]) => Promise<unknown>>;
   sourceFunctions: Map<number, SandboxClosure>;
   proofFunctions: WeakMap<object, SandboxClosure>;
   active: Set<Promise<unknown>>;
   seen: WeakMap<SandboxClosure, (...args: readonly unknown[]) => Promise<unknown>>;
   nextReissuedInvocation?: number;
-  restored: Array<{ id: number; arguments: ReplayData; result: Promise<unknown> }>;
+  restored: Array<{ id: number; arguments: ReplayData; hasReceiver?: true; result: Promise<unknown> }>;
 };
 
 export type CallerInjectedBinding =
@@ -281,6 +281,7 @@ function wrapCallerInjectedFunction(
               callbacks.restored.push({
                 id: invocation.id,
                 arguments: invocation.arguments,
+                hasReceiver: invocation.hasReceiver,
                 result
               });
               const token = `${issued.record.id}/callback/${index + 1}`;
@@ -303,7 +304,7 @@ function wrapCallerInjectedFunction(
                       },
                       callbackCompilation
                     ) as SandboxValue[];
-                    void callback(args, token)
+                    void callback(invocation.hasReceiver ? args.slice(1) : args, token, invocation.hasReceiver ? args[0] : undefined)
                       .then(resolve, reject)
                       .finally(() => {
                         callbackCompilation.dispose();
@@ -716,7 +717,7 @@ function wrapSandboxClosureForHost(
   const existing = callbacks?.seen.get(closure);
   if (existing !== undefined) return existing;
   const id = (callbacks?.entries.size ?? 0) + 1;
-  const invoke = async (sandboxArgs: SandboxValue[], token?: string) => {
+  const invoke = async (sandboxArgs: SandboxValue[], token?: string, receiver?: SandboxValue) => {
     const operation = budget.acquireCompileOwner(false, compileOwner);
     const compilation = new CompileScope(operation.owner);
     let leaveRunning: (() => void) | undefined;
@@ -732,7 +733,7 @@ function wrapSandboxClosureForHost(
         const callerContext: SandboxCallContext = {
           compilation,
           stack: stackFrames,
-          thisValue: undefined,
+          thisValue: receiver,
           getProperty: (object, key) => sandboxGetProperty(object, key, object, budget, bridge)
         };
         const bridge: SandboxCallContext = {
@@ -741,8 +742,8 @@ function wrapSandboxClosureForHost(
             invokeBuiltinClosure(target, values, budget, callerContext, receiver, construct, newTarget)
         };
         result = guestProxyStates.has(closure)
-          ? await callGuestProxy(closure, sandboxArgs, budget, bridge, undefined)
-          : closure.call(sandboxArgs, { compilation, stack: stackFrames, thisValue: undefined });
+          ? await callGuestProxy(closure, sandboxArgs, budget, bridge, receiver)
+          : closure.call(sandboxArgs, { compilation, stack: stackFrames, thisValue: receiver });
       } catch (error) {
         if (isSandboxLikeValue(error)) {
           throw deepCopyFromSandbox(error, {
@@ -769,11 +770,12 @@ function wrapSandboxClosureForHost(
       if (token !== undefined) promiseReplayContext.getStore()?.completeCallback(token);
     }
   };
-  const wrapped = async (...args: readonly unknown[]) => {
+  const wrapped = async function (this: unknown, ...args: readonly unknown[]) {
     const operation = budget.acquireCompileOwner(false, compileOwner);
     try {
-      const sandboxArgs = copyHostValueToSandbox(
-        [...args],
+      const hasReceiver = this !== undefined;
+      const invocationValues = copyHostValueToSandbox(
+        hasReceiver ? [this, ...args] : [...args],
         stackFrames,
         {
           budget,
@@ -783,6 +785,8 @@ function wrapSandboxClosureForHost(
         { seen: new WeakMap() },
         "<callback>"
       ) as SandboxValue[];
+      const receiver = hasReceiver ? invocationValues[0] : undefined;
+      const sandboxArgs = hasReceiver ? invocationValues.slice(1) : invocationValues;
       const restored =
         callbacks?.nextReissuedInvocation === undefined
           ? undefined
@@ -790,8 +794,9 @@ function wrapSandboxClosureForHost(
       if (restored !== undefined) {
         if (
           restored.id !== id ||
+          (restored.hasReceiver === true) !== hasReceiver ||
           JSON.stringify(
-            encodeReplayData(sandboxArgs, {
+            encodeReplayData(invocationValues, {
               identifyCapability: callbacks?.journal?.identifyCapability
             })
           ) !== JSON.stringify(restored.arguments)
@@ -815,11 +820,12 @@ function wrapSandboxClosureForHost(
           : callbacks.journal?.recordCallback(
               callbacks.record,
               id,
-              sandboxArgs,
-              replay?.currentStep ?? 0
+              invocationValues,
+              replay?.currentStep ?? 0,
+              hasReceiver
             );
       if (token !== undefined) replay?.beginCallback(token);
-      const pending = invoke(sandboxArgs, token);
+      const pending = invoke(sandboxArgs, token, receiver);
       callbacks?.active.add(pending);
       void pending.then(
         () => {

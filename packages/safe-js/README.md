@@ -633,9 +633,11 @@ references to preserve identity and trap behavior; explicit callable wrappers
 remain available. Transparent Proxy export is not implemented.
 Host and realm callback bridges now dispatch callable Proxies through guest
 operations, including nested Proxies, accessor-backed traps, async targets,
-revocation, and checkpoint recovery. Realm callbacks preserve explicit receivers;
-the raw host callback wrapper still drops non-undefined receivers and needs a
-separate receiver/replay update.
+revocation, and checkpoint recovery. Both callback routes preserve explicit
+receivers. Raw host callback replay stores receivers and arguments in one graph
+to preserve aliases. Receiver-bearing records use host replay version 2;
+argument-only histories retain version 1, and both versions are accepted.
+Re-issued callbacks reject changed receivers as well as changed arguments.
 
 Experimental work remains uncommitted. Pushes and releases are paused; local
 implementation, remote delivery, and successful publication are separate

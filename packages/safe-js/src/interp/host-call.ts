@@ -37,12 +37,12 @@ export type HostCallRecord = {
   lifecycle: HostCallLifecycle;
   outcome?: HostCallOutcome;
   asynchronous?: boolean;
-  callbacks?: Array<{ id: number; step: number; arguments: ReplayData }>;
+  callbacks?: Array<{ id: number; step: number; arguments: ReplayData; hasReceiver?: true }>;
   functions?: number[];
 };
 
 export type HostCallReplay = {
-  version: 1;
+  version: 1 | 2;
   calls: Array<
     Omit<HostCallRecord, "outcome" | "asynchronous"> & {
       asynchronous: boolean;
@@ -467,7 +467,7 @@ export class HostCallJournal {
     else void Promise.allSettled(callbacks).then(complete);
   }
 
-  recordCallback(record: HostCallRecord, id: number, args: SandboxValue[], step: number): string {
+  recordCallback(record: HostCallRecord, id: number, args: SandboxValue[], step: number, hasReceiver = false): string {
     const retainedSize =
       this.retainedSize + 1 + measureSandboxData([args], { ignoreClosures: true });
     this.budget?.setRetainedDataUsage(this, retainedSize);
@@ -479,7 +479,7 @@ export class HostCallJournal {
       throw error;
     }
     this.retainedSize = retainedSize;
-    (record.callbacks ??= []).push({ id, step, arguments: data });
+    (record.callbacks ??= []).push({ id, step, arguments: data, ...(hasReceiver ? { hasReceiver: true as const } : {}) });
     return `${record.id}/callback/${record.callbacks.length}`;
   }
 
@@ -549,7 +549,7 @@ export class HostCallJournal {
 
   snapshotReplay(): HostCallReplay {
     return structuredClone({
-      version: 1,
+      version: this.records.some(record => record.callbacks?.some(callback => callback.hasReceiver)) ? 2 : 1,
       calls: this.records.map(({ outcome: ignoredOutcome, asynchronous, ...record }) => {
         void ignoredOutcome;
         const outcome = this.outcomes.get(record.id);
@@ -593,7 +593,7 @@ function restoreReplayCalls(
     input === null ||
     typeof input !== "object" ||
     !("version" in input) ||
-    input.version !== 1 ||
+    (input.version !== 1 && input.version !== 2) ||
     !("calls" in input) ||
     !Array.isArray(input.calls)
   ) {
@@ -667,6 +667,7 @@ function restoreReplayCalls(
         if (
           callback === null ||
           typeof callback !== "object" ||
+          (callback.hasReceiver !== undefined && (callback.hasReceiver !== true || input.version !== 2)) ||
           !Number.isSafeInteger(callback.id) ||
           callback.id < 1 ||
           !Number.isSafeInteger(callback.step) ||
@@ -677,7 +678,8 @@ function restoreReplayCalls(
         const validation = new CompileScope(compilation?.owner);
         try {
           const args = decodeReplayData(callback.arguments, { resolveCapability }, validation);
-          if (!Array.isArray(args)) throw new TypeError("Invalid replay callback.");
+          if (!Array.isArray(args) || (callback.hasReceiver && (args.length === 0 || args[0] === undefined)))
+            throw new TypeError("Invalid replay callback.");
           callbackSizes.set(`${entry.id}/callback/${index + 1}`, measureSandboxData([args]));
         } finally {
           validation.dispose();

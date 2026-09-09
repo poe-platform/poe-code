@@ -7,6 +7,32 @@ function stream(text: string): string[] {
 }
 
 describe("interpolated string tokenization", () => {
+  it("decodes text escapes while retaining original content for tooling", () => {
+    const token = [...lex(String.raw`f"{{\n\x41\uD800\U0001F40D\N{SNAKE}}}{x}"`)][1];
+    expect(token).toMatchObject({ kind: "fstring-middle", value: Uint32Array.from([123, 10, 65, 0xd800, 0x1f40d, 0x1f40d, 125]) });
+  });
+
+  it("leaves raw escapes and backslashes before fields intact", () => {
+    expect([...lex(String.raw`rf"\n\{x}"`)][1]).toMatchObject({ value: Uint32Array.from([92, 110, 92]) });
+    expect([...lex(String.raw`f"\{x}"`)][1]).toMatchObject({ value: Uint32Array.from([92]) });
+  });
+
+  it("decodes format text and escaped universal newlines", () => {
+    expect([...lex('f"{x:\\x3e10}"')][4]).toMatchObject({ value: Uint32Array.from([62, 49, 48]) });
+    expect([...lex('f"a\\\r\nb"')][1]).toMatchObject({ value: Uint32Array.from([97, 98]), content: 'a\\\nb' });
+  });
+
+  it.each([String.raw`f"\x0"`, String.raw`f"\u12"`, String.raw`f"\U00110000"`, String.raw`f"\N{NO SUCH NAME}"`])("rejects invalid escape %s", text => {
+    expect(() => [...lex(text)]).toThrow(SyntaxError);
+  });
+  it("reports the first invalid escape of each text chunk at its source position", () => {
+    const warnings: Array<{ message: string; offset: number }> = [];
+    Array.from(lex(String.raw`f"{{\q\z{x}\777"`, { onWarning: (message, position) => warnings.push({ message, offset: position.offset }) }));
+    expect(warnings).toMatchObject([{ message: expect.stringContaining('"\\q"'), offset: 4 }, { message: expect.stringContaining("invalid octal"), offset: 11 }]);
+    const malformed: string[] = [];
+    expect(() => [...lex(String.raw`f"\q\xZ"`, { onWarning: message => malformed.push(message) })]).toThrow(SyntaxError);
+    expect(malformed).toEqual([]);
+  });
   it.each(["f", "F", "fr", "Rf", "t", "T", "tr", "Rt"])("reads %s strings and expression tokens", (prefix) => {
     const flavor = prefix.toLowerCase().includes("f") ? "fstring" : "tstring";
     expect(stream(`${prefix}'hello {name}!'`)).toEqual([

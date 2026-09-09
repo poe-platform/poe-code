@@ -45,7 +45,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
   let pendingIndent: { text: string; start: SourcePosition; end: SourcePosition } | undefined;
   while (!source.done) {
     if (interpolation.inText) {
-      yield interpolation.readText(source, delimiters.length);
+      yield interpolation.readText(source, delimiters.length, options.onWarning);
       continue;
     }
     if (lineStart) {

@@ -246,6 +246,19 @@ extension, integration, or validation requirement is missing or unverified.
   ordered conflicts involving names read by attribute/subscript targets.
   Normalized-name checks, class/global/nonlocal contexts, runtime binding, and
   complete semantic validation remain pending.
+- Added decoded code-point values to interpolated text tokens, alongside their
+  retained content/source spelling. Ordinary and interpolated strings share escape
+  decoding and warning formatting. Raw strings preserve backslashes, doubled braces
+  stay literal, backslashes do not escape field braces, and format text uses the
+  same decoder. Warning positions refer to the original source even after doubled
+  braces or universal-newline normalization.
+- Interpolated-text validation: seven tests failed before implementation. All 565
+  package tests pass, including malformed escapes, surrogate preservation, raw
+  prefixes, escaped CRLF, and warning callbacks. A 2,048-case CPython comparison
+  matched decoded literal values and rejection of invalid escapes across f/t/raw
+  prefixes and paired text fragments. Scoped lint, source typecheck, and selected workspace build
+  passed. Interpolated expression-tree assembly, conversions, debug fields, adjacent
+  interpolated literals, and runtime formatting/template construction remain pending.
 - Next:
   interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules

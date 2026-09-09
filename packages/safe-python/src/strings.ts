@@ -38,8 +38,7 @@ export function readString(
   let warning: { message: string; position: SourcePosition } | undefined;
   const warn = (escape: string, position: SourcePosition, octal = false): void => {
     warning ??= {
-      message: `"\\${escape}" is an invalid ${octal ? "octal " : ""}escape sequence. ` +
-        `Such sequences will not work in the future. Did you mean "\\\\${escape}"? A raw string is also an option.`,
+      message: escapeWarning(escape, octal),
       position
     };
   };
@@ -74,7 +73,12 @@ export function readString(
   throw source.error(triple ? "unterminated triple-quoted string literal" : "unterminated string literal", start);
 }
 
-function readEscape(
+export function escapeWarning(escape: string, octal = false): string {
+  return `"\\${escape}" is an invalid ${octal ? "octal " : ""}escape sequence. ` +
+    `Such sequences will not work in the future. Did you mean "\\\\${escape}"? A raw string is also an option.`;
+}
+
+export function readEscape(
   source: PythonSource,
   bytes: boolean,
   position: SourcePosition,

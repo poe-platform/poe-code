@@ -1048,6 +1048,24 @@ extension, integration, or validation requirement is missing or unverified.
   guest file objects must separately model opening/truncation followed by writes,
   including failures after open. Other encodings, streaming text/file objects,
   filesystem guest exceptions and public API integration remain pending.
+- Added default C3 method-resolution linearization over supplied base MROs, using
+  class identity rather than names. It preserves local/inherited precedence,
+  handles shared ancestors, rejects duplicate bases and visible inheritance cycles,
+  and reports conflicting remaining heads with Python-compatible diagnostics.
+  Existing base MROs are neither mutated nor recursively recomputed; the result is
+  frozen. Tail-membership counts avoid repeated full-tail scans, with metered setup,
+  cursor allocation, candidate selection, merge work, and conflict reporting.
+- MRO validation: the suite failed on the missing module before implementation;
+  all 1,675 package tests pass, including ten C3 cases. CPython comparisons matched
+  5,000 generated class constructions (2,168 accepted), including exact MROs and
+  rejection diagnostics. Shared chains of 5,000/10,000 ancestors took 35,009/70,009
+  indexed input reads and 30,019/60,019 charged steps, respectively, with 12 charged
+  cursor bytes each. Another 160 budget boundaries preserved all inputs. Scoped
+  lint, source typecheck, and the selected dependency build passed. Reference:
+  https://docs.python.org/3/howto/mro.html . Result arrays, maps, and host object
+  overhead still require guest-heap accounting; cursor charges alone are not a
+  full memory bound. Class objects/creation, metaclass MRO overrides, layout checks,
+  full __bases__ graph mutation, attribute lookup, and super() remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

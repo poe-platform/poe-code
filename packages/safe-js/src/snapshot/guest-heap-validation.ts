@@ -137,7 +137,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     createRawJson(node.text);
     return true;
   }
-  if (!["guest-durationformat", "guest-segmenter", "guest-segments", "module-function", "async-generator-driver", "async-generator-handler", "async-function-driver", "async-function-handler", "thenable-state", "thenable-resolver", "construction-environment", "capability-executor", "promise-aggregate", "aggregate-entry", "aggregate-handler", "intrinsic", "bound-function", "promise-resolver", "pending-promise", "promise-reaction", "promise-adoption", "adoption-resolver", "guest-function", "guest-class", "guest-generator", "scope-frame", "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules", "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator", "guest-regex", "guest-promise", "array-iterator", "string-iterator", "async-disposable-stack", "async-cleanup", "async-cleanup-handler", "disposable-stack", "iterator-wrapper", "iterator-helper", "guest-collection-iterator", "guest-regexp-iterator", "map", "set"].includes(String(node.kind))) return false;
+  if (node.kind !== "guest-proxy" && node.kind !== "guest-proxy-revoker" && !["guest-durationformat", "guest-segmenter", "guest-segments", "module-function", "async-generator-driver", "async-generator-handler", "async-function-driver", "async-function-handler", "thenable-state", "thenable-resolver", "construction-environment", "capability-executor", "promise-aggregate", "aggregate-entry", "aggregate-handler", "intrinsic", "bound-function", "promise-resolver", "pending-promise", "promise-reaction", "promise-adoption", "adoption-resolver", "guest-function", "guest-class", "guest-generator", "scope-frame", "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules", "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator", "guest-regex", "guest-promise", "array-iterator", "string-iterator", "async-disposable-stack", "async-cleanup", "async-cleanup-handler", "disposable-stack", "iterator-wrapper", "iterator-helper", "guest-collection-iterator", "guest-regexp-iterator", "map", "set"].includes(String(node.kind))) return false;
   const reference = (value: unknown, kinds?: string[]) => {
     const ref = record(value);
     fields(ref, ["kind", "id"]);
@@ -148,7 +148,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
   };
   const callable = (value: unknown) => {
     if (absent(value)) return;
-    const target = reference(value, ["module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver", "aggregate-handler", "capability-executor", "intrinsic", "bound-function", "promise-resolver", "guest-function", "guest-class"]);
+    const target = reference(value, ["guest-proxy", "guest-proxy-revoker", "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver", "aggregate-handler", "capability-executor", "intrinsic", "bound-function", "promise-resolver", "guest-function", "guest-class"]);
+    if (target.kind === "guest-proxy" && target.callable !== true)
+      throw new TypeError("Guest accessor Proxy is not callable.");
     if (target.kind === "intrinsic" && intrinsicCatalogue().get(String(target.id)) !== true)
       throw new TypeError("Guest accessor reference is not callable.");
   };
@@ -229,7 +231,42 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       ...(Object.hasOwn(node, "prototype") ? { prototype: node.prototype } : {}) });
     return false;
   }
-  if (node.kind === "thenable-state") {
+  if (node.kind === "guest-proxy") {
+    fields(node, ["kind", "target", "handler", "callable", "constructible"], ["privateElements"]);
+    if (typeof node.callable !== "boolean" || typeof node.constructible !== "boolean" ||
+        (node.constructible && !node.callable)) throw new TypeError("Invalid Proxy callable flags.");
+    if ((node.target === null) !== (node.handler === null)) throw new TypeError("Invalid revoked Proxy state.");
+    const objectKinds = ["object", "array", "map", "set", "float32array", "typedarray", "arraybuffer", "dataview",
+      "boxed", "date", "regex-object", "module-namespace", "raw-json", "guest-proxy", "guest-proxy-revoker",
+      "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver",
+      "aggregate-handler", "adoption-resolver", "capability-executor", "intrinsic", "bound-function", "promise-resolver",
+      "pending-promise", "promise-reaction", "guest-function", "guest-class", "guest-generator", "mapped-arguments",
+      "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules",
+      "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator",
+      "guest-durationformat", "guest-segmenter", "guest-segments", "guest-regex", "guest-promise", "guest-weakcollection",
+      "array-iterator", "string-iterator", "async-disposable-stack", "disposable-stack", "iterator-wrapper", "iterator-helper",
+      "guest-collection-iterator", "guest-regexp-iterator"];
+    if (node.target !== null) {
+      reference(node.handler, objectKinds);
+      const seen = new Set([node]);
+      let current = node;
+      while (current.kind === "guest-proxy" && current.target !== null) {
+        assertSnapshotDataDepth(seen.size, "Proxy target chain");
+        const target = reference(current.target, objectKinds);
+        if (seen.has(target)) throw new TypeError("Cyclic Proxy target chain.");
+        seen.add(target);
+        if (target.kind === "guest-proxy" &&
+            (target.callable !== current.callable || target.constructible !== current.constructible))
+          throw new TypeError("Inconsistent Proxy callable flags.");
+        current = target;
+      }
+    }
+    if (node.privateElements !== undefined) privateState(node.privateElements);
+  } else if (node.kind === "guest-proxy-revoker") {
+    fields(node, ["kind", "proxy", "state"]);
+    if (node.proxy !== null) reference(node.proxy, ["guest-proxy"]);
+    state(node.state);
+  } else if (node.kind === "thenable-state") {
     fields(node, ["kind", "source", "owner", "completed"], ["settlement"]);
     reference(node.source);
     if (!absent(node.owner)) {

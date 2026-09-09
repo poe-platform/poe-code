@@ -6,20 +6,45 @@ type ProxyObject = Exclude<SandboxValue, SandboxPrimitive>;
 type ProxyState = { target: ProxyObject | null; handler: ProxyObject | null };
 
 export const guestProxyStates = new WeakMap<object, ProxyState>();
+export const guestProxyRevokers = new WeakMap<object, { proxy: SandboxObject | SandboxClosure | null }>();
 
 export function createGuestProxy(target: SandboxValue, handler: SandboxValue): SandboxObject | SandboxClosure {
   if (typeof target !== "object" || target === null) throw new TypeError("Proxy target must be an object.");
   if (typeof handler !== "object" || handler === null) throw new TypeError("Proxy handler must be an object.");
-  const proxy = isSandboxClosure(target)
+  const proxy = createGuestProxyCarrier(isSandboxClosure(target), isSandboxClosure(target) && target.construct !== undefined);
+  guestProxyStates.set(proxy, { target, handler });
+  return proxy;
+}
+
+export function createGuestProxyCarrier(callable: boolean, constructible: boolean): SandboxObject | SandboxClosure {
+  if (constructible && !callable) throw new TypeError("Constructible Proxy must be callable.");
+  const proxy = callable
     ? createSandboxClosure({ guest: true, sandbox: true,
       call: () => { throw new TypeError("Proxy calls require runtime dispatch."); },
-      ...(target.construct === undefined ? {} : {
+      ...(!constructible ? {} : {
         construct: () => { throw new TypeError("Proxy construction requires runtime dispatch."); }
       })
     })
     : Object.create(null) as SandboxObject;
-  guestProxyStates.set(proxy, { target, handler });
+  guestProxyStates.set(proxy, { target: null, handler: null });
   return proxy;
+}
+
+export function createGuestProxyRevoker(proxy: SandboxObject | SandboxClosure | null): SandboxClosure {
+  const state = { proxy };
+  const revoke = createSandboxClosure({
+    guest: true, sandbox: true, name: "", length: 0,
+    retainedValues: () => state.proxy === null ? [] : [state.proxy],
+    call: () => {
+      if (state.proxy === null) return undefined;
+      const value = state.proxy;
+      state.proxy = null;
+      revokeGuestProxy(value);
+      return undefined;
+    }
+  });
+  guestProxyRevokers.set(revoke, state);
+  return revoke;
 }
 
 export function requireActiveGuestProxy(proxy: object): { target: ProxyObject; handler: ProxyObject } {

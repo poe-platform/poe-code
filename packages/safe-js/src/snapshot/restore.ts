@@ -39,6 +39,7 @@ import { createSandboxLocale } from "../interp/intl-locale.js";
 import { createSandboxCollator, collatorState } from "../interp/intl-collator.js";
 import { createSandboxListFormat } from "../interp/intl-listformat.js";
 import { createSandboxRelativeTimeFormat } from "../interp/intl-relativetimeformat.js";
+import { createGuestProxyCarrier, createGuestProxyRevoker, guestProxyStates, guestProxyRevokers } from "../interp/guest-proxy.js";
 import { createSandboxDisplayNames } from "../interp/intl-displaynames.js";
 import { createSandboxPluralRules } from "../interp/intl-pluralrules.js";
 import { createSandboxDurationFormat } from "../interp/intl-durationformat.js";
@@ -801,6 +802,44 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     throw new Error(`Snapshot references unknown heap value ${id}.`);
   }
 
+  if (serialized.kind === "guest-proxy") {
+    const value = createGuestProxyCarrier(serialized.callable, serialized.constructible);
+    state.heapValueById.set(id, value);
+    state.initializeIterators.push(() => {
+      const target = deserializeValue(serialized.target, state);
+      const handler = deserializeValue(serialized.handler, state);
+      if ((target === null) !== (handler === null)) throw new TypeError("Invalid revoked Proxy state.");
+      if (target !== null && (typeof target !== "object" || typeof handler !== "object" || handler === null))
+        throw new TypeError("Invalid Proxy target or handler.");
+      if (target !== null && (isSandboxClosure(target) !== serialized.callable ||
+          (isSandboxClosure(target) && target.construct !== undefined) !== serialized.constructible))
+        throw new TypeError("Invalid Proxy callable identity.");
+      const slots = guestProxyStates.get(value)!;
+      slots.target = target as typeof slots.target;
+      slots.handler = handler as typeof slots.handler;
+      if (serialized.privateElements !== undefined) privateElements.set(value,
+        restorePrivateElements(serialized.privateElements, entry => deserializeValue(entry, state) as SandboxValue));
+    });
+    return value;
+  }
+  if (serialized.kind === "guest-proxy-revoker") {
+    const value = createGuestProxyRevoker(null);
+    state.heapValueById.set(id, value);
+    state.initializeIterators.push(() => {
+      const proxy = deserializeValue(serialized.proxy, state);
+      if (proxy !== null && (typeof proxy !== "object" || !guestProxyStates.has(proxy)))
+        throw new TypeError("Invalid Proxy revoker target.");
+      guestProxyRevokers.get(value)!.proxy = proxy as SandboxObject | SandboxClosure | null;
+      const objectState = serialized.state;
+      if (objectState.prototype !== undefined)
+        setSandboxPrototype(value, deserializeValue(objectState.prototype, state) as object | null, state.budget);
+      restorePropertyDescriptors(materializeFunctionProperties(value), objectState.properties,
+        entry => deserializeValue(entry as SerializedSnapshotValue, state));
+      if (objectState.privateElements !== undefined) privateElements.set(value,
+        restorePrivateElements(objectState.privateElements, entry => deserializeValue(entry, state) as SandboxValue));
+    });
+    return value;
+  }
   if (serialized.kind === "symbol") {
     const value = serialized.wellKnown === undefined ? Symbol(serialized.description) : wellKnownSymbols[serialized.wellKnown]!;
     state.heapValueById.set(id, value);

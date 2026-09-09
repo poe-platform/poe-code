@@ -536,7 +536,11 @@ tests plus TypeScript and lint passing; neither status implies
 remote delivery or complete function compatibility.
 
 `Proxy` and `Proxy.revocable` are available in the locally committed runtime.
-Proxy support remains incomplete: do not use Proxy state in checkpoints yet.
+Proxy support remains incomplete. Checkpoint graphs now preserve Proxy targets,
+handlers, aliases, cycles, callable/constructible identity, and revocation state.
+Revokers retain their own properties and release their target after use. Focused
+tests cover restore across an await, bound calls, private fields, and suspended
+`for-in` generators; this is not proof of every checkpoint/trap interaction.
 Internal tests inject proxies to exercise
 property reads/writes, membership/deletion, own descriptors, key enumeration,
 prototype/extensibility operations, and their invariants. Object reflection,
@@ -549,7 +553,7 @@ Ordinary `for-in` includes enumerable non-index string properties on arrays and
 array ancestors, including when a generator resumes from a checkpoint.
 Internal Proxy `for-in` now uses own-key, prototype, and descriptor operations,
 including virtual keys, inherited properties, deletion, and early loop exits.
-The saved key-list format is unchanged; serializing Proxy graphs remains pending.
+The saved key-list format is unchanged.
 Array methods now await Proxy membership and deletion traps on array-like
 receivers, with ordered writes and tested partial failures. Their internal view
 no longer reads a guest `then` property. Species selection recognizes wrapped
@@ -580,7 +584,8 @@ Proxy extensibility and descriptor operations, with tested early exits.
 
 At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
 24 files. This is not a full-package gate or evidence of public Proxy support.
-Proxy checkpoint state, host boundaries, and
+The snapshot suite subsequently passed 1,692 tests across 127 files, including
+28 Proxy graph tests. Host boundaries and
 remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
@@ -596,7 +601,7 @@ treat that work as complete weak-collection support.
 
 ## Meaningful limitations
 
-- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain unavailable. Proxy runtime support is described above; Proxy checkpoints remain unsupported. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain unavailable. Proxy runtime and tested checkpoint support are described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
 - **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.

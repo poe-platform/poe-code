@@ -1,4 +1,5 @@
 import { getClosureOrigin, getGeneratorOrigin } from "../interp/closure-origin.js";
+import { guestProxyStates, guestProxyRevokers } from "../interp/guest-proxy.js";
 import { mappedArgumentStates } from "../interp/arguments.js";
 import { dynamicNodeSources, dynamicSourceRecords, type DynamicSource, type EvalSourceContext } from "../parse/function-source.js";
 import { moduleFunctionOrigins } from "../interp/module-function-origin.js";
@@ -75,6 +76,8 @@ export type PrivateElementData<T> = { name: T } & (
 );
 
 export type GuestHeapNode<T> =
+  | {kind: "guest-proxy"; target: T; handler: T; callable: boolean; constructible: boolean; privateElements?: PrivateElementData<T>[]}
+  | {kind: "guest-proxy-revoker"; proxy: T; state: GuestObjectState<T>}
   | {kind: "guest-source"; functionKind: Exclude<DynamicSource["kind"], "eval">; parameters: string; body: string}
   | {kind: "guest-script"; context: EvalSourceContext; body: string}
   | {kind: "mapped-arguments"; scope: T; parameters: Array<[string, string]>; state: GuestObjectState<T>; nativeIterator: boolean}
@@ -165,6 +168,14 @@ export type GuestHeapNode<T> =
 // The enclosing graph serializer allocates the reference before calling this
 // function, so self-referential properties and captured environments can cycle.
 export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) => T): GuestHeapNode<T> | undefined {
+  const proxy = guestProxyStates.get(value);
+  if (proxy !== undefined) return {
+    kind: "guest-proxy", target: encode(proxy.target), handler: encode(proxy.handler),
+    callable: isSandboxClosure(value), constructible: isSandboxClosure(value) && value.construct !== undefined,
+    ...(privateElements.has(value) ? {privateElements: capturePrivateElements(privateElements.get(value)!, encode)} : {})
+  };
+  const revoker = guestProxyRevokers.get(value);
+  if (revoker !== undefined) return {kind: "guest-proxy-revoker", proxy: encode(revoker.proxy), state: captureObjectState(value, encode)!};
   if (dynamicSourceRecords.has(value)) {
     const source = value as DynamicSource;
     if (source.kind === "eval") return {kind: "guest-script", body: source.body,

@@ -255,6 +255,12 @@ export class OrderedKeyMap<Key, Value> {
     }
   }
 
+  /** Fresh empty storage in this execution's hash-policy and budget domain. */
+  emptyCopy(): OrderedKeyMap<Key, Value> {
+    this.meter.checkpoint();
+    return new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+  }
+
   /** Copy live entries and their cached hashes without invoking guest methods.
    * Key/value references are shared, but buckets, entries and links are fresh.
    * The copy stays in the same runtime/hash-policy and execution-budget domain.

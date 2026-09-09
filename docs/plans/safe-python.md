@@ -3802,6 +3802,26 @@ extension, integration, or validation requirement is missing or unverified.
   (2,400). Difference/symmetric-difference methods and their mutation forms,
   dictionary-view algebra, automatic method/type registration, iterator parity,
   complete resource accounting, suspension and SDK/safe-fs work remain pending.
+- Added set/frozen-set difference and symmetric_difference, plus mutable
+  difference_update and symmetric_difference_update. Difference supports multiple
+  inputs, preserves original member identity and keeps completed streaming
+  removals on failure. Initial exact-dictionary difference uses cached hashes;
+  dictionary difference-update intentionally rehashes iterated keys. Generic
+  xor inputs are fully deduplicated before receiver mutation; exact set/dict
+  sources use cached hashes and retain completed toggles on later failure.
+  Iterated mutable-set keys are not converted into frozen removal probes.
+  Private empty storage is allocated in constant space within the receiver's
+  hash-policy/budget domain, avoiding a full receiver copy for xor preparation.
+- Difference-method verification began with eight failing behavior tests. All
+  3,663 tests in 260 files pass, with scoped lint, source typecheck and selected
+  workspace build. A 3,200-call CPython audit matches results, errors, identity,
+  self-input handling and iterator remainders. Regressions pass for multi-source
+  union/intersection (2,400) and basic mutable-set methods (2,400). Tests cover
+  cached-versus-rehashed dictionary paths, exact-source partial xor mutation,
+  generic preparation failures and bounded empty-storage allocation.
+  Dictionary-view algebra, automatic method/type installation, full native
+  introspection, iterator table-position parity, complete accounting, suspension
+  and public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

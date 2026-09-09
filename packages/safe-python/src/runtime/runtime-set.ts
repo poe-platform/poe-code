@@ -45,6 +45,45 @@ export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values:
   meter.checkpoint();
 }
 
+/** Exact sets reuse cached hashes. Other difference-update sources stream and
+ * retain completed removals; unlike remove/discard, iterated mutable-set keys
+ * are not converted to equivalent frozen probes. */
+export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+  meter.checkpoint();
+  if (source.kind === "set" || source.kind === "frozenset") target.items.subtractKeysInPlace(source.items);
+  else {
+    const iterator = runtimeIterate(source, values, meter);
+    while (true) {
+      meter.checkpoint();
+      const item = iterator.next();
+      meter.checkpoint();
+      if (item.done) break;
+      try { target.items.delete(item.value); }
+      catch (error) {
+        if (!(error instanceof UnhashableRuntimeValueError)) throw error;
+        throw new PythonRuntimeError("TypeError", `cannot use '${item.value.kind}' as a set element (${error.message})`);
+      }
+    }
+  }
+  meter.checkpoint();
+}
+
+/** Generic xor inputs are fully deduplicated before mutating the receiver.
+ * Exact dictionaries/sets instead use their cached key hashes directly. */
+export function symmetricDifferenceUpdateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+  meter.checkpoint();
+  if (source.kind === "set" || source.kind === "frozenset") target.items.mergeKeysInPlace(source.items, "^");
+  else if (source.kind === "dict") {
+    meter.checkpoint(0, 16);
+    target.items.mergeKeysInPlace(source.items, "^", { value: values.none });
+  } else {
+    const prepared = values.set(target.items.emptyCopy());
+    updateRuntimeSet(prepared, source, values, meter);
+    target.items.mergeKeysInPlace(prepared.items, "^");
+  }
+  meter.checkpoint();
+}
+
 export function beginRuntimeSet(initial: readonly RuntimeValue[], values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter): ExpressionSet<RuntimeValue> {
   meter.checkpoint(1, 128);
   const result = values.set(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));

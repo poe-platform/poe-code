@@ -1939,6 +1939,22 @@ extension, integration, or validation requirement is missing or unverified.
   selected build passed. Concrete guest function storage/metadata, closure factory
   wiring, suspension and complete definition/continuation heap accounting remain
   unfinished.
+- Added shared internal function state for named definitions and lambdas. Creation
+  retains compiled code and live defining global/builtin dictionaries, copies
+  default/cell containers while preserving their values and cell identities, and
+  validates required closure ownership without retaining unused cells. Initial
+  name/qualified-name/doc/module metadata and fresh named-attribute storage are
+  retained per definition. Module metadata is captured from globals.__name__ once;
+  absent metadata maps to guest None without conflating guest undefined values.
+- Function-state validation: missing-module red suite preceded implementation.
+  All 2,387 tests in 126 files pass, including 11 new state/definition/frame cases;
+  the lambda compilation-to-invocation test now uses shared state too. CPython
+  matched 60 metadata/default/closure/live-dictionary cases across function kinds.
+  Source typecheck, scoped lint and selected build passed. This payload is not
+  guest-accessible JS storage: guest descriptors, default tuple/dictionary views,
+  validated special-attribute writes, __code__ replacement, definition-time builtin
+  selection, concrete guest function allocation and full heap accounting remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

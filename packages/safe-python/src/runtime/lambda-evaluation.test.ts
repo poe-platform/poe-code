@@ -6,7 +6,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
 import { invokeFunction } from "./function-invocation.js";
-import type { CompiledFunction } from "./function-compilation.js";
+import { createFunctionState, type FunctionState } from "./function-state.js";
 import { CallStack } from "./call-stack.js";
 
 function fixture() {
@@ -34,13 +34,14 @@ describe("lambda creation during expression evaluation", () => {
     state.names.set("seed", seed);
     state.context.createLambda = (node, defaults) => {
       const code = program.functions.get(node);
-      expect(code).toBeDefined();
+      if (code === undefined) throw new Error("missing lambda code");
+      const value = createFunctionState(code, defaults, { globals: state.names, builtins: new Map(), none: null }, meter);
       state.names.set("seed", {});
-      return { code, defaults };
+      return value;
     };
     const calls = new CallStack<object>(10, meter);
     state.context.beginCall = value => {
-      const callable = value as { code: CompiledFunction<unknown>; defaults: ReadonlyMap<string, unknown> };
+      const callable = value as FunctionState<unknown>;
       const positional: unknown[] = [], keywords = new Map<string, unknown>();
       return {
         positional: value => { positional.push(value); },
@@ -48,7 +49,7 @@ describe("lambda creation during expression evaluation", () => {
         keywords: entries => { for (const [key, value] of entries) keywords.set(key, value); },
         mapping: () => { throw new Error("unexpected mapping"); },
         invoke: () => invokeFunction(callable.code, { name: "<lambda>", defaults: callable.defaults, positional, keywords }, {
-          globals: state.names, builtins: new Map(), calls, none: null,
+          ...callable, calls, none: null,
           tuple: values => [...values], dictionary: values => new Map(values),
           body: frame => ({
             evaluate: expression => evaluateExpression(expression, { ...state.context, load: name => frame.load(name), store: (name, value) => frame.store(name, value) }, meter),

@@ -5720,6 +5720,18 @@ extension, integration, or validation requirement is missing or unverified.
   also passes. Typecheck, scoped lint and selected workspace build pass. Locale-aware float/
   complex layout, native n dispatch and runtime locale ownership remain pending,
   along with broader interpreter/SDK/safe-fs integration.
+- Extended float and complex field rendering to explicit numeric locales. n uses
+  general numeric conversion, then substitutes decimal text and groups integer
+  digits using the snapshot. Decimal/separator code-point lengths participate in
+  padding; complex components localize independently before combined padding.
+  Other presentations ignore locale metadata and nonfinite text stays unchanged.
+- Four tests first reproduced unsupported n rendering. All 4,685 tests in 398
+  files pass. A 10,000-case CPython audit covers float/complex n fields across C,
+  US, Indian, French and German locales in isolated reference subprocesses.
+  The existing 18,000-case float and 18,000-case complex non-locale audits also
+  pass. Typecheck, scoped lint and selected workspace build pass. Native n dispatch, shared
+  runtime locale ownership, guest locale APIs and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -12,7 +12,7 @@ export function floatFormatMagnitude(value: number, field: Pick<FormatSpec, "typ
   const { type, precision, alternate } = field;
   if (precision !== null && precision > 2147483647n) throw new PythonRuntimeError("ValueError", "precision too big");
   if (precision !== null && precision < 0n) throw new RangeError("precision must be nonnegative");
-  if (type !== 0 && type !== 37 && type !== 101 && type !== 69 && type !== 102 && type !== 70 && type !== 103 && type !== 71) throw new RangeError("unsupported float presentation");
+  if (type !== 0 && type !== 37 && type !== 101 && type !== 69 && type !== 102 && type !== 70 && type !== 103 && type !== 71 && type !== 110) throw new RangeError("unsupported float presentation");
   const scaled = type === 37 ? value * 100 : value;
   let magnitude: string;
   if (type === 0 && precision === null) {
@@ -24,7 +24,7 @@ export function floatFormatMagnitude(value: number, field: Pick<FormatSpec, "typ
       magnitude = exponent < 0 ? magnitude + "." : magnitude.slice(0, exponent) + "." + magnitude.slice(exponent);
     }
   } else {
-    magnitude = floatPercentMagnitude(Math.abs(scaled), type === 0 ? 103 : type === 37 ? 102 : type, precision, alternate, meter, type === 0 && addDotZero);
+    magnitude = floatPercentMagnitude(Math.abs(scaled), type === 0 || type === 110 ? 103 : type === 37 ? 102 : type, precision, alternate, meter, type === 0 && addDotZero);
   }
   let negative = scaled < 0 || Object.is(scaled, -0);
   if (negative && field.noNegativeZero && Number.isFinite(scaled)) {

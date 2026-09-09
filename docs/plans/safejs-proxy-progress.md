@@ -9,6 +9,8 @@ full-package, snapshot, or JavaScript-conformance gate.
 ## Locally committed
 
 - Private target/handler state, revocation checks and trap lifecycle.
+- Public Proxy and Proxy.revocable globals, with revoker reference cleanup;
+  see [verification and checkpoint warning](safejs-proxy-globals.md).
 - Callable carriers and apply/forwarding dispatch in interpreter and builtin
   invocation paths; see [verification and construction limits](safejs-proxy-call.md).
 - Constructible carriers, construct traps, newTarget forwarding and prototype
@@ -59,8 +61,7 @@ regressions, TypeScript and lint checks. Recent records include
 
 ## Remaining integration and verification
 
-- Public Proxy construction and Proxy.revocable, plus remaining callable
-  intrinsic integration.
+- Remaining callable intrinsic integration.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
 - Remaining built-in/callable-Proxy instanceof cases and object

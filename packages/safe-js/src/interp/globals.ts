@@ -23,6 +23,7 @@ import { createBigIntGlobal } from "./globals/bigint.js";
 import { createArrayBufferGlobal } from "./globals/array-buffer.js";
 import { createDataViewGlobal } from "./globals/data-view.js";
 import { createReflectGlobal } from "./globals/reflect.js";
+import { createProxyGlobal } from "./globals/proxy.js";
 import { createIntlGlobal } from "./globals/intl.js";
 import type { RunClock } from "../run.js";
 import { builtinGlobalObjects, mutableBuiltinBindings, registerBuiltinIdentities } from "./intrinsics.js";
@@ -48,6 +49,7 @@ export function createBuiltinBindings(
     DisposableStack: createDisposableStackGlobal(options.budget),
     AsyncDisposableStack: createAsyncDisposableStackGlobal(options.budget),
     Reflect: createReflectGlobal(options.budget),
+    Proxy: createProxyGlobal(options.budget),
     Intl: createIntlGlobal(options.budget, date.properties!.now as SandboxClosure),
     ArrayBuffer: createArrayBufferGlobal(options.budget),
     DataView: createDataViewGlobal(options.budget),

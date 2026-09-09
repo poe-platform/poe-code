@@ -1889,6 +1889,25 @@ extension, integration, or validation requirement is missing or unverified.
   characters and surrogate runs. Source typecheck, scoped lint and selected build
   passed. Concrete guest exception objects, whole-program compiler dispatch and
   complete host-string temporary allocation accounting remain unfinished.
+- Added reusable function/lambda compilation metadata: exact analyzed scope and
+  execution kind, normalized display name, lexical qualified name, decorator-aware
+  first line, retained docstring and prepared suite/expression body. Shared suite
+  compilation now handles class and function docstring cleaning, validation,
+  stripping and statement copies. Defaults/decorators remain definition-time work.
+  Invocation consumes compiled bodies; suspended activation adapters receive the
+  same compiled code without executing it. Scalar constant allocation has a shared
+  contract used by both function and class compilation.
+- Function-compilation validation: missing-module tests preceded implementation;
+  a separate failing invocation test reproduced incorrectly executed function
+  docstring statements. All 2,351 tests in 122 files pass, including 13 compilation
+  cases and two invocation regressions. CPython matched 184 function metadata
+  compilations across nesting, optimization, coroutine/generator kinds, docs and
+  lambdas. The comparison uses CO_HAS_DOCSTRING rather than guessing from the
+  first string constant (a lambda may have a non-docstring string there). Existing
+  72 class-suite traces and 512 docstring comparisons also pass. Source typecheck,
+  scoped lint and selected build passed. Concrete function/code value objects,
+  metadata mutation, whole-program compilation/caching, guest suspension and full
+  allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

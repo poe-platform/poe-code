@@ -6,12 +6,13 @@ import { invokeFunction, UnsupportedFunctionExecutionError, type FunctionInvocat
 import type { LexicalFrame } from "./lexical-frame.js";
 import { CallStack } from "./call-stack.js";
 import { PythonRuntimeError } from "./error.js";
+import { compileFunction } from "./function-compilation.js";
 
 function fixture(source: string) {
   const analysis = analyzeModule(source), scope = analysis.scopes.children[0];
   const node = scope.scope.node;
   if (node.kind !== "function" && node.kind !== "lambda") throw new Error("expected function");
-  const kind = analysis.functionKinds.get(node)!;
+  const code = compileFunction<unknown>(scope, analysis, { stripDocstring: false }, { string: value => value, integer: value => value }, new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }));
   const events: unknown[] = [], frames: LexicalFrame<unknown>[] = [];
   const none = { none: true };
   const calls = new CallStack<LexicalFrame<unknown>>(10, new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }));
@@ -38,13 +39,34 @@ function fixture(source: string) {
     },
     suspended: (executionKind, frame) => { events.push("suspended"); return { kind: executionKind, frame }; }
   };
-  const run = (positional: unknown[] = [], maxSteps = 10000) => invokeFunction(scope, kind, {
+  const run = (positional: unknown[] = [], maxSteps = 10000) => invokeFunction(code, {
     name: node.kind === "function" ? node.name.name : "<lambda>", positional, keywords: new Map(), defaults: new Map()
   }, context, new ExecutionBudget({ maxSteps, maxAllocatedBytes: 100000 }));
-  return { run, context, events, frames, none, calls };
+  return { run, context, events, frames, none, calls, code };
 }
 
 describe("function invocation dispatch", () => {
+  it("does not execute compiled docstrings as expression statements", () => {
+    const state = fixture('def f():\n "documentation"\n return 7');
+    expect(state.run()).toBe(7);
+    expect(state.events).toEqual(["body-context"]);
+  });
+
+  it("passes reusable compiled bodies to the suspension backend without executing them", () => {
+    const state = fixture('def f():\n "documentation"\n yield 7');
+    state.context.suspended = (kind, frame, code) => {
+      expect(kind).toBe("generator");
+      expect(code).toBe(state.code);
+      expect(frame.scope).toBe(code.scope);
+      expect(code.body.kind === "suite" && code.body.statements.map(statement => statement.kind)).toEqual(["expression-statement"]);
+      return { code, frame };
+    };
+    const first = state.run(), second = state.run();
+    expect(first).not.toBe(second);
+    expect(state.events).toEqual([]);
+    expect(state.calls.depth).toBe(0);
+  });
+
   it("runs a bound ordinary function and returns its original value", () => {
     const state = fixture("def f(a):\n 1\n return a\n 2");
     const value = {};

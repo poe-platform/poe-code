@@ -1,10 +1,10 @@
 import type { FunctionExecutionKind } from "../expression-context.js";
-import type { ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { createFunctionFrame, type FunctionCallArguments, type FunctionFrameContext } from "./function-frame.js";
 import type { LexicalFrame } from "./lexical-frame.js";
 import { executeStatements, type StatementContext } from "./statement-execution.js";
 import type { CallStack } from "./call-stack.js";
+import type { CompiledFunction } from "./function-compilation.js";
 
 export interface FunctionInvocationContext<Value> extends FunctionFrameContext<Value> {
   readonly none: Value;
@@ -19,7 +19,7 @@ export interface FunctionInvocationContext<Value> extends FunctionFrameContext<V
    * the frame. This must not run the body. Resumption and lifecycle protocols are
    * supplied by the suspension backend, not synchronous statement execution.
    */
-  suspended?(kind: Exclude<FunctionExecutionKind, "function">, frame: LexicalFrame<Value>): Value;
+  suspended?(kind: Exclude<FunctionExecutionKind, "function">, frame: LexicalFrame<Value>, code: CompiledFunction<Value>): Value;
 }
 
 export class UnsupportedFunctionExecutionError extends Error {
@@ -29,35 +29,32 @@ export class UnsupportedFunctionExecutionError extends Error {
   }
 }
 
-/** Invoke an analyzed function/lambda with already evaluated, expanded arguments.
- * Kind must come from the analyzer entry for this exact scope node. Binding occurs
+/** Invoke a compiled function/lambda with already evaluated, expanded arguments.
+ * Compilation retains the analyzed execution kind and reusable body. Binding occurs
  * at call time even for suspended functions. Ordinary suites use explicit control
  * flow frames, while lambda bodies evaluate directly in value context. The outer
  * runtime supplies shared depth policy and still owns guest traceback bookkeeping,
  * stack-independent call dispatch, full heap accounting and suspension protocols.
  */
 export function invokeFunction<Value>(
-  scope: ResolvedScope, kind: FunctionExecutionKind, call: FunctionCallArguments<Value>,
+  code: CompiledFunction<Value>, call: FunctionCallArguments<Value>,
   context: FunctionInvocationContext<Value>, meter: ExecutionMeter
 ): Value {
   meter.checkpoint();
-  const frame = createFunctionFrame(scope, call, context, meter);
+  const frame = createFunctionFrame(code.scope, call, context, meter);
   meter.checkpoint();
-  if (kind !== "function") {
-    if (!context.suspended) throw new UnsupportedFunctionExecutionError(kind);
-    return context.suspended(kind, frame);
+  if (code.kind !== "function") {
+    if (!context.suspended) throw new UnsupportedFunctionExecutionError(code.kind);
+    return context.suspended(code.kind, frame, code);
   }
   const leave = context.calls.enter(frame);
   try {
     const bodyContext = context.body(frame);
-    const node = scope.scope.node;
-    if (node.kind === "lambda") {
+    if (code.body.kind === "expression") {
       meter.checkpoint();
-      return bodyContext.evaluate(node.body);
+      return bodyContext.evaluate(code.body.expression);
     }
-    // createFunctionFrame already rejects other node kinds; retain narrowing here.
-    if (node.kind !== "function") throw new Error("function calls require a function or lambda scope");
-    const result = executeStatements(node.body, bodyContext, meter);
+    const result = executeStatements(code.body.statements, bodyContext, meter);
     return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : context.none;
   } finally {
     leave();

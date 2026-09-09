@@ -2,12 +2,11 @@ import type { ModuleAnalysis } from "../analysis.js";
 import type { Statement } from "../statement-ast.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { cleanDocstring } from "./docstring.js";
+import type { CodeConstants } from "./code-constants.js";
+import { compileSuite } from "./suite-compilation.js";
 
-export interface ClassConstants<Value> {
+export interface ClassConstants<Value> extends CodeConstants<Value> {
   /** Builtin constant allocation only, without invoking guest conversion hooks. */
-  string(value: string): Value;
-  integer(value: number): Value;
   tuple(values: readonly Value[]): Value;
 }
 
@@ -43,17 +42,6 @@ export function compileClassBody<Value>(
   for (const attribute of attributes) { meter.checkpoint(); names.push(constants.string(attribute)); }
   meter.checkpoint();
   const staticAttributes = constants.tuple(names);
-  const first = node.body[0];
-  const hasDocstring = first?.kind === "expression-statement" && first.expression.kind === "literal" && first.expression.literalKind === "string";
-  let docstring: { readonly value: Value } | undefined;
-  if (hasDocstring && !options.stripDocstring) {
-    const text = cleanDocstring(first.expression.value as Uint32Array, meter);
-    meter.checkpoint();
-    docstring = { value: constants.string(text) };
-  }
-  const statements: Statement[] = [];
-  for (let index = hasDocstring ? 1 : 0; index < node.body.length; index++) {
-    meter.checkpoint(); statements.push(node.body[index]);
-  }
-  return { scope, qualifiedName, firstLine, staticAttributes, docstring, statements };
+  const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
+  return { scope, qualifiedName, firstLine, staticAttributes, ...suite };
 }

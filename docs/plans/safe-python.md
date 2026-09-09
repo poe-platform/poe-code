@@ -766,6 +766,19 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str . This is
   internal storage, not complete guest str behavior; string methods, hashing,
   encoding, allocation limits, and guest object/protocol integration remain pending.
+- Added bounded code-point substring search for find, rfind, and non-overlapping
+  count. Search bounds preserve the distinction between start at and beyond the
+  end for empty patterns. A separate KMP scanner keeps repetitive-prefix inputs
+  linear and retains overlaps only for last-match searching; operations do not
+  normalize Unicode or merge surrogate code points.
+- Search validation: all 24 new tests failed before implementation; all 1,408
+  package tests pass. CPython comparisons matched 8,424 input combinations across
+  all three modes (25,272 results). Ad hoc indexed-read instrumentation on long
+  repetitive nonmatches measured 79,988 reads for 10,000 haystack points and
+  159,988 for 20,000, both within the checked linear bound. Scoped lint, source
+  typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/stdtypes.html#str.count . Guest string method
+  dispatch, search allocation accounting, and other string operations remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -3317,6 +3317,17 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Concrete type/instance storage, MRO-to-attribute wiring,
   override/fallback slots, exposed descriptor-wrapper binding, class construction,
   suspension, full accounting and public SDK/safe-fs integration remain unfinished.
+- Added immutable runtime inheritance layouts with copied bases and C3 MROs,
+  retaining prepared live dictionary namespaces. Attribute resolution searches
+  those namespaces in MRO order, preserves the defining owner and Python
+  code-point keys, and resolves descriptor slots only for the winning value.
+- The new suite first failed on its missing implementation. All 3,378 tests in
+  228 files pass. A CPython differential audit matched 1,000 generated hierarchies
+  containing 10,000 class-construction/live-lookup cases, including duplicate and
+  inconsistent bases and namespace mutation. Source typecheck, scoped lint and selected
+  workspace build passed. Layouts are host metadata, not guest type values;
+  metaclass policy, mutable __bases__, concrete type/instance records, class
+  construction, full accounting and public SDK/safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

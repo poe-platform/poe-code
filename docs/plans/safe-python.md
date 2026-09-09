@@ -709,6 +709,18 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck, and selected workspace build passed. Reference:
   https://docs.python.org/3/library/stdtypes.html#float.as_integer_ratio . Numeric
   constructors, mixed-type dispatch, hashing, and rounding integration remain pending.
+- Added ties-to-even integer and float rounding primitives. Float rounding uses
+  exact rational scaling for decimal places instead of multiplying binary floats,
+  preserves signed zero with explicit digits, and returns an integer when digits
+  are omitted. Integer rounding stays exact beyond float range. Extreme ndigits
+  are checked before power allocation; finite float scaling is bounded to the
+  binary64 decimal range. Non-finite values and rounding overflow follow Python.
+- Rounding validation: the suite first failed on the missing module; all 1,312
+  package tests pass, including 36 rounding cases. CPython comparisons matched
+  3,238 float and 3,000 integer rounding results/errors, including float bits except
+  NaN payloads. Scoped lint, source typecheck, and selected workspace build passed.
+  Reference: https://docs.python.org/3/library/functions.html#round . Guest round
+  dispatch and __round__ protocol integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

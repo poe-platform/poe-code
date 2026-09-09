@@ -3482,6 +3482,21 @@ extension, integration, or validation requirement is missing or unverified.
   The registry does not install builtin methods or implement type.__new__, mutable
   __bases__, metaclass overrides or instance dispatch. Suspension, complete
   accounting and public SDK/safe-fs integration remain unfinished.
+- Connected concrete default type attribute reads/writes/deletes to live class
+  and metaclass MROs. Metaclass data descriptors take priority, class MRO entries
+  shadow metaclass non-data descriptors, and class-owned descriptors do not
+  intercept class writes. Receivers/owners retain canonical type identity; missing
+  own-namespace deletion stays distinct from inherited values. The assembled
+  interpreter integration reads/mutates attributes and calls a metaclass function
+  bound to the class as its receiver.
+- The new suite first failed on its missing module. All 3,464 tests in 238 files
+  pass. An exhaustive 484-configuration CPython audit matched 2,420 read/write/
+  delete outcomes and callback traces across get/set/delete slot combinations,
+  inherited/own namespace placements, ordinary values, None and absent attributes.
+  Source typecheck, scoped lint and selected workspace build passed. Dispatcher
+  mutability checks, intrinsic metaclass descriptors, overridden __getattribute__/
+  __getattr__, missing-name diagnostics and type construction remain unfinished.
+  Suspension, full accounting and public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

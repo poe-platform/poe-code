@@ -3068,6 +3068,22 @@ extension, integration, or validation requirement is missing or unverified.
   Concrete module statement assembly, guest subscription mutation slots, full
   object types/descriptors, closure/frame accounting and safe-fs integration remain
   unfinished; this supplies the reference bridge, not complete module execution.
+- Assembled the concrete statement context around expression execution, target
+  references, ordinary/annotated assignment, unpacking, augmented assignment and
+  deletion. Existing statement traversal now runs compiled module loops/branches
+  with exact runtime values. Annotation expressions remain ignored; bindings and
+  list aliases retain Python assignment order. Non-iterable unpacking receives
+  the assignment-specific diagnostic. Declined in-place operations cannot leak
+  NotImplemented into target stores. Definition/import/raise and exception/
+  manager/assertion capabilities remain explicit supplied hooks.
+- The context suite first failed on its missing module; all 3,257 tests in 210
+  files pass. An 800-case CPython compiled-module audit matched selected globals,
+  retained aliases and errors through loops, unpacking, annotations and mutation;
+  active module frames were restored after every case. Source typecheck, scoped
+  lint and selected workspace build passed. This is an internal supported-
+  statement execution path, not full Python: concrete functions/classes/imports,
+  object/exception hooks, starred length hints, full temporary/heap accounting,
+  public execution/SDK integration and safe-fs capability wiring remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

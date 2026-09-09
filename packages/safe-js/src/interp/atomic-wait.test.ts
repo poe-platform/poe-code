@@ -36,6 +36,16 @@ beforeEach(() => {
   state.onPost = undefined;
 });
 
+it("retains the worker registration time rather than acknowledgement time", async () => {
+  await withRunResources(undefined, async () => {
+    const waiting = waitForAtomicValue(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000, new Budget());
+    const worker = state.created[0];
+    worker.emit("message", { id: worker.posts[0].id, kind: "registered", async: true,
+      startedAt: performance.timeOrigin + 42 });
+    expect(await waiting).toMatchObject({ async: true, startedAt: 42 });
+  });
+});
+
 it("reuses one worker and acknowledges registration before settlement", async () => {
   const budget = new Budget();
   const view = new Int32Array(new SharedArrayBuffer(4));

@@ -1,4 +1,5 @@
 import { getClosureOrigin, getGeneratorOrigin } from "../interp/closure-origin.js";
+import { atomicWaitStates } from "../interp/atomic-wait-state.js";
 import { guestProxyStates, guestProxyRevokers } from "../interp/guest-proxy.js";
 import { mappedArgumentStates } from "../interp/arguments.js";
 import { dynamicNodeSources, dynamicSourceRecords, type DynamicSource, type EvalSourceContext } from "../parse/function-source.js";
@@ -100,7 +101,7 @@ export type GuestHeapNode<T> =
   | { kind: "guest-regex"; source: string; flags: string; state: GuestObjectState<T> }
   | { kind: "guest-promise"; status: "fulfilled" | "rejected"; value: T; reactions?: T[]; producers?: T[]; generatorOwner?: T; state: GuestObjectState<T> }
   | { kind: "promise-resolver"; promise: T; action?: "fulfilled" | "rejected"; state: GuestObjectState<T> }
-  | { kind: "pending-promise"; adoption?: T; thenable?: T; reactions: T[]; producers?: T[]; generatorOwner?: T; state: GuestObjectState<T> }
+  | { kind: "pending-promise"; atomicWait?: {view: T; index: number; remaining: number | null; order: number}; adoption?: T; thenable?: T; reactions: T[]; producers?: T[]; generatorOwner?: T; state: GuestObjectState<T> }
   | { kind: "promise-adoption"; owner: T; source: T }
   | { kind: "adoption-resolver"; bridge: T; action: "fulfilled" | "rejected" }
   | { kind: "promise-reaction"; source: T; onFulfilled: T; onRejected: T; reactions: T[]; producers?: T[];
@@ -295,6 +296,12 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
         ...(promiseReactionResults.has(value) ? {reactions: [...promiseReactionResults.get(value)!].map(encode)} : {}),
         state: captureObjectState(value, encode)!};
     const continuation = promiseContinuations.get(value);
+    const atomicWait = atomicWaitStates.get(value);
+    const atomicState = atomicWait === undefined ? {} : {atomicWait: {
+      view: encode(atomicWait.view), index: atomicWait.index, order: atomicWait.order,
+      remaining: atomicWait.timeout === Infinity ? null : Math.max(0, atomicWait.timeout -
+        (atomicWait.startedAt === undefined ? 0 : performance.now() - atomicWait.startedAt))
+    }};
     if (unrepresentedPromiseContinuations.has(value))
       throw new TypeError("Cannot serialize host reference: unrepresented promise continuation.");
     if (continuation?.kind === "reaction" && continuation.phase === "running")
@@ -309,6 +316,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       if (continuation.state.settled && (bridge === undefined || bridge.settled || bridge.owner !== value ||
           continuation.resolution?.status !== "fulfilled" || continuation.resolution.value !== bridge.source)) return undefined;
       return {kind: "pending-promise", ...(continuation.state.settled ? {adoption: encode(adoption)} : {}),
+        ...atomicState,
         ...ownerState,
         ...producerState,
         reactions: [...(promiseReactionResults.get(value) ?? [])].map(encode), state: captureObjectState(value, encode)!};

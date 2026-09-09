@@ -365,7 +365,16 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       throw new TypeError("Invalid promise resolver action.");
     state(node.state);
   } else if (node.kind === "pending-promise" || node.kind === "promise-reaction") {
-    fields(node, node.kind === "pending-promise" ? ["kind", "reactions", "state"] : ["kind", "source", "onFulfilled", "onRejected", "reactions", "state"], node.kind === "pending-promise" ? ["adoption", "thenable", "producers", "generatorOwner"] : ["capability", "aggregate", "producers"]);
+    fields(node, node.kind === "pending-promise" ? ["kind", "reactions", "state"] : ["kind", "source", "onFulfilled", "onRejected", "reactions", "state"], node.kind === "pending-promise" ? ["atomicWait", "adoption", "thenable", "producers", "generatorOwner"] : ["capability", "aggregate", "producers"]);
+    if (node.kind === "pending-promise" && Object.hasOwn(node, "atomicWait")) {
+      const wait = record(node.atomicWait);
+      fields(wait, ["view", "index", "remaining", "order"]);
+      reference(wait.view);
+      if (integer(wait.index) < 0 || integer(wait.order) < 1 ||
+          (wait.remaining !== null && (typeof wait.remaining !== "number" || !Number.isFinite(wait.remaining) || wait.remaining < 0)) ||
+          Object.hasOwn(node, "adoption") || Object.hasOwn(node, "thenable"))
+        throw new TypeError("Invalid atomic wait continuation.");
+    }
     if (node.kind === "pending-promise" && Object.hasOwn(node, "thenable")) {
       const continuation = reference(node.thenable, ["thenable-state"]);
       if (Object.hasOwn(node, "adoption") || continuation.completed !== false || reference(continuation.owner) !== node)

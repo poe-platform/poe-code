@@ -6,6 +6,10 @@ import { restoreRegexProperties } from "./regexp-properties.js";
 import { classOrigins, createClassConstructor, createConstructionEnvironment, type Field } from "../interp/classes.js";
 import { constructionStates, type ConstructionState } from "../interp/construction-state.js";
 import { mapIteratorSnapshot } from "../interp/iteration.js";
+import { atomicWaitStates, atomicWaitOrders } from "../interp/atomic-wait-state.js";
+import { waitForAtomicValue } from "../interp/atomic-wait.js";
+import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
+import { runResources } from "../interp/resources.js";
 import { createInterpretedClosure, executeAsyncFunction, type AsyncEvaluationContext } from "../interp/async.js";
 import { createBuiltinBindings } from "../interp/globals.js";
 import { resolveIntrinsicIdentity } from "../interp/intrinsics.js";
@@ -186,6 +190,7 @@ export type RestoredScopeFrame = RuntimeScopeFrame & {
 };
 
 export type RestoredSnapshot = {
+  activateAtomicWaits(): Promise<void>;
   ast: Module;
   budget: Budget;
   callStack: RestoredCallFrame[];
@@ -200,6 +205,7 @@ export type RestoredSnapshot = {
 };
 
 type RestoreState = {
+  atomicWaits: Array<{order: number; activate: () => Promise<void>}>;
   moduleFunctions: ModuleEnvironment;
   thenableBridges: Map<number, ReturnType<typeof createThenableBridge>>;
   constructionEnvironments: Map<number, NonNullable<NonNullable<AsyncEvaluationContext["functionEnvironment"]>["construction"]>>;
@@ -264,6 +270,7 @@ export function restore(
     }
 
     const state: RestoreState = {
+      atomicWaits: [],
       moduleFunctions: createModuleEnvironment(options.modules, {budget,compileOwner:operation.owner,signal:options.signal}),
       promiseReactionRecords: new Map(),
       constructionEnvironments: new Map(),
@@ -358,7 +365,18 @@ export function restore(
       compilation
     );
 
+    const orders = new Set<number>();
+    for (const wait of state.atomicWaits) {
+      if (orders.has(wait.order)) throw new TypeError("Duplicate atomic wait order.");
+      orders.add(wait.order);
+    }
+    let activation: Promise<void> | undefined;
     return {
+      activateAtomicWaits() {
+        return activation ??= (async () => {
+          for (const wait of state.atomicWaits.sort((a, b) => a.order - b.order)) await wait.activate();
+        })();
+      },
       ast,
       budget,
       callStack,
@@ -1271,6 +1289,31 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       value = capability.promise;
       state.pendingCapabilities.set(capability.promise, capability);
       state.initializeIterators.push(() => {
+        if (serialized.kind === "pending-promise" && serialized.atomicWait !== undefined) {
+          const saved = {...serialized.atomicWait};
+          const view = deserializeValue(saved.view, state);
+          if (!(view instanceof Int32Array || view instanceof BigInt64Array) ||
+              !isSandboxSharedArrayBuffer(view.buffer) || saved.index >= view.length)
+            throw new TypeError("Invalid atomic wait view.");
+          const waitState = {view, index: saved.index, order: saved.order, timeout: saved.remaining ?? Infinity,
+            startedAt: undefined as number | undefined};
+          atomicWaitStates.set(capability.promise, waitState);
+          state.atomicWaits.push({ order: saved.order, activate: async () => {
+            state.signal?.throwIfAborted();
+            const timeout = saved.remaining ?? Infinity;
+            // This resumes an already queued wait, not its original comparison.
+            const expected = Reflect.apply(Atomics.load, Atomics, [view, saved.index]) as number | bigint;
+            const pending = await waitForAtomicValue(view, saved.index,
+              expected, timeout, state.budget);
+            atomicWaitOrders.set(state.budget, Math.max(atomicWaitOrders.get(state.budget) ?? 0, saved.order));
+            waitState.startedAt = pending.async ? pending.startedAt ?? performance.now() : performance.now();
+            const signal = runResources.getStore()?.signal;
+            void Promise.resolve(pending.value).then(
+              result => { if (!signal?.aborted) { atomicWaitStates.delete(capability.promise); return capability.resolve.call([result]); } },
+              error => { if (!signal?.aborted) { atomicWaitStates.delete(capability.promise); return capability.reject.call([error]); } }
+            ).catch(error => { if (!signal?.aborted) capability.rejectNative(error); });
+          }});
+        }
         if (serialized.kind === "pending-promise" && serialized.generatorOwner !== undefined)
           deserializeValue(serialized.generatorOwner, state);
         if (serialized.kind === "pending-promise" && serialized.adoption !== undefined)

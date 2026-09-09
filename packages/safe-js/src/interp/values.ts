@@ -59,6 +59,7 @@ import { SandboxError } from "./budget.js";
 import { observeSandboxPromise, trackSandboxPromise } from "./promise-tracker.js";
 import { promiseStates } from "./promise-state.js";
 import { promiseContinuations, promiseReactionResults, promiseProducers } from "./promise-continuations.js";
+import { atomicWaitStates } from "./atomic-wait-state.js";
 import { asyncGeneratorDrivers, asyncGeneratorRequestOwners } from "./async-generator-driver.js";
 import { promiseReplayContext } from "./promise-replay.js";
 import {
@@ -1018,6 +1019,11 @@ export function measureSandboxData(
       return;
     }
     if (isSandboxPromise(value)) {
+      const atomicWait = atomicWaitStates.get(value);
+      if (atomicWait !== undefined) {
+        usage += 4;
+        visit(atomicWait.view, depth + 1);
+      }
       visit(asyncGeneratorRequestOwners.get(value), depth + 1);
       const settlement = promiseStates.get(value);
       if (settlement !== undefined && settlement.status !== "pending") visit(settlement.value, depth + 1);

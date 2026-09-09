@@ -852,9 +852,14 @@ run completion or cancellation awaits worker termination, removing that run's
 native wait registrations without notifying unrelated waiters. Standalone
 intrinsic calls without a run lifecycle retain native waiter lifetime.
 Focused async-wait tests cover
-timeouts, notification order, await cancellation, and pending source replay;
-they do not establish direct restoration of live waiter continuations or
-deterministic timeout replay;
+timeouts, notification order, await cancellation, and pending source replay.
+The low-level heap restorer additionally preserves pending wait state and exposes
+`await restored.activateAtomicWaits()` to register those waits before restored
+guest closures are used. Focused tests cover FIFO order, BigInt offsets, remaining
+timeouts, re-checkpointing before activation, and run-owned cleanup. This internal
+activation API is distinct from the public SDK's source-replay restore path;
+these checks do not establish deterministic timeout replay or arbitrary concurrent
+shared-memory recovery;
 do not treat this as complete shared-memory support. Synchronous `Atomics.wait`
 cannot block the sandbox's host event-loop agent. Non-shared waits reject, and
 `notify` returns zero for valid non-shared views.

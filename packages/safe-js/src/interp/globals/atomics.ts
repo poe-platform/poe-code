@@ -3,6 +3,7 @@ import { registerBuiltinIdentities } from "../intrinsics.js";
 import { createIntrinsicObject, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
 import { retainValues, runResources } from "../resources.js";
 import { waitForAtomicValue } from "../atomic-wait.js";
+import { atomicWaitStates, atomicWaitOrders } from "../atomic-wait-state.js";
 import { promiseReplayContext } from "../promise-replay.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { isNumericTypedArray, typedArrayStorage } from "../typed-array.js";
@@ -60,10 +61,16 @@ export function createAtomicsGlobal(budget: Budget): SandboxObject {
             const pending=await waitForAtomicValue(view as Int32Array | BigInt64Array,index,expected,timeout,budget);
             if (!pending.async) return allocateProducedSandboxValue({async:false,value:pending.value},budget);
             const capability=createPendingPromiseCapability(budget,context);
+            const order = (atomicWaitOrders.get(budget) ?? 0) + 1;
+            atomicWaitOrders.set(budget, order);
+            atomicWaitStates.set(capability.promise, {
+              view: view as Int32Array | BigInt64Array, index, order,
+              timeout: Number.isNaN(timeout) ? Infinity : Math.max(0, timeout), startedAt: pending.startedAt ?? performance.now()
+            });
             const signal=runResources.getStore()?.signal;
             void pending.value.then(
-              value=>{if (!signal?.aborted) return capability.resolve.call([value]);},
-              reason=>{if (!signal?.aborted) return capability.reject.call([reason]);}
+              value=>{if (!signal?.aborted) { atomicWaitStates.delete(capability.promise); return capability.resolve.call([value]); }},
+              reason=>{if (!signal?.aborted) { atomicWaitStates.delete(capability.promise); return capability.reject.call([reason]); }}
             ).catch(error=>{if (!signal?.aborted) promiseReplayContext.getStore()?.fail(error);});
             return allocateProducedSandboxValue({async:true,value:capability.promise},budget);
           }

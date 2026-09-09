@@ -492,6 +492,20 @@ extension, integration, or validation requirement is missing or unverified.
   executable statements. Scoped lint, source typecheck, and the selected workspace
   build passed. Pattern matching, enclosing-scope
   validation, execution, and safe-fs integration remain pending.
+- Added an internal structural-pattern AST and grammar reader for captures,
+  wildcards, singletons, signed numeric/complex and adjacent string literals,
+  dotted values, open/grouped/bracketed sequences, star captures, mappings/rest
+  bindings, positional/keyword class patterns, alternatives, and as bindings.
+  Pattern literals reject arbitrary expressions and interpolated strings.
+- Pattern grammar validation: the new suite initially failed on the missing
+  module; subsequent failing regressions covered nested-sequence preservation,
+  sole-star list patterns, and underscore class/value-pattern rejection. All 966
+  package tests pass. A 216-case CPython AST-parser comparison matched grammar
+  acceptance and full pattern trees. Compilation-only binding restrictions were
+  deliberately excluded from that comparison; cross-pattern capture validation,
+  irrefutability, duplicate mapping keys, match-suite integration, and execution
+  remain pending. Scoped lint, source typecheck, and the selected workspace build
+  passed.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

@@ -828,6 +828,21 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/codecs.html#error-handlers . Incremental decoding,
   encoding, custom error-handler/codec registries, guest codec exceptions, and
   safe-fs text-stream integration remain pending.
+- Added metered complete-buffer UTF-8 encoding with strict, ignore, replace,
+  backslashreplace, xmlcharrefreplace, namereplace, surrogateescape, and
+  surrogatepass policies. Surrogate runs produce Python-compatible error spans;
+  surrogateescape restores valid escaped bytes before reporting any remaining
+  unencodable run. Encoder faults retain immutable input and operation metadata.
+  Working buffers and independently owned final output are charged before allocation.
+- UTF-8 encoder validation: the suite first failed on the missing module; all
+  1,476 package tests pass, including 22 encoder cases. CPython comparisons matched
+  4,410 strings across eight policies (35,280 results), including every individual
+  surrogate. Encoding all 1,114,112 Python code points with surrogatepass matched
+  CPython byte-for-byte under a budget, charging 5,502,849 steps and 8,845,184 bytes.
+  All 65,536 two-byte sequences round-tripped through surrogateescape. Scoped lint,
+  source typecheck, and selected workspace build passed. Incremental codecs,
+  registry/custom-handler dispatch, guest bytes/exception objects, and safe-fs
+  text I/O remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -4018,6 +4018,18 @@ extension, integration, or validation requirement is missing or unverified.
   work. Guest length hints, string subclasses/interning, remaining string
   methods and builtins, suspension, full accounting and SDK/safe-fs remain
   unfinished.
+- Connected str.strip/lstrip/rstrip to native lookup. Default/None arguments
+  use Python Unicode whitespace rather than host trim rules; explicit chars
+  are indexed once as a metered code-point set. Boundary scans avoid touching
+  unchanged interiors, preserve exact receiver identity and make one final
+  slice only when changed. Lone surrogates remain intact.
+- Strip verification began with seven failing tests. All 3,777 tests in 273
+  files pass, including bounded-work and unique-set-allocation checks, with
+  scoped lint, source typecheck and selected workspace build. A
+  1,818-call compiled CPython audit matches results, identity and diagnostics;
+  exhaustive classification agrees for all 1,114,112 Unicode code points.
+  Remaining native string methods, subclasses/interning, object protocols,
+  builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

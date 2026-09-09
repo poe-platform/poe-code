@@ -667,6 +667,8 @@ Function/AsyncFunction prototype after cleanup. This also preserves inherited
 properties and later binding operations; explicit null/custom prototypes win.
 Reusing a budget for a new realm starts a fresh function-prototype table while
 existing function objects retain their original prototype defaults.
+Borrowed eval and dynamic constructors also select their saved execution context
+by intrinsic realm identity, so a reused budget does not select an earlier run.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

@@ -139,8 +139,8 @@ export type SandboxRegex = {
 };
 
 export type SandboxCallContext = {
-  readonly evaluateEval?: (source: string, realm?: Budget) => Promise<SandboxValue>;
-  readonly createDynamicFunction?: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string, realm?: Budget) => SandboxClosure;
+  readonly evaluateEval?: (source: string, intrinsic?: SandboxClosure) => Promise<SandboxValue>;
+  readonly createDynamicFunction?: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string, intrinsic?: SandboxClosure) => SandboxClosure;
   readonly newTarget?: SandboxClosure;
   readonly compilation?: CompileScope;
   readonly span?: {

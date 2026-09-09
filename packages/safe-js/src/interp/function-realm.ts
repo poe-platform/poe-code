@@ -3,7 +3,7 @@ import { boundFunctionStates } from "./bound-function-state.js";
 import { guestProxyStates, requireActiveGuestProxy } from "./guest-proxy.js";
 import type { SandboxValue } from "./values.js";
 
-const functionRealms = new WeakMap<object, Map<string, object>>();
+export const functionRealms = new WeakMap<object, Map<string, object>>();
 export const activeFunctionRealmPrototypes = new WeakMap<Budget, Map<string, object>>();
 
 export function registerFunctionRealm(value: object, budget: Budget): void {

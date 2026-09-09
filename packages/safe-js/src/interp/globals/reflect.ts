@@ -3,6 +3,7 @@ import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-ex
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
+import { sandboxHasProperty } from "../guest-proxy-has.js";
 import { isSandboxModuleNamespace } from "../module-namespace.js";
 import { assertSandboxDataDepth } from "../../graph-depth.js";
 import { accessorClosure, readPropertyDescriptor } from "../accessors.js";
@@ -34,7 +35,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
     getPrototypeOf: { length: 1, call: ([target], context) => sandboxGetPrototypeOf(target, budget, context) },
     has: { length: 2, call: async ([target, key], context) => {
       objectProperties(target);
-      return getSandboxPropertyDescriptor(target, await toPropertyKey(key, budget, context), budget) !== undefined;
+      return sandboxHasProperty(target, await toPropertyKey(key, budget, context), budget, context);
     } },
     isExtensible: { length: 1, call: ([target], context) => sandboxIsExtensible(target, budget, context) },
     preventExtensions: { length: 1, call: ([target], context) => sandboxPreventExtensions(target, budget, context) },

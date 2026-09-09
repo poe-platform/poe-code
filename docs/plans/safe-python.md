@@ -5128,6 +5128,20 @@ extension, integration, or validation requirement is missing or unverified.
   dispatch, other native/container representations and binary percent operator
   integration remain unfinished. Full guest objects, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Added whole-expression text percent wrapping over field dispatch and assembly.
+  It preserves a literal-only source (including string subclasses) or a sole
+  unchanged field-result object, prioritizes the field when source/result share
+  storage, and creates a new exact string for combined output. Candidate identity
+  is published only after grammar and surplus checks finish. Binding callbacks
+  retain their original context receiver.
+- Six tests first failed for the missing wrapper. All 4,466 tests in 359 files
+  pass. CPython matches 5,018 mixed formats through the whole-expression wrapper
+  and 120 source/result subclass identity cases. Source typecheck, scoped lint
+  and selected workspace build pass. Binary percent operator integration remains
+  unconnected; the original filter/string-percent gap is still open. Bytes field
+  dispatch, other native/container representations and global string
+  canonicalization remain incomplete. Full guest objects, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

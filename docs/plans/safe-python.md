@@ -363,8 +363,20 @@ extension, integration, or validation requirement is missing or unverified.
   module/function/async validation, remaining simple statements, compound statements,
   execution, and safe-fs integration remain pending.
   Reference: https://docs.python.org/3/reference/simple_stmts.html.
+- Added return, raise, assert, break, and continue syntax. Returns retain optional
+  tuple/unpacked values; raise retains a separate exception and explicit cause;
+  assertions retain their condition and optional message. An exhaustive statement
+  expression enumerator reaches every executable operand while continuing to omit
+  discarded annotations, so existing expression scope checks cover the new forms.
+- Control-flow simple-statement validation: four positive tests failed before
+  implementation; all 732 package tests pass. A 70-case CPython compilation and
+  AST comparison matched acceptance and operands, with compilation wrapped inside
+  a regular function and loop to isolate grammar from enclosing-context checks.
+  Scoped lint, source typecheck, and selected workspace build passed. Function/loop placement,
+  return unwinding, exception handling, assertion execution, and loop transfers
+  remain semantic/runtime work.
 - Next:
-  remaining simple statements, compound statements, and enclosing-scope validation
+  deletion/import/scope-declaration statements, compound statements, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

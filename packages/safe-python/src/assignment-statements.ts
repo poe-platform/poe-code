@@ -46,7 +46,7 @@ function validateSingleTarget(target: Expression, cursor: TokenCursor): void {
   validateTarget(target, cursor);
 }
 
-function readStatementValue(cursor: TokenCursor): Expression {
+export function readStatementValue(cursor: TokenCursor): Expression {
   if (cursor.peek().text === "yield") return readYield(cursor, readExpression);
   const items: CollectionItem[] = [];
   let comma = false;

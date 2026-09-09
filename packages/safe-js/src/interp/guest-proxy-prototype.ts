@@ -5,6 +5,7 @@ import { sandboxIsExtensible } from "./guest-proxy-extensibility.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
 import { objectProperties } from "./globals/object-array.js";
 import { getSandboxPrototype, setSandboxPrototype } from "./object-model.js";
+import { retainValues } from "./resources.js";
 
 export function sandboxGetPrototypeOf(value: SandboxValue, budget: Budget, context?: SandboxCallContext): SandboxValue | Promise<SandboxValue> {
   objectProperties(value);
@@ -14,9 +15,14 @@ export function sandboxGetPrototypeOf(value: SandboxValue, budget: Budget, conte
     if (trap === undefined) return sandboxGetPrototypeOf(target, budget, context);
     const result = await invokeBuiltinClosure(trap, [target], budget, context, handler);
     if (result !== null && typeof result !== "object") throw new TypeError("Proxy prototype must be an object or null.");
-    if (!await sandboxIsExtensible(target, budget, context) && result !== await sandboxGetPrototypeOf(target, budget, context))
-      throw new TypeError("Proxy prototype does not match its non-extensible target.");
-    return result;
+    const release = retainValues(budget, () => [result]);
+    try {
+      if (!await sandboxIsExtensible(target, budget, context) && result !== await sandboxGetPrototypeOf(target, budget, context))
+        throw new TypeError("Proxy prototype does not match its non-extensible target.");
+      return result;
+    } finally {
+      release();
+    }
   });
 }
 

@@ -6704,6 +6704,17 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Concrete object/buffer models, automatic
   builtin assembly and broader interpreter/SDK/safe-fs integration remain
   unfinished.
+- Implemented the metered Unicode translation kernel with ASCII result caching,
+  retry when wider/expanding mappings end the fast path, and deletion-run probes
+  matching CPython's observable lookup schedule. Output stays in code points;
+  cache/output buffers are charged, and callbacks have cancellation checkpoints.
+  Reference: CPython v3.14.0 Objects/unicodeobject.c charmap translation routines.
+- Twelve regression cases cover mapping schedules, empty input, callback errors
+  and cancellation. All 5,145 tests in 441 files pass; 216 CPython comparisons
+  match output/errors and lookup traces, including invalid code points.
+  Typecheck and selected workspace build pass. Native str.translate binding and
+  mapping-result protocols are next; concrete object models, automatic builtin
+  assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

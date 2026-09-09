@@ -2716,6 +2716,19 @@ extension, integration, or validation requirement is missing or unverified.
   passed.
   Constructor argument binding/index conversion, builtin/type registration,
   pickling, bigint payload/CPU and full heap accounting remain unfinished.
+- Connected exact builtin enumerate calls to start conversion, eager protocol
+  iterator acquisition and lazy indexed results. Supports positional arguments,
+  iterable/start keywords in either order and the builtin's count/keyword error
+  precedence. Explicit starts use the host-supplied guest index protocol before
+  iterable acquisition; default zero does not invoke conversion. Cancellation
+  after conversion prevents source callbacks, and pair factories retain context.
+- The constructor suite first failed on its missing module; all 2,980 tests in
+  183 files pass. A 352-case CPython constructor/iteration audit matched binding
+  diagnostics, conversion/init ordering and failures, default and large starts,
+  and resulting pairs. Source typecheck, scoped lint and selected workspace build
+  passed.
+  Concrete index-protocol dispatch, guest builtin/type registration, subclass
+  construction, pickling and full bigint/heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -841,7 +841,14 @@ treat that work as complete weak-collection support.
 
 ## Meaningful limitations
 
-- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain unavailable. Proxy runtime and tested checkpoint support are described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+The unreleased runtime supports `Atomics` integer operations on ordinary
+ArrayBuffer-backed typed arrays, including BigInt views. Focused tests cover
+guest coercion, buffer changes during coercion, namespace identity across replay,
+and foreign-realm errors. Shared memory is not implemented: `wait` and
+`waitAsync` reject non-shared storage, and `notify` returns zero for valid
+non-shared views. This does not provide cross-agent synchronization.
+
+- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef`, `FinalizationRegistry`, and `SharedArrayBuffer` remain unavailable. Proxy runtime and tested checkpoint support are described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
 - **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.

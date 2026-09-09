@@ -5,6 +5,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "AsyncDisposableStack",
   "Array",
   "ArrayBuffer",
+  "Atomics",
   "DataView",
   "Boolean",
   "BigInt",

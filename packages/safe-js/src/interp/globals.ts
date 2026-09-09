@@ -23,6 +23,7 @@ import { createBigIntGlobal } from "./globals/bigint.js";
 import { createArrayBufferGlobal } from "./globals/array-buffer.js";
 import { createDataViewGlobal } from "./globals/data-view.js";
 import { createReflectGlobal } from "./globals/reflect.js";
+import { createAtomicsGlobal } from "./globals/atomics.js";
 import { createProxyGlobal } from "./globals/proxy.js";
 import { activeFunctionRealmPrototypes } from "./function-realm.js";
 import { createIntlGlobal } from "./globals/intl.js";
@@ -51,6 +52,7 @@ export function createBuiltinBindings(
     DisposableStack: createDisposableStackGlobal(options.budget),
     AsyncDisposableStack: createAsyncDisposableStackGlobal(options.budget),
     Reflect: createReflectGlobal(options.budget),
+    Atomics: createAtomicsGlobal(options.budget),
     Proxy: createProxyGlobal(options.budget),
     Intl: createIntlGlobal(options.budget, date.properties!.now as SandboxClosure),
     ArrayBuffer: createArrayBufferGlobal(options.budget),

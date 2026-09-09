@@ -5834,6 +5834,20 @@ extension, integration, or validation requirement is missing or unverified.
   cases. Typecheck, scoped lint and selected workspace build pass. Empty/Latin-1
   single-character canonicalization remains part of unfinished global string
   identity work; these focused audits do not establish all identity policies.
+- Added lazy per-runtime small-string caching to ConstantValues. Empty strings
+  are canonical; callers explicitly choose canonical Latin-1 single-character
+  results or fresh nonempty identity. Metadata strings, parsed literals and
+  completed brace-format output request canonical construction. Other nonempty
+  stringPoints callers remain fresh, preserving casing/join behavior until their
+  operation-specific policies are audited. Cache entries and records are metered;
+  mutable input is copied on misses and cache hits do not allocate tagged values.
+- Five tests were added; four first reproduced absent canonical identity/cache
+  reuse. All 4,728 tests in 407 files pass. A 2,340-case compiled CPython audit
+  covers all Latin-1 characters plus empty/non-Latin-1 strings through literal,
+  format, casing and join identity. The 20,584 evaluator and 80 subclass identity
+  audits also pass. Typecheck, scoped lint and selected workspace build pass.
+  Remaining string-operation cache policies, broader interning, guest object
+  integration and interpreter/SDK/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

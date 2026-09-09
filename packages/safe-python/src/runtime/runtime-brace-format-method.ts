@@ -28,6 +28,6 @@ export function createRuntimeBraceFormatMethod(receiver: Extract<RuntimeValue, {
       item: (value, key) => lookup.getItem(value, typeof key === "bigint" ? values.integer(key) : values.stringPoints(key))
     }, formatting, meter);
     if (result.original !== undefined) return result.original;
-    return result.storage === receiver.value ? receiver : values.stringPoints(result.storage);
+    return result.storage === receiver.value ? receiver : values.stringPoints(result.storage, "canonical");
   } });
 }

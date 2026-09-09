@@ -29,6 +29,7 @@ export interface SliceConstant<Value = ConstantValue> {
 
 export type ConstantValue = PrimitiveConstant | TupleConstant<ConstantValue> | SliceConstant<ConstantValue>;
 type BytesConstant = Extract<PrimitiveConstant, { kind: "bytes" }>;
+type StringConstant = Extract<PrimitiveConstant, { kind: "str" }>;
 
 // Logical runtime allocation policy, not a measurement of JavaScript heap size.
 const VALUE_BYTES = 32;
@@ -48,6 +49,7 @@ const REFERENCE_BYTES = 8;
  */
 export class ConstantValues {
   #smallBytes: Map<number, BytesConstant> | undefined;
+  #smallStrings: Map<number, StringConstant> | undefined;
   readonly none: Extract<PrimitiveConstant, { kind: "none" }>;
   readonly true: Extract<PrimitiveConstant, { kind: "bool" }>;
   readonly false: Extract<PrimitiveConstant, { kind: "bool" }>;
@@ -85,10 +87,30 @@ export class ConstantValues {
     return Object.freeze({ kind: "complex", real, imaginary });
   }
 
-  /** Trusted immutable storage can be shared; mutable input is always copied. */
-  stringPoints(points: Uint32Array | CodePointString): Extract<PrimitiveConstant, { kind: "str" }> {
-    this.meter.checkpoint(1, VALUE_BYTES);
-    return Object.freeze({ kind: "str", value: points instanceof CodePointString ? points : new CodePointString(points, this.meter) });
+  /** Empty strings are canonical. Nonempty results select fresh identity by
+   * default; canonical mode additionally caches Latin-1 single characters.
+   * Trusted immutable storage is shared; mutable input is copied on a miss.
+   * Each lazy cache costs 64 bytes plus 32 bytes per entry, as for small bytes. */
+  stringPoints(points: Uint32Array | CodePointString, identity: "canonical" | "fresh" = "fresh"): StringConstant {
+    this.meter.checkpoint();
+    let key: number | undefined;
+    if (points.length === 0) key = -1;
+    else if (points.length === 1 && identity === "canonical") {
+      const point = points instanceof CodePointString ? points.codePointAt(0n, this.meter) : points[0];
+      if (point <= 255) key = point;
+    }
+    if (key !== undefined) {
+      const cached = this.#smallStrings?.get(key);
+      if (cached !== undefined) return cached;
+      this.meter.checkpoint(0, (this.#smallStrings === undefined ? 64 : 0) + 32);
+    }
+    this.meter.checkpoint(0, VALUE_BYTES);
+    const result: StringConstant = Object.freeze({ kind: "str", value: points instanceof CodePointString ? points : new CodePointString(points, this.meter) });
+    if (key !== undefined) {
+      this.#smallStrings ??= new Map();
+      this.#smallStrings.set(key, result);
+    }
+    return result;
   }
 
   string(value: string): Extract<PrimitiveConstant, { kind: "str" }> {
@@ -96,7 +118,7 @@ export class ConstantValues {
     const points = new Uint32Array(value.length);
     let length = 0;
     for (const character of value) { this.meter.checkpoint(); points[length++] = character.codePointAt(0)!; }
-    return this.stringPoints(points.subarray(0, length));
+    return this.stringPoints(points.subarray(0, length), "canonical");
   }
 
   bytes(value: Uint8Array | ImmutableBytes, identity: "canonical" | "fresh" = "canonical"): BytesConstant {
@@ -152,7 +174,7 @@ export class ConstantValues {
       case "integer": return this.integer(node.value as bigint);
       case "float": return this.float(node.value as number);
       case "imaginary": return this.complex(0, node.value as number);
-      case "string": return this.stringPoints(node.value as Uint32Array);
+      case "string": return this.stringPoints(node.value as Uint32Array, "canonical");
       case "bytes": return this.bytes(node.value as Uint8Array);
     }
   }

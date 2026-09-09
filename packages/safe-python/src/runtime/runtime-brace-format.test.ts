@@ -58,6 +58,15 @@ it("retains a field after leading empty output but copies after trailing empty o
   expect(call(v.string("{}{}"), "format", [value, empty])).not.toBe(value);
   expect(call(v.string("{}{}{}"), "format", [empty, value, empty])).not.toBe(value);
 });
+it("canonicalizes completed empty and Latin-1 formatting results", () => {
+  const { v, call } = fixture();
+  for (const text of ["", "a", "é", "ÿ"]) {
+    const value = v.string(text);
+    expect(call(v.string("{}{}"), "format", [value, v.string("")])).toBe(value);
+  }
+  const astral = v.string("😀");
+  expect(call(v.string("{}{}"), "format", [astral, v.string("")])).not.toBe(astral);
+});
 it("preserves a nonempty guest str-subclass formatter result until a later append", () => {
   const { v, meter, dictionary } = fixture(), guest = v.cell({}), subclass = v.cell({}), storage = v.string("subclass text").value;
   const unused = (): never => { throw Error("unused lookup"); };

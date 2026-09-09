@@ -669,6 +669,19 @@ extension, integration, or validation requirement is missing or unverified.
   Source typecheck, scoped lint, and selected workspace build passed. Reference:
   https://docs.python.org/3/reference/expressions.html . These internal primitives
   are not yet connected to expression execution or resource accounting.
+- Added integer modular exponentiation for three-argument pow, including extended
+  Euclidean modular inverses for negative exponents, negative-modulus result signs,
+  modulus-one shortcuts, and Python ValueError faults for zero modulus or missing
+  inverses. Repeated squaring reduces intermediate products, avoiding allocation
+  of the unmodulated power. This is an internal primitive, not a guest builtin yet.
+- Modular-power validation: the new suite failed on the missing module before
+  implementation; all 1,212 package tests pass. The 23 new cases include exhaustive
+  small signed combinations, a 4,097-bit exponent, and large inverse identities.
+  A 6,474-case CPython comparison matched results and error names/messages across
+  signed inputs, negative exponents, zero/unit moduli, and generated large integers.
+  Scoped lint, source typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/functions.html#pow . Cooperative execution
+  budgeting and guest exception/builtin integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -123,6 +123,7 @@ export type GuestHeapNode<T> =
   | { kind: "iterator-helper"; method: IteratorHelperState["method"]; status: "start" | "yield" | "done";
       outer?: { iterator: T; next: T }; inner?: { iterator: T; next: T }; callback: T;
       iterables?: Array<{ iterable: T; open: T }>;
+      joint?: { mode: "shortest" | "longest" | "strict"; cursors: Array<{ iterator: T; next: T } | null>; padding: T[]; keys?: T[]; arrayPrototype?: T };
       remaining: number | "Infinity"; index: number; state: GuestObjectState<T> }
   | { kind: "iterator-wrapper"; iterator: T; next: T; state: GuestObjectState<T> }
   | { kind: "module-namespace"; entries: Array<[string,T]> }
@@ -376,6 +377,13 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       ...(helper.outer === undefined ? {} : { outer: { iterator: encode(helper.outer.iterator), next: encode(helper.outer.next) } }),
       ...(helper.inner === undefined ? {} : { inner: { iterator: encode(helper.inner.iterator), next: encode(helper.inner.next) } }),
       ...(helper.iterables === undefined ? {} : { iterables: helper.iterables.map(input=>({iterable:encode(input.iterable),open:encode(input.open)})) }),
+      ...(helper.joint === undefined ? {} : { joint: {
+        mode: helper.joint.mode,
+        cursors: helper.joint.cursors.map(cursor=>cursor === null ? null : {iterator:encode(cursor.iterator),next:encode(cursor.next)}),
+        padding: helper.joint.padding.map(encode),
+        ...(helper.joint.arrayPrototype === undefined ? {} : {arrayPrototype:encode(helper.joint.arrayPrototype)}),
+        ...(helper.joint.keys === undefined ? {} : {keys:helper.joint.keys.map(encode)})
+      } }),
       callback: encode(helper.callback), remaining: helper.remaining === Infinity ? "Infinity" : helper.remaining,
       index: helper.index, state: captureObjectState(value, encode)! };
   }

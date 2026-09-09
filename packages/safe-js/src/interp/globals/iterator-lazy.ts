@@ -9,6 +9,7 @@ import { registerBuiltinIdentities } from "../intrinsics.js";
 import { createIntrinsicObject, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { createIteratorResult } from "../iterator-result.js";
+import { installJointIteratorHelpers } from "./iterator-zip.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
@@ -27,6 +28,12 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget,
         if (state.status === "done") return createIteratorResult(undefined,true,budget);
         state.status="executing";
         try {
+          if (state.joint !== undefined) {
+            const result=await jointOperation(state,operation,context);
+            if (result.done) complete(state);
+            else state.status="yield";
+            return result;
+          }
           const outer=state.outer!;
           if (operation === "return") {
             if (state.inner !== undefined) {
@@ -144,7 +151,9 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget,
     } finally {release()}
   }});
   Object.defineProperty(materializeFunctionProperties(constructor),"concat",{value:concat,writable:true,configurable:true});
+  const jointOperation=installJointIteratorHelpers(prototype,constructor,budget,{callContext,adapter,step});
   registerBuiltinIdentities(budget,{Iterator:constructor,"%IteratorPrototype%":common,"%IteratorHelperPrototype%":prototype});
+  for (const method of ["zip", "zipKeyed"]) registerIntrinsicFunction(budget,materializeFunctionProperties(constructor)[method] as SandboxClosure);
   registerIntrinsicFunction(budget,concat);
   registerIntrinsicObject(budget,prototype);
   registerIntrinsicObject(budget,common);
@@ -190,5 +199,6 @@ function complete(state: IteratorHelperState): void {
   state.outer=undefined;
   state.inner=undefined;
   state.iterables=undefined;
+  state.joint=undefined;
   state.callback=undefined;
 }

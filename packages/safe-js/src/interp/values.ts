@@ -877,6 +877,18 @@ export function measureSandboxData(
     }
     const helperState = iteratorHelperStates.get(value);
     if (helperState !== undefined) {
+      if (helperState.joint !== undefined) {
+        for (const record of helperState.joint.cursors) {
+          usage += 1;
+          if (record !== null) {
+            visit(record.iterator, depth + 1);
+            visit(record.next, depth + 1);
+          }
+        }
+        visit(helperState.joint.padding, depth + 1);
+        visit(helperState.joint.arrayPrototype, depth + 1);
+        if (helperState.joint.keys !== undefined) visit(helperState.joint.keys, depth + 1);
+      }
       for (const input of helperState.iterables ?? []) {
         usage += 1;
         visit(input.iterable, depth + 1);

@@ -1519,6 +1519,17 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         method: serialized.method, status: serialized.status,
         outer: serialized.outer === undefined ? undefined : cursor(serialized.outer),
         inner: serialized.inner === undefined ? undefined : cursor(serialized.inner),
+        joint: serialized.joint === undefined ? undefined : {
+          mode: serialized.joint.mode,
+          cursors: serialized.joint.cursors.map(input=>input === null ? null : cursor(input)),
+          padding: serialized.joint.padding.map(input=>deserializeValue(input,state) as SandboxValue),
+          ...(serialized.joint.arrayPrototype === undefined ? {} : {arrayPrototype:deserializeValue(serialized.joint.arrayPrototype,state) as SandboxValue}),
+          ...(serialized.joint.keys === undefined ? {} : {keys:serialized.joint.keys.map(input=>{
+            const key=deserializeValue(input,state);
+            if (typeof key !== "string" && typeof key !== "symbol") throw new TypeError("Invalid joint iteration key.");
+            return key;
+          })})
+        },
         iterables: serialized.iterables?.map(input=>{
           const open=deserializeValue(input.open,state);
           if (!isSandboxClosure(open)) throw new TypeError("Invalid concat open method.");

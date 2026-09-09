@@ -667,8 +667,13 @@ prototype through yielding, early return, exhaustion and public replay.
 then opens and consumes inputs sequentially on demand. Early return closes
 only the active input. Unopened inputs and active cursors participate in data
 accounting and snapshot recovery. Primitive inputs, including strings, are
-rejected; pass an iterable object instead. `Iterator.zip` and `zipKeyed` remain
-unsupported.
+rejected; pass an iterable object instead.
+`Iterator.zip(inputs, options)` and `Iterator.zipKeyed(inputs, options)` support
+`shortest` (default), `longest`, and `strict` modes from the ECMAScript 2027
+draft. Longest mode accepts iterable padding for `zip` and keyed padding for
+`zipKeyed`. Inputs are opened eagerly and advanced lazily; keyed rows have null
+prototypes and include enumerable own string and symbol keys. Retained cursors,
+padding, and keys participate in data accounting and snapshot recovery.
 `Promise.any` rejection errors expose a writable, configurable, non-enumerable
 `errors` property, including empty input and public replay. Rejection elements
 retain their identity.

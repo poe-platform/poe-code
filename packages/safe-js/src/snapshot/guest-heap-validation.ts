@@ -617,8 +617,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "iterator-helper") {
-    fields(node, ["kind", "method", "status", "callback", "remaining", "index", "state"], ["outer", "inner", "iterables"]);
-    if (!["map", "filter", "take", "drop", "flatMap", "concat"].includes(String(node.method)) ||
+    fields(node, ["kind", "method", "status", "callback", "remaining", "index", "state"], ["outer", "inner", "iterables", "joint"]);
+    if (!["map", "filter", "take", "drop", "flatMap", "concat", "zip", "zipKeyed"].includes(String(node.method)) ||
         !["start", "yield", "done"].includes(String(node.status))) throw new TypeError("Invalid iterator helper mode.");
     integer(node.index);
     if (node.remaining !== "Infinity" && (typeof node.remaining !== "number" || !Number.isInteger(node.remaining) || node.remaining < 0))
@@ -647,10 +647,53 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         }
       }
     } else if (Object.hasOwn(node,"iterables")) throw new TypeError("Unexpected concat inputs.");
-    if ((node.method !== "concat" && (node.status === "done") === Object.hasOwn(node, "outer")) ||
+    const isJoint=node.method === "zip" || node.method === "zipKeyed";
+    if (isJoint) {
+      if (node.remaining !== 0 || node.index !== 0 || Object.hasOwn(node,"outer") || Object.hasOwn(node,"inner") ||
+          Object.hasOwn(node,"joint") !== (node.status !== "done")) throw new TypeError("Invalid joint iterator state.");
+      if (Object.hasOwn(node,"joint")) {
+        const joint=record(node.joint);
+        fields(joint,["mode","cursors","padding",node.method === "zipKeyed" ? "keys" : "arrayPrototype"]);
+        if (node.method === "zip") {
+          const prototype=reference(joint.arrayPrototype);
+          if (prototype.kind === "symbol" || prototype.kind === "scope-frame") throw new TypeError("Invalid joint array prototype.");
+        }
+        if (!["shortest","longest","strict"].includes(String(joint.mode))) throw new TypeError("Invalid joint iterator mode.");
+        const cursors=array(joint.cursors), padding=array(joint.padding);
+        if (cursors.length > maxArrayLength || padding.length !== (joint.mode === "longest" ? cursors.length : 0))
+          throw new TypeError("Invalid joint iterator padding.");
+        for (const entry of cursors) {
+          if (entry === null) {
+            if (joint.mode !== "longest" || node.status !== "yield") throw new TypeError("Invalid exhausted joint iterator.");
+          } else {
+            const input=record(entry);
+            fields(input,["iterator","next"]);
+            const target=reference(input.iterator);
+            if (target.kind === "symbol" || target.kind === "scope-frame") throw new TypeError("Invalid joint iterator.");
+          }
+        }
+        if (node.status === "yield" && cursors.every(cursor=>cursor === null)) throw new TypeError("Exhausted joint helper must be completed.");
+        if (node.method === "zipKeyed") {
+          const keys=array(joint.keys);
+          if (keys.length !== cursors.length) throw new TypeError("Invalid joint key count.");
+          const seen=new Set<string>();
+          for (const key of keys) {
+            let identity: string;
+            if (typeof key === "string") identity=`string:${key}`;
+            else {
+              const symbol=reference(key,["symbol"]);
+              identity=symbol.wellKnown === undefined ? `symbol:${record(key).id}` : `well-known:${symbol.wellKnown}`;
+            }
+            if (seen.has(identity)) throw new TypeError("Duplicate joint key.");
+            seen.add(identity);
+          }
+        }
+      }
+    } else if (Object.hasOwn(node,"joint")) throw new TypeError("Unexpected joint iterator state.");
+    if ((node.method !== "concat" && !isJoint && (node.status === "done") === Object.hasOwn(node, "outer")) ||
         (Object.hasOwn(node, "inner") && (node.method !== "flatMap" || node.status !== "yield")))
       throw new TypeError("Invalid iterator helper cursor state.");
-    if (node.status === "done" || node.method === "take" || node.method === "drop" || node.method === "concat") {
+    if (node.status === "done" || node.method === "take" || node.method === "drop" || node.method === "concat" || isJoint) {
       if (!absent(node.callback)) throw new TypeError("Unexpected iterator helper callback.");
     } else {
       if (absent(node.callback)) throw new TypeError("Missing iterator helper callback.");

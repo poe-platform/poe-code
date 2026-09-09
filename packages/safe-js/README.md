@@ -899,6 +899,11 @@ do not treat this as complete shared-memory support. Synchronous `Atomics.wait`
 cannot block the sandbox's host event-loop agent. Non-shared waits reject, and
 `notify` returns zero for valid non-shared views.
 
+The local `Atomics.pause()` implementation follows the current 2027 draft:
+it returns `undefined` and ignores arguments and the receiver. It sends a native
+CPU spin-wait hint when available and otherwise performs no timing operation;
+both paths charge the step budget. It is not a sleep or an event-loop yield.
+
 Managed shared-buffer host round-trips are being integrated. Focused checks now
 cover isolated settlement-time bytes, replayed argument aliases, and host writes
 and growth even when no shared buffer is returned. Experimental journal-wide

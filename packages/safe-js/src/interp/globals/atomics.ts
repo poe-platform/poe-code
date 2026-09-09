@@ -24,6 +24,7 @@ const integerArrayTypes = new Set<unknown>([
   Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array,
   BigInt64Array, BigUint64Array
 ]);
+const nativePause = Reflect.get(Atomics, "pause") as (() => void) | undefined;
 
 export function createAtomicsGlobal(budget: Budget): SandboxObject {
   const atomics = createIntrinsicObject({});
@@ -88,6 +89,17 @@ export function createAtomicsGlobal(budget: Budget): SandboxObject {
     Object.defineProperty(atomics, name, { value: closure, writable: true, configurable: true });
     registerIntrinsicFunction(budget, closure);
   }
+  const pause = createSandboxClosure({
+    sandbox: true, guest: true, name: "pause", length: 0,
+    call: () => {
+      budget.visitNode();
+      // Current semantics ignore arguments, including on hosts with an older hint-count API.
+      if (nativePause !== undefined) Reflect.apply(nativePause, Atomics, []);
+      return undefined;
+    }
+  });
+  Object.defineProperty(atomics, "pause", { value: pause, writable: true, configurable: true });
+  registerIntrinsicFunction(budget, pause);
   Object.defineProperty(atomics, Symbol.toStringTag, { value: "Atomics", configurable: true });
   registerBuiltinIdentities(budget, { Atomics: atomics });
   registerIntrinsicObject(budget, atomics);

@@ -32,6 +32,22 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("shares guest addition hooks with module and nested function frames", () => {
+    const state = fixture("module_result = left + right\ndef f():\n return left + right\nresult = f()\n");
+    const { values: v } = state, guest = v.cell({}), answer = v.string("guest addition"); let prepared = 0;
+    state.globals.set("left", v.list([])); state.globals.set("right", guest);
+    state.hooks.expressions = () => {
+      const owner = { warn() {}, addition(left: RuntimeValue, right: RuntimeValue) {
+        expect(this).toBe(owner); expect(left.kind).toBe("list"); expect(right).toBe(guest); prepared++;
+        return { numeric: { relation: "other" as const, notImplemented: v.notImplemented,
+          forward: () => v.notImplemented, reflected: () => answer, reflectedIsOverridden: () => false } };
+      } };
+      return owner;
+    };
+    state.run();
+    expect(state.globals.get("module_result")).toBe(answer); expect(state.globals.get("result")).toBe(answer);
+    expect(prepared).toBe(2); expect(state.calls.depth).toBe(0);
+  });
   it("shares equal literal constants throughout one compiled program", () => {
     const state = fixture('a = "long value 😀"\nb = "long value 😀"\ndef f():\n return "long value 😀"\nresult = (a is b, a is f(), f() is f())\n');
     state.run();

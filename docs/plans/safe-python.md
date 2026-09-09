@@ -6043,6 +6043,18 @@ extension, integration, or validation requirement is missing or unverified.
   and selected workspace build pass. General expression-context wiring, guest
   sequence subclass storage/buffer exporters and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Wired ordinary + expressions through the addition adapter, replacing host
+  implementation-gap failures with native Python addition/concatenation errors.
+  Added an optional operand-pair addition capability for guest numeric slots;
+  it runs after both operands are evaluated and before native sequence fallback.
+  Frame assembly forwards and owner-binds the capability into modules and nested
+  functions. Other declined binary operator families remain explicit gaps.
+- Three new tests plus an updated unsupported-add expectation first reproduced
+  missing diagnostics, dispatch and frame forwarding. All 4,823 tests in 424
+  files pass. CPython comparisons pass for 900 compiled addition programs and
+  all 2,479 compiled sum cases. Typecheck, scoped lint and selected workspace
+  build pass. Concrete guest class/sequence adapters, remaining operators and
+  broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

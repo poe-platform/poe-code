@@ -2,6 +2,7 @@ import { UnsupportedExpressionError, type ExpressionContext } from "./expression
 import type { ConstantUnaryContext } from "./constant-unary.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeBinary } from "./runtime-binary.js";
+import { runtimeAddition, type AdditionContext } from "./runtime-addition.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIndex } from "./runtime-index.js";
 import { runtimeIterate } from "./runtime-iteration.js";
@@ -28,7 +29,11 @@ import type { FormatContext } from "./format-protocol.js";
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "formattedString">> &
-  { readonly formatting?: FormatContext<RuntimeValue> } &
+  { readonly formatting?: FormatContext<RuntimeValue>;
+    /** Prepare type-level numeric addition slots for the evaluated pair.
+     * Native sequence fallback runs only after those slots decline. */
+    addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext;
+  } &
   Pick<ConstantUnaryContext, "warn"> & (
     Pick<ExpressionContext<RuntimeValue>, "beginDictionary" | "beginSet"> |
     { readonly dictionaryKeys: KeyOperations<RuntimeValue> } & Partial<Pick<ExpressionContext<RuntimeValue>, "beginSet">>
@@ -36,8 +41,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
 
 /** Assemble concrete exact-value operations with scope/object hooks. Setup runs
  * no guest code. The factory and hooks belong to the same metered execution.
- * This is not yet a complete interpreter context: declined binary families fail
- * as host implementation gaps until full reflected dispatch/diagnostics exist.
+ * Addition includes native fallback/diagnostics and optional guest negotiation.
+ * Other declined binary families still fail as explicit implementation gaps.
  */
 export function createRuntimeExpressionContext(values: RuntimeValues, bindings: RuntimeExpressionBindings, meter: ExecutionMeter): ExpressionContext<RuntimeValue> {
   meter.checkpoint(1, 768);
@@ -61,6 +66,11 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),
     unary: (operator, value) => runtimeUnary(operator, value, unary, meter),
     binary(operator, left, right) {
+      if (operator === "+") {
+        const addition = bindings.addition?.(left, right);
+        meter.checkpoint();
+        return runtimeAddition(left, right, values, meter, addition);
+      }
       const result = runtimeBinary(operator, left, right, values, meter);
       if (result === values.notImplemented) throw new UnsupportedExpressionError("binary");
       return result;

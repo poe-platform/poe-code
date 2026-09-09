@@ -87,9 +87,29 @@ describe("concrete runtime expression context", () => {
   });
   it("never publishes declined binary operations as successful values", () => {
     const { run } = fixture();
-    expect(() => run("None + 1")).toThrow(UnsupportedExpressionError);
+    expect(() => run("None + 1")).toThrow("unsupported operand type(s) for +: 'NoneType' and 'int'");
     expect(() => run("2.0 ** 0.5")).toThrow(UnsupportedExpressionError);
     expect(() => run("1 / 0")).toThrow("division by zero");
+  });
+  it("reports native sequence concatenation errors through ordinary addition", () => {
+    const { run } = fixture();
+    for (const [source, kind] of [["[]", "list"], ["()", "tuple"], ["''", "str"]]) {
+      expect(() => run(`${source} + 1`)).toThrow(`can only concatenate ${kind} (not "int") to ${kind}`);
+      expect(() => run(`1 + ${source}`)).toThrow(`unsupported operand type(s) for +: 'int' and '${kind}'`);
+    }
+    expect(() => run("b'' + None")).toThrow("can't concat NoneType to bytes");
+  });
+  it("prepares guest addition slots only after evaluating both operands", () => {
+    const { v, bindings, run, events, names } = fixture(), guest = v.cell({}), answer = v.string("reflected");
+    names.set("left", v.list([])); names.set("right", guest);
+    bindings.addition = function(left, right) {
+      expect(this).toBe(bindings); expect(left.kind).toBe("list"); expect(right).toBe(guest);
+      events.push("slots");
+      return { numeric: { relation: "other", notImplemented: v.notImplemented,
+        forward: () => v.notImplemented, reflected: () => answer, reflectedIsOverridden: () => false } };
+    };
+    expect(run("left + right")).toBe(answer);
+    expect(events).toEqual(["load:left", "load:right", "slots"]);
   });
   it("retains explicit unsupported object operations rather than inventing defaults", () => {
     const { run } = fixture();

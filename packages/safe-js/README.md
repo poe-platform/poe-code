@@ -450,6 +450,32 @@ For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. 
 
 ## Development status
 
+### Latest local changes — September 9, 2026
+
+These fixes are committed locally, not verified on remote main or released:
+
+- Public dumps preserve supported buffer subclass instances, custom prototypes
+  and accessors for replay. Native accessor execution remains rejected.
+- `DataView.prototype` and `SharedArrayBuffer.prototype` constructor bindings are
+  nonwritable; their prototype objects remain mutable.
+- `Number.parseInt` and `Number.parseFloat` initially reference the same functions
+  as their global counterparts. Each realm gets fresh parser functions, including
+  when a budget is reused. Parser lengths and 32 other audited built-in function
+  lengths now match native controls, including bound-function lengths.
+
+The parser fix passed 1,896 isolated tests; the subsequent function-length fix
+passed 179 focused tests. Both passed the maintained workspace build and scoped
+lint. These checks exclude pending weak-reference and cross-realm prototype
+work and do not establish a green full-worktree gate. Host-Promise property
+admission and workload-test timeouts remain unresolved. See the
+[current gap inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-09.md)
+and [metadata validation record](../../docs/plans/safejs-standard-builtin-metadata.md).
+
+Pushes and releases remain on hold. The historical results below apply only to
+their stated candidates, not to the complete current checkout.
+
+### Earlier changes and validation
+
 The current local work adds guest-only `Function`, `AsyncFunction`,
 `GeneratorFunction`, and `AsyncGeneratorFunction` constructors. They parse and
 execute code inside SafeJS, retain execution budgets, and use the granted global
@@ -518,7 +544,7 @@ import checks, and 22,765 unit tests with 37 skips across 839 files on September
 host-Promise property-import work; it does not establish complete JavaScript
 conformance or a passing integrated main worktree.
 
-The latest completed integrated main run passed 22,788 tests, failed two and
+An earlier integrated main run passed 22,788 tests, failed two and
 skipped 37 across 840 files. It includes the later eval numeric-update and
 parameter-environment fixes, but predates the CLI lint follow-ups.
 

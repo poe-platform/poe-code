@@ -30,6 +30,14 @@ not substitute for the pending full-package result.
 
 ## Remaining work
 
+The later isolated intrinsic-prototype candidate's full run (46858) completed
+with 25,018 passes, three failures and 37 skips. Two camera batches exceeded
+the 5,000 ms test timeout; an async retained-root accounting test exceeded its
+fixed ceiling. The accounting test was subsequently corrected to measure the
+exact added root cost and reject a one-byte-short budget; its focused selection
+passed 57 tests (36198). Camera tests passed a focused repeat but the full-run
+timeouts remain unresolved. No later green full-package result is established.
+
 | Area | Current disposition | Evidence still needed |
 | --- | --- | --- |
 | WeakRef and FinalizationRegistry | Public bindings, job retention, owner cleanup, budgets and heap support are implemented locally; integration remains uncommitted | Full-package regression results, hostile snapshot/rollback audit, and portable unique-symbol lifetime support on older Node 18 |
@@ -39,6 +47,7 @@ not substitute for the pending full-package result.
 | Shared memory | Integer Atomics, managed shared buffers, async waits and bounded replay/recovery cases are implemented | Arbitrary intermediate async visibility, deterministic timeout recovery, host boundary and concurrency audits |
 | Internal wait restoration | Local committed heap restorer exposes explicit activation | Do not confuse this with the public SDK's source-replay path |
 | Mixed-realm intrinsic snapshots | A built-runtime probe combined distinct Number prototypes from two runs; low-level restoration collapsed their identities | Establish supported transport boundaries and preserve realm-qualified intrinsic graphs; see [the reproduction](safejs-mixed-realm-snapshot-identity.md) |
+| Intrinsic prototype ownership | An uncommitted repair preserves originating realm parents and intrinsic identity through low-level replay | Complete independent integration checks and resolve full-suite camera timeouts before committing |
 | eval, Proxy and general language semantics | Many focused implementations and comparisons exist | An exhaustive conformance disposition is absent; presence and historical green tests are insufficient |
 | Ambient host APIs | No implicit DOM, Node, filesystem or network authority | Preserve capability boundaries; language completeness does not authorize exposing host privileges |
 | Repository-wide delivery checks | Focused/package evidence exists, not a current green repository gate | Appropriate maintained lint/build/test routes before eventual delivery |
@@ -51,6 +60,16 @@ A public cross-run symbol probe (510a76) failed at input
 admission, so it did not validate the suspected registered-symbol WeakRef bug.
 
 ## Delivery boundary
+
+Subsequent local commits preserve buffer object state in public dumps
+(`ec097d454`), make DataView/SharedArrayBuffer prototype bindings nonwritable
+(`7f3af9922`), share per-realm numeric parser functions (`0b3e4d7c0`), and correct
+32 other built-in function lengths (`fa654e3fc`). The parser candidate passed
+1,896 isolated tests and the later metadata candidate passed 179 focused tests;
+both passed the maintained selected build and scoped lint. See the
+[parser record](safejs-numeric-parser-identity.md) and
+[metadata record](safejs-standard-builtin-metadata.md) for exact scopes. These
+fixes do not resolve the pending work listed above or prove full conformance.
 
 Recent local commits include background-job error reporting (556f723ff),
 detachable cleanup registration (461cd5bb6), keeping detach handles internal

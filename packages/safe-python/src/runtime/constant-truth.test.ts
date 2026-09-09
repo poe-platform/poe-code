@@ -3,6 +3,7 @@ import { ConstantValues, type ConstantValue } from "./constant-values.js";
 import { constantTruth } from "./constant-truth.js";
 import { constantUnary } from "./constant-unary.js";
 import { constantComparison } from "./constant-comparison.js";
+import { constantMembership } from "./constant-membership.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -52,7 +53,7 @@ describe("concrete constant truth", () => {
       literal: node => v.literal(node), boolean: value => v.boolean(value), truth: value => constantTruth(value, meter),
       load: name => { if (name === "NotImplemented") return v.notImplemented; return unexpected(); }, store: unexpected,
       unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
-      binary: unexpected, compare: (operator, left, right) => constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
+      binary: unexpected, compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
       tuple: values => v.tuple(values), list: unexpected, beginSet: unexpected, beginDictionary: unexpected,
       slice: unexpected, getItem: unexpected, iterate: unexpected
     };
@@ -62,6 +63,8 @@ describe("concrete constant truth", () => {
     expect(run("0 < 1 < 2")).toBe(v.true);
     expect(run("(1, 2) < (1, 3)")).toBe(v.true);
     expect(run("not (1 == 1.0)")).toBe(v.false);
+    expect(run("1 in (0, 1) and 'b' in 'abc'")).toBe(v.true);
+    expect(run("255 not in b'abc'")).toBe(v.true);
     expect(run("False and NotImplemented")).toBe(v.false);
     expect(run("True or NotImplemented")).toBe(v.true);
     expect(run("False or NotImplemented")).toBe(v.notImplemented);

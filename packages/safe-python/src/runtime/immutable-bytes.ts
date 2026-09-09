@@ -1,6 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
+import { searchSubstring } from "./substring-search.js";
 
 /** Internal immutable bytes payload, not a guest object or releasable memoryview.
  * Public input/output buffers are copied. Internally created slices transfer sole
@@ -55,6 +56,19 @@ export class ImmutableBytes implements Iterable<number> {
       meter.checkpoint(); owned[offset] = this.#bytes[index];
     }
     return new ImmutableBytes(owned);
+  }
+
+  /** Search owned storage without exporting/copying either buffer. */
+  contains(needle: ImmutableBytes | number, meter: ExecutionMeter): boolean {
+    meter.checkpoint();
+    if (typeof needle === "number") {
+      if (!Number.isInteger(needle) || needle < 0 || needle > 255) throw new RangeError("byte search requires an integer in range 0..255");
+      for (let index = 0; index < this.length; index++) { meter.checkpoint(); if (this.#bytes[index] === needle) return true; }
+      return false;
+    }
+    if (needle.length === 0) return true;
+    if (needle.length > this.length) return false;
+    return searchSubstring(this.#bytes, needle.#bytes, 0, this.length, "find", meter) !== -1;
   }
 
   compare(other: ImmutableBytes, meter: ExecutionMeter): -1 | 0 | 1 {

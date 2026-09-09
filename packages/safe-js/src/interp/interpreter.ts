@@ -279,7 +279,7 @@ export type InterpretOptions = {
 };
 
 type EvaluationContext = AsyncEvaluationContext;
-const evalRealmContexts = new WeakMap<Budget, EvaluationContext>();
+const intrinsicRealmContexts = new WeakMap<Budget, EvaluationContext>();
 
 type EvaluationResult = AsyncEvaluationResult;
 type MemberReference = { kind: "nullish" } | {
@@ -480,10 +480,10 @@ export async function interpret(
       asyncGenerator: options.asyncGenerator,
       resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
     };
-    // Foreign intrinsic eval needs this realm's global scope, not the private
+    // Foreign eval and dynamic constructors need this realm's global scope, not the private
     // lexical scope of either the owner script or its eventual caller.
-    if (!evalRealmContexts.has(budget))
-      evalRealmContexts.set(budget, { ...context, scope: scope.globalScope() });
+    if (!intrinsicRealmContexts.has(budget))
+      intrinsicRealmContexts.set(budget, { ...context, scope: scope.globalScope() });
     const execute = () => node.type === "VariableDeclaration" && node.disposal !== undefined
       ? evaluateResourceScope(scope, budget, {...createCoercionContext(context), onSuspend: context.onSuspend, signal: context.signal}, () => evaluateNode(node, context))
       : evaluateNode(node, context);
@@ -3298,7 +3298,7 @@ async function evaluateCallExpression(
 
 async function evaluateGuestEval(source: string, context: EvaluationContext, direct: boolean, realm = context.budget): Promise<SandboxValue> {
   if (realm !== context.budget) {
-    const owner = evalRealmContexts.get(realm);
+    const owner = intrinsicRealmContexts.get(realm);
     if (owner === undefined) throw new TypeError("Eval realm has no execution context.");
     context = owner;
     direct = false;
@@ -4001,10 +4001,19 @@ function applyBinaryOperator(
   }
 }
 
+function compileGuestDynamicFunction(context: EvaluationContext, kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string, realm = context.budget): SandboxClosure {
+  if (realm !== context.budget) {
+    const owner = intrinsicRealmContexts.get(realm);
+    if (owner === undefined) throw new TypeError("Dynamic function realm has no execution context.");
+    context = owner;
+  }
+  return compileDynamicFunction(context, evaluateNode, kind, parameters, body);
+}
+
 export function createCoercionContext(context: EvaluationContext): SandboxCallContext {
   return {
     evaluateEval: (source, realm) => evaluateGuestEval(source, context, false, realm),
-    createDynamicFunction: (kind, parameters, body) => compileDynamicFunction(context, evaluateNode, kind, parameters, body),
+    createDynamicFunction: (kind, parameters, body, realm) => compileGuestDynamicFunction(context, kind, parameters, body, realm),
     stack: context.callStack,
     thisValue: undefined,
     compilation: context.compilation,
@@ -4650,8 +4659,8 @@ async function invokeSandboxClosure(
         thisValue,
         newTarget: construct ? newTarget ?? callee : undefined,
         evaluateEval: (source: string, realm?: Budget) => evaluateGuestEval(source, context, directEval, realm),
-        createDynamicFunction: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string) =>
-          compileDynamicFunction(context, evaluateNode, kind, parameters, body),
+        createDynamicFunction: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string, realm?: Budget) =>
+          compileGuestDynamicFunction(context, kind, parameters, body, realm),
         compilation: context.compilation,
         getProperty: (value: SandboxValue, property: string | number) =>
           getPropertyValue(value, property, context),

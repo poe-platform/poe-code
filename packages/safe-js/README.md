@@ -659,6 +659,9 @@ Dynamic Function, AsyncFunction, GeneratorFunction and AsyncGeneratorFunction
 constructors use foreign newTarget prototype defaults without changing the
 function body's originating global environment. Focused checks cover execution
 and independent replay of the factory and target realms.
+Borrowed dynamic constructors compile their bodies in the constructor owner's
+global environment, not the caller's. Global writes stay in that owner realm;
+neither the caller's locals nor the owner script's private locals are captured.
 Ordinary, async, arrow, class and built-in functions retain their owning
 Function/AsyncFunction prototype after cleanup. This also preserves inherited
 properties and later binding operations; explicit null/custom prototypes win.

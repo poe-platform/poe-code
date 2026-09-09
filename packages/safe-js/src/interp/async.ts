@@ -224,7 +224,7 @@ export function createInterpretedClosure(
               ...context,
               callee: closure,
               functionEnvironment: { newTarget },
-              compilation: callContext?.compilation ?? context.compilation,
+              compilation: callContext?.compilation?.owner?.budget === context.budget ? callContext.compilation : context.compilation,
               callStack: [...(callContext?.stack ?? context.callStack)]
             },
             evaluateNode
@@ -259,7 +259,7 @@ export function createInterpretedClosure(
         ...context,
         callee: closure,
         strict: functionStrictness.get(node) ?? true,
-        compilation: callContext?.compilation ?? context.compilation,
+        compilation: callContext?.compilation?.owner?.budget === context.budget ? callContext.compilation : context.compilation,
         callStack: [...(callContext?.stack ?? context.callStack)]
       };
       if (!node.async)
@@ -370,7 +370,7 @@ function createGeneratorClosure(
           ...context,
           callee: closure,
           strict: functionStrictness.get(node) ?? true,
-          compilation: callContext?.compilation ?? context.compilation,
+          compilation: callContext?.compilation?.owner?.budget === context.budget ? callContext.compilation : context.compilation,
           callStack: [...(callContext?.stack ?? context.callStack)]
         };
         const scope = await createClosureScope(

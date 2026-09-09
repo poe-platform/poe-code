@@ -81,7 +81,7 @@ function createDynamicConstructor(budget: Budget, kind: DynamicFunctionKind, nam
     try {
       for (const value of args) strings.push(await sandboxString(value, budget, context));
       body = strings.pop() ?? "";
-      closure = context.createDynamicFunction(kind, strings.join(","), body);
+      closure = context.createDynamicFunction(kind, strings.join(","), body, budget);
       const target = context.newTarget ?? constructor;
       const targetPrototype = context.getProperty === undefined
         ? materializeFunctionProperties(target).prototype

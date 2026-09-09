@@ -8,6 +8,7 @@ import { setSandboxProperty } from "../interpreter.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { normalizeLastIndex } from "../regex/engine.js";
 import { retainValues } from "../resources.js";
+import { createIteratorResult } from "../iterator-result.js";
 
 export function nextRegExpIterator(
   iterator: SandboxRegExpIterator,
@@ -15,7 +16,7 @@ export function nextRegExpIterator(
 ): { value: SandboxValue; done: boolean } {
   const state = regexpIteratorState(iterator);
   budget?.visitNode();
-  if (state.exhausted) return { value: undefined, done: true };
+  if (state.exhausted) return createIteratorResult(undefined, true, budget);
   const matcher = state.matcher!;
   if (!isSandboxRegex(matcher)) throw new TypeError("Custom RegExp iterator execution requires a sandbox context.");
   const input = state.input!;
@@ -25,19 +26,19 @@ export function nextRegExpIterator(
     state.matcher = undefined;
     state.input = undefined;
   }
-  if (match === null) return { value: undefined, done: true };
+  if (match === null) return createIteratorResult(undefined, true, budget);
   if (!state.exhausted && match.text.length === 0) {
     const index = Number(matcher.lastIndex);
     const unicode = state.unicode ?? (matcher.flags.includes("u") || matcher.flags.includes("v"));
     const codePoint = input.codePointAt(index);
     matcher.lastIndex = index + (unicode && codePoint !== undefined && codePoint > 0xffff ? 2 : 1);
   }
-  return { value: toMatchArray(match, input, budget), done: false };
+  return createIteratorResult(toMatchArray(match, input, budget), false, budget);
 }
 
 export async function nextObservableRegExpIterator(iterator: SandboxRegExpIterator, budget: Budget, context: SandboxCallContext): Promise<{ value: SandboxValue; done: boolean }> {
   const state = regexpIteratorState(iterator);
-  if (state.exhausted) return { value: undefined, done: true };
+  if (state.exhausted) return createIteratorResult(undefined, true, budget);
   const matcher = state.matcher;
   if (isSandboxRegex(matcher) && !hasRegexPropertyOverride(matcher, ["exec"], budget) &&
       (matcher.lastIndex === null || typeof matcher.lastIndex !== "object"))
@@ -59,7 +60,7 @@ export async function nextObservableRegExpIterator(iterator: SandboxRegExpIterat
       state.exhausted = true;
       state.matcher = undefined;
       state.input = undefined;
-      return result === null ? { value: undefined, done: true } : { value: result, done: false };
+      return createIteratorResult(result === null ? undefined : result, result === null, budget);
     }
     field = await read(result, "0");
     const text = await sandboxString(field, budget, context);
@@ -72,7 +73,7 @@ export async function nextObservableRegExpIterator(iterator: SandboxRegExpIterat
       const point = input.codePointAt(index);
       await setSandboxProperty(matcher, "lastIndex", index + (unicode && point !== undefined && point > 0xffff ? 2 : 1), budget, true, context);
     }
-    return { value: result, done: false };
+    return createIteratorResult(result, false, budget);
   } finally {
     release();
   }

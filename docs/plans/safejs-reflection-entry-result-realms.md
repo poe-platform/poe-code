@@ -173,3 +173,26 @@ and four fresh-process import checks; built SDK probes passed for Array,
 Uint8Array, Float32Array, Map, Set and string borrowed next calls through
 yield and repeated completion. No visual CLI changes, push or release. This
 does not replace a fresh full-package run.
+
+## RegExp iterator-result implementation
+
+Twenty additional source checks failed before this change, covering built-in
+global/non-global matching and custom exec for both modes. They test yield,
+first/repeated completion, borrowed SDK next calls and public replay. Native
+VM prototype controls passed. Two custom-exec controls already passed,
+checking returned object identity, null prototypes, completion freshness and
+exec invocation counts.
+
+Both the built-in and observable RegExp iterator paths now use the shared
+result factory. Only the outer result object receives its originating Object
+prototype; custom exec results are not copied or re-prototyped. Iterator
+helpers, Iterator.from fallback return results and generators remain to be
+validated separately.
+
+Validation passed 179 tests across eight result-realm, matchAll, RegExp
+prototype and snapshot files. Scoped ESLint and package TypeScript passed.
+The maintained build passed 23 workspace builds and four fresh-process import
+checks. Built SDK probes passed borrowed next calls through yield and
+repeated completion for all four built-in/custom, global/non-global modes.
+No visual CLI changes, push or release. A fresh full-package run is still
+needed after this series of fixes.

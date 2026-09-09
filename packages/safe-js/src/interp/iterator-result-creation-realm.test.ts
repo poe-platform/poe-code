@@ -8,7 +8,9 @@ const iterators = [
   "[3].values()", "[3].keys()", "[3].entries()",
   "new Uint8Array([3]).values()", "new Float32Array([3]).entries()",
   "new Map([[1,3]]).entries()", "new Set([3]).values()",
-  '"😀"[Symbol.iterator]()'
+  '"😀"[Symbol.iterator]()',
+  '"a".matchAll(/a/g)', '/a/[Symbol.matchAll]("a")',
+  ...["g", ""].map(flags => `RegExp.prototype[Symbol.matchAll].call({flags:"${flags}",lastIndex:0,constructor:{[Symbol.species]:function(){let calls=0;return {exec(){return calls++===0?{0:"a",length:1}:null}}}}},"a")`)
 ];
 
 it.each(iterators.flatMap(expression => [0, 1, 2].map(skip => ({ expression, skip }))))(
@@ -44,6 +46,11 @@ it.each(iterators)("uses the borrowed next method realm: %s", async expression =
 
 it("preserves iterator result descriptors, freshness and payload identity", async () => {
   const source = `const value=Object.create(null);const iterators=[[value].values(),new Map([[1,value]]).values(),new Set([value]).values()];return iterators.map(iterator=>{const first=iterator.next();const end=iterator.next();const again=iterator.next();return [first.value===value,Object.getPrototypeOf(value)===null,first!==end,end!==again,Reflect.ownKeys(first),Object.getOwnPropertyDescriptors(first),Object.getOwnPropertyDescriptors(end)]})`;
+  expect(deepCopyFromSandbox((await run(source)).returnValue)).toEqual(runInNewContext(`(()=>{${source}})()`));
+});
+
+it.each(["g", ""])("preserves custom RegExp exec result identity with flags %s", async flags => {
+  const source = `const value=Object.assign(Object.create(null),{0:"a",length:1});let calls=0;const iterator=RegExp.prototype[Symbol.matchAll].call({flags:"${flags}",lastIndex:0,constructor:{[Symbol.species]:function(){return {exec(){return calls++===0?value:null}}}}},"a");const first=iterator.next();const end=iterator.next();const again=iterator.next();return [first.value===value,Object.getPrototypeOf(value)===null,first.done,end.done,again.done,end!==again,calls,Reflect.ownKeys(first)]`;
   expect(deepCopyFromSandbox((await run(source)).returnValue)).toEqual(runInNewContext(`(()=>{${source}})()`));
 });
 

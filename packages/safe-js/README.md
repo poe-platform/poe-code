@@ -629,6 +629,8 @@ Collected values keep their identity and prototypes.
 Array, typed-array, Map, Set, and string iterator `next()` result objects
 retain the method's originating Object prototype, including exhausted results
 and borrowed SDK calls. Yielded values are not re-prototyped.
+RegExp iterator results follow the same rule for built-in and custom `exec`
+paths, including non-global matching. Custom match results retain identity.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

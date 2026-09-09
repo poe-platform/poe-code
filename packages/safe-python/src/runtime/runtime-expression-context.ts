@@ -19,6 +19,7 @@ import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeFormattedStringContext } from "./runtime-formatted-string.js";
 import type { FormatContext } from "./format-protocol.js";
 import type { ContainmentContext } from "./containment-protocol.js";
+import type { IterationContext } from "./protocol-iterator.js";
 
 /** Explicit scope/object capabilities, supplied by the surrounding runtime.
  * Attribute lookup defaults to implemented exact native container members;
@@ -34,6 +35,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "formattedString" | "truth">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
+    readonly iteration?: IterationContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
     addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext;
@@ -100,7 +102,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       return result;
     },
     getItem: (object, key) => runtimeIndex(object, key, values, meter),
-    iterate: value => runtimeIterate(value, values, meter)
+    iterate: value => runtimeIterate(value, values, meter, bindings.iteration)
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
   context.formattedString = bindings.formattedString ?? createRuntimeFormattedStringContext(values, formatting, meter);

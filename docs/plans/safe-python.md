@@ -6105,6 +6105,21 @@ extension, integration, or validation requirement is missing or unverified.
   combinations and nested functions, including exact callback traces. Typecheck,
   scoped lint and selected workspace build pass. Concrete guest storage/type
   adapters and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Forwarded optional guest iteration capabilities through expression/frame
+  assembly and starred call collection. Native values retain their exact paths;
+  guest sources now support for loops, fixed unpacking, starred tuple/list
+  displays and starred arguments in module/nested-function execution. The
+  protocol object retains its callback receiver and exhaustion classification.
+- Five compiled-consumer tests first exposed missing forwarding. All 4,848
+  tests in 426 files pass. A 48-program CPython comparison matches outputs,
+  fixed-unpack errors and exact iterator acquisition/pull traces for input sizes
+  zero through seven. Typecheck, scoped lint and selected workspace build pass.
+- Next error-path work: CPython propagates a TypeError raised inside guest
+  __iter__ during unpacking and starred calls; current wrappers catch broad
+  TypeErrors and can replace that failure. Distinguish genuine non-iterability
+  from guest acquisition exceptions. Length-hint and extended-unpack iterator
+  reacquisition behavior, concrete objects and broader SDK/safe-fs work remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

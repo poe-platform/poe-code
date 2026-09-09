@@ -6,10 +6,12 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { IterationContext } from "./protocol-iterator.js";
 
 export interface RuntimeCallContext {
   readonly values: RuntimeValues;
   readonly keys: KeyOperations<RuntimeValue>;
+  readonly iteration?: IterationContext<RuntimeValue>;
   /** Error-only guest formatting, including the callable's trailing (). */
   name(callee: RuntimeValue): string;
   keywordName(key: RuntimeValue): string;
@@ -43,7 +45,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
     positional(value) { meter.checkpoint(1, 8); positional.push(value); },
     starred(value, loneStar = false) {
       let iterator: Iterator<RuntimeValue>;
-      try { iterator = runtimeIterate(value, context.values, meter); }
+      try { iterator = runtimeIterate(value, context.values, meter, context.iteration); }
       catch (error) {
         if (!(error instanceof PythonRuntimeError) || error.name !== "TypeError") throw error;
         const name = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;

@@ -17,6 +17,8 @@ import { OrderedKeyMap } from "./ordered-key-map.js";
 import { protocolTruth, type TruthProtocolContext } from "./truth-protocol.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import type { ContainmentContext } from "./containment-protocol.js";
+import type { IterationContext } from "./protocol-iterator.js";
+import { PythonRuntimeError } from "./error.js";
 
 function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000, signal }), values = new RuntimeValues(meter);
@@ -35,6 +37,27 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([
+    "total=0\nfor item in guest:\n total=total+item\nresult=total\n",
+    "a,b=guest\nresult=(a,b)\n",
+    "result=(*guest,)\n",
+    "def f(a,b):\n return (a,b)\nresult=f(*guest)\n",
+    "def f():\n return (*guest,)\nresult=f()\n"
+  ])("shares guest iteration with compiled consumers: %s", source => {
+    const state = fixture(source), v = state.values, guest = v.cell({}), cursor = v.cell({}), events: string[] = [];
+    let index = 0; const stop = new PythonRuntimeError("StopIteration", "done");
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter(value) { expect(this).toBe(iteration); expect(value).toBe(guest); return () => { events.push("iter"); return cursor; }; },
+      hasNext: value => value === cursor,
+      next(value) { expect(value).toBe(cursor); events.push("next"); if (index === 2) throw stop; return v.integer(++index); },
+      hasSequenceItem: () => false, getItem: () => { throw Error("unexpected indexed fallback"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    state.run();
+    expect(state.globals.get("result")).toEqual(source.startsWith("total") ? v.integer(3) : v.tuple([v.integer(1), v.integer(2)]));
+    expect(events).toEqual(["iter", "next", "next", "next"]); expect(state.calls.depth).toBe(0);
+  });
   it.each(["contains", "iterate"] as const)("forwards guest containment through %s and nested frames", mode => {
     const state = fixture("module_result=needle in container\ndef f():\n return needle not in container\nresult=(module_result,f())\n"), v = state.values;
     const needle = v.cell({}), container = v.cell({}); let prepared = 0, calls = 0;

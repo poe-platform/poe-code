@@ -31,7 +31,7 @@ export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
-  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth" | "richComparison" | "containment">;
+  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth" | "richComparison" | "containment" | "iteration">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName">;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
 }
@@ -62,6 +62,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
+      iteration: expressionHooks.iteration,
       values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
       callable: value => value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method" || value.kind === "type" || hooks.callable(value),
       invoke(value, positional, keywords) {
@@ -117,6 +118,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       truth: expressionHooks.truth?.bind(expressionHooks),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks),
       containment: expressionHooks.containment?.bind(expressionHooks),
+      iteration: expressionHooks.iteration,
       formatting,
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)

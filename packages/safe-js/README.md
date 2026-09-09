@@ -898,6 +898,20 @@ owner with error reporting. The snapshot and selected weak-reference checks pass
 
 ## Meaningful limitations
 
+Temporal support is partial and uncommitted. The local runtime provides owned
+`Temporal.Instant` and `Temporal.Duration` values with focused snapshot,
+replay and host-copy coverage. Instant differences (`until`/`since`) return
+Durations. The remaining six Temporal classes and `Temporal.Now` are absent;
+Instant locale/zoned conversion and Duration comparison, rounding and totals
+are still missing. Host Temporal subclasses and arbitrary foreign-realm
+instances are not generally supported. This is not complete Temporal support
+or a claim about the released package.
+
+The [September 9 gap inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-09.md)
+separates current API presence from behavioral, recovery and validation gaps.
+It includes newer native APIs that are still proposals; matching a native
+property list is not proof of JavaScript conformance.
+
 The unreleased runtime supports `Atomics` integer operations on ordinary
 ArrayBuffer-backed typed arrays, including BigInt views. Experimental,
 shared-memory work adds fixed/growable `SharedArrayBuffer`, typed

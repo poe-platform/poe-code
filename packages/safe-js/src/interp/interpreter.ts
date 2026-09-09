@@ -128,6 +128,7 @@ import { guestProxyStates } from "./guest-proxy.js";
 import { sandboxDeleteProperty } from "./guest-proxy-delete.js";
 import { sandboxHasProperty } from "./guest-proxy-has.js";
 import { sandboxGetProperty } from "./guest-proxy-get.js";
+import { sandboxSetProperty } from "./guest-proxy-set.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -1154,7 +1155,7 @@ async function evaluateAssignmentExpression(
       const global = resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject;
       await setSandboxProperty(global, node.left.name, value, context.budget, true, createCoercionContext(context), false);
     } else if (reference.kind === "object") {
-      if (context.strict !== false && !await hasSandboxProperty(reference.object, reference.name, context))
+      if (context.strict !== false && !await bindingOperations(context).has(reference.object, reference.name))
         throw new ReferenceError(`Cannot assign to undeclared binding '${reference.name}'.`);
       await setSandboxProperty(reference.object, reference.name, value, context.budget, true, createCoercionContext(context), context.strict !== false);
     } else if (reference.kind === "binding") {
@@ -4300,8 +4301,14 @@ export function setSandboxProperty(
     if (!throwOnFailure) return;
     throw new TypeError("Cannot assign to a module namespace.");
   }
-  if (checkInherited) {
-    const descriptor = getSandboxPropertyDescriptor(target, property, budget);
+  if (checkInherited || (typeof target === "object" && target !== null && guestProxyStates.has(target))) {
+    let proxyBoundary: object | undefined;
+    const descriptor = getSandboxPropertyDescriptor(target, property, budget, proxy => { proxyBoundary = proxy; });
+    if (proxyBoundary !== undefined) {
+      return sandboxSetProperty(proxyBoundary as SandboxValue, property, value, target, budget, context).then(success => {
+        if (!success && throwOnFailure) throw new TypeError("Proxy refused property assignment.");
+      });
+    }
     if (descriptor !== undefined) {
       if (!("value" in descriptor)) {
         if (!throwOnFailure && descriptor.set === undefined) return;
@@ -4380,6 +4387,11 @@ function setSuperProperty(
   const budget = context.budget;
   if (typeof base !== "object" || base === null)
     throw new TypeError("Cannot assign a property of null.");
+  if (typeof receiver === "object" && receiver !== null && guestProxyStates.has(receiver)) {
+    return sandboxSetProperty(base, key, value, receiver, budget, createCoercionContext(context)).then(success => {
+      if (!success && context.strict !== false) throw new TypeError("Cannot assign a super property.");
+    });
+  }
   let depth = 0;
   for (
     let current: object | null = base;
@@ -4388,6 +4400,11 @@ function setSuperProperty(
   ) {
     budget.visitNode();
     assertSandboxDataDepth(depth++);
+    if (guestProxyStates.has(current)) {
+      return sandboxSetProperty(current as SandboxValue, key, value, receiver, budget, createCoercionContext(context)).then(success => {
+        if (!success && context.strict !== false) throw new TypeError("Proxy refused super assignment.");
+      });
+    }
     if (isSandboxModuleNamespace(current)) throw new TypeError("Cannot assign through a module namespace.");
     const properties = isSandboxGenerator(current) ? getGeneratorProperties(current) : isSandboxClosure(current) ? current.properties : current;
     const descriptor =

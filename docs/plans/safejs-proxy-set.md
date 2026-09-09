@@ -16,8 +16,8 @@ across guest work, releasing them on every exit.
 
 The initial selection passed 98 tests across three files (26710), followed by
 successful TypeScript and scoped lint. Expanded retention, revocation and traversal
-budget controls plus ordinary accessor and numeric/BigInt typed-array tests are
-passed 240 tests across four files, followed by final test-file lint (31110).
+budget controls plus ordinary accessor and numeric/BigInt typed-array tests
+passed: 240 tests across four files, followed by final test-file lint (31110).
 
 Reflect is integrated here. Guest assignment/update/destructuring paths and
 array-method callbacks still require Proxy Set integration. Enumeration, callable

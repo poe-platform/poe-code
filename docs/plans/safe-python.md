@@ -2372,6 +2372,19 @@ extension, integration, or validation requirement is missing or unverified.
   copied and source state under seeded hashes and forced collisions. Source
   typecheck, scoped lint and selected workspace build passed. Guest
   dictionary method exposure and full host allocation accounting remain pending.
+- Added reverse ordered-map cursors with constant-size creation, immediate tail
+  capture, live value updates, length hints and latched observed size errors.
+  Removed pending entries retain predecessor routes so cursors can skip them;
+  new tail replacements are not visited. Cursor exhaustion/error releases its
+  direct storage references. Key/value/item projection remains trusted host
+  construction rather than guest method dispatch.
+- Reverse-iterator tests first reproduced missing support. All 2,672 tests in
+  157 files pass. A 1,512-trace / 34,902-observation CPython reverse audit matched
+  1,495 traces exactly; the remaining 17 involve size-preserving mutations at
+  CPython table-compaction boundaries, which these linked-storage cursors do not
+  emulate. The 10,000-operation copy/default/pop/popitem audit still matches.
+  Source typecheck, scoped lint and selected workspace build passed. Guest
+  views/methods and complete native heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

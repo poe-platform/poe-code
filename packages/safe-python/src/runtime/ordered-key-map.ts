@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedMapIterator } from "./ordered-map-iterator.js";
+import { OrderedMapReverseIterator } from "./ordered-map-reverse-iterator.js";
 
 export interface KeyOperations<Key> {
   /** Equal keys must produce the same stable hash. The runtime owns __hash__,
@@ -129,6 +130,10 @@ export class OrderedKeyMap<Key, Value> {
     return new OrderedMapIterator(this.#entries, project, this.meter);
   }
 
+  reversed<Result>(project: (key: Key, value: Value) => Result): OrderedMapReverseIterator<Key, Value, Result> {
+    return new OrderedMapReverseIterator(this.#entries, this.#last, project, this.meter);
+  }
+
   /** A detached host snapshot, not a guest dict view or iteration API. */
   snapshot(): readonly (readonly [Key, Value])[] {
     this.meter.checkpoint(1, 32 + this.#entries.size * 48);
@@ -159,7 +164,8 @@ export class OrderedKeyMap<Key, Value> {
     if (entry.previous !== undefined) entry.previous.next = entry.next;
     if (entry.next !== undefined) entry.next.previous = entry.previous;
     else this.#last = entry.previous;
-    entry.previous = undefined;
+    // A reverse cursor may already point at this removed entry. Keep its
+    // predecessor route so the cursor can skip it and continue backwards.
     entry.next = undefined;
   }
 

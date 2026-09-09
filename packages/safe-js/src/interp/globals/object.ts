@@ -107,7 +107,7 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
           return budget.allocateString(`[object ${typeTag(receiver)}]`);
         const object = construct([receiver]);
         if (typeof object === "object" && object !== null && guestProxyStates.has(object)) {
-          const fallback = sandboxIsArray(object, budget) ? "Array" : "Object";
+          const fallback = sandboxIsArray(object, budget) ? "Array" : isSandboxClosure(object) ? "Function" : "Object";
           return Promise.resolve(sandboxGetProperty(object, Symbol.toStringTag, object, budget, context)).then(tag =>
             budget.allocateString(`[object ${typeof tag === "string" ? tag : fallback}]`));
         }

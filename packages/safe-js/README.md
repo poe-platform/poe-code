@@ -571,8 +571,8 @@ target forwarding, and explicit `new.target`, including subclass construction.
 revoked proxies. Other internal array-identity consumers still need integration.
 Object.prototype.toString reads custom tags through non-callable Proxies and
 preserves wrapped-array identity. Ordinary receivers also read inherited tags
-through Proxy ancestors with the original receiver. Callable Proxy tags remain
-pending integration work.
+through Proxy ancestors with the original receiver. Callable Proxies use the
+`Function` fallback tag while honoring custom tags and rejecting revoked Proxies.
 Ordinary-constructor `instanceof` checks follow Proxy prototype chains, including
 bound constructors. Callable Proxy constructors and special built-in paths remain
 separate integration work.

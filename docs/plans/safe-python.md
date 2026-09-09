@@ -2852,6 +2852,18 @@ extension, integration, or validation requirement is missing or unverified.
   Reversed constructor binding/special-method dispatch, guest iterator wrapping,
   state/pickling, exhaustive adversarial reentrancy and full allocation/recursion
   accounting remain open.
+- Connected exact builtin reversed calls to custom special-method invocation
+  and indexed sequence fallback. Keyword validation precedes positional arity;
+  custom method results return unchanged without iterator validation. Disabled
+  methods forbid fallback. For absent methods, sequence eligibility precedes
+  eager validated length acquisition and guest iterator wrapping; no item is
+  consumed during construction. Lookup/call/length failures retain precedence.
+- The constructor suite first failed on its missing module; all 3,106 tests in
+  193 files pass. A 288-case CPython constructor/iteration audit matched results,
+  argument/protocol errors and callback order. Source typecheck, scoped lint and
+  selected workspace build passed. Concrete builtin/descriptor/sequence dispatch,
+  subclass construction, guest object registration, state/pickling and complete
+  allocation/recursion accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

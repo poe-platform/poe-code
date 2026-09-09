@@ -5185,6 +5185,21 @@ extension, integration, or validation requirement is missing or unverified.
   reflected slots and global string canonicalization remain incomplete. Full
   guest objects, suspended execution, complete accounting and SDK/safe-fs
   integration remain outstanding.
+- Added complex repr/str rendering and native slot/percent representation wiring.
+  Components use shortest float digits without integral .0 suffixes. Positive-zero
+  real components are omitted; negative-zero components and imaginary signs are
+  preserved, while NaN sign bits are ignored. Numeric percent conversions still
+  reject complex operands rather than discarding their imaginary components.
+- Five missing-module renderer tests and three failing native-slot tests drove
+  implementation; a numeric-rejection regression already passed. All 4,497 tests
+  in 365 files pass. CPython matches 100,144 complex representations and 5,144
+  runtime method/percent cases, including signed zeros, nonfinite combinations,
+  arbitrary binary64 components and truncated/padded representations. Source
+  typecheck, scoped lint and selected workspace build pass. Container
+  representations, bytes percent dispatch/operator integration, guest reflected
+  slots and global string canonicalization remain incomplete. Full guest objects,
+  suspended execution, complete accounting and SDK/safe-fs integration remain
+  outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -2765,6 +2765,18 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Concrete builtin/context integration, len/truth entry
   points, bounded diagnostic type names and complete bigint/heap accounting
   remain unfinished.
+- Added guest truth conversion with exact bool/None fast paths, type-level bool
+  lookup and shared optional length/index fallback. Explicitly disabled bool
+  slots raise the distinct Python diagnostic. Present bool methods must return
+  exact bools; invalid results, descriptor errors and call failures never fall
+  back to length. Objects lacking both slots are true. Length conversion retains
+  negative/overflow and index-warning behavior.
+- The truth suite first failed on its missing module; all 3,025 tests in 186
+  files pass. A 216-case CPython audit matched results, errors, warnings and
+  bool/length/index callback traces across absent/disabled/malformed slots and
+  warning policies. Source typecheck, scoped lint and selected workspace build
+  passed. Concrete builtin slots, guest object/descriptor dispatch, execution
+  context integration and full recursive-call/heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

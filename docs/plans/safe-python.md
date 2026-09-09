@@ -4444,6 +4444,19 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck and selected workspace build pass. Remaining methods, buffer
   protocols, native builtins, suspension, full accounting and SDK/safe-fs remain
   unfinished.
+- Connected int.bit_length/bit_count, including bool receivers and int-specific
+  call diagnostics. A shared hexadecimal-digit kernel measures absolute
+  magnitudes without repeated whole-BigInt shifts. Population count scans are
+  metered; zero avoids conversion. Host BigInt exposes no size metadata, so
+  temporary string storage is charged after conversion. Preallocation charging
+  and interruption inside that host conversion remain representation-level work.
+- Five native tests first reproduced missing support. All 4,137 tests in 312
+  files pass, including both signs, nibble boundaries, sparse/dense 10,000-bit
+  values, bool result types and temporary-storage/scan limits. A 2,432-program
+  compiled CPython audit and 262,146 exhaustive signed integer bit metrics pass.
+  Scoped lint, source typecheck and selected workspace build also pass.
+  Remaining numeric/text methods, buffer protocols, native builtins, suspension,
+  full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

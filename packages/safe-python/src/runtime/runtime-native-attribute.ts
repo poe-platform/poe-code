@@ -23,6 +23,7 @@ import { createRuntimeBytesTranslateMethod } from "./runtime-bytes-translate-met
 import { createRuntimeBytesMaketransMethod } from "./runtime-bytes-maketrans-method.js";
 import { createRuntimeBytesHexMethod } from "./runtime-bytes-hex-method.js";
 import { createRuntimeBytesFromhexMethod } from "./runtime-bytes-fromhex-method.js";
+import { createRuntimeIntegerBitMethod } from "./runtime-integer-bit-method.js";
 import { createRuntimePadMethod } from "./runtime-pad-method.js";
 import { createRuntimeExpandtabsMethod } from "./runtime-expandtabs-method.js";
 import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
@@ -44,6 +45,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * separate from these instance-bound container capabilities. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
+  if ((receiver.kind === "int" || receiver.kind === "bool") && (name === "bit_length" || name === "bit_count")) return createRuntimeIntegerBitMethod(receiver, name, values, meter);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "splitlines") return createRuntimeSplitlinesMethod(receiver, values, meter);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "split" || name === "rsplit")) return createRuntimeSplitMethod(receiver, name, values, meter);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "expandtabs") return createRuntimeExpandtabsMethod(receiver, values, meter);

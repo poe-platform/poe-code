@@ -5,7 +5,7 @@ import type { BoundPercentFormatEvent } from "./percent-format-bind.js";
 export type FloatPercentField = Pick<Extract<BoundPercentFormatEvent<unknown>, { kind: "conversion" }>, "code" | "flags" | "width" | "precision">;
 
 /** Produce one owned ASCII numeric buffer, placing a sign before width zeros.
- * Unlike modern float formatting, percent formatting zero-pads infinities/NaNs.
+ * Percent formatting also zero-pads infinities/NaNs, as modern formatting does.
  * Negative zero keeps its sign; NaN's sign bit is deliberately ignored. */
 export function renderFloatPercentBuffer(value: number, field: FloatPercentField, storage: Uint8ArrayConstructor, meter: ExecutionMeter): Uint8Array;
 export function renderFloatPercentBuffer(value: number, field: FloatPercentField, storage: Uint32ArrayConstructor, meter: ExecutionMeter): Uint32Array;

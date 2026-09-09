@@ -4,8 +4,9 @@ import { floatSignificantDigits } from "./float-significant-digits.js";
 
 /** Unsigned e/f/g output. Sign selection and field width belong to the caller.
  * General notation is selected after rounding, so decimal carries can change
- * both the exponent and the selected notation. */
-export function floatPercentMagnitude(value: number, code: number, precision: bigint | null, alternate: boolean, meter: ExecutionMeter): string {
+ * both the exponent and the selected notation. addDotZero selects modern
+ * omitted-type general notation, reserving a digit after the decimal point. */
+export function floatPercentMagnitude(value: number, code: number, precision: bigint | null, alternate: boolean, meter: ExecutionMeter, addDotZero = false): string {
   meter.checkpoint();
   const upper = code === 69 || code === 70 || code === 71;
   const scientific = code === 69 || code === 101, fixed = code === 70 || code === 102;
@@ -35,7 +36,7 @@ export function floatPercentMagnitude(value: number, code: number, precision: bi
     digits = digits.slice(0, end);
   }
   let result: string;
-  if (scientific || exponent < -4 || BigInt(exponent) >= significant) {
+  if (scientific || exponent < -4 || BigInt(exponent) >= significant - (addDotZero ? 1n : 0n)) {
     const fraction = digits.slice(1);
     result = digits[0] + (fraction.length || alternate ? "." + fraction : "")
       + (upper ? "E" : "e") + (exponent < 0 ? "-" : "+") + Math.abs(exponent).toString().padStart(2, "0");
@@ -44,7 +45,7 @@ export function floatPercentMagnitude(value: number, code: number, precision: bi
   } else {
     const integral = exponent + 1;
     result = digits.length > integral ? digits.slice(0, integral) + "." + digits.slice(integral)
-      : digits.padEnd(integral, "0") + (alternate ? "." : "");
+      : digits.padEnd(integral, "0") + (alternate ? "." : addDotZero ? ".0" : "");
   }
   meter.checkpoint();
   return result;

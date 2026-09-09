@@ -5633,6 +5633,19 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Integer locale/float presentations, nonempty float/complex
   renderers, guest subclass behavior and broader interpreter/SDK/safe-fs work
   remain unfinished.
+- Added modern float magnitude formatting for omitted type, e/E/f/F/g/G and %,
+  including percent scaling before rounding, alternate shortest output, C-int
+  precision bounds and z sign coercion after rounding. The existing decimal
+  conversion kernel now also supports omitted-type general notation's earlier
+  exponent threshold and retained decimal digit; percent defaults are unchanged.
+- Five tests first failed on the missing magnitude stage. All 4,655 tests in
+  391 files pass. An 18,000-case CPython audit compares signed magnitudes and
+  diagnostics over sampled binary64 values, precision, alternate and z settings;
+  the existing 26,160-case percent magnitude audit also passes after kernel reuse.
+  Typecheck, scoped lint and selected workspace build pass. Corrected an outdated comment
+  after directly checking that modern formatting also zero-pads infinities/NaNs.
+  Float width/grouping/layout and native dispatch, locale and complex rendering,
+  and broader interpreter/SDK/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

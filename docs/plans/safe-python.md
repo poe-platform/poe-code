@@ -5810,6 +5810,19 @@ extension, integration, or validation requirement is missing or unverified.
   recursion timing and surrogate preservation. Typecheck, scoped lint and selected workspace
   build pass. Native bound str.format/format_map methods, runtime lookup wiring
   and broader interpreter/SDK/safe-fs integration remain pending.
+- Exposed native bound str.format and str.format_map through runtime attributes.
+  The methods validate map call arguments, defer mapping access until needed,
+  preserve missing-key guest arguments and wire native attribute/item lookup to
+  the shared evaluator/context. The factory accepts explicit lookup capabilities
+  for guest integration. Evaluator results now include sole-field identity
+  metadata, preserving exact-str identity for unchanged templates/single fields.
+- Six added native/program cases first failed for missing methods (the initial
+  dictionary test fixture also required correction). All 4,721 tests in 406 files
+  pass. CPython audits pass for 454 compiled method programs, 3,850 compiled
+  shared-locale programs across five locales, and 20,584 evaluator cases.
+  Typecheck, scoped lint and selected workspace build pass. General guest
+  descriptor/mapping wiring, global string identity policies and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -19,7 +19,7 @@ function fixture() {
     defaultRepr() { events.push("repr"); return v.string("guest"); },
     lookupFormat() { return spec => { events.push("format:" + (spec.kind === "str" ? String.fromCodePoint(...spec.value) : "invalid")); return v.string("rendered"); }; }
   });
-  const run = (source: string, positional: readonly RuntimeValue[] | null = []) => String.fromCodePoint(...braceFormat(v.string(source).value, positional, hooks, context, meter));
+  const run = (source: string, positional: readonly RuntimeValue[] | null = []) => String.fromCodePoint(...braceFormat(v.string(source).value, positional, hooks, context, meter).storage);
   return { meter, v, named, events, hooks, context, run };
 }
 it("renders native fields, escapes and shared nested automatic numbering", () => {
@@ -65,6 +65,6 @@ it("preserves field errors before invalid conversions and later malformed markup
 it("meters output allocation and preserves independent surrogate code points", () => {
   const { v, hooks, context, meter } = fixture();
   const source = v.string("a{0}b").value, value = v.stringPoints(Uint32Array.of(0xd800, 0xdc00));
-  expect([...braceFormat(source, [value], hooks, context, meter)]).toEqual([97, 0xd800, 0xdc00, 98]);
+  expect([...braceFormat(source, [value], hooks, context, meter).storage]).toEqual([97, 0xd800, 0xdc00, 98]);
   expect(() => braceFormat(source, [value], hooks, context, new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 100000 }))).toThrow(ExecutionLimitError);
 });

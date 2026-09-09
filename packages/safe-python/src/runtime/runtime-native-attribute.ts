@@ -1,7 +1,10 @@
 import { PythonRuntimeError } from "./error.js";
 import { readRuntimeIteratorMethod } from "./runtime-iterator-method.js";
 import { createRuntimeNativeRepresentationMethod, hasNativeRepresentation } from "./runtime-native-representation-method.js";
-import { hasNativeObjectFormat } from "./runtime-format.js";
+import { createRuntimeFormatContext, hasNativeObjectFormat } from "./runtime-format.js";
+import { createRuntimeBraceFormatMethod } from "./runtime-brace-format-method.js";
+import { runtimeIndex } from "./runtime-index.js";
+import { UnsupportedExpressionError } from "./expression-evaluation.js";
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeNativeFormatMethod } from "./runtime-native-format-method.js";
 import type { ExecutionMeter } from "./execution-budget.js";
@@ -58,6 +61,13 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * separate from these instance-bound container capabilities. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>): RuntimeValue {
   meter.checkpoint();
+  if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
+    const context = formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
+    return createRuntimeBraceFormatMethod(receiver, name, values, meter, context, {
+      attribute: (value, key) => runtimeNativeAttribute(value, key, values, meter, beginCall, context),
+      getItem: (value, key) => runtimeIndex(value, key, values, meter)
+    });
+  }
   const iteratorMethod = readRuntimeIteratorMethod(receiver, name, values, meter);
   if (iteratorMethod !== undefined) return iteratorMethod;
   if ((name === "__str__" || name === "__repr__") && hasNativeRepresentation(receiver)) return createRuntimeNativeRepresentationMethod(receiver, name, values, meter);

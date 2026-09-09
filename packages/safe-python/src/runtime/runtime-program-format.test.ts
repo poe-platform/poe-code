@@ -11,7 +11,7 @@ import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createFormatBuiltin } from "./builtin-format.js";
 import { NumericLocale } from "./numeric-locale.js";
 
-it.each(["format(x, 'n')", "m('n')", "f'{x:n}'"])("shares locale ownership across frames for %s", expression => {
+it.each(["format(x, 'n')", "m('n')", "f'{x:n}'", "'{:n}'.format(x)", "'{x:n}'.format_map({'x': x})"])("shares locale ownership across frames for %s", expression => {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 });
   const values = new RuntimeValues(meter), globals = new Map<string, RuntimeValue>(), builtins = new Map<string, RuntimeValue>();
   const calls = new CallStack<object>(50, meter);

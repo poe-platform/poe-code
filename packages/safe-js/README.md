@@ -631,6 +631,11 @@ The public data-copy boundary now rejects guest Proxy values explicitly instead
 of silently producing empty objects. Use an owning realm's retained guest
 references to preserve identity and trap behavior; explicit callable wrappers
 remain available. Transparent Proxy export is not implemented.
+Host and realm callback bridges now dispatch callable Proxies through guest
+operations, including nested Proxies, accessor-backed traps, async targets,
+revocation, and checkpoint recovery. Realm callbacks preserve explicit receivers;
+the raw host callback wrapper still drops non-undefined receivers and needs a
+separate receiver/replay update.
 
 Experimental work remains uncommitted. Pushes and releases are paused; local
 implementation, remote delivery, and successful publication are separate

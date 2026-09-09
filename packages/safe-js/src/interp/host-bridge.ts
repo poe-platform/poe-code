@@ -1,4 +1,8 @@
 import { types } from "node:util";
+import { guestProxyStates } from "./guest-proxy.js";
+import { callGuestProxy } from "./guest-proxy-call.js";
+import { sandboxGetProperty } from "./guest-proxy-get.js";
+import { invokeBuiltinClosure } from "./builtin-call.js";
 import { moduleFunctionOrigins } from "./module-function-origin.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { normalizeClosureResult } from "./async.js";
@@ -44,6 +48,7 @@ import {
   isSandboxPromise,
   measureSandboxData,
   type SandboxClosure,
+  type SandboxCallContext,
   type SandboxObject,
   type SandboxValue
 } from "./values.js";
@@ -724,11 +729,20 @@ function wrapSandboxClosureForHost(
       leaveCall = budget.enterCall();
       let result: ReturnType<SandboxClosure["call"]>;
       try {
-        result = closure.call(sandboxArgs, {
+        const callerContext: SandboxCallContext = {
           compilation,
           stack: stackFrames,
-          thisValue: undefined
-        });
+          thisValue: undefined,
+          getProperty: (object, key) => sandboxGetProperty(object, key, object, budget, bridge)
+        };
+        const bridge: SandboxCallContext = {
+          ...callerContext,
+          invokeClosure: (target, values, receiver, construct, newTarget) =>
+            invokeBuiltinClosure(target, values, budget, callerContext, receiver, construct, newTarget)
+        };
+        result = guestProxyStates.has(closure)
+          ? await callGuestProxy(closure, sandboxArgs, budget, bridge, undefined)
+          : closure.call(sandboxArgs, { compilation, stack: stackFrames, thisValue: undefined });
       } catch (error) {
         if (isSandboxLikeValue(error)) {
           throw deepCopyFromSandbox(error, {

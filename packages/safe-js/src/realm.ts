@@ -1,5 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { types } from "node:util";
+import { guestProxyStates } from "./interp/guest-proxy.js";
+import { callGuestProxy } from "./interp/guest-proxy-call.js";
+import { sandboxGetProperty } from "./interp/guest-proxy-get.js";
+import { invokeBuiltinClosure } from "./interp/builtin-call.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { CompileScope } from "./interp/regex/compile-guard.js";
 import { createBuiltinBindings } from "./interp/globals.js";
@@ -41,6 +45,7 @@ import {
   measureSandboxData,
   reconcileCompiledValues,
   type SandboxClosure,
+  type SandboxCallContext,
   type SandboxValue
 } from "./interp/values.js";
 import {
@@ -564,11 +569,22 @@ class RealmState {
           options.thisValue,
           [...(options.args ?? [])]
         ]) as SandboxValue[];
-        const value = await closure.call(values[1] as SandboxValue[], {
+        const callerContext: SandboxCallContext = {
           thisValue: values[0],
           compilation: this.compilation,
-          stack: []
-        });
+          stack: [],
+          getProperty: (object, key) => sandboxGetProperty(object, key, object, this.budget, bridge)
+        };
+        const bridge: SandboxCallContext = {
+          ...callerContext,
+          invokeClosure: (target, args, receiver, construct, newTarget) =>
+            invokeBuiltinClosure(target, args, this.budget, callerContext, receiver, construct, newTarget)
+        };
+        const value = await (guestProxyStates.has(closure)
+          ? callGuestProxy(closure, values[1] as SandboxValue[], this.budget, bridge, values[0])
+          : closure.call(values[1] as SandboxValue[], {
+            thisValue: values[0], compilation: this.compilation, stack: []
+          }));
         const settlement = awaitSandboxValue(value, this.controller.signal, this.budget);
         void settlement.catch(() => undefined);
         if (isSandboxPromise(value) && value.synchronousPrefix !== undefined)

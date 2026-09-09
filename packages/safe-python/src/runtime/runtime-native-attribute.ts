@@ -28,6 +28,7 @@ import { createRuntimeIntegerRatioMethod } from "./runtime-integer-ratio-method.
 import { createRuntimeIsIntegerMethod } from "./runtime-is-integer-method.js";
 import { createRuntimeConjugateMethod } from "./runtime-conjugate-method.js";
 import { runtimeNumericAttribute } from "./runtime-numeric-attribute.js";
+import { createRuntimeFloatHexMethod } from "./runtime-float-hex-method.js";
 import { createRuntimePadMethod } from "./runtime-pad-method.js";
 import { createRuntimeExpandtabsMethod } from "./runtime-expandtabs-method.js";
 import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
@@ -49,6 +50,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * separate from these instance-bound container capabilities. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
+  if (receiver.kind === "float" && name === "hex") return createRuntimeFloatHexMethod(receiver, values, meter);
   if (receiver.kind === "int" || receiver.kind === "bool" || receiver.kind === "float" || receiver.kind === "complex") {
     const attribute = runtimeNumericAttribute(receiver, name, values, meter);
     if (attribute !== undefined) return attribute;

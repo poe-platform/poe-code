@@ -4508,6 +4508,17 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck and selected workspace build pass. Remaining
   numeric/text methods, buffer protocols, native builtins/descriptors, suspension,
   full accounting and SDK/safe-fs remain unfinished.
+- Connected float.hex using direct binary64 exponent/fraction extraction, with
+  thirteen fractional hexadecimal digits for nonzero finite values. Signed zero
+  uses the short zero spelling; subnormals keep exponent -1022; infinities and
+  NaNs use Python spellings. Formatting reserves bounded temporary storage and
+  avoids decimal conversion/rounding.
+- Four native tests first reproduced missing support. All 4,159 tests in 317
+  files pass. A 3,614-program compiled CPython audit and 20,480 binary64
+  exponent-boundary formatting cases match exact output and call diagnostics.
+  Scoped lint, source typecheck and selected workspace build pass.
+  Remaining numeric/text methods, string interning, buffer protocols, native
+  builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

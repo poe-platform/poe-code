@@ -5998,6 +5998,17 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Exact CPython comparison schedules, hint-driven
   speculative allocations, automatic builtin registration and broader
   object/SDK/safe-fs integration remain unfinished.
+- Began sum with a fixed-storage Neumaier compensated binary64 accumulator,
+  matching CPython 3.14's float-component kernel. Low-order contributions survive
+  cancellation; finalization skips zero/nonfinite compensation to preserve
+  signed zero and avoid introducing NaN solely from intermediate overflow.
+  Reads are nondestructive and each mutation/read checks the execution meter.
+- Five tests first exposed the missing kernel. All 4,804 tests in 421 files
+  pass. A 5,036-case bitwise CPython sum comparison (floating start, binary64
+  inputs, cancellation patterns and nonfinites) has no mismatches. Typecheck,
+  scoped lint and selected workspace build pass. This is not exact math.fsum;
+  public sum binding, staged integer/float/complex transitions and guest addition
+  remain next work, alongside broader interpreter/SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

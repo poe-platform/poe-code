@@ -4,6 +4,7 @@ import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-ex
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
+import { defineGuestProxyProperty } from "../guest-proxy-define.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
@@ -821,6 +822,12 @@ export function defineDataProperty(
   throwOnFailure = true
 ): undefined | boolean | Promise<undefined | boolean> {
   budget.visitNode();
+  if (typeof target === "object" && target !== null && guestProxyStates.has(target)) {
+    return defineGuestProxyProperty(target, key, descriptor, budget, context).then(success => {
+      if (!success && throwOnFailure) throw new TypeError("Proxy refused defineProperty.");
+      return throwOnFailure ? undefined : success;
+    });
+  }
   if (isNumericTypedArray(target) && typeof key !== "symbol" && isTypedArrayIndex(String(key)) && "value" in descriptor) {
     const { value, ...attributes } = descriptor;
     // Validates index and descriptor restrictions without writing an element.

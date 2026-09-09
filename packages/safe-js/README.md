@@ -579,7 +579,9 @@ callable thenable hooks, and overridden `then` methods used by `catch`/`finally`
 Promise resolution also reads `then` through Proxy traps, preserving the receiver,
 read/call ordering, and rejection on trap errors or revocation. Nested and
 callable Proxies, callback/async returns, and checkpoint recovery have focused
-coverage. Other host-boundary interactions still need auditing.
+coverage. Inherited `then` lookup also reaches Proxy ancestors with the original
+receiver; an own `then` property stops lookup before a revoked Proxy ancestor.
+Other host-boundary interactions still need auditing.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

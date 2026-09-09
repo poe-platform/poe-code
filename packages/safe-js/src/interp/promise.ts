@@ -1242,10 +1242,10 @@ function hasCustomPromiseThen(value: SandboxValue, budget?: Budget): boolean {
 
 export function requiresPromiseResolution(value: SandboxValue, budget?: Budget): boolean {
   if (isSandboxPromise(value)) return true;
-  if (typeof value === "object" && value !== null && guestProxyStates.has(value)) return true;
-  const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
+  let proxy = false;
+  const descriptor = getSandboxPropertyDescriptor(value, "then", budget, () => { proxy = true; });
   return (
-    descriptor !== undefined && (!("value" in descriptor) || isSandboxClosure(descriptor.value))
+    proxy || (descriptor !== undefined && (!("value" in descriptor) || isSandboxClosure(descriptor.value)))
   );
 }
 
@@ -1258,12 +1258,13 @@ function getThenable(
     return undefined;
   }
 
-  if (guestProxyStates.has(value)) {
-    const then = sandboxGetProperty(value, "then", value, budget ?? new Budget(), context);
+  let proxy: object | undefined;
+  const descriptor = getSandboxPropertyDescriptor(value, "then", budget, boundary => { proxy = boundary; });
+  if (proxy !== undefined) {
+    const then = sandboxGetProperty(proxy as SandboxValue, "then", value, budget ?? new Budget(), context);
     return Promise.resolve(then).then(method => isSandboxClosure(method) ? method : undefined);
   }
 
-  const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
   if (descriptor !== undefined && !("value" in descriptor)) {
     const getter = accessorClosure(descriptor.get);
     if (getter === undefined) return undefined;

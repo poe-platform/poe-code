@@ -578,8 +578,10 @@ preserves wrapped-array identity. Ordinary receivers also read inherited tags
 through Proxy ancestors with the original receiver. Callable Proxies use the
 `Function` fallback tag while honoring custom tags and rejecting revoked Proxies.
 Ordinary-constructor `instanceof` checks follow Proxy prototype chains, including
-bound constructors. Callable Proxy constructors and special built-in paths remain
-separate integration work.
+bound constructors. Native comparisons also cover callable Proxy constructors,
+custom `Symbol.hasInstance`, revocation, and wrapped Array, Map, Error, and
+Uint8Array instances. These cases pass without further runtime changes; they do
+not establish conformance for every built-in or host constructor.
 
 The later internal freeze/seal implementation now prevents target extension and
 updates properties through Proxy traps, with tested ordering and partial-failure

@@ -5,11 +5,12 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
 import { parseFormatSpec } from "./format-spec.js";
 import { integerToFloat } from "./numeric-conversion.js";
+import type { NumericLocale } from "./numeric-locale.js";
 
 /** Integer payload formatting; callers retain bool's empty-spec str behavior.
  * Float presentations share the binary64 renderer after checked conversion;
  * locale-aware presentation remains a separate policy. */
-export function integerFormat(value: bigint, spec: CodePointString, typeName: string, meter: ExecutionMeter, maxDecimalDigits?: number): CodePointString {
+export function integerFormat(value: bigint, spec: CodePointString, typeName: string, meter: ExecutionMeter, maxDecimalDigits?: number, locale?: NumericLocale): CodePointString {
   const field = parseFormatSpec(spec, 100, ">", typeName, meter);
   switch (field.type) {
     case 98: case 111: case 100: case 120: case 88:
@@ -30,7 +31,9 @@ export function integerFormat(value: bigint, spec: CodePointString, typeName: st
       const converted = integerToFloat(value); meter.checkpoint();
       return CodePointString.fromFloatFormat(converted, field, meter);
     }
-    case 110: throw new UnsupportedExpressionError("call");
+    case 110:
+      if (locale === undefined) throw new UnsupportedExpressionError("call");
+      return CodePointString.fromIntegerRadixFormat(value, field, meter, maxDecimalDigits, locale);
     default: return unknownFormatCode(field.type, typeName, meter);
   }
 }

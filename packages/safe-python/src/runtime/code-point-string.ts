@@ -13,6 +13,7 @@ import { renderIntegerRadixFormat } from "./integer-radix-format.js";
 import { renderFloatFormatBuffer } from "./float-format-field.js";
 import { renderComplexFormatBuffer } from "./complex-format-field.js";
 import type { FormatSpec } from "./format-spec.js";
+import type { NumericLocale } from "./numeric-locale.js";
 
 // Module-private capability: only freshly generated, already charged buffers
 // may bypass public input copying and validation. Never export this marker.
@@ -155,20 +156,20 @@ export class CodePointString implements Iterable<number> {
   }
 
   /** Adopt the integer radix renderer's final buffer without copying. */
-  static fromIntegerRadixFormat(value: bigint, field: FormatSpec, meter: ExecutionMeter, maxDecimalDigits?: number): CodePointString {
-    const points = renderIntegerRadixFormat(value, field, meter, maxDecimalDigits);
+  static fromIntegerRadixFormat(value: bigint, field: FormatSpec, meter: ExecutionMeter, maxDecimalDigits?: number, locale?: NumericLocale): CodePointString {
+    const points = renderIntegerRadixFormat(value, field, meter, maxDecimalDigits, locale);
     return new CodePointString(points, meter, ownedPoints);
   }
 
   /** Adopt the floating renderer's final buffer without copying. */
-  static fromFloatFormat(value: number, field: FormatSpec, meter: ExecutionMeter): CodePointString {
-    const points = renderFloatFormatBuffer(value, field, meter);
+  static fromFloatFormat(value: number, field: FormatSpec, meter: ExecutionMeter, locale?: NumericLocale): CodePointString {
+    const points = renderFloatFormatBuffer(value, field, meter, true, locale);
     return new CodePointString(points, meter, ownedPoints);
   }
 
   /** Adopt the composed complex renderer's final buffer without copying. */
-  static fromComplexFormat(real: number, imaginary: number, field: FormatSpec, meter: ExecutionMeter): CodePointString {
-    const points = renderComplexFormatBuffer(real, imaginary, field, meter);
+  static fromComplexFormat(real: number, imaginary: number, field: FormatSpec, meter: ExecutionMeter, locale?: NumericLocale): CodePointString {
+    const points = renderComplexFormatBuffer(real, imaginary, field, meter, locale);
     return new CodePointString(points, meter, ownedPoints);
   }
 

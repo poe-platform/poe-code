@@ -5732,6 +5732,17 @@ extension, integration, or validation requirement is missing or unverified.
   pass. Typecheck, scoped lint and selected workspace build pass. Native n dispatch, shared
   runtime locale ownership, guest locale APIs and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected explicit numeric-locale snapshots through integer, float and complex
+  presentation adapters and immutable output factories. n dispatch now reaches
+  the locale-aware kernels when metadata is supplied, while other presentations
+  keep their existing semantics. Missing locale ownership remains an explicit gap.
+- Added three adapter tests; two initially reproduced unsupported n dispatch.
+  All 4,688 tests in 399 files pass. Presentation-level CPython comparisons pass
+  for 5,000 integer and 10,000 float/complex cases across five locales. Typecheck,
+  scoped lint and selected workspace build pass. Runtime ownership should be carried by the
+  shared formatting context, not the value records; propagation through bound
+  native methods, expressions and program frames, default C locale selection,
+  guest locale APIs and broader interpreter/SDK/safe-fs work remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

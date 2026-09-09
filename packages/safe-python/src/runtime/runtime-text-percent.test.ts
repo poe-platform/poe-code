@@ -45,7 +45,8 @@ it("executes parsed formatting through the normal expression context", () => {
 });
 it("keeps unfinished representations explicit and numeric modulo unchanged", () => {
   const { meter, v, format } = fixture();
-  expect(() => format("%s", v.list([]))).toThrow(UnsupportedExpressionError);
+  expect(text(format("%s", v.list([])))).toBe("[]");
+  expect(() => format("%s", v.cell({}))).toThrow(UnsupportedExpressionError);
   expect(runtimeBinary("%", v.integer(-7), v.integer(3), v, meter)).toEqual(v.integer(2));
   expect(runtimeBinary("%", v.bytes(Uint8Array.of(37, 100)), v.integer(1), v, meter)).toBe(v.notImplemented);
 });

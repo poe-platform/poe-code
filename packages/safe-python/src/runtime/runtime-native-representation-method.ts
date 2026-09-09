@@ -6,13 +6,16 @@ import { complexRepresentation } from "./complex-representation.js";
 import { rangeRepresentation } from "./range-representation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { createRuntimeRepresentationContext } from "./runtime-representation.js";
+import { representationObject } from "./representation-protocol.js";
+import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
-type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "none" | "ellipsis" | "not-implemented" }>;
+type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "list" | "none" | "ellipsis" | "not-implemented" }>;
 
 /** One capability guard shared by attribute and implicit representation lookup. */
 export function hasNativeRepresentation(value: RuntimeValue): value is NativeRepresentationValue {
   return value.kind === "str" || value.kind === "bytes" || value.kind === "int" || value.kind === "bool"
-    || value.kind === "float" || value.kind === "complex" || value.kind === "range" || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
+    || value.kind === "float" || value.kind === "complex" || value.kind === "range" || value.kind === "list" || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
 }
 
 /** Implemented exact native slots; guest subclass dispatch and method-wrapper
@@ -33,6 +36,12 @@ export function createRuntimeNativeRepresentationMethod(receiver: NativeRepresen
 /** Shared native slot operation, separate from explicit method argument checks. */
 export function runtimeNativeRepresentation(receiver: NativeRepresentationValue, name: "__str__" | "__repr__", values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
   meter.checkpoint();
+  if (receiver.kind === "list") {
+    const context = createRuntimeRepresentationContext(values, meter, {
+      defaultRepr() { throw new UnsupportedExpressionError("attribute"); }
+    });
+    return representationObject(receiver, name === "__str__" ? "str" : "repr", context, meter);
+  }
   if (receiver.kind === "none") return values.string("None");
   if (receiver.kind === "ellipsis") return values.string("Ellipsis");
   if (receiver.kind === "not-implemented") return values.string("NotImplemented");

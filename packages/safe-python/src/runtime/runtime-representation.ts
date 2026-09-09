@@ -3,6 +3,8 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { RepresentationContext } from "./representation-protocol.js";
 import { hasNativeRepresentation, runtimeNativeRepresentation } from "./runtime-native-representation-method.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { listRepresentation } from "./list-representation.js";
+import { RepresentationStack } from "./representation-stack.js";
 
 export interface RuntimeRepresentationHooks {
   /** Pure guest str-subclass storage inspection. */
@@ -19,11 +21,15 @@ export interface RuntimeRepresentationHooks {
  * Does not invent generic strings for unfinished native/container types. */
 export function createRuntimeRepresentationContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeRepresentationHooks): RepresentationContext<RuntimeValue> {
   meter.checkpoint(1, 384);
-  return {
+  // Conservative host-callback depth policy until execution is trampolined.
+  // Lazily allocate the path guard so scalar-only formatting pays no stack cost.
+  let stack: RepresentationStack<RuntimeValue> | undefined;
+  const context: RepresentationContext<RuntimeValue> = {
     isExactString(value) { meter.checkpoint(); return value.kind === "str"; },
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
     lookupStr(value) {
       meter.checkpoint();
+      if (value.kind === "list") return undefined; // object.__str__ falls back to repr.
       if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeNativeRepresentation(value, "__str__", values, meter);
@@ -32,6 +38,13 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     },
     lookupRepr(value) {
       meter.checkpoint();
+      if (value.kind === "list") {
+        meter.checkpoint(0, 64);
+        return () => {
+          stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+          return values.stringPoints(listRepresentation(value, value.items, context, stack, meter));
+        };
+      }
       if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeNativeRepresentation(value, "__repr__", values, meter);
@@ -46,4 +59,5 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     defaultRepr(value) { meter.checkpoint(); return hooks.defaultRepr(value); },
     stringPoints(value) { meter.checkpoint(); return values.stringPoints(value); }
   };
+  return context;
 }

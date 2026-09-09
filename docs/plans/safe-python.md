@@ -5241,6 +5241,21 @@ extension, integration, or validation requirement is missing or unverified.
   Other container representations, bytes percent operator integration, full guest
   objects, suspended execution, complete accounting and SDK/safe-fs integration
   remain outstanding.
+- Wired native list __str__/__repr__ and text percent s/r/a formatting to the
+  production renderer. Nested list slots share guest hooks and a lazily allocated
+  active-path guard, retaining mutation semantics and exception cleanup. Explicit
+  native methods validate arguments before rendering. A conservative 100-frame
+  representation limit bounds current host callbacks; this is not CPython's
+  process recursion threshold or the final configurable/trampolined execution model.
+- Four new runtime tests first failed on missing support; a fifth checks live
+  clearing/reentry and recovery after guest failure. Updated the old unsupported
+  list assertion to require its now-implemented result while retaining an unresolved
+  type assertion. All 4,521 tests in 369 files pass. Native methods and percent
+  formatting match CPython across 2,000 cyclic/shared graphs (9,000 roots), plus
+  2,000 compiled nested-list programs with mixed native elements. Source typecheck,
+  scoped lint and selected workspace build pass. Tuple/dict/set representations,
+  bytes percent operator integration, full guest objects, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

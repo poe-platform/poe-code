@@ -2485,6 +2485,19 @@ extension, integration, or validation requirement is missing or unverified.
   The storage reports absence without constructing guest errors;
   guest __index__ conversion, reflected equality/truth dispatch, repr-sensitive
   index errors and builtin method wiring still belong to the unfinished runtime.
+- Added list concatenation, fresh-list repetition and in-place repetition.
+  Generated slots are filled directly without intermediate arrays; element
+  identity is shared while newly returned lists own independent slots, including
+  empty/one-repeat cases. In-place repetition retains the backing array for live
+  cursors and preflights growth before mutation. Count conversion overflow is
+  checked even for empty lists; signed-index product overflow is guest
+  MemoryError, while native slot-limit growth triggers fatal allocation limits.
+- All 13 arithmetic regressions first failed on missing methods. All 2,776 tests
+  in 166 files pass; 6,016 CPython concatenation/repetition comparisons matched
+  results, errors and existing cursor observations. Source typecheck, scoped lint
+  and selected workspace build passed. Guest operand/reflected
+  dispatch, __index__ conversion, finalizers and complete native heap accounting
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

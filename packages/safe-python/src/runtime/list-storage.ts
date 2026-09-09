@@ -56,6 +56,39 @@ export class ListStorage<Value> {
     }
   }
 
+  concat(other: ListStorage<Value>): ListStorage<Value> {
+    this.meter.checkpoint();
+    const left = this.#items.length, length = left + other.#items.length;
+    if (length > 0xffffffff) exhaustAllocation(this.meter);
+    const result = new ListStorage<Value>([], this.meter);
+    this.meter.checkpoint(length, length * 8);
+    result.#items.length = length;
+    for (let i = 0; i < length; i++) result.#items[i] = i < left ? this.#items[i] : other.#items[i - left];
+    return result;
+  }
+
+  /** Unlike immutable tuple repetition, even zero/one repetitions return fresh
+   * list slots. Elements themselves retain identity; no intermediate slot copy.
+   * The guest caller owns __index__ conversion and reflected operator dispatch.
+   */
+  repeat(count: bigint): ListStorage<Value> {
+    const length = this.#repeatedLength(count), original = this.#items.length;
+    const result = new ListStorage<Value>([], this.meter);
+    this.meter.checkpoint(length, length * 8);
+    result.#items.length = length;
+    for (let i = 0; i < length; i++) result.#items[i] = this.#items[i % original];
+    return result;
+  }
+
+  repeatInPlace(count: bigint): void {
+    const length = this.#repeatedLength(count), original = this.#items.length;
+    if (length === original) return;
+    if (length === 0) { this.clear(); return; }
+    this.meter.checkpoint(length - original, (length - original) * 8);
+    this.#items.length = length;
+    for (let i = original; i < length; i++) this.#items[i] = this.#items[i % original];
+  }
+
   insert(index: bigint, value: Value): void {
     this.meter.checkpoint();
     if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C ssize_t");
@@ -201,6 +234,15 @@ export class ListStorage<Value> {
   snapshot(): readonly Value[] {
     this.meter.checkpoint(1 + this.#items.length, 32 + this.#items.length * 8);
     return Object.freeze(this.#items.slice());
+  }
+
+  #repeatedLength(count: bigint): number {
+    this.meter.checkpoint();
+    if (BigInt.asIntN(64, count) !== count) throw new PythonRuntimeError("OverflowError", "cannot fit 'int' into an index-sized integer");
+    const length = BigInt(this.#items.length) * (count < 0n ? 0n : count);
+    if (length > (1n << 63n) - 1n) throw new PythonRuntimeError("MemoryError", "");
+    if (length > 0xffffffffn) exhaustAllocation(this.meter);
+    return Number(length);
   }
 
   #position(index: bigint, operation: "read" | "write" | "pop"): number {

@@ -640,12 +640,12 @@ remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 
-A fresh working-tree gate at `d833e4fb8`, including experimental weak collections,
-passed 23 workspace builds and four import checks. Unit results were 23,769
+A fresh working-tree gate at `ca8c3d8ad`, including experimental weak collections,
+passed 23 workspace builds and four import checks. Unit results were 23,915
 passed, two failed, and 37 skipped; both failures concern host-Promise property
 imports. Source/test fingerprints matched before and after the run. This is not
 a green package gate or an isolated committed-tree result. See the
-[integration refresh](../../docs/plans/safejs-integration-refresh-2026-09-09.md).
+[integration refresh](../../docs/plans/safejs-integration-refresh-after-sdk-proxies.md).
 The public data-copy boundary now rejects guest Proxy values explicitly instead
 of silently producing empty objects. Use an owning realm's retained guest
 references to preserve identity and trap behavior; explicit callable wrappers

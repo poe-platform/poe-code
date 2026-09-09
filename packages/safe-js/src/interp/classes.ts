@@ -1,5 +1,5 @@
 import type { ClassElement, ClassNode } from "../parse.js";
-import { registerFunctionRealm } from "./function-realm.js";
+import { getFunctionRealmPrototype, registerFunctionRealm } from "./function-realm.js";
 import { getFunctionLength } from "../parse/bindings.js";
 import { functionSources } from "../parse/function-source.js";
 import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
@@ -157,8 +157,9 @@ export function createClassConstructor(
         if (!derived) {
           state.thisValue = {};
           const targetPrototype = await invocation!.getProperty!(newTarget, "prototype");
-          if (typeof targetPrototype === "object" && targetPrototype !== null)
-            setSandboxPrototype(state.thisValue, targetPrototype, context.budget);
+          const selected = typeof targetPrototype === "object" && targetPrototype !== null ? targetPrototype
+            : getFunctionRealmPrototype(newTarget, "Object", getSandboxPrototype(state.thisValue, context.budget));
+          if (selected !== null) setSandboxPrototype(state.thisValue, selected, context.budget);
         }
         if (constructorElement === undefined) {
           if (derived) return construction.superCall(args);

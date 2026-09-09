@@ -640,6 +640,9 @@ Boolean, Object, Array, Date, RegExp, Map, and Set constructors select default
 prototypes from a foreign newTarget's originating realm. Explicit custom
 newTarget prototypes remain supported. Focused checks cover ordinary, bound,
 bound-class and Proxy targets, plus replay and calls after cleanup.
+Ordinary function and class construction also uses the newTarget realm's
+Object prototype when its `prototype` property is not an object, including
+derived classes and field initialization.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

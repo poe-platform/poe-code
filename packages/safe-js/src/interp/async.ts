@@ -30,6 +30,7 @@ import { hoistVarDeclarations } from "./var-hoist.js";
 import { prepareLegacyBlockFunctions } from "./legacy-block-functions.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
 import { getGuestFunctionProperty, getSandboxPrototype, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { getFunctionRealmPrototype } from "./function-realm.js";
 import { generatorPrototypes } from "./generator-prototypes.js";
 import { retainValues, runResources } from "./resources.js";
 import { functionSources, functionStrictness } from "../parse/function-source.js";
@@ -212,9 +213,9 @@ export function createInterpretedClosure(
           const prototype = callContext?.getProperty === undefined
             ? getGuestFunctionProperty(newTarget, "prototype")
             : await callContext.getProperty(newTarget, "prototype");
-          if (typeof prototype === "object" && prototype !== null) {
-            setSandboxPrototype(thisValue, prototype, context.budget);
-          }
+          const selected = typeof prototype === "object" && prototype !== null ? prototype
+            : getFunctionRealmPrototype(newTarget, "Object", getSandboxPrototype(thisValue, context.budget));
+          if (selected !== null) setSandboxPrototype(thisValue, selected, context.budget);
           const result = await executeClosure(
             node,
             args,

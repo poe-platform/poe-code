@@ -88,3 +88,27 @@ The separate `ordinary-constructor-realm.test.ts` audit then reproduced four
 failures for ordinary function/class constructors with primitive or null
 newTarget prototypes; its two custom-object controls passed. That follow-up
 test is not part of the built-in constructor fix or the snapshot test count.
+
+## Ordinary constructor follow-up
+
+After `f9f7b1ce4`, the four ordinary-function/class fallback failures were fixed
+in `async.ts` and `classes.ts`. Both allocation paths now select the foreign
+newTarget's Object intrinsic for non-object prototype properties. Explicit
+object prototypes remain unchanged; low-level environments without an
+installed Object prototype keep their prior fallback behavior.
+
+The expanded test matrix covers ordinary functions, base classes, implicit
+derived constructors, explicit `super()` with fields, and ordinary/bound/Proxy
+newTargets. Replay tests restore both sides independently and replace the
+target realm's Object global binding. All 210 tests passed across seven
+constructor, class, bound-function, accounting, and snapshot files. These
+focused results do not replace the earlier full snapshot gate, which predates
+this follow-up.
+
+Scoped lint and TypeScript passed. The maintained workspace closure built 23
+workspaces and passed four fresh-process import checks. A subsequent buffer
+audit (`buffer-foreign-newtarget.test.ts`, not part of this fix) reproduced 10
+fallback failures for ArrayBuffer, DataView, Uint8Array, Float32Array, and
+BigInt64Array; five explicit custom-prototype controls passed.
+Four built-SDK probes also passed for ordinary functions, base classes, and
+both derived-constructor forms, checking foreign prototype identity and fields.

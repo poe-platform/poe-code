@@ -50,6 +50,40 @@ export class OrderedKeyMap<Key, Value> {
     return Object.freeze({ value: entry.value });
   }
 
+  /** Boolean key lookup avoids allocating a presence/value result record. */
+  containsKey(key: Key): boolean {
+    this.meter.checkpoint();
+    const hash = this.operations.hash(key);
+    return this.#find(key, hash) !== undefined;
+  }
+
+  /** Value views use iteration fallback, including its mutation checks. */
+  containsValue(value: Value, equalValue: (stored: Value, incoming: Value) => boolean): boolean {
+    this.meter.checkpoint();
+    const iterator = this.iterate((_key, item) => item);
+    while (true) {
+      const item = iterator.next();
+      if (item.done) return false;
+      if (Object.is(item.value, value)) return true;
+      const equal = equalValue(item.value, value);
+      this.meter.checkpoint();
+      if (equal) return true;
+    }
+  }
+
+  /** Item-view callers first validate a two-element guest tuple; this storage
+   * operation accepts its already-separated key/value, not arbitrary sequences. */
+  containsItem(key: Key, value: Value, equalValue: (stored: Value, incoming: Value) => boolean): boolean {
+    this.meter.checkpoint();
+    const hash = this.operations.hash(key);
+    const found = this.#find(key, hash);
+    if (found === undefined) return false;
+    if (Object.is(found.value, value)) return true;
+    const equal = equalValue(found.value, value);
+    this.meter.checkpoint();
+    return equal;
+  }
+
   set(key: Key, value: Value): void {
     this.meter.checkpoint();
     const hash = this.operations.hash(key);

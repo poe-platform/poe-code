@@ -2410,6 +2410,17 @@ extension, integration, or validation requirement is missing or unverified.
   collisions. Source typecheck, scoped lint and selected workspace build passed.
   Guest recursive-container comparison guards, comparison operator
   dispatch and complete host heap accounting remain unfinished.
+- Added ordered-map key/value/item membership primitives. Key and separated-item
+  lookups avoid presence-record allocation; item/value comparisons use stored
+  values first and skip equality for identical values. Item tuple-shape checking
+  remains the guest view caller's responsibility. Value membership uses the
+  existing forward cursor, matching CPython's iteration fallback and size-change
+  errors after failed equality-side mutations, rather than an unchecked scan.
+- Membership regressions first reproduced missing methods. All 2,695 tests in
+  160 files pass; source typecheck, scoped lint and selected build passed. A
+  10,000-operation CPython audit including key/value/item membership matched
+  outcomes and mapping state under seeded hashes and forced collisions. Full
+  guest view objects, recursive dispatch and host heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

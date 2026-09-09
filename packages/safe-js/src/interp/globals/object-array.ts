@@ -157,6 +157,8 @@ export function createObjectArrayGlobals(options: {
           sandbox: true,
           call: ([value], context) => {
             const descriptors = Object.create(null) as SandboxObject;
+            const prototype = getSandboxPrototype(descriptors, options.budget);
+            if (prototype !== null) setSandboxPrototype(descriptors, prototype, options.budget);
             const properties = reflectionProperties(value);
             if (typeof value === "object" && value !== null && guestProxyStates.has(value)) {
               return (async () => {
@@ -786,7 +788,7 @@ export function objectProperties(value: SandboxValue, _mutable = false): Sandbox
 }
 
 export function exposePropertyDescriptor(descriptor: PropertyDescriptor, budget: Budget): SandboxObject {
-  return (
+  const result = (
     "value" in descriptor
       ? descriptor
       : {
@@ -796,6 +798,9 @@ export function exposePropertyDescriptor(descriptor: PropertyDescriptor, budget:
           configurable: descriptor.configurable
         }
   ) as SandboxObject;
+  const prototype = getSandboxPrototype(result, budget);
+  if (prototype !== null) setSandboxPrototype(result, prototype, budget);
+  return result;
 }
 
 export async function propertyDescriptor(

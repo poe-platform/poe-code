@@ -50,3 +50,24 @@ bucket prototypes. Iterator closing and data-budget behavior must not regress.
 
 No runtime/test source was changed. The full package gate remains active on
 the same source/test fingerprint. No push or release occurred.
+
+## Descriptor implementation
+
+Six source tests failed before the fix: Object and Reflect data descriptors,
+the getOwnPropertyDescriptors outer record and nested descriptor, and Object
+and Reflect accessor descriptors with undefined accessors. A control confirmed
+getter/setter and value identity without invoking getters. All seven new tests
+and eight existing Proxy descriptor tests pass after attaching the originating
+Object prototype to exposed descriptors and the outer descriptor map.
+
+The fix preserves descriptor fields and their enumeration order, leaves
+referenced values/accessors unchanged, and makes later prototype mutation
+observable while rejecting lossy data copying. JSON containers and grouping
+buckets remain separate pending fixes. Broader validation is still required.
+
+Final descriptor verification passed 2,697 tests across 188 snapshot/object/
+descriptor/Proxy files. Scoped ESLint and package TypeScript checks passed.
+The maintained build passed 23 workspace builds and four fresh-process import
+checks. Direct built SDK probes passed for both single-descriptor APIs and
+getOwnPropertyDescriptors, whose direct ordinary-object route remains
+synchronous. No visual CLI behavior changed. No push or release occurred.

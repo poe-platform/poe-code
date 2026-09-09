@@ -609,6 +609,10 @@ Object reflection lists and `Reflect.ownKeys` preserve their originating array
 prototype, including `Object.entries` pairs and synchronous SDK Object calls.
 Existing values keep their identity and prototypes; Proxy reflection retains
 its key filtering and descriptor behavior.
+Exposed Object/Reflect property descriptors and the outer
+`Object.getOwnPropertyDescriptors` result preserve their originating Object
+prototype. Descriptor values and accessor functions retain identity, and
+reflection does not invoke those getters.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

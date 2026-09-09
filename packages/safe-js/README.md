@@ -621,6 +621,15 @@ remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 
+A fresh working-tree gate at `d833e4fb8`, including experimental weak collections,
+passed 23 workspace builds and four import checks. Unit results were 23,769
+passed, two failed, and 37 skipped; both failures concern host-Promise property
+imports. Source/test fingerprints matched before and after the run. This is not
+a green package gate or an isolated committed-tree result. See the
+[integration refresh](../../docs/plans/safejs-integration-refresh-2026-09-09.md).
+The public data-copy boundary still loses Proxy contents, producing empty
+objects for object, array, and nested Proxy values.
+
 Experimental work remains uncommitted. Pushes and releases are paused; local
 implementation, remote delivery, and successful publication are separate
 milestones.

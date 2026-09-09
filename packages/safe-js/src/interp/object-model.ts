@@ -3,6 +3,7 @@ import { guestProxyStates } from "./guest-proxy.js";
 import { getGeneratorProperties } from "./generator-properties.js";
 import { asyncFunctionPrototypes } from "./generator-prototypes.js";
 import { getClosureOrigin } from "./closure-origin.js";
+import { getFunctionRealmPrototype } from "./function-realm.js";
 import { runResources } from "./resources.js";
 import { getIntrinsicIdentity, registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
 import { releaseTemplateObjects } from "./template-objects.js";
@@ -450,8 +451,8 @@ export function getSandboxPrototype(value: object, budget?: Budget): object | nu
   if (budget !== undefined && isSandboxClosure(value) && runResources.getStore()?.functionSourceText !== false) {
     const node = getClosureOrigin(value)?.node;
     if (node?.async && (node.type === "ArrowFunctionExpression" || !node.generator))
-      return asyncFunctionPrototypes.get(budget) ?? functionPrototypes.get(budget) ?? null;
-    return functionPrototypes.get(budget) ?? null;
+      return getFunctionRealmPrototype(value, "AsyncFunction", asyncFunctionPrototypes.get(budget) ?? functionPrototypes.get(budget) ?? null);
+    return getFunctionRealmPrototype(value, "Function", functionPrototypes.get(budget) ?? null);
   }
   if (budget !== undefined && Array.isArray(value)) return arrayPrototypes.get(budget) ?? null;
   if (budget !== undefined && isSandboxDate(value)) return datePrototypes.get(budget) ?? null;

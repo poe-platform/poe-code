@@ -5,6 +5,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { createRange } from "./integer-sequence.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
@@ -12,6 +13,41 @@ function fixture() {
 }
 
 describe("runtime subscription", () => {
+  it("preserves guest type names on overflow while ranges retain arbitrary precision", () => {
+    const { meter, v } = fixture(), guest = v.cell({}), end = 1n << 100n;
+    const context: IntegerIndexContext<RuntimeValue> = {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "GuestIndex", warn() {},
+      lookupIndex: () => () => v.integer(end)
+    };
+    for (const object of [v.list([]), v.tuple([]), v.string(""), v.bytes(Uint8Array.of())]) {
+      expect(() => runtimeIndex(object, guest, v, meter, context)).toThrow("cannot fit 'GuestIndex' into an index-sized integer");
+    }
+    expect(runtimeIndex(v.range(createRange(0n, end + 1n)), guest, v, meter, context)).toEqual(v.integer(end));
+  });
+  it("uses storage after conversion and checks cancellation before reading it", () => {
+    const { meter, v } = fixture(), guest = v.cell({}), list = v.list([v.false, v.true]);
+    let cancelled = false;
+    const context: IntegerIndexContext<RuntimeValue> = {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "GuestIndex", warn() {},
+      lookupIndex: () => () => { list.items.pop(0n); return v.integer(0); }
+    };
+    expect(runtimeIndex(list, guest, v, meter, context)).toBe(v.true);
+    context.lookupIndex = () => () => { cancelled = true; return v.integer(0); };
+    expect(() => runtimeIndex(list, guest, v, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, context)).toThrow(ExecutionLimitError);
+  });
+  it("retains sequence diagnostics for absent slots and propagates slot failures", () => {
+    const { meter, v } = fixture(), guest = v.cell({}), list = v.list([]);
+    const context: IntegerIndexContext<RuntimeValue> = {
+      integer: () => undefined, isExactInteger: () => false,
+      typeName: () => "GuestIndex", warn() {}, lookupIndex: () => undefined
+    };
+    expect(() => runtimeIndex(list, guest, v, meter, context)).toThrow("list indices must be integers or slices, not GuestIndex");
+    const failure = new Error("index failed");
+    context.lookupIndex = () => () => { throw failure; };
+    expect(() => runtimeIndex(list, guest, v, meter, context)).toThrow(failure);
+  });
   it("indexes live lists and tuples preserving mutable member identity", () => {
     const { meter, v } = fixture(), member = v.list([]), list = v.list([v.none, member]);
     expect(runtimeIndex(list, v.integer(-1n), v, meter)).toBe(member);

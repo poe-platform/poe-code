@@ -107,7 +107,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       meter.checkpoint();
       return result;
     },
-    getItem: (object, key) => runtimeIndex(object, key, values, meter),
+    getItem: (object, key) => runtimeIndex(object, key, values, meter, bindings.integerIndex),
     iterate: (value, notIterable, hint) => runtimeIterate(value, values, meter, bindings.iteration, notIterable, hint)
   };
   meter.checkpoint(0, 320);

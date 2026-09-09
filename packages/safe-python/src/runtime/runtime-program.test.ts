@@ -39,6 +39,18 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["[False,True]", "(False,True)", "'ab'", "b'ab'"])("subscribes to %s using a guest index", source => {
+    const state = fixture(`items=${source}\nresult=items[guest]\nexpected=items[1]\n`), v = state.values;
+    state.globals.set("guest", v.cell({})); let calls = 0;
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Index", warn() {},
+      lookupIndex: () => () => { calls++; return v.integer(-1); }
+    } });
+    state.run();
+    expect(calls).toBe(1);
+    expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+  });
   it.each(["insert", "pop"])("converts guest %s indices before observing current list storage", method => {
     const state = fixture(`items=[False,True]\nresult=items.${method}(guest${method === "insert" ? ",False" : ""})\n`), v = state.values;
     state.globals.set("guest", v.cell({})); let calls = 0;

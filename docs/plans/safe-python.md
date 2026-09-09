@@ -6524,6 +6524,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Remaining index
   consumers, automatic object/builtin assembly and broader interpreter/SDK/
   safe-fs integration remain unfinished.
+- Connected exact list/tuple/string/bytes/range subscription to frame-supplied
+  integer-index capabilities. Conversion preserves guest failures and shared
+  result validation; storage is accessed only after a cancellation checkpoint.
+  Fixed-width sequences report overflow using the original guest type name,
+  while range indices retain arbitrary precision. Mapping keys remain untouched.
+- Seven regression cases cover compiled wiring, conversion-side mutation,
+  cancellation, missing slots, errors and overflow/range differences. All 5,059
+  tests in 439 files pass, together with 40 CPython subscription comparisons,
+  typecheck, scoped lint and selected workspace build. Guest slice components,
+  subscript assignment/deletion, automatic object/builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

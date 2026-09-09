@@ -5007,6 +5007,19 @@ extension, integration, or validation requirement is missing or unverified.
   floating rendering, default field dispatch and binary percent integration
   remain unfinished. Full guest objects, suspended execution, complete accounting
   and SDK/safe-fs integration remain outstanding.
+- Connected floating percent conversion to RuntimeValues and the shared runtime
+  conversion context. Native float/int/bool payloads, guest float/index slots,
+  strict subclass warnings and guest BaseException classification are exposed
+  without attribute probing or text parsing. Separate exact-float and
+  float/subclass payload capabilities preserve __int__ override behavior for
+  integer formatting while bypassing __float__ overrides for float formatting.
+- Six runtime tests first failed on missing float capabilities. All 4,404 tests
+  in 350 files pass. CPython matches 768 runtime floating conversion cases;
+  3,000 integer and 732 character runtime regression comparisons also pass.
+  Source typecheck, scoped lint and selected workspace build pass. Actual float
+  rendering, default field dispatch, guest identity wrapping and binary percent
+  integration remain unfinished. Full guest objects, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

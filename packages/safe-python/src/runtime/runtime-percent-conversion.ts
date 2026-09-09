@@ -1,6 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { PercentIntegerContext } from "./percent-integer-conversion.js";
 import type { PercentCharacterContext } from "./percent-character-conversion.js";
+import type { PercentFloatContext } from "./percent-float-conversion.js";
 import type { CodePointString } from "./code-point-string.js";
 import type { RuntimeValue } from "./runtime-values.js";
 
@@ -9,6 +10,11 @@ export interface RuntimePercentConversionHooks {
   integer?(value: RuntimeValue): bigint | undefined;
   lookupInt?(value: RuntimeValue): (() => RuntimeValue) | undefined;
   lookupIndex?(value: RuntimeValue): (() => RuntimeValue) | undefined;
+  /** Pure guest float-subclass payload; integer formatting must not use it. */
+  floating?(value: RuntimeValue): number | undefined;
+  lookupFloat?(value: RuntimeValue): (() => RuntimeValue) | undefined;
+  /** Classify guest BaseException instances, not host implementation failures. */
+  isPythonException?(error: unknown): boolean;
   /** Optional complete type-name resolution; undefined uses the native kind. */
   typeName?(value: RuntimeValue): string | undefined;
   qualifiedTypeName?(value: RuntimeValue): string | undefined;
@@ -23,8 +29,8 @@ export interface RuntimePercentConversionHooks {
 
 /** Concrete native payloads plus explicit guest conversion capabilities. No
  * attribute probing, string parsing or host object coercion is performed. */
-export function createRuntimePercentConversionContext(meter: ExecutionMeter, hooks?: RuntimePercentConversionHooks): PercentIntegerContext<RuntimeValue> & PercentCharacterContext<RuntimeValue> {
-  meter.checkpoint(1, 384);
+export function createRuntimePercentConversionContext(meter: ExecutionMeter, hooks?: RuntimePercentConversionHooks): PercentIntegerContext<RuntimeValue> & PercentCharacterContext<RuntimeValue> & PercentFloatContext<RuntimeValue> {
+  meter.checkpoint(1, 512);
   return {
     integer(value) {
       meter.checkpoint();
@@ -34,6 +40,10 @@ export function createRuntimePercentConversionContext(meter: ExecutionMeter, hoo
     },
     isExactInteger(value) { meter.checkpoint(); return value.kind === "int"; },
     float(value) { meter.checkpoint(); return value.kind === "float" ? value.value : undefined; },
+    floating(value) { meter.checkpoint(); return value.kind === "float" ? value.value : hooks?.floating?.(value); },
+    isExactFloat(value) { meter.checkpoint(); return value.kind === "float"; },
+    lookupFloat(value) { meter.checkpoint(); return hooks?.lookupFloat?.(value); },
+    isPythonException(error) { meter.checkpoint(); return hooks?.isPythonException?.(error) ?? false; },
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks?.string?.(value); },
     bytes(value) { meter.checkpoint(); return value.kind === "bytes" ? value : hooks?.bytes?.(value); },
     lookupInt(value) { meter.checkpoint(); return hooks?.lookupInt?.(value); },

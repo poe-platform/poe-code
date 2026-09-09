@@ -8,7 +8,7 @@ const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 1
 function fixture() {
   const warnings: string[] = [];
   const context: PercentFloatContext<Value> = {
-    float: value => value.floating, isExactFloat: value => value.exact === true,
+    floating: value => value.floating, isExactFloat: value => value.exact === true,
     integer: value => value.integer, isExactInteger: value => value.exact === true,
     lookupFloat: value => value.float, lookupIndex: value => value.index,
     typeName: value => value.name, warn: (_category, message) => { warnings.push(message); }

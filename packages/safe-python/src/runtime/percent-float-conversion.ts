@@ -6,7 +6,7 @@ import { integerToFloat } from "./numeric-conversion.js";
 
 export interface PercentFloatContext<Value> extends IntegerIndexContext<Value> {
   /** Pure float/subclass payload inspection; subclasses bypass __float__. */
-  float(value: Value): number | undefined;
+  floating(value: Value): number | undefined;
   isExactFloat(value: Value): boolean;
   /** Bound type-level slot; disabled/non-callable slots must fail, not be absent. */
   lookupFloat(value: Value): (() => Value) | undefined;
@@ -20,12 +20,12 @@ export interface PercentFloatContext<Value> extends IntegerIndexContext<Value> {
 export function percentFloat<Value>(value: Value, byteFormat: boolean, context: PercentFloatContext<Value>, meter: ExecutionMeter): number {
   meter.checkpoint();
   try {
-    const direct = context.float(value); meter.checkpoint();
+    const direct = context.floating(value); meter.checkpoint();
     if (direct !== undefined) return direct;
     const method = context.lookupFloat(value); meter.checkpoint();
     if (method !== undefined) {
       const result = method(); meter.checkpoint();
-      const floating = context.float(result); meter.checkpoint();
+      const floating = context.floating(result); meter.checkpoint();
       if (floating === undefined) throw new PythonRuntimeError("TypeError", `${diagnosticTypeName(context.typeName(value), meter, 50)}.__float__ returned non-float (type ${diagnosticTypeName(context.typeName(result), meter, 50)})`);
       const exact = context.isExactFloat(result); meter.checkpoint();
       if (!exact) {

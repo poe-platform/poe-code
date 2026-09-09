@@ -535,18 +535,34 @@ strict-arguments descriptor bridge is also locally committed, with 237 focused
 tests plus TypeScript and lint passing; neither status implies
 remote delivery or complete function compatibility.
 
-These latest changes include uncommitted work. Pushes and releases are paused;
-local implementation, remote delivery, and successful publication are separate
+Internal Proxy work is locally committed, but there is no guest `Proxy`
+constructor or `Proxy.revocable` yet. Internal tests inject proxies to exercise
+property reads/writes, membership/deletion, own descriptors, key enumeration,
+prototype/extensibility operations, and their invariants. Object reflection,
+ownership predicates, `Object.assign`, descriptor maps for `Object.create` and
+`Object.defineProperties`, and object spread/rest now dispatch those operations.
+Ordinary enumeration also handles existing string/symbol properties made
+enumerable by an earlier getter.
+
+At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
+24 files. This is not a full-package gate or evidence of public Proxy support.
+Callable proxies, public construction/revocation, Proxy checkpoint state, and
+remaining consumers such as for-in and freeze/seal still need integration.
+See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
+the tested scope and remaining work.
+
+Experimental work remains uncommitted. Pushes and releases are paused; local
+implementation, remote delivery, and successful publication are separate
 milestones.
 
-WeakMap/WeakSet work remains experimental, even though it is now included in the
-whole-SafeJS validation snapshot.
+WeakMap/WeakSet work remains experimental. It was included in the historical
+integrated main run described above, not the isolated dynamic/eval candidate.
 Portable weak-symbol lifetime support on Node.js 18 remains unresolved. Do not
 treat that work as complete weak-collection support.
 
 ## Meaningful limitations
 
-- **Not a full JavaScript engine.** `eval` is incomplete; `Proxy`, `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain missing. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. Public `Proxy`, `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain unavailable; internal Proxy work is described above. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
 - **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.

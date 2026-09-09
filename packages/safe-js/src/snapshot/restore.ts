@@ -218,6 +218,7 @@ type RestoreState = {
   compilation: CompileScope;
   heap: Record<string, SerializedHeapValue>;
   heapValueById: Map<number, RuntimeSnapshotValue>;
+  resolvingStorage: Set<number>;
   moduleBindings: Record<string, SandboxValue>;
   nodeById: Map<number, ParseResult>;
   dynamicSources: Map<number, DynamicSource>;
@@ -278,6 +279,7 @@ export function restore(
       compilation,
       heap: snapshot.heap ?? {},
       heapValueById: new Map(),
+      resolvingStorage: new Set(),
       moduleBindings: restoreModuleBindings(snapshot.moduleBindings, options.modules, {
         budget,
         compileOwner: operation.owner,
@@ -877,7 +879,12 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   }
   if (serialized.kind === "arraybuffer" || serialized.kind === "dataview") {
     initializeIntrinsicRealm(state);
-    const resolve = (reference: unknown) => deserializeValue(reference as SerializedSnapshotValue, state);
+    const resolve = (reference: unknown) => {
+      if (state.resolvingStorage.has(id)) throw new TypeError("Cyclic backing storage reference.");
+      state.resolvingStorage.add(id);
+      try { return deserializeValue(reference as SerializedSnapshotValue, state); }
+      finally { state.resolvingStorage.delete(id); }
+    };
     const value = serialized.kind === "dataview" ? decodeDataViewStorage(serialized, resolve, state.budget)
       : decodeArrayBufferStorage(serialized, resolve, state.budget, state.detachBuffers);
     state.heapValueById.set(id, value);

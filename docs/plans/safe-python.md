@@ -1984,6 +1984,18 @@ extension, integration, or validation requirement is missing or unverified.
   error messages. Source typecheck, scoped lint and selected build passed. Concrete
   guest constant factories, bytes objects/methods/buffer exports and full host
   object/iterator allocation accounting remain unfinished.
+- Added concrete immutable tagged constants for parser literals and compiled
+  metadata: per-runtime singletons, distinct booleans/integers, arbitrary-size
+  integers, floats/complex numbers, owned code-point strings/bytes and tuples with
+  copied slots and shared member identities. The factory directly satisfies
+  program compilation's constant interface. Logical record/slot allocation charges
+  are explicit; retained bigint creation remains the caller's responsibility.
+- Constant-value validation: missing-module red tests preceded implementation;
+  all 2,429 tests in 129 files pass. CPython matched 1,004 literal values including
+  exact floating-point bits, large integers, surrogate strings and bytes. Source
+  typecheck, scoped lint and selected workspace build passed. Concrete
+  guest type objects, methods, mutable collections and full heap accounting remain
+  unfinished; these host records are not a guest property-access interface.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -318,6 +318,41 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(bytes);
   }
 
+  /** Skip sign extension, form hexadecimal magnitude once, and use one host
+   * BigInt parse instead of repeated shifts of an ever-growing integer. For
+   * negatives, complemented bytes encode -value-1 without a giant power of two. */
+  toInteger(little: boolean, signed: boolean, meter: ExecutionMeter): bigint {
+    meter.checkpoint();
+    if (this.length === 0) return 0n;
+    const step = little ? -1 : 1;
+    let index = little ? this.length - 1 : 0;
+    const negative = signed && this.#bytes[index] >= 128, fill = negative ? 255 : 0;
+    while (index >= 0 && index < this.length) {
+      meter.checkpoint();
+      if (this.#bytes[index] !== fill) break;
+      index += step;
+    }
+    if (index < 0 || index >= this.length) return negative ? -1n : 0n;
+    const remaining = little ? index + 1 : this.length - index;
+    // Reserve bounded-per-byte text construction and bigint payloads before
+    // conversion. Full host BigInt object-overhead accounting remains pending.
+    meter.checkpoint(0, 32 + remaining * 75);
+    const alphabet = "0123456789abcdef";
+    let hex = "0x";
+    for (; index >= 0 && index < this.length; index += step) {
+      meter.checkpoint();
+      const byte = this.#bytes[index] ^ fill;
+      hex += alphabet[byte >>> 4] + alphabet[byte & 15];
+    }
+    try {
+      const magnitude = BigInt(hex);
+      return negative ? -magnitude - 1n : magnitude;
+    } catch (error) {
+      if (error instanceof RangeError) exhaustAllocation(meter);
+      throw error;
+    }
+  }
+
   concat(other: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
     meter.checkpoint();
     if (this.length === 0) return other;

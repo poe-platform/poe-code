@@ -4548,6 +4548,22 @@ extension, integration, or validation requirement is missing or unverified.
   output identity and errors. Scoped lint, source typecheck and selected
   workspace build pass. Remaining numeric/text methods, buffer protocols,
   native builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
+- Added the immutable byte-to-integer storage decoder for upcoming from_bytes
+  integration. It skips redundant sign-extension bytes, forms the remaining
+  hexadecimal magnitude once and performs one BigInt parse. Negative input uses
+  complemented magnitude -value-1 rather than constructing a large power of two.
+  All-zero and all-0xff signed inputs need no temporary magnitude allocation;
+  other inputs reserve text/payload storage before conversion. Complete host
+  BigInt object-overhead accounting remains unfinished.
+- Five storage tests first failed for the missing decoder. All 4,179 tests in
+  321 files pass, including endian/sign boundaries, large round trips, unchanged
+  input storage, sign-extension fast paths and work/allocation limits. A 269,344
+  case CPython audit covers every byte pair in both endian/signed modes plus
+  longer inputs with exact integer comparisons. Scoped lint, source typecheck
+  and selected workspace build pass. Native iterable-aware from_bytes
+  binding is not yet implemented. Remaining native builtins, numeric/text
+  methods, buffer protocols, suspension, full accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

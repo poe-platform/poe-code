@@ -2777,6 +2777,18 @@ extension, integration, or validation requirement is missing or unverified.
   warning policies. Source typecheck, scoped lint and selected workspace build
   passed. Concrete builtin slots, guest object/descriptor dispatch, execution
   context integration and full recursive-call/heap accounting remain open.
+- Connected guest iteration and truth protocols in shared any/all reduction.
+  Empty sources use their respective identities; the first decisive truth value
+  stops consumption without closing the source or reading hints. Source stops
+  mean exhaustion, while truth-raised StopIteration and other errors propagate.
+  Length/index truth fallback is exercised through the composed protocols, and
+  infinite non-decisive sources are bounded by execution checkpoints.
+- The reduction suite first failed on its missing module; all 3,038 tests in
+  187 files pass. A 1,200-case CPython audit matched results, errors, callback
+  traces and remaining-source observations. Source typecheck, scoped lint and
+  selected workspace build passed. Builtin argument binding/registration,
+  concrete guest slot dispatch, bool wrapping and full heap/recursion accounting
+  remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

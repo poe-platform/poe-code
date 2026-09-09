@@ -39,6 +39,14 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["Guest", "x".repeat(300)])("reports guest byte-input types with bounded diagnostics: %s", name => {
+    const state = fixture("result=(0).from_bytes(source)\n"), v = state.values;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, bytes: {
+      lookupBytes: () => undefined, byteString: () => undefined, typeName: () => name
+    } });
+    expect(() => state.run()).toThrow(`cannot convert '${name.slice(0, 200)}' object to bytes`);
+  });
   it.each(["buffer", "bytes", "failure", "cancelled"])("decodes buffer-capable inputs (%s)", mode => {
     const controller = new AbortController(), state = fixture("result=(0).from_bytes(source)\n", 100000, controller.signal), v = state.values;
     const source = v.cell({}), payload = v.bytes(Uint8Array.of(1,2)), events: string[] = [];

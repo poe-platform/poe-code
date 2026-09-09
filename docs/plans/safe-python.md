@@ -6695,6 +6695,15 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build pass. Concrete buffer exporters,
   automatic object/builtin assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Corrected failed guest byte-input conversion diagnostics to use the supplied
+  guest type name rather than internal storage tags, bounded to the shared
+  diagnostic limit. Iterator-acquisition error rewriting now checks cancellation
+  first. CPython confirms rewriting guest iterator TypeErrors and bounded names.
+- Two failing compiled regressions now pass. All 5,133 tests in 440 files pass;
+  48 iterable and 24 buffer CPython comparisons remain green. Typecheck and
+  selected workspace build pass. Concrete object/buffer models, automatic
+  builtin assembly and broader interpreter/SDK/safe-fs integration remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

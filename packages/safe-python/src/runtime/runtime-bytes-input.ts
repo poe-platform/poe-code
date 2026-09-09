@@ -43,7 +43,11 @@ export function runtimeBytesInput(source: RuntimeValue, values: RuntimeValues, m
   let iterator: Iterator<RuntimeValue>;
   try { iterator = context.iterate === undefined ? runtimeIterate(source, values, meter) : context.iterate(source); }
   catch (error) {
-    if (error instanceof PythonRuntimeError && error.name === "TypeError") throw new PythonRuntimeError("TypeError", `cannot convert '${type}' object to bytes`);
+    meter.checkpoint();
+    if (error instanceof PythonRuntimeError && error.name === "TypeError") {
+      const name = context.bytes === undefined ? type : diagnosticTypeName(context.bytes.typeName(source), meter);
+      throw new PythonRuntimeError("TypeError", `cannot convert '${name}' object to bytes`);
+    }
     throw error;
   }
   if (iterator instanceof ProtocolIterator) iterator.lengthHint(8n, source);

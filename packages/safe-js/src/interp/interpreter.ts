@@ -23,7 +23,7 @@ import { getGeneratorOrigin } from "./closure-origin.js";
 import { retainValues } from "./resources.js";
 import { templateObject, templateRawArrays } from "./template-objects.js";
 import { evaluateClass } from "./classes.js";
-import { defineDataProperty } from "./globals/object-array.js";
+import { defineDataProperty, reflectionProperties } from "./globals/object-array.js";
 import { objectToPrimitive, sandboxString } from "./string-coercion.js";
 import type {
   ArrayExpression,
@@ -178,6 +178,7 @@ import {
   createSandboxPromise,
   allocateProducedSandboxValue,
   ownEnumerableSandboxKeys,
+  ownSandboxSymbolKeys,
   isSandboxClosure,
   isSandboxGenerator,
   isSandboxMap,
@@ -4763,12 +4764,13 @@ async function evaluateObjectSpread(
     return { ok: true, value: entries };
   }
 
-  const keys = ownEnumerableSandboxKeys(value.value, true);
+  const keys = [...Object.getOwnPropertyNames(reflectionProperties(value.value)), ...ownSandboxSymbolKeys(value.value)];
   context.budget.allocateArrayLength(keys.length);
   const entries: Array<readonly [PropertyKey, SandboxValue]> = [];
-  const release = retainValues(context.budget, () => [value.value, entries]);
+  const release = retainValues(context.budget, () => [value.value, entries, keys]);
   try {
     for (const key of keys) {
+      context.budget.visitNode();
       if (!hasOwnSandboxProperty(value.value, key, true)) continue;
       entries.push([key, await getPropertyValue(value.value, key, context)]);
     }

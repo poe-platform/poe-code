@@ -740,7 +740,7 @@ function assignSandboxValues(
   })();
 }
 
-function reflectionProperties(value: SandboxValue): SandboxObject | SandboxArray {
+export function reflectionProperties(value: SandboxValue): SandboxObject | SandboxArray {
   if (value !== null && value !== undefined && typeof value !== "object")
     value = createSandboxBox(value);
   return objectProperties(value);

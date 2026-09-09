@@ -15,11 +15,14 @@ import type { BindingOperations, Scope } from "./scope.js";
 import { Budget, isFatalSandboxError } from "./budget.js";
 import { retainValues } from "./resources.js";
 import { hasOwnSandboxProperty } from "./globals/object.js";
+import { reflectionProperties } from "./globals/object-array.js";
+import { isGuestHostObject } from "./host-capabilities.js";
 import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
 import type { GeneratorExpressionState } from "./generator-expression-state.js";
 import {
   type SandboxCallContext,
   ownEnumerableSandboxKeys,
+  ownSandboxSymbolKeys,
   type SandboxArray,
   type SandboxObject,
   type SandboxValue
@@ -451,12 +454,15 @@ async function copyObjectRestValue(
   context: PatternContext
 ): Promise<SandboxObject> {
   const rest = Object.create(null) as SandboxObject;
+  const keys = isGuestHostObject(value) ? ownEnumerableSandboxKeys(value, true)
+    : [...Object.getOwnPropertyNames(reflectionProperties(value)), ...ownSandboxSymbolKeys(value)];
   const release =
     context.budget === undefined
       ? () => undefined
-      : retainValues(context.budget, () => [value, rest]);
+      : retainValues(context.budget, () => [value, rest, keys]);
   try {
-    for (const key of ownEnumerableSandboxKeys(value, true)) {
+    for (const key of keys) {
+      context.budget?.visitNode();
       if (excludedKeys.has(key) || !hasOwnSandboxProperty(value, key, true)) continue;
       defineProperty(rest, key, await context.getProperty(value, key));
     }

@@ -6,6 +6,7 @@ import { readExpression } from "./expression.js";
 import { readParameters } from "./parameters.js";
 import { reservedWords } from "./keywords.js";
 import { normalizeNfkc } from "./normalization.js";
+import { readIgnoredTypeParameters } from "./type-parameters.js";
 
 export function readFunction(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[], asyncStart?: SourcePosition, decorators: readonly Expression[] = []): Statement {
   const opening = cursor.expect("def");
@@ -14,6 +15,7 @@ export function readFunction(cursor: TokenCursor, readSuite: (cursor: TokenCurso
   const name = normalizeNfkc(token.text);
   if (name === "__debug__") throw cursor.error("cannot assign to __debug__");
   cursor.take();
+  if (cursor.peek().text === "[") readIgnoredTypeParameters(cursor);
   cursor.expect("(");
   const parameters = readParameters(cursor, readExpression, ")");
   if (cursor.peek().text === "->") { cursor.take(); readExpression(cursor); }

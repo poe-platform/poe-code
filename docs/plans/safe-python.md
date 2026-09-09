@@ -467,6 +467,18 @@ extension, integration, or validation requirement is missing or unverified.
   and the selected workspace build passed. Generic class parameters,
   class scope rules, MRO, metaclass construction, descriptors, and execution remain
   pending.
+- Added ignored generic type-parameter lists to functions, async functions, and
+  classes. Parses bounds, constraints, defaults, TypeVarTuple unpacked defaults,
+  ParamSpec defaults, trailing commas, and multiline lists. Enforces normalized
+  duplicate names, forbidden bindings, default ordering, and variadic-bound grammar
+  restrictions without retaining type expressions or introducing runtime bindings.
+- Generic validation: three positive tests failed before implementation; all 915
+  package tests pass. A 2,166-case CPython compilation comparison matched syntax
+  acceptance and definition identity. Separate tests establish discarded type
+  expressions and continued validation of executable defaults and class bases.
+  Scoped lint, source typecheck, and the selected workspace build passed.
+  Type aliases, the remaining grammar, and runtime
+  implementation remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

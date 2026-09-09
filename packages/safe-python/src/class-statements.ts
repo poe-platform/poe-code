@@ -5,6 +5,7 @@ import { readExpression } from "./expression.js";
 import { readArguments } from "./primary.js";
 import { reservedWords } from "./keywords.js";
 import { normalizeNfkc } from "./normalization.js";
+import { readIgnoredTypeParameters } from "./type-parameters.js";
 
 export function readClass(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[], decorators: readonly Expression[] = []): Statement {
   const opening = cursor.expect("class");
@@ -13,6 +14,7 @@ export function readClass(cursor: TokenCursor, readSuite: (cursor: TokenCursor) 
   const name = normalizeNfkc(token.text);
   if (name === "__debug__") throw cursor.error("cannot assign to __debug__");
   cursor.take();
+  if (cursor.peek().text === "[") readIgnoredTypeParameters(cursor);
   let args: CallArgument[] = [];
   if (cursor.peek().text === "(") {
     const opening = cursor.take();

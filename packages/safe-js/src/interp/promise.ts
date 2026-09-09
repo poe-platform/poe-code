@@ -6,7 +6,7 @@ import { sandboxGetProperty } from "./guest-proxy-get.js";
 import { asyncFunctionHandlers } from "./async-function-driver.js";
 import { asyncGeneratorHandlers, rejectGeneratorQueue } from "./async-generator-driver.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
-import { createIntrinsicObject, getSandboxDataProperty, getSandboxPropertyDescriptor, hasExplicitSandboxPrototype, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction, setSandboxPrototype } from "./object-model.js";
+import { createIntrinsicObject, getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction, setSandboxPrototype } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue, isSourceReferenceError } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
@@ -65,6 +65,8 @@ export function createPendingPromiseCapability(budget: Budget, context?: Sandbox
     fulfill = resolve;
     reject = rejectPromise;
   }), {span: context?.span, synchronousPrefix});
+  const prototype = getSandboxPrototype(promise, budget);
+  if (prototype !== null) setSandboxPrototype(promise, prototype, budget);
   pendingPromiseRejectors.set(promise, reject);
   pendingPromiseFulfillers.set(promise, fulfill);
   const resolverState = {promise, settled: false};
@@ -249,7 +251,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
           }
           const finish = (actualConstructor: SandboxValue) => {
             if (isSandboxPromise(value) && actualConstructor === constructor) return value;
-            if (isSandboxPromiseConstructor(constructor)) {
+            if (constructor === promiseConstructor) {
               const capability = createPendingPromiseCapability(options.budget, context);
               const prefix = capability.resolve.call([value], context);
               return prefix instanceof Promise ? prefix.then(() => capability.promise) : capability.promise;
@@ -270,7 +272,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
         sandbox: true,
         call: ([reason], context) => {
           const constructor = context === undefined ? promiseConstructor : context.thisValue;
-          return isSandboxPromiseConstructor(constructor)
+          return constructor === promiseConstructor
             ? createRejectedSandboxPromise(reason, options.budget, context?.span)
             : settleConstructedPromise(constructor, reason, "rejected", options.budget, context);
         },
@@ -455,7 +457,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         if (!isSandboxPromise(target))
           throw new TypeError("Promise.then requires a promise receiver.");
         const finish = (constructor: SandboxClosure) => {
-          if (!isSandboxPromiseConstructor(constructor)) {
+          if (constructor !== intrinsicPromiseConstructors.get(budget)) {
             return createPromiseCapability(constructor, budget, context).then(capability => {
               observeSandboxPromise(target, isSandboxPromise(capability.promise));
               const continuation: Extract<PromiseContinuation, {kind: "reaction"}> | undefined = isSandboxPromise(capability.promise)
@@ -496,6 +498,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
               }
             )
           );
+          setSandboxPrototype(chained, prototype, budget);
           trackPromiseContinuation(chained, continuation);
           return chained;
         };
@@ -828,7 +831,10 @@ function createRejectedSandboxPromise(
 
   // Mark the host promise as handled immediately while preserving its rejected state for sandbox await.
   promise.catch(() => undefined);
-  return createSandboxPromise(promise, { span });
+  const result = createSandboxPromise(promise, { span });
+  const prototype = getSandboxPrototype(result, budget);
+  if (prototype !== null) setSandboxPrototype(result, prototype, budget);
+  return result;
 }
 
 function budgetSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {

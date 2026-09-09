@@ -637,6 +637,10 @@ retain their identity.
 Error constructors called through exported closures after cleanup retain their
 originating prototypes and non-enumerable fields. Explicit custom newTarget
 prototypes remain supported; foreign-realm default fallback still needs work.
+Promise construction, async returns and `then` results retain their
+originating Promise prototype after cleanup.
+Borrowed `then`, `resolve` and `reject` calls respect a foreign intrinsic
+constructor instead of allocating in the method's realm.
 `Iterator.from` fallback return results retain the called method's Object
 prototype when the underlying return method is absent or null. Custom next
 and return results are forwarded unchanged.

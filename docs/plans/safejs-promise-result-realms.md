@@ -174,3 +174,43 @@ The maintained build passes 23 workspace builds and four fresh-process import
 checks. Built-SDK probes pass all eight native-comparable Error lifetime cases
 and the Promise.any errors-descriptor case. No full-package pass, push or
 release is claimed.
+
+## Promise instance creation realms
+
+Twelve initial regression cases failed for exported factories creating
+Promises through construction, static helpers, async functions/generators,
+chaining, and a borrowed then with a foreign intrinsic species. Two additional
+borrowed resolve/reject cases and a direct rejected-Promise case also failed
+before their respective repairs.
+
+Cleanup now retains the weak-budget Promise prototype lookup. Pending and
+rejected capabilities and locally optimized then results explicitly retain
+their default prototype. Optimized then/resolve/reject paths apply only to
+their own intrinsic constructor; foreign intrinsic constructors use normal
+capability construction. These changes do not re-prototype aggregate arrays,
+allSettled entries, or withResolvers capability objects.
+
+The first focused Promise/accounting run passed 113 tests across four files.
+The later lifetime/species/constructor/recovery run passes 91 tests across
+eight files (overlapping earlier checks), including cleanup-root release and
+public replay. All 1,700 snapshot tests across 127 files pass. Scoped lint,
+TypeScript, 23 maintained workspace builds and four fresh-process import
+checks pass. Built-SDK probes verify foreign resolve/reject receivers and a
+foreign intrinsic species for then. The seven aggregate-result regression
+cases remain red only for arrays/settlement records/capability objects; their
+Promise constructor and Error prototype checks now pass.
+
+### Foreign finally cleanup follow-up
+
+A separate native/built-SDK probe borrows realm A's finally method onto a
+Promise from realm B, whose Promise.prototype.then logs whether its receiver
+has B's prototype. The callback returns 9; both final results fulfill with 7.
+Native logs three true observations while SafeJS logs only one. The native
+probe observes completion through B's saved original then and a host Promise
+wrapper, so the observer does not add calls to B's overridden then.
+
+The finally cleanup path still treats every intrinsic Promise constructor as
+local and creates its cleanup Promise with the method's budget. This is a
+separately validated gap, not covered by the instance-construction repair.
+Add a failing regression before changing the cleanup branch, including
+fulfillment/rejection preservation and overridden-then observability.

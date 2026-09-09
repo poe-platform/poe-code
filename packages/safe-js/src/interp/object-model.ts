@@ -424,8 +424,7 @@ export function releaseObjectPrototype(budget: Budget): void {
   intrinsicRetentionTargets.delete(budget);
   intrinsicRetentionGroups.delete(budget);
   collectionPrototypes.delete(budget);
-  promisePrototypes.delete(budget);
-  // Keep object, array, boxed, Date, RegExp, Error and generator lookups for live SDK closures
+  // Keep object, array, boxed, Date, RegExp, Error, Promise and generator lookups for live SDK closures
   // that create values in this realm. Weak budget keys bound their lifetimes;
   // accounting roots above are still released.
   functionPrototypes.delete(budget);

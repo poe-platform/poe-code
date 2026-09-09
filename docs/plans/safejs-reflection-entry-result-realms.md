@@ -60,3 +60,14 @@ identity requirements separate. Extend tests to exhausted results, borrowed
 next methods, restored iterators, and unchanged value/key identity before
 fixing these paths. Iterator.toArray needs its own source regression and must
 not modify values collected from custom iterators.
+
+## Direct SDK reflection controls
+
+At ae5b505ab, directly calling exported Object.keys, Object.values,
+Object.entries, Object.getOwnPropertyNames and Object.getOwnPropertySymbols
+without a call context returns synchronously in all five cases. Each result
+still fails originating Array.prototype identity when inspected from another
+realm. These are concrete regressions for the context-free branches, not
+merely an inferred need for coverage. Fixes must preserve both synchronous
+return behavior and result prototypes. This probe used a plain guest object
+`{a:1}`; it does not establish context-free accessor or Proxy semantics.

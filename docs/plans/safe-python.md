@@ -5880,6 +5880,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Automatic builtin namespace
   assembly, remaining numeric-format identity policies and broader integration
   remain unfinished.
+- Added explicitly registered ord for native str/bytes, with optional pure
+  subclass and bytearray storage hooks. It counts code points rather than UTF-16
+  units, reads at most one byte and rejects wrong lengths without copying storage.
+  No conversion, generic buffer acquisition or guest length method is invoked;
+  unsupported type names are bounded and payload callbacks are checkpointed.
+- Five tests first exposed the missing builtin module. All 4,746 tests in 411
+  files pass. A 1,530-program CPython comparison covers native ord/chr roundtrips,
+  all bytes, surrogates, incorrect lengths/types and public argument validation.
+  Typecheck, scoped lint and selected workspace build pass. Subclass/bytearray
+  behavior currently uses explicit hooks; general guest object construction,
+  namespace assembly and broader interpreter/SDK/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

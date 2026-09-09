@@ -91,6 +91,35 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(bytes);
   }
 
+  /** Size first, then fill a single owned buffer. Only CR/LF reset columns. */
+  expandTabs(tabsize: number, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (!Number.isSafeInteger(tabsize)) throw new RangeError("tab size must be a safe integer");
+    if (this.length === 0) return this;
+    let length = 0, column = 0;
+    for (const byte of this.#bytes) {
+      meter.checkpoint();
+      if (byte === 9) {
+        const spaces = tabsize > 0 ? tabsize - column % tabsize : 0;
+        length += spaces; column += spaces;
+      } else { length++; column = byte === 10 || byte === 13 ? 0 : column + 1; }
+      if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    }
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    column = 0;
+    for (const byte of this.#bytes) {
+      meter.checkpoint();
+      if (byte === 9) {
+        const spaces = tabsize > 0 ? tabsize - column % tabsize : 0, end = offset + spaces;
+        while (offset < end) { meter.checkpoint(); bytes[offset++] = 32; }
+        column += spaces;
+      } else { bytes[offset++] = byte; column = byte === 10 || byte === 13 ? 0 : column + 1; }
+    }
+    return new ImmutableBytes(bytes);
+  }
+
   concat(other: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
     meter.checkpoint();
     if (this.length === 0) return other;

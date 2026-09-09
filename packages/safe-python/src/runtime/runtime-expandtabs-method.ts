@@ -3,7 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeStringExpandtabsMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeExpandtabsMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "expandtabs",
@@ -21,6 +21,10 @@ export function createRuntimeStringExpandtabsMethod(receiver: Extract<RuntimeVal
       }
       const tabsize = argument === undefined ? 8n : runtimeIntegerIndex(argument, meter);
       if (BigInt.asIntN(32, tabsize) !== tabsize) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C int");
+      if (receiver.kind === "bytes") {
+        const result = receiver.value.expandTabs(Number(tabsize), meter);
+        return values.bytes(result, result.length === 0 ? "canonical" : "fresh");
+      }
       const result = receiver.value.expandTabs(Number(tabsize), meter);
       return result === receiver.value ? receiver : values.stringPoints(result);
     }

@@ -19,7 +19,7 @@ import { createRuntimeSplitlinesMethod } from "./runtime-splitlines-method.js";
 import { createRuntimeStringSplitMethod } from "./runtime-string-split-method.js";
 import { createRuntimeStringReplaceMethod } from "./runtime-string-replace-method.js";
 import { createRuntimeStringPadMethod } from "./runtime-string-pad-method.js";
-import { createRuntimeStringExpandtabsMethod } from "./runtime-string-expandtabs-method.js";
+import { createRuntimeExpandtabsMethod } from "./runtime-expandtabs-method.js";
 import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
 import { createRuntimeBytesCaseMethod } from "./runtime-bytes-case-method.js";
 import { createRuntimeBytesClassificationMethod } from "./runtime-bytes-classification-method.js";
@@ -40,6 +40,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "splitlines") return createRuntimeSplitlinesMethod(receiver, values, meter);
+  if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "expandtabs") return createRuntimeExpandtabsMethod(receiver, values, meter);
   if (receiver.kind === "bytes") {
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeBytesStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeBytesJoinMethod(receiver, values, meter);
@@ -60,7 +61,6 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
       case "isdigit": case "isnumeric": case "isalnum": case "isprintable": case "islower": case "isupper": case "istitle":
         return createRuntimeStringClassificationMethod(receiver, name, values, meter);
     }
-    if (name === "expandtabs") return createRuntimeStringExpandtabsMethod(receiver, values, meter);
     if (name === "center" || name === "ljust" || name === "rjust" || name === "zfill") return createRuntimeStringPadMethod(receiver, name, values, meter);
     if (name === "replace") return createRuntimeStringReplaceMethod(receiver, values, meter);
     if (name === "split" || name === "rsplit") return createRuntimeStringSplitMethod(receiver, name, values, meter);

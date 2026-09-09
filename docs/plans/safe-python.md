@@ -4340,6 +4340,18 @@ extension, integration, or validation requirement is missing or unverified.
   pass. Remaining bytes/text/numeric methods, buffer
   protocols, native builtins, suspension, full accounting and SDK/safe-fs
   integration remain unfinished.
+- Connected bytes.expandtabs with shared text/byte argument validation and an
+  exact-size immutable byte buffer. Only CR/LF reset tab columns; every other
+  byte counts once. Nonpositive sizes remove tabs. Bytes produce fresh nonempty
+  results even without tabs, unlike strings, and canonical empty results.
+- Seven native tests first failed for missing support; two additional storage
+  checks cover exact allocation, immutable exports, output-fill checkpoints and
+  unrepresentable lengths. All 4,081 tests in 304 files pass. A 5,498-call
+  compiled CPython audit matches byte values, identity and diagnostics; the
+  2,413-call string-expandtabs regression, exhaustive 262,144 byte-pair
+  transformations, source typecheck, scoped lint and selected workspace build
+  pass. Remaining methods, buffer protocols, native
+  builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

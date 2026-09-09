@@ -1996,6 +1996,16 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build passed. Concrete
   guest type objects, methods, mutable collections and full heap accounting remain
   unfinished; these host records are not a guest property-access interface.
+- Added metered truth slots for exact concrete builtin constants: singleton,
+  numeric, string, bytes and tuple values. Numeric NaN is true, signed zeros are
+  false, tuple members are not inspected, and Python 3.14 NotImplemented truth
+  testing raises TypeError. Each test charges one step without payload allocation.
+- Constant-truth validation: missing-module red tests preceded implementation.
+  All 2,436 tests in 130 files pass; CPython matched 2,688 logical/conditional
+  expression outcomes in value and branch modes, including identity-preserving
+  short circuiting and exact errors. Typecheck, scoped lint and selected workspace
+  build passed. User-defined/subclass __bool__/__len__ dispatch and concrete guest
+  type integration remain unfinished; this helper is for exact builtin values.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

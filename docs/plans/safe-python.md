@@ -2082,6 +2082,20 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build passed. Guest
   iterator type objects, StopIteration conversion, special-method/legacy iteration
   dispatch and full iterator/result-record heap accounting remain unfinished.
+- Added concrete slicing over evaluated slice components for immutable strings,
+  bytes and tuples. Step validation precedes bound conversion; None/bool bounds,
+  negative strides and arbitrary-size indices retain exact semantics. Full
+  unit-stride slices reuse the source value; tuple selections preserve member
+  identities. The constant factory now shares trusted immutable string/bytes
+  storage while still copying mutable inputs, avoiding redundant payload copies
+  when wrapping slice results. Temporary tuple slots are separately charged.
+- Slice validation: missing-module and immutable-storage identity red tests
+  preceded implementation. All 2,495 tests in 137 files pass; CPython matched 3,000
+  slice outcomes including zero/invalid steps, oversized bounds and negative
+  strides. Source typecheck, scoped lint and selected workspace build passed.
+  Byte-slice accounting verifies one copied payload plus the tagged
+  result. Guest slice objects/expression wiring, user-defined index conversion
+  and complete host heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

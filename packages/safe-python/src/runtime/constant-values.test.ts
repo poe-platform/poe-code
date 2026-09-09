@@ -11,6 +11,13 @@ function fixture() {
 }
 
 describe("concrete immutable constants", () => {
+  it("reuses immutable string and bytes storage without copying its payload", () => {
+    const { values, meter } = fixture(), string = values.string("abc"), bytes = values.bytes(Uint8Array.of(1, 2));
+    const before = meter.usage.allocatedBytes;
+    expect(values.stringPoints(string.value).value).toBe(string.value);
+    expect(values.bytes(bytes.value).value).toBe(bytes.value);
+    expect(meter.usage.allocatedBytes - before).toBe(64);
+  });
   it("preserves per-runtime singleton identity and distinct boolean/integer kinds", () => {
     const { values } = fixture();
     expect(values.boolean(true)).toBe(values.true); expect(values.boolean(false)).toBe(values.false);

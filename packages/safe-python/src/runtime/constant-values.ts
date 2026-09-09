@@ -72,9 +72,10 @@ export class ConstantValues {
     return Object.freeze({ kind: "complex", real, imaginary });
   }
 
-  stringPoints(points: Uint32Array): Extract<PrimitiveConstant, { kind: "str" }> {
+  /** Trusted immutable storage can be shared; mutable input is always copied. */
+  stringPoints(points: Uint32Array | CodePointString): Extract<PrimitiveConstant, { kind: "str" }> {
     this.meter.checkpoint(1, VALUE_BYTES);
-    return Object.freeze({ kind: "str", value: new CodePointString(points, this.meter) });
+    return Object.freeze({ kind: "str", value: points instanceof CodePointString ? points : new CodePointString(points, this.meter) });
   }
 
   string(value: string): Extract<PrimitiveConstant, { kind: "str" }> {
@@ -85,9 +86,9 @@ export class ConstantValues {
     return this.stringPoints(points.subarray(0, length));
   }
 
-  bytes(value: Uint8Array): Extract<PrimitiveConstant, { kind: "bytes" }> {
+  bytes(value: Uint8Array | ImmutableBytes): Extract<PrimitiveConstant, { kind: "bytes" }> {
     this.meter.checkpoint(1, VALUE_BYTES);
-    return Object.freeze({ kind: "bytes", value: ImmutableBytes.copyOf(value, this.meter) });
+    return Object.freeze({ kind: "bytes", value: value instanceof ImmutableBytes ? value : ImmutableBytes.copyOf(value, this.meter) });
   }
 
   tuple<Value>(values: readonly Value[]): TupleConstant<Value> {

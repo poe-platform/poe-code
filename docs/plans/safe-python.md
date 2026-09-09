@@ -5789,6 +5789,16 @@ extension, integration, or validation requirement is missing or unverified.
   The existing 12,760-case format-spec equivalence audit also passes, together
   with typecheck, scoped lint and selected workspace build. Numbering, lookup/evaluation,
   expansion and public str.format/format_map methods remain pending.
+- Added a per-invocation format-field resolver with shared auto/manual numbering,
+  named argument lookup, attribute/item traversal and format_map positional-field
+  rejection. Explicit generic hooks own guest lookup semantics. Each callback is
+  followed by a meter checkpoint, and lazy suffix scanning preserves guest-error
+  precedence. Nested spec expansion can share the same resolver instance.
+- Six tests first exposed the missing resolver. All 4,709 tests in 404 files
+  pass. A 6,000-case CPython comparison covers lookup traces, both numbering
+  transitions, positional bounds, mapping restrictions and guest/syntax error
+  ordering. Typecheck, scoped lint and selected workspace build pass. Nested expansion,
+  conversion/rendering assembly and public string methods remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

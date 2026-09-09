@@ -4593,6 +4593,23 @@ extension, integration, or validation requirement is missing or unverified.
   native method-wrapper types/introspection, iterator type registration,
   __length_hint__, guest protocol dispatch and generator return values remain
   unfinished, as do complete resource accounting and SDK/safe-fs integration.
+- Added explicitly registerable iter/next builtin capabilities. Exact iterable
+  inputs use existing runtime adapters and prepared iterators retain identity.
+  next preserves a supplied default's identity, distinguishes non-iterators,
+  and handles exhaustion without suppressing unrelated exceptions. Two-argument
+  iter reuses CallableIterator with explicit callability/call/equality/exception
+  capabilities rather than duplicating cursor logic or discovering host methods.
+- Eight new binding tests first failed for the missing builtin module. All
+  4,202 tests in 324 files pass; 3,720 compiled CPython programs match values,
+  iterator/default identity, lazy sentinel stopping and errors. The established
+  sentinel adapter's reentrancy tests remain passing and its code is unchanged.
+  Typecheck, scoped lint and selected workspace build pass. One-argument guest
+  __iter__/indexed fallback, guest __next__,
+  native namespace registration and retained equality-StopIteration payloads
+  remain unfinished. The existing host adapter normalizes those equality faults
+  to a non-latched done result; this does not establish full exception fidelity.
+  Full accounting, suspended execution, object integration and SDK/safe-fs work
+  remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

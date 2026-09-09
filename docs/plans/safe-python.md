@@ -4251,6 +4251,19 @@ extension, integration, or validation requirement is missing or unverified.
   pass. Guest index/buffer protocols, remaining bytes/text/numeric methods,
   native builtins, subclasses/global interning, suspension, full accounting and
   SDK/safe-fs remain unfinished.
+- Connected bytes.startswith/endswith with bounded unsigned-byte comparisons,
+  empty-affix semantics and lazy tuple alternatives. Bound conversion precedes
+  candidate inspection; a match suppresses later invalid tuple members, whose
+  diagnostics otherwise differ from an invalid top-level argument. Storage
+  compares only the requested edge, checks first/last bytes before interiors,
+  and allocates no slices or temporary buffers.
+- Eight native/storage tests first failed for missing affix support. All 4,020
+  tests in 296 files pass, including early mismatch and interior scan budgets.
+  A 3,624-call compiled CPython audit matches bounds, tuple short-circuiting,
+  results and diagnostics; the 1,936-call string-affix regression, scoped lint,
+  source typecheck and selected workspace build pass. Guest buffer/index protocols, remaining
+  bytes/text/numeric methods, native builtins, subclasses/global interning,
+  suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

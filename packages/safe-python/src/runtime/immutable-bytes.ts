@@ -126,6 +126,28 @@ export class ImmutableBytes implements Iterable<number> {
     return result;
   }
 
+  /** Compare one normalized edge in place, never exporting or slicing storage. */
+  hasAffix(affix: ImmutableBytes, side: "start" | "end", start = 0n, stop: bigint | null = null, meter: ExecutionMeter): boolean {
+    meter.checkpoint();
+    const length = BigInt(this.length);
+    if (start < 0n) start += length;
+    if (start < 0n) start = 0n;
+    stop ??= length;
+    if (stop < 0n) stop += length;
+    if (stop < 0n) stop = 0n;
+    if (stop > length) stop = length;
+    if (start > stop || BigInt(affix.length) > stop - start) return false;
+    if (affix.length === 0) return true;
+    const offset = side === "start" ? Number(start) : Number(stop) - affix.length;
+    meter.checkpoint();
+    if (this.#bytes[offset] !== affix.#bytes[0] || this.#bytes[offset + affix.length - 1] !== affix.#bytes[affix.length - 1]) return false;
+    for (let index = 1; index < affix.length - 1; index++) {
+      meter.checkpoint();
+      if (this.#bytes[offset + index] !== affix.#bytes[index]) return false;
+    }
+    return true;
+  }
+
   /** Search owned storage without exporting/copying either buffer. */
   contains(needle: ImmutableBytes | number, meter: ExecutionMeter): boolean {
     meter.checkpoint();

@@ -2555,6 +2555,20 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. The context still supplies guest length slots,
   descriptor binding and exact integer extraction; iterable adapters, consumer
   reservation wiring and full guest runtime integration remain unfinished.
+- Added a guest protocol iterator adapter with __iter__/next-slot validation and
+  legacy indexed-sequence fallback. Returned iterators need a next slot, not a
+  second iter call. Invalid results and explicit iter failures do not fall back.
+  Custom guest StopIteration is translated per call without imposing permanent
+  exhaustion; sequence fallback releases its source on IndexError/StopIteration.
+  Other sequence errors retain the current index. Calls, result records and
+  advancement are metered, without implicit iterator close behavior.
+- The adapter suite first failed on its missing module; all 2,847 tests in 171
+  files pass. A 1,000-trace CPython audit matched 12,000 next observations and
+  dispatch/index traces across both protocols, including recoverable failures.
+  Source typecheck, scoped lint and selected workspace build passed.
+  Guest iterator type identity, StopIteration values, descriptor/type slot
+  implementations, recursive-call limits, length-hint consumer preparation and
+  complete native allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

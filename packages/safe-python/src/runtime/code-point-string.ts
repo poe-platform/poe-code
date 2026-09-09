@@ -3,6 +3,10 @@ import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, type SearchMode } from "./substring-search.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 
+// Module-private capability: only freshly generated, already charged buffers
+// may bypass public input copying and validation. Never export this marker.
+const ownedPoints = Symbol("owned code points");
+
 /** Internal immutable string storage, not the guest str object/protocol itself.
  * Surrogates remain individual code points; no UTF-16 round trip is performed.
  */
@@ -10,14 +14,17 @@ export class CodePointString implements Iterable<number> {
   readonly #points: Uint32Array;
   readonly length: number;
 
-  constructor(points: Uint32Array, meter?: ExecutionMeter) {
-    meter?.checkpoint(1, points.byteLength);
-    this.#points = new Uint32Array(points.length);
-    for (let index = 0; index < this.#points.length; index++) {
-      meter?.checkpoint();
-      const point = points[index]!;
-      if (point > 0x10ffff) throw new PythonRuntimeError("ValueError", "string code point outside Unicode range");
-      this.#points[index] = point;
+  constructor(points: Uint32Array, meter?: ExecutionMeter, ownership?: typeof ownedPoints) {
+    const adopt = ownership === ownedPoints;
+    meter?.checkpoint(1, adopt ? 0 : points.byteLength);
+    this.#points = adopt ? points : new Uint32Array(points.length);
+    if (!adopt) {
+      for (let index = 0; index < this.#points.length; index++) {
+        meter?.checkpoint();
+        const point = points[index]!;
+        if (point > 0x10ffff) throw new PythonRuntimeError("ValueError", "string code point outside Unicode range");
+        this.#points[index] = point;
+      }
     }
     this.length = this.#points.length;
     Object.freeze(this);
@@ -53,7 +60,7 @@ export class CodePointString implements Iterable<number> {
       meter?.checkpoint();
       points[offset] = this.#points[index]!;
     }
-    return new CodePointString(points, meter);
+    return new CodePointString(points, meter, ownedPoints);
   }
 
   repeat(count: number, meter: ExecutionMeter): CodePointString {
@@ -64,7 +71,7 @@ export class CodePointString implements Iterable<number> {
     meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
     const points = new Uint32Array(length);
     for (let i = 0; i < length; i++) { meter.checkpoint(); points[i] = this.#points[i % this.length]; }
-    return new CodePointString(points, meter);
+    return new CodePointString(points, meter, ownedPoints);
   }
 
   concat(other: CodePointString, meter: ExecutionMeter): CodePointString {
@@ -75,7 +82,7 @@ export class CodePointString implements Iterable<number> {
     const points = new Uint32Array(this.length + other.length);
     for (let i = 0; i < this.length; i++) { meter.checkpoint(); points[i] = this.#points[i]; }
     for (let i = 0; i < other.length; i++) { meter.checkpoint(); points[this.length + i] = other.#points[i]; }
-    return new CodePointString(points, meter);
+    return new CodePointString(points, meter, ownedPoints);
   }
 
   search(needle: CodePointString, mode: SearchMode, start = 0n, stop: bigint | null = null, meter?: ExecutionMeter): number {

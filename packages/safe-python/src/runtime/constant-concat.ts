@@ -3,7 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 
 /** Concatenate matching exact immutable sequence kinds. This kernel declines
  * mismatches; the caller owns reflected dispatch and sequence-specific errors.
- * Byte storage is adopted once; string and tuple temporary copies are explicitly
+ * Byte/string storage is adopted once; tuple temporary copies are explicitly
  * charged. Complete host object/array overhead accounting remains unfinished.
  */
 export function constantConcat(left: ConstantValue, right: ConstantValue, values: ConstantValues, meter: ExecutionMeter): ConstantValue {

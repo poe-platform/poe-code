@@ -5,7 +5,7 @@ import { PythonRuntimeError } from "./error.js";
 /** Exact immutable sequence repetition in either operand order. Count conversion
  * precedes empty-sequence shortcuts. Guest __index__/reflected dispatch belongs
  * to the caller. Payload/slot copies are charged before allocation, while full
- * host overhead and removal of string/tuple temporary copies remain pending.
+ * host overhead and removal of tuple temporary copies remain pending.
  */
 export function constantRepeat(left: ConstantValue, right: ConstantValue, values: ConstantValues, meter: ExecutionMeter): ConstantValue {
   meter.checkpoint();

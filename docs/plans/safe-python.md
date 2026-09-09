@@ -2191,6 +2191,18 @@ extension, integration, or validation requirement is missing or unverified.
   orders, including safe overflow probes. Source typecheck, scoped lint and selected
   workspace build passed. Guest index conversion, sequence slot
   dispatch and complete resource accounting remain unfinished.
+- Removed redundant code-point buffer copies from string concatenation, repetition
+  and strided slicing. Fresh generated buffers transfer through a module-private
+  ownership capability; public constructor inputs still copy and validate, and an
+  unrelated marker cannot bypass either operation. Contiguous slices still take
+  independent copies rather than retaining views into an older backing buffer.
+- Owned-string validation: allocation/identity regressions failed before the
+  optimization, including a repeat that previously exceeded an exact one-buffer
+  budget. The older strided-slice allocation expectation now reflects its actual
+  single buffer. All 2,562 tests in 145 files pass; CPython rechecks matched 3,000
+  concatenations, 6,036 repetitions and 3,000 slices. Source typecheck, scoped lint
+  and selected workspace build passed. Tuple temporary copies and
+  full host object/array overhead accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

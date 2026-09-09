@@ -140,7 +140,7 @@ describe("budgeted string storage operations", () => {
     expect(contiguous.usage.allocatedBytes).toBe(8);
     const strided = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 16 });
     expect([...source.slice(null, null, 2n, strided)]).toEqual([65, 67]);
-    expect(strided.usage.allocatedBytes).toBe(16);
+    expect(strided.usage.allocatedBytes).toBe(8);
     const reused = new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 0 });
     expect(source.slice(null, null, null, reused)).toBe(source);
     expect(reused.usage).toEqual({ steps: 1, allocatedBytes: 0 });

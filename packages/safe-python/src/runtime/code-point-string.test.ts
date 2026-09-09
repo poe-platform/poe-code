@@ -1,8 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { CodePointString } from "./code-point-string.js";
 import { parseExpression } from "../expression.js";
+import { ExecutionBudget } from "./execution-budget.js";
 
 describe("immutable code-point string storage", () => {
+  it.each(["concat", "repeat", "slice"] as const)("allocates only the owned result buffer for %s", operation => {
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 1000 });
+    const source = new CodePointString(Uint32Array.of(65, 0xd800, 0xdc00, 0x10000), meter);
+    const before = meter.usage.allocatedBytes;
+    const result = operation === "concat" ? source.concat(source, meter) : operation === "repeat" ? source.repeat(2, meter) : source.slice(null, null, 2n, meter);
+    expect(meter.usage.allocatedBytes - before).toBe(result.length * 4);
+    expect(Object.isFrozen(result)).toBe(true);
+    expect([...source]).toEqual([65, 0xd800, 0xdc00, 0x10000]);
+    expect([...result]).toEqual(operation === "slice" ? [65, 0xdc00] : [65, 0xd800, 0xdc00, 0x10000, 65, 0xd800, 0xdc00, 0x10000]);
+  });
+  it("fits a generated string into exactly one output-buffer allocation", () => {
+    const source = new CodePointString(Uint32Array.of(65, 66));
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 16 });
+    expect([...source.repeat(2, meter)]).toEqual([65, 66, 65, 66]);
+    expect(meter.usage.allocatedBytes).toBe(16);
+  });
+  it("does not let an unrelated ownership marker bypass public copying or validation", () => {
+    const marker = Symbol("owned") as never, input = Uint32Array.of(65);
+    const text = new CodePointString(input, undefined, marker);
+    input[0] = 66; expect([...text]).toEqual([65]);
+    expect(() => new CodePointString(Uint32Array.of(0x110000), undefined, marker)).toThrow("string code point outside Unicode range");
+  });
   it("takes an independent copy of input code points", () => {
     const input = new Uint32Array([65, 0x1f600, 0xd800, 0xdc00, 0]);
     const text = new CodePointString(input);

@@ -48,10 +48,10 @@ describe("concrete immutable sequence concatenation", () => {
     expect(constantConcat(v.tuple([]), v.none, v, meter)).toBe(v.notImplemented);
     expect(constantConcat(v.true, v.true, v, meter)).toBe(v.notImplemented);
   });
-  it("charges string and tuple temporary storage as well as owned results", () => {
+  it("charges owned string storage and both temporary and owned tuple slots", () => {
     const { meter, values: v } = fixture(), a = v.string("ab"), b = v.string("c"), left = v.tuple([v.none]), right = v.tuple([v.true]);
     let before = meter.usage.allocatedBytes;
-    constantConcat(a, b, v, meter); expect(meter.usage.allocatedBytes - before).toBe(32 + 2 * 3 * 4);
+    constantConcat(a, b, v, meter); expect(meter.usage.allocatedBytes - before).toBe(32 + 3 * 4);
     before = meter.usage.allocatedBytes;
     constantConcat(left, right, v, meter); expect(meter.usage.allocatedBytes - before).toBe(32 + 2 * 2 * 8);
   });

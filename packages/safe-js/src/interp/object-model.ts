@@ -324,6 +324,7 @@ function captureIntrinsicRecords(targets: Array<SandboxObject | SandboxClosure>)
     .map((record) => ({
       ...record,
       dataRoot: {},
+      dataRootActive: false,
       revision: functionPropertyRevisions.get(record.value),
       capturedRevision: -1,
       captured: undefined as unknown[] | undefined,
@@ -406,12 +407,14 @@ function trackIntrinsicState(
         // kinds may omit baseline fields, so their projections stay explicit.
         if (isSandboxBox(record.target)) {
           intrinsicDataRoots.set(record.dataRoot, { target: record.target, values: contributions });
+          record.dataRootActive = true;
           (retained ??= []).push(record.dataRoot);
         } else {
           for (const item of contributions) (retained ??= []).push(item);
         }
-      } else {
+      } else if (record.dataRootActive) {
         intrinsicDataRoots.delete(record.dataRoot);
+        record.dataRootActive = false;
       }
     }
     return retained;

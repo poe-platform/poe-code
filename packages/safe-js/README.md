@@ -551,8 +551,9 @@ including virtual keys, inherited properties, deletion, and early loop exits.
 The saved key-list format is unchanged; serializing Proxy graphs remains pending.
 Array methods now await Proxy membership and deletion traps on array-like
 receivers, with ordered writes and tested partial failures. Their internal view
-no longer reads a guest `then` property. Wrapped-array species, flattening and
-concat identity still need integration.
+no longer reads a guest `then` property. Species selection recognizes wrapped
+arrays, including nested Proxies and array subclasses. Proxy species result
+definitions, wrapped-array flattening and concat identity still need integration.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

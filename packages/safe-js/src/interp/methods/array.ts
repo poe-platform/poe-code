@@ -23,6 +23,7 @@ import { objectProperties } from "../globals/object-array.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { getSandboxPropertyDescriptor } from "../object-model.js";
+import { sandboxIsArray } from "../guest-proxy-array.js";
 
 async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options: ArrayMethodOptions): Promise<SandboxValue & object> {
   const receiver = arrayLikeSources.get(value) ?? value;
@@ -30,7 +31,7 @@ async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options
     ? options.context.getProperty(target, key)
     : readPropertyDescriptor(getSandboxPropertyDescriptor(target, key, options.budget) ?? { value: undefined }, target, options.context);
   let constructor: SandboxValue;
-  if (Array.isArray(receiver)) {
+  if (sandboxIsArray(receiver, options.budget)) {
     constructor = await read(receiver, "constructor");
     if (typeof constructor === "object" && constructor !== null) {
       constructor = await read(constructor, Symbol.species);

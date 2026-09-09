@@ -42,7 +42,7 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
           const storage = context.string(spec); meter.checkpoint();
           if (storage === undefined) throw new Error("validated format spec lost string storage");
           const result = stringFormat(value.value, storage, "str", meter);
-          return result === value.value ? value : values.stringPoints(result);
+          return result === value.value ? value : values.stringPoints(result, "canonical");
         };
       }
       if (hasNativeObjectFormat(value)) {
@@ -58,13 +58,13 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
         return spec => {
           const storage = context.string(spec); meter.checkpoint();
           if (storage === undefined) throw new Error("validated format spec lost string storage");
-          if (storage.length === 0) return representationObject(value, "str", context, meter);
+          if (storage.length === 0 && value.kind !== "int") return representationObject(value, "str", context, meter);
           if (value.kind === "int" || value.kind === "bool") {
             const integer = value.kind === "int" ? value.value : value.value ? 1n : 0n;
-            return values.stringPoints(integerFormat(integer, storage, value.kind, meter, undefined, numericLocale));
+            return values.stringPoints(integerFormat(integer, storage, value.kind, meter, undefined, numericLocale), "canonical");
           }
-          if (value.kind === "float") return values.stringPoints(floatFormat(value.value, storage, "float", meter, numericLocale));
-          return values.stringPoints(complexFormat(value.real, value.imaginary, storage, "complex", meter, numericLocale));
+          if (value.kind === "float") return values.stringPoints(floatFormat(value.value, storage, "float", meter, numericLocale), "canonical");
+          return values.stringPoints(complexFormat(value.real, value.imaginary, storage, "complex", meter, numericLocale), "canonical");
         };
       }
       return hooks.lookupFormat?.(value);

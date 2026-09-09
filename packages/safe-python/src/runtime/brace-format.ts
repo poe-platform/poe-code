@@ -3,7 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { scanBraceFormat } from "./brace-format-scan.js";
 import { FormatFieldResolver, type FormatFieldHooks } from "./format-field-resolver.js";
-import { formatObject, type FormatContext } from "./format-protocol.js";
+import { formatSlot, type FormatContext } from "./format-protocol.js";
 import { representationObject } from "./representation-protocol.js";
 
 export interface BraceFormatResult<Value> {
@@ -44,7 +44,7 @@ export function braceFormat<Value>(source: CodePointString, positional: readonly
       const storage = part.expand ? build(part.spec.start, part.spec.end, depth - 1).storage
         : source.slice(BigInt(part.spec.start), BigInt(part.spec.end), null, meter);
       const spec = context.stringPoints(storage); meter.checkpoint();
-      const result = formatObject(value, spec, context, meter);
+      const result = formatSlot(value, spec, context, meter);
       const rendered = context.string(result); meter.checkpoint();
       if (rendered === undefined) throw new Error("validated format result lost string storage");
       // An initial empty write leaves the output uninitialized. Once a field

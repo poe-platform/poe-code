@@ -49,7 +49,7 @@ export function runtimeNativeRepresentation(receiver: NativeRepresentationValue,
   if (receiver.kind === "float") return values.string(floatRepresentation(receiver.value, meter));
   if (receiver.kind === "complex") return values.string(complexRepresentation(receiver.real, receiver.imaginary, meter));
   if (receiver.kind === "range") return values.string(rangeRepresentation(receiver.value, meter));
-  if (receiver.kind === "int") return values.string(integerDigits(receiver.value, 10, meter));
+  if (receiver.kind === "int") return values.string(integerDigits(receiver.value, 10, meter), "fresh");
   if (receiver.kind === "bool") return values.string(receiver.value ? "True" : "False");
   if (receiver.kind === "str" && name === "__str__") return receiver;
   const text = receiver.kind === "str" ? receiver.value.repr(false, meter) : CodePointString.fromBytesRepr(receiver.value, meter);

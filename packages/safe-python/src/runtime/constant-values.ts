@@ -113,12 +113,12 @@ export class ConstantValues {
     return result;
   }
 
-  string(value: string): Extract<PrimitiveConstant, { kind: "str" }> {
+  string(value: string, identity: "canonical" | "fresh" = "canonical"): Extract<PrimitiveConstant, { kind: "str" }> {
     this.meter.checkpoint(1, value.length * Uint32Array.BYTES_PER_ELEMENT);
     const points = new Uint32Array(value.length);
     let length = 0;
     for (const character of value) { this.meter.checkpoint(); points[length++] = character.codePointAt(0)!; }
-    return this.stringPoints(points.subarray(0, length), "canonical");
+    return this.stringPoints(points.subarray(0, length), identity);
   }
 
   bytes(value: Uint8Array | ImmutableBytes, identity: "canonical" | "fresh" = "canonical"): BytesConstant {

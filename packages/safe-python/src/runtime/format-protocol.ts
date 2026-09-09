@@ -32,6 +32,13 @@ export function formatObject<Value>(value: Value, spec: Value | undefined, conte
     if (integer) return representationObject(value, "str", context, meter);
   }
   if (spec === undefined) { spec = context.stringPoints(new CodePointString(empty, meter)); meter.checkpoint(); }
+  return formatSlot(value, spec, context, meter);
+}
+
+/** Invoke and validate a formatting slot with an already validated string spec.
+ * Native methods and brace formatting do not use format()'s empty-int shortcut. */
+export function formatSlot<Value>(value: Value, spec: Value, context: FormatContext<Value>, meter: ExecutionMeter): Value {
+  meter.checkpoint();
   const method = context.lookupFormat(value); meter.checkpoint();
   if (method === undefined) throw new PythonRuntimeError("TypeError", `Type ${diagnosticTypeName(context.typeName(value), meter, 100)} doesn't define __format__`);
   const result = method(spec); meter.checkpoint();

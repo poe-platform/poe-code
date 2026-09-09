@@ -5891,6 +5891,20 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Subclass/bytearray
   behavior currently uses explicit hooks; general guest object construction,
   namespace assembly and broader interpreter/SDK/safe-fs work remain unfinished.
+- Applied canonical completed-output construction to native numeric/string
+  presentations while preserving unchanged string identity. Auditing exposed an
+  integer representation regression from metadata caching: integer str/repr now
+  explicitly requests fresh construction. Host-string conversion accepts the
+  same explicit identity policy as code-point storage conversion.
+- Separated validated format-slot invocation from format()'s exact empty-int
+  shortcut. Direct int.__format__('') and brace formatting use the slot/canonical
+  output path; format(1, '') and f-strings retain fresh integer conversion.
+  Shared slot invocation still validates guest formatter results.
+- Four tests first reproduced the missing distinctions. All 4,750 tests in 412
+  files pass. CPython audits pass for 890 compiled native-format identity cases,
+  454 compiled brace-method programs and 20,584 evaluator cases. Typecheck,
+  scoped lint and selected workspace build pass. Remaining output identity and
+  broader interpreter/SDK/safe-fs integration work remains unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

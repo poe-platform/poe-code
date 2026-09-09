@@ -2569,6 +2569,20 @@ extension, integration, or validation requirement is missing or unverified.
   Guest iterator type identity, StopIteration values, descriptor/type slot
   implementations, recursive-call limits, length-hint consumer preparation and
   complete native allocation accounting remain unfinished.
+- Connected protocol iterators and length hints to list extension through a
+  shared guest-source bridge. Exact lists, including self-extension, use owned
+  slot copying; generic sources create their iterator first, evaluate the
+  original source's length/hint next, then stream items. Preparation mutations
+  and partial iteration progress remain visible on failure. Hints are validated
+  but do not cause speculative capacity allocation; actual appended slots are
+  charged. Huge valid hints therefore do not reproduce CPython preallocation
+  MemoryError, consistent with treating hints as advisory rather than exact size.
+- The bridge suite first failed on its missing module; all 2,856 tests in 172
+  files pass. A 400-case CPython audit matched preparation and consumption order,
+  target mutations, hint failures and partial progress for guest iterators and
+  indexed sequence fallback. Source typecheck, scoped lint and selected workspace
+  build passed. Guest method binding, type/descriptor slot implementations,
+  further container consumer integration and complete heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

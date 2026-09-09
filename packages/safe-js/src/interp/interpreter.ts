@@ -126,6 +126,7 @@ import { getFunctionMember, type FunctionMethodOptions } from "./methods/functio
 import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
+import { constructGuestProxy } from "./guest-proxy-construct.js";
 import { sandboxDeleteProperty } from "./guest-proxy-delete.js";
 import { sandboxHasProperty } from "./guest-proxy-has.js";
 import { sandboxGetProperty } from "./guest-proxy-get.js";
@@ -4610,8 +4611,12 @@ async function invokeSandboxClosure(
   const leaveCall = context.budget.enterCall();
 
   try {
-    if (!construct && guestProxyStates.has(callee))
-      return await callGuestProxy(callee, args, context.budget, { ...createCoercionContext(context), stack }, thisValue);
+    if (guestProxyStates.has(callee)) {
+      const callContext = { ...createCoercionContext(context), stack };
+      return await (construct
+        ? constructGuestProxy(callee, args, context.budget, callContext, newTarget ?? callee)
+        : callGuestProxy(callee, args, context.budget, callContext, thisValue));
+    }
     const invoke = construct ? callee.construct : callee.call;
     if (invoke === undefined) throw new TypeError("Value is not a constructor.");
     const result = Reflect.apply(invoke, undefined, [

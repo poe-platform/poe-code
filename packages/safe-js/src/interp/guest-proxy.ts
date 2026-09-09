@@ -11,9 +11,12 @@ export function createGuestProxy(target: SandboxValue, handler: SandboxValue): S
   if (typeof target !== "object" || target === null) throw new TypeError("Proxy target must be an object.");
   if (typeof handler !== "object" || handler === null) throw new TypeError("Proxy handler must be an object.");
   const proxy = isSandboxClosure(target)
-    ? createSandboxClosure({ guest: true, sandbox: true, call: () => {
-      throw new TypeError("Proxy calls require runtime dispatch.");
-    } })
+    ? createSandboxClosure({ guest: true, sandbox: true,
+      call: () => { throw new TypeError("Proxy calls require runtime dispatch."); },
+      ...(target.construct === undefined ? {} : {
+        construct: () => { throw new TypeError("Proxy construction requires runtime dispatch."); }
+      })
+    })
     : Object.create(null) as SandboxObject;
   guestProxyStates.set(proxy, { target, handler });
   return proxy;

@@ -11,6 +11,8 @@ full-package, snapshot, or JavaScript-conformance gate.
 - Private target/handler state, revocation checks and trap lifecycle.
 - Callable carriers and apply/forwarding dispatch in interpreter and builtin
   invocation paths; see [verification and construction limits](safejs-proxy-call.md).
+- Constructible carriers, construct traps, newTarget forwarding and prototype
+  selection; see [verification](safejs-proxy-construct.md).
 - Get/set, has/delete, own-descriptor/define, ownKeys, prototype and extensibility
   operations, including their tested target invariants.
 - Member expressions, assignments, membership, deletion and with bindings.
@@ -57,8 +59,8 @@ regressions, TypeScript and lint checks. Recent records include
 
 ## Remaining integration and verification
 
-- Public Proxy construction and Proxy.revocable; constructible carriers,
-  construct traps and remaining callable intrinsic integration.
+- Public Proxy construction and Proxy.revocable, plus remaining callable
+  intrinsic integration.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
 - Remaining built-in/callable-Proxy instanceof cases and object

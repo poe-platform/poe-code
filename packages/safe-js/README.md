@@ -559,7 +559,8 @@ stopping further writes. Concat spreads wrapped arrays by default and honors
 arrays, snapshot each nested length, and honor depth limits while skipping holes.
 Internal callable Proxies support direct, bound, callback, and Reflect.apply
 invocation, including apply traps and target forwarding. Revocation preserves
-callable identity but rejects calls. Constructor dispatch is not implemented yet.
+callable identity but rejects calls. Constructible Proxies support construct traps,
+target forwarding, and explicit `new.target`, including subclass construction.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.
@@ -578,7 +579,7 @@ Proxy extensibility and descriptor operations, with tested early exits.
 
 At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
 24 files. This is not a full-package gate or evidence of public Proxy support.
-Proxy constructor dispatch, public construction/revocation, Proxy checkpoint state, and
+Public construction/revocation, Proxy checkpoint state, and
 remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.

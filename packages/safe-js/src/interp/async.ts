@@ -209,7 +209,9 @@ export function createInterpretedClosure(
       ? async (args: readonly SandboxValue[], callContext?: SandboxCallContext) => {
           const thisValue = {};
           const newTarget = callContext?.newTarget ?? closure;
-          const prototype = getGuestFunctionProperty(newTarget, "prototype");
+          const prototype = callContext?.getProperty === undefined
+            ? getGuestFunctionProperty(newTarget, "prototype")
+            : await callContext.getProperty(newTarget, "prototype");
           if (typeof prototype === "object" && prototype !== null) {
             setSandboxPrototype(thisValue, prototype, context.budget);
           }

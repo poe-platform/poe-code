@@ -654,6 +654,21 @@ extension, integration, or validation requirement is missing or unverified.
   type syntax, closure ownership, isolated future state, and single-delivery lexer
   callbacks. Source typecheck, selected workspace build, and a built-export smoke
   check passed. Scoped lint passed.
+- Started runtime arithmetic with exact integer divmod and correctly rounded
+  integer true division. Quotient/remainder use Python floor semantics; true
+  division rounds the exact bigint ratio to binary64 without independently
+  converting operands, preserving signed zero and handling subnormal/tie/overflow
+  boundaries. Internal numeric faults distinguish zero division and overflow;
+  guest exception-object construction remains pending.
+- Integer arithmetic validation: the suite first failed on the missing module;
+  all 1,189 package tests pass, including 21 arithmetic cases and large signed
+  quotient/remainder identity checks. A 2,568-case CPython comparison matched exact
+  quotient/remainder values, errors, and IEEE-754 division bytes across generated
+  operands up to thousands of bits and rounding boundaries. Added targeted checks
+  where converting numerator or denominator first gives an incorrect result.
+  Source typecheck, scoped lint, and selected workspace build passed. Reference:
+  https://docs.python.org/3/reference/expressions.html . These internal primitives
+  are not yet connected to expression execution or resource accounting.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

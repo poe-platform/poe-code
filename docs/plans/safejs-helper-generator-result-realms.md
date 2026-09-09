@@ -134,6 +134,28 @@ suite was live. They are additional failing audit probes, not implemented
 fixes. Keep mutation/revocation and completed-result controls in the eventual
 source regression tests.
 
+## Lazy helper result implementation
+
+Fifteen source tests failed before the fix: the three borrowed-operation
+sequences for all five helper kinds. The existing payload/record controls
+passed. All newly created helper result records now use createIteratorResult,
+including the step records returned by filter, take, drop and flatMap. Input
+result records and yielded values are not re-prototyped or copied by this
+change. Completion remains fresh on each call.
+
+The regressions check native contents, method-realm prototype identity,
+later prototype mutation and rejection of lossy data copying. Five additional
+public replay cases check next/return/completed-result prototype identity.
+Iterator.from fallback returns and generator results remain separate pending
+fixes; this implementation does not alter them.
+
+Validation passed 152 tests across six helper/consumer/SDK Proxy files,
+including all 25 new realm, payload and replay cases. Scoped ESLint and
+package TypeScript passed. The maintained build passed 23 workspace builds
+and four fresh-process import checks. Built SDK probes passed all 40 borrowed
+helper operations. No visual CLI changes, push or release. The recorded full
+package gate predates this implementation.
+
 ## Verification boundary
 
 These are built-SDK/native audit observations, not completed fixes or passing

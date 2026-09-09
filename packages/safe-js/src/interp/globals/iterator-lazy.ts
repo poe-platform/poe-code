@@ -8,6 +8,7 @@ import type { IteratorWrapperState } from "../iterator-wrapper.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { createIntrinsicObject, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
+import { createIteratorResult } from "../iterator-result.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
@@ -23,7 +24,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
         const state=receiver !== null && typeof receiver === "object" ? iteratorHelperStates.get(receiver) : undefined;
         if (state === undefined) throw new TypeError("Iterator helper method requires a branded receiver.");
         if (state.status === "executing") throw new TypeError("Iterator helper is already executing.");
-        if (state.status === "done") return {value:undefined,done:true};
+        if (state.status === "done") return createIteratorResult(undefined,true,budget);
         state.status="executing";
         try {
           const outer=state.outer!;
@@ -34,7 +35,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
             }
             await closeIterator(adapter(outer,context));
             complete(state);
-            return {value:undefined,done:true};
+            return createIteratorResult(undefined,true,budget);
           }
           while (true) {
             budget.visitNode();
@@ -48,7 +49,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
             if (state.method === "take" && state.remaining === 0) {
               await closeIterator(adapter(outer,context));
               complete(state);
-              return {value:undefined,done:true};
+              return createIteratorResult(undefined,true,budget);
             }
             const skipping=state.method === "drop" && state.remaining>0;
             if ((state.method === "take" || skipping) && state.remaining !== Infinity) state.remaining--;
@@ -74,7 +75,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
                   state.inner={iterator:inner,next:await context.getProperty!(inner,"next")};
                 }
               } catch(error) {if (!isFatalSandboxError(error)) await closeIterator(adapter(outer,context),true);throw error}
-              if (state.method === "map") {state.status="yield";return {value:mapped,done:false}}
+              if (state.method === "map") {state.status="yield";return createIteratorResult(mapped,false,budget)}
               if (state.method === "filter" && mapped) {state.status="yield";return result}
             } finally {release()}
           }
@@ -129,8 +130,8 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
     const release=retainValues(budget,()=>[result]);
     try {
       result=await adapter(record,context).next() as unknown as SandboxValue;
-      if (await context.getProperty!(result,"done")) return {value:undefined,done:true};
-      return {value:skipValue ? undefined : await context.getProperty!(result,"value"),done:false};
+      if (await context.getProperty!(result,"done")) return createIteratorResult(undefined,true,budget);
+      return createIteratorResult(skipValue ? undefined : await context.getProperty!(result,"value"),false,budget);
     } finally {release()}
   }
   function callContext(context?: SandboxCallContext): SandboxCallContext {

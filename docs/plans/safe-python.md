@@ -287,8 +287,25 @@ extension, integration, or validation requirement is missing or unverified.
   matched acceptance, string kind, decoded text, field order, debug text, conversions,
   and format specifications. Scoped lint, source typecheck, and selected workspace build passed.
   Runtime string construction/formatting and template objects remain pending.
+- Added a pinned Unicode 16 NFKC normalizer as the prerequisite for normalized
+  identifier binding. Generated, hash-verified UnicodeData and normalization-property
+  tables supply 5,913 decompositions and 961 canonical compositions, with algorithmic
+  Hangul processing and stable combining-mark ordering. Long combining runs use
+  stable sorting rather than quadratic insertion ordering, and output construction
+  avoids unbounded host argument spreading. No host String.normalize is required.
+  Unicode normalization is stable for characters assigned in both versions, but
+  the repository's older supported Node versions may predate Unicode 16, so relying
+  on host normalization alone would not meet the target repertoire.
+- Normalization validation: the new normalizer test suite initially failed because
+  the implementation was missing. All 617 package tests pass, including a test with
+  host normalization disabled. All 99,825 NFKC checks across 19,965 official Unicode
+  16 NormalizationTest rows pass, plus exhaustive comparison of 1,114,112 individual
+  code points against CPython's Unicode 16 normalizer. Regeneration is byte-identical.
+  Scoped lint, source typecheck, and selected workspace build passed. The parser still retains
+  only raw identifier spelling; wiring normalized names into its AST, duplicate
+  checks, forbidden-binding checks, and scope validation is the next step.
 - Next:
-  parser-level NFKC
+  parser-level NFKC integration
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

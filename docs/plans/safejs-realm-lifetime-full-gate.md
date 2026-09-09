@@ -1,5 +1,30 @@
 # Realm lifetime full package gate
 
+## Latest boxed-primitive candidate
+
+Runtime HEAD fa36d37f3 passed the maintained selected-workspace build (23
+builds and four fresh-process import checks), then the same unit command below
+ran to completion, exit 1. It started at 03:29:47 and took 753.59 seconds.
+Documentation-only commits landed during the run. Uncommitted weak-collection
+work and Promise policy tests remain part of the tested working tree.
+
+- Tests: 24,115 passed, four failed, 37 skipped; 24,156 total.
+- Files: 930 passed, three failed, one skipped; 934 total.
+- The two native Promise property-import assertions still fail.
+- external-checkpoint-validation.test.ts timed out at 5000 ms for the pending
+  `co` workflow.
+- float32-camera.test.ts timed out at 5000 ms for one inverse-coordinate batch.
+
+The sorted source/test SHA-256 matched before, during and after the run:
+
+`ed900725d48bea1a453ec6d1486829b0b6e455f876468d39c57c3c6e1e3ec815`
+
+A subsequent unchanged-source focused run of both timeout files passed all
+25 tests in 22.06 seconds. The `co` case took 1513 ms; camera batches took
+1744–2684 ms. This demonstrates an isolated pass, not a fix for the full-suite
+timeouts or proof of their cause. No timeout, fixture, assertion or budget was
+changed. Both full-suite timeout failures remain unresolved. No push or release.
+
 ## Candidate and command
 
 Runtime HEAD: `5b6d9f487` (function rest-parameter realm preservation).

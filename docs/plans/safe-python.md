@@ -3177,6 +3177,22 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build passed. dict constructors/methods, arbitrary guest
   mapping slots, concrete call keyword dictionaries, complete exception rendering,
   full resource accounting and public execution/safe-fs integration remain open.
+- Added concrete dictionary source updates and expanded dict() construction.
+  Exact dictionaries reuse cached hashes in their shared policy domain; other
+  current values feed the existing fully-materialized pair-update engine. Tuple
+  rows reuse slots, list rows take metered snapshots, and iterator rows exhaust
+  before shape validation. Earlier writes survive later errors without closing
+  or advancing the outer iterator. Construction validates positional arity and
+  applies already-validated keyword names after successful positional updates.
+- The new suite first failed on its missing implementation module. All 3,307
+  tests in 217 files pass, including malformed rows, iterator failures, infinite
+  row termination, hash reuse and keyword overwrite order. A CPython audit matched
+  2,400 concrete updates and 2,400 constructors; 600 pair-update traces and 10,000
+  ordered-map operation regressions also passed. Source typecheck, scoped lint and selected
+  workspace build passed. These are internal call-ready operations, not guest
+  builtin/method registration. Guest mapping and length-hint slots, dict method
+  call binding, concrete call collectors, full exception/resource accounting and
+  public execution/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

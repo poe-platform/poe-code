@@ -8,6 +8,7 @@ import { tupleRepresentation } from "./tuple-representation.js";
 import { dictionaryRepresentation } from "./dictionary-representation.js";
 import { mappingProxyRepresentation } from "./mapping-proxy-representation.js";
 import { RepresentationStack } from "./representation-stack.js";
+import { runtimeDictionaryViewRepresentation } from "./runtime-dictionary-view-representation.js";
 
 export interface RuntimeRepresentationHooks {
   /** Pure guest str-subclass storage inspection. */
@@ -37,6 +38,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
         return () => representationObject(value.value, "str", context, meter);
       }
       if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict") return undefined; // object.__str__ falls back to repr.
+      if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return undefined;
       if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeNativeRepresentation(value, "__str__", values, meter);
@@ -45,6 +47,13 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     },
     lookupRepr(value) {
       meter.checkpoint();
+      if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") {
+        meter.checkpoint(0, 64);
+        return () => {
+          stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+          return values.stringPoints(runtimeDictionaryViewRepresentation(value, values, context, stack, meter));
+        };
+      }
       if (value.kind === "mappingproxy") {
         meter.checkpoint(0, 64);
         return () => values.stringPoints(mappingProxyRepresentation(value.value, context, meter));

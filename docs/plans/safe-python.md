@@ -5410,6 +5410,18 @@ extension, integration, or validation requirement is missing or unverified.
   split/shared-key layouts, set/frozenset representation, bytes percent operators,
   full guest objects, suspended execution, complete accounting and SDK/safe-fs
   integration remain incomplete.
+- Added native str/repr and percent s/r/a for dictionary keys, values and items
+  views. A guarded shallow list snapshot captures all entries and item tuples
+  before any element repr runs; recursive views emit bare ellipses, even when
+  guest repr clears the active view. Framing preserves code-point storage and
+  the shared representation stack is restored on failures.
+- Five tests first failed on missing native view support. All 4,577 tests in
+  378 files pass. Native methods and percent fields match CPython 3.14.7 across
+  2,000 mixed view/dictionary graphs (9,000 roots), plus 2,000 compiled programs
+  with mixed native contents and Unicode fields. Source typecheck, scoped lint and selected
+  workspace build pass. Full guest objects, set/frozenset representations,
+  remaining dictionary layout policies, bytes percent operators, suspended
+  execution, complete accounting and SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

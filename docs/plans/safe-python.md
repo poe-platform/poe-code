@@ -1762,6 +1762,21 @@ extension, integration, or validation requirement is missing or unverified.
   final cell state. Source typecheck, scoped lint and selected build passed.
   Type.__new__ propagation/namespace validation, full class-body/decorator wiring,
   concrete guest objects and complete allocation accounting remain unfinished.
+- Extracted shared call-argument evaluation into a host continuation protocol,
+  retaining the expression engine's explicit evaluation stack. Ordinary lone-star
+  calls still defer expansion until after keywords; class headers can declare
+  their implicit positional body/name prefix so starred bases expand immediately.
+  Positional/star grouping, whole explicit-keyword groups and early mapping/duplicate
+  failures retain evaluation order. The existing collector type is re-exported for
+  compatibility. This host generator is not guest Python generator support.
+- Shared-argument validation: missing-module red suite preceded extraction.
+  All 2,239 tests in 114 files pass, including eight new argument-protocol cases and
+  a 4,001-level nested-call check without recursive host expression evaluation.
+  After rebuilding, 3,000 existing CPython ordinary-call traces matched; 64 separate
+  class-header traces matched prefix-sensitive expansion and failure timing. Source
+  typecheck, scoped lint and selected build passed. Full class-definition stage
+  wiring, concrete argument collectors, guest suspension and temporary allocation
+  accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -84,6 +84,16 @@ describe("call expression evaluation", () => {
     });
   });
 
+  it("evaluates deeply nested calls without recursive host evaluation", () => {
+    const { context } = environment({ f: (args: number[]) => (args[0] ?? 0) + 1 });
+    let expression = parseExpression("f()");
+    for (let index = 0; index < 4000; index++) {
+      if (expression.kind !== "call") throw new Error("expected call");
+      expression = { ...expression, arguments: [{ kind: "positional", value: expression, start: expression.start, end: expression.end }] };
+    }
+    expect(evaluateExpression(expression, context, new ExecutionBudget({ maxSteps: 200000, maxAllocatedBytes: 1000000 }))).toBe(4001);
+  });
+
   it("can invoke the runtime binder with evaluated arguments", () => {
     const { context } = environment({ f: (args: unknown[], keywords: Map<string, unknown>) => bindArguments("f", [
       { name: "a", kind: "positional-only" }, { name: "b", kind: "keyword-only" }

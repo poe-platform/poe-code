@@ -1,17 +1,7 @@
-import type { CallArgument, DictionaryEntry, Expression } from "../ast.js";
+import type { DictionaryEntry, Expression } from "../ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-
-/** Per-call guest argument collector. Expansion/merging owns iteration, guest
- * key validation, duplicate detection, allocation and internal metering. Explicit
- * keyword groups are evaluated fully before being handed to the collector.
- */
-export interface ExpressionCall<Value> {
-  positional(value: Value): void;
-  starred(value: Value): void;
-  keywords(entries: readonly (readonly [string, Value])[]): void;
-  mapping(value: Value): void;
-  invoke(): Value;
-}
+import { evaluateCallArguments, type ExpressionCall } from "./call-arguments.js";
+export type { ExpressionCall } from "./call-arguments.js";
 
 /** Concrete guest set operations own hashing/equality, optimized updates from
  * existing sets or mappings, guest iteration, allocation and internal metering.
@@ -265,49 +255,13 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       case "call":
         work.push(() => {
           const call = context.beginCall(value);
-          const positional: CallArgument[] = [], keywords: CallArgument[] = [];
-          for (const argument of node.arguments) {
-            meter.checkpoint();
-            (argument.kind === "positional" || argument.kind === "starred" ? positional : keywords).push(argument);
-          }
-          const soleStar = positional.length === 1 && positional[0].kind === "starred";
-          let deferredStar: { value: Value } | undefined;
-          let position = 0, keyword = 0;
-          let group: (readonly [string, Value])[] = [];
-          const nextKeyword = () => {
-            const argument = keywords[keyword];
-            if (group.length && (argument === undefined || argument.kind === "mapping")) {
-              const entries = group; group = [];
-              work.push(nextKeyword);
-              call.keywords(entries);
-              return;
-            }
-            if (argument === undefined) {
-              work.push(() => { value = call.invoke(); knownTruth = undefined; });
-              if (deferredStar !== undefined) {
-                const star = deferredStar.value;
-                work.push(() => { call.starred(star); });
-              }
-              return;
-            }
-            keyword++;
-            work.push(() => {
-              if (argument.kind === "keyword") group.push([argument.name, value]);
-              else call.mapping(value);
-              work.push(nextKeyword);
-            }, { node: argument.value, test: "value" });
+          const arguments_ = evaluateCallArguments(node.arguments, call, meter);
+          const advance = () => {
+            const next = arguments_.next(value);
+            if (next.done) { value = next.value; knownTruth = undefined; }
+            else work.push(advance, { node: next.value, test: "value" });
           };
-          const nextPositional = () => {
-            const argument = positional[position++];
-            if (argument === undefined) { work.push(nextKeyword); return; }
-            work.push(() => {
-              if (argument.kind === "positional") call.positional(value);
-              else if (soleStar) deferredStar = { value };
-              else call.starred(value);
-              work.push(nextPositional);
-            }, { node: argument.value, test: "value" });
-          };
-          work.push(nextPositional);
+          work.push(advance);
         }, { node: node.callee, test: "value" });
         break;
       case "binary":

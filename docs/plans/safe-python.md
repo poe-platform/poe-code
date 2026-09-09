@@ -5607,6 +5607,19 @@ extension, integration, or validation requirement is missing or unverified.
   and complex values. Typecheck, scoped lint and selected workspace build pass. Numeric
   nonempty renderers, guest subclasses and the wider interpreter/SDK/safe-fs
   integration remain incomplete.
+- Added the integer b/o/d/x/X rendering kernel for parsed format specs: signs,
+  alternate prefixes, Unicode fill, all four alignments and three/four-digit
+  grouping. Sign-aware zero padding participates in grouping and may exceed the
+  requested width by a separator; its digit count is calculated without scanning
+  the width. Output uses one preflighted owned code-point buffer. Decimal digit
+  policy is explicit, and precision errors precede negative-zero flag errors.
+- Five tests first failed on the missing kernel. All 4,645 tests in 389 files
+  pass. A 20,000-case CPython differential audit matches output and diagnostics
+  across bases, signs, prefixes, alignment, grouping, Unicode widths/fill and
+  large integers. Typecheck, scoped lint and selected workspace build pass. This kernel is
+  not yet connected to native integer dispatch; character/locale/float integer
+  presentations, remaining numeric renderers and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

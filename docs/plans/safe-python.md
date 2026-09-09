@@ -1552,6 +1552,20 @@ extension, integration, or validation requirement is missing or unverified.
   Concrete subclass protocol dispatch, note storage, exception object/traceback
   integration and complete diagnostic allocation accounting remain adapter/runtime
   responsibilities; full interpreter execution is still unfinished.
+- Added iterative del-target execution for names, attributes, subscriptions and
+  nested tuple/list targets. Lists describe deletion order rather than unpacking
+  values; empty nested lists are no-ops. References resolve only when reached and
+  do not read the value being removed. Earlier deletions remain after a later
+  failure. Explicit frames use space proportional to nesting depth, with required
+  traversal and pre-mutation checkpoints; concrete scope/protocol work is adapted.
+- Deletion validation: missing-module red suite preceded implementation; all
+  2,016 tests in 100 files pass, including 10,000-level targets without host
+  recursion and budget failure between reference resolution and deletion.
+  CPython matched 3,000 generated nested name/attribute/subscript deletions,
+  comparing full operation traces, failure status and remaining bindings/storage.
+  Scoped lint, source typecheck and selected build passed. Guest storage/protocol
+  semantics, complete frame allocation accounting and remaining full-interpreter
+  integration are still pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

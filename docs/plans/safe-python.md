@@ -4947,6 +4947,20 @@ extension, integration, or validation requirement is missing or unverified.
   percent assembly/dispatch remain unfinished. Full representations, guest object
   wiring, suspended execution, complete accounting and SDK/safe-fs integration
   remain outstanding.
+- Connected character conversion to concrete runtime values. The renamed shared
+  runtime percent-conversion context now serves integers and characters, reusing
+  index slots, exact payload rules and warning policies. It exposes native str
+  and bytes storage plus explicit guest string/bytearray capabilities and a
+  separate qualified-name hook; no __str__/__int__ fallback is used for %c.
+- Six new tests first failed because the integer-only adapter lacked character
+  capabilities. All 4,375 tests in 346 files pass. CPython comparisons using
+  RuntimeValues match 732 character conversions, and both 3,000-case text/bytes
+  integer-conversion regression audits still pass after the context rename.
+  Source typecheck, scoped lint and selected workspace build pass. Concrete
+  bytearray storage, full guest slot registration, floating formatting and
+  production percent assembly/dispatch remain unfinished. Full representations,
+  suspended execution, complete accounting and SDK/safe-fs integration remain
+  outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { createRuntimePercentIntegerContext } from "./runtime-percent-integer.js";
+import { createRuntimePercentConversionContext } from "./runtime-percent-conversion.js";
 import { percentInteger } from "./percent-integer-conversion.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
@@ -7,7 +7,7 @@ import { RuntimeValues } from "./runtime-values.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }), v = new RuntimeValues(meter);
-  return { v, meter, context: createRuntimePercentIntegerContext(meter) };
+  return { v, meter, context: createRuntimePercentConversionContext(meter) };
 }
 it("extracts exact native integer, bool and float values", () => {
   const { v, meter, context } = fixture();
@@ -32,7 +32,7 @@ it("uses explicit guest slots with hook ownership and subclass payload inspectio
     typeName: (value: unknown) => value === subclass ? "Sub" : "C",
     warn(_category: string, message: string) { expect(this).toBe(hooks); calls.push(message); }
   };
-  const context = createRuntimePercentIntegerContext(meter, hooks);
+  const context = createRuntimePercentConversionContext(meter, hooks);
   expect(percentInteger(source, 100, context, meter)).toBe(7n);
   expect(percentInteger(source, 120, context, meter)).toBe(8n);
   expect(percentInteger(subclass, 100, context, meter)).toBe(7n);
@@ -41,13 +41,13 @@ it("uses explicit guest slots with hook ownership and subclass payload inspectio
 });
 it("routes returned bool warnings through the caller's warning policy", () => {
   const { v, meter } = fixture(), source = v.cell({}), failure = new Error("warning filter");
-  const context = createRuntimePercentIntegerContext(meter, { lookupInt: () => () => v.true, warn: (_category, message) => { expect(message).toContain("type bool"); throw failure; } });
+  const context = createRuntimePercentConversionContext(meter, { lookupInt: () => () => v.true, warn: (_category, message) => { expect(message).toContain("type bool"); throw failure; } });
   expect(() => percentInteger(source, 100, context, meter)).toThrow(failure);
 });
 it("classifies guest TypeError and preserves other guest failures", () => {
   const { v, meter } = fixture(), source = v.cell({}), failure = {}, valueError = new PythonRuntimeError("ValueError", "custom");
   let raised: unknown = failure;
-  const context = createRuntimePercentIntegerContext(meter, { lookupIndex: () => () => { throw raised; }, isTypeError: error => error === failure, typeName: () => "Guest", warn: () => {} });
+  const context = createRuntimePercentConversionContext(meter, { lookupIndex: () => () => { throw raised; }, isTypeError: error => error === failure, typeName: () => "Guest", warn: () => {} });
   expect(() => percentInteger(source, 120, context, meter)).toThrow("%x format: an integer is required, not Guest");
   raised = valueError;
   expect(() => percentInteger(source, 120, context, meter)).toThrow(valueError);
@@ -55,6 +55,6 @@ it("classifies guest TypeError and preserves other guest failures", () => {
 it("checks cancellation after guest lookup and never suppresses fatal errors", () => {
   const { v } = fixture(); let cancelled = false;
   const meter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
-  const context = createRuntimePercentIntegerContext(meter, { lookupInt: () => { cancelled = true; return () => v.true; }, isTypeError: () => true, warn: () => {} });
+  const context = createRuntimePercentConversionContext(meter, { lookupInt: () => { cancelled = true; return () => v.true; }, isTypeError: () => true, warn: () => {} });
   expect(() => percentInteger(v.cell({}), 100, context, meter)).toThrow(ExecutionLimitError);
 });

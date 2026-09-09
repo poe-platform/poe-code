@@ -7,7 +7,7 @@ import { upperMappings, casefoldMappings, lowerMappings, titleMappings } from ".
 import { isUnicodeCharacter } from "./unicode-character-classification.js";
 import type { ImmutableBytes } from "./immutable-bytes.js";
 import { renderQuotedPoints } from "./quoted-representation.js";
-import { renderIntegerPercentPoints, type IntegerPercentField } from "./integer-percent-field.js";
+import { renderIntegerPercentBuffer, type IntegerPercentField } from "./integer-percent-field.js";
 
 // Module-private capability: only freshly generated, already charged buffers
 // may bypass public input copying and validation. Never export this marker.
@@ -144,8 +144,8 @@ export class CodePointString implements Iterable<number> {
   }
 
   /** Take sole ownership of a preflighted numeric percent-field buffer. */
-  static fromIntegerPercentField(value: bigint, field: IntegerPercentField, meter: ExecutionMeter, maxDecimalDigits = 4300): CodePointString {
-    const points = renderIntegerPercentPoints(value, field, meter, maxDecimalDigits);
+  static fromIntegerPercentField(value: bigint, field: IntegerPercentField, meter: ExecutionMeter, maxDecimalDigits?: number): CodePointString {
+    const points = renderIntegerPercentBuffer(value, field, Uint32Array, meter, maxDecimalDigits);
     return new CodePointString(points, meter, ownedPoints);
   }
 

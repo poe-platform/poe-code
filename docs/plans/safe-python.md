@@ -4883,6 +4883,21 @@ extension, integration, or validation requirement is missing or unverified.
   storage, floating formatting and production percent assembly/dispatch remain
   unfinished. Full representation builtins, guest object wiring, suspended
   execution, complete accounting and SDK/safe-fs integration remain outstanding.
+- Added direct byte storage for integer percent fields. The existing formatter
+  now accepts the trusted output-buffer constructor, so text and bytes share
+  all sign/prefix/precision/padding logic while reserving the correct element
+  size. ImmutableBytes adopts one fresh byte buffer with no intermediate
+  code-point buffer; the digit converter's temporary host strings are unchanged.
+  Factory defaults now defer to the shared renderer's decimal-limit default.
+- Six new tests first failed for the missing byte-field factory. All 4,341 tests
+  in 342 files pass, including an exact-budget check for one byte per final output
+  position. CPython matches 88,704 byte fields and 48 large-precision byte fields
+  through native binding; all 88,704 text-field regression comparisons also pass.
+  Source typecheck, scoped lint and selected workspace build pass. Runtime
+  operand conversion, floating formatting and production percent assembly and
+  binary dispatch remain unfinished. Full representation builtins, guest object
+  wiring, suspended execution, complete accounting and SDK/safe-fs integration
+  remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

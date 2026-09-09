@@ -8,7 +8,9 @@ export type IntegerPercentField = Pick<Extract<BoundPercentFormatEvent<unknown>,
 /** Internal owned-buffer producer. Precision and width share one output buffer;
  * signs and alternate prefixes precede width zeroes. Python keeps a zero digit
  * at precision zero and does not disable zero width padding for precision. */
-export function renderIntegerPercentPoints(value: bigint, field: IntegerPercentField, meter: ExecutionMeter, maxDecimalDigits = 4300): Uint32Array {
+export function renderIntegerPercentBuffer(value: bigint, field: IntegerPercentField, storage: Uint8ArrayConstructor, meter: ExecutionMeter, maxDecimalDigits?: number): Uint8Array;
+export function renderIntegerPercentBuffer(value: bigint, field: IntegerPercentField, storage: Uint32ArrayConstructor, meter: ExecutionMeter, maxDecimalDigits?: number): Uint32Array;
+export function renderIntegerPercentBuffer(value: bigint, field: IntegerPercentField, storage: Uint8ArrayConstructor | Uint32ArrayConstructor, meter: ExecutionMeter, maxDecimalDigits = 4300): Uint8Array | Uint32Array {
   meter.checkpoint();
   const { code, flags, width, precision } = field;
   if (width < 0n || (precision !== null && precision < 0n)) throw new RangeError("field dimensions must be nonnegative");
@@ -29,8 +31,8 @@ export function renderIntegerPercentPoints(value: bigint, field: IntegerPercentF
   if (finalLength > 0xffffffffn) exhaustAllocation(meter);
   const length = Number(finalLength), padding = Number(finalLength - core);
   const zeroes = Number(paddedDigits) - count + (flags.zero && !flags.left ? padding : 0);
-  meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
-  const points = new Uint32Array(length);
+  meter.checkpoint(0, length * storage.BYTES_PER_ELEMENT);
+  const points = new storage(length);
   let offset = 0;
   if (!flags.left && !flags.zero) for (let index = 0; index < padding; index++) { meter.checkpoint(); points[offset++] = 32; }
   if (sign !== 0) { meter.checkpoint(); points[offset++] = sign; }

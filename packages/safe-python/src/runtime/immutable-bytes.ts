@@ -4,6 +4,7 @@ import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, substringMatches, type SearchMode } from "./substring-search.js";
 import { isAsciiWhitespace } from "./ascii-whitespace.js";
 import type { CodePointString } from "./code-point-string.js";
+import { renderIntegerPercentBuffer, type IntegerPercentField } from "./integer-percent-field.js";
 
 export type BytesCaseTransformation = "upper" | "lower" | "title" | "capitalize" | "swapcase";
 
@@ -32,6 +33,13 @@ export class ImmutableBytes implements Iterable<number> {
       owned[index] = byte;
     }
     return new ImmutableBytes(owned);
+  }
+
+  /** Adopt the shared integer renderer's fresh byte buffer without an intermediate
+   * code-point buffer or second copy. Numeric output is entirely ASCII bytes. */
+  static fromIntegerPercentField(value: bigint, field: IntegerPercentField, meter: ExecutionMeter, maxDecimalDigits?: number): ImmutableBytes {
+    const bytes = renderIntegerPercentBuffer(value, field, Uint8Array, meter, maxDecimalDigits);
+    return new ImmutableBytes(bytes);
   }
 
   /** Build the identity mapping first, then apply ordered overrides. */

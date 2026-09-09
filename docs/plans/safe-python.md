@@ -4990,6 +4990,23 @@ extension, integration, or validation requirement is missing or unverified.
   guest identity wrapping and binary percent integration remain unfinished.
   Full guest objects, suspended execution, complete accounting and SDK/safe-fs
   integration also remain outstanding.
+- Added floating percent operand conversion with explicit float/index slots.
+  Float subclass payloads bypass overrides; integer subclass float overrides
+  remain honored. No numeric text parsing or __int__ fallback is performed.
+  Strict float/index results follow guest warning policy. Text preserves faults;
+  bytes remaps guest conversion exceptions, including overflow and guest
+  BaseException subclasses, while fatal limits and host failures propagate.
+  Shared UTF-8 diagnostic truncation now accepts the float protocol's 50-byte
+  precision as well as the existing 200-byte default.
+- Eight tests cover payloads, slot priority, invalid results, warnings, overflow,
+  guest/host exception separation, cancellation and diagnostic boundaries; the
+  initial test run failed for the missing converter. All 4,398 tests in 349 files
+  pass. CPython matches 768 text/bytes slot and warning combinations, including
+  long Unicode names and disabled methods. Source typecheck, scoped lint and
+  selected workspace build pass. Runtime float conversion adapters, actual
+  floating rendering, default field dispatch and binary percent integration
+  remain unfinished. Full guest objects, suspended execution, complete accounting
+  and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

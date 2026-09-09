@@ -6,6 +6,7 @@ export type RunResources = {
   functionSourceText?: boolean;
   // Cancellation is catchable; suspended references survive until disposal.
   referenceReleases: Set<() => void>;
+  reportError?: (reason: unknown) => void;
   add(close: () => Promise<void>): void;
 };
 
@@ -33,9 +34,14 @@ export async function withRunResources<Result>(
   const controller = new AbortController();
   const cancel = () => controller.abort(signal?.reason);
   const cleanups = new Set<() => Promise<void>>();
+  let failure: { reason: unknown } | undefined;
   const resources: RunResources = {
     signal: controller.signal,
     referenceReleases: new Set(),
+    reportError(reason) {
+      failure ??= { reason };
+      controller.abort(failure.reason);
+    },
     add(close) {
       cleanups.add(close);
     }
@@ -43,12 +49,11 @@ export async function withRunResources<Result>(
   signal?.addEventListener("abort", cancel, { once: true });
   if (signal?.aborted) cancel();
   let result!: Result;
-  let failure: { reason: unknown } | undefined;
   let errors: unknown[] = [];
   try {
     result = await runResources.run(resources, execute);
   } catch (error) {
-    failure = { reason: error };
+    failure ??= { reason: error };
   } finally {
     signal?.removeEventListener("abort", cancel);
     controller.abort(new Error("SafeJS run finished."));

@@ -601,7 +601,7 @@ class RealmState {
     try {
       const active = this.active !== undefined;
       const pending = withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup }, () =>
+        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup, reportError: reason => this.poison(reason) }, () =>
           withCancellationSignal(this.controller.signal, () =>
             active && this.phase.getStore()?.active ? runAsyncPrefix(invoke) : this.queue.run(invoke)
           )
@@ -822,7 +822,7 @@ class RealmState {
     if (this.active !== undefined) throw new SandboxError("reentry");
     const pending = Promise.resolve().then(() =>
       withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup }, () =>
+        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup, reportError: reason => this.poison(reason) }, () =>
           withCancellationSignal(this.controller.signal, task)
         )
       )
@@ -848,13 +848,14 @@ class RealmState {
         );
       return result;
     } catch (error) {
-      this.poison(error);
+      const reason = this.failure === undefined ? error : this.failure.reason;
+      this.poison(reason);
       try {
         await this.dispose();
       } catch (cleanup) {
-        throw new AggregateError([error, cleanup], "Realm execution and cleanup failed.");
+        throw new AggregateError([reason, cleanup], "Realm execution and cleanup failed.");
       }
-      throw error;
+      throw reason;
     } finally {
       this.active = undefined;
     }

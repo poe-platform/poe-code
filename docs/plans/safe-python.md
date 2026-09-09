@@ -53,8 +53,18 @@ extension, integration, or validation requirement is missing or unverified.
 - Verified 16 in-memory unit cases after observing missing-module failures before
   implementation. Package typecheck, scoped ESLint, and the maintained selected
   workspace build passed. No CLI visual surface was changed.
-- Next: lexical token generation with complete literal handling and logical-line
-  joining, then parser and evaluator. Interpreter execution is not implemented.
+- Added a numeric token reader with exact bigint-backed integers, binary/octal/
+  hexadecimal bases, decimal floats, imaginary coefficients, underscore grammar,
+  leading-zero validation, source spans, and deprecated keyword adjacency warnings.
+  It leaves following punctuation for the lexer. Unary signs remain parser work.
+- Numeric validation: 99 new unit cases (115 package cases total) pass. An ad hoc
+  comparison with CPython 3.14.7 covered 1,380 combinations of integer parts,
+  fractional parts, exponents, imaginary suffixes, bases, and malformed separators,
+  with no acceptance/value differences. Floating and imaginary values were compared
+  by IEEE-754 bytes, including overflow and underflow. This evidence covers literal
+  reading only, not numeric operations or the complete lexer.
+- Next: strings and bytes, lexical token generation, and logical-line joining,
+  then parser and evaluator. Interpreter execution is not implemented.
 - Workspace lockfile registration and packaging integration remain pending.
 - Package README creation awaits the requested permission under repository rules.
 - No push or release was requested.

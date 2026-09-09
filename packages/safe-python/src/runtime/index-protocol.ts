@@ -37,6 +37,12 @@ export function indexObject<Value>(value: Value, context: IntegerIndexContext<Va
   meter.checkpoint();
   if (method === undefined) throw new PythonRuntimeError("TypeError", `'${diagnosticTypeName(context.typeName(value), meter)}' object cannot be interpreted as an integer`);
   const result = method();
+  return validateIndexResult(result, context, meter);
+}
+
+/** Validate a resolved __index__ result without performing another slot lookup.
+ * Consumers with their own missing-slot diagnostics can share warning policy. */
+export function validateIndexResult<Value>(result: Value, context: IntegerIndexContext<Value>, meter: ExecutionMeter): Value {
   meter.checkpoint();
   const integer = context.integer(result);
   if (integer === undefined) throw new PythonRuntimeError("TypeError", `__index__ returned non-int (type ${diagnosticTypeName(context.typeName(result), meter)})`);

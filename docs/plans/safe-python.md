@@ -4929,6 +4929,24 @@ extension, integration, or validation requirement is missing or unverified.
   and floating formatting, general representations and production percent
   assembly/binary dispatch remain unfinished. Suspended execution, complete
   resource accounting and SDK/safe-fs integration also remain outstanding.
+- Added context-driven %c operand conversion. Text accepts one Unicode code
+  point (including surrogates) or an index in range(0x110000); bytes accepts a
+  single bytes/bytearray payload or an index in range(256). Payload length errors
+  take precedence over index overrides. Text remaps index TypeErrors while
+  bytes preserves errors from present index slots. A shared index-result
+  validator preserves warning policy without performing another slot lookup.
+- Nine initial tests first failed for the missing converter. Differential
+  checks exposed a separate %c diagnostic rule: full qualified type names,
+  unlike integer formats' bounded tp_name diagnostics. Two additional failing
+  regression tests drove a distinct qualified-name capability. All 4,369 tests
+  in 345 files pass. CPython matches 706 character conversions covering payload
+  precedence, ranges, bytearray capabilities, Unicode/qualified type names,
+  slot failures and warnings. All 3,000 integer-conversion regression comparisons
+  still pass. Source typecheck, scoped lint and selected workspace build pass.
+  Runtime adapters, concrete bytearray storage, floating formatting and production
+  percent assembly/dispatch remain unfinished. Full representations, guest object
+  wiring, suspended execution, complete accounting and SDK/safe-fs integration
+  remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

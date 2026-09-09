@@ -2421,6 +2421,20 @@ extension, integration, or validation requirement is missing or unverified.
   10,000-operation CPython audit including key/value/item membership matched
   outcomes and mapping state under seeded hashes and forced collisions. Full
   guest view objects, recursive dispatch and host heap accounting remain open.
+- Added owned mutable list slots with indexed get/set/delete, append, clipped
+  insertion, pop, clear, in-place reverse and detached frozen snapshots. Guest
+  __index__ conversion remains outside storage. Signed-64-bit overflow and bounds
+  errors distinguish subscription/assignment from insert/pop, including empty
+  pop precedence. Slot growth and element-shift/reversal work are preflighted
+  before mutation; elements retain identity and host input/output arrays do not
+  alias owned storage.
+- List regressions first reproduced missing storage. An additional failing test
+  caught construction following a host element getter's source-array growth;
+  construction now captures the reserved length once. All 2,707 tests in 161
+  files pass, and 5,000 CPython mutable-list operation/error/snapshot comparisons
+  match. Source typecheck, scoped lint and selected workspace build passed.
+  List slices, iteration, extension, sorting, guest type integration,
+  native spare-capacity/reallocation accounting and finalizers remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

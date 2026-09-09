@@ -545,6 +545,9 @@ ownership predicates, `isPrototypeOf`, legacy accessor lookup and `__proto__`,
 Ordinary enumeration also handles existing string/symbol properties made
 enumerable by an earlier getter.
 
+`Array.isArray` follows nested Proxy targets without invoking traps and rejects
+revoked proxies. Other internal array-identity consumers still need integration.
+
 The later internal freeze/seal implementation now prevents target extension and
 updates properties through Proxy traps, with tested ordering and partial-failure
 behavior. Integrity queries (`Object.isFrozen` and `Object.isSealed`) also use

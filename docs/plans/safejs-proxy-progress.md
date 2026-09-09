@@ -19,6 +19,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   [verification](safejs-proxy-accessor-lookup.md).
 - Proxy-aware legacy __proto__ getter/setter; see
   [verification](safejs-proxy-legacy-proto.md).
+- Proxy-aware Array.isArray with iterative budget checks; see
+  [verification](safejs-proxy-array-identity.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and
@@ -41,7 +43,8 @@ regressions, TypeScript and lint checks. Recent records include
   and host/structured-clone boundaries.
 - For-in, array-method bridges, instanceof and object
   tags need consumer audits.
-- Array identity and ordinary prototype-cycle checks need Proxy-aware validation.
+- Other array-identity consumers and ordinary prototype-cycle checks need
+  Proxy-aware validation.
 - A fresh integrated package gate after implementation; the earlier passing
   dynamic/eval candidate predates this Proxy work.
 

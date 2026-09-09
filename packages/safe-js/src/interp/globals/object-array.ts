@@ -1,5 +1,6 @@
 import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.js";
 import { guestProxyStates } from "../guest-proxy.js";
+import { sandboxIsArray } from "../guest-proxy-array.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
@@ -575,7 +576,7 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
   registerIntrinsicObject(budget, unscopables);
   Object.defineProperty(prototype, Symbol.unscopables, { value: unscopables, configurable: true });
   const statics = {
-    isArray: createSandboxClosure({ sandbox: true, name: "isArray", call: ([value]) => Array.isArray(value) }),
+    isArray: createSandboxClosure({ sandbox: true, name: "isArray", call: ([value]) => sandboxIsArray(value, budget) }),
     from: createSandboxClosure({ sandbox: true, name: "from", call: (args, context) => arrayFromSandboxValues(args, budget, context) }),
     fromAsync: createSandboxClosure({ guest: true, sandbox: true, name: "fromAsync", length: 1,
       call: (args, context) => executeAsyncFunction(

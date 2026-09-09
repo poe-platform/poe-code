@@ -4740,6 +4740,23 @@ extension, integration, or validation requirement is missing or unverified.
   unfinished, and the previously recorded string-percent failure remains open.
   Full guest object wiring, native registration, suspended execution, complete
   accounting and SDK/safe-fs integration also remain outstanding.
+- Added incremental percent-format operand binding over the scanner. It handles
+  tuple versus scalar consumption, mapping eligibility/lookup boundaries, mapped
+  tuple values as single operands, dynamic width/precision integer restrictions,
+  native integer overflow diagnostics and delayed surplus-argument checks.
+  The original mapping remains available after positional consumption. Negative
+  dimensions normalize with CPython's signed-minimum width behavior. Mapping
+  and integer callbacks are explicit and checked before publishing bound fields.
+- Eight new tests first failed for the missing binder. All 4,272 tests in 333
+  files pass. An 8,049-case CPython comparison uses an audit-only string consumer
+  to verify binding results and syntax/mapping/star/surplus error precedence.
+  Source typecheck, scoped lint and selected workspace build pass. The scanner's
+  literal/key event type is now separately discriminated for safe event reuse.
+  Runtime mapping classification, representation/numeric conversion, output
+  construction and binary dispatch still need implementation; the original
+  string-percent failure is not yet fixed. Full guest object wiring, native
+  registration, suspended execution, complete accounting and SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

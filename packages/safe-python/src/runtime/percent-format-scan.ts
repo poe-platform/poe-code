@@ -4,7 +4,8 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { ImmutableBytes } from "./immutable-bytes.js";
 
 export type PercentFormatEvent =
-  | { readonly kind: "literal" | "mapping-key"; readonly start: number; readonly end: number }
+  | { readonly kind: "literal"; readonly start: number; readonly end: number }
+  | { readonly kind: "mapping-key"; readonly start: number; readonly end: number }
   | { readonly kind: "begin" | "mapping-start"; readonly offset: number }
   | { readonly kind: "flags"; readonly alternate: boolean; readonly zero: boolean; readonly left: boolean; readonly space: boolean; readonly sign: boolean }
   | { readonly kind: "width" | "precision"; readonly value: bigint | "*" }

@@ -1,8 +1,9 @@
-import type { CallArgument, Expression, SubscriptItem } from "./ast.js";
+import type { CallArgument, Expression, SourceSpan, SubscriptItem } from "./ast.js";
 import type { TokenCursor } from "./token-cursor.js";
 import { reservedWords } from "./keywords.js";
+import { readComprehensionClauses } from "./comprehensions.js";
 
-type ReadExpression = (cursor: TokenCursor) => Expression;
+type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
 /** Trailers bind more tightly than all unary and binary operators. */
 export function readTrailers(cursor: TokenCursor, value: Expression, read: ReadExpression): Expression {
@@ -14,8 +15,8 @@ export function readTrailers(cursor: TokenCursor, value: Expression, read: ReadE
       cursor.take();
       value = { kind: "attribute", object: value, spelling: name.text, start: value.start, end: name.end };
     } else if (cursor.peek().text === "(") {
-      cursor.take();
-      const args = readArguments(cursor, read);
+      const opening = cursor.take();
+      const args = readArguments(cursor, read, opening);
       const close = cursor.expect(")");
       value = { kind: "call", callee: value, arguments: args, start: value.start, end: close.end };
     } else if (cursor.peek().text === "[") {
@@ -36,7 +37,7 @@ export function readTrailers(cursor: TokenCursor, value: Expression, read: ReadE
   }
 }
 
-function readArguments(cursor: TokenCursor, read: ReadExpression): CallArgument[] {
+function readArguments(cursor: TokenCursor, read: ReadExpression, opening: SourceSpan): CallArgument[] {
   const args: CallArgument[] = [];
   const keywords = new Set<string>();
   let keywordSeen = false;
@@ -50,7 +51,13 @@ function readArguments(cursor: TokenCursor, read: ReadExpression): CallArgument[
       if (first.text === "**") { mappingSeen = true; keywordSeen = true; }
       args.push({ kind: first.text === "*" ? "starred" : "mapping", value, start: first.start, end: value.end });
     } else {
-      const value = read(cursor);
+      let value = read(cursor);
+      if (cursor.peek().text === "for" || cursor.peek().text === "async") {
+        if (args.length > 0) throw cursor.error("generator expression must be parenthesized");
+        const clauses = readComprehensionClauses(cursor, read);
+        if (cursor.peek().text !== ")") throw cursor.error("generator expression must be parenthesized");
+        value = { kind: "comprehension", collection: "generator", element: value, clauses, start: opening.start, end: cursor.peek().end };
+      }
       if (cursor.peek().text === "=") {
         if (first.kind !== "name" || value.kind !== "name" || value.end.offset !== first.end.offset) {
           throw cursor.error("keyword argument must be an unparenthesized name");

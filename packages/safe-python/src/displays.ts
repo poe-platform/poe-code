@@ -1,5 +1,6 @@
 import type { CollectionItem, DictionaryEntry, Expression, SourceSpan } from "./ast.js";
 import type { TokenCursor } from "./token-cursor.js";
+import { readComprehensionClauses } from "./comprehensions.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
@@ -13,6 +14,11 @@ export function readDisplay(cursor: TokenCursor, read: ReadExpression): Expressi
     return { kind, items: [], start: opening.start, end: cursor.take().end };
   }
   const first = readItem(cursor, read);
+  if (cursor.peek().text === "for" || cursor.peek().text === "async") {
+    if (first.kind === "unpack") throw cursor.error("iterable unpacking cannot be used in comprehension");
+    const clauses = readComprehensionClauses(cursor, read);
+    return { kind: "comprehension", collection: kind === "tuple" ? "generator" : "list", element: first, clauses, start: opening.start, end: cursor.expect(close).end };
+  }
   if (kind === "tuple" && cursor.peek().text !== ",") {
     if (first.kind === "unpack") throw cursor.error("cannot use starred expression here");
     return { ...first, start: opening.start, end: cursor.expect(close).end };
@@ -58,6 +64,15 @@ function readBraces(cursor: TokenCursor, read: ReadExpression, opening: SourceSp
     else items.push(first);
   }
   const dictionary = entries.length > 0;
+  if (cursor.peek().text === "for" || cursor.peek().text === "async") {
+    const first = dictionary ? entries[0] : items[0];
+    if (first.kind === "mapping" || first.kind === "unpack") throw cursor.error("unpacking cannot be used in comprehension");
+    const clauses = readComprehensionClauses(cursor, read);
+    const end = cursor.expect("}").end;
+    return first.kind === "entry"
+      ? { kind: "dictionary-comprehension", key: first.key, value: first.value, clauses, start: opening.start, end }
+      : { kind: "comprehension", collection: "set", element: first, clauses, start: opening.start, end };
+  }
   while (cursor.peek().text === ",") {
     cursor.take();
     if (cursor.peek().text === "}") break;

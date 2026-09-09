@@ -200,8 +200,24 @@ extension, integration, or validation requirement is missing or unverified.
   literal defaults without differences. Scoped lint, source typecheck, and selected workspace
   build passed. Identifier-normalized duplicate checks and runtime function/default
   evaluation remain pending.
+- Added list/set/dictionary comprehensions and generator expression trees,
+  including the sole-argument call form. Ordered for/async-for clauses preserve
+  iterable and filter expressions. Loop target parsing validates tuple/list
+  destructuring, starred targets, attribute/subscript targets, and forbidden
+  `__debug__` assignments. Iterables and filters follow disjunction precedence.
+  Reference: https://docs.python.org/3/reference/grammar.html (Python 3.14).
+- Comprehension validation: eight positive tests failed before implementation;
+  follow-up failing regressions covered `__debug__` and generator source spans.
+  All 474 package tests pass. A 7,020-case CPython compilation comparison matched
+  syntax acceptance, and 300 CPython AST comparisons matched collection forms,
+  targets, clause order, async flags, and filters. The AST comparisons intentionally
+  use parsing rather than compilation for async forms: enclosing async-context
+  validation is pending the statement/scope pass. Scoped lint, source typecheck, and selected
+  workspace build passed. Comprehension scopes, iteration, eager versus lazy
+  evaluation, assignment-expression restrictions, and async execution remain
+  implementation work; these checks establish syntax only.
 - Next:
-  comprehensions, interpolated-string ASTs, parser-level NFKC
+  assignment expressions, interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

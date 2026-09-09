@@ -11,6 +11,13 @@ export type Parameter = SourceSpan & {
   readonly default: Expression | null;
 };
 
+export type ComprehensionClause = SourceSpan & {
+  readonly async: boolean;
+  readonly target: Expression;
+  readonly iterable: Expression;
+  readonly filters: readonly Expression[];
+};
+
 export type CallArgument = SourceSpan & (
   | { readonly kind: "positional" | "starred" | "mapping"; readonly value: Expression }
   | { readonly kind: "keyword"; readonly spelling: string; readonly value: Expression }
@@ -32,6 +39,8 @@ export type Expression = SourceSpan & (
       readonly value: bigint | number | Uint32Array | Uint8Array | boolean | null }
   | { readonly kind: "name"; readonly spelling: string }
   | { readonly kind: "lambda"; readonly parameters: readonly Parameter[]; readonly body: Expression }
+  | { readonly kind: "comprehension"; readonly collection: "list" | "set" | "generator"; readonly element: Expression; readonly clauses: readonly ComprehensionClause[] }
+  | { readonly kind: "dictionary-comprehension"; readonly key: Expression; readonly value: Expression; readonly clauses: readonly ComprehensionClause[] }
   | { readonly kind: "tuple" | "list" | "set"; readonly items: readonly CollectionItem[] }
   | { readonly kind: "dictionary"; readonly entries: readonly DictionaryEntry[] }
   | { readonly kind: "attribute"; readonly object: Expression; readonly spelling: string }

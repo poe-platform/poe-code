@@ -37,3 +37,35 @@ that accepts such inputs.
   transport support.
 
 No implementation or conformance claim accompanies this inventory item.
+
+## Current source and public admission checks
+
+September 9 source probe 3d3288 reconfirmed the low-level collapse on current
+main: `distinctBefore: true`, `distinctAfter: false`, while a third binding
+aliasing the first prototype remained aliased after restoration. This narrows
+the defect to cross-realm distinction, not general within-realm alias loss.
+
+Phase-labelled public probes (94f06a) distinguish three paths:
+
+- Direct `bindings: {a,b}` rejects during `run`, before a dump is attempted,
+  because guest function properties and prototype links cannot be serialized.
+- A registered module exporting `{a,b}` rejects during `run` for the same
+  reason.
+- A host function returning `[a,b]` executes successfully. Guest comparisons
+  report the two values distinct from each other and from local Number.prototype.
+  Dumping that completed run rejects because a callable needs an explicit resume
+  capability. This probe did not supply such a capability or validate recovery
+  with one.
+
+The initial combined probe bbb604 did not label the failing phase. Follow-up
+54589 terminated at the first direct-binding admission rejection; 94f06a adds
+per-path catches and establishes the phases above. Do not report those public
+rejections as successful dumps or as reproduced public silent identity loss.
+
+The inspected package index exposes public dump/restore but not the low-level
+serialize function. `interp/intrinsics.ts` records identities by installation
+path in a WeakMap and resolves them through a per-Budget map. These facts explain
+the low-level collision but do not establish a supported multi-source public
+checkpoint contract. Next investigate explicit host resume capabilities and
+realm ownership before choosing a format change; a rejection-only patch would
+not fulfill mixed-realm transport support.

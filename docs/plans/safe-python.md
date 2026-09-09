@@ -5142,6 +5142,20 @@ extension, integration, or validation requirement is missing or unverified.
   dispatch, other native/container representations and global string
   canonicalization remain incomplete. Full guest objects, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Connected exact string percent formatting to runtime binary operations before
+  operand-family guards, allowing positional tuples and dictionary/mapping-proxy
+  operands. Normal parsed-expression and in-place fallback paths now use the
+  whole-expression wrapper. Unimplemented native/container representation slots
+  remain explicit host implementation gaps instead of fabricated guest output.
+- Six of seven new tests failed before connection. All 4,473 tests in 360 files
+  pass. CPython matches 5,018 mixed formats through the runtime binary operator.
+  The original filter/string-percent gap is now closed: all 3,411 compiled filter
+  programs, including string operands in lambda modulo, match CPython values and
+  errors. Source typecheck, scoped lint and selected workspace build pass. Bytes
+  percent dispatch/operator integration, other native/container representations,
+  guest reflected slots and global string canonicalization remain incomplete.
+  Full guest objects, suspended execution, complete accounting and SDK/safe-fs
+  integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

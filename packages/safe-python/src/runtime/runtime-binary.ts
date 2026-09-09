@@ -5,6 +5,11 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { isRuntimeSet, isRuntimeSetView, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { runtimeDictionaryViewBinary } from "./runtime-dictionary-view-algebra.js";
+import { textPercentFormat } from "./text-percent-format.js";
+import { createRuntimePercentBindingContext } from "./runtime-percent-binding.js";
+import { createRuntimePercentConversionContext } from "./runtime-percent-conversion.js";
+import { createRuntimeRepresentationContext } from "./runtime-representation.js";
+import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
 /** Exact runtime binary kernels, not guest reflected/subclass dispatch. Lists
  * always produce fresh slots; tuple operations preserve mutable member identity.
@@ -17,6 +22,17 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     case "+": case "-": case "*": case "/": case "//": case "%": case "**":
     case "&": case "|": case "^": case "<<": case ">>": case "@": break;
     default: throw new Error(`unsupported runtime binary operator: ${operator}`);
+  }
+  if (operator === "%" && left.kind === "str") {
+    // A format accepts arbitrary positional/mapping operands; it must run before
+    // the family guards below. Other native/guest repr slots remain explicit
+    // implementation gaps until their runtime representation policies exist.
+    meter.checkpoint(0, 384);
+    return textPercentFormat(left, right, {
+      ...createRuntimePercentBindingContext(values, meter),
+      ...createRuntimePercentConversionContext(meter),
+      ...createRuntimeRepresentationContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("binary"); } })
+    }, meter);
   }
   if ((operator === "|" || operator === "&" || operator === "-" || operator === "^") && (isRuntimeSetView(left) || isRuntimeSetView(right))) {
     // A left proxy forwards union to its dictionary before reflected dispatch.

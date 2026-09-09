@@ -1434,6 +1434,28 @@ extension, integration, or validation requirement is missing or unverified.
   are still explicitly unsupported before try-body execution. Context managers,
   suspension, concrete guest exception objects/frames and complete heap accounting
   remain pending; this is not yet the complete interpreter.
+- Added ordinary except-handler search, selected-handler execution and try else.
+  Header expressions run in source order with the caught exception active; a
+  matching handler alone binds its alias. Header/matching/binding failures leave
+  the search and propagate outward. Else runs only after normal try-body completion
+  and cannot be caught by the same handlers. Handler exit clears aliases rather
+  than restoring previous bindings and restores enclosing exception state.
+  Matching/class validation and scope-specific alias operations are adapter-owned.
+- Except validation: thirteen new tests initially failed on unsupported try nodes.
+  Targeted CPython custom-class-namespace probes then exposed the distinction
+  between alias cleanup on normal/control exits and exceptional exits; four more
+  red tests reproduced it before correction. Normal/return/break/continue restore
+  prior exception state before cleanup, while exceptional exits retain the caught
+  exception during cleanup. Failed alias binding does not trigger alias cleanup.
+  All 1,939 tests in 94 files pass, including nested state, failure chaining,
+  alias-cleanup errors caught outside, returns/transfers, and fatal restoration.
+  CPython matched 2,000 generated nested handler/finalizer programs with active
+  exception observations, header evaluation failures, exception context chains,
+  loop traces and final outcomes. Scoped lint, source typecheck and selected build
+  passed. Reference: Python 3.14 compound statements, except and else clauses.
+  Except* remains explicitly unsupported. Concrete guest exception matching,
+  scope storage, context managers, suspension, frame integration and full heap
+  accounting remain pending; the complete interpreter is not yet implemented.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

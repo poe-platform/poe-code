@@ -3,6 +3,9 @@ import { scopeDataRoots } from "./scope-data-roots.js";
 import { getGeneratorOrigin } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
+import { weakReferenceStates } from "./weak-reference.js";
+import { finalizationRegistryStates } from "./finalization-registry-state.js";
+import { weakCollectionStates } from "./weak-collection.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { NativeSuppressedError } from "../error/native-suppressed-error.js";
 import { isSandboxModuleNamespace } from "./module-namespace.js";
@@ -1227,6 +1230,9 @@ function copyToSandbox(
     throw new DOMException("Symbols cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && (isSandboxClosure(value) || isSandboxGenerator(value)))
     throw new DOMException("Executable values cannot be structured cloned.", "DataCloneError");
+  if (state.structuredClone && typeof value === "object" && value !== null &&
+      (weakReferenceStates.has(value) || weakCollectionStates.has(value) || finalizationRegistryStates.has(value)))
+    throw new DOMException("Weak state cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && typeof value === "object" && value !== null &&
       (isSandboxArguments(value) || iteratorHelperStates.has(value) || iteratorWrapperStates.has(value) ||
        disposableStackStates.has(value) || asyncDisposableStackStates.has(value)))

@@ -43,6 +43,9 @@ export class YieldDelegation<Value, Iterator, Method> {
 
   #finish(): void { this.#source = undefined; this.#iterator = undefined; this.#context = undefined; }
 
+  /** Acquired iterator identity, released with protocol completion. */
+  get iterator():Iterator|undefined {return this.#iterator?.value;}
+
   start(): YieldDelegationResult<Value> {
     this.meter.checkpoint();
     if (this.#source === undefined || this.#context === undefined) throw Error("delegation already started");

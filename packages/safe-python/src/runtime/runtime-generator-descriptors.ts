@@ -40,12 +40,13 @@ export function installRuntimeGeneratorDescriptors(owner:TypeValue,values:Runtim
       return throwRuntimeGenerator(receiver.native,positional,invocation,values,meter);
     }
   }));
-  for(const name of ["gi_running","gi_suspended"] as const) {
+  for(const name of ["gi_running","gi_suspended","gi_yieldfrom"] as const) {
     meter.checkpoint(0,96);
     owner.value.namespace.items.set(values.string(name),values.getsetDescriptor({owner,name,accepts,
       get(receiver,meter) {
         meter.checkpoint();
         if(receiver.kind!=="instance"||receiver.native?.kind!=="generator")throw Error("generator state requires native generator storage");
+        if(name==="gi_yieldfrom")return receiver.native.execution.yieldFrom;
         return values.boolean(receiver.native.execution.phase===(name==="gi_running"?"running":"suspended"));
       }
     }));

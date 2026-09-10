@@ -20,6 +20,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
     meter.checkpoint(1,128);
   }
   get active():boolean{return this.#current!==undefined;}
+  get target():RuntimeValue|undefined{return this.#current?.iterator;}
 
   #owned<Result>(operation:()=>Result,bodyActive=false):Result {
     const prepared=()=>{try{return operation();}catch(error){throw this.exceptions.prepare(error);}};

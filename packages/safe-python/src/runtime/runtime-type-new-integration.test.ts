@@ -226,6 +226,26 @@ it("creates native generator functions without running their bodies and accepts 
   expect(state.events).toEqual(["start"]);expect(state.globals.get("first")).toEqual(v.integer(3));expect(state.globals.get("result")).toEqual(v.integer(7));
 });
 
+it("exposes gi_yieldfrom only for a suspended delegation and keeps iterator identity",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def child():yield 1\ninner=child()\ndef gen():\n yield from inner\n yield 2\ng=gen()\ncreated=g.gi_yieldfrom\ng.__next__()\nidentity=g.gi_yieldfrom is inner\ng.__next__()\nordinary=g.gi_yieldfrom\ng.close()\nclosed=g.gi_yieldfrom\n");
+  expect(state.globals.get("created")).toBe(v.none);expect(state.globals.get("identity")).toBe(v.true);
+  expect(state.globals.get("ordinary")).toBe(v.none);expect(state.globals.get("closed")).toBe(v.none);
+});
+
+it("hides gi_yieldfrom during execution but exposes it to delegated throw lookup",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass I:\n def __iter__(self):\n  events.append(g.gi_yieldfrom is self)\n  return self\n def __next__(self):\n  events.append(g.gi_yieldfrom is self)\n  return 1\n def __getattribute__(self,name):\n  if name in ('send','throw','close'):events.append(g.gi_yieldfrom is self)\n  return object.__getattribute__(self,name)\n def send(self,x):\n  events.append(g.gi_yieldfrom is self)\n  return x\n def throw(self,*args):\n  events.append(g.gi_yieldfrom is self)\n  return 2\n def close(self):events.append(g.gi_yieldfrom is self)\ni=I()\ndef gen():yield from i\ng=gen()\ng.__next__()\ng.send(3)\ng.throw(ValueError())\ng.close()\ncorrect=events==[False,False,False,False,True,False,False,False]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("keeps gi_yieldfrom read-only without advancing the delegate",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("def child():yield 1\ninner=child()\ndef gen():yield from inner\ng=gen()\ng.__next__()\nrejected=[]\ntry:g.gi_yieldfrom=None\nexcept AttributeError:rejected.append(True)\ntry:del g.gi_yieldfrom\nexcept AttributeError:rejected.append(True)\ncorrect=rejected==[True,True] and g.gi_yieldfrom is inner\ng.close()\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("delegates native yield-from iteration and preserves the subgenerator return value",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("def child():\n x=yield 1\n return x\ndef parent():\n result=yield from child()\n yield result\n yield from [3,4]\ng=parent()\na=g.__next__()\nb=g.send(7)\nrest=[x for x in g]\n");

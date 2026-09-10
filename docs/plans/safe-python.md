@@ -10367,6 +10367,21 @@ extension, integration, or validation requirement is missing or unverified.
   Canonical iterator type publication, range cursor diagnostics, generator
   metadata/finalization, async execution, deep-delegation efficiency and the
   complete resource audit remain unfinished. No push or release requested.
+- Generator delegation introspection (2026-09-10): added read-only gi_yieldfrom
+  with the actual acquired iterator identity. Visibility is gated by suspended
+  lifecycle state, not merely the presence of a retained cursor: it is None
+  during creation, ordinary yields, running operations and after completion.
+  Delegated throw lookup sees the iterator; the invoked method does not. Local
+  CPython probes and Objects/genobject.c establish that distinction. Three native
+  regressions failed before implementation; all pass now, including read-only
+  assignment/deletion without advancing the iterator. Focused verification passes
+  813 tests, and all 512 operation-sequence comparisons match CPython with
+  gi_yieldfrom visibility recorded after every operation. Eight reentrant
+  new-delegation comparisons also pass. Selected workspace build, typecheck and
+  focused lint pass; all 7,465 tests in 508 files pass in the uncached one-worker
+  package run (141.67s; bodies 10.02s).
+  This does not complete generator names, frame/code metadata,
+  finalization, async support, public runtime assembly or safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

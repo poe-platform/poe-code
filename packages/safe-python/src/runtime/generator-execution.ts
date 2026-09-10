@@ -7,6 +7,8 @@ export type GeneratorPhase="created"|"running"|"suspended"|"closed";
 
 export interface GeneratorDelegation<Value> {
   readonly active:boolean;
+  /** Optional guest-visible iterator identity; lifecycle gates its visibility. */
+  readonly target?:Value;
   /** Throw lookup runs before body activation; callbacks selectively enter the
    * owning frame for operations whose Python semantics require it. */
   resume(input:GeneratorInput<Value>,run:<Result>(operation:()=>Result,preserveCallerException?:boolean)=>Result):
@@ -46,6 +48,7 @@ export class GeneratorExecution<Value> {
   }
   get phase():GeneratorPhase{return this.#phase;}
   get delegating():boolean{return this.#phase==="suspended"&&this.#context?.delegation?.active===true;}
+  get yieldFrom():Value{return this.delegating?this.#context!.delegation!.target??this.#none:this.#none;}
 
   #runDelegated<Result>(operation:()=>Result,context:GeneratorExecutionContext<Value>,preserveCallerException=false):Result {
     const previous=this.#phase;

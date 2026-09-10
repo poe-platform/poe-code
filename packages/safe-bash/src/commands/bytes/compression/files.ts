@@ -4,8 +4,10 @@ import {
 } from "../../../contracts/index.js";
 import { codeOf, pathOf } from "../../internal.js";
 import { PublicDiagnostic } from "../../../diagnostics.js";
+import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
 import { profiles, type CompressionOptions } from "./options.js";
 import { chunkBytes, stagingLimit, transform } from "./stream.js";
+import { FileOperation } from "./file-operation.js";
 
 export interface Operand {
   readonly source: string;
@@ -15,8 +17,12 @@ export interface Operand {
   readonly destinationStat?: FileStat;
 }
 
+function identified(stat: FileStat): boolean {
+  return stat.identityScope !== undefined && Number.isSafeInteger(stat.ino) && Number.isSafeInteger(stat.dev);
+}
+
 function sameIdentity(first: FileStat, second: FileStat): boolean {
-  return first.ino !== undefined && second.ino !== undefined
+  return identified(first) && identified(second) && first.identityScope === second.identityScope
     && first.ino === second.ino && first.dev === second.dev;
 }
 
@@ -24,11 +30,12 @@ function sameSnapshot(first: FileStat, second: FileStat): boolean {
   return first.type === second.type && first.size === second.size && first.mode === second.mode
     && first.mtimeMs === second.mtimeMs && first.ctimeMs === second.ctimeMs
     && first.ino === second.ino && first.dev === second.dev && first.nlink === second.nlink
-    && first.birthtimeMs === second.birthtimeMs && first.uid === second.uid && first.gid === second.gid;
+    && first.birthtimeMs === second.birthtimeMs && first.uid === second.uid && first.gid === second.gid
+    && first.identityScope === second.identityScope;
 }
 
 function sameEntry(first: FileStat, second: FileStat): boolean {
-  return first.type === second.type && first.ino === second.ino && first.dev === second.dev
+  return sameIdentity(first, second) && first.type === second.type
     && first.birthtimeMs === second.birthtimeMs;
 }
 
@@ -64,6 +71,13 @@ function outputPath(source: string, options: CompressionOptions): string {
 }
 
 export async function planOperands(context: CommandContext, options: CompressionOptions): Promise<Operand[]> {
+  const operation = new FileOperation(context);
+  try {
+    return await operation.run(() => collectOperands({ ...context, fs: operation.fs, signal: operation.signal }, options));
+  } finally { await operation.close(); context.signal.throwIfAborted(); }
+}
+
+async function collectOperands(context: CommandContext, options: CompressionOptions): Promise<Operand[]> {
   const plans: Operand[] = [];
   for (const name of options.operands) {
     context.signal.throwIfAborted();
@@ -91,6 +105,14 @@ export async function planOperands(context: CommandContext, options: Compression
       throw new FsError("ENOTSUP", { message: "file output requires VFS streaming writes (use -c for stdout)" });
     }
     const destinationStat = await existing(context, destination);
+    if (!identified(sourceStat) || destinationStat && !identified(destinationStat)) {
+      throw new FsError("ENOTSUP", { path: source, message: "file output requires stable scoped entry identities" });
+    }
+    if (!context.fs.rmdir || capabilities.exclusiveCreate !== true
+      || (destinationStat ? capabilities.atomicRename : capabilities.atomicRenameNoReplace) !== true) {
+      throw new FsError("ENOTSUP", { path: destination, message: "file output requires exclusive staging, safe rmdir and atomic publication (use -c for stdout)" });
+    }
+    context.signal.throwIfAborted();
     if (destinationStat) {
       if (destinationStat.type !== "file" || sameIdentity(sourceStat, destinationStat)
         || realSource === await context.fs.realpath(destination, { signal: context.signal })) {
@@ -126,22 +148,10 @@ export async function unchangedSource(context: CommandContext, plan: Operand): P
   }
 }
 
-async function temporaryDirectory(context: CommandContext, destination: string): Promise<string> {
-  for (let attempt = 0; attempt < 16; attempt++) {
-    const path = joinPath(dirname(destination), `.virtual-bash-gzip-${globalThis.crypto.randomUUID()}`);
-    try {
-      await context.fs.mkdir(path, { mode: 0o700, signal: context.signal });
-      return path;
-    } catch (error) { if (codeOf(error) !== "EEXIST") throw error; }
-  }
-  throw new FsError("EEXIST", { message: "unable to allocate a private gzip staging directory" });
-}
-
 export async function writeFileOperand(context: CommandContext, plan: Operand, options: CompressionOptions): Promise<boolean> {
   const destination = plan.destination!;
-  await unchangedSource(context, plan);
-  const directory = await temporaryDirectory(context, destination);
-  const staged = joinPath(directory, "data");
+  let directory: string | undefined;
+  let staged: string | undefined;
   let directoryStat: FileStat | undefined;
   let stageStat: FileStat | undefined;
   let stageOwned = false;
@@ -149,63 +159,94 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
   let failure: unknown;
   let failed = false;
   let warned = false;
+  let cleanupFailed = false;
+  let retainedCleanup: (() => Promise<void>) | undefined;
+  const operation = new FileOperation(context, async () => { await retainedCleanup?.(); });
+  const active = { ...context, fs: operation.fs, signal: operation.signal };
+  const { fs, signal } = active;
+  const snapshot = (stat: FileStat): FileStat => {
+    const result: Record<string, unknown> = {};
+    for (const key of ["type", "size", "mode", "mtimeMs", "atimeMs", "ctimeMs", "birthtimeMs", "identityScope", "ino", "dev", "nlink", "uid", "gid"] as const) {
+      result[key] = stat[key]; operation.check();
+    }
+    return Object.freeze(result) as unknown as FileStat;
+  };
   try {
-    directoryStat = await context.fs.lstat(directory, { signal: context.signal });
-    if (directoryStat.type !== "directory") throw new FsError("EBUSY", { path: directory });
-    await context.fs.writeFile(staged, new Uint8Array(), { flag: "wx", mode: 0o600, signal: context.signal });
-    stageOwned = true;
-    stageStat = await context.fs.lstat(staged, { signal: context.signal });
-    if (stageStat.type !== "file" || stageStat.size !== 0) throw new FsError("EBUSY", { path: staged });
-    warned = await transform((signal) => context.fs.readStream!(plan.source, { signal, chunkSize: chunkBytes }), async (output, signal) => {
-      await context.fs.writeStream!(staged, output, { flag: "w", mode: 0o600, signal });
-    }, { ...options, force: false }, context.signal, stagingLimit);
-    await unchangedSource(context, plan);
-    const target = await existing(context, destination);
+    retainedCleanup = retainFileSystemCleanup(context.fs, async cleanup => {
+      if (directory === undefined) return;
+      const cleanupSignal = AbortSignal.timeout(5_000);
+      const currentDirectory = await cleanup.lstat(directory, { signal: cleanupSignal });
+      if (!directoryStat || !sameEntry(directoryStat, currentDirectory)) {
+        throw new FsError("EBUSY", { path: directory, message: "staging directory identity is unknown or changed; refusing cleanup" });
+      }
+      if (stageOwned && !moved && staged !== undefined) {
+        let currentStage: FileStat | undefined;
+        try { currentStage = await cleanup.lstat(staged, { signal: cleanupSignal }); }
+        catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
+        if (currentStage) {
+          if (!stageStat || !sameEntry(stageStat, currentStage)) throw new FsError("EBUSY", { path: staged, message: "staging file identity changed; refusing cleanup" });
+          await cleanup.rm(staged, { signal: cleanupSignal });
+        }
+      }
+      if (!cleanup.rmdir) throw new FsError("ENOTSUP", { path: directory, message: "safe directory removal unavailable" });
+      try { await cleanup.rmdir(directory, { signal: cleanupSignal }); }
+      catch (error) {
+        if (codeOf(error) === "ENOTEMPTY") throw new FsError("ENOTEMPTY", { path: directory, message: "unexpected staging entries; refusing cleanup" });
+        throw error;
+      }
+    }, { maxOperations: 8 });
+    operation.check();
+    await operation.run(() => unchangedSource(active, plan));
+    for (let attempt = 0; directory === undefined && attempt < 16; attempt++) {
+      const path = joinPath(dirname(destination), `.virtual-bash-gzip-${globalThis.crypto.randomUUID()}`);
+      const capabilities = await operation.run(async () => await fs.capabilitiesFor?.(path, { signal, create: true, allowDirectory: true }) ?? fs.capabilities);
+      operation.check();
+      const snapshotRmdir = capabilities.snapshotRmdir;
+      operation.check();
+      if (snapshotRmdir === true) throw new FsError("ENOTSUP", { path, message: "strong staging directory cleanup unavailable; snapshot-only rmdir is unsupported" });
+      try {
+        await operation.run(async () => { await fs.mkdir(path, { mode: 0o700, signal }); directory = path; });
+      } catch (error) { operation.check(); if (codeOf(error) !== "EEXIST") throw error; }
+    }
+    if (directory === undefined) throw new FsError("EEXIST", { message: "unable to allocate a private gzip staging directory" });
+    staged = joinPath(directory, "data");
+    directoryStat = snapshot(await operation.run(() => fs.lstat(directory!, { signal })));
+    if (directoryStat.type !== "directory" || !identified(directoryStat)) throw new FsError("EBUSY", { path: directory });
+    await operation.run(async () => { await fs.writeFile(staged!, new Uint8Array(), { flag: "wx", mode: 0o600, signal }); stageOwned = true; });
+    stageStat = snapshot(await operation.run(() => fs.lstat(staged!, { signal })));
+    if (stageStat.type !== "file" || stageStat.size !== 0 || !identified(stageStat)) throw new FsError("EBUSY", { path: staged });
+    warned = await operation.run(() => transform((signal) => fs.readStream!(plan.source, { signal, chunkSize: chunkBytes }), async (output, signal) => {
+      await fs.writeStream!(staged!, output, { flag: "w", mode: 0o600, signal });
+    }, { ...options, force: false }, signal, stagingLimit));
+    await operation.run(() => unchangedSource(active, plan));
+    const target = await operation.run(() => existing(active, destination));
     if (plan.destinationStat ? !target || !sameSnapshot(plan.destinationStat, target) : target !== undefined) {
       throw new FsError("EBUSY", { path: destination, message: "destination changed during compression" });
     }
-    if (!sameEntry(stageStat, await context.fs.lstat(staged, { signal: context.signal }))) {
+    if (!sameEntry(stageStat, snapshot(await operation.run(() => fs.lstat(staged!, { signal }))))) {
       throw new FsError("EBUSY", { path: staged, message: "staging identity changed" });
     }
-    if (plan.destinationStat) {
-      await context.fs.rename(staged, destination, { signal: context.signal });
-      moved = true;
+    await operation.run(async () => { await fs.rename(staged!, destination, { signal, noReplace: !plan.destinationStat }); moved = true; });
+    operation.check();
+    try { await retainedCleanup(); }
+    catch (error) { cleanupFailed = true; throw error; }
+    operation.check();
+    if (!options.keep) {
+      await operation.run(() => unchangedSource(active, plan));
+      await operation.run(() => fs.rm(plan.source, { signal }));
     }
-    else await context.fs.copyFile(staged, destination, { exclusive: true, signal: context.signal });
-    context.signal.throwIfAborted();
   } catch (error) { failed = true; failure = error; }
   try {
-    const signal = AbortSignal.timeout(5_000);
-    const currentDirectory = await context.fs.lstat(directory, { signal });
-    if (directoryStat && !sameEntry(directoryStat, currentDirectory)) {
-      throw new FsError("EBUSY", { path: directory, message: "staging directory identity changed; refusing cleanup" });
-    }
-    if (stageOwned && !moved) {
-      let currentStage: FileStat | undefined;
-      try { currentStage = await context.fs.lstat(staged, { signal }); }
-      catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
-      if (currentStage) {
-        if (!stageStat || !sameEntry(stageStat, currentStage)) {
-          throw new FsError("EBUSY", { path: staged, message: "staging file identity changed; refusing cleanup" });
-        }
-        await context.fs.rm(staged, { signal });
-      }
-    }
-    if ((await context.fs.readdir(directory, { signal })).length) {
-      throw new FsError("ENOTEMPTY", { path: directory, message: "unexpected staging entries; refusing recursive cleanup" });
-    }
-    await context.fs.rm(directory, { recursive: true, signal });
+    await operation.close();
   } catch (error) {
+    if (cleanupFailed && error === failure) throw error;
     if (failed) {
       const aggregate = new AggregateError([failure, error], "compression failed and staging cleanup failed; input retained");
       throw new PublicDiagnostic(aggregate.message, { cause: aggregate });
     }
     throw error;
   }
+  context.signal.throwIfAborted();
   if (failed) throw failure;
-  if (!options.keep) {
-    await unchangedSource(context, plan);
-    await context.fs.rm(plan.source, { signal: context.signal });
-  }
   return warned;
 }

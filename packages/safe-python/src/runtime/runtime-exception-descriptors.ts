@@ -2,6 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeExceptionPayload } from "./runtime-exception-state.js";
+import { installRuntimeExceptionLinkDescriptors } from "./runtime-exception-link-descriptors.js";
 import { collectIterator } from "./iterator-collection.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { representationObject } from "./representation-protocol.js";
@@ -11,6 +12,7 @@ import type { RuntimeValues,TypeValue } from "./runtime-values.js";
 /** Argument storage is captured before guest representation/iteration runs;
  * mutations through guest attributes cannot substitute for native args. */
 export function installRuntimeExceptionDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
+  installRuntimeExceptionLinkDescriptors(owner,values,meter);
   meter.checkpoint(0,192);
   owner.value.namespace.items.set(values.string("args"),values.getsetDescriptor({owner,name:"args",accepts:value=>runtimeExceptionPayload(value)!==undefined,
     get(value,meter){meter.checkpoint();return runtimeExceptionPayload(value)!.args;},

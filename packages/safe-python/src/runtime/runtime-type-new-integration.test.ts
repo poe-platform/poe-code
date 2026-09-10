@@ -68,6 +68,22 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("stores exception cause/context independently and enables suppression on cause assignment",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("class E(BaseException):\n pass\ne=E()\nother=BaseException('other')\ninitial=e.__cause__ is None and e.__context__ is None and e.__suppress_context__ is False\ne.__context__=other\ncontext=e.__context__ is other and e.__suppress_context__ is False\ne.__cause__=None\nsuppressed=e.__suppress_context__ is True\ne.__suppress_context__=False\ne.__cause__=other\nlinked=e.__cause__ is other and e.__suppress_context__ is True\ne.__context__=e\ne.__cause__=e\nBaseException.__init__(e,1)\nretained=e.__context__ is e and e.__cause__ is e and e.__suppress_context__ is True\n");
+  for(const key of ["initial","context","suppressed","linked","retained"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("validates exception link writes without altering prior state",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.run("e=BaseException()\n");
+  for(const [name,message] of [["__cause__","exception cause must be None or derive from BaseException"],["__context__","exception context must be None or derive from BaseException"],["__suppress_context__","attribute value type must be bool"]]) {
+    expect(()=>state.run(`e.${name}=1\n`)).toThrow(message);
+    expect(()=>state.run(`del e.${name}\n`)).toThrow(name==="__suppress_context__"?"can't delete numeric/char attribute":`${name} may not be deleted`);
+  }
+  state.run("unchanged=e.__cause__ is None and e.__context__ is None and e.__suppress_context__ is False\nclass Shadow(BaseException):\n __cause__='shadow'\nx=Shadow()\nBaseException.__cause__.__set__(x,e)\ninternal=BaseException.__cause__.__get__(x) is e and x.__cause__=='shadow'\n");
+  expect(state.globals.get("unchanged")).toBe(state.v.true);expect(state.globals.get("internal")).toBe(state.v.true);
+});
+
 it("allocates BaseException storage and formats its captured arguments",()=>{
   const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
   state.run("a=BaseException()\nb=BaseException('message')\nc=BaseException(1,'two')\ncorrect=type(a) is BaseException and a.args==() and b.args==('message',) and c.args==(1,'two') and f'{a}'=='' and f'{b}'=='message' and f'{c}'==\"(1, 'two')\" and f'{a!r}'=='BaseException()' and f'{b!r}'==\"BaseException('message')\" and f'{c!r}'==\"BaseException(1, 'two')\"\n");

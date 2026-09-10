@@ -9661,6 +9661,22 @@ extension, integration, or validation requirement is missing or unverified.
   descriptors, the builtin exception hierarchy, host-fault translation and
   raise/try execution wiring remain unfinished, as do public interpreter and
   safe-fs assembly. No push or release was requested.
+- Exception chaining metadata (2026-09-10): two failing integration tests drove
+  native cause/context links and context-suppression storage, with canonical
+  getset/member descriptors. Explicit cause assignment, including None, enables
+  suppression; context assignment leaves it unchanged. Only exception payloads
+  or None are accepted for links, only bool for suppression, and all deletion
+  attempts are rejected. Explicit self-links/cycles are preserved. Two native
+  state tests connect the existing handled-exception cycle-removal helper to
+  actual exception storage and verify rejected metered writes do not partially
+  change cause/suppression. All 249 CPython comparisons match, including direct
+  descriptor access and invalid input types; integration tests also verify
+  subclass shadowing does not replace internal storage. Workspace build,
+  typecheck, focused lint and all 7,117 tests in 502 files pass in the uncached
+  one-worker package run.
+  Tracebacks/notes, dictionary/serialization descriptors, builtin exception
+  hierarchy, fault translation, raise/try wiring and full interpreter/safe-fs
+  assembly remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

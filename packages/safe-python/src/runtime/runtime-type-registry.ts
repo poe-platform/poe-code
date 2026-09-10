@@ -127,7 +127,7 @@ export class RuntimeTypeRegistry {
     const existing = this.#descriptors.get(kind);
     if (existing !== undefined) return existing;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: kind === "function", objectLayout: false });
+    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: kind === "function", objectLayout: false, subclassable: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeDescriptorMethods(kind, type, this.values, this.meter);
     this.meter.checkpoint(1, 96);

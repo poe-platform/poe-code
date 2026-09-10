@@ -19,6 +19,26 @@ function fixture() {
   return { meter, v, registry, namespace, create };
 }
 
+it.each(["function", "method_descriptor", "classmethod_descriptor", "wrapper_descriptor", "getset_descriptor", "member_descriptor"] as const)("rejects %s as a base before namespace validation or class-cell publication", kind => {
+  const { v, meter, registry, namespace } = fixture(), base = registry.descriptorType(kind), cell = v.cell({});
+  namespace.items.set(v.string("__classcell__"), cell);
+  namespace.items.set(v.string("__qualname__"), v.true);
+  expect(() => allocateRuntimeType(v.string("C"), [base], namespace, registry.type, registry, v, meter)).toThrow(`type '${kind}' is not an acceptable base type`);
+  expect(cell.value.content).toBeUndefined();
+  namespace.items.delete(v.string("__qualname__"));
+  expect(() => allocateRuntimeType(v.string("C"), [base], namespace, registry.type, registry, v, meter)).toThrow(`type '${kind}' is not an acceptable base type`);
+  expect(cell.value.content).toBeUndefined();
+});
+
+it.each(["staticmethod", "classmethod"] as const)("keeps immutable %s native payload types subclassable", kind => {
+  const { v, meter, registry, namespace } = fixture(), base = registry.methodDecoratorType(kind);
+  expect(base.immutable).toBe(true); expect(base.value.hasObjectLayout).toBe(false);
+  const child = allocateRuntimeType(v.string("Child"), [base], namespace, registry.type, registry, v, meter);
+  const grandchild = allocateRuntimeType(v.string("Grandchild"), [child], namespace, registry.type, registry, v, meter);
+  expect(grandchild.value.mro).toEqual([grandchild.value, child.value, base.value, registry.object.value]);
+  expect(child.value.isSubclassable).toBe(true); expect(child.value.hasObjectLayout).toBe(false);
+});
+
 it("allocates fresh owned classes with default object bases and copied namespace storage", () => {
   const { v, registry, namespace, create } = fixture(), member = v.list([]);
   namespace.items.set(v.string("member"), member);

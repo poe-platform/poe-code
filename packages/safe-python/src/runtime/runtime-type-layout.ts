@@ -5,8 +5,12 @@ import type { ClassAttribute } from "./instance-attributes.js";
 import { resolveRuntimeClassAttribute, type RuntimeDescriptorContext } from "./runtime-descriptor.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { RuntimeTypeNames } from "./runtime-type-names.js";
+import { PythonRuntimeError } from "./error.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Native base-type permission, independent of mutability or payload layout.
+   * Source annotations/decorators do not set this internal capability. */
+  readonly subclassable?: boolean;
   /** Internal allocation boundary: publish metadata/class cells before C3 can
    * fail. The layout has no MRO yet; callbacks must not treat it as ready. */
   readonly beforeMro?: (layout: RuntimeTypeLayout) => void;
@@ -37,13 +41,16 @@ export class RuntimeTypeLayout {
   readonly hasSequenceTable: boolean;
   readonly hasInstanceDictionary: boolean;
   readonly hasObjectLayout: boolean;
+  readonly isSubclassable: boolean;
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
     meter.checkpoint(1, 144 + 8 * bases.length);
+    validateRuntimeBaseLayouts(bases, meter);
     this.names = new RuntimeTypeNames(name, options.qualifiedName ?? name, meter);
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
     this.hasSequenceTable = options.sequenceTable ?? true;
+    this.isSubclassable = options.subclassable ?? true;
     let dictionary = options.instanceDictionary ?? true, objectLayout = options.objectLayout ?? true;
     for (const base of bases) { meter.checkpoint(); dictionary ||= base.hasInstanceDictionary; objectLayout &&= base.hasObjectLayout; }
     this.hasInstanceDictionary = dictionary;
@@ -55,6 +62,18 @@ export class RuntimeTypeLayout {
 
   get name(): string { return this.names.name; }
   get mro(): readonly RuntimeTypeLayout[] { return this.#mro; }
+}
+
+/** Base-type eligibility precedes namespace processing and class publication.
+ * Layout construction repeats the guard so internal callers cannot bypass it. */
+export function validateRuntimeBaseLayouts(bases: readonly RuntimeTypeLayout[], meter: ExecutionMeter): void {
+  for (const base of bases) {
+    meter.checkpoint();
+    if (!base.isSubclassable) {
+      meter.checkpoint(0, 128 + 2 * base.name.length);
+      throw new PythonRuntimeError("TypeError", `type '${base.name}' is not an acceptable base type`);
+    }
+  }
 }
 
 /** Resolve only the winning MRO value's descriptor slots. No namespace cache is

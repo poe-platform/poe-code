@@ -17,6 +17,14 @@ function fixture() {
 }
 
 describe("runtime type inheritance layouts", () => {
+  it("rejects non-subclassable bases before publishing any layout", () => {
+    const { namespace, meter, type } = fixture(), base = new RuntimeTypeLayout("Final", [], namespace(), meter, { subclassable: false }), other = type("Other");
+    let published = false;
+    for (const bases of [[base], [other, base], [base, other], [base, base]]) {
+      expect(() => new RuntimeTypeLayout("C", bases, namespace(), meter, { subclassable: true, beforeMro() { published = true; } })).toThrow("type 'Final' is not an acceptable base type");
+    }
+    expect(published).toBe(false); expect(base.isSubclassable).toBe(false); expect(other.isSubclassable).toBe(true);
+  });
   it("exposes frozen allocation metadata before MRO computation, then fills the MRO", () => {
     const { namespace, meter, type } = fixture(), base = type("Base"); let observed: RuntimeTypeLayout | undefined;
     const result = new RuntimeTypeLayout("C", [base], namespace(), meter, { beforeMro(layout) {

@@ -8185,6 +8185,19 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and scoped lint pass. Complete native type classification/public SDK wiring,
   descriptor metadata catalogs, native constructors and subclass-layout rules
   remain unfinished.
+- Added explicit native base-type eligibility, independent of immutability and
+  native payload storage. Canonical functions and the five native descriptor
+  families reject subclassing; staticmethod/classmethod remain subclassable.
+  Allocation checks eligibility before names, namespace processing and class-cell
+  publication. The layout constructor repeats the invariant for internal callers,
+  including multiple/duplicate bases and attempted subclassable overrides.
+  Six regressions initially failed with the wrong namespace-validation error;
+  focused coverage also checks publication isolation and allowed native-derived
+  hierarchies. All 192 base-eligibility cases, 640 existing class-allocation cases
+  and 420 explicit descriptor cases match CPython. All 6,357 tests in 484 files,
+  selected build, typecheck and scoped lint pass. Complete native constructors,
+  slots/layout conflict checks, mutable bases and public execution wiring remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

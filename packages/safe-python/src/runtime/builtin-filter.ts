@@ -25,7 +25,7 @@ export function createFilterBuiltin(values: RuntimeValues, meter: ExecutionMeter
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "filter() takes no keyword arguments");
       if (positional.length !== 2) throw new PythonRuntimeError("TypeError", `filter expected 2 arguments, got ${positional.length}`);
-      const source = runtimeIterate(positional[1], values, meter, context.iteration);
+      const source = runtimeIterate(positional[1], values, meter, context.iteration ?? invocation?.iteration);
       meter.checkpoint(0, 192);
       const filtering: FilterIterationContext<RuntimeValue> = {
         isTruthPredicate: predicate => predicate.kind === "none" || predicate === context.boolType,

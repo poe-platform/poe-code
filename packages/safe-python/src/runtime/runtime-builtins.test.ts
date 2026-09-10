@@ -98,6 +98,43 @@ it("lets map invoke compiled callbacks after their creating frame returns", () =
   }, meter);
   expect(globals.get("result")).toBe(v.true);
 });
+it.each(["map", "filter"])("lets %s retain frame-owned guest iteration after its creating frame returns", name => {
+  const { meter, v, context } = fixture(), source = v.cell({}), globals = new Map<string, RuntimeValue>([["source", source]]), events: string[] = [], unused = (): never => { throw Error("unexpected guest callback"); };
+  delete context.map; delete context.filter;
+  const stop = Error("guest exhaustion"); let index = 0;
+  const program = compileProgram<RuntimeValue>(analyzeModule(`def create(): return ${name}(lambda value: value,source)\nitems=create()\nfirst=next(items)\nsecond=next(items)\nlast=next(items,99)\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, iteration: {
+      lookupIter(value) { expect(value).toBe(source); events.push("iter"); return () => source; }, hasNext: () => true,
+      next() { events.push("next"); if (index === 2) throw stop; return v.integer(++index); },
+      hasSequenceItem: () => false, getItem: unused, isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+    } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("first")).toEqual(v.integer(1)); expect(globals.get("second")).toEqual(v.integer(2)); expect(globals.get("last")).toEqual(v.integer(99));
+  expect(events).toEqual(["iter", "next", "next", "next"]);
+});
+it.each(["map", "filter"] as const)("preserves explicit %s input iteration over invocation iteration", name => {
+  const { meter, v, context, keywords } = fixture(), source = v.cell({}), unused = (): never => { throw Error("unexpected invocation callback"); }; let acquisitions = 0;
+  const iteration = {
+    lookupIter(value: RuntimeValue) { expect(value).toBe(source); acquisitions++; return () => source; }, hasNext: () => true, next: unused,
+    hasSequenceItem: () => false, getItem: unused, isStopIteration: () => false, isIndexError: () => false, typeName: () => "Guest"
+  };
+  context[name] = { iteration };
+  const builtin = createRuntimeBuiltins(v, meter, context).get(name); if (builtin?.kind !== "builtin_function_or_method") throw Error("expected builtin");
+  const result = builtin.value.invoke([v.none, source], keywords, meter, { call: unused, isStopIteration: unused, iteration: { ...iteration, lookupIter: unused } });
+  expect(result.kind).toBe("iterator"); expect(acquisitions).toBe(1);
+});
+it("routes map strict truth through the frame", () => {
+  const { meter, v, context } = fixture(), decision = v.cell({}), globals = new Map<string, RuntimeValue>([["decision", decision]]), unused = (): never => { throw Error("unexpected guest callback"); }; let conversions = 0;
+  delete context.map;
+  const program = compileProgram<RuntimeValue>(analyzeModule("items=map(lambda a,b:a+b,[1],[2,3],strict=decision)\nfirst=next(items)\nlast=next(items,99)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, truth(value) { expect(value).toBe(decision); conversions++; return false; } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("first")).toEqual(v.integer(3)); expect(globals.get("last")).toEqual(v.integer(99)); expect(conversions).toBe(1);
+});
 it("lets filter invoke a captured predicate after its creating frame returns", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.filter;

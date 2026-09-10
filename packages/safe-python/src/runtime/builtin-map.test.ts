@@ -97,3 +97,20 @@ it("checks cancellation after guest strict truth before arity validation", () =>
   const fn = createMapBuiltin(v, meter, context);
   expect(() => fn.value.invoke([], keywords, meter)).toThrow(ExecutionLimitError);
 });
+it("uses invocation strict truth before arity validation and observes cancellation", () => {
+  const { v, keywords, meter } = fixture(), fault = Error("strict truth failed"), builtin = createMapBuiltin(v, meter);
+  keywords.items.set(v.string("strict"), v.none);
+  const unused = (): never => { throw Error("unexpected callback"); };
+  expect(() => builtin.value.invoke([], keywords, meter, { call: unused, isStopIteration: unused, truth() { throw fault; } })).toThrow(fault);
+  let cancelled = false;
+  const invocationMeter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
+  expect(() => builtin.value.invoke([], keywords, invocationMeter, { call: unused, isStopIteration: unused, truth() { cancelled = true; return false; } })).toThrow(ExecutionLimitError);
+});
+it("preserves explicit strict truth and its receiver over invocation truth", () => {
+  const { v, keywords, meter, context } = fixture(); let conversions = 0;
+  context.truth = function() { expect(this).toBe(context); conversions++; return false; };
+  keywords.items.set(v.string("strict"), v.none);
+  const unused = (): never => { throw Error("unexpected invocation callback"); };
+  const result = createMapBuiltin(v, meter, context).value.invoke([v.none, v.list([])], keywords, meter, { call: unused, isStopIteration: unused, truth: unused });
+  expect(result.kind).toBe("iterator"); expect(conversions).toBe(1);
+});

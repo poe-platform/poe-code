@@ -21,17 +21,22 @@ export interface MapBuiltinContext extends Partial<MapIterationContext<RuntimeVa
  * registration and subclass construction remain separate runtime concerns. */
 export function createMapBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: MapBuiltinContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 96);
-  const truth = { truth: context.truth?.bind(context) ?? ((value: RuntimeValue) => runtimeTruth(value, meter)) };
   return values.builtinFunction({
     name: "map",
     invoke(positional, keywords, meter, invocation) {
+      meter.checkpoint(0, 64);
+      const truth = { truth(value: RuntimeValue) {
+        if (context.truth !== undefined) return context.truth(value);
+        if (invocation?.truth !== undefined) return invocation.truth(value);
+        return runtimeTruth(value, meter);
+      } };
       const strict = runtimeStrictOption("map", keywords, truth, meter);
       if (positional.length < 2) throw new PythonRuntimeError("TypeError", "map() must have at least two arguments.");
       const count = positional.length - 1;
       meter.checkpoint(1, 32 + count * 8);
       const sources = new Array<CompletionIterator<RuntimeValue>>(count);
       for (let i = 0; i < count; i++) {
-        meter.checkpoint(); sources[i] = runtimeIterate(positional[i + 1], values, meter, context.iteration);
+        meter.checkpoint(); sources[i] = runtimeIterate(positional[i + 1], values, meter, context.iteration ?? invocation?.iteration);
       }
       meter.checkpoint(0, 128);
       const callbacks: MapIterationContext<RuntimeValue> = {

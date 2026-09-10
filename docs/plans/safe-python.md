@@ -7092,6 +7092,17 @@ extension, integration, or validation requirement is missing or unverified.
   it as iterator exhaustion. All 5,335 tests in 444 files pass; selected workspace
   build, typecheck and scoped lint pass. Remaining builtin input-iteration dispatch (including
   map/filter), guest object assembly and resumable safe-fs effects remain open.
+- Routed map/filter input acquisition through invocation iteration when no
+  explicit policy exists; map strict truth now likewise uses invocation truth
+  and the invocation meter. Three compiled regressions failed first (guest input
+  rejection and incorrect strict mismatch), then passed. Four additional tests
+  cover explicit iteration/truth priority, receiver preservation, truth failures
+  and cancellation before arity validation. Lazy guest input remains usable
+  after the creating frame returns. All 5,342 tests in 444 files pass, along with
+  selected build, typecheck and scoped lint; rerun differential checks match
+  CPython for 36 compiled map and 36 compiled filter cases. Other builtin
+  iteration integrations, native type assembly, resumable effects and the full
+  public interpreter remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -30,3 +30,15 @@ Three positive guest controls preserve an explicitly created enumerable
 The separate host Promise property-admission policy remains unresolved; see
 [its findings](safejs-host-promise-import-policy.md). These comparisons do not
 justify changing the isolation boundary. No push or release is authorized.
+
+## Error-order audit
+
+Twenty-one public native comparisons for `in` and `instanceof` match (bb9edb),
+covering invalid right operands, property-key conversion, Proxy has effects,
+custom Symbol.hasInstance, primitive left operands and non-constructor arrows.
+
+Eight WeakMap/WeakSet constructor cases with primitive iterator results also
+match native TypeError/cleanup order (db5087). Although the collection loop
+itself delegates result-property reads, `guestIterator` validates the result
+object before returning it (0f085c). No additional close or validation patch is
+justified by that source-level suspicion. Main integration remains running.

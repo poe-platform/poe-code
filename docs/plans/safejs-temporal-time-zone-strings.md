@@ -87,3 +87,22 @@ Built CLI validation on Node 18 (1f3fea) returned the expected clock shifts for
 time, year-month, month-day and annotation-precedence inputs, and rejected the
 invalid February date. Its screenshot was captured and visually inspected:
 `screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-zone-parser.QlO9K3-zone-strings.ajs.png`.
+
+## Bounded upstream Test262 execution
+
+Read-only gate-time audit executed seven unmodified upstream test files from
+revision `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, under
+`test/built-ins/Temporal/Instant/prototype/toString/`: timezone-string.js,
+timezone-string-datetime.js, timezone-string-sub-minute-offset.js,
+timezone-string-leap-second.js, timezone-string-multiple-offsets.js,
+timezone-string-year-zero.js and timezone-string-unknown.js. Each was executed
+inside the rebuilt SafeJS guest with the upstream sta.js and assert.js helpers,
+once in ordinary script mode and once with the strict directive. All 14 runs
+passed (5625c7). No source or test files were modified during the full gate.
+
+This is an ad hoc, pinned upstream selection, not an installed Test262 runner,
+an exhaustive corpus run, or 14 independent fixture files. In particular these
+seven fixtures do not directly settle the native/specification ambiguities
+above. Their evidence supports zone extraction, annotation precedence, leap
+seconds, sub-minute identifier rejection, negative-zero years and unavailable
+names only. A maintained corpus runner and per-feature disposition remain open.

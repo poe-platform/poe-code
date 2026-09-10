@@ -28,6 +28,7 @@ import { createReflectGlobal } from "./globals/reflect.js";
 import { createAtomicsGlobal } from "./globals/atomics.js";
 import { createSharedArrayBufferGlobal } from "./globals/shared-array-buffer.js";
 import { createWeakRefGlobal } from "./globals/weak-ref.js";
+import { createFinalizationRegistryGlobal } from "./globals/finalization-registry.js";
 import { createProxyGlobal } from "./globals/proxy.js";
 import { activeFunctionRealmPrototypes } from "./function-realm.js";
 import { createIntlGlobal } from "./globals/intl.js";
@@ -62,6 +63,7 @@ export function createBuiltinBindings(
     Atomics: createAtomicsGlobal(options.budget),
     SharedArrayBuffer: createSharedArrayBufferGlobal(options.budget),
     WeakRef: createWeakRefGlobal(options.budget),
+    FinalizationRegistry: createFinalizationRegistryGlobal(options.budget),
     Proxy: createProxyGlobal(options.budget),
     Intl: createIntlGlobal(options.budget, date.properties!.now as SandboxClosure),
     ArrayBuffer: createArrayBufferGlobal(options.budget),

@@ -20,6 +20,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "EvalError",
   "eval",
   "Function",
+  "FinalizationRegistry",
   "Infinity",
   "Intl",
   "globalThis",

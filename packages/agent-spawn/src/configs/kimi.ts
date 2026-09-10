@@ -9,7 +9,9 @@ export const kimiSpawnConfig: CliSpawnConfig = {
   // (no `{ event, ... }` field), so it needs the Kimi adapter (not "native").
   adapter: "kimi",
   promptFlag: "-p",
-  modelStripProviderPrefix: true,
+  modelFlag: "--model",
+  // Kimi selects a local models-table alias, which may itself contain slashes.
+  modelStripProviderPrefix: false,
   defaultArgs: ["--print", "--output-format", "stream-json"],
   mcpArgs: serializeJsonMcpArgs,
   modes: {

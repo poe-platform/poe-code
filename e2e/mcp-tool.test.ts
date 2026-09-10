@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useContainer, shellQuote } from '@poe-code/e2e-test-runner';
+import { resolveE2eModel, registerKimiFixtureModel } from './runtime-models.js';
 
 interface AgentMcpSpawnTest {
-  name: string;
+  name: Parameters<typeof resolveE2eModel>[0];
   expectSpawnSuccess: boolean;
   spawnArgs?: string[];
 }
@@ -51,11 +52,18 @@ describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, 
     const configResult = await container.exec(`poe-code configure ${name} --yes`);
     expect(configResult).toHaveExitCode(0);
 
+    const model = resolveE2eModel(name);
+    if (name === 'kimi') {
+      const configPath = `${container.home}/.kimi/config.toml`;
+      const contextSize = Number(process.env.POE_CODE_E2E_KIMI_CONTEXT_SIZE ?? 131072);
+      await container.writeFile(configPath, registerKimiFixtureModel(await container.readFile(configPath), model, contextSize));
+    }
+
     const prompt = 'Call the word_of_the_day tool and return only the exact tool output.';
     const extraArgs = spawnArgs
       ? ` -- ${spawnArgs.map((arg) => shellQuote(arg)).join(' ')}`
       : '';
-    const command = `poe-code spawn --mode yolo --mcp-config ${mcpConfig} ${name} ${shellQuote(prompt)}${extraArgs}`;
+    const command = `poe-code spawn --mode yolo --model ${shellQuote(model)} --mcp-config ${mcpConfig} ${name} ${shellQuote(prompt)}${extraArgs}`;
     const spawnResult = await container.exec(command);
 
     if (!expectSpawnSuccess) {

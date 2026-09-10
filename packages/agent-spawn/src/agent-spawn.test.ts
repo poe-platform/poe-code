@@ -201,6 +201,13 @@ describe("stripModelNamespace", () => {
 // === build-spawn-args.test.ts ===
 
 describe("buildSpawnArgs", () => {
+  it("forwards an explicit Kimi model alias without choosing a default", () => {
+    const selected = buildSpawnArgs("kimi", { prompt: "test", model: "custom/model-alias", mode: "yolo" });
+    expect(selected.args).toContain("--model");
+    expect(selected.args[selected.args.indexOf("--model") + 1]).toBe("custom/model-alias");
+    expect(buildSpawnArgs("kimi", { prompt: "test", mode: "yolo" }).args).not.toContain("--model");
+  });
+
   it("throws error if agent ID cannot be resolved", () => {
     expect(() => buildSpawnArgs("unknown", { prompt: "test" })).toThrow(/Unknown agent/);
   });

@@ -10593,6 +10593,21 @@ extension, integration, or validation requirement is missing or unverified.
   This is the statement lifecycle and explicit extension-hook path, not native
   context-manager lookup/awaitable acquisition or traceback integration. Those
   remain required, along with the public runtime, libraries/import and safe-fs.
+- Internal traceback links (2026-09-10): inspection confirmed that native
+  exceptions have no traceback storage or guest frame representation yet.
+  Added an interpreter-owned traceback chain with immutable frame/location
+  identity and independently writable next links. Link assignment validates the
+  entire candidate chain before mutation, rejects direct/indirect cycles, permits
+  shared tails and traverses iteratively without auxiliary allocations. The -1
+  line sentinel resolves through an explicit frame/instruction policy; other
+  supplied line numbers remain unchanged. No host JavaScript stack is captured.
+  Eleven focused tests pass, including a 5,000-link chain, budget-failure atomicity
+  and cancellation before line resolution. All 1,728 three-node mutation-sequence
+  comparisons match CPython. Selected workspace build, typecheck and scoped lint
+  pass. This isolated new storage module has no runtime consumers yet; the full
+  package suite was not rerun for this slice. Native frame/code objects,
+  exception attachment, traceback descriptors/constructor and context-manager
+  exception arguments remain required integration work, not completed support.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

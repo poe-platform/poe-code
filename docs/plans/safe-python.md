@@ -7213,6 +7213,17 @@ extension, integration, or validation requirement is missing or unverified.
   post-callback cancellation fires. All 5,395 tests in 444 files pass; selected
   build, typecheck and scoped lint pass. Concrete guest object/descriptor wiring,
   remaining builtin integrations and suspended safe-fs execution remain open.
+- Added concrete lookupRuntimeSpecialMethod over live runtime type MROs and
+  descriptor slots. It binds inherited descriptors using the actual receiver
+  type, skips instance dictionaries/ordinary attribute overrides/metaclass lookup,
+  distinguishes missing entries from stored None/noncallables and propagates
+  binding errors unchanged. The initial test failed on the missing module; seven
+  tests now cover live shadow/delete updates, native function binding and compiled
+  invocation, descriptor owner/identity, metaclass exclusion, AttributeError and
+  cancellation. All 5,402 tests in 445 files pass; selected build, typecheck and
+  scoped lint pass. Callers still supply the actual type and descriptor policy;
+  automatic object classification and broad builtin/protocol assembly remain
+  unfinished, as do suspended safe-fs effects and full public execution.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

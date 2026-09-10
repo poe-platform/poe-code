@@ -9775,6 +9775,20 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker package run. Remaining specialized exceptions,
   tracebacks, fault translation, raise/try wiring and interpreter/safe-fs assembly
   are unfinished. No push or release was requested.
+- Name-resolution exception types (2026-09-10): two failing integration tests
+  drove NameError, UnboundLocalError and the native name member. Keyword-derived
+  member initialization replaces args before validation, preserves the previous
+  name on invalid keywords and clears it when a successful call omits name.
+  Errors retain the defining initializer's name and include CPython spelling
+  suggestions. Native name storage is excluded from reduction and ordinary
+  dictionary state. An additional regression verifies subtype attribute shadows
+  and setters do not intercept initialization. All 109 focused CPython comparisons
+  match, as do 98 existing argument-member regression comparisons. Focused tests,
+  typecheck, lint, the selected workspace build and all 7,145 tests in 502 files
+  pass in the uncached one-worker package run. Attribute,
+  import, OS, Unicode and other specialized exceptions, traceback objects, fault
+  translation, raise/try wiring and interpreter/safe-fs assembly remain unfinished.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

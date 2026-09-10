@@ -1,6 +1,6 @@
 /** Builtin exceptions using BaseException's allocation family. Representation
  * policies share storage; argument-derived members introduce native layouts.
- * Keyword-aware and specialized allocation protocols are still separate work. */
+ * Multi-field initializers and specialized allocators are still separate work. */
 export const standardExceptionCatalog = {
   Exception: {base:"BaseException",doc:"Common base class for all non-exit exceptions."},
   GeneratorExit: {base:"BaseException",doc:"Request that a generator exit."},
@@ -18,6 +18,8 @@ export const standardExceptionCatalog = {
   IndexError: {base:"LookupError",doc:"Sequence index out of range."},
   KeyError: {base:"LookupError",doc:"Mapping key not found.",ownAllocator:false,stringArgument:"repr"},
   ReferenceError: {base:"Exception",doc:"Weak ref proxy used after referent went away."},
+  NameError: {base:"Exception",doc:"Name not found globally.",ownAllocator:false,member:{name:"name",doc:"name",arguments:"keyword"}},
+  UnboundLocalError: {base:"NameError",doc:"Local name referenced but not bound to a value.",ownAllocator:false},
   RuntimeError: {base:"Exception",doc:"Unspecified run-time error."},
   StopAsyncIteration: {base:"Exception",doc:"Signal the end from iterator.__anext__()."},
   SystemError: {base:"Exception",doc:"Internal error in the Python interpreter.\n\nPlease report this to the Python maintainer, along with the traceback,\nthe Python version, and the hardware/OS platform and version."},

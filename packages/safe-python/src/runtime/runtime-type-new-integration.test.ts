@@ -70,6 +70,27 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("initializes native NameError names without adding dictionary state",()=>{
+  const state=fixture();for(const name of ["NameError","UnboundLocalError","BaseException"] as const)state.globals.set(name,state.registry.exceptionType(name));
+  state.run("e=NameError('missing',name='variable')\ninitial=e.name=='variable' and e.args==('missing',) and e.__reduce__()==(NameError,('missing',))\ne.__init__('again')\ncleared=e.name is None\ne.name=123\ndel e.name\ndeleted=e.name is None\nu=UnboundLocalError('local',name='x')\nsubclass=u.name=='x' and UnboundLocalError.__dict__.keys()=={'__doc__'}\nraw=BaseException.__new__(NameError,1)\nuninitialized=raw.args==(1,) and raw.name is None\n");
+  for(const key of ["initial","cleared","deleted","subclass","uninitialized"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("replaces NameError args before keyword errors while retaining the previous name",()=>{
+  const state=fixture();state.globals.set("NameError",state.registry.exceptionType("NameError"));state.globals.set("UnboundLocalError",state.registry.exceptionType("UnboundLocalError"));
+  state.run("e=UnboundLocalError('old',name='old')\n");
+  expect(()=>state.run("e.__init__('changed',bad=1)\n")).toThrow("NameError() got an unexpected keyword argument 'bad'");
+  state.run("retained=e.args==('changed',) and e.name=='old'\n");expect(state.globals.get("retained")).toBe(state.v.true);
+  expect(()=>state.run("e.__init__('twice',name='new',bad=1)\n")).toThrow("NameError() takes at most 1 keyword argument (2 given)");
+  state.run("again=e.args==('twice',) and e.name=='old'\n");expect(state.globals.get("again")).toBe(state.v.true);
+});
+
+it("initializes NameError storage without invoking shadowed attributes or setters",()=>{
+  const state=fixture();state.globals.set("NameError",state.registry.exceptionType("NameError"));
+  state.run("class E(NameError):\n name='shadow'\n def __setattr__(self,name,value):\n  return 1/0\ntoken=object()\ne=E('message',name=token)\ncorrect=e.name=='shadow' and NameError.name.__get__(e) is token and e.__reduce__()==(E,('message',))\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("stores StopIteration values independently of args and clears them on empty reinitialization",()=>{
   const state=fixture();state.globals.set("StopIteration",state.registry.exceptionType("StopIteration"));state.globals.set("BaseException",state.registry.baseExceptionType());
   state.run("e=StopIteration(1,2)\ninitial=e.value==1 and e.args==(1,2)\ne.args=(3,)\nindependent=e.value==1\ne.__init__()\ncleared=e.value is None and e.args==()\ne.value=4\ndel e.value\ndeleted=e.value is None\nraw=BaseException.__new__(StopIteration,5)\nuninitialized=raw.args==(5,) and raw.value is None\n");

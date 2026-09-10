@@ -36,6 +36,7 @@ function fixture(identity?: IdentityContext) {
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "list") return registry.listType();
+      if (value.kind === "tuple") return registry.tupleType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -49,6 +50,62 @@ function fixture(identity?: IdentityContext) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("publishes canonical tuple sequence and search descriptors", () => {
+  const state = fixture();
+  state.run("items=(1,2,1)\nTuple=type(items)\nsize=Tuple.__len__(items)\nfound=Tuple.__contains__(items,2)\ncount=Tuple.count(items,1)\nindex=Tuple.index(items,1,1)\nitem=Tuple.__getitem__(items,1)\niterator=Tuple.__iter__(items)\nfirst=iterator.__next__()\nbound=items.count.__self__ is items\nowner=Tuple.count.__objclass__ is Tuple\nstable=items.count==items.count\n");
+  for (const [name, value] of [["size", 3], ["count", 2], ["index", 2], ["item", 2], ["first", 1]] as const) expect(state.globals.get(name)).toEqual(state.v.integer(value));
+  for (const name of ["found", "bound", "owner", "stable"]) expect(state.globals.get(name)).toBe(state.v.true);
+});
+
+it("uses active guest index and equality policies through tuple descriptors", () => {
+  const state = fixture();
+  state.run("class Index:\n def __index__(self):\n  visit('index')\n  return 1\nclass Value:\n def __eq__(self,other):\n  visit('eq')\n  return True\nitems=(Value(),Value())\nTuple=type(items)\nselected=Tuple.__getitem__(items,Index()) is items[1]\nfound=Tuple.__contains__(items,9)\ncount=Tuple.count(items,9)\nindex=Tuple.index(items,9,Index())\n");
+  expect(state.events).toEqual(["index", "eq", "eq", "eq", "index", "eq"]);
+  expect(state.globals.get("selected")).toBe(state.v.true); expect(state.globals.get("found")).toBe(state.v.true); expect(state.globals.get("count")).toEqual(state.v.integer(2)); expect(state.globals.get("index")).toEqual(state.v.integer(1));
+});
+
+it("keeps tuple comparisons receiver-local and preserves guest ordering results", () => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("class Value:\n def __eq__(self,other):\n  visit('eq')\n  return False\n def __lt__(self,other):\n  visit('lt')\n  return 7\nitems=(Value(),)\nTuple=type(items)\nresult=Tuple.__lt__(items,(Value(),))\ndeclined=Tuple.__eq__(items,[]) is NotImplemented\n");
+  expect(state.events).toEqual(["eq", "lt"]); expect(state.globals.get("result")).toEqual(state.v.integer(7)); expect(state.globals.get("declined")).toBe(state.v.true);
+});
+
+it("represents tuple members through active guest repr and inherited object string slots", () => {
+  const state = fixture();
+  state.run("class Value:\n def __repr__(self):\n  visit('repr')\n  return 'value'\nitems=(Value(),)\nTuple=type(items)\ntext=Tuple.__repr__(items)\nstring=Tuple.__str__(items)\nformatted=Tuple.__format__(items,'')\nbound=items.__repr__.__self__ is items\n");
+  expect(state.events).toEqual(["repr", "repr", "repr"]);
+  for (const name of ["text", "string", "formatted"]) expect(state.globals.get(name)).toEqual(state.v.string("(value,)")); expect(state.globals.get("bound")).toBe(state.v.true);
+});
+
+it("hashes tuple members through the active policy without caching guest hashes", () => {
+  const state = fixture();
+  state.run("class Value:\n def __hash__(self):\n  visit('hash')\n  return 1\nitems=(Value(),)\nTuple=type(items)\nfirst=Tuple.__hash__(items)\nsecond=items.__hash__()\n");
+  expect(state.events).toEqual(["hash", "hash"]); expect(state.globals.get("first")).toEqual(state.v.integer(-6644214454873602895n)); expect(state.globals.get("second")).toEqual(state.globals.get("first"));
+});
+
+it("retains tuple slice identity and shares recursive representation guards", () => {
+  const state = fixture(); state.globals.set("whole", state.v.slice({})); state.globals.set("reverse", state.v.slice({ step: state.v.integer(-1) }));
+  state.run("items=(1,2,3)\nTuple=type(items)\nsame=Tuple.__getitem__(items,whole) is items\nreversed=Tuple.__getitem__(items,reverse)==(3,2,1)\nclass Value:\n def __repr__(self):\n  return Tuple.__repr__(cycle)\ncycle=(Value(),)\ntext=Tuple.__repr__(cycle)\n");
+  expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("reversed")).toBe(state.v.true); expect(state.globals.get("text")).toEqual(state.v.string("((...),)"));
+});
+
+it("exposes tuple subscription as a wrapper and validates receiver and argument shape", () => {
+  const state = fixture(); state.run("Tuple=type(())\nmember=Tuple.__getitem__\ndoc=member.__doc__\n");
+  expect(state.globals.get("member")?.kind).toBe("wrapper_descriptor"); expect(state.globals.get("doc")).toEqual(state.v.string("Return self[key]."));
+  expect(() => state.run("Tuple.__getitem__()\n")).toThrow("descriptor '__getitem__' of 'tuple' object needs an argument");
+  expect(() => state.run("Tuple.__getitem__(None)\n")).toThrow("descriptor '__getitem__' requires a 'tuple' object but received a 'NoneType'");
+  expect(() => state.run("Tuple.__getitem__(())\n")).toThrow("expected 1 argument, got 0");
+  expect(() => state.run("Tuple.__getitem__((),extra=1)\n")).toThrow("wrapper __getitem__() takes no keyword arguments");
+  expect(() => state.run("Tuple.__hash__(([],))\n")).toThrow("unhashable type: 'list'");
+});
+
+it("preserves original tuple member hash failures", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "hash failed");
+  state.globals.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Value:\n def __hash__(self):\n  fail()\nitems=(Value(),)\nTuple=type(items)\n");
+  let caught: unknown; try { state.run("Tuple.__hash__(items)\n"); } catch (error) { caught = error; } expect(caught).toBe(failure);
+});
 
 it.each(["set", "frozenset"] as const)("executes native %s operator descriptors with original binding and reversed orientation", kind => {
   for (const [suffix, symbol] of [["or", "|"], ["and", "&"], ["sub", "-"], ["xor", "^"]]) {

@@ -8902,6 +8902,24 @@ extension, integration, or validation requirement is missing or unverified.
   files pass with two workers. No push or release was requested.
   Remaining native catalogs, lifecycle details, public interpreter integration,
   guest exceptions and suspended safe-fs execution remain unfinished.
+- Published a canonical tuple type with length, iteration, containment,
+  subscription, repr, hash, count/index and six comparison descriptors. Six
+  initial RED regressions reproduced missing native descriptors, inherited
+  object comparisons/hashing and missing bound receiver metadata. Explicit
+  tuple operations now use the current execution's equality, ordering, truth,
+  integer-index, representation and hash policies. Hash failures retain their
+  original guest exception; full slices retain exact tuple identity and repr
+  shares container recursion guards. Tuple subscription is a wrapper descriptor
+  (unlike list subscription), with native receiver/argument validation.
+  Eight added tests cover these protocols, metadata, callback results, errors,
+  slicing and recursion. All 496 native tuple descriptor and 85 guest callback
+  cases match CPython; the 400 set-method, 896 set-operator and 336 set/view/guest
+  negotiation regression cases also pass. Tuple allocation, subclass storage,
+  arithmetic wrappers and remaining native catalogs remain unfinished, as do
+  public interpreter integration and suspended safe-fs execution.
+  Workspace build, typecheck and focused lint pass; all 6,823 unit tests in 493
+  files pass with two workers. All 2,213 differential cases above pass. No push
+  or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

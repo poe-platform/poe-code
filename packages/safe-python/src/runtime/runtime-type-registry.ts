@@ -33,6 +33,7 @@ import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.j
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
 import { installRuntimeSetOperatorSlots } from "./runtime-set-operator-slots.js";
+import { installRuntimeTupleSlots } from "./runtime-tuple-slots.js";
 import { createSetNewBuiltin } from "./builtin-set-new.js";
 import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
 import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
@@ -62,6 +63,7 @@ export class RuntimeTypeRegistry {
   readonly #descriptors = new Map<IntrinsicDescriptorKind, TypeValue>();
   readonly #boundCallables = new Map<NativeBoundCallableKind, TypeValue>();
   #listType: TypeValue | undefined;
+  #tupleType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -207,6 +209,20 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods(kind, type, this.values, this.meter);
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#sets.set(kind, type);
+    return type;
+  }
+
+  /** Tuple storage protocols; allocation and subclass payloads are separate. */
+  tupleType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#tupleType !== undefined) return this.#tupleType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("tuple", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeTupleSlots(type, this.values, this.meter);
+    installRuntimeComparisonMethods("tuple", type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#tupleType = type;
     return type;
   }
 

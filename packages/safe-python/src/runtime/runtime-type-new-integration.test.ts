@@ -19,8 +19,9 @@ import { constructRuntimeFrozenSet } from "./runtime-frozenset.js";
 import { createHashBuiltin } from "./builtin-hash.js";
 import { createRuntimeKeyOperations } from "./runtime-key-operations.js";
 import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
+import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 
-function fixture() {
+function fixture(identity?: IdentityContext) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
   const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
   const calls = new CallStack<object>(50, meter), keys = new RuntimeExecutionKeys(v, hash, meter, calls);
@@ -43,10 +44,46 @@ function fixture() {
     } })
   };
   function run(source: string) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls }, meter);
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls, identity }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("shares an explicit execution identity policy between repr and default id", () => {
+  const state = fixture({ id: () => 0xabcden }); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
+  state.run("item=object()\nresult=object.__repr__(item)\naddress=id(item)\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("<object object at 0xabcde>")); expect(state.globals.get("address")).toEqual(state.v.integer(0xabcden));
+});
+
+it("represents ordinary guest objects with stable execution identities", () => {
+  const state = fixture(); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
+  state.run("class Value:\n pass\nitem=Value()\nfirst=object.__repr__(item)\nnormal=f'{item!r}'\ntext=f'{item}'\naddress=id(item)\nother=Value()\nother_address=id(other)\n");
+  const address = state.globals.get("address"); if (address?.kind !== "int") throw Error("expected identity");
+  const expected = state.v.string(`<example.Value object at 0x${address.value.toString(16)}>`);
+  expect(state.globals.get("first")).toEqual(expected); expect(state.globals.get("normal")).toEqual(expected); expect(state.globals.get("text")).toEqual(expected); expect(state.globals.get("other_address")).not.toEqual(address);
+  state.run("again=object.__repr__(item)\n"); expect(state.globals.get("again")).toEqual(expected);
+});
+
+it.each([["'example'", "example.Outer.Inner"], ["'builtins'", "Value"], ["''", ".Outer.Inner"], ["None", "Value"], ["42", "Value"]])("reads owned object repr metadata for module %s", (module, name) => {
+  const state = fixture(); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
+  state.run(`class Value:\n pass\nValue.__qualname__='Outer.Inner'\nValue.__module__=${module}\nitem=Value()\nresult=object.__repr__(item)\naddress=id(item)\n`);
+  const address = state.globals.get("address"); if (address?.kind !== "int") throw Error("expected identity");
+  expect(state.globals.get("result")).toEqual(state.v.string(`<${name} object at 0x${address.value.toString(16)}>`));
+});
+
+it("explicit object repr bypasses guest repr overrides", () => {
+  const state = fixture(); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
+  state.run("class Value:\n def __repr__(self):\n  visit('repr')\n  return 'override'\nitem=Value()\nresult=object.__repr__(item)\naddress=id(item)\nnormal=f'{item!r}'\n");
+  const address = state.globals.get("address"); if (address?.kind !== "int") throw Error("expected identity");
+  expect(state.globals.get("result")).toEqual(state.v.string(`<example.Value object at 0x${address.value.toString(16)}>`)); expect(state.globals.get("normal")).toEqual(state.v.string("override")); expect(state.events).toEqual(["repr"]);
+});
+
+it("validates the base object repr wrapper before representation", () => {
+  const state = fixture(); state.run("item=object()\nmethod=item.__repr__\nowner=method.__objclass__ is object\n");
+  expect(state.globals.get("owner")).toBe(state.v.true);
+  expect(() => state.run("method(1)\n")).toThrow("expected 0 arguments, got 1");
+  expect(() => state.run("method(x=1)\n")).toThrow("wrapper __repr__() takes no keyword arguments");
+});
 
 it.each(["exact", "subclass"])("inherits object str with active %s list element representations", kind => {
   const state = fixture();

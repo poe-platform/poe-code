@@ -9,13 +9,13 @@ export interface IdentityContext {
 
 /** Explicit id registration with execution-owned identities, never host memory
  * addresses. Validation precedes identity allocation or capability invocation. */
-export function createIdBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: IdentityContext): BuiltinFunctionValue {
+export function createIdBuiltin(values: RuntimeValues, meter: ExecutionMeter, context?: IdentityContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name: "id", invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name: "id", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "id() takes no keyword arguments");
     if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `id() takes exactly one argument (${positional.length} given)`);
-    const identity = context.id(positional[0]);
+    const identity = (context ?? invocation?.identity ?? values.identity).id(positional[0]);
     meter.checkpoint();
     return values.integer(identity);
   } });

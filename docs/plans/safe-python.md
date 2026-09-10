@@ -8733,6 +8733,23 @@ extension, integration, or validation requirement is missing or unverified.
   493 files pass with two workers.
   Default object repr/identity presentation, remaining native members and public
   execution integration remain unfinished.
+- Published canonical object.__repr__ using owned type metadata and opaque,
+  execution-local IDs. Eight initial RED cases reproduced missing instance repr
+  and erroneous fallback to a bound metaclass repr on explicit object access.
+  RuntimeValues now lazily owns a shared identity registry; id registration and
+  frame invocation use it by default, with an explicit execution identity policy
+  supported. A ninth RED case exposed mismatched override policies between id
+  and repr; default id now follows the active invocation policy. Added coverage
+  verifies stable/distinct IDs, persistence across programs sharing values,
+  module/qualified-name selection, bypassed repr overrides and wrapper argument
+  validation. All 81 base-object repr, 27 object str, 80 list representation and
+  56 object format differential cases match CPython, including native receivers,
+  Unicode/embedded-null names and errors. Direct CPython probes additionally
+  confirm that base repr bypasses metaclass attribute hooks and module descriptors.
+  Workspace build, typecheck and focused lint pass; all 6,718 unit tests in 493
+  files pass with two workers. All 244 differential cases above pass.
+  Remaining specialized native representations, full catalogs, lifecycle audits,
+  public execution assembly and safe-fs integration are still unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

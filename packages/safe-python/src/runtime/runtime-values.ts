@@ -15,6 +15,8 @@ import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 import type { FormatContext } from "./format-protocol.js";
 import { RuntimeMethodDecoratorState } from "./runtime-method-decorator-state.js";
 import { RuntimeInstanceState } from "./runtime-instance-state.js";
+import { ExecutionIdentity } from "./execution-identity.js";
+import type { IdentityContext } from "./builtin-id.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -78,6 +80,8 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Execution-local object IDs, shared with id(); never host addresses. */
+  readonly identity?: IdentityContext;
   /** Trusted signed 64-bit identity hash, with -1 remapped to -2; no guest slots. */
   identityHash?(value: RuntimeValue): bigint;
   /** Native outer hash slot with normal guest hashing for nested members. */
@@ -302,10 +306,17 @@ export type RuntimeValue =
  * separate concerns; this is not yet the complete Python object model.
  */
 export class RuntimeValues extends ConstantValues {
+  #identity?: ExecutionIdentity;
   #descriptorQualifiedNames?: WeakMap<NativeDescriptorValue, Extract<PrimitiveConstant, { kind: "str" }>>;
   #nativeImplementations?: WeakMap<MethodDescriptorCapability["invoke"], NativeMethodDescriptorValue>;
   constructor(private readonly runtimeMeter: ExecutionMeter) {
     super(runtimeMeter);
+  }
+
+  /** Lazy shared default for all programs and builtin namespaces using these
+   * values. Explicit execution policies may replace it without touching guests. */
+  get identity(): ExecutionIdentity {
+    return this.#identity ??= new ExecutionIdentity(this.runtimeMeter);
   }
 
   /** Adopt explicitly allocated instance storage without running guest methods.

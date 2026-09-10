@@ -70,6 +70,8 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
 }
 
 export interface RuntimeExecutionContext {
+  /** Share an override with id registration and identity hashing when supplied. */
+  readonly identity?: BuiltinInvocationContext["identity"];
   /** Shared by all frames; builtin registration can use this same context. */
   readonly formatting?: FormatContext<RuntimeValue>;
   readonly values: RuntimeValues;
@@ -183,6 +185,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      get identity() { return context.identity ?? values.identity; },
       identityHash: keys.identityHash?.bind(keys),
       nativeHash: keys.nativeHash?.bind(keys),
       get formatting() { return getFormatting(); },

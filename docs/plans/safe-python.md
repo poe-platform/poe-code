@@ -6773,6 +6773,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Remaining native
   buffer consumers, concrete exporters, automatic object assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.removeprefix/removesuffix to contiguous buffer leases with
+  post-acquisition/copy cancellation checks and unconditional cleanup. Empty or
+  unmatched affixes retain receiver identity. Partition methods share the file
+  but remain unchanged: CPython retains bytearray/memoryview separator objects
+  and exposes a buffer wrapper for Python-level exporters, needing separate
+  retained-object policy rather than substituting a copied bytes value.
+- Four failing compiled regressions now pass. All 5,189 tests in 441 files pass;
+  80 CPython comparisons match output/errors, identity and lease traces.
+  Typecheck, scoped lint and selected workspace build pass. Buffer partitioning,
+  remaining native consumers, concrete exporters, automatic object assembly and
+  broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

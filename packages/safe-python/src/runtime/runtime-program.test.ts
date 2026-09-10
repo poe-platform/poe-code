@@ -39,6 +39,24 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["removeprefix", "ba"], ["removesuffix", "ab"]])("removes a byte buffer with %s", (method, expected) => {
+    const state = fixture(`result=b'aba'.${method}(affix)\n`), v = state.values, trace: string[] = [];
+    state.globals.set("affix", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { trace.push("acquire"); return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() { trace.push("release"); } }; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(new TextEncoder().encode(expected)));
+    expect(trace).toEqual(["acquire", "release"]);
+  });
+  it.each(["removeprefix", "removesuffix"])("releases %s buffers on cancellation", method => {
+    const controller = new AbortController(), state = fixture(`result=b'a'.${method}(affix)\n`, 100000, controller.signal), v = state.values;
+    let released = false;
+    state.globals.set("affix", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { controller.abort(); return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it.each([["strip", "b"], ["lstrip", "ba"], ["rstrip", "ab"]])("strips bytes with a buffer using %s", (method, expected) => {
     const state = fixture(`result=b'aba'.${method}(chars)\n`), v = state.values, chars = v.cell({}), trace: string[] = [];
     state.globals.set("chars", chars);

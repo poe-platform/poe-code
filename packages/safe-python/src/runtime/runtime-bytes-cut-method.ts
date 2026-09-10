@@ -1,10 +1,11 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Boundary removal and single-separator partitioning over owned byte storage.
  * Unchanged results retain the receiver; a matched separator is retained. */
-export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "removeprefix" | "removesuffix" | "partition" | "rpartition", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "removeprefix" | "removesuffix" | "partition" | "rpartition", values: RuntimeValues, meter: ExecutionMeter, buffers?: RuntimeBufferContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -12,18 +13,28 @@ export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { ki
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `bytes.${name}() takes no keyword arguments`);
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `bytes.${name}() takes exactly one argument (${positional.length} given)`);
-      const argument = positional[0];
-      if (argument.kind !== "bytes") {
-        const type = argument.kind === "none" ? "NoneType" : argument.kind === "not-implemented" ? "NotImplementedType" : argument.kind;
-        throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${type}'`);
-      }
-      const source = receiver.value, separator = argument.value;
+      const argument = positional[0], source = receiver.value;
       if (name === "removeprefix" || name === "removesuffix") {
-        if (separator.length === 0 || !source.hasAffix(separator, name === "removeprefix" ? "start" : "end", 0n, null, meter)) return receiver;
-        const start = name === "removeprefix" ? BigInt(separator.length) : 0n;
-        const stop = name === "removesuffix" ? BigInt(source.length - separator.length) : null;
-        return values.bytes(source.slice(start, stop, null, meter));
+        let lease: RuntimeBufferLease | undefined;
+        try {
+          if (argument.kind !== "bytes") {
+            lease = buffers?.acquireSimple(argument); meter.checkpoint();
+            if (lease === undefined) invalidBytesArgument(argument);
+          }
+          const separator = argument.kind === "bytes" ? argument.value : lease!.copy();
+          meter.checkpoint();
+          if (separator.length === 0 || !source.hasAffix(separator, name === "removeprefix" ? "start" : "end", 0n, null, meter)) return receiver;
+          const start = name === "removeprefix" ? BigInt(separator.length) : 0n;
+          const stop = name === "removesuffix" ? BigInt(source.length - separator.length) : null;
+          return values.bytes(source.slice(start, stop, null, meter));
+        } finally {
+          lease?.release(); meter.checkpoint();
+        }
       }
+      if (argument.kind !== "bytes") {
+        invalidBytesArgument(argument);
+      }
+      const separator = argument.value;
       if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
       const index = source.search(separator, name === "partition" ? "find" : "rfind", 0n, null, meter);
       if (index === -1) {
@@ -35,4 +46,9 @@ export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { ki
       return values.tuple([left, argument, right]);
     }
   });
+}
+
+function invalidBytesArgument(value: RuntimeValue): never {
+  const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
+  throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${type}'`);
 }

@@ -9270,6 +9270,20 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, focused lint and all 6,936 package tests in 493 files pass. Remaining
   native lifecycle/scalar audits, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Integer text conversion kernel (2026-09-10): added 16 tests before the missing
+  implementation. The metered parser supports bases 0 and 2–36, signs, Python
+  int whitespace rules, Unicode decimal digits for text only, prefix/underscore
+  rules, base-zero leading-zero rejection and non-power-of-two digit limits.
+  Syntax validation precedes balanced chunk conversion, avoiding repeated
+  single-digit multiplication of an ever-growing integer. Invalid-input errors
+  use original text/bytes repr and Python's diagnostic truncation. All 6,409
+  syntax/bytes/limit cases, 3,800 pinned Unicode decimal cases and 140 long-input
+  cases match CPython (10,349 total). The oracle separates parsing from decimal
+  output conversion so its own output limit does not invalidate successful
+  power-of-two-base parsing. Workspace build, typecheck, focused lint and all
+  6,952 package tests in 494 files pass. Runtime integer-constructor integration,
+  canonical scalar types, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

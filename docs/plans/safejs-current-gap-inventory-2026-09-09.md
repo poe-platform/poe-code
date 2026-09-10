@@ -53,7 +53,7 @@ It does not compare inherited typed-array methods or anonymous intrinsics.
 | Temporal.Duration | total, compare and round now present | Uncommitted implementation; broader calendar conformance remains open |
 | Temporal.PlainTime | Constructor, six field getters and all named prototype methods now present, including toLocaleString, with owned data copying and heap/replay codecs | Uncommitted public integration; direct Intl format/parts/ranges now accept PlainTime and Instant, with requested-options snapshot preservation; legacy snapshots use resolved fallback |
 | Intl fixed-offset zones on Node 18 | Strict offset validation and PlainTime.toLocaleString now pass focused Node 18 regressions | Numeric Date/Instant and direct Intl offset formatting remain incomplete; backend also fails all nine offset/type controls on Node 18 (d83fb6); see [offset-zone investigation](safejs-intl-offset-zone-portability.md) |
-| Temporal.PlainDateTime | Present with getters, from/compare/equals, withCalendar/withPlainTime, round, formatting and private copy/replay integration | Public integration remains uncommitted; with, add/subtract, until/since, toLocaleString, toZonedDateTime and toPlainDate are still absent |
+| Temporal.PlainDateTime | Present with getters, from/compare/equals, with/withCalendar/withPlainTime, add/subtract, until/since, round, locale/ISO formatting and private copy/replay integration | Public integration remains uncommitted; toZonedDateTime and toPlainDate are still absent; direct Intl format/parts/ranges now accept owned PlainDateTime values |
 | Temporal.PlainDate, PlainYearMonth, PlainMonthDay, ZonedDateTime, Now | Absent | Remaining Temporal implementation work |
 | Map.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; subsequently implemented locally | See [focused qualification](safejs-map-upsert.md); newer compatibility work, not a full conformance claim |
 | WeakMap.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; experimental implementation now exists | [WeakMap integration](safejs-weakmap-upsert.md) remains uncommitted and inherits older-Node weak-symbol limitations |
@@ -67,12 +67,31 @@ have implementation defects.
 
 A fresh built-runtime audit against Node 26.4.0 (ca8de4) checked all eight
 Temporal constructors and their own static/prototype string names. It confirms
-PlainDateTime is now present, with exactly the eight missing prototype names
-listed above; Instant still lacks toZonedDateTimeISO. Duration and PlainTime have
+PlainDateTime was present, with eight prototype names still missing at that
+time; Instant still lacked toZonedDateTimeISO. Duration and PlainTime had
 no missing names in that comparison. The four date/zoned constructors remain
 absent. This probe used the build qualified in the required-rounding-unit fix
 (e4c482), before the latest relativeTo calendar-bag adapter change. It does not
 establish behavioral or symbol/descriptor conformance, and it did not recheck Now.
+
+A newer source-runtime reflection check (f0a87e), compared against native
+Node 26.4.0, now finds only toPlainDate and toZonedDateTime missing from
+PlainDateTime's own prototype string names. Instant still lacks
+toZonedDateTimeISO; Duration and PlainTime have no missing names in this bounded
+comparison. PlainDate, PlainYearMonth, PlainMonthDay and ZonedDateTime remain
+absent, as does Now. This supersedes the earlier eight-method absence claim;
+it does not establish complete behavior, descriptors, symbols or delivery.
+
+Recent upstream evidence at Test262 revision
+419d3e0a2273ba01a3bfcbec423f2801425b8e93: add/subtract passed all 168 runs;
+until passed 188 of 196 runs, with eight failures in fixtures requiring missing
+date/zoned types; since remains running. All fifteen intl402 PlainDateTime
+toLocaleString fixtures passed in both modes (30/30) after reproducing and
+fixing direct Intl admission of private PlainDateTime values. That latest
+locale result used current source, not a rebuilt artifact. See
+[the implementation and verification record](safejs-temporal-plain-date-time.md).
+These changes postdate the last full-package fingerprint, remain uncommitted,
+and have not been pushed or released.
 
 Recent behavioral evidence includes all 71 rounding tests passing on Node
 18.18.2 and successful reruns of the two formerly failing upstream rounding

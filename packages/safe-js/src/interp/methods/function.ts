@@ -32,7 +32,8 @@ export type FunctionMethodOptions = {
     stack: readonly string[],
     thisValue: SandboxValue,
     construct?: boolean,
-    newTarget?: SandboxClosure
+    newTarget?: SandboxClosure,
+    context?: SandboxCallContext
   ) => Promise<SandboxValue> | SandboxValue;
 };
 

@@ -15,10 +15,10 @@ export function createBoundFunction(
     length,
     boundTarget: state.target,
     retainedValues: () => [state.target, state.thisValue, ...state.args, bound.name],
-    call: (args, context) => callClosure(state.target, [...state.args, ...args], context?.stack ?? [], state.thisValue),
+    call: (args, context) => callClosure(state.target, [...state.args, ...args], context?.stack ?? [], state.thisValue, undefined, undefined, context),
     ...(state.target.construct === undefined ? {} : {
       construct: (args, context) => callClosure(state.target, [...state.args, ...args], context?.stack ?? [],
-        undefined, true, context?.newTarget === bound ? state.target : context?.newTarget)
+        undefined, true, context?.newTarget === bound ? state.target : context?.newTarget, context)
     })
   });
   boundFunctionStates.set(bound, state);

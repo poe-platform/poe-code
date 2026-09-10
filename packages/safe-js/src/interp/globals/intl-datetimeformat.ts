@@ -81,7 +81,7 @@ export function createDateTimeFormatConstructor(budget: Budget, now: SandboxClos
         const state = dateTimeFormatState(receiver);
         if (state.format === undefined) {
           state.format = createBoundFunction({ target: formatTarget, thisValue: receiver, args: [] }, "", 1,
-            (target, args, stack, thisValue) => invokeBuiltinClosure(target, args, budget, { stack, thisValue }, thisValue));
+            (target, args, stack, thisValue, _construct, _newTarget, callContext) => invokeBuiltinClosure(target, args, budget, { ...callContext, stack, thisValue }, thisValue));
           allocateProducedSandboxValue(state.format, budget);
         }
         return state.format;

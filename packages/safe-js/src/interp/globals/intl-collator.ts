@@ -81,7 +81,7 @@ export function createCollatorConstructor(budget: Budget): SandboxClosure {
         const state = collatorState(receiver);
         if (state.compare === undefined) {
           state.compare = createBoundFunction({ target: compareTarget, thisValue: receiver, args: [] }, "", 2,
-            (target, args, stack, thisValue) => invokeBuiltinClosure(target, args, budget, { stack, thisValue }, thisValue));
+            (target, args, stack, thisValue, _construct, _newTarget, callContext) => invokeBuiltinClosure(target, args, budget, { ...callContext, stack, thisValue }, thisValue));
           allocateProducedSandboxValue(state.compare, budget);
         }
         return state.compare;

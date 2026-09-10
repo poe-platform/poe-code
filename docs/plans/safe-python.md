@@ -7954,6 +7954,20 @@ extension, integration, or validation requirement is missing or unverified.
   Public constructor
   argument validation, automatic metadata initialization, guest dictionary
   exposure and lazy annotation/abstractness protocols remain unfinished.
+- Added the shared native method-wrapper initializer policy: keyword rejection
+  precedes positional arity checking, both precede payload/metadata mutation,
+  and successful initialization returns None. Exact wrapper attribute lookup
+  now reads its own metadata after intrinsic __func__/__wrapped__ descriptors.
+  CPython probes corrected an initial assumption: automatic type.__new__ wrappers
+  deliberately have empty metadata dictionaries, unlike explicit initialization.
+  A regression preserves that distinction. Eight tests cover argument precedence,
+  copied identity, descriptor precedence, automatic wrapping and compiled reads
+  before/after reinitialization. All 48 initializer cases match CPython; all 6,202
+  tests in 472 files, selected build, typecheck and scoped lint pass. The 20
+  automatic-wrapping and 96 compiled-constructor cases still match CPython.
+  Canonical native wrapper
+  types, constructor/__init__ descriptor wiring, guest dictionaries and lazy
+  annotation/abstractness protocols remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

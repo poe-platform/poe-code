@@ -1896,6 +1896,19 @@ it("exposes decorator payload identities but does not make classmethod objects c
   expect(() => state.run("wrapped()\n")).toThrow("'classmethod' object is not callable");
 });
 
+it.each(["staticmethod", "classmethod"] as const)("reads copied %s metadata from compiled code without forwarding to the payload", kind => {
+  const state = fixture(), wrapper = state.v.methodDecorator(kind, state.v.none), metadata = state.v.list([]);
+  wrapper.state.initialize(state.v.true, () => metadata, state.meter);
+  state.globals.set("wrapped", wrapper);
+  state.run("name=wrapped.__name__\nqualified=wrapped.__qualname__\nmodule=wrapped.__module__\ndoc=wrapped.__doc__\noriginal=wrapped.__wrapped__\n");
+  for (const name of ["name", "qualified", "module", "doc"]) expect(state.globals.get(name)).toBe(metadata);
+  expect(state.globals.get("original")).toBe(state.v.true);
+  wrapper.state.initialize(state.v.false, () => state.v.none, state.meter);
+  state.run("updated=wrapped.__name__\nfunction=wrapped.__func__\n");
+  expect(state.globals.get("updated")).toBe(state.v.none);
+  expect(state.globals.get("function")).toBe(state.v.false);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

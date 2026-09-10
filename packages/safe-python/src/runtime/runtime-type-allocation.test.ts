@@ -9,6 +9,7 @@ import { runtimeTypeAttribute } from "./runtime-type-attributes.js";
 import { compileProgram } from "./program-compilation.js";
 import { analyzeModule } from "../analysis.js";
 import { createFunctionState } from "./function-state.js";
+import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -103,4 +104,20 @@ it("does not rewrap explicit method decorators or non-function reserved values",
   const { v, namespace, create } = fixture(), wrapper = v.methodDecorator("staticmethod", v.none), native = v.builtinFunction({ name: "native", invoke: () => v.none });
   namespace.items.set(v.string("__new__"), wrapper); namespace.items.set(v.string("__init_subclass__"), native); namespace.items.set(v.string("__class_getitem__"), v.true);
   const cls = create(); expect(cls.value.namespace.items.lookup(v.string("__new__"))?.value).toBe(wrapper); expect(cls.value.namespace.items.lookup(v.string("__init_subclass__"))?.value).toBe(native); expect(cls.value.namespace.items.lookup(v.string("__class_getitem__"))?.value).toBe(v.true);
+});
+
+it("does not copy function metadata into automatically created wrappers", () => {
+  const { v, meter, namespace, create } = fixture(), program = compileProgram(analyzeModule('def f():\n "documentation"\n pass\n'), { stripDocstring: false }, v, meter);
+  const module = v.list([]), fn = v.function(createFunctionState(program.functions.values().next().value!, new Map(), { globals: new Map([["__name__", module]]), builtins: new Map(), none: v.none }, meter));
+  fn.value.attributes.set("extra", v.true);
+  for (const name of ["__new__", "__init_subclass__", "__class_getitem__"]) namespace.items.set(v.string(name), fn);
+  const cls = create();
+  fn.value.name = v.string("changed");
+  for (const name of ["__new__", "__init_subclass__", "__class_getitem__"]) {
+    const wrapper = cls.value.namespace.items.lookup(v.string(name))!.value;
+    if (wrapper.kind !== "staticmethod" && wrapper.kind !== "classmethod") throw Error("expected wrapper");
+    expect(wrapper.state.attributes.size).toBe(0);
+    expect(() => runtimeNativeAttribute(wrapper, "__name__", v, meter)).toThrow("has no attribute '__name__'");
+    expect(() => runtimeNativeAttribute(wrapper, "extra", v, meter)).toThrow("has no attribute 'extra'");
+  }
 });

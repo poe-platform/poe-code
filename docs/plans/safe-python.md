@@ -8246,6 +8246,20 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,391 tests in 486 files, selected build, typecheck and scoped lint pass.
   Complete builtin documentation catalogs, inspect integration, weak-reference
   objects and public class-builder/execution wiring remain unfinished.
+- Added native type.__new__ allocation and runtime finalization wiring, enabling
+  explicit allocation and ordinary three-argument type calls. Receiver/argument
+  validation precedes allocation; unresolved MRO entries are rejected without
+  invoking their hook. Metaclass winner selection delegates through ordinary
+  __new__ lookup only when necessary, preserving unrelated results and leaving
+  metaclass initialization to type calls. Live calling-module metadata, slot
+  allocation, set-name/subclass hooks, failure notes and class-cell publication
+  use the existing shared mechanisms. Initial compiled construction and long-name
+  diagnostic regressions failed before implementation; 13 focused tests cover
+  delegation, hook order, conflicts, cancellation and host ownership boundaries.
+  All 154 allocator validation cases match CPython. All 6,404 tests in 488 files,
+  selected build, typecheck and scoped lint pass. Public class-statement builder wiring,
+  remaining native constructors, mutable bases and complete execution packaging
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

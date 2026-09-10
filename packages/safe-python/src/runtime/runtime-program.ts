@@ -37,6 +37,8 @@ import { executeClassDefinition } from "./class-definition.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { callRuntimeType } from "./runtime-type-call.js";
+import { finalizeRuntimeType } from "./runtime-type-finalization.js";
+import { representationObject } from "./representation-protocol.js";
 import { callRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
 import { runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type-attributes.js";
@@ -167,6 +169,17 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.name;
       },
       actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
+      get moduleName() { return namespaces.globals.get("__name__"); },
+      finalizeType: specialMethods === undefined ? undefined : (type, keywords) => finalizeRuntimeType(type, keywords, specialMethods, values, meter, {
+        call: builtinCalls.call.bind(builtinCalls),
+        repr(value) {
+          const formatting = getFormatting(), result = representationObject(value, "repr", formatting, meter), points = formatting.string(result); meter.checkpoint();
+          if (points === undefined) throw Error("representation did not produce string storage");
+          let text = "";
+          for (const point of points) { meter.checkpoint(1, point > 0xffff ? 4 : 2); text += String.fromCodePoint(point); }
+          return text;
+        }
+      }),
       assignClassDefault: (object, type) => statementHooks.setAttribute(object, "__class__", type),
       typeAttributeDefault: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods),
       mutateTypeAttributeDefault: specialMethods === undefined ? undefined : (type, name, change) => runtimeMutateTypeAttribute(type, name, change, values, meter, specialMethods),

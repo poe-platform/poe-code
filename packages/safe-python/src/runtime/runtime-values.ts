@@ -85,6 +85,10 @@ export interface BuiltinInvocationContext {
   lookupSpecial?(object: RuntimeValue, name: string): RuntimeValue | undefined;
   /** Actual runtime type, bypassing instance attributes and virtual checks. */
   actualType?(value: RuntimeValue): TypeValue;
+  /** Calling frame's live globals __name__, for native class allocation. */
+  readonly moduleName?: RuntimeValue;
+  /** Complete set-name and subclass hooks; never runs metaclass __init__. */
+  finalizeType?(type: TypeValue, keywords: DictionaryValue): void;
   /** Enter type.__call__ directly, bypassing metaclass __call__ overrides. */
   callTypeDefault?(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue): RuntimeValue;
   /** Default type attribute slots, without metaclass overrides or getattr. */

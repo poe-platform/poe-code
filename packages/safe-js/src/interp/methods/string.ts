@@ -224,7 +224,7 @@ function callStringMethodBody(
   if (methodName === "concat" && args.some(argument => argument !== null && typeof argument === "object")) {
     return callConcat(value, args, budget, context);
   }
-  if (methodName === "slice" || methodName === "substring") {
+  if (methodName === "slice" || methodName === "substring" || methodName === "substr") {
     if (args.slice(0, 2).every(argument => argument === null || (typeof argument !== "object" && typeof argument !== "function")))
       return budget.allocateString(value[methodName](args[0] as number, args[1] as number | undefined));
     return callStringRange(value, methodName, args, budget, context);
@@ -368,8 +368,6 @@ function callStringMethodBody(
         return budget.allocateString(
           value.padStart(asNumber(args[0]), asStringOrUndefined(args[1]))
         );
-      case "substr":
-        return budget.allocateString(value.substr(asNumber(args[0]), asNumberOrUndefined(args[1])));
       case "toLowerCase":
         return budget.allocateString(value.toLowerCase());
       case "toUpperCase":
@@ -1042,10 +1040,6 @@ function splitString(
 
 function asNumber(value: SandboxValue | undefined): number {
   return +(value as number);
-}
-
-function asNumberOrUndefined(value: SandboxValue | undefined): number | undefined {
-  return value === undefined ? undefined : +(value as number);
 }
 
 function asStringOrUndefined(value: SandboxValue | undefined): string | undefined {

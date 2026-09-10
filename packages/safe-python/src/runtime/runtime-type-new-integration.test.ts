@@ -65,6 +65,14 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("formats slices through object formatting and guest component repr", () => {
+  const state = fixture();state.globals.set("Slice",state.registry.sliceType());
+  state.run("class Part:\n def __repr__(self):\n  visit('repr')\n  return 'part'\ns=Slice(Part())\ncorrect=s.__format__('')=='slice(None, part, None)' and f'{s}'=='slice(None, part, None)'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["repr","repr"]);
+  expect(()=>state.run("s.__format__('x')\n")).toThrow("unsupported format string passed to slice.__format__");
+  expect(()=>state.run("s.__format__()\n")).toThrow("object.__format__() takes exactly one argument (0 given)");
+});
+
 it("retains host byte protocol storage when calling integer from_bytes", () => {
   const state = fixture();const { v, meter } = state;
   const owner = state.registry.integerType(), descriptor = owner.value.namespace.items.lookup(v.string("from_bytes"))?.value;

@@ -9391,6 +9391,18 @@ extension, integration, or validation requirement is missing or unverified.
   Workspace build, typecheck, focused lint and all 6,977 tests in 495 files pass.
   Remaining scalar types, general type checks, full interpreter and safe-fs
   execution remain unfinished. No push or release was requested.
+- Inherited native formatting (2026-09-10): seven failing parameterized cases
+  reproduced argument diagnostics naming the receiver rather than the defining
+  object/int formatter. Native fallback validation now uses the defining family,
+  without changing receiver-specific invalid-spec diagnostics. The 136-case
+  CPython audit then exposed eight slice failures: slices lacked inherited
+  formatting entirely. A failing integration test drove slice object formatting,
+  preserving guest component repr calls for empty specs and f-strings. Corrected
+  two older tests that expected the disproven receiver-based argument names.
+  All 136 comparisons now match. Workspace build, typecheck, focused lint and
+  all 6,989 package tests in 496 files pass. Remaining scalar types, general type
+  checks, full interpreter and safe-fs execution remain unfinished. No push or
+  release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

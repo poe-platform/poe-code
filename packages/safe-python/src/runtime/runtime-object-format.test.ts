@@ -48,13 +48,14 @@ it("formats native numeric values with empty and omitted specifications", () => 
 it("exposes numeric format slots with bound method argument validation", () => {
   const { v, meter, dictionary } = fixture(), keywords = dictionary();
   for (const value of [v.true, v.integer(17), v.float(1.5), v.complex(1, 2)]) {
+    const owner = value.kind === "bool" ? "int" : value.kind;
     const method = runtimeNativeAttribute(value, "__format__", v, meter);
     if (method.kind !== "builtin_function_or_method") throw Error("expected method");
     expect(method.value.invoke([v.string("")], keywords, meter).kind).toBe("str");
-    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${value.kind}.__format__() takes exactly one argument (0 given)`);
+    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${owner}.__format__() takes exactly one argument (0 given)`);
     expect(() => method.value.invoke([v.none], keywords, meter)).toThrow("__format__() argument must be str, not None");
     keywords.items.set(v.string("spec"), v.string(""));
-    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${value.kind}.__format__() takes no keyword arguments`);
+    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${owner}.__format__() takes no keyword arguments`);
     keywords.items.clear();
   }
 });
@@ -73,12 +74,12 @@ it("exposes native bound object-format methods with their argument diagnostics",
   for (const [value, type] of [[v.none, "NoneType"], [v.list([]), "list"], [v.bytes(new Uint8Array()), "bytes"]] as const) {
     const method = runtimeNativeAttribute(value, "__format__", v, meter);
     if (method.kind !== "builtin_function_or_method") throw Error("expected method");
-    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${type}.__format__() takes exactly one argument (0 given)`);
+    expect(() => method.value.invoke([], keywords, meter)).toThrow("object.__format__() takes exactly one argument (0 given)");
     expect(() => method.value.invoke([v.integer(1)], keywords, meter)).toThrow("__format__() argument must be str, not int");
     expect(() => method.value.invoke([v.string("x")], keywords, meter)).toThrow(`unsupported format string passed to ${type}.__format__`);
     expect(method.value.invoke([v.string("")], keywords, meter).kind).toBe("str");
     keywords.items.set(v.string("format_spec"), v.string(""));
-    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${type}.__format__() takes no keyword arguments`);
+    expect(() => method.value.invoke([], keywords, meter)).toThrow("object.__format__() takes no keyword arguments");
     keywords.items.clear();
   }
 });

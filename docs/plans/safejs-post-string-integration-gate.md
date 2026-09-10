@@ -31,3 +31,15 @@ passed all 131 fixtures; see
 [the qualification record](safejs-test262-string-repair-qualification.md).
 
 No push, issue closure or release was performed. The release hold remains active.
+
+## Terminal result
+
+The run terminated with exit code 1 and wrote its JSON report (fc0faf).
+Inspection reports 28,025 passed, 14 failed and 47 skipped across 1,234 files
+(d598f1, a6095f). All failures are the same twelve ISO/Temporal month-formatting
+cases and two host Promise own-property admission cases. No new string-fix
+failure is present. This remains a failing full-package gate, not a clean pass.
+
+Proxy locale-list membership and context-free localeCompare candidates were
+kept outside main during this run. They require separate main-worktree checks
+after transfer and are not covered by this terminal result.

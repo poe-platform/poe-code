@@ -868,6 +868,9 @@ Case conversion and trimming ignore extra argument values, including functions,
 while preserving normal caller-side evaluation of those arguments.
 String `concat` rejects Symbol arguments in both primitive-only and guest-object
 conversion paths, preserving conversion order and abrupt completion.
+Locale-list canonicalization observes Proxy membership and element reads in
+order, including inherited entries and throwing traps. This preserves locale
+selection for locale-aware case conversion, collation and Intl constructors.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the
 originating guest String prototype. Getter and Proxy-ancestor reads preserve
 the primitive receiver, including later guest iterator overrides.

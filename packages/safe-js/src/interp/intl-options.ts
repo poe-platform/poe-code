@@ -1,7 +1,7 @@
 import type { Budget } from "./budget.js";
 import { isSandboxLocale, localeTag } from "./intl-locale.js";
 import { createSandboxBox } from "./boxed.js";
-import { isNumericTypedArray } from "./typed-array.js";
+import { sandboxHasProperty } from "./guest-proxy-has.js";
 import { getSandboxPropertyDescriptor } from "./object-model.js";
 import { readPropertyDescriptor } from "./accessors.js";
 import { retainValues } from "./resources.js";
@@ -39,8 +39,7 @@ export async function canonicalizeGuestLocales(input: SandboxValue, budget: Budg
     for (let index = 0; index < length; index++) {
       budget.visitNode();
       const key = String(index);
-      if (getSandboxPropertyDescriptor(list, key, budget) === undefined &&
-          !(isNumericTypedArray(list) && Object.hasOwn(list, key))) continue;
+      if (!await sandboxHasProperty(list, key, budget, context)) continue;
       const value = await readIntlProperty(list, key, budget, context);
       if (typeof value !== "string" && (typeof value !== "object" || value === null))
         return Reflect.apply(canonicalLocales, Intl, [[value]]);

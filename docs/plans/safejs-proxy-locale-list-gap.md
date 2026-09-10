@@ -57,3 +57,29 @@ Candidate runtime and regression lint report zero errors/warnings (c58678).
 The maintained package TypeScript compiler with exactly one runtime-source
 overlay reports zero diagnostics (ff300b). Main runtime files are unchanged
 (5b5680). These isolated checks qualify the candidate, not a main delivery.
+
+## Main transfer and upstream comparison
+
+After full-package run 45190 terminated, the main-worktree baseline failed
+20 of the expanded 21 regressions (31575d). The candidate runtime change was
+then transferred. The combined Intl and locale-method selection passed 772
+tests in 31 files (b25f83). Targeted lint and maintained package TypeScript
+checks passed (59917c). The README documents the resulting locale selection.
+
+At pinned Test262 revision 72faf8ec1445c55149615e8b35187830783aba1a, original
+top-level Intl/getCanonicalLocales fixtures were executed with parsed metadata,
+original harness includes and independent native controls. The unchanged-main
+module instance passed 36 fixtures and failed has-property.js. The isolated
+candidate passed all 37 native-qualified fixtures (b2c5b1). No fixtures were
+excluded by flags. unicode-ext-canonicalize-yes-to-true.js remains unqualified:
+native Node disagrees with its expected und-u-ka-yes result, producing und-u-ka.
+This is not counted as a guest conformance failure or pass.
+
+The diagnostic initially lacked a guest execution budget and per-fixture
+progress. A planned stop found the worker already gone; the original session
+returned successful completion before any process was terminated (2422f8,
+b2c5b1). Future upstream adapters should bound guest work and report progress.
+No replay of that completed diagnostic is needed.
+
+The full-package result predates this runtime change. Delivery remains local
+only, with no push, issue closure or release.

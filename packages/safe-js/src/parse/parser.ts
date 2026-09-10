@@ -996,6 +996,44 @@ class Parser {
   }
 
   private parseAssignmentExpression(): ParsedExpression {
+    const token = this.currentToken();
+    if (token.type === "keyword" && token.value === "yield" && !this.isContextualIdentifier(token)) {
+      if (this.functionContext !== "generator" && this.functionContext !== "async-generator") {
+        throw new Error(
+          `yield is only valid inside a generator body at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+
+      this.index += 1;
+      if (
+        hasLineBreakBetween(token, this.currentToken()) &&
+        this.currentToken().type === "punctuator" &&
+        this.currentToken().value === "*"
+      ) {
+        throw unexpectedTokenError(this.currentToken());
+      }
+      const delegate = this.consumePunctuator("*") !== undefined;
+      const next = this.currentToken();
+      const hasArgument =
+        delegate ||
+        (!hasLineBreakBetween(token, next) &&
+          !(next.type === "punctuator" && isYieldArgumentTerminator(next.value)) &&
+          next.type !== "eof");
+      const argument = hasArgument ? this.parseAssignmentExpression().node : undefined;
+      if (delegate && argument === undefined) {
+        throw unexpectedTokenError(next);
+      }
+      return {
+        node: {
+          type: "YieldExpression",
+          argument,
+          delegate,
+          span: createSpan(token.start, argument?.span.end ?? token.end)
+        },
+        parenthesized: false
+      };
+    }
+
     const arrowFunction = this.tryParseArrowFunctionExpression();
     if (arrowFunction !== undefined) {
       return {
@@ -2966,43 +3004,6 @@ class Parser {
           prefix: true,
           argument: target,
           span: createSpan(token.start, argument.node.span.end)
-        },
-        parenthesized: false
-      };
-    }
-
-    if (token.type === "keyword" && token.value === "yield" && !this.isContextualIdentifier(token)) {
-      if (this.functionContext !== "generator" && this.functionContext !== "async-generator") {
-        throw new Error(
-          `yield is only valid inside a generator body at line ${token.start.line}, column ${token.start.column}.`
-        );
-      }
-
-      this.index += 1;
-      if (
-        hasLineBreakBetween(token, this.currentToken()) &&
-        this.currentToken().type === "punctuator" &&
-        this.currentToken().value === "*"
-      ) {
-        throw unexpectedTokenError(this.currentToken());
-      }
-      const delegate = this.consumePunctuator("*") !== undefined;
-      const next = this.currentToken();
-      const hasArgument =
-        delegate ||
-        (!hasLineBreakBetween(token, next) &&
-          !(next.type === "punctuator" && isYieldArgumentTerminator(next.value)) &&
-          next.type !== "eof");
-      const argument = hasArgument ? this.parseAssignmentExpression().node : undefined;
-      if (delegate && argument === undefined) {
-        throw unexpectedTokenError(next);
-      }
-      return {
-        node: {
-          type: "YieldExpression",
-          argument,
-          delegate,
-          span: createSpan(token.start, argument?.span.end ?? token.end)
         },
         parenthesized: false
       };

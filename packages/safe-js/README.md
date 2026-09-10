@@ -656,6 +656,9 @@ destructuring defaults and other grammar-permitted nested expressions retain
 `in` support; loop conditions, updates and bodies are unaffected.
 Generators allow an omitted `yield` operand before a conditional arm's `:`,
 including nested conditionals and async generators.
+`yield` follows assignment-expression precedence: higher-precedence operands
+must parenthesize it, such as `1 + (yield 2)`. Non-strict `yield` identifiers
+outside generator bodies remain supported.
 Non-strict statement-only bodies distinguish a `let` identifier followed by a
 newline from a lexical declaration; strict-mode and declaration restrictions
 still apply.

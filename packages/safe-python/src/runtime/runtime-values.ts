@@ -196,7 +196,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | Extract<PrimitiveConstant, { kind: "int" | "float" }>;
+  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute

@@ -29,6 +29,13 @@ export function constructRuntimeFloat(positional: readonly RuntimeValue[], keywo
   if (positional.length > 1) throw new PythonRuntimeError("TypeError", `float expected at most 1 argument, got ${positional.length}`);
   const source = positional[0];
   if (source === undefined) return values.float(0);
+  return convertRuntimeFloat(source,values,meter,context);
+}
+
+/** Full float conversion after argument binding, including text and buffer
+ * fallbacks when a guest callback has removed a numeric conversion slot. */
+export function convertRuntimeFloat(source:RuntimeValue,values:RuntimeValues,meter:ExecutionMeter,context:RuntimeFloatConstructionContext={}):Extract<RuntimeValue,{kind:"float"}> {
+  meter.checkpoint();
   const numeric = convertRuntimeFloatNumber(source,values,meter,context.invocation);
   if(numeric!==undefined)return numeric;
   const formatting=source.kind==="str"||source.kind==="bytes"?undefined:context.invocation?.formatting;

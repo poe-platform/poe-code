@@ -9580,6 +9580,23 @@ extension, integration, or validation requirement is missing or unverified.
   allocation and conversion protocols, full interpreter assembly, guest
   exceptions and safe-fs execution remain unfinished. No push or release was
   requested.
+- Complex constructor conversion (2026-09-10): failing tests drove positional
+  versus real/imag keyword binding, numeric protocol dispatch, native and owned
+  complex payload conversion, strict-subclass result warnings, and exact-input
+  identity. CPython comparisons exposed different float-subclass behavior for
+  single versus two-field calls, warning ordering, signed-zero preservation and
+  diagnostic-name limits. Added 14 regression cases, including fatal/host error
+  preservation and warning callbacks that remove numeric slots. Reused full
+  float conversion for those mutation cases, including buffer fallback and
+  lease release. All 4,206 CPython protocol/binding and binary64 comparisons
+  match; an execution-fixture probe also verified guest __complex__, __float__,
+  __index__ and float-subclass dispatch. Workspace build, typecheck, focused
+  lint and all 7,099 tests in 501 files pass in the uncached one-worker package
+  run. Constructor reference:
+  https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/complexobject.c.
+  Canonical complex type publication, allocation and numeric/member descriptors,
+  complete interpreter assembly, guest exceptions and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

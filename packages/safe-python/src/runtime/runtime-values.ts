@@ -89,6 +89,9 @@ export interface BuiltinInvocationContext {
   readonly moduleName?: RuntimeValue;
   /** Complete set-name and subclass hooks; never runs metaclass __init__. */
   finalizeType?(type: TypeValue, keywords: DictionaryValue): void;
+  /** Execute a builder body against prepared locals, retaining its class cell.
+   * Ordinary optimized functions still use their own local activation. */
+  executeClassBody?(body: FunctionValue, namespace: RuntimeValue): CellStorage<RuntimeValue> | undefined;
   /** Enter type.__call__ directly, bypassing metaclass __call__ overrides. */
   callTypeDefault?(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue): RuntimeValue;
   /** Default type attribute slots, without metaclass overrides or getattr. */

@@ -32,6 +32,8 @@ import { createRuntimeStatementContext, type RuntimeStatementBindings } from "./
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { ClassFrame } from "./class-frame.js";
 import { executeClassBody } from "./class-body.js";
+import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
+import { RuntimeMappingNamespace } from "./runtime-mapping-namespace.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
 import { executeClassDefinition } from "./class-definition.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
@@ -170,6 +172,19 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
       get moduleName() { return namespaces.globals.get("__name__"); },
+      executeClassBody(fn, namespace) {
+        meter.checkpoint();
+        if (fn.value.code.body.kind !== "class") {
+          const result = builtinCalls.call(fn, []); meter.checkpoint();
+          return result.kind === "cell" ? result.value : undefined;
+        }
+        const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter)
+          : new RuntimeMappingNamespace(namespace, values, meter, builtinCalls);
+        return executeClassBody(fn.value.code.body.code, {
+          ...fn.value, calls, locals, cell: cell => values.cell(cell),
+          body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null)
+        }, meter);
+      },
       finalizeType: specialMethods === undefined ? undefined : (type, keywords) => finalizeRuntimeType(type, keywords, specialMethods, values, meter, {
         call: builtinCalls.call.bind(builtinCalls),
         repr(value) {

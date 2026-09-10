@@ -8269,6 +8269,20 @@ extension, integration, or validation requirement is missing or unverified.
   cases match CPython. All 6,409 tests in 489 files, selected build, typecheck and
   scoped lint pass. Class-body execution against prepared custom mappings and the concrete
   builtin class-builder adapter remain unfinished.
+- Added prepared class-body execution through the invocation context. Compiled
+  class suites retain defining globals/builtins/closures while using the supplied
+  dictionary or custom mapping for locals. Class cells are returned by identity;
+  ordinary optimized functions retain their own activation and argument binding.
+  Custom mappings use live type-level item slots, preserve names/value identities,
+  convert only KeyError lookup/deletion failures, and leave DELETE_NAME's guest
+  failure replacement to the frame. Cancellation and host faults cannot become
+  missing names. A compiled closure/isolation regression initially failed because
+  the execution capability was absent. Eight added tests cover custom mapping
+  order, mutation effects, failure boundaries and optimized function behavior.
+  All 72 prepared mapping failure traces match CPython. All 6,417 tests in 490
+  files, selected build, typecheck and scoped lint pass. Concrete __build_class__
+  assembly, remaining native constructors and public execution packaging remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

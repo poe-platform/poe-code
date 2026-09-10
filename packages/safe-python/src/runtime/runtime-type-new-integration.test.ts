@@ -31,8 +31,23 @@ function fixture() {
   function run(source: string) {
     executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls: new CallStack<object>(50, meter) }, meter);
   }
-  return { v, meter, registry, globals, events, run };
+  return { v, meter, registry, globals, builtins, events, run };
 }
+
+it("executes prepared class bodies without leaking locals and keeps class closure cells", () => {
+  const state = fixture(), { v, registry } = state;
+  state.builtins.set("__build_class__", v.builtinFunction({ name: "__build_class__", invoke(args, keywords, meter, invocation) {
+    const namespace = v.dictionary(registry.object.value.namespace.items.emptyCopy());
+    if (args[0].kind !== "function") throw Error("expected body");
+    const cell = invocation!.executeClassBody!(args[0], namespace);
+    const result = invocation!.call(registry.type, [args[1], v.tuple(args.slice(2)), namespace], keywords);
+    if (cell !== undefined) expect(cell.content?.value).toBe(result);
+    return result;
+  } }));
+  state.run("def outer(value):\n class C:\n  field=value\n  def owner(self):\n   return __class__\n return C\nC=outer(7)\nresult=C.field\nowner=C().owner() is C\n");
+  expect(state.globals.get("result")).toEqual(v.integer(7)); expect(state.globals.get("owner")).toBe(v.true);
+  expect(state.globals.has("field")).toBe(false); expect(state.globals.has("__qualname__")).toBe(false);
+});
 
 it("prepares independent namespaces through inherited native class-method binding", () => {
   const state = fixture();
@@ -41,6 +56,38 @@ it("prepares independent namespaces through inherited native class-method bindin
   expect(state.globals.get("independent")).toBe(state.v.true); expect(state.globals.get("owner")).toBe(state.v.true);
   expect(state.globals.get("second")).toMatchObject({ kind: "dict", items: { size: 0 } });
   expect(state.globals.get("doc")).toEqual(state.v.string("Create the namespace for the class statement"));
+});
+
+it("executes custom prepared mapping slots in order and replaces deletion failures", () => {
+  const state = fixture(), { v } = state, events: string[] = [];
+  const keyName = (key: RuntimeValue) => { if (key.kind !== "str") throw Error("expected name"); return String.fromCodePoint(...key.value); };
+  state.globals.set("read", v.builtinFunction({ name: "read", invoke(args) {
+    const key = keyName(args[0]); events.push("get:" + key);
+    if (key === "supplied") return v.integer(17);
+    throw new PythonRuntimeError("KeyError", key);
+  } }));
+  state.globals.set("write", v.builtinFunction({ name: "write", invoke(args) { events.push("set:" + keyName(args[0])); return v.none; } }));
+  state.globals.set("remove", v.builtinFunction({ name: "remove", invoke(args) { events.push("del:" + keyName(args[0])); throw new PythonRuntimeError("ValueError", "denied"); } }));
+  state.run("def get(self,key):\n return read(key)\ndef set(self,key,value):\n return write(key,value)\ndef delete(self,key):\n return remove(key)\nMapping=type('Mapping',(),{'__getitem__':get,'__setitem__':set,'__delitem__':delete})\nnamespace=Mapping()\n");
+  state.builtins.set("__build_class__", v.builtinFunction({ name: "__build_class__", invoke(args, _keywords, _meter, invocation) {
+    if (args[0].kind !== "function") throw Error("expected body");
+    invocation!.executeClassBody!(args[0], state.globals.get("namespace")!); return v.none;
+  } }));
+  expect(() => state.run("class C:\n field=supplied\n del field\n")).toThrow("name 'field' is not defined");
+  expect(events).toEqual(["get:__name__", "set:__module__", "set:__qualname__", "set:__firstlineno__", "get:supplied", "set:field", "del:field"]);
+  expect(state.globals.has("C")).toBe(false);
+});
+
+it("keeps optimized function bodies independent of a supplied class namespace", () => {
+  const state = fixture(), { v } = state, cell = v.cell({}); state.globals.set("cell", cell);
+  state.globals.set("execute", v.builtinFunction({ name: "execute", invoke(args, _keywords, _meter, invocation) {
+    if (args[0].kind !== "function") throw Error("expected body");
+    const result = invocation!.executeClassBody!(args[0], v.none); return result === cell.value ? v.true : v.false;
+  } }));
+  state.run("def body():\n local=7\n return cell\nresult=execute(body)\n");
+  expect(state.globals.get("result")).toBe(v.true); expect(state.globals.has("local")).toBe(false);
+  state.run("def requires(value):\n return value\n");
+  expect(() => state.run("execute(requires)\n")).toThrow("missing 1 required positional argument");
 });
 
 it("constructs slotted classes through explicit type.__new__ and ordinary type calls", () => {

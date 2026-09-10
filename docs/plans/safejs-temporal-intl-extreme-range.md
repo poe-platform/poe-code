@@ -102,3 +102,25 @@ two large calendar-consistency fixtures. No final outcome is available yet.
 The full default-Node package gate remains live in session 26401 (1a7fa6).
 No implementation/test sources changed during these probes. This is a validated
 open gap, not a fix or delivery claim. No push or release was performed.
+
+## Completed formatToParts qualification
+
+The preceding live-process statements describe the historical observation,
+not current process state. Session 87723 has now completed with exit 0
+(dd532d): 14 selected fixtures, 24 passing executions, four failed executions,
+zero unsupported. The runner reports assertion failures in its summary rather
+than process status; exit 0 is therefore not a passing qualification.
+
+Both strict and non-strict executions of
+`temporal-objects-no-time-clip-weekday.js` and
+`temporal-objects-no-time-clip.js` fail with RangeError (4e1022). The selection
+uses filenames containing `temporal` in the top-level formatToParts directory
+at test262 revision 419d3e0a2273ba01a3bfcbec423f2801425b8e93 on Node 26.8.1.
+It is not the full Intl402 suite. The process loaded the pre-Now candidate;
+later working-tree changes are not covered by this result.
+
+The package gate also completed earlier and remains failing; its terminal
+results are in `safejs-post-year-month-integration-gate.md`. No upstream
+qualification process remains pending from this formatToParts run. Extreme
+range behavior still requires a repair across all four Intl formatting entry
+points and the separate Temporal locale methods. No release or push follows.

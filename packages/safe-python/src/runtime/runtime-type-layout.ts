@@ -8,6 +8,11 @@ import { RuntimeTypeNames } from "./runtime-type-names.js";
 import { PythonRuntimeError } from "./error.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Prepared, sorted/mangled own slot names; duplicates occupy separate cells. */
+  readonly slots?: readonly string[];
+  readonly weakReferences?: boolean;
+  /** Variable-item native bases cannot add nonempty slot declarations. */
+  readonly variableSized?: boolean;
   /** Native base-type permission, independent of mutability or payload layout.
    * Source annotations/decorators do not set this internal capability. */
   readonly subclassable?: boolean;
@@ -45,20 +50,33 @@ export class RuntimeTypeLayout {
   /** Defining native payload layout. Heap subclasses share it; introducing a
    * new native payload establishes a distinct layout even above a native base. */
   readonly nativeStorage: RuntimeTypeLayout | undefined;
+  readonly layoutBase: RuntimeTypeLayout | undefined;
+  readonly solidLayout: RuntimeTypeLayout | undefined;
+  readonly slotNames: readonly string[];
+  readonly slotCount: number;
+  readonly hasWeakReferences: boolean;
+  readonly variableSized: boolean;
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
-    meter.checkpoint(1, 160 + 8 * bases.length);
-    const nativeStorage = selectRuntimeNativeLayout(bases, meter);
+    meter.checkpoint(1, 208 + 8 * bases.length + 8 * (options.slots?.length ?? 0));
+    const layoutBase = selectRuntimeLayoutBase(bases, meter);
     this.names = new RuntimeTypeNames(name, options.qualifiedName ?? name, meter);
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
     this.hasSequenceTable = options.sequenceTable ?? true;
     this.isSubclassable = options.subclassable ?? true;
-    this.nativeStorage = options.objectLayout === false ? this : nativeStorage;
+    this.layoutBase = layoutBase;
+    this.slotNames = Object.freeze([...(options.slots ?? [])]);
+    this.slotCount = (layoutBase?.slotCount ?? 0) + this.slotNames.length;
+    this.nativeStorage = options.objectLayout === false ? this : layoutBase?.nativeStorage;
+    this.solidLayout = options.objectLayout === false || this.slotNames.length !== 0 ? this : layoutBase?.solidLayout;
+    this.variableSized = options.variableSized ?? layoutBase?.variableSized ?? false;
     let dictionary = options.instanceDictionary ?? true, objectLayout = options.objectLayout ?? true;
-    for (const base of bases) { meter.checkpoint(); dictionary ||= base.hasInstanceDictionary; objectLayout &&= base.hasObjectLayout; }
+    let weakReferences = options.weakReferences ?? true;
+    for (const base of bases) { meter.checkpoint(); dictionary ||= base.hasInstanceDictionary; objectLayout &&= base.hasObjectLayout; weakReferences ||= base.hasWeakReferences; }
     this.hasInstanceDictionary = dictionary;
     this.hasObjectLayout = objectLayout;
+    this.hasWeakReferences = weakReferences;
     Object.freeze(this);
     options.beforeMro?.(this); meter.checkpoint();
     this.#mro = linearizeMro<RuntimeTypeLayout>(this, this.bases, base => base.mro, meter);
@@ -68,10 +86,10 @@ export class RuntimeTypeLayout {
   get mro(): readonly RuntimeTypeLayout[] { return this.#mro; }
 }
 
-/** Select compatible native payload ancestry while validating bases in order.
- * Eligibility/layout conflicts precede namespace processing and publication;
- * dictionary/slot signatures belong to the full heap storage layout layer. */
-export function selectRuntimeNativeLayout(bases: readonly RuntimeTypeLayout[], meter: ExecutionMeter): RuntimeTypeLayout | undefined {
+/** Select the most-specific storage-bearing base while validating bases in
+ * order. Native payloads and declared slots determine storage ancestry;
+ * dictionary/weak-reference additions alone do not create a conflicting base. */
+export function selectRuntimeLayoutBase(bases: readonly RuntimeTypeLayout[], meter: ExecutionMeter): RuntimeTypeLayout | undefined {
   let selected: RuntimeTypeLayout | undefined;
   for (const base of bases) {
     meter.checkpoint();
@@ -79,16 +97,30 @@ export function selectRuntimeNativeLayout(bases: readonly RuntimeTypeLayout[], m
       meter.checkpoint(0, 128 + 2 * base.name.length);
       throw new PythonRuntimeError("TypeError", `type '${base.name}' is not an acceptable base type`);
     }
-    const candidate = base.nativeStorage;
-    if (candidate === undefined || candidate === selected) continue;
-    if (selected === undefined) { selected = candidate; continue; }
+    if (selected === undefined) { selected = base; continue; }
+    const candidate = base.solidLayout, previous = selected.solidLayout;
+    if (candidate === undefined || candidate === previous) continue;
+    if (previous === undefined) { selected = base; continue; }
     let moreSpecific = false, lessSpecific = false;
-    for (const ancestor of candidate.mro) { meter.checkpoint(); if (ancestor === selected) { moreSpecific = true; break; } }
-    if (moreSpecific) { selected = candidate; continue; }
-    for (const ancestor of selected.mro) { meter.checkpoint(); if (ancestor === candidate) { lessSpecific = true; break; } }
+    for (const ancestor of candidate.mro) { meter.checkpoint(); if (ancestor === previous) { moreSpecific = true; break; } }
+    if (moreSpecific) { selected = base; continue; }
+    for (const ancestor of previous.mro) { meter.checkpoint(); if (ancestor === candidate) { lessSpecific = true; break; } }
     if (!lessSpecific) throw new PythonRuntimeError("TypeError", "multiple bases have instance lay-out conflict");
   }
   return selected;
+}
+
+/** Strip subclasses that add no storage, then compare sibling additions. Equal
+ * slot names on unrelated storage-bearing parent classes are not interchangeable. */
+export function compatibleRuntimeLayouts(left: RuntimeTypeLayout, right: RuntimeTypeLayout, meter: ExecutionMeter): boolean {
+  const sameStorage = (a: RuntimeTypeLayout, b: RuntimeTypeLayout) => a.nativeStorage === b.nativeStorage && a.slotCount === b.slotCount
+    && a.hasInstanceDictionary === b.hasInstanceDictionary && a.hasWeakReferences === b.hasWeakReferences;
+  while (left.layoutBase !== undefined && sameStorage(left, left.layoutBase)) { meter.checkpoint(); left = left.layoutBase; }
+  while (right.layoutBase !== undefined && sameStorage(right, right.layoutBase)) { meter.checkpoint(); right = right.layoutBase; }
+  if (left === right) return true;
+  if (left.layoutBase !== right.layoutBase || !sameStorage(left, right) || left.slotNames.length !== right.slotNames.length) return false;
+  for (let index = 0; index < left.slotNames.length; index++) { meter.checkpoint(); if (left.slotNames[index] !== right.slotNames[index]) return false; }
+  return true;
 }
 
 /** Resolve only the winning MRO value's descriptor slots. No namespace cache is

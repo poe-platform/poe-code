@@ -63,6 +63,27 @@ function fixture(signal?: AbortSignal) {
   return { v, meter, globals, events, hooks, type, method, guest, instance, run, registry, types };
 }
 
+it("stores compiled slot attributes outside dictionaries and rejects undeclared writes", () => {
+  const state = fixture(), namespace = state.v.dictionary(new OrderedKeyMap({ hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, state.v, state.meter).value }, state.meter));
+  namespace.items.set(state.v.string("__slots__"), state.v.tuple([state.v.string("x"), state.v.string("__hidden")]));
+  const owner = allocateRuntimeType(state.v.string("C"), [], namespace, state.registry.type, state.registry, state.v, state.meter);
+  state.globals.set("C", owner); state.run("instance=C()\n");
+  expect(() => state.run("instance.x\n")).toThrow("'C' object has no attribute 'x'");
+  state.run("instance.x=7\ninstance._C__hidden=None\nresult=instance.x\nhidden=instance._C__hidden\ndel instance.x\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7)); expect(state.globals.get("hidden")).toBe(state.v.none);
+  expect(() => state.run("instance.__dict__\n")).toThrow("has no attribute '__dict__'");
+  expect(() => state.run("instance.extra=1\n")).toThrow("has no attribute 'extra'");
+  expect(() => state.run("del instance.x\n")).toThrow("x");
+});
+
+it("retains slot values across compatible compiled class reassignment", () => {
+  const state = fixture(), namespace = state.v.dictionary(new OrderedKeyMap({ hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, state.v, state.meter).value }, state.meter));
+  namespace.items.set(state.v.string("__slots__"), state.v.tuple([state.v.string("x")]));
+  for (const name of ["C", "D"]) state.globals.set(name, allocateRuntimeType(state.v.string(name), [], namespace, state.registry.type, state.registry, state.v, state.meter));
+  state.run("instance=C()\ninstance.x=9\ninstance.__class__=D\nresult=instance.x\nchanged=instance.__class__ is D\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(9)); expect(state.globals.get("changed")).toBe(state.v.true);
+});
+
 it.each([
   ["[True] * index", "[True, True]"], ["index * [True]", "[True, True]"],
   ["(True,) * index", "(True, True)"], ["index * (True,)", "(True, True)"],

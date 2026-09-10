@@ -1,16 +1,19 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { DictionaryValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { RuntimeSlotStorage } from "./runtime-slot-storage.js";
 
 /** Owned instance storage. Replacing or deleting a dictionary detaches aliases;
  * deleting never clears the old object or removes the layout's storage ability. */
 export class RuntimeInstanceState {
   #dictionary?: DictionaryValue;
   #type: TypeValue;
+  readonly slots: RuntimeSlotStorage;
 
   constructor(type: TypeValue, dictionary: DictionaryValue | undefined, meter: ExecutionMeter) {
     meter.checkpoint(1, 40);
     this.#type = type;
     this.#dictionary = dictionary;
+    this.slots = new RuntimeSlotStorage(type.value.slotCount, meter);
     Object.freeze(this);
   }
 

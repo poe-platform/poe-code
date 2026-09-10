@@ -19,6 +19,26 @@ function fixture() {
   return { meter, v, registry, namespace, create };
 }
 
+it("validates slot declarations before qualified names", () => {
+  const { v, namespace, create } = fixture();
+  namespace.items.set(v.string("__slots__"), v.tuple([v.integer(1)]));
+  namespace.items.set(v.string("__qualname__"), v.none);
+  expect(create).toThrow("__slots__ items must be strings, not 'int'");
+});
+
+it("retains the default module over a reserved module slot while allocating its position", () => {
+  const { v, namespace, create } = fixture(); namespace.items.set(v.string("__slots__"), v.tuple([v.string("__module__")]));
+  const cls = create(); expect(cls.value.slotCount).toBe(1);
+  expect(cls.value.namespace.items.lookup(v.string("__module__"))?.value).toEqual(v.string("example"));
+});
+
+it("preserves native class dictionaries for empty-slotted metaclasses", () => {
+  const { v, meter, registry, namespace } = fixture(); namespace.items.set(v.string("__slots__"), v.tuple([]));
+  const meta = allocateRuntimeType(v.string("Meta"), [registry.type], namespace, registry.type, registry, v, meter);
+  expect(meta.value.hasInstanceDictionary).toBe(true);
+  expect(meta.value.namespace.items.lookup(v.string("__dict__"))).toBeUndefined();
+});
+
 it.each(["function", "method_descriptor", "classmethod_descriptor", "wrapper_descriptor", "getset_descriptor", "member_descriptor"] as const)("rejects %s as a base before namespace validation or class-cell publication", kind => {
   const { v, meter, registry, namespace } = fixture(), base = registry.descriptorType(kind), cell = v.cell({});
   namespace.items.set(v.string("__classcell__"), cell);

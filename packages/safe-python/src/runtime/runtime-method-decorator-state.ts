@@ -2,6 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
+import { RuntimeSlotStorage } from "./runtime-slot-storage.js";
 
 /** Wrapper payload and lazily reflected attribute storage. Initialization copies
  * metadata through ordinary attribute lookup; constructor argument validation
@@ -12,12 +13,14 @@ export class RuntimeMethodDecoratorState {
   #value: RuntimeValue;
   #type?: TypeValue;
   readonly attributes: RuntimeAttributeStorage;
+  readonly slots: RuntimeSlotStorage;
 
   constructor(value: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, type?: TypeValue) {
     meter.checkpoint(1, 64);
     this.#value = value;
     this.#type = type;
     this.attributes = new RuntimeAttributeStorage(values, meter);
+    this.slots = new RuntimeSlotStorage(type?.value.slotCount ?? 0, meter);
     Object.freeze(this);
   }
 

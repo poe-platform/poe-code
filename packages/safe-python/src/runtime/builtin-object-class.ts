@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeTypeRegistry } from "./runtime-type-registry.js";
+import { compatibleRuntimeLayouts } from "./runtime-type-layout.js";
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type GetsetDescriptorValue, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 
 function actualClass(value: RuntimeValue, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): TypeValue {
@@ -26,7 +27,7 @@ export function createObjectClassDescriptor(values: RuntimeValues, meter: Execut
       const current = actualClass(receiver, meter, invocation);
       if (registry.resolve(current.value) !== current || registry.resolve(next.value) !== next) throw Error("class assignment requires types owned by this registry");
       if (current.immutable || next.immutable) throw new PythonRuntimeError("TypeError", "__class__ assignment only supported for mutable types or ModuleType subclasses");
-      if (current.value.hasInstanceDictionary !== next.value.hasInstanceDictionary || current.value.nativeStorage !== next.value.nativeStorage) {
+      if (!compatibleRuntimeLayouts(current.value, next.value, meter)) {
         meter.checkpoint(0, 128 + 2 * (current.value.name.length + next.value.name.length));
         throw new PythonRuntimeError("TypeError", `__class__ assignment: '${next.value.name}' object layout differs from '${current.value.name}'`);
       }

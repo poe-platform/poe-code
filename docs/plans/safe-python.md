@@ -8212,6 +8212,25 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. Heap slot signatures, full solid-base
   sizing/alignment, native constructors and mutable-base invalidation remain
   unfinished.
+- Added __slots__ declaration processing and owned slot storage. Declarations
+  consume native/guest iterables before validation, preserve source containers,
+  validate identifiers without NFKC normalization, mangle/sort names by code point,
+  retain duplicate positions and enforce namespace/dictionary/weak-reference and
+  variable-sized-base restrictions. Allocation installs member descriptors backed
+  by lazy positional storage, independent of dictionaries and wrapper metadata.
+  Unset/get/delete behavior, inherited redeclarations, explicit dictionaries and
+  empty weak-reference fields now execute through normal descriptor dispatch.
+  Storage-bearing heap bases participate in conflict selection; __class__ changes
+  compare compatible sibling slot additions without conflating unrelated parents.
+  Three allocation regressions initially failed, including reserved __module__
+  handling and empty-slotted metaclass dictionaries. Two compiled checks and 18
+  focused declaration/storage cases pass. All 608 declaration cases, 256 slotted
+  reassignment cases, 238 previous reassignment cases and 192 base-eligibility
+  cases match CPython; the 640 allocation and 432 native-layout cases also passed
+  during integration. All 6,384 tests in 486 files, selected build, typecheck and
+  scoped lint pass. Actual weak-reference objects/callbacks, slot documentation
+  introspection, complete native sizing/alignment, mutable-base invalidation and
+  public class-builder/execution wiring remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

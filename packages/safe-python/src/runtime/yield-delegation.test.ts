@@ -58,6 +58,16 @@ it("returns a throw method's StopIteration value",()=>{
   delegate.start();expect(delegate.resume({kind:"throw",error:new GuestError("ValueError")})).toEqual({kind:"return",value:7});
 });
 
+it("retains a captured throw target when lookup reentrantly exhausts the delegate",()=>{
+  const state=fixture(),delegate=state.delegate();delegate.start();
+  state.context.attribute=()=>{
+    expect(delegate.resume({kind:"send",value:null})).toEqual({kind:"yield",value:2});
+    expect(delegate.resume({kind:"send",value:null})).toEqual({kind:"return",value:9});
+    return ()=>3;
+  };
+  expect(delegate.resume({kind:"throw",error:new GuestError("ValueError")})).toEqual({kind:"yield",value:3});
+});
+
 it("does not normalize a throw accepted by the delegate",()=>{
   const state=fixture(),delegate=state.delegate();
   state.context.normalizeThrow=()=>{throw Error("must not normalize");};

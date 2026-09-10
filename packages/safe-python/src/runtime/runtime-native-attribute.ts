@@ -260,5 +260,5 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     }
   }
   meter.checkpoint(1, 128 + 2 * name.length);
-  throw new PythonRuntimeError("AttributeError", `'${receiver.kind === "none" ? "NoneType" : receiver.kind}' object has no attribute '${name}'`);
+  throw new PythonRuntimeError("AttributeError", `'${receiver.kind === "none" ? "NoneType" : receiver.kind === "iterator" ? receiver.typeName ?? "iterator" : receiver.kind}' object has no attribute '${name}'`);
 }

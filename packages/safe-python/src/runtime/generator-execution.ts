@@ -5,12 +5,24 @@ export type GeneratorInput<Value>={readonly kind:"send";readonly value:Value}|{r
 export type GeneratorRequest<Value>=GeneratorInput<Value>|{readonly kind:"close"};
 export type GeneratorPhase="created"|"running"|"suspended"|"closed";
 
+export interface GeneratorDelegation<Value> {
+  readonly active:boolean;
+  /** Throw lookup runs before body activation; callbacks selectively enter the
+   * owning frame for operations whose Python semantics require it. */
+  resume(input:GeneratorInput<Value>,run:<Result>(operation:()=>Result,preserveCallerException?:boolean)=>Result):
+    {readonly kind:"yield";readonly value:Value}|{readonly kind:"reject";readonly error:unknown}|{readonly kind:"resume";readonly input:GeneratorInput<Value>};
+}
+
 export interface GeneratorExecutionContext<Value> {
   readonly none:Value;
+  readonly delegation?:GeneratorDelegation<Value>;
   /** Host-only frame/handled-exception activation. Failure must restore its own
    * partial entry; successful entry returns unmetered, non-throwing cleanup.
    * This hook must not run guest code. */
   enter():()=>void;
+  /** Delegated throw/close calls link the frame but retain caller exception
+   * state, unlike normal body/send activation. */
+  enterDelegated?():()=>void;
   generatorExit():unknown;
   isGeneratorExit(error:unknown):boolean;
   isStopIteration(error:unknown):boolean;
@@ -33,6 +45,18 @@ export class GeneratorExecution<Value> {
     meter.checkpoint(1,112);this.#driver=driver;this.#context=context;this.#none=context.none;Object.freeze(this);
   }
   get phase():GeneratorPhase{return this.#phase;}
+  get delegating():boolean{return this.#phase==="suspended"&&this.#context?.delegation?.active===true;}
+
+  #runDelegated<Result>(operation:()=>Result,context:GeneratorExecutionContext<Value>,preserveCallerException=false):Result {
+    const previous=this.#phase;
+    if(previous==="running")throw new PythonRuntimeError("ValueError","generator already executing");
+    this.#phase="running";
+    let restore:()=>void;
+    try {restore=preserveCallerException&&context.enterDelegated!==undefined?context.enterDelegated():context.enter();}
+    catch(error){this.#phase=previous;throw error;}
+    try {this.meter.checkpoint();const result=operation();this.meter.checkpoint();return result;}
+    finally {this.#phase=previous;restore();}
+  }
 
   #finish():void {
     this.#phase="closed";this.#driver=undefined;this.#context=undefined;
@@ -50,7 +74,27 @@ export class GeneratorExecution<Value> {
       return {done:true,value:this.#none};
     }
     const context=this.#context!;
-    const input:GeneratorInput<Value>=request.kind==="close"?{kind:"throw",error:context.generatorExit()}:request;
+    let input:GeneratorInput<Value>=request.kind==="close"?{kind:"throw",error:context.generatorExit()}:request;
+    if(this.delegating) {
+      let delegated:ReturnType<GeneratorDelegation<Value>["resume"]>;
+      try {
+        meter.checkpoint(0,64);
+        delegated=context.delegation!.resume(input,(operation,preserve)=>this.#runDelegated(operation,context,preserve));
+        meter.checkpoint();
+      } catch(error){this.#finish();throw error;}
+      if(delegated.kind==="reject")throw delegated.error;
+      if(delegated.kind==="yield") {
+        if(request.kind==="close")throw new PythonRuntimeError("RuntimeError","generator ignored GeneratorExit");
+        return {done:false,value:delegated.value};
+      }
+      input=delegated.input;
+      // Throw lookup may reenter and finish this generator before the captured
+      // delegate method returns. Never revive a cleared body in that case.
+      if(this.phase==="closed") {
+        if(input.kind==="throw")throw input.error;
+        return {done:true,value:this.#none};
+      }
+    }
     meter.checkpoint();
     const previous=this.#phase;
     this.#phase="running";

@@ -1,9 +1,8 @@
 import { CallableIterator, type CallableIterationContext } from "./callable-iterator.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeIterate } from "./runtime-iteration.js";
-import { resolveIteration, type IterationContext } from "./protocol-iterator.js";
-import { SequenceIterator } from "./sequence-iterator.js";
+import type { IterationContext } from "./protocol-iterator.js";
+import { acquireRuntimeIterator } from "./runtime-iterator-acquisition.js";
 import type { CompletionResult } from "./iterator-completion.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeCallable } from "./runtime-callability.js";
@@ -24,16 +23,7 @@ export function createIterBuiltin(values: RuntimeValues, meter: ExecutionMeter, 
       const source = positional[0];
       if (positional.length === 1) {
         const protocol = explicitProtocol ?? invocation?.iteration;
-        switch (source.kind) {
-          case "iterator": return source;
-          case "list": case "tuple": case "str": case "bytes": case "range":
-          case "dict": case "mappingproxy": case "dict_keys": case "dict_values":
-          case "dict_items": case "set": case "frozenset":
-            return values.iterator(runtimeIterate(source, values, meter));
-        }
-        if (protocol === undefined) return values.iterator(runtimeIterate(source, values, meter));
-        const resolved = resolveIteration(source, protocol, meter);
-        return resolved.sequence ? values.iterator(new SequenceIterator(resolved.value, protocol, meter)) : resolved.value;
+        return acquireRuntimeIterator(source,values,meter,protocol);
       }
       meter.checkpoint(0, 192);
       const callbacks: CallableIterationContext<RuntimeValue> = {

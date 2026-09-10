@@ -38,6 +38,9 @@ export interface RangeValue {
 export interface IteratorValue {
   readonly kind: "iterator";
   readonly value: CompletionIterator<RuntimeValue>;
+  /** Native cursor kind retained independently of exhaustion. Canonical type
+   * object publication remains the runtime registry's responsibility. */
+  readonly typeName?:string;
 }
 
 export interface FunctionValue {
@@ -378,9 +381,9 @@ export class RuntimeValues extends ConstantValues {
     });
   }
 
-  iterator(value: CompletionIterator<RuntimeValue>): IteratorValue {
-    this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind: "iterator", value });
+  iterator(value: CompletionIterator<RuntimeValue>,typeName?:string): IteratorValue {
+    this.runtimeMeter.checkpoint(1, typeName===undefined?32:40);
+    return Object.freeze(typeName===undefined?{ kind: "iterator", value }:{kind:"iterator",value,typeName});
   }
 
   /** Retain already captured state; wrapping must never execute the function. */

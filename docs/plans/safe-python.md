@@ -10342,6 +10342,31 @@ extension, integration, or validation requirement is missing or unverified.
   completed delegation claim. Selected workspace build, typecheck and focused lint
   pass. All 7,440 tests in 508 files pass in the uncached one-worker run (156.17s;
   bodies 9.92s). No push or release requested.
+- Native yield-from integration (2026-09-10): default compiled generator bodies
+  now use the delegation protocol directly. Caller-side throw lookup/validation
+  rejection leaves the body suspended; selective frame activation preserves
+  gi_running and the distinct caller-versus-generator handled-exception contexts.
+  Raw throw arguments reach custom delegates unchanged, and native subgenerator
+  forwarding emits legacy-call warnings only once. Shared iterator acquisition
+  preserves iterator identity and common native container cursor diagnostics.
+  The runtime accepts a host unraisable diagnostic sink for close-lookup errors;
+  public sys.unraisablehook/stderr assembly remains pending.
+  Native failing tests drove lifecycle interception, exception-context fixes,
+  iterator diagnostics, warning forwarding and reentrant lookup handling. A
+  reentrant lookup can finish the old delegation and start another before its
+  captured throw method returns: initial iteration must use the already-active
+  body, and completion must resume the current instruction rather than revive
+  the old delegate. Both new-delegation regressions passed after failing first.
+  Focused verification passes 830 tests in five files. CPython comparisons pass
+  512 operation sequences, 560 optional/failing-method cases, eight reentrant
+  cases and eight further reentrant cases that cross into a new delegation.
+  Six additional exception-context comparisons pass: 1,094 native delegation
+  cases in total. Selected workspace build, typecheck and focused lint pass.
+  All 7,462 tests in 508 files pass in the uncached one-worker package run
+  (166.61s; test bodies 10.43s).
+  Canonical iterator type publication, range cursor diagnostics, generator
+  metadata/finalization, async execution, deep-delegation efficiency and the
+  complete resource audit remain unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeValue,RuntimeValues,TypeValue } from "./runtime-values.js";
+import { throwRuntimeGenerator } from "./runtime-generator-throw-request.js";
 
 /** Exact native generator slots use ordinary instance descriptor dispatch.
  * Frame/code metadata, traceback attachment and finalization are separate work. */
@@ -34,13 +35,9 @@ export function installRuntimeGeneratorDescriptors(owner:TypeValue,values:Runtim
       if(positional.length>3)throw new PythonRuntimeError("TypeError",`throw expected at most 3 arguments, got ${positional.length}`);
       if(positional.length>1)invocation?.warn?.("DeprecationWarning","the (type, exc, tb) signature of throw() is deprecated, use the single-arg signature instead.");
       meter.checkpoint();
-      if(positional.length===3&&positional[2].kind!=="none")throw new PythonRuntimeError("TypeError","throw() third argument must be a traceback object");
       if(receiver.kind!=="instance"||receiver.native?.kind!=="generator")throw Error("generator throw requires native generator storage");
       if(invocation===undefined)throw Error("generator throw requires an invocation policy");
-      const state=receiver.native,error=state.exceptions.throwError(positional[0],positional[1]??values.none,invocation);
-      const result=state.execution.resume({kind:"throw",error});
-      if(result.done)throw state.exceptions.completion(result.value);
-      return result.value;
+      return throwRuntimeGenerator(receiver.native,positional,invocation,values,meter);
     }
   }));
   for(const name of ["gi_running","gi_suspended"] as const) {

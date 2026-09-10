@@ -1,8 +1,10 @@
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 
 export type YieldDelegationResult<Value> =
-  | { readonly kind: "yield" | "return"; readonly value: Value }
-  | { readonly kind: "raise" | "reject"; readonly error: unknown };
+  | { readonly kind: "yield"; readonly value: Value }
+  | { readonly kind: "return"; readonly value: Value }
+  | { readonly kind: "raise"; readonly error: unknown }
+  | { readonly kind: "reject"; readonly error: unknown };
 
 /** Guest iterator capabilities. Completion reads StopIteration's native value,
  * not an overridden attribute. Raw throw arguments must remain unnormalized
@@ -67,6 +69,8 @@ export class YieldDelegation<Value, Iterator, Method> {
     const error = request.error;
     if (error instanceof ExecutionLimitError || !context.isException(error, "BaseException")) { this.#finish(); throw error; }
     const closing = context.isException(error, "GeneratorExit"); this.meter.checkpoint();
+    this.meter.checkpoint(0,32);
+    const captured={context,iterator:iterator.value};
     let method: Method;
     try { method = context.attribute(iterator.value, closing ? "close" : "throw"); this.meter.checkpoint(); }
     catch (lookupError) {
@@ -80,9 +84,9 @@ export class YieldDelegation<Value, Iterator, Method> {
       this.meter.checkpoint(0, 32);
       return { kind: "reject", error: lookupError };
     }
-    if (closing) return this.#advance("close", method, [], error);
+    if (closing) return this.#advance("close", method, [], error,captured);
     const arguments_ = context.throwArguments(error); this.meter.checkpoint();
-    return this.#advance("throw", method, arguments_);
+    return this.#advance("throw", method, arguments_,undefined,captured);
   }
 
   #raise(error: unknown, context: YieldDelegationContext<Value, Iterator, Method>): YieldDelegationResult<Value> {
@@ -103,8 +107,8 @@ export class YieldDelegation<Value, Iterator, Method> {
     return this.#raise(normalized, context);
   }
 
-  #advance(operation: "next" | "send" | "throw" | "close", method?: Method, arguments_: readonly Value[] = [], closingError?: unknown): YieldDelegationResult<Value> {
-    const context = this.#context!, iterator = this.#iterator!.value;
+  #advance(operation: "next" | "send" | "throw" | "close", method?: Method, arguments_: readonly Value[] = [], closingError?: unknown,captured?:{readonly context:YieldDelegationContext<Value,Iterator,Method>;readonly iterator:Iterator}): YieldDelegationResult<Value> {
+    const context = captured?.context??this.#context!, iterator = captured===undefined?this.#iterator!.value:captured.iterator;
     this.meter.checkpoint(1, 32);
     let value: Value;
     try {

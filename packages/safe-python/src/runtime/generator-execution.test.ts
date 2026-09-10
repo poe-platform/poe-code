@@ -24,6 +24,26 @@ it("starts lazily, sends values, and exposes a return value only on the completi
   expect(requests).toEqual([{kind:"send",value:null},{kind:"send",value:9}]);
 });
 
+it("runs delegated preflight outside the body and preserves suspension on caller rejection",()=>{
+  const policy=context(),failure=Error("lookup"),phases:string[]=[];
+  const state=new GeneratorExecution<Value>(()=>({done:false,value:1}),policy,budget());
+  policy.delegation={active:true,resume(_input,run){
+    phases.push(state.phase);run(()=>{phases.push(state.phase);});phases.push(state.phase);
+    return {kind:"reject",error:failure};
+  }};
+  expect(state.delegating).toBe(false);state.resume({kind:"send",value:null});expect(state.delegating).toBe(true);
+  expect(()=>state.resume({kind:"throw",error:failure})).toThrow(failure);
+  expect(state.phase).toBe("suspended");expect(phases).toEqual(["suspended","running","suspended"]);
+});
+
+it("forwards delegated yields without replaying the body and resumes it for completion",()=>{
+  const policy=context();let bodyCalls=0,delegatedCalls=0;
+  const state=new GeneratorExecution<Value>(()=>++bodyCalls===1?{done:false,value:1}:{done:true,value:9},policy,budget());
+  policy.delegation={active:true,resume(){return ++delegatedCalls===1?{kind:"yield",value:2}:{kind:"resume",input:{kind:"send",value:null}};}};
+  state.resume({kind:"send",value:null});expect(state.resume({kind:"send",value:null})).toEqual({done:false,value:2});expect(bodyCalls).toBe(1);
+  expect(state.resume({kind:"send",value:null})).toEqual({done:true,value:9});expect(state.delegating).toBe(false);
+});
+
 it("rejects an initial non-None send without starting or closing the generator",()=>{
   const driver=vi.fn(()=>({done:false as const,value:1})),state=new GeneratorExecution(driver,context(),budget());
   expect(()=>state.resume({kind:"send",value:1})).toThrow("can't send non-None value to a just-started generator");

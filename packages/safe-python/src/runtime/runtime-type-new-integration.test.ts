@@ -46,6 +46,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   const calls = new CallStack<object>(50, meter), keys = new RuntimeExecutionKeys(v, hash, meter, calls);
   const registry = new RuntimeTypeRegistry(v, keys, meter), native = new Map<string, TypeValue>();
   const exceptions=guestExceptions?new RuntimeExceptionExecution(registry,v,meter):undefined;
+  const unraisable:Array<readonly [unknown,RuntimeValue]>=[];
   const globals = new Map<string, RuntimeValue>([["type", registry.type], ["object", registry.object], ["__name__", v.string("example")]]), events: string[] = [];
   const builtins = new Map<string, RuntimeValue>([["visit", v.builtinFunction({ name: "visit", invoke(args) { const value = args[0]; if (value.kind !== "str") throw Error("expected string"); events.push(String.fromCodePoint(...value.value)); return v.none; } })]]);
   builtins.set("__build_class__", createBuildClassBuiltin({ registry, keys }, v, meter));
@@ -76,9 +77,9 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     } })
   };
   function run(source: string) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls, identity, exceptions }, meter);
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
-  return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions };
+  return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable };
 }
 
 function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["expressions"]>>={}) {
@@ -223,6 +224,80 @@ it("creates native generator functions without running their bodies and accepts 
   expect(state.events).toEqual([]);
   state.run("first=g.__next__()\ntry:\n g.send(7)\nexcept StopIteration as error:\n result=error.value\n");
   expect(state.events).toEqual(["start"]);expect(state.globals.get("first")).toEqual(v.integer(3));expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("delegates native yield-from iteration and preserves the subgenerator return value",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def child():\n x=yield 1\n return x\ndef parent():\n result=yield from child()\n yield result\n yield from [3,4]\ng=parent()\na=g.__next__()\nb=g.send(7)\nrest=[x for x in g]\n");
+  expect(state.globals.get("a")).toEqual(v.integer(1));expect(state.globals.get("b")).toEqual(v.integer(7));
+  state.run("correct=rest==[3,4]\n");expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each([["[1]","list_iterator"],["(1,)","tuple_iterator"],["'a'","str_iterator"],["b'a'","bytes_iterator"],["{1:2}","dict_keyiterator"],["{1}","set_iterator"]])("reports the delegated %s iterator kind for missing send",(source,name)=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`def gen():\n yield from ${source}\ng=gen()\ng.__next__()\ntry:\n g.send(7)\nexcept BaseException as error:\n args=error.args\n`);
+  expect(state.globals.get("args")).toEqual(v.tuple([v.string(`'${name}' object has no attribute 'send'`)]));
+});
+
+it("keeps a delegating generator suspended after throw-method lookup rejects the caller",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class I:\n def __iter__(self): return self\n def __next__(self): return 1\n def __getattribute__(self,name):\n  if name=='throw':\n   visit('lookup')\n   raise ValueError('lookup')\n  return object.__getattribute__(self,name)\ndef parent():\n try:\n  yield from I()\n except ValueError:\n  visit('caught in body')\ng=parent()\ng.__next__()\ntry:\n g.throw(ValueError('injected'))\nexcept ValueError:\n rejected=True\nsuspended=g.gi_suspended\nnext_value=g.__next__()\ng.close()\n");
+  expect(state.events).toEqual(["lookup"]);expect(state.globals.get("suspended")).toBe(v.true);expect(state.globals.get("next_value")).toEqual(v.integer(1));
+});
+
+it("forwards raw throw arguments without constructing the requested exception",()=>{
+  const state=exceptionFixture({warn(){}}),{v}=state;
+  state.run("class E(Exception):\n def __init__(self,*args): visit('construct')\nclass I:\n def __iter__(self): return self\n def __next__(self): return 1\n def throw(self,*args):\n  global received\n  received=args\n  return 2\ndef parent():\n yield from I()\ng=parent()\ng.__next__()\nvalue=g.throw(E,7,99)\ncorrect=received==(E,7,99)\ng.close()\n");
+  expect(state.events).toEqual([]);expect(state.globals.get("correct")).toBe(v.true);expect(state.globals.get("value")).toEqual(v.integer(2));
+});
+
+it("warns once for a legacy throw forwarded through native subgenerators",()=>{
+  const warnings:string[]=[],state=exceptionFixture({warn(category){warnings.push(category);}});
+  state.run("def child():\n try:yield 1\n except ValueError:yield 2\ndef gen():yield from child()\ng=gen()\ng.__next__()\ng.throw(ValueError,'message')\ng.close()\n");
+  expect(warnings).toEqual(["DeprecationWarning"]);
+});
+
+it("reports delegated close-lookup errors without replacing GeneratorExit",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class I:\n def __iter__(self):return self\n def __next__(self):return 1\n def __getattribute__(self,name):\n  if name=='close':raise ValueError('lookup')\n  return object.__getattribute__(self,name)\niterator=I()\ndef gen():yield from iterator\ng=gen()\ng.__next__()\nresult=g.close()\n");
+  expect(state.globals.get("result")).toBe(v.none);expect(state.unraisable).toHaveLength(1);
+  expect(state.exceptions!.matches(state.unraisable[0][0],"ValueError")).toBe(true);expect(state.unraisable[0][1]).toBe(state.globals.get("iterator"));
+});
+
+it("uses distinct running states for delegated throw lookup and invocation",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class I:\n def __iter__(self): return self\n def __next__(self): return 1\n def __getattribute__(self,name):\n  if name=='throw':\n   global lookup_running\n   lookup_running=g.gi_running\n  return object.__getattribute__(self,name)\n def throw(self,*args):\n  global call_running\n  call_running=g.gi_running\n  return 2\ndef parent(): yield from I()\ng=parent()\ng.__next__()\ng.throw(ValueError())\ng.close()\n");
+  expect(state.globals.get("lookup_running")).toBe(v.false);expect(state.globals.get("call_running")).toBe(v.true);
+});
+
+it.each([1,2])("retains delegated throw call activation after lookup reenters next (limit %s)",limit=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`class I:\n def __init__(self):self.i=0\n def __iter__(self):return self\n def __next__(self):\n  self.i+=1\n  if self.i>${limit}:raise StopIteration(5)\n  return self.i\n def __getattribute__(self,name):\n  if name=='throw':\n   try:g.__next__()\n   except StopIteration:pass\n  return object.__getattribute__(self,name)\n def throw(self,*args):return g.gi_running\ndef gen():yield from I()\ng=gen()\ng.__next__()\nresult=g.throw(ValueError())\nsuspended=g.gi_suspended\ng.close()\n`);
+  expect(state.globals.get("result")).toBe(v.true);expect(state.globals.get("suspended")).toBe(v.boolean(limit===2));
+});
+
+it.each([false,true])("advances to a new delegation during reentrant throw lookup (completion %s)",completes=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`events=[]\nclass I:\n def __init__(self):self.i=0\n def __iter__(self):return self\n def __next__(self):\n  self.i+=1\n  if self.i>1:raise StopIteration(5)\n  return self.i\n def __getattribute__(self,name):\n  if name=='throw':events.append(g.__next__())\n  return object.__getattribute__(self,name)\n def throw(self,*args):\n  ${completes?"raise StopIteration(7)":"return g.gi_running"}\ndef gen():\n yield from I()\n yield from [9,10]\ng=gen()\ng.__next__()\ntry:events.append(g.throw(ValueError()))\nexcept StopIteration as error:events.append(error.args)\nevents.append(g.gi_suspended)\ntry:events.append(g.__next__())\nexcept StopIteration:events.append('done')\ng.close()\ncorrect=events==${completes?"[9,(),False,'done']":"[9,True,True,10]"}\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("completes yield-from when a delegated close raises StopIteration",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class I:\n def __iter__(self): return self\n def __next__(self): return 1\n def close(self): raise StopIteration(9)\ndef parent():\n result=yield from I()\n return result\ng=parent()\ng.__next__()\nresult=g.close()\n");
+  expect(state.globals.get("result")).toEqual(v.integer(9));
+});
+
+it("chains a non-forwarded throw to the outer generator's own saved handler",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("original=ValueError('outer')\nclass I:\n def __iter__(self):return self\n def __next__(self):return 1\ndef gen():\n try:raise original\n except ValueError:\n  try:yield from I()\n  except TypeError as error:yield error.__context__ is original\ng=gen()\ng.__next__()\nresult=g.throw(TypeError('injected'))\ng.close()\n");
+  expect(state.globals.get("result")).toBe(v.true);
+});
+
+it("preserves the caller's handled exception during delegated throw lookup and call",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass I:\n def __iter__(self):return self\n def __next__(self):return 1\n def __getattribute__(self,name):\n  if name=='throw':\n   try:raise\n   except ValueError as e:events.append(e.args)\n  return object.__getattribute__(self,name)\n def throw(self,*args):\n  try:raise\n  except ValueError as e:events.append(e.args)\n  return 2\ndef gen():\n try:raise ValueError('outer')\n except ValueError:yield from I()\ng=gen()\ng.__next__()\ntry:raise ValueError('caller')\nexcept ValueError:g.throw(TypeError())\ncorrect=events==[('caller',),('caller',)]\ng.close()\n");
+  expect(state.globals.get("correct")).toBe(v.true);
 });
 
 it("retains native generator returns through yielding finalizers",()=>{

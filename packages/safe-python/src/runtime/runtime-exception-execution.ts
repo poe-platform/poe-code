@@ -21,7 +21,7 @@ import { standardExceptionCatalog, type StandardExceptionName } from "./standard
 import type { StatementContext } from "./statement-execution.js";
 import type { BuiltinInvocationContext, InstanceValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
-import { GeneratorExecution,type GeneratorInput } from "./generator-execution.js";
+import { GeneratorExecution,type GeneratorInput,type GeneratorDelegation } from "./generator-execution.js";
 import type { CallStack } from "./call-stack.js";
 import { normalizeThrownException } from "./throw-normalization.js";
 
@@ -50,7 +50,7 @@ export class RuntimeExceptionExecution {
 
   /** Assemble an unstarted native generator around a trusted resumable body.
    * Only the running body owns a call-stack entry and saved exception activation. */
-  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">):InstanceValue {
+  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>):InstanceValue {
     const {values,meter}=this;
     meter.checkpoint(0,512);
     const handled=this.#handled.createFrame(meter);
@@ -64,7 +64,7 @@ export class RuntimeExceptionExecution {
       }
       catch(error){throw this.prepare(error);}
     },{
-      none:values.none,
+      none:values.none,delegation,enterDelegated:calls.enter.bind(calls,frame),
       enter:()=>{
         meter.checkpoint(0,64);
         const leave=calls.enter(frame);
@@ -150,6 +150,15 @@ export class RuntimeExceptionExecution {
       error instanceof PythonRuntimeError&&Object.hasOwn(standardExceptionCatalog,error.name)?this.registry.exceptionType(error.name as StandardExceptionName):undefined;
     if(type===undefined)return false;
     const target=this.registry.exceptionType(name as StandardExceptionName|"BaseException").value;
+    for(const base of type.value.mro){this.meter.checkpoint();if(base===target)return true;}
+    return false;
+  }
+  /** Classify a raw throw target without constructing it or invoking guest
+   * subclass checks. Delegated GeneratorExit handling precedes normalization. */
+  matchesThrowTarget(value:RuntimeValue,name:StandardExceptionName):boolean {
+    const type=value.kind==="type"?value:value.kind==="instance"&&runtimeExceptionPayload(value)!==undefined?value.type:undefined;
+    if(type===undefined)return false;
+    const target=this.registry.exceptionType(name).value;
     for(const base of type.value.mro){this.meter.checkpoint();if(base===target)return true;}
     return false;
   }

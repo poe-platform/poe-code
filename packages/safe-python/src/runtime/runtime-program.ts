@@ -58,6 +58,7 @@ import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js"
 import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
 import { ComprehensionCursor,executeComprehensionClauses } from "./comprehension-execution.js";
 import { createStatementContinuation } from "./statement-execution.js";
+import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -77,6 +78,9 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
 
 export interface RuntimeExecutionContext {
   readonly exceptions?: RuntimeExceptionExecution;
+  /** Host diagnostic sink for failures that cannot propagate, such as a
+   * delegated close attribute lookup. Absent sinks discard these diagnostics. */
+  readonly unraisable?:(error:unknown,object:RuntimeValue)=>void;
   /** Share an override with id registration and identity hashing when supplied. */
   readonly identity?: BuiltinInvocationContext["identity"];
   /** Shared by all frames; builtin registration can use this same context. */
@@ -107,7 +111,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
   const representationState: RuntimeRepresentationState = {};
   let defaultFormatting: FormatContext<RuntimeValue> | undefined;
   const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions):RuntimeStatementContext => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions, suspension?:RuntimeGeneratorDelegation):RuntimeStatementContext => {
     meter.checkpoint(1, 512);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -191,17 +195,18 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           if (kind !== "generator") throw new UnsupportedFunctionExecutionError(kind);
           meter.checkpoint(0, 288);
           const origin = fn.value;
+          const delegation=new RuntimeGeneratorDelegation(values,context.exceptions!,meter,context.unraisable);
           // Context preparation is delayed until the first resume. Binding the
           // arguments above must not execute body hooks or guest instructions.
           function* run(): Generator<RuntimeValue, RuntimeValue, RuntimeValue> {
-            const inner = body(child, origin, code.definitions ?? functions, code.classDefinitions ?? classFunctions, code.literals ?? null, code.comprehensions ?? comprehensions).suspend();
+            const inner = body(child, origin, code.definitions ?? functions, code.classDefinitions ?? classFunctions, code.literals ?? null, code.comprehensions ?? comprehensions,delegation).suspend();
             if (code.body.kind === "expression") return yield* inner.evaluate(code.body.expression);
             if (code.body.kind !== "suite") throw Error("generator code must have an expression or suite body");
             const result = yield* createStatementContinuation(code.body.statements, inner, meter);
             return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : values.none;
           }
           const cursor = run();
-          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls);
+          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls,delegation);
         };
         return invokeRuntimeFunction(fn, positional, keywords, invocation, meter);
       }
@@ -441,6 +446,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         }
       }
     }, meter);
+    if(suspension!==undefined){meter.checkpoint(0,64);expressions.delegate=source=>suspension.delegate(source,builtinCalls);}
     keys.bindInvocation?.(frame, builtinCalls); meter.checkpoint();
     let inplace = statementHooks.inplace?.bind(statementHooks);
     if (inplace === undefined && specialMethods !== undefined) {

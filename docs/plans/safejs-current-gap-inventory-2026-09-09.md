@@ -7,11 +7,13 @@ does not describe the published package or only committed sources.
 
 ## Latest verification update
 
-The post-PlainDateTime full package gate is currently running as session 33443,
-with its launch fingerprint and log recorded in
-[the integration report](safejs-current-integration-gate.md). All 100 filesystem
-type contracts passed before unit execution. No final result is available yet.
-The last completed full gate below predates the current PlainDateTime work.
+The post-PlainDateTime full package gate completed with 26,614 passed, two failed
+and 41 skipped tests (13effb), plus 100 passing filesystem type contracts.
+Both failures concern native Promise property imports. The source fingerprint
+matched before/after (9c7089); exact evidence is in
+[the integration report](safejs-current-integration-gate.md). The prior timing
+failure did not recur, which is not proof of a performance repair. This is a
+failing package gate, not complete JavaScript conformance or delivery.
 
 The post-offset/time-zone integration full package run completed with 26,420
 passed, three failed and 41 skipped tests (765f71). Failures were the two native

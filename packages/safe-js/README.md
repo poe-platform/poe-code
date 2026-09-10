@@ -855,7 +855,7 @@ remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 
-The latest working-tree gate includes the generator result-realm and
+An earlier working-tree gate includes the generator result-realm and
 synchronous yield-star forwarding fixes. It passed 24,368 tests, failed three,
 and skipped 37 across 950 files. The discovered inputs retained their source/test
 fingerprint; three later regression files were checked separately.
@@ -898,12 +898,49 @@ owner with error reporting. The snapshot and selected weak-reference checks pass
 
 ## Meaningful limitations
 
-Temporal support is partial and uncommitted. The local runtime provides owned
-`Temporal.Instant` and `Temporal.Duration` values with focused snapshot,
-replay and host-copy coverage. Instant differences (`until`/`since`) return
-Durations. The remaining six Temporal classes and `Temporal.Now` are absent;
-Instant locale/zoned conversion and Duration comparison, rounding and totals
-are still missing. Host Temporal subclasses and arbitrary foreign-realm
+Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
+`Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, and `Temporal.PlainDateTime` values
+with focused snapshot, replay and host-copy coverage. PlainTime currently has
+construction, subclassing, six field getters, `from`, `compare`, `equals`, `add`,
+`subtract`, `round`, `with`, `until`, `since`, `toString`, `toJSON`, `toLocaleString`,
+and the always-throwing `valueOf`. Method presence does not establish complete
+Temporal/Intl interoperability or conformance.
+PlainDateTime has construction, calendar/date/time getters, `from`, `compare`,
+`equals`, `toPlainTime`, `withPlainTime`, `withCalendar`, `round`, `toString`, `toJSON`, and `valueOf`, with
+focused copy and snapshot/replay coverage. Its arithmetic, general field
+replacement, locale formatting, and conversions to missing date/zoned
+types remain unfinished. Expanded-year parsing preserves option-read order before
+representable-range validation.
+Duration `relativeTo` accepts owned PlainDateTime values using their private ISO
+date and calendar, without reading shadowed public fields or using the time of day.
+Temporal string and relative-input validation rejects overflowing offset
+minutes/seconds rather than silently normalizing them; valid precise offsets
+and leap-second clock values remain supported.
+Instant formatting and Duration relative-input bags accept zone-bearing time,
+year-month and month-day strings, with date and annotation validation.
+Direct `Intl.DateTimeFormat` formatting, parts and ranges now accept owned
+PlainTime and Instant values, with requested options preserved in new snapshots.
+Legacy formatter snapshots lack original requested options and use their saved
+resolved options as a fallback.
+`PlainTime.toLocaleString` accepts valid fixed-offset time zones on Node 18 and
+preserves its wall-clock fields. Fixed-offset numeric Date/Instant and direct
+Intl formatting on older hosts remain incomplete.
+The last full SafeJS run, including the current partial PlainDateTime integration,
+passed 26,614 tests, failed two, and skipped 41. Both failures were native
+Promise property-import expectations. The earlier timing failure did not recur.
+All 100 filesystem type contracts passed. No Temporal/Intl tests failed, but this is not a green package
+gate or complete JavaScript conformance; see the
+[current integration record](../../docs/plans/safejs-current-integration-gate.md).
+Instant differences (`until`/`since`) return
+Durations, and Instant `toLocaleString` supports locale-aware formatting.
+`Temporal.PlainDate`, `Temporal.PlainYearMonth`, `Temporal.PlainMonthDay`,
+`Temporal.ZonedDateTime`, and `Temporal.Now` are absent;
+Instant zoned conversion is still missing.
+Duration `compare` supports exact time comparisons and calendar/DST-relative inputs.
+Duration `round` supports rounding modes, increments and calendar-relative inputs.
+Duration `total` supports unit strings and plain/zoned `relativeTo` strings or
+property bags, with exact time-unit and calendar-fraction division. Broader
+calendar conformance qualification remains open. Host Temporal subclasses and arbitrary foreign-realm
 instances are not generally supported. This is not complete Temporal support
 or a claim about the released package.
 
@@ -915,8 +952,10 @@ property list is not proof of JavaScript conformance.
 The unreleased runtime also provides `Map.prototype.getOrInsert(key, value)`
 and `getOrInsertComputed(key, callback)`. These newer compatibility methods
 preserve existing values and use collection budgets for insertions; computed
-defaults run only for missing keys. The corresponding WeakMap methods remain
-unimplemented. See the [validation record](../../docs/plans/safejs-map-upsert.md).
+defaults run only for missing keys. See the [Map validation record](../../docs/plans/safejs-map-upsert.md).
+The corresponding WeakMap methods now have an experimental, uncommitted
+implementation; they retain the older-Node weak-symbol limitations above.
+See the [WeakMap integration record](../../docs/plans/safejs-weakmap-upsert.md).
 
 The unreleased runtime supports `Atomics` integer operations on ordinary
 ArrayBuffer-backed typed arrays, including BigInt views. Experimental,

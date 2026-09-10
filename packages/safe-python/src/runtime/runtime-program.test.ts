@@ -39,6 +39,26 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["startswith", "endswith"])("releases each %s tuple buffer before trying the next", method => {
+    const state = fixture(`result=b'aba'.${method}((first,second,None))\n`), v = state.values, first = v.cell({}), second = v.cell({}), trace: string[] = [];
+    state.globals.set("first", first); state.globals.set("second", second);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        const name = value === first ? "first" : "second"; trace.push(`acquire ${name}`);
+        return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(value === first ? 122 : 97)).value, release() { trace.push(`release ${name}`); } };
+      }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.true);
+    expect(trace).toEqual(["acquire first", "release first", "acquire second", "release second"]);
+  });
+  it.each(["startswith", "endswith"])("cleans up %s buffers after acquisition cancellation", method => {
+    const controller = new AbortController(), state = fixture(`result=b'a'.${method}(affix)\n`, 100000, controller.signal), v = state.values; let released = false;
+    state.globals.set("affix", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { controller.abort(); return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it.each([["find",0], ["rfind",2], ["index",0], ["rindex",2], ["count",2]])("searches byte buffers with %s after bounds conversion", (method, expected) => {
     const state = fixture(`result=b'aba'.${method}(needle,start)\n`), v = state.values, needle = v.cell({}), start = v.cell({}), trace: string[] = [];
     state.globals.set("needle", needle); state.globals.set("start", start);

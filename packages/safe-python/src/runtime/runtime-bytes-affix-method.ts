@@ -2,11 +2,12 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
+import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Tuple alternatives are checked lazily after bound conversion. Unlike byte
  * searches, these methods do not accept integer needles. */
-export function createRuntimeBytesAffixMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "startswith" | "endswith", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
+export function createRuntimeBytesAffixMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "startswith" | "endswith", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>, buffers?: RuntimeBufferContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -20,11 +21,20 @@ export function createRuntimeBytesAffixMethod(receiver: Extract<RuntimeValue, { 
       meter.checkpoint(1, 64);
       const matches = (value: RuntimeValue): boolean => {
         meter.checkpoint();
-        if (value.kind !== "bytes") {
-          const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
-          throw new PythonRuntimeError("TypeError", tuple ? `a bytes-like object is required, not '${type}'` : `${name} first arg must be bytes or a tuple of bytes, not ${type}`);
+        let lease: RuntimeBufferLease | undefined;
+        try {
+          if (value.kind !== "bytes") {
+            lease = buffers?.acquireSimple(value); meter.checkpoint();
+            if (lease === undefined) {
+              const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
+              throw new PythonRuntimeError("TypeError", tuple ? `a bytes-like object is required, not '${type}'` : `${name} first arg must be bytes or a tuple of bytes, not ${type}`);
+            }
+          }
+          const storage = value.kind === "bytes" ? value.value : lease!.copy(); meter.checkpoint();
+          return receiver.value.hasAffix(storage, name === "startswith" ? "start" : "end", start, stop, meter);
+        } finally {
+          lease?.release(); meter.checkpoint();
         }
-        return receiver.value.hasAffix(value.value, name === "startswith" ? "start" : "end", start, stop, meter);
       };
       if (!tuple) return values.boolean(matches(candidate));
       for (const value of candidate.items) if (matches(value)) return values.true;

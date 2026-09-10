@@ -102,7 +102,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeBytesStripMethod(receiver, name, values, meter, methods?.buffers);
     if (name === "join") return createRuntimeBytesJoinMethod(receiver, values, meter, methods?.iterate);
     if (name === "removeprefix" || name === "removesuffix" || name === "partition" || name === "rpartition") return createRuntimeBytesCutMethod(receiver, name, values, meter, methods?.buffers);
-    if (name === "startswith" || name === "endswith") return createRuntimeBytesAffixMethod(receiver, name, values, meter, methods?.integerIndex);
+    if (name === "startswith" || name === "endswith") return createRuntimeBytesAffixMethod(receiver, name, values, meter, methods?.integerIndex, methods?.buffers);
     if (name === "upper" || name === "lower" || name === "title" || name === "capitalize" || name === "swapcase") return createRuntimeBytesCaseMethod(receiver, name, values, meter);
     switch (name) {
       case "find": case "rfind": case "index": case "rindex": case "count":

@@ -6824,6 +6824,15 @@ extension, integration, or validation requirement is missing or unverified.
   patterns and bounds. Typecheck, scoped lint and selected workspace build pass.
   Remaining native buffer consumers, concrete exporters, automatic object
   assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.startswith/endswith to contiguous buffer candidates, including
+  lazy tuple alternatives. Each candidate lease releases before the next is
+  attempted; successful matches skip later invalid candidates. Acquisition/copy
+  cancellation checks and cleanup preserve the existing bound-conversion order.
+- Four failing compiled regressions now pass. All 5,210 tests in 441 files pass;
+  320 CPython comparisons match output/errors and lease traces across methods,
+  patterns and bounds. Typecheck, scoped lint and selected workspace build pass.
+  Remaining native buffer consumers, concrete exporters, automatic object
+  assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -44,6 +44,8 @@ import { createFloatNewBuiltin } from "./builtin-float-new.js";
 import { installRuntimeFloatSlots } from "./runtime-float-slots.js";
 import { installRuntimeFloatMethodDescriptors } from "./runtime-float-method-descriptors.js";
 import { createComplexNewBuiltin } from "./builtin-complex-new.js";
+import { createExceptionNewBuiltin } from "./builtin-exception-new.js";
+import { installRuntimeExceptionDescriptors } from "./runtime-exception-descriptors.js";
 import { installRuntimeComplexSlots } from "./runtime-complex-slots.js";
 import { installRuntimeComplexMethodDescriptors } from "./runtime-complex-method-descriptors.js";
 import { createBooleanNewBuiltin } from "./builtin-boolean-new.js";
@@ -99,6 +101,7 @@ export class RuntimeTypeRegistry {
   #integerType: TypeValue | undefined;
   #floatType: TypeValue | undefined;
   #complexType: TypeValue | undefined;
+  #baseExceptionType:TypeValue|undefined;
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
@@ -301,6 +304,19 @@ export class RuntimeTypeRegistry {
     installRuntimeBooleanSlots(type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#booleanType = type;
+    return type;
+  }
+
+  baseExceptionType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#baseExceptionType!==undefined)return this.#baseExceptionType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("BaseException",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:true,objectLayout:false,weakReferences:false,variableSized:false});
+    const type=this.values.type(layout,this.type,{immutable:true});
+    namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value)));
+    namespace.items.set(this.values.string("__doc__"),this.values.string("Common base class for all exceptions"));
+    installRuntimeExceptionDescriptors(type,this.values,this.meter);
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#baseExceptionType=type;
     return type;
   }
 

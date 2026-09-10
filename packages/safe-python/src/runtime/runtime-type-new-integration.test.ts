@@ -68,6 +68,38 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("allocates BaseException storage and formats its captured arguments",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("a=BaseException()\nb=BaseException('message')\nc=BaseException(1,'two')\ncorrect=type(a) is BaseException and a.args==() and b.args==('message',) and c.args==(1,'two') and f'{a}'=='' and f'{b}'=='message' and f'{c}'==\"(1, 'two')\" and f'{a!r}'=='BaseException()' and f'{b!r}'==\"BaseException('message')\" and f'{c!r}'==\"BaseException(1, 'two')\"\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("separates exception allocation from custom initialization and stores instance attributes",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("class E(BaseException):\n def __init__(self,value,**kw):\n  self.tag=kw\ne=E(1,x=2)\nraw=BaseException.__new__(BaseException,3,ignored=4)\ncorrect=e.args==(1,) and e.tag=={'x':2} and raw.args==(3,) and f'{e!r}'=='E(1)'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("BaseException(x=1)\n")).toThrow("BaseException() takes no keyword arguments");
+  expect(()=>state.run("BaseException.__init__(e,x=1)\n")).toThrow("E() takes no keyword arguments");
+});
+
+it("limits default exception initializer diagnostics to 200 UTF-8 bytes",()=>{
+  for(const [name,expected] of [["X".repeat(250),"X".repeat(200)],["Ж".repeat(130),"Ж".repeat(100)],["字".repeat(100),"字".repeat(66)]]) {
+    const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+    state.run(`class ${name}(BaseException):\n pass\n`);
+    let message="";try{state.run(`${name}(x=1)\n`);}catch(error){message=(error as Error).message;}
+    expect(message).toBe(`${expected}() takes no keyword arguments`);
+  }
+});
+
+it("updates exception args from iterables without replacing them after failed conversion",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("e=BaseException(1)\nargs=(2,3)\ne.args=args\nidentity=e.args is args\ne.args=[4,5]\ncorrect=e.args==(4,5) and f'{e}'=='(4, 5)'\n");
+  expect(state.globals.get("identity")).toBe(state.v.true);expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("e.args=None\n")).toThrow("'NoneType' object is not iterable");
+  state.run("unchanged=e.args==(4,5)\n");expect(state.globals.get("unchanged")).toBe(state.v.true);
+  expect(()=>state.run("del e.args\n")).toThrow("args may not be deleted");
+});
+
 it("allocates canonical complex instances and owned subclasses with native numeric slots",()=>{
   const state=fixture();state.globals.set("Complex",state.registry.complexType());
   state.run("class Z(Complex):\n pass\nx=Z('1+2j')\ny=Complex(3,4)\ncorrect=type(x) is Z and type(y) is Complex and x==1+2j and x+y==4+6j and 2*x==2+4j and x/2==0.5+1j and x**2==-3+4j and -x==-1-2j and +x==1+2j and not Z() and x.real==1.0 and x.imag==2.0\n");

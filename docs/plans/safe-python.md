@@ -9644,6 +9644,23 @@ extension, integration, or validation requirement is missing or unverified.
   Native exception types, guest raise/try wiring, remaining scalar catalogs,
   public interpreter assembly and safe-fs execution remain unfinished. No push
   or release was requested.
+- BaseException object foundation (2026-09-10): failing integration tests
+  drove canonical BaseException publication, private native argument storage,
+  allocation/initialization separation, str/repr wrappers and a writable args
+  descriptor. Allocation captures positional arguments while custom initializers
+  may accept keywords; default initialization rejects them before mutation.
+  Iterable args conversion preserves exact tuples and only replaces storage
+  after successful collection. A fourth regression drove UTF-8-aware 200-byte
+  initializer error names, including multibyte boundaries, after a CPython probe
+  exposed untruncated diagnostics. All 158 constructor/representation/descriptor
+  comparisons and 12 argument-conversion comparisons match CPython, including
+  ignored length hooks during args conversion. Workspace build, typecheck,
+  focused lint and all 7,113 tests in 501 files pass in the final uncached
+  one-worker package run. This is not yet a complete guest
+  exception: cause/context/traceback/notes, dictionary and serialization
+  descriptors, the builtin exception hierarchy, host-fault translation and
+  raise/try execution wiring remain unfinished, as do public interpreter and
+  safe-fs assembly. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

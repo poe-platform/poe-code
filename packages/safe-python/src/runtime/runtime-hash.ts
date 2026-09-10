@@ -99,7 +99,7 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
       } else {
         switch (current.kind) {
           case "frozenset": result = current.items.keySetHash(); break;
-          case "mappingproxy": current = current.value; continue;
+          case "mappingproxy": current = current.owner ?? current.value; continue;
           case "method": {
             if (!("none" in context)) throw new Error("runtime hash context is required for bound methods");
             meter.checkpoint(0, 32);

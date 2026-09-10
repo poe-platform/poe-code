@@ -69,7 +69,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
       meter.checkpoint();
       try {
         if (value.kind === "dict") keywords.items.update(value.items, duplicate);
-        else if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicate);
+        else if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicate, { values: context.values, invocation: context.invocation });
         else mergeRuntimeMapping(keywords, value, context.values, meter, context.invocation, context.iteration, duplicate);
       } catch (error) {
         meter.checkpoint();

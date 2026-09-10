@@ -12,7 +12,7 @@ import { isRuntimeSet, type DictionaryViewValue, type FrozenSetValue, type Runti
  */
 export function readRuntimeDictionaryViewAttribute(view: DictionaryViewValue, name: string, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue | undefined {
   meter.checkpoint();
-  if (name === "mapping") return values.mappingProxy(view.value);
+  if (name === "mapping") return values.mappingProxy(view.value, view.owner);
   if (name !== "__reversed__" && (name !== "isdisjoint" || view.kind === "dict_values")) return undefined;
   meter.checkpoint(1, 64);
   return values.builtinFunction({

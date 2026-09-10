@@ -20,6 +20,7 @@ import { createHashBuiltin } from "./builtin-hash.js";
 import { createRuntimeKeyOperations } from "./runtime-key-operations.js";
 import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
+import { createReversedBuiltin } from "./builtin-reversed.js";
 
 function fixture(identity?: IdentityContext) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -51,6 +52,52 @@ function fixture(identity?: IdentityContext) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it.each(["d", "Dict.keys(d).mapping", "Dict.values(d).mapping", "Dict.items(d).mapping"])("falls back to native dictionary comparison after declined subclass slots through %s", expression => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run(`Dict=type({})\nclass Child(Dict):\n def __eq__(self,other):\n  visit('equal')\n  return NotImplemented\n def __ne__(self,other):\n  visit('different')\n  return NotImplemented\nd=Child(a=1)\np=${expression}\nforward=p=={'a':1}\nreverse={'a':1}==p\nunequal=p!={'a':1}\nreverseUnequal={'a':1}!=p\n`);
+  expect(state.globals.get("forward")).toBe(state.v.true); expect(state.globals.get("reverse")).toBe(state.v.true);
+  expect(state.globals.get("unequal")).toBe(state.v.false); expect(state.globals.get("reverseUnequal")).toBe(state.v.false);
+  expect(state.events).toEqual(["equal", "equal", "different", "different"]);
+});
+
+it("expands subclass mapping proxies through live keys and item overrides", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n def keys(self):\n  visit('keys')\n  return ['x']\n def __getitem__(self,key):\n  visit(key)\n  return 9\nd=Child(a=1)\np=Dict.items(d).mapping\nliteral={**p}\nconstructed=Dict(p)\ndef accept(**kw):\n return kw\ncalled=accept(**p)\ncorrect=literal=={'x':9} and constructed==literal and called==literal\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["keys", "x", "keys", "x", "keys", "x"]);
+});
+
+it("delegates mapping proxy representation, comparisons and union to the owner", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n def __repr__(self):\n  visit('repr')\n  return 'child'\n def __str__(self):\n  visit('str')\n  return 'text'\n def __eq__(self,other):\n  visit('equal')\n  return 7\n def __or__(self,other):\n  visit('forward')\n  return 8\n def __ror__(self,other):\n  visit('reverse')\n  return 9\nd=Child()\np=Dict.values(d).mapping\nrepresentation=f'{p!r}'\ntext=f'{p!s}'\nequal=p=={}\nforward=p|{}\nreverse={}|p\n");
+  expect(state.globals.get("representation")).toEqual(state.v.string("mappingproxy(child)")); expect(state.globals.get("text")).toEqual(state.v.string("text"));
+  expect(state.globals.get("equal")).toEqual(state.v.integer(7)); expect(state.globals.get("forward")).toEqual(state.v.integer(8)); expect(state.globals.get("reverse")).toEqual(state.v.integer(9));
+  expect(state.events).toEqual(["repr", "str", "equal", "forward", "reverse"]);
+});
+
+it("reverses mapping proxies through the owner's ordinary reversed attribute", () => {
+  const state = fixture(); state.builtins.set("reversed", createReversedBuiltin(state.v, state.meter));
+  state.run("Dict=type({})\nList=type([])\nclass Child(Dict):\n def __reversed__(self):\n  visit('reverse')\n  return ['x'].__iter__()\nd=Child(a=1)\np=Dict.keys(d).mapping\nresult=List(reversed(p))\ncorrect=result==['x']\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["reverse"]);
+});
+
+it("does not inherit an underlying dictionary's length hint through its proxy", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nList=type([])\nclass Child(Dict):\n def __len__(self):\n  visit('len')\n  return 'invalid'\n def __length_hint__(self):\n  visit('hint')\n  return 1\nd=Child(a=1)\np=Dict.keys(d).mapping\nresult=List(p)\ncorrect=result==['a']\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["len"]);
+});
+
+it("retains dictionary subclass ownership behind native views and mapping proxies", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nList=type([])\nclass Child(Dict):\n def __getitem__(self,key):\n  visit('get')\n  return 9\n def __iter__(self):\n  visit('iter')\n  return ['x'].__iter__()\n def keys(self):\n  visit('keys')\n  return ['y']\nd=Child(a=1)\nview=Dict.keys(d)\np=view.mapping\nentries=List(view)\nvalue=p['a']\niterator=p.__reversed__()\nkeys=p.keys()\ncopy=p.copy()\ncorrect=entries==['a'] and value==9 and keys==['y'] and copy=={'y':9}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["get", "keys", "keys", "get"]);
+});
+
+it("delegates proxy iteration, membership and truth while views retain native entries", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nList=type([])\nclass Child(Dict):\n def __len__(self):\n  visit('len')\n  return 0\n def __bool__(self):\n  visit('bool')\n  return True\n def __iter__(self):\n  visit('iter')\n  return ['x'].__iter__()\n def __contains__(self,key):\n  visit('contains')\n  return True\nd=Child(a=1)\nv=Dict.keys(d)\np=v.mapping\nitems=List(p)\nfound='z' in p\ntruth=not not p\nviewtruth=not not v\ncorrect=items==['x'] and found and not truth and viewtruth\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["iter", "len", "contains", "len"]);
+});
 
 it("retains dictionary subclass source effects before invalid constructor keywords", () => {
   const state = fixture();

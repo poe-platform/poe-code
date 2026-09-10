@@ -137,9 +137,10 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     },
     compare(operator, left, right) {
       if (operator === "in" || operator === "not in") {
-        const containment = bindings.containment?.(right);
+        const container = right.kind === "mappingproxy" && right.owner !== undefined ? right.owner : right;
+        const containment = bindings.containment?.(container);
         meter.checkpoint();
-        return runtimeMembership(operator, left, right, values, meter, containment, methods);
+        return runtimeMembership(operator, left, container, values, meter, containment, methods);
       }
       if (operator === "is" || operator === "is not") return runtimeComparison(operator, left, right, values, meter);
       const comparison = bindings.richComparison?.(operator, left, right);

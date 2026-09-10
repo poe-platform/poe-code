@@ -9089,6 +9089,25 @@ extension, integration, or validation requirement is missing or unverified.
   audits remain, alongside public APIs, exception objects, suspension and safe-fs
   execution. This is not completion of the full interpreter objective. No push
   or release was requested.
+- Dictionary view/proxy ownership (2026-09-10): failing integration tests
+  reproduced lost subclass ownership behind native dictionary views. Views keep
+  native-entry iteration while their mapping proxies retain the owning instance
+  and delegate indexing, methods, iteration, membership, length, hashing,
+  representation, comparison and union. Proxy truth uses owner length rather
+  than owner __bool__; length hints do not inherit owner __length_hint__.
+  Reversal uses ordinary owner attribute lookup. Mapping expansion retains live
+  keys/item callbacks and partial-effect behavior. A differential comparison
+  exposed declined subclass equality missing the exact dictionary fallback;
+  four failing regressions established the correction through direct instances
+  and each view kind. Exact dictionary comparison now participates in canonical
+  slot dispatch when a guest operand is present. Ten added tests pass, along
+  with all 6,892 package tests in 493 files, workspace build, typecheck and focused
+  lint. All 90 owner-delegation cases, 258 edge cases and 927 subclass protocol
+  regressions match CPython. The edge harness uses matching callable-name policy
+  and materializes iterator results on both interpreters. Canonical proxy
+  construction, arbitrary mapping owners, recursive lifecycle audits and the
+  broader full-interpreter requirements remain unfinished. No push or release
+  was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

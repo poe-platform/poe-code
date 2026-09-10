@@ -21,8 +21,8 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
   if (!leftGuest && !rightGuest) return undefined;
   const names = methods.get(operator);
   if (names === undefined) throw Error(`unsupported rich comparison operator: ${operator}`);
-  const leftType = leftGuest ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
-  const rightType = rightGuest ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
+  const leftType = leftGuest || left.kind === "dict" ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest || right.kind === "dict" ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let rightIsStrictSubtype = false;
   if (leftType !== undefined && rightType !== undefined && leftType !== rightType) {
     for (const ancestor of rightType.value.mro) {

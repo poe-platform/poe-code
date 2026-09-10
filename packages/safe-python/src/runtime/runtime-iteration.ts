@@ -21,6 +21,11 @@ import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
  */
 export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: IterationContext<RuntimeValue>, notIterable?: (typeName: string) => never, hint = false): CompletionIterator<RuntimeValue> {
   meter.checkpoint();
+  if (value.kind === "mappingproxy" && value.owner !== undefined) {
+    const iterator = runtimeIterate(value.owner, values, meter, protocol, notIterable);
+    if (hint && protocol?.hints !== undefined) lengthHint(value, protocol.hints, meter, 8n);
+    return iterator;
+  }
   switch (value.kind) {
     case "set": case "frozenset":
       meter.checkpoint(1, 32);

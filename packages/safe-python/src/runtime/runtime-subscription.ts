@@ -11,6 +11,7 @@ import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type Runti
  * type slots; classes fall back to ordinary __class_getitem__ lookup only when
  * their metaclass has no __getitem__. Keys, slices and results are not coerced. */
 export function runtimeGetItem(object: RuntimeValue, key: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, invocation?: BuiltinInvocationContext, index?: IntegerIndexContext<RuntimeValue>): RuntimeValue {
+  if (object.kind === "mappingproxy" && object.owner !== undefined) return runtimeGetItem(object.owner, key, values, meter, invocation, index);
   if (object.kind === "dict" || object.kind === "mappingproxy" || object.kind === "list" || object.kind === "tuple" || object.kind === "str" || object.kind === "bytes" || object.kind === "range") return runtimeIndex(object, key, values, meter, index);
   meter.checkpoint();
   const hook = invocation?.lookupSpecial?.(object, "__getitem__"); meter.checkpoint();

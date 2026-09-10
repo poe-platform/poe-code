@@ -21,9 +21,17 @@ export function createRuntimeDictionaryMethod(receiver: DictionaryValue | Mappin
       if (name === "get") {
         if (positional.length < 1) throw new PythonRuntimeError("TypeError", "get expected at least 1 argument, got 0");
         if (positional.length > 2) throw new PythonRuntimeError("TypeError", `get expected at most 2 arguments, got ${positional.length}`);
+        if (receiver.kind === "mappingproxy" && receiver.owner !== undefined) {
+          if (invocation?.attribute === undefined) throw Error("mapping proxy delegation requires attribute access");
+          return invocation.call(invocation.attribute(receiver.owner, name), [positional[0], positional[1] ?? values.none]);
+        }
         return runtimeDictionaryAccess(dictionary, positional[0], "lookup", meter)?.value ?? positional[1] ?? values.none;
       }
       if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `${diagnosticTypeName(typeName, meter)}.${name}() takes no arguments (${positional.length} given)`);
+      if (receiver.kind === "mappingproxy" && receiver.owner !== undefined) {
+        if (invocation?.attribute === undefined) throw Error("mapping proxy delegation requires attribute access");
+        return invocation.call(invocation.attribute(receiver.owner, name), []);
+      }
       if (name === "copy") {
         if (originalReceiver.kind !== "instance") return values.dictionary(dictionary.items.copy());
         const result = values.dictionary(dictionary.items.emptyCopy());
@@ -34,7 +42,7 @@ export function createRuntimeDictionaryMethod(receiver: DictionaryValue | Mappin
         meter.checkpoint(1, 32);
         return values.iterator(dictionary.items.reversed(key => key));
       }
-      return values.dictionaryView(dictionary, name === "keys" ? "dict_keys" : name === "values" ? "dict_values" : "dict_items");
+      return values.dictionaryView(dictionary, name === "keys" ? "dict_keys" : name === "values" ? "dict_values" : "dict_items", originalReceiver.kind === "instance" ? originalReceiver : undefined);
     }
   });
 }

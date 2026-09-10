@@ -24,7 +24,7 @@ export function updateRuntimeDictionary(target: DictionaryValue, source: Runtime
   const native = runtimeDictionaryCopySource(source, values, meter, invocation);
   if (native !== undefined) target.items.update(native.items);
   else if (runtimeDictionaryPayload(source) !== undefined) mergeRuntimeMapping(target, source, values, meter, invocation, invocation?.iteration);
-  else if (source.kind === "mappingproxy") mergeRuntimeMappingProxy(target, source, meter);
+  else if (source.kind === "mappingproxy") mergeRuntimeMappingProxy(target, source, meter, undefined, { values, invocation });
   else {
     let mapping = false;
     if (invocation?.attribute !== undefined) {

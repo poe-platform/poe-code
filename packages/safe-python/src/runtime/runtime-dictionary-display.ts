@@ -33,7 +33,7 @@ export function beginRuntimeDictionary(initial: readonly (readonly [RuntimeValue
       meter.checkpoint();
       try {
         if (mapping.kind === "dict") result.items.update(mapping.items);
-        else if (mapping.kind === "mappingproxy") mergeRuntimeMappingProxy(result, mapping, meter);
+        else if (mapping.kind === "mappingproxy") mergeRuntimeMappingProxy(result, mapping, meter, undefined, { values, invocation });
         else mergeRuntimeMapping(result, mapping, values, meter, invocation, invocation?.iteration);
       } catch (error) {
         meter.checkpoint();

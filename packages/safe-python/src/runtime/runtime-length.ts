@@ -10,6 +10,7 @@ import { createRuntimeLengthContext } from "./runtime-length-context.js";
  * capability. Invocation adapters are prepared only for non-native inputs. */
 export function runtimeLength(value: RuntimeValue, meter: ExecutionMeter, protocol?: LengthProtocolContext<RuntimeValue>, invocation?: BuiltinInvocationContext): number | bigint {
   meter.checkpoint();
+  if (value.kind === "mappingproxy" && value.owner !== undefined) return runtimeLength(value.owner, meter, protocol, invocation);
   switch (value.kind) {
     case "list": case "tuple": return value.items.length;
     case "dict": case "set": case "frozenset": return value.items.size;

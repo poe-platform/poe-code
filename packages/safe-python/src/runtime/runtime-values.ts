@@ -63,9 +63,10 @@ export function isRuntimeSet(value: RuntimeValue): value is SetValue | FrozenSet
 export interface MappingProxyValue {
   readonly kind: "mappingproxy";
   readonly value: DictionaryValue;
+  readonly owner?: InstanceValue;
 }
 
-export type DictionaryViewValue = { readonly value: DictionaryValue } & (
+export type DictionaryViewValue = { readonly value: DictionaryValue; readonly owner?: InstanceValue } & (
   | { readonly kind: "dict_keys" }
   | { readonly kind: "dict_values" }
   | { readonly kind: "dict_items" }
@@ -465,14 +466,14 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "method-wrapper", value: Object.freeze({ descriptor, instance }) });
   }
 
-  mappingProxy(value: DictionaryValue): MappingProxyValue {
+  mappingProxy(value: DictionaryValue, owner?: InstanceValue): MappingProxyValue {
     this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind: "mappingproxy", value });
+    return Object.freeze({ kind: "mappingproxy", value, ...(owner === undefined ? {} : { owner }) });
   }
 
-  dictionaryView(value: DictionaryValue, kind: DictionaryViewValue["kind"]): DictionaryViewValue {
+  dictionaryView(value: DictionaryValue, kind: DictionaryViewValue["kind"], owner?: InstanceValue): DictionaryViewValue {
     this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind, value });
+    return Object.freeze({ kind, value, ...(owner === undefined ? {} : { owner }) });
   }
 
   set(items: OrderedKeyMap<RuntimeValue, RuntimeValue>): SetValue {

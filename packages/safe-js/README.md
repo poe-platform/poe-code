@@ -86,6 +86,10 @@ from another realm.
 Mixed-realm intrinsic checkpoints preserve separate constructor/prototype
 identities and mutations while sharing one execution budget. This does not
 establish arbitrary mixed-source interpreted-closure transport.
+Same-source interpreted closures also retain their originating realm through
+repeated checkpoints, including literal prototypes and dynamic Function globals.
+Class and active-generator realm restoration still need separate qualification.
+See the [closure ownership record](../../docs/plans/safejs-mixed-realm-closure-ownership.md).
 
 Guest symbols, supported prototype links, and mutated guest intrinsics can be
 represented in checkpoints. Plain data-copy helpers have narrower contracts:
@@ -921,7 +925,7 @@ owner-scheduled cleanup, cancellation, and heap snapshot restoration. Cleanup
 errors are reported to the owning run or persistent realm. These changes are not
 released or fully validated: unique-symbol weak references still fail on older
 Node.js 18 runtimes, and low-level registry restoration requires an execution
-owner with error reporting. All 2,082 snapshot tests across 153 files pass on
+owner with error reporting. All 2,093 snapshot tests across 155 files pass on
 Node 22.23.2, and 42 selected weak snapshot tests pass on Node 18.20.8; these
 are not full-package or conformance results.
 

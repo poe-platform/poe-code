@@ -1111,7 +1111,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "guest-function") {
-    fields(node, ["kind", "astNodeId", "scope", "state"], ["name", "environment", "dynamicSource"]);
+    fields(node, ["kind", "astNodeId", "scope", "state"], ["name", "environment", "dynamicSource", "realm"]);
+    if (Object.hasOwn(node, "realm") && (!Number.isSafeInteger(node.realm) || (node.realm as number) < 1))
+      throw new TypeError("Invalid function realm identity.");
     if (integer(node.astNodeId) < (node.dynamicSource === undefined ? 1 : 0)) throw new TypeError("Invalid guest AST identity.");
     if (node.dynamicSource !== undefined) reference(node.dynamicSource, ["guest-source", "guest-script"]);
     reference(node.scope, ["scope-frame"]);

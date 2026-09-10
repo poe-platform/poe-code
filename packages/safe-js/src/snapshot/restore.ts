@@ -1590,6 +1590,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         classOrigins.get(constructor)!.initialized = true;
       });
     } else if (serialized.kind === "guest-function") {
+      if (serialized.realm !== undefined) valueBudget = initializeIntrinsicRealm(state, serialized.realm);
       const nodes = serialized.dynamicSource === undefined ? state.nodeById
         : state.dynamicSources.get((serialized.dynamicSource as SerializedReferenceValue).id)!.nodes;
       const node = nodes.get(serialized.astNodeId);
@@ -1610,9 +1611,9 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       const initializeGeneratorPrototype = node.type !== "ArrowFunctionExpression" && node.generator &&
         serialized.state.properties.properties.some(([key, descriptor]) =>
           key === "prototype" && descriptor.kind === "data" && !descriptor.configurable);
-      if (initializeGeneratorPrototype) initializeIntrinsicRealm(state);
+      if (initializeGeneratorPrototype) valueBudget = initializeIntrinsicRealm(state, serialized.realm ?? 0);
       value = createInterpretedClosure(node, {
-        scope, budget: state.budget, compilation: state.compilation, rootNode: state.rootNode,
+        scope, budget: valueBudget, compilation: state.compilation, rootNode: state.rootNode,
         signal: state.signal, inferredName: serialized.name, functionEnvironment: environment,
         callStack: [], activeLoopIterations: new Map(), restoredLoopIterations: new Map(),
         stats: { currentDataSize: 0, nodeVisits: 0, peakDataSize: 0 }

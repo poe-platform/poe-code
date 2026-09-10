@@ -175,7 +175,7 @@ export type GuestHeapNode<T> =
   | { kind: "guest-array"; state: GuestObjectState<T>; templateNodeId?: number; templateOwner?: T; dynamicSource?: T }
   | { kind: "intrinsic"; id: string; realm?: number; state?: GuestObjectState<T>; symbolRegistry?: Array<[string, T]> }
   | { kind: "module-function"; module: string; path: string[]; name?: string; state: GuestObjectState<T> }
-  | { kind: "guest-function"; astNodeId: number; scope: T; name?: string; state: GuestObjectState<T>; dynamicSource?: T;
+  | { kind: "guest-function"; astNodeId: number; scope: T; name?: string; realm?: number; state: GuestObjectState<T>; dynamicSource?: T;
       environment?: { homeObject?: T; newTarget?: T; construction?: T; classInitializer?: true } }
   | { kind: "scope-frame"; parent: T; importMeta: T; functionBoundary: boolean; chargeData: boolean;
       simpleCatchParameter?: string;

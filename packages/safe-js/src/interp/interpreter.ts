@@ -689,15 +689,18 @@ async function evaluateRegexLiteral(
     guard.checkLength(node.raw.length - lastSlash - 1, true);
     guard.allocate(Math.max(0, node.raw.length - 2));
     guard.work(Math.max(0, node.raw.length - 2));
+    const value = createSandboxRegex(
+      node.raw.slice(1, lastSlash),
+      node.raw.slice(lastSlash + 1),
+      0,
+      context.compilation
+    );
+    const prototype = getSandboxPrototype(value, context.budget);
+    if (prototype !== null) setSandboxPrototype(value, prototype, context.budget);
     return {
       kind: "normal",
       hasValue: true,
-      value: createSandboxRegex(
-        node.raw.slice(1, lastSlash),
-        node.raw.slice(lastSlash + 1),
-        0,
-        context.compilation
-      )
+      value
     };
   } finally {
     guard.close();

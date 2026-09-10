@@ -1,5 +1,6 @@
 import { weakReferenceStates } from "../interp/weak-reference.js";
 import { getIntrinsicRealmIdentity } from "../interp/intrinsics.js";
+import { getFunctionRealmPrototype } from "../interp/function-realm.js";
 import { finalizationRegistryStates } from "../interp/finalization-registry-state.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { hashSource } from "../parse/hash.js";
@@ -303,7 +304,7 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
   }
 
   if (state.intrinsicRealms.size === 1) {
-    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic") delete node.realm;
+    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic" || node.kind === "guest-function") delete node.realm;
   }
 
   return {
@@ -367,12 +368,16 @@ function serializeValue(
       state.serializedHeapIds.add(id);
       const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state), state.weakEntries.get(value), state.weakTargets.get(value), state.finalizationTargets.get(value));
       if (node === undefined) throw new TypeError(`Missing guest heap state at ${path}.`);
-      if (node.kind === "intrinsic") {
-        const origin = getIntrinsicRealmIdentity(value);
-        if (origin === undefined) throw new TypeError("Missing intrinsic realm identity.");
-        let realm = state.intrinsicRealms.get(origin);
-        if (realm === undefined) state.intrinsicRealms.set(origin, realm = state.intrinsicRealms.size + 1);
-        node.realm = realm;
+      if (node.kind === "intrinsic" || node.kind === "guest-function") {
+        const realmValue = node.kind === "intrinsic" ? value
+          : isSandboxClosure(value) ? getFunctionRealmPrototype(value, "Object", undefined) : undefined;
+        const origin = realmValue === undefined ? undefined : getIntrinsicRealmIdentity(realmValue);
+        if (origin === undefined && node.kind === "intrinsic") throw new TypeError("Missing intrinsic realm identity.");
+        if (origin !== undefined) {
+          let realm = state.intrinsicRealms.get(origin);
+          if (realm === undefined) state.intrinsicRealms.set(origin, realm = state.intrinsicRealms.size + 1);
+          node.realm = realm;
+        }
       }
       state.heap[String(id)] = node;
     }

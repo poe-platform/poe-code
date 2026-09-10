@@ -108,6 +108,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       return hooks.callable(value);
     } };
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
+      get invocation() { return builtinCalls; },
       get iteration() { return getIteration(); },
       values, keys, name(value) {
         while (value.kind === "method" || value.kind === "staticmethod") { meter.checkpoint(); value = value.kind === "method" ? value.value.function : value.value; }

@@ -8345,6 +8345,17 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Complete native
   constructors, generic aliases, mutable bases/MRO invalidation, guest exceptions
   and public execution assembly remain unfinished.
+- Added custom call-keyword mapping expansion through ordinary keys lookup and
+  live subscription slots. Exact list keys remain live; arbitrary iterables are
+  fully consumed, including cursor reacquisition and length-hint effects, before
+  value retrieval. Duplicate checks precede subscription, while string-key
+  validation remains with the eventual callee. Mapping AttributeError and native
+  PythonKeyError failures receive call-specific diagnostics. The initial compiled
+  regression failed because owned mappings were rejected. Seven added cases cover
+  ordinary expansion, live keys, cursor ordering, duplicates, exception conversion
+  and invalid keys results. All 96 compiled mapping cases match CPython. All 6,454
+  tests in 491 files, selected build, typecheck and scoped lint pass. Generic dictionary update
+  wiring, guest exception objects and public execution assembly remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

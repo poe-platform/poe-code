@@ -12,6 +12,7 @@ import { CallStack } from "./call-stack.js";
 import { PythonRuntimeError } from "./error.js";
 import { createBuildClassBuiltin } from "./builtin-build-class.js";
 import { createCallableBuiltin } from "./builtin-callable.js";
+import { PythonKeyError } from "./runtime-dictionary-access.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -24,7 +25,7 @@ function fixture() {
   const unused = (): never => { throw Error("unexpected extension operation"); };
   const hooks: RuntimeProgramHooks = {
     expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
-    callable: () => false, name: () => "guest()", keywordName: unused, invoke: unused,
+    callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
       const existing = native.get(value.kind); if (existing !== undefined) return existing;
@@ -43,6 +44,46 @@ it("calls instance type slots and reflects callability without binding the descr
   const state = fixture(), { v } = state;
   state.run("class C:\n def __call__(self,value,*,extra):\n  return value+extra\ninstance=C()\ninstance.__call__=None\nrecognized=callable(instance)\nresult=instance(7,extra=2)\n");
   expect(state.globals.get("recognized")).toBe(v.true); expect(state.globals.get("result")).toEqual(v.integer(9));
+});
+
+it("expands custom keyword mappings through keys and live item lookup", () => {
+  const state = fixture(), { v } = state;
+  state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\ndef target(*,left,right):\n return left+right\nresult=target(**Mapping())\n");
+  expect(state.globals.get("result")).toEqual(v.integer(14)); expect(state.events).toEqual(["keys", "left", "right"]);
+});
+
+it("retains live list keys during custom keyword expansion", () => {
+  const state = fixture();
+  state.run("class Mapping:\n def keys(self):\n  self.names=['left','old']\n  return self.names\n def __getitem__(self,key):\n  visit(key)\n  self.names[1]='right'\n  return 7\ndef target(*,left,right):\n return left+right\nresult=target(**Mapping())\n");
+  expect(state.events).toEqual(["left", "right"]); expect(state.globals.get("result")).toEqual(state.v.integer(14));
+});
+
+it("materializes custom key iterators before retrieving mapping values", () => {
+  const state = fixture();
+  state.builtins.set("finish", state.v.builtinFunction({ name: "finish", invoke() { throw new PythonRuntimeError("StopIteration", ""); } }));
+  state.run("class Cursor:\n def __init__(self):\n  self.i=0\n def __iter__(self):\n  visit('iter')\n  return self\n def __length_hint__(self):\n  visit('hint')\n  return 2\n def __next__(self):\n  visit('next')\n  self.i+=1\n  if self.i>2:\n   finish()\n  if self.i==1:\n   return 'left'\n  return 'right'\nclass Mapping:\n def keys(self):\n  visit('keys')\n  return Cursor()\n def __getitem__(self,key):\n  visit(key)\n  return 7\ndef target(**kwargs):\n pass\ntarget(**Mapping())\n");
+  expect(state.events).toEqual(["keys", "iter", "iter", "hint", "next", "next", "next", "left", "right"]);
+});
+
+it("rejects duplicate mapping keys before retrieving their values", () => {
+  const state = fixture();
+  expect(() => state.run("class Mapping:\n def keys(self):\n  return ['left','left']\n def __getitem__(self,key):\n  visit(key)\n  return 7\ndef target(**kwargs):\n pass\ntarget(**Mapping())\n")).toThrow("guest() got multiple values for keyword argument 'left'");
+  expect(state.events).toEqual(["left"]);
+});
+
+it.each(["keys", "get"])("translates mapping protocol exceptions from %s", stage => {
+  for (const name of ["AttributeError", "KeyError", "TypeError", "ValueError"]) {
+    const state = fixture();
+    state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw name === "KeyError" ? new PythonKeyError(state.v.string("left"), state.meter) : new PythonRuntimeError(name, "sentinel"); } }));
+    const source = `class Mapping:\n def keys(self):\n  ${stage === "keys" ? "fail()" : "return ['left']"}\n def __getitem__(self,key):\n  fail()\ndef target(**kwargs):\n pass\ntarget(**Mapping())\n`;
+    const expected = name === "AttributeError" ? "guest() argument after ** must be a mapping, not Mapping" : name === "KeyError" ? "guest() got multiple values for keyword argument 'left'" : "sentinel";
+    expect(() => state.run(source)).toThrow(expected);
+  }
+});
+
+it("reports non-iterable mapping keys with owned type names", () => {
+  const state = fixture();
+  expect(() => state.run("class Mapping:\n def keys(self):\n  return None\ndef target(**kwargs):\n pass\ntarget(**Mapping())\n")).toThrow("Mapping.keys() returned a non-iterable (type NoneType)");
 });
 
 it("honors call and descriptor overrides on native method-wrapper subclasses", () => {

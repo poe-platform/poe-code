@@ -5,15 +5,18 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
-import { hasRuntimeInstanceAttributes, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 import type { IterationContext } from "./protocol-iterator.js";
+import { mergeRuntimeKeywordMapping } from "./runtime-keyword-mapping.js";
+import { PythonKeyError } from "./runtime-dictionary-access.js";
 
 export interface RuntimeCallContext {
   readonly values: RuntimeValues;
   readonly keys: KeyOperations<RuntimeValue>;
   readonly iteration?: IterationContext<RuntimeValue>;
+  readonly invocation?: BuiltinInvocationContext;
   /** Error-only guest formatting, including the callable's trailing (). */
   name(callee: RuntimeValue): string;
   keywordName(key: RuntimeValue): string;
@@ -30,8 +33,8 @@ export interface RuntimeCallContext {
 /** Per-expression collector. No callability checks or formatting during setup.
  * Exact dict keyword merges reject duplicates with cached hashes; non-string
  * validation waits until invocation (or an opted-in native callee's checks).
- * Guest mapping slots and full
- * temporary accounting remain wider object-runtime responsibilities.
+ * Custom mappings use explicit invocation/iteration capabilities. Full temporary
+ * accounting and guest exception-object integration remain wider responsibilities.
  */
 export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallContext, meter: ExecutionMeter): ExpressionCall<RuntimeValue> {
   meter.checkpoint(1, 256);
@@ -64,13 +67,19 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
     },
     mapping(value) {
       meter.checkpoint();
-      if (value.kind !== "dict" && value.kind !== "mappingproxy") {
-        const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
+      try {
+        if (value.kind === "dict") keywords.items.update(value.items, duplicate);
+        else if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicate);
+        else mergeRuntimeKeywordMapping(keywords, value, context.values, meter, context.invocation, context.iteration, duplicate);
+      } catch (error) {
+        meter.checkpoint();
+        if (error instanceof PythonKeyError) duplicate(error.args[0]);
+        if (!(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+        const type = hasRuntimeInstanceAttributes(value) ? diagnosticTypeName(value.type.value.name, meter, 200)
+          : value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
         const name = context.name(callee); meter.checkpoint();
         throw new PythonRuntimeError("TypeError", `${name} argument after ** must be a mapping, not ${type}`);
       }
-      if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicate);
-      else keywords.items.update(value.items, duplicate);
     },
     invoke() {
       meter.checkpoint(1, 32);

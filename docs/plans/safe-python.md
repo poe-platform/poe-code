@@ -7572,6 +7572,21 @@ extension, integration, or validation requirement is missing or unverified.
   All 5,774 tests in 451 files, selected build, typecheck and scoped lint pass.
   Automatic frame rich-comparison MRO assembly remains unfinished, including
   default object inequality delegation and actual native/guest type ownership.
+- Integrated rich comparisons with frame-owned live MRO lookup. All six methods
+  preserve raw results, strict subtypes reflect first even for inherited methods,
+  and same-type operands retain both attempts. Missing object inequality delegates
+  to equality and truth-inverts only accepted results. Native kernels decline to
+  guest reflection while nested container and proxy comparisons reenter the raw
+  frame policy selectively, retaining native-stack handling for native members.
+  Nine regressions failed first. Twenty-five added tests cover inheritance,
+  subtype and same-type ordering, disabled methods, default inequality, arbitrary
+  results, native lists/proxies, live type mutation, guest diagnostics and
+  cancellation. The fixture now records actual function-type ownership for
+  numeric override comparisons. All 560 compiled guest and 2,028 variable-loaded
+  native comparisons match CPython. All 5,799 tests in 451 files, selected build,
+  typecheck and scoped lint pass. Complete native/guest class construction and
+  storage ownership, native-subclass adapters, metaclass overrides, automatic
+  iteration assembly and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

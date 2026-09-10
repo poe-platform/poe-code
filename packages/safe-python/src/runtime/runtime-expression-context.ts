@@ -57,7 +57,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     multiplication?(left: RuntimeValue, right: RuntimeValue): MultiplicationContext | undefined;
     /** Other ordinary numeric operators and divmod(); specialized +, * and ** hooks win. */
     numeric?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeNumericContext | undefined;
-    richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext;
+    richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext | undefined;
     /** Return undefined to retain native container handling. */
     containment?(container: RuntimeValue): ContainmentContext<RuntimeValue> | undefined;
   } &

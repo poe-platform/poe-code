@@ -99,6 +99,8 @@ export interface BuiltinInvocationContext {
   truth?(value: RuntimeValue): boolean;
   /** Rich comparison followed by the execution's guest truth conversion. */
   compareTruth?(operator: string, left: RuntimeValue, right: RuntimeValue): boolean;
+  /** Raw rich comparison result, without a truth conversion. */
+  compare?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
 }
 
 export interface BuiltinFunctionCapability {

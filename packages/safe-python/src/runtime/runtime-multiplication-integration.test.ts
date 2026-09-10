@@ -18,6 +18,7 @@ function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal }), v = new RuntimeValues(meter);
   const keys = { hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, v, meter).value };
   const registry = new RuntimeTypeRegistry(v, keys, meter), types = new Map<RuntimeValue, TypeValue>();
+  let functionType: TypeValue | undefined;
   const globals = new Map<string, RuntimeValue>(), events: string[] = [];
   const builtins = new Map<string, RuntimeValue>([["NotImplemented", v.notImplemented], ["repr", createRepresentationBuiltin("repr", v, meter)], ["visit", v.builtinFunction({ name: "visit", invoke(args) {
     const value = args[0]; if (value.kind !== "str") throw Error("expected event string");
@@ -38,6 +39,7 @@ function fixture(signal?: AbortSignal) {
     const functionName = code.functions.values().next().value!.name;
     if (functionName.kind !== "str") throw Error("expected function name");
     const value = globals.get(String.fromCodePoint(...functionName.value))!;
+    types.set(value, functionType ??= type("function", registry.object, { sequenceTable: false }));
     owner.value.namespace.items.set(v.string(name), value); return value;
   }
   function guest(name: string, owner: TypeValue) { const value = v.cell({}); types.set(value, owner); globals.set(name, value); return value; }
@@ -895,4 +897,116 @@ it("rejects cancelled compiled divmod before assigning its result", () => {
 it("keeps native divmod off the guest type policy", () => {
   const state = fixture(), v = state.v; state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
   state.run("result=divmod(-7, 3)\n"); expect(state.globals.get("result")).toEqual(v.tuple([v.integer(-3), v.integer(2)]));
+});
+
+it.each([
+  ["==", "__eq__", "__eq__"], ["!=", "__ne__", "__ne__"],
+  ["<", "__lt__", "__gt__"], ["<=", "__le__", "__ge__"], [">", "__gt__", "__lt__"], [">=", "__ge__", "__le__"]
+])("dispatches inherited rich %s methods in both operand orders", (operator, forward, reflected) => {
+  for (const reverse of [false, true]) {
+    const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base), name = reverse ? reflected : forward;
+    state.method(base, name, "def compare(self, other):\n visit('compare')\n return None\n");
+    state.guest("guest", derived);
+    state.run(`def calculate():\n return ${reverse ? `7 ${operator} guest` : `guest ${operator} 7`}\nresult=calculate()\n`);
+    expect(state.globals.get("result")).toBe(state.v.none); expect(state.events).toEqual(["compare"]);
+  }
+});
+
+it("tries inherited reflected comparison first for a strict subtype", () => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base);
+  state.method(base, "__lt__", "def compare(self, other):\n visit('forward')\n return True\n");
+  state.method(base, "__gt__", "def compare(self, other):\n visit('reflected')\n return False\n");
+  state.guest("left", base); state.guest("right", derived); state.run("result=left<right\n");
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["reflected"]);
+});
+
+it("delegates absent inequality to the receiver's equality method", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__eq__", "def compare(self, other):\n visit('equal')\n return False\n");
+  state.guest("guest", owner); state.run("result=guest!=7\n");
+  expect(state.globals.get("result")).toBe(state.v.true); expect(state.events).toEqual(["equal"]);
+});
+
+it("tries both same-type equality slots before identity fallback", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__eq__", "def compare(self, other):\n visit('equal')\n return NotImplemented\n");
+  state.guest("guest", owner); state.run("result=guest==guest\n");
+  expect(state.globals.get("result")).toBe(state.v.true); expect(state.events).toEqual(["equal", "equal"]);
+});
+
+it.each([["==", "__eq__"], ["!=", "__ne__"], ["<", "__lt__"], ["<=", "__le__"], [">", "__gt__"], [">=", "__ge__"]])("does not ignore disabled rich %s methods", (operator, name) => {
+  const state = fixture(), owner = state.type("Guest");
+  owner.value.namespace.items.set(state.v.string(name), state.v.none); state.guest("guest", owner);
+  expect(() => state.run(`result=guest ${operator} 7\n`)).toThrow("'NoneType' object is not callable");
+});
+
+it("truth-converts only default inequality delegation, not explicit comparison results", () => {
+  const state = fixture(), owner = state.type("Guest"), resultType = state.type("Result");
+  state.method(resultType, "__bool__", "def truth(self):\n visit('truth')\n return True\n");
+  const result = state.guest("answer", resultType);
+  state.method(owner, "__eq__", "def equal(self, other):\n visit('equal')\n return answer\n");
+  state.guest("guest", owner); state.run("equal=guest==7\nunequal=guest!=7\n");
+  expect(state.globals.get("equal")).toBe(result); expect(state.globals.get("unequal")).toBe(state.v.false);
+  expect(state.events).toEqual(["equal", "equal", "truth"]);
+  state.method(owner, "__ne__", "def unequal(self, other):\n visit('unequal')\n return answer\n");
+  state.run("explicit=guest!=7\n"); expect(state.globals.get("explicit")).toBe(result);
+  expect(state.events).toEqual(["equal", "equal", "truth", "unequal"]);
+});
+
+it("reflects default inequality when delegated equality declines", () => {
+  const state = fixture(), left = state.type("Left"), right = state.type("Right");
+  state.method(left, "__eq__", "def equal(self, other):\n visit('equal')\n return NotImplemented\n");
+  state.method(right, "__ne__", "def unequal(self, other):\n visit('reflected')\n return False\n");
+  state.guest("left", left); state.guest("right", right); state.run("result=left!=right\n");
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["equal", "reflected"]);
+});
+
+it.each(["==", "<"])("dispatches guest methods inside native list %s", operator => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__eq__", "def equal(self, other):\n visit('equal')\n return False\n");
+  state.method(owner, "__lt__", "def less(self, other):\n visit('less')\n return None\n");
+  state.guest("guest", owner); state.run(`result=[guest] ${operator} [7]\n`);
+  expect(state.globals.get("result")).toBe(operator === "==" ? state.v.false : state.v.none);
+  expect(state.events).toEqual(operator === "==" ? ["equal"] : ["equal", "less"]);
+});
+
+it.each([false, true])("retains raw mapping proxy comparison delegation (reverse=%s)", reverse => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.method(owner, "__eq__", "def equal(self, other):\n visit('equal')\n if other is target:\n  return None\n return NotImplemented\n");
+  state.guest("guest", owner);
+  const dictionary = v.dictionary(new OrderedKeyMap({ hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => a === b }, state.meter));
+  state.globals.set("target", dictionary); state.globals.set("proxy", v.mappingProxy(dictionary));
+  state.run(`result=${reverse ? "guest==proxy" : "proxy==guest"}\n`);
+  expect(state.globals.get("result")).toBe(v.none); expect(state.events).toEqual(reverse ? ["equal", "equal"] : ["equal"]);
+});
+
+it("resolves reflected methods live after a forward comparison mutates the type", () => {
+  const state = fixture(), left = state.type("Left"), right = state.type("Right"), v = state.v;
+  const replacement = state.method(right, "__eq__", "def equal(self, other):\n visit('new')\n return False\n");
+  state.method(right, "__eq__", "def equal(self, other):\n visit('old')\n return True\n");
+  state.globals.set("mutate", v.builtinFunction({ name: "mutate", invoke() { right.value.namespace.items.set(v.string("__eq__"), replacement); return v.none; } }));
+  state.method(left, "__eq__", "def equal(self, other):\n visit('forward')\n mutate()\n return NotImplemented\n");
+  state.guest("left", left); state.guest("right", right); state.run("result=left==right\n");
+  expect(state.globals.get("result")).toBe(v.false); expect(state.events).toEqual(["forward", "new"]);
+});
+
+it("tries a declined subtype reflection only once", () => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base);
+  state.method(base, "__lt__", "def less(self, other):\n visit('forward')\n return False\n");
+  state.method(base, "__gt__", "def greater(self, other):\n visit('reflected')\n return NotImplemented\n");
+  state.guest("left", base); state.guest("right", derived); state.run("result=left<right\n");
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["reflected", "forward"]);
+});
+
+it("reports actual guest types after both ordering slots decline", () => {
+  const state = fixture(), owner = state.type("Guest"); state.guest("guest", owner);
+  expect(() => state.run("result=guest<7\n")).toThrow("'<' not supported between instances of 'Guest' and 'int'");
+});
+
+it("rejects cancelled compiled comparisons without assigning results", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest");
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { controller.abort(); return state.v.none; } }));
+  state.method(owner, "__eq__", "def equal(self, other):\n stop()\n return False\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=guest==7\n")).toThrow("execution cancelled"); expect(state.globals.has("result")).toBe(false);
 });

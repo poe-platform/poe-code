@@ -169,6 +169,9 @@ describe("real safe-bash browser kernel", () => {
       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824  -\n"
     ],
     ["printf hello | gzip | gunzip", "hello"],
+    ["printf hello | bzip2 -c | bzcat", "hello"],
+    ["printf hello | xz -c | xzcat", "hello"],
+    ["printf hello | zstd -c | zstdcat", "hello"],
     [
       "printf one | gzip > one.gz; printf two | gzip > two.gz; cat one.gz two.gz | gunzip",
       "onetwo"
@@ -460,13 +463,22 @@ describe("real safe-bash browser kernel", () => {
         "awk",
         "jq",
         "gzip",
+        "bzip2",
+        "bunzip2",
+        "bzcat",
+        "xz",
+        "unxz",
+        "xzcat",
+        "zstd",
+        "unzstd",
+        "zstdcat",
         "sha256sum",
         "apply_patch",
         "xq",
         "xmllint"
       ])
     );
-    expect(kernel.supportedCommands).toHaveLength(89);
+    expect(kernel.supportedCommands).toHaveLength(98);
     expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum"]));
   });
 });

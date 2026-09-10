@@ -69,8 +69,16 @@ The 45 command checks pass, including embedded native fixtures and multi-file
 streams. Independent native decoders accepted the produced empty and binary
 streams for all three formats. Existing gzip cohorts passed 73 and 84 checks.
 The build copy helper passed four in-memory checks for normal copying, complete
-source admission, invalid inventories, and symlink refusal. Broader maintained
-gates, final packed consumers, and release verification remain outstanding.
+source admission, invalid inventories, and symlink refusal. The normal workspace
+build and maintained safe-bash type route passed. Packed consumers passed 413
+checks each in Node, Bun, browser, and workerd, plus three strict type consumers.
+Repository-wide unit and lint gates and release verification remain outstanding.
+
+The repository-wide unit run exposed three stale root/playground command
+inventories. Updating the exact names and counts, with three actual playground
+codec pipelines, passed all 82 focused checks. Two native Git cache tests and
+one TypeScript header contract also failed in the shared run but passed focused
+reproduction; their full-run diagnostics must establish the cause before repair.
 
 The maintained type route also exposed exact-optional-property and TextDecoder
 receiver type errors in two existing test files. Narrow corrections preserve

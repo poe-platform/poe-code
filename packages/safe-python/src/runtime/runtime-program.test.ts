@@ -39,6 +39,57 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["lookup", "isLookupError", "integer", "string"] as const)("stops translation after cancellation in %s", stage => {
+    const controller = new AbortController(), state = fixture("result='a'.translate(table)\n", 100000, controller.signal);
+    const value = state.values.cell({}), missing = new Error("guest missing key"), calls: string[] = [];
+    state.globals.set("table", value);
+    state.hooks.expressions = () => ({ warn() {}, translation: {
+      lookup() {
+        calls.push("lookup");
+        if (stage === "lookup") { controller.abort(); return value; }
+        if (stage === "isLookupError") throw missing;
+        return value;
+      },
+      isLookupError(error) { expect(error).toBe(missing); calls.push("isLookupError"); controller.abort(); return true; },
+      integer() { calls.push("integer"); if (stage === "integer") controller.abort(); return undefined; },
+      string() { calls.push("string"); controller.abort(); return undefined; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError);
+    expect(calls).toEqual(stage === "lookup" ? ["lookup"] : stage === "isLookupError" ? ["lookup", "isLookupError"] : stage === "integer" ? ["lookup", "integer"] : ["lookup", "integer", "string"]);
+    expect(state.globals.has("result")).toBe(false);
+  });
+  it.each(["integer", "string"] as const)("translates guest %s subclass payloads without coercion", kind => {
+    const state = fixture("result='aéa'.translate(table)\n"), v = state.values, table = v.cell({}), payload = v.cell({});
+    const replacement = v.string("XY");
+    state.globals.set("table", table);
+    state.hooks.expressions = () => ({ warn() {}, translation: {
+      lookup(mapping, key) {
+        expect(mapping).toBe(table);
+        if (key.kind === "int" && key.value === 97n) return payload;
+        throw new PythonRuntimeError("IndexError", "missing ordinal");
+      },
+      integer(value) { expect(value).toBe(payload); return kind === "integer" ? 98n : undefined; },
+      string(value) { expect(value).toBe(payload); return replacement.value; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.string(kind === "integer" ? "béb" : "XYéXY"));
+  });
+  it("only suppresses recognized guest LookupError during translation", () => {
+    const state = fixture("result='a'.translate(table)\n"), missing = new Error("guest missing key");
+    state.globals.set("table", state.values.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, translation: {
+      lookup() { throw missing; }, isLookupError(error) { return error === missing; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(state.values.string("a"));
+  });
+  it("preserves unrecognized translation lookup failures", () => {
+    const state = fixture("result='a'.translate(table)\n"), failure = new Error("lookup failed");
+    state.globals.set("table", state.values.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, translation: {
+      lookup() { throw failure; }, isLookupError() { return false; }
+    } });
+    expect(() => state.run()).toThrow(failure);
+    expect(state.globals.has("result")).toBe(false);
+  });
   it("copies maketrans dictionaries without validating values or integer ranges", () => {
     const state = fixture("payload=[]\nsource={-1:payload,1 << 100:payload,True:payload}\nresult=''.maketrans(source)\nshared=result[-1] is payload\nseparate=result is not source\n");
     state.hooks.expressions = () => ({ warn() {} });

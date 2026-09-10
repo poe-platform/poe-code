@@ -6735,6 +6735,14 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build pass. Guest subclass payload handling,
   type-level descriptor installation, automatic builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Audited native translation callback safety with eight additional compiled
+  regressions: cancellation after lookup, exception classification and each
+  subclass-payload inspector; integer/string payload results; recognized guest
+  lookup errors; and propagation of unrecognized failures. No implementation
+  defect was reproduced, so runtime behavior was left unchanged.
+- All 5,172 tests in 441 files pass; typecheck and scoped lint pass. This is a
+  test-only increment. Concrete guest object assembly and remaining interpreter,
+  SDK and safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

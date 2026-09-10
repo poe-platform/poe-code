@@ -912,6 +912,8 @@ owner with error reporting. The snapshot and selected weak-reference checks pass
 
 Instant string formatting accepts an owned ZonedDateTime as its `timeZone`
 option and reads its private zone without invoking public accessors.
+Duration `total`, `compare`, and `round` also accept that zone form inside a
+`relativeTo` date bag, preserving the bag's date and calendar for DST arithmetic.
 
 Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
 `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values

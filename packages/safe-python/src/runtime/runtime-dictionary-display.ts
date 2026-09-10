@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionDictionary } from "./expression-evaluation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
@@ -37,7 +38,7 @@ export function beginRuntimeDictionary(initial: readonly (readonly [RuntimeValue
         else mergeRuntimeMapping(result, mapping, values, meter, invocation, invocation?.iteration);
       } catch (error) {
         meter.checkpoint();
-        if (!(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+        if (!runtimeExceptionMatches(error,"AttributeError",invocation)) throw error;
         const name = hasRuntimeInstanceAttributes(mapping) ? diagnosticTypeName(mapping.type.value.name, meter, 200)
           : mapping.kind === "none" ? "NoneType" : mapping.kind === "not-implemented" ? "NotImplementedType" : mapping.kind;
         throw new PythonRuntimeError("TypeError", `'${name}' object is not a mapping`);

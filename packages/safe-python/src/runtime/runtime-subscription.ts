@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
@@ -20,7 +21,7 @@ export function runtimeGetItem(object: RuntimeValue, key: RuntimeValue, values: 
     let classHook: RuntimeValue | undefined;
     if (invocation?.attribute !== undefined) {
       try { classHook = invocation.attribute(object, "__class_getitem__"); }
-      catch (error) { meter.checkpoint(); if (!(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error; }
+      catch (error) { meter.checkpoint(); if (!runtimeExceptionMatches(error,"AttributeError",invocation)) throw error; }
       meter.checkpoint();
     }
     if (classHook !== undefined && classHook.kind !== "none") { const result = invocation!.call(classHook, [key]); meter.checkpoint(); return result; }

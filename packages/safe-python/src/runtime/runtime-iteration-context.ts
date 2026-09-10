@@ -28,7 +28,14 @@ export function createRuntimeIterationContext(values: RuntimeValues, meter: Exec
   let hints: LengthHintContext<RuntimeValue> | undefined;
   return {
     lookupIter(value) {
-      const method = lookup(value, "__iter__");
+      let method:RuntimeValue|undefined;
+      try { method=lookup(value,"__iter__"); }
+      catch(error) {
+        // Optional slot binding treats AttributeError as absence. Errors from
+        // invoking the resolved method below must still propagate unchanged.
+        if(!runtimeExceptionMatches(error,"AttributeError",invocation))throw error;
+        return undefined;
+      }
       if (method === undefined) return undefined;
       meter.checkpoint(0, 64);
       return () => {

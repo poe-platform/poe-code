@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { collectIterator } from "./iterator-collection.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { ProtocolIterator, type IterationContext } from "./protocol-iterator.js";
@@ -22,7 +23,7 @@ export function mergeRuntimeMapping(target: DictionaryValue, source: RuntimeValu
     try { cursor = runtimeIterate(keys, values, meter, iteration); }
     catch (error) {
       meter.checkpoint();
-      if (!(error instanceof PythonRuntimeError) || error.name !== "TypeError") throw error;
+      if (!runtimeExceptionMatches(error,"TypeError",invocation)) throw error;
       const sourceName = diagnosticTypeName(invocation.typeName?.(source) ?? source.kind, meter, 200);
       const keysName = diagnosticTypeName(invocation.typeName?.(keys) ?? (keys.kind === "none" ? "NoneType" : keys.kind), meter, 200);
       meter.checkpoint(0, 128 + 2 * (sourceName.length + keysName.length));

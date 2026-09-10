@@ -79,6 +79,43 @@ function exceptionFixture() {
   return state;
 }
 
+it("falls back to iterable pairs when mapping detection raises guest AttributeError",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class Missing(AttributeError):\n pass\nclass Mapping:\n def __getattribute__(self,name):\n  if name=='keys':\n   raise Missing('keys')\n  return object.__getattribute__(self,name)\n def __iter__(self):\n  return [('key',42)].__iter__()\ncorrect=Dict(Mapping())=={'key':42}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("replaces guest missing-mapping failures in dictionary and keyword unpacking",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  // This fixture deliberately supplies "guest()" as the call-name policy.
+  state.run("class Missing(AttributeError):\n pass\nclass Mapping:\n def __getattribute__(self,name):\n  raise Missing(name)\ndef call(**kw):\n return kw\ntry:\n result={**Mapping()}\nexcept TypeError as error:\n display=error.args==(\"'Mapping' object is not a mapping\",)\ntry:\n call(**Mapping())\nexcept TypeError as error:\n keyword=error.args==('guest() argument after ** must be a mapping, not Mapping',)\n");
+  expect(state.globals.get("display")).toBe(state.v.true);expect(state.globals.get("keyword")).toBe(state.v.true);
+});
+
+it("treats guest AttributeError from class subscription lookup as an absent hook",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Missing(AttributeError):\n pass\nclass Meta(type):\n def __getattribute__(cls,name):\n  if name=='__class_getitem__':\n   raise Missing(name)\n  return type.__getattribute__(cls,name)\nclass C(metaclass=Meta):\n pass\ntry:\n C[0]\nexcept TypeError as error:\n correct=error.args==(\"type 'C' is not subscriptable\",)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("normalizes guest TypeError from mapping key iteration",()=>{
+  const state=exceptionFixture();state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class Unknown(TypeError):\n pass\nclass Keys:\n def __iter__(self):\n  raise Unknown('keys')\nclass Mapping:\n def keys(self):\n  return Keys()\ntry:\n Dict(Mapping())\nexcept TypeError as error:\n correct=type(error) is TypeError and error.args==('Mapping.keys() returned a non-iterable (type Keys)',)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("normalizes guest TypeError from pair iteration while retaining earlier updates",()=>{
+  const state=exceptionFixture();
+  state.run("class Unknown(TypeError):\n pass\nclass Row:\n def __iter__(self):\n  raise Unknown('row')\nd={'before':1}\ntry:\n d.update([('first',2),Row()])\nexcept TypeError as error:\n correct=type(error) is TypeError and error.args==('object is not iterable',) and d=={'before':1,'first':2}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("treats AttributeError during iter descriptor binding as an absent iteration hook",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));state.globals.set("IndexError",state.registry.exceptionType("IndexError"));
+  state.run("class Missing(AttributeError):\n pass\nclass Descriptor:\n def __get__(self,obj,owner):\n  raise Missing('hidden')\nclass Items:\n __iter__=Descriptor()\n def __getitem__(self,index):\n  if index==0:\n   return 42\n  raise IndexError\ncorrect=[*Items()]==[42]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("uses guest AttributeError subclasses for instance and metaclass fallback",()=>{
   const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
   state.run("class Missing(AttributeError):\n pass\nclass Item:\n def __getattribute__(self,name):\n  raise Missing(name)\n def __getattr__(self,name):\n  return ('instance',name)\nclass Meta(type):\n def __getattribute__(cls,name):\n  if name=='missing':\n   raise Missing(name)\n  return type.__getattribute__(cls,name)\n def __getattr__(cls,name):\n  return ('class',name)\nclass C(metaclass=Meta):\n pass\ncorrect=Item().missing==('instance','missing') and C.missing==('class','missing')\n");

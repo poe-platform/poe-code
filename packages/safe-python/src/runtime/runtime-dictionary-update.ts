@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { updateDictionaryPairs } from "./dictionary-update.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
@@ -31,7 +32,7 @@ export function updateRuntimeDictionary(target: DictionaryValue, source: Runtime
       try { invocation.attribute(source, "keys"); mapping = true; }
       catch (error) {
         meter.checkpoint();
-        if (!(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+        if (!runtimeExceptionMatches(error,"AttributeError",invocation)) throw error;
       }
       meter.checkpoint();
     }
@@ -51,7 +52,7 @@ export function updateRuntimeDictionary(target: DictionaryValue, source: Runtime
         }
         nativeIteratorLengthHint(iterator, meter); return iterator;
       },
-      isTypeError: error => error instanceof PythonRuntimeError && error.name === "TypeError",
+      isTypeError: error => runtimeExceptionMatches(error,"TypeError",invocation),
       set(key, value) {
         meter.checkpoint(1, 32);
         runtimeDictionaryAccess(target, key, { kind: "set", value }, meter);

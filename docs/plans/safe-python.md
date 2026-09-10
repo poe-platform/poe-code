@@ -9857,6 +9857,28 @@ extension, integration, or validation requirement is missing or unverified.
   not counted as passing comparisons. Broader interpreter, tracebacks,
   exception groups, suspension and safe-fs work remain unfinished.
   No push or release requested.
+- Mapping and subscription exception integration (2026-09-10): failing tests
+  reproduced and fixed the prior eight mismatches. Mapping detection now treats
+  guest AttributeError as absent keys and falls back to iterable pairs; dictionary
+  and keyword unpacking instead produce their proper TypeError diagnostics.
+  Missing class-subscription hooks use the canonical unsubscriptable diagnostic.
+  Further failing tests drove TypeError normalization during key/pair iterator
+  acquisition, preserving prior dictionary writes and later iteration failures.
+  A CPython-backed descriptor regression treats AttributeError while binding
+  __iter__ as an absent hook, allowing legacy sequence fallback without masking
+  exceptions raised by the iterator body. All 60 expanded comparisons match
+  after aligning the audit fixture's deliberate call-name policy; the prior
+  84 protocol comparisons and all 630 integration tests also pass. The selected
+  workspace build, typecheck, focused lint and all 7,178 tests in 503 files pass
+  in the uncached one-worker package run. Other native catch sites, exception metadata,
+  tracebacks, exception groups, suspension and interpreter/safe-fs integration
+  remain unfinished. A separate 20-case read-only audit confirms 12 remaining
+  keyword-expansion mismatches: one-argument guest KeyError (including subclasses)
+  from keys/getitem must become the duplicate-keyword TypeError, while zero- and
+  multi-argument cases retain the original exception. This requires native
+  exception-argument access and diagnostic formatting, not only classification;
+  these cases are next work and are not counted as passing comparisons.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

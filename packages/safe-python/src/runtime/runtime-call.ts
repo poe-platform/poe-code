@@ -1,6 +1,7 @@
 import type { ExpressionCall } from "./call-arguments.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeIterate } from "./runtime-iteration.js";
@@ -74,7 +75,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
       } catch (error) {
         meter.checkpoint();
         if (error instanceof PythonKeyError) duplicate(error.args[0]);
-        if (!(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+        if (!runtimeExceptionMatches(error,"AttributeError",context.invocation)) throw error;
         const type = hasRuntimeInstanceAttributes(value) ? diagnosticTypeName(value.type.value.name, meter, 200)
           : value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
         const name = context.name(callee); meter.checkpoint();

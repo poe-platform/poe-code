@@ -37,3 +37,33 @@ Do not skip mutable-state budget accounting, cache guest objects across realms,
 raise deadlines, reduce test cases, or retain a performance change without
 repeatable before/after evidence and semantic tests. No runtime optimization,
 push, release or complete-conformance result is claimed here.
+
+## Intrinsic registration optimization
+
+Three semantic checks were added before changing implementation and passed in
+the 15-test original intrinsic suite (93abf6): primitive leaves do not gain
+identities; object aliases/cycles keep their paths; primitive-valued unsupported
+symbol keys still reject; guest accessors retain identities without invocation;
+native accessors and duplicate identities still reject.
+
+Registration now validates symbol keys before skipping primitive data leaves.
+Object-valued data descriptors enqueue their child and bypass accessor scanning.
+No budget measurement, mutable-state scan or object traversal is removed.
+
+End-to-end 100-run batches are noisy: baseline median milliseconds
+48.87/40.58/41.96 (06d8bd), candidate 40.07/57.68/36.45 (0f9587, c9ab03).
+Do not claim an end-to-end speedup from these observations.
+
+A same-process in-memory comparison transpiles HEAD and candidate versions of
+the registration module with the same dependencies, alternates execution order
+over six rounds, and checks identity lists for equality. No repository source
+is rewritten by the probe. A primitive-heavy synthetic graph consistently
+improves (b22e69). On the actual current builtin graph, all 943 identity paths
+remain equal; 50 registrations per round take 86.47–98.64ms on the baseline and
+63.73–71.01ms on the candidate (96ee71). The graph is already constructed, so
+this isolates registration work and does not measure whole-realm construction
+or whole-suite timeout headroom.
+
+The 365-test intrinsic/function-realm cohort across 21 files passes (4f5624),
+and package TypeScript (cf6e80) and scoped ESLint (ab0d00) pass. This qualifies a small local setup-cost
+improvement; the full-run regex/split timeout issue remains open.

@@ -50,8 +50,12 @@ export function registerBuiltinIdentities(
         : undefined;
       if (typeof key === "symbol" && symbolName === undefined)
         throw new TypeError("Intrinsic symbol keys must be well-known symbols.");
+      if ("value" in descriptor && (descriptor.value === null || typeof descriptor.value !== "object")) continue;
       const member = [...path, typeof key === "string" ? key : { symbol: symbolName! }];
-      if ("value" in descriptor) pending.push([member, descriptor.value]);
+      if ("value" in descriptor) {
+        pending.push([member, descriptor.value]);
+        continue;
+      }
       for (const kind of ["get", "set"] as const) {
         const closure = accessorClosure(descriptor[kind]);
         if (closure !== undefined) pending.push([[...member, kind], closure]);

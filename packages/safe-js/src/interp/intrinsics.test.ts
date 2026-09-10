@@ -1,12 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { Budget } from "./budget.js";
 import { createBuiltinBindings } from "./globals.js";
-import { accessorClosure } from "./accessors.js";
+import { accessorAdapter, accessorClosure } from "./accessors.js";
 import { materializeFunctionProperties, releaseObjectPrototype } from "./object-model.js";
-import { getIntrinsicIdentity, resolveIntrinsicIdentity } from "./intrinsics.js";
+import { getIntrinsicIdentity, listIntrinsicIdentities, registerBuiltinIdentities, resolveIntrinsicIdentity } from "./intrinsics.js";
 import { createSandboxClosure, type SandboxClosure, type SandboxObject } from "./values.js";
 
 describe("realm intrinsic identities", () => {
+  it("ignores primitive leaves while preserving object aliases and cycles", () => {
+    const budget = new Budget();
+    const child = {};
+    const root = { number: 1, nil: null, missing: undefined, text: "x", flag: false,
+      big: 1n, symbol: Symbol("value"), first: child, second: child };
+    Object.assign(child, { root });
+    registerBuiltinIdentities(budget, { root });
+    expect(listIntrinsicIdentities(budget)).toEqual([
+      '["root"]', '["root","first"]', '["root","second"]', '["root","first","root"]'
+    ]);
+    expect(resolveIntrinsicIdentity(budget, '["root","first"]')).toBe(child);
+    expect(resolveIntrinsicIdentity(budget, '["root","second"]')).toBe(child);
+  });
+
+  it("validates symbol keys even when their values are primitive", () => {
+    expect(() => registerBuiltinIdentities(new Budget(), { root: { [Symbol("invalid")]: 1 } }))
+      .toThrow("Intrinsic symbol keys must be well-known symbols.");
+    const budget = new Budget();
+    registerBuiltinIdentities(budget, { root: { [Symbol.toStringTag]: "Root" } });
+    expect(listIntrinsicIdentities(budget)).toEqual(['["root"]']);
+  });
+
+  it("registers accessor closures alongside primitive data without invoking them", () => {
+    const budget = new Budget();
+    const getter = createSandboxClosure({ name: "get value", call: () => { throw new Error("must not run"); } });
+    const setter = createSandboxClosure({ name: "set value", call: () => { throw new Error("must not run"); } });
+    const root = { primitive: 1 };
+    Object.defineProperty(root, "value", { get: accessorAdapter(getter, "get"), set: accessorAdapter(setter, "set") });
+    registerBuiltinIdentities(budget, { root });
+    expect(resolveIntrinsicIdentity(budget, '["root","value","get"]')).toBe(getter);
+    expect(resolveIntrinsicIdentity(budget, '["root","value","set"]')).toBe(setter);
+    expect(() => registerBuiltinIdentities(budget, { root: {} })).toThrow("Duplicate intrinsic identity");
+    expect(() => registerBuiltinIdentities(new Budget(), { root: { get native() { throw new Error("must not run"); } } }))
+      .toThrow("Native accessors cannot execute in the sandbox.");
+  });
+
   it.each(["Object", "Number", "String", "Boolean", "BigInt", "RegExp"] as const)("resolves %s and its prototype in a fresh realm", name => {
     const firstBudget = new Budget();
     const secondBudget = new Budget();

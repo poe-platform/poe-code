@@ -7246,6 +7246,14 @@ extension, integration, or validation requirement is missing or unverified.
   adapter allocation should be reduced without stale frame/policy capture.
   Automatic native/instance type classification, remaining object protocols and
   suspended safe-fs effects remain unfinished.
+- Deferred invocation length-adapter creation until runtimeLength selects its
+  non-native path. A zero-allocation native-length regression first failed on
+  the unnecessary 384-byte adapter reservation and now passes without reading
+  guest policy getters. A reentrant guest-call test verifies nested invocations
+  and subsequent calls retain their own policies. All 5,421 tests in 445 files
+  pass; selected build, typecheck and scoped lint pass. Guest adapters remain
+  per invocation; broader performance/accounting audits, automatic type assembly,
+  remaining protocols and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

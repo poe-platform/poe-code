@@ -1,12 +1,14 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RuntimeValue } from "./runtime-values.js";
+import type { BuiltinInvocationContext, RuntimeValue } from "./runtime-values.js";
 import { optionalLength, type LengthProtocolContext } from "./length-protocol.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { createRuntimeLengthContext } from "./runtime-length-context.js";
 
 /** Exact-value length without iteration, with optional guest slot/index dispatch
- * for other values. Exact builtin lengths never consult the guest capability. */
-export function runtimeLength(value: RuntimeValue, meter: ExecutionMeter, protocol?: LengthProtocolContext<RuntimeValue>): number | bigint {
+ * for other values. Exact builtin lengths never consult or allocate the guest
+ * capability. Invocation adapters are prepared only for non-native inputs. */
+export function runtimeLength(value: RuntimeValue, meter: ExecutionMeter, protocol?: LengthProtocolContext<RuntimeValue>, invocation?: BuiltinInvocationContext): number | bigint {
   meter.checkpoint();
   switch (value.kind) {
     case "list": case "tuple": return value.items.length;
@@ -17,6 +19,7 @@ export function runtimeLength(value: RuntimeValue, meter: ExecutionMeter, protoc
       if (BigInt.asIntN(64, value.value.length) !== value.value.length) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C ssize_t");
       return value.value.length;
     default: {
+      protocol ??= invocation === undefined ? undefined : createRuntimeLengthContext(invocation, meter);
       if (protocol !== undefined) {
         const length = optionalLength(value, protocol, meter);
         if (length !== undefined) return length;

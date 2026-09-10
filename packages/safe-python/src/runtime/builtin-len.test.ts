@@ -14,6 +14,29 @@ function fixture() {
 }
 
 describe("concrete len builtin", () => {
+  it("does not allocate or inspect invocation adapters for exact native lengths", () => {
+    const { v, keywords, len } = fixture(), unused = (): never => { throw Error("native length must not inspect guest policy"); };
+    const invocation = { call: unused, isStopIteration: unused, lookupSpecial: unused, get integerIndex(): never { return unused(); } };
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0 });
+    for (const source of [v.list([v.true]), v.tuple([v.true]), v.string("a"), v.bytes(new Uint8Array([1])), v.range(createRange(0n, 1n, 1n))]) {
+      expect(len.value.invoke([source], keywords, meter, invocation)).toBe(v.integer(1));
+    }
+    expect(meter.usage.allocatedBytes).toBe(0);
+  });
+  it("keeps guest length adapters local across reentrant invocations", () => {
+    const { v, meter, keywords, len } = fixture(), guest = v.cell({}), slot = v.cell({}), events: string[] = [];
+    const inner = {
+      lookupSpecial() { events.push("inner lookup"); return slot; }, call() { events.push("inner call"); return v.integer(7); }, isStopIteration: () => false
+    };
+    const outer = {
+      lookupSpecial() { events.push("outer lookup"); return slot; }, call() {
+        events.push("outer call"); expect(len.value.invoke([guest], keywords, meter, inner)).toBe(v.integer(7)); return v.integer(3);
+      }, isStopIteration: () => false
+    };
+    expect(len.value.invoke([guest], keywords, meter, outer)).toBe(v.integer(3));
+    expect(len.value.invoke([guest], keywords, meter, inner)).toBe(v.integer(7));
+    expect(events).toEqual(["outer lookup", "outer call", "inner lookup", "inner call", "inner lookup", "inner call"]);
+  });
   it.each(["int", "bool", "negative", "overflow", "float"])("validates invocation length-to-index conversion returning %s", mode => {
     const { v, meter, keywords, len } = fixture(), guest = v.cell({}), indexed = v.cell({}), lengthMethod = v.cell({}), indexMethod = v.cell({}), events: string[] = [];
     const result = mode === "bool" ? v.true : mode === "float" ? v.float(3) : v.integer(mode === "negative" ? -1n : mode === "overflow" ? 1n << 63n : 3n);

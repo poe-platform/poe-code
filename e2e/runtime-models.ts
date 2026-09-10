@@ -26,3 +26,9 @@ export function registerKimiFixtureModel(source: string, model: string, maxConte
     [model]: { provider: "poe", model, max_context_size: maxContextSize },
   } });
 }
+
+export function resolveE2eModelEnvironment(agent: keyof typeof models, model: string): Record<string, string> {
+  // Goose v1.50.0 ACP reads the model from config/environment before session/new;
+  // its ACP command has no --model flag. Keep this scoped to the live fixture.
+  return agent === "goose" ? { GOOSE_MODEL: model } : {};
+}

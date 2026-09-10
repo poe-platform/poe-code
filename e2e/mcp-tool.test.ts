@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useContainer, shellQuote, resolveBackend } from '@poe-code/e2e-test-runner';
 import { resolveMcpFixtureCommand } from './mcp-fixture.js';
-import { resolveE2eModel, registerKimiFixtureModel } from './runtime-models.js';
+import { resolveE2eModel, resolveE2eModelEnvironment, registerKimiFixtureModel } from './runtime-models.js';
 
 interface AgentMcpSpawnTest {
   name: Parameters<typeof resolveE2eModel>[0];
@@ -61,7 +61,9 @@ describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, 
     const extraArgs = spawnArgs
       ? ` -- ${spawnArgs.map((arg) => shellQuote(arg)).join(' ')}`
       : '';
-    const command = `poe-code spawn --mode yolo --model ${shellQuote(model)} --mcp-config ${mcpConfig} ${name} ${shellQuote(prompt)}${extraArgs}`;
+    const modelEnv = Object.entries(resolveE2eModelEnvironment(name, model))
+      .map(([key, value]) => `${key}=${shellQuote(value)}`);
+    const command = [...modelEnv, `poe-code spawn --mode yolo --model ${shellQuote(model)} --mcp-config ${mcpConfig} ${name} ${shellQuote(prompt)}${extraArgs}`].join(' ');
     const spawnResult = await container.exec(command);
 
     if (!expectSpawnSuccess) {

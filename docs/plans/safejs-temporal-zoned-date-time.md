@@ -60,6 +60,25 @@ prototype had its non-writable, non-enumerable, configurable toStringTag.
 This closes the earlier audit's symbol-key omission for these five types only;
 it does not establish algorithmic conformance or cover the missing types.
 
+## Upstream constructor baseline
+
+At pinned Test262 revision `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, the
+ZonedDateTime directory contains 20 direct constructor fixtures, excluding its
+method subdirectories. Diagnostic d01d83 executed their unchanged sources with
+sta.js, assert.js and declared includes in both ordinary and strict script
+modes: 6 executions passed, 34 failed, none were excluded. The preceding runner
+b54c92 terminated on its first unhandled runtime rejection and supplied no
+usable totals; it was corrected to capture each fixture's thrown result.
+
+Crucially, the six passes are vacuous compatibility evidence. Inspection
+e60f8e found that calendar-wrong-type.js, constructor.js and missing-arguments.js
+only assert TypeError. Calling the absent constructor also throws TypeError,
+so their two script modes pass without implementing ZonedDateTime. Retain the
+upstream assertions unchanged, but require positive construction and correct
+observable evaluation order before counting these as implementation evidence.
+The independently validated missing binding explains why this baseline cannot
+be presented as partial constructor conformance.
+
 ## Implementation and verification sequence
 
 1. After session 29473 finishes, preserve its terminal result and repeat its

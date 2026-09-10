@@ -74,9 +74,11 @@ export function createTest262Realm(options: BudgetOptions = {}, onPrint?: (messa
     }
   });
   const createRealm = createSandboxClosure({ guest: true, sandbox: true, name: "createRealm", length: 0,
-    call: () => {
+    call: async () => {
       const child = createTest262Realm(options, onPrint);
       children.push(child);
+      const initialized = await child.evaluate("", true);
+      if (initialized.status !== "normal") throw initialized.error;
       return child.host;
     }
   });

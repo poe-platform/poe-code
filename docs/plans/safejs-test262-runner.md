@@ -105,3 +105,43 @@ It classifies only an already completed Script outcome: asynchronous completion
 and module resolution are not implicitly treated as done or passed. Combined
 conformance tests passed all 40 cases and scoped lint passed (56733, terminal
 7ec1f5); whitespace checks passed. This is ready for a local classifier commit.
+
+## Execution lifecycle
+
+The classifier is local commit 19683cee1. Executor tests first failed because
+the module was absent (47889, terminal c8e54a). The executor now creates fresh
+realms per variant, evaluates harness files in order, classifies completed
+Script outcomes, waits for explicit async completion, rejects async failure
+signals, enforces a timeout/deadline and disposes each realm. Missing/failing
+harness files cannot masquerade as expected guest errors. Modules and explicit
+agent blocking modes are reported as unsupported, never passed, until their
+execution adapters exist. Fixture files remain separate from test results.
+
+All ten initial lifecycle tests pass (33035, terminal e7c971), including a
+fake-timer timeout, late failure after an async completion signal, and raw
+source without harness injection. The full conformance-infrastructure selection
+and scoped lint are running. This is still not a pinned corpus discovery/report
+route, and unsupported modules/host capabilities remain required work.
+
+The combined selection passed all 50 tests and scoped lint (64720, terminal
+008349). Loading the actual pinned `assert.js`, `sta.js`, and
+`doneprintHandle.js` in memory passed seven synthetic execution variants
+(17198, terminal ed4ac1). Those are harness checks, not seven upstream tests.
+
+The actual pinned `test/built-ins/Array/of/proto-from-ctor-realm.js` failed in
+both modes (61482, terminal 78ebb7). Direct outcome inspection (75871,
+terminal d13198) found `Dynamic function realm has no execution context.`
+A newly created child had not executed any Script, so using its Function
+constructor immediately was invalid in the adapter. A focused host regression
+now reproduces that upstream sequence before changing child initialization.
+
+The focused regression failed with eleven passing controls (46669, terminal
+56efc6). The host now initializes the child through an empty nested Script
+before exposing it, establishing the interpreter's realm execution context
+without changing the upstream source or adding guest bindings. Combined tests,
+lint, and the unchanged upstream case are being rechecked.
+
+All 51 infrastructure tests and scoped realm lint passed (12579, terminal
+4740fa). The unchanged pinned upstream cross-realm case now passes in both
+sloppy and strict modes (87601, terminal 28c72c). The child initialization
+repair is qualified independently of still-missing module and agent adapters.

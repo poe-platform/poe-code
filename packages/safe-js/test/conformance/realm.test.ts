@@ -100,3 +100,13 @@ it.each(["missing", "missing++"])("classifies an uncaught reference failure as a
     expect(await realm.evaluate(source)).toMatchObject({ status: "throw", phase: "runtime" });
   } finally { await realm.dispose(); }
 });
+
+it("initializes a child realm before its Function constructor is used", async () => {
+  const realm = createTest262Realm();
+  try {
+    expect(await realm.evaluate(`const other=$262.createRealm().global;
+      const C=new other.Function();C.prototype=null;
+      Object.getPrototypeOf(Array.of.call(C,1,2,3))===other.Object.prototype`))
+      .toMatchObject({ status: "normal", value: true });
+  } finally { await realm.dispose(); }
+});

@@ -2207,6 +2207,100 @@ test("source7 inventory admits exactly the already sealed thirteen-entry source 
   assert.deepEqual(reads, [...files.keys()]);
 });
 
+test("native declaration classification admits the current maintained preflight without dropping routes", async () => {
+  const { verifyTypecheckInputs } = await import("./typecheck-inputs.mjs");
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const admitted = verifyTypecheckInputs(root);
+  assert.equal(admitted.standaloneInventory.declaration, 10);
+  assert.equal(admitted.standaloneInventory.current, 37);
+  assert.equal(admitted.standaloneInventory["negative-types"], 3);
+  assert.ok(admitted.standaloneAdmission.heldEvidence.length > 0);
+  assert.ok(admitted.currentSourceConsumerGroups.length > 0);
+});
+
+function nativeDeclarationFixture() {
+  const declarations = [
+    "src/commands/bytes/compression/native/generated/bz2.d.mts",
+    "src/commands/bytes/compression/native/generated/xz.d.mts",
+    "src/commands/bytes/compression/native/generated/zstd.d.mts",
+  ];
+  const bytes = Buffer.from('import type { RawCodecFactory } from "../types.js";\ndeclare const create: RawCodecFactory;\nexport default create;\n');
+  const memory = createFsFromVolume(Volume.fromJSON(Object.fromEntries(declarations.map(path => ["/package/" + path, bytes]))));
+  const read = path => readRegularInput("/package", path, 1024, memory, boundary);
+  const inventory = { entries: [], counts: { declaration: 0 } };
+  return { declarations, bytes, memory, read, inventory };
+}
+
+test("native declaration classification adds only three exact authenticated declaration entries", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const before = structuredClone(fixture.inventory);
+  const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+  assert.deepEqual(inventory.entries, fixture.declarations.map(path => ({
+    path,
+    classification: "declaration",
+    sha256: "c4539600528ca49e815605ce0ec33ab3382ac4123d5afa7d31a262f92e18934a",
+  })));
+  assert.deepEqual(fixture.inventory, before);
+  assert.deepEqual(inventory.counts, { declaration: 3 });
+  const admitted = verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, boundary);
+  assert.deepEqual(admitted.checked, { declaration: 3 });
+  assert.deepEqual(admitted.heldEvidence, []);
+});
+
+test("native declaration classification rejects changed and missing declaration contents", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  for (const index of [0, 1, 2]) {
+    const fixture = nativeDeclarationFixture();
+    const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+    const path = "/package/" + fixture.declarations[index];
+    fixture.memory.writeFileSync(path, "export default 0;\n");
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, boundary), /inventory changed/);
+    fixture.memory.unlinkSync(path);
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, boundary), /nonliteral type-input filename/);
+  }
+});
+
+test("native declaration classification rejects unknown mts and absent tracked declarations before payload reads", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+  const read = () => assert.fail("census rejection must precede content reads");
+  for (const unknown of ["src/commands/bytes/compression/native/generated/unknown.d.mts", "src/unknown.mts"]) {
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, [...fixture.declarations, unknown], [], [], read, boundary), /standalone inventory changed/);
+  }
+  for (const missing of fixture.declarations) {
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations.filter(path => path !== missing), [], [], read, boundary), /standalone inventory changed/);
+  }
+});
+
+test("native declaration classification cannot override existing entries or hide declarations as held evidence", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const duplicate = includeCurrentSourceDeclarations({ entries: [{ path: fixture.declarations[0], classification: "current" }], counts: { current: 1 } });
+  assert.throws(() => verifyAdmittedStandaloneInventory(duplicate, fixture.declarations, [], [], fixture.read, boundary), /standalone inventory changed/);
+  const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+  const held = { ...boundary, heldEvidenceDirectories: [...boundary.heldEvidenceDirectories, "src/commands/bytes/compression/native/generated"] };
+  assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, held), /cannot be withheld/);
+});
+
+test("native declaration classification preserves current and negative consumer route guards", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const current = "tests/current/consumer.mts";
+  const negative = "tests/negative/consumer.mts";
+  const inventory = includeCurrentSourceDeclarations({ entries: [
+    { path: current, classification: "current" },
+    { path: negative, classification: "negative-types", sha256: createHash("sha256").update(fixture.bytes).digest("hex") },
+  ], counts: { current: 1, "negative-types": 1 } });
+  fixture.memory.mkdirSync("/package/tests/negative", { recursive: true });
+  fixture.memory.writeFileSync("/package/" + negative, fixture.bytes);
+  const tracked = [...fixture.declarations, current, negative];
+  assert.deepEqual(verifyAdmittedStandaloneInventory(inventory, tracked, [current], [negative], fixture.read, boundary).checked, { current: 1, "negative-types": 1, declaration: 3 });
+  assert.throws(() => verifyAdmittedStandaloneInventory(inventory, tracked, [], [negative], fixture.read, boundary), /current consumers must have an explicit/);
+  assert.throws(() => verifyAdmittedStandaloneInventory(inventory, tracked, [current], [], fixture.read, boundary), /negative consumers must have exact/);
+});
+
 test("current standalone inventory explicitly admits the shell parse-limits consumer", async () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);

@@ -218,6 +218,26 @@ it("constructs float subclasses through inherited fromhex after parsing", () => 
   expect(()=>state.run("Child.fromhex(string='0x1p0')\n")).toThrow("Child.fromhex() takes no keyword arguments");
 });
 
+it("formats owned complex storage while preserving empty-spec string overrides",()=>{
+  const state=fixture();state.globals.set("Complex",state.registry.complexType());
+  state.run("class Z(Complex):\n def __str__(self):\n  visit('str')\n  return 'custom'\n def __complex__(self):\n  visit('wrong')\n  return 9j\nx=Z(1.25,2.5)\ncorrect=Complex.__format__(x,'')=='custom' and x.__format__('.1f')=='1.2+2.5j' and f'{x:.2f}'=='1.25+2.50j' and x.__format__('n')=='1.25+2.5j' and Complex.__format__.__objclass__ is Complex\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["str"]);
+  expect(()=>state.run("x.__format__('q')\n")).toThrow("Unknown format code 'q' for object of type 'Z'");
+  expect(()=>state.run("x.__format__(None)\n")).toThrow("__format__() argument must be str, not None");
+  expect(()=>state.run("x.__format__()\n")).toThrow("complex.__format__() takes exactly one argument (0 given)");
+});
+
+it("resolves complex numeric locale only for locale-aware formatting",()=>{
+  const state=fixture(),{v,meter}=state;let reads=0;
+  const locale=new NumericLocale({decimalPoint:v.string(",").value,thousandsSeparator:v.string(".").value,grouping:[3,0]},meter);
+  const formatting=createRuntimeFormatContext(v,meter,{numericLocale(){reads++;return locale;},defaultRepr(){throw Error("unexpected representation");}});
+  const method=state.registry.complexType().value.namespace.items.lookup(v.string("__format__"))?.value;
+  if(method?.kind!=="method_descriptor")throw Error("expected complex format descriptor");
+  const keywords=v.dictionary(state.registry.complexType().value.namespace.items.emptyCopy()),invocation={formatting,call():never{throw Error("unexpected guest call");}};
+  expect(method.value.invoke(v.complex(1234.5,6789),[v.string(".1f")],keywords,meter,invocation)).toEqual(v.string("1234.5+6789.0j"));expect(reads).toBe(0);
+  expect(method.value.invoke(v.complex(1234.5,6789),[v.string("n")],keywords,meter,invocation)).toEqual(v.string("1.234,5+6.789j"));expect(reads).toBe(1);
+});
+
 it("formats float subclass storage while preserving empty-spec string overrides", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Child(Float):\n def __str__(self):\n  visit('str')\n  return 'custom'\n def __float__(self):\n  visit('wrong')\n  return 9.0\nx=Child(1.25)\ncorrect=Float.__format__(x,'')=='custom' and x.__format__('.1f')=='1.2' and f'{x:.2f}'=='1.25' and x.__format__('n')=='1.25' and Float.__format__.__objclass__ is Float\n");

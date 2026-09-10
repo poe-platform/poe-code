@@ -9614,6 +9614,19 @@ extension, integration, or validation requirement is missing or unverified.
   exceptions and safe-fs execution. Existing complex magnitude rounding and
   transcendental power kernels retain their documented platform-ULP differences.
   No push or release was requested.
+- Canonical complex formatting (2026-09-10): two failing integration tests drove
+  the native __format__ descriptor and execution-owned locale wiring. Empty
+  specifications preserve subclass __str__; nonempty specifications inspect
+  complex storage without invoking conversion overrides. Locale is resolved
+  only for n formatting. All 414 descriptor/error comparisons and 2,000 seeded
+  native/subclass binary64 formatting comparisons match CPython exactly.
+  Workspace build, typecheck, focused lint and all 7,106 tests in 501 files pass
+  in the uncached one-worker package run. Namespace auditing finds 30 of 31
+  CPython complex members with matching descriptor kinds and no extras; only
+  from_number is missing. This does not establish complete type behavior.
+  Complex from_number, remaining scalar type catalogs, full guest exceptions,
+  interpreter assembly and safe-fs execution remain unfinished. No push or
+  release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

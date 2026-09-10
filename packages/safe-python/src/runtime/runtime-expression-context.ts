@@ -90,7 +90,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       if (operator === "+") {
         const addition = bindings.addition?.(left, right);
         meter.checkpoint();
-        return runtimeAddition(left, right, values, meter, addition, augmented);
+        return runtimeAddition(left, right, values, meter, addition, augmented, bindings.buffers);
       }
       const result = runtimeBinary(operator, left, right, values, meter);
       if (result === values.notImplemented) throw new UnsupportedExpressionError("binary");

@@ -3,6 +3,7 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeBinary } from "./runtime-binary.js";
+import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface AdditionContext {
@@ -14,16 +15,31 @@ export interface AdditionContext {
 
 /** Complete ordinary addition for exact native values, or supplied numeric
  * negotiation followed by native sequence fallback. Sequence failures must not
- * preempt reflected numeric methods. Guest sequence storage/buffer exporters
- * require further adapters; this never performs in-place addition. */
-export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: AdditionContext = {}, augmented = false): RuntimeValue {
+ * preempt reflected numeric methods. Byte buffer concatenation follows numeric
+ * negotiation; this never mutates either operand. */
+export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: AdditionContext = {}, augmented = false, buffers?: RuntimeBufferContext): RuntimeValue {
   meter.checkpoint();
   const result = context.numeric === undefined ? runtimeBinary("+", left, right, values, meter) : dispatchBinaryOperation(context.numeric, meter);
   meter.checkpoint();
   if (result !== values.notImplemented) return result;
   const sequence = left.kind === "list" || left.kind === "tuple" || left.kind === "str" || left.kind === "bytes";
   if (sequence && left.kind === right.kind) return runtimeBinary("+", left, right, values, meter);
-  const rightName = context.typeName?.(right) ?? (right.kind === "none" ? "NoneType" : right.kind === "not-implemented" ? "NotImplementedType" : right.kind);
+  if (left.kind === "bytes" && buffers !== undefined) {
+    let lease: RuntimeBufferLease | undefined;
+    try {
+      try { lease = buffers.acquireSimple(right); }
+      catch (error) { meter.checkpoint(); if (!(error instanceof PythonRuntimeError)) throw error; }
+      meter.checkpoint();
+      if (lease !== undefined) {
+        const storage = lease.copy(); meter.checkpoint();
+        const joined = left.value.concat(storage, meter);
+        return joined === left.value ? left : values.bytes(joined, joined.length === 0 ? "canonical" : "fresh");
+      }
+    } finally {
+      lease?.release(); meter.checkpoint();
+    }
+  }
+  const rightName = context.typeName?.(right) ?? (left.kind === "bytes" ? buffers?.typeName?.(right) : undefined) ?? (right.kind === "none" ? "NoneType" : right.kind === "not-implemented" ? "NotImplementedType" : right.kind);
   const b = diagnosticTypeName(rightName, meter, sequence && left.kind !== "bytes" ? 200 : 100);
   if (left.kind === "bytes") throw new PythonRuntimeError("TypeError", `can't concat ${b} to bytes`);
   if (sequence) throw new PythonRuntimeError("TypeError", `can only concatenate ${left.kind} (not "${b}") to ${left.kind}`);

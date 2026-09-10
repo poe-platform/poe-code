@@ -6875,6 +6875,16 @@ extension, integration, or validation requirement is missing or unverified.
   traces. Typecheck, scoped lint and selected workspace build pass. Remaining
   native protocols, concrete exporters, automatic object assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected byte concatenation to contiguous buffer operands after numeric/
+  reflected negotiation, including augmented assignment's immutable fallback.
+  Empty buffers retain the left bytes object. Guest acquisition failures become
+  bounded concatenation TypeErrors; host failures and cancellation propagate,
+  and acquired leases always release.
+- Four failing compiled regressions plus two reflected-dispatch cases pass.
+  All 5,232 tests in 441 files pass; 18 CPython comparisons match output/errors,
+  identity and lease traces. Typecheck, scoped lint and selected workspace build
+  pass. Remaining native protocols, concrete exporters, automatic object assembly
+  and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

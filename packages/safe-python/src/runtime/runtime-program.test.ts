@@ -39,6 +39,43 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([false,true])("negotiates reflected addition before byte buffers (handled=%s)", handled => {
+    const state = fixture("result=b'a'+source\n"), v = state.values, trace: string[] = [];
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, addition: () => ({ numeric: {
+      relation: "other", notImplemented: v.notImplemented, forward: () => v.notImplemented,
+      reflectedIsOverridden: () => false,
+      reflected() { trace.push("reflected"); return handled ? v.integer(42) : v.notImplemented; }
+    } }), buffers: {
+      acquireSimple() { trace.push("acquire"); return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(98)).value, release() { trace.push("release"); } }; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(handled ? v.integer(42) : v.bytes(Uint8Array.of(97,98)));
+    expect(trace).toEqual(handled ? ["reflected"] : ["reflected", "acquire", "release"]);
+  });
+  it.each(["result=b'a'+source", "result=b'a'\nresult+=source"])("concatenates bytes with buffer exports: %s", body => {
+    const state = fixture(`${body}\n`), v = state.values; let released = false;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(98)).value, release() { released = true; } }; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(Uint8Array.of(97,98))); expect(released).toBe(true);
+  });
+  it("rewrites guest byte-concatenation buffer failures", () => {
+    const state = fixture("result=b'a'+source\n"), v = state.values;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      typeName: () => "Exporter", acquireSimple() { throw new PythonRuntimeError("BufferError", "bad export"); }
+    } });
+    expect(() => state.run()).toThrow("can't concat Exporter to bytes");
+  });
+  it("releases byte-concatenation exports after cancellation", () => {
+    const controller = new AbortController(), state = fixture("result=b'a'+source\n", 100000, controller.signal), v = state.values; let released = false;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { controller.abort(); return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it.each([["in", true], ["not in", false]])("checks buffer byte membership with %s", (operator, expected) => {
     const state = fixture(`result=needle ${operator} b'aba'\n`), v = state.values; let released = false;
     state.globals.set("needle", v.cell({}));

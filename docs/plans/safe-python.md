@@ -7779,6 +7779,18 @@ extension, integration, or validation requirement is missing or unverified.
   Default object initialization, slot wrapper argument conventions, qualified
   names/doc metadata, complete object/type bootstrap and suspended safe-fs effects
   remain unfinished.
+- Installed canonical object.__init__ as a native slot wrapper. Ten initial
+  regressions failed because the initializer was absent. Initialization performs
+  no writes; extra-argument acceptance depends on actual __new__/__init__ slot
+  identities, with canonical aliases and inheritance preserved. A native-call
+  actual-type capability handles opaque/native payloads without reading guest
+  __class__; no-argument initialization requires no classification. Sixteen
+  tests cover direct/bound/compiled calls, custom allocators, disabled/aliased
+  slots, keyword rules, native type policy, shadow attributes and cancellation.
+  All 96 initializer, 72 allocation and 96 compiled type-call cases match CPython.
+  All 6,036 tests in 462 files, selected build, typecheck and scoped lint pass. Native type
+  initialization/allocation, remaining default object methods and metadata,
+  complete class bootstrap and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

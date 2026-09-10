@@ -1596,3 +1596,24 @@ it("dispatches arithmetic slot wrappers without consulting instance dictionaries
   state.instance("instance", owner); state.run("instance.__add__=False\nresult=instance+7\n");
   expect(state.globals.get("result")).toEqual(state.v.integer(7));
 });
+
+it("exposes inherited object initialization through ordinary instance attributes", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner);
+  state.run("instance=C()\nresult=instance.__init__()\n");
+  expect(state.globals.get("result")).toBe(state.v.none);
+  expect(() => state.run("instance.__init__(1)\n")).toThrow("C.__init__() takes exactly one argument (the instance to initialize)");
+});
+
+it("allows a custom allocator to consume arguments with inherited object init", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner); const instance = state.instance("allocated", owner);
+  state.method(owner, "__new__", "def allocate(cls, *, value):\n visit(value)\n return allocated\n");
+  state.run("result=C(value='new')\ninitialized=result.__init__(value='unused')\n");
+  expect(state.globals.get("result")).toBe(instance); expect(state.globals.get("initialized")).toBe(state.v.none); expect(state.events).toEqual(["new"]);
+});
+
+it("uses frame actual-type policy for explicit object init on native payloads", () => {
+  const state = fixture(), native = state.type("Native"), value = state.v.integer(7);
+  native.value.namespace.items.set(state.v.string("__new__"), state.v.none); state.types.set(value, native);
+  state.globals.set("payload", value); state.globals.set("initialize", state.registry.object.value.namespace.items.lookup(state.v.string("__init__"))!.value);
+  state.run("result=initialize(payload,1)\n"); expect(state.globals.get("result")).toBe(state.v.none);
+});

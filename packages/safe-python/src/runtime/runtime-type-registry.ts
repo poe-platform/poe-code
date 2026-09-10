@@ -5,6 +5,7 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 import { createObjectNewBuiltin } from "./builtin-object-new.js";
+import { createObjectInitWrapper } from "./builtin-object-init.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -34,6 +35,7 @@ export class RuntimeTypeRegistry {
     this.#entries.set(objectLayout, { type: this.object });
     this.#entries.set(typeLayout, { type: this.type });
     objectLayout.namespace.items.set(values.string("__new__"), createObjectNewBuiltin(values, meter, keys, this.object, type => this.#entries.get(type.value)?.type === type));
+    objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
     meter.checkpoint(1, 192);
     const descriptors = [
       { name: "__mro__", get: (instance: TypeValue) => this.metadata(instance, "mro") },

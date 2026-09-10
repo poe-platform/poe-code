@@ -81,6 +81,8 @@ export interface BuiltinInvocationContext {
   hasSpecial?(object: RuntimeValue, name: string): boolean;
   warn?(category: "DeprecationWarning", message: string): void;
   lookupSpecial?(object: RuntimeValue, name: string): RuntimeValue | undefined;
+  /** Actual runtime type, bypassing instance attributes and virtual checks. */
+  actualType?(value: RuntimeValue): TypeValue;
   typeName?(value: RuntimeValue): string;
   setAttribute?(object: RuntimeValue, name: string, value: RuntimeValue): void;
   deleteAttribute?(object: RuntimeValue, name: string): void;

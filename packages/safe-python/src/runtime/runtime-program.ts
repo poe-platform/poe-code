@@ -143,6 +143,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       typeName: specialMethods === undefined ? undefined : value => {
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.name;
       },
+      actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
       setAttribute(object, name, value) {
         if (object.kind === "instance" && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else statementHooks.setAttribute(object, name, value);

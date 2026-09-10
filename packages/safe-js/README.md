@@ -852,6 +852,9 @@ distinct handling of omitted and NaN positions.
 String `repeat` converts guest count objects through their numeric conversion
 hooks after receiver conversion, preserving thrown values, range validation,
 and output string-budget checks.
+String character access (`at`, `charAt`, `charCodeAt`, and `codePointAt`) also
+honors guest numeric index conversion, preserving each method's negative-index,
+out-of-range and UTF-16/code-point behavior.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the
 originating guest String prototype. Getter and Proxy-ancestor reads preserve
 the primitive receiver, including later guest iterator overrides.

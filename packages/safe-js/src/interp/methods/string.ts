@@ -223,11 +223,15 @@ function callStringMethodBody(
   if (methodName === "concat" && args.some(argument => argument !== null && typeof argument === "object")) {
     return callConcat(value, args, budget, context);
   }
-  if (methodName === "repeat") {
-    const count = sandboxNumber(args[0], budget, context);
-    if (typeof count === "number") return budget.allocateString(value.repeat(count));
+  if (methodName === "repeat" || methodName === "at" || methodName === "charAt" || methodName === "charCodeAt" || methodName === "codePointAt") {
+    const apply = (number: number) => {
+      const result = value[methodName](number);
+      return typeof result === "string" ? budget.allocateString(result) : result;
+    };
+    const number = sandboxNumber(args[0], budget, context);
+    if (typeof number === "number") return apply(number);
     const release = retainValues(budget, () => [value, ...args]);
-    return count.then(number => budget.allocateString(value.repeat(number))).finally(release);
+    return number.then(apply).finally(release);
   }
 
   if (methodName === "isWellFormed") {
@@ -348,16 +352,6 @@ function callStringMethodBody(
     }
 
     switch (methodName) {
-      case "at": {
-        const result = value.at(asNumber(args[0]));
-        return result === undefined ? undefined : budget.allocateString(result);
-      }
-      case "charAt":
-        return budget.allocateString(value.charAt(asNumber(args[0])));
-      case "charCodeAt":
-        return value.charCodeAt(asNumber(args[0]));
-      case "codePointAt":
-        return value.codePointAt(asNumber(args[0]));
       case "concat":
         return budget.allocateString(value.concat(...args.map(String)));
       case "normalize":

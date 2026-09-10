@@ -8810,6 +8810,20 @@ extension, integration, or validation requirement is missing or unverified.
   in 493 files pass with two workers. The 90 new differential cases and earlier
   106 decorator, 105 bound-callable, 78 descriptor, 81 object and 80 list cases
   all pass (540 total).
+- Published canonical set/frozenset types with native repr, len, iter,
+  membership, rich comparison and hash declarations. Four initial RED cases
+  reproduced absent type-level sequence methods and generic-object comparison
+  results. Mutable sets declare hash=None; frozen hashes use their stored key
+  hashes. Membership is a method descriptor, while repr/len/iter/comparison/hash
+  use native wrappers. Both ordinary and type-level binding use the canonical
+  defining type. Nine added tests cover mixed-family comparisons, mutable-set
+  probes, ownership, argument validation and iterator mutation. All 388 canonical
+  slot and 90 canonical representation differential cases match CPython; earlier
+  560 guest and 2,028 native comparison cases remain green. Constructor and
+  mutation-method publication, set-subclass storage, remaining catalogs and full
+  public interpreter/safe-fs assembly remain unfinished.
+  Workspace build, typecheck and focused lint pass; all 6,768 unit tests in 493
+  files pass with two workers. All 3,066 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

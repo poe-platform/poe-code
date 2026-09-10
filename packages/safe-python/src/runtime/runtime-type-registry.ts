@@ -30,6 +30,7 @@ import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from ".
 import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
+import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
 import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
 import { createListInitWrapper } from "./builtin-list-init.js";
@@ -58,6 +59,7 @@ export class RuntimeTypeRegistry {
   readonly #descriptors = new Map<IntrinsicDescriptorKind, TypeValue>();
   readonly #boundCallables = new Map<NativeBoundCallableKind, TypeValue>();
   #listType: TypeValue | undefined;
+  readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 256);
@@ -184,6 +186,22 @@ export class RuntimeTypeRegistry {
     namespace.items.set(this.values.string("__hash__"), createBoundCallableHashWrapper(kind, type, this.values, this.meter));
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#boundCallables.set(kind, type);
+    return type;
+  }
+
+  /** Canonical exact set layouts. Allocation, mutation-method publication and
+   * subclass native storage are separate from these native protocol slots. */
+  setType(kind: "set" | "frozenset"): TypeValue {
+    this.meter.checkpoint();
+    const existing = this.#sets.get(kind);
+    if (existing !== undefined) return existing;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: true });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeSetSlots(kind, type, this.values, this.meter);
+    installRuntimeComparisonMethods(kind, type, this.values, this.meter);
+    this.meter.checkpoint(1, 96);
+    this.#entries.set(layout, { type }); this.#sets.set(kind, type);
     return type;
   }
 

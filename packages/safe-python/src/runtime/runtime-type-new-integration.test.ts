@@ -36,6 +36,7 @@ function fixture(identity?: IdentityContext) {
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "list") return registry.listType();
+      if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
       const existing = native.get(value.kind); if (existing !== undefined) return existing;
@@ -48,6 +49,46 @@ function fixture(identity?: IdentityContext) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("publishes canonical %s representation and sequence slots", (kind, construct) => {
+  const state = fixture(); state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
+  state.run(`items=${kind}([1])\nowner=type(items)\nresult=owner.__repr__(items)\nsize=owner.__len__(items)\ncontains=owner.__contains__(items,1)\nmethod=items.__repr__\ncanonical=method.__objclass__ is owner\niterator=owner.__iter__(items)\nseen=0\nfor value in iterator:\n seen=seen+value\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string(kind === "set" ? "{1}" : "frozenset({1})"));
+  expect(state.globals.get("size")).toEqual(state.v.integer(1n)); expect(state.globals.get("contains")).toBe(state.v.true); expect(state.globals.get("canonical")).toBe(state.v.true); expect(state.globals.get("seen")).toEqual(state.v.integer(1n));
+});
+
+it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("publishes canonical %s native comparison and hash slots", (kind, construct) => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented); state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
+  state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run(`items=${kind}([1])\nother=${kind}([1])\nowner=type(items)\nequal=owner.__eq__(items,other)\nless=owner.__lt__(items,other)\nless_equal=owner.__le__(items,other)\ngreater=owner.__gt__(items,other)\ngreater_equal=owner.__ge__(items,other)\nunequal=owner.__ne__(items,other)\ndeclined=owner.__eq__(items,1) is NotImplemented\n`);
+  for (const name of ["equal", "less_equal", "greater_equal", "declined"]) expect(state.globals.get(name)).toBe(state.v.true);
+  for (const name of ["less", "greater", "unequal"]) expect(state.globals.get(name)).toBe(state.v.false);
+  if (kind === "set") { state.run("unhashable=owner.__hash__ is None\n"); expect(state.globals.get("unhashable")).toBe(state.v.true); }
+  else { state.run("same_hash=owner.__hash__(items)==hash(items)\n"); expect(state.globals.get("same_hash")).toBe(state.v.true); }
+});
+
+it.each(["set", "frozenset"])("compares mixed set families and converts mutable probes through %s slots", kind => {
+  const state = fixture();
+  for (const [name, construct] of [["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const) state.builtins.set(name, state.v.builtinFunction({ name, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
+  state.run(`items=${kind}([1])\nother=${kind === "set" ? "frozenset" : "set"}([1,2])\nsubset=type(items).__lt__(items,other)\nsuperset=type(other).__gt__(other,items)\nkeys=${kind}([frozenset([1])])\nfound=type(keys).__contains__(keys,{1})\n`);
+  for (const name of ["subset", "superset", "found"]) expect(state.globals.get(name)).toBe(state.v.true);
+});
+
+it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("validates canonical %s slot signatures and ownership", (kind, construct) => {
+  const state = fixture(); state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
+  state.run(`items=${kind}()\nowner=type(items)\ncontains_owner=owner.__contains__.__objclass__ is owner\n`);
+  expect(state.globals.get("contains_owner")).toBe(state.v.true);
+  expect(() => state.run("items.__contains__()\n")).toThrow(`${kind}.__contains__() takes exactly one argument (0 given)`);
+  expect(() => state.run("items.__contains__(1,2)\n")).toThrow(`${kind}.__contains__() takes exactly one argument (2 given)`);
+  expect(() => state.run("items.__contains__(x=1)\n")).toThrow(`${kind}.__contains__() takes no keyword arguments`);
+  expect(() => state.run("owner.__repr__(1)\n")).toThrow(`requires a '${kind}' object`);
+  expect(() => state.run("items.__len__(1)\n")).toThrow("expected 0 arguments, got 1");
+});
+
+it("canonical set iteration observes size-changing mutation", () => {
+  const state = fixture(); state.run("items={1}\niterator=type(items).__iter__(items)\nitems.add(2)\n");
+  expect(() => state.run("for item in iterator:\n pass\n")).toThrow("Set changed size during iteration");
+});
 
 it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("represents %s contents using active guest repr", (kind, construct) => {
   const state = fixture(); state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));

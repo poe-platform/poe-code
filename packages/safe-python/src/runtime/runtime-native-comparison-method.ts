@@ -9,10 +9,10 @@ export type NativeBoundCallableKind = "method" | "method-wrapper" | "builtin_fun
 /** Native comparison slots belong to their defining types. Callable equality
  * retains binding identities; list slots compare live storage and can return
  * raw guest ordering results. Member comparison uses the active execution. */
-export function installRuntimeComparisonMethods(kind: NativeBoundCallableKind | "list", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+export function installRuntimeComparisonMethods(kind: NativeBoundCallableKind | "list" | "set" | "frozenset", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
   meter.checkpoint(0, 256);
   const slots = [["__eq__", "=="], ["__ne__", "!="]];
-  if (kind === "list") slots.push(["__lt__", "<"], ["__le__", "<="], ["__gt__", ">"], ["__ge__", ">="]);
+  if (kind === "list" || kind === "set" || kind === "frozenset") slots.push(["__lt__", "<"], ["__le__", "<="], ["__gt__", ">"], ["__ge__", ">="]);
   for (const [name, operator] of slots) {
     meter.checkpoint(0, 96);
     owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, doc: `Return self${operator}value.`, accepts: receiver => kind === "list" ? runtimeListPayload(receiver) !== undefined : receiver.kind === kind,

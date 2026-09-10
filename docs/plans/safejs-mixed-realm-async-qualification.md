@@ -34,9 +34,36 @@ failures, rather than an active-reaction error.
 
 `captureObjectState` currently serializes prototype links only when
 `hasExplicitSandboxPrototype` is true. Default-origin preservation through this
-path is the next investigation target. No runtime change has been made yet;
-the regression tests remain uncommitted and failing. TypeScript and focused
-lint passed before the final diagnostic-label change.
+path was investigated next. A read-only probe showed both settled objects still
+had explicit prototype links and correct identity before recapture, but their
+snapshot nodes were not classified as guest objects. The cause was the use of
+`hasGuestObjectState`, whose data-copy policy deliberately ignores pristine
+default prototype chains. The RegExp classification used the same policy.
+
+Snapshot classification now includes explicitly retained prototype links for
+ordinary objects and supported builtin records. This preserves checkpoint
+identity without changing data-copy admission rules or the active-reaction guard.
+All 24 focused cases pass on Node 22.23.2 and Node 18.20.8. TypeScript and focused
+ESLint pass. The full snapshot directory finished with 2,106 passes and five
+failures across 155 files (152.72 seconds):
+
+- Four null-prototype metadata tests still rejected malformed snapshots, but the
+  newly selected guest-object format changed their validation diagnostic.
+- One async array-pattern generator case exceeded its unchanged five-second
+  limit. Its source includes observable iterator getter/return side effects.
+
+Ordinary null-prototype values now keep the existing lossless plain-data marker;
+non-null originating prototype graphs still receive guest-object capture. The
+null-prototype, array-pattern and mixed-realm files passed all 65 tests together.
+The corrected full snapshot directory passed all 2,111 tests across 155 files
+(121.91 seconds), including the previously timed-out case. No timeouts were
+raised and no assertions removed. This successful rerun does not establish the
+cause of the earlier timeout or guarantee full-package timing reliability.
+
+Five additional direct value tests passed separately after that run started:
+pristine Object, RegExp, Date, boxed Number and Array values preserve both realm
+prototype identities and aliases through two checkpoints. They are not included
+in the 2,111 count. TypeScript passed with these additional tests.
 
 These are same-source, low-level snapshot checks. They do not establish arbitrary
 mixed-source transport, external host-operation resume correctness, all async

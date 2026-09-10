@@ -1,9 +1,10 @@
 import { expect, it } from "vitest";
+import { setImmediate } from "node:timers/promises";
 import { run } from "../run.js";
 import { Budget } from "../interp/budget.js";
 import { invokeBuiltinClosure } from "../interp/builtin-call.js";
 import { getSandboxPrototype } from "../interp/object-model.js";
-import { isSandboxClosure } from "../interp/values.js";
+import { isSandboxClosure, isSandboxPromise } from "../interp/values.js";
 import { serialize } from "./serialize.js";
 import { restore } from "./restore.js";
 
@@ -22,7 +23,13 @@ it.each([
   { expression: "(()=>{function* f(){yield 0;while(true)yield []};const g=f();g.next();return ()=>g.next().value})()", expected: "Array.prototype", identity: false },
   { expression: "(()=>{function* f(){yield 0;while(true)yield {}};const g=f();g.next();return ()=>g.next().value})()", expected: "Object.prototype", identity: false },
   { expression: "(()=>{function* f(){yield 0;while(true)yield /x/};const g=f();g.next();return ()=>g.next().value})()", expected: "RegExp.prototype", identity: false },
-  { expression: "(()=>{function* f(){while(true)yield []};const g=f();return ()=>g.next().value})()", expected: "Array.prototype", identity: false }
+  { expression: "(()=>{function* f(){while(true)yield []};const g=f();return ()=>g.next().value})()", expected: "Array.prototype", identity: false },
+  { expression: "(()=>{async function* f(){while(true)yield []};const g=f();return async()=>(await g.next()).value})()", expected: "Array.prototype", identity: false },
+  { expression: "(()=>{async function* f(){while(true)yield {}};const g=f();return async()=>(await g.next()).value})()", expected: "Object.prototype", identity: false },
+  { expression: "(()=>{async function* f(){while(true)yield /x/};const g=f();return async()=>(await g.next()).value})()", expected: "RegExp.prototype", identity: false },
+  { expression: "(()=>{const c=Promise.withResolvers();const p=(async()=>{await c.promise;return []})();return async()=>{c.resolve();return await p}})()", expected: "Array.prototype", identity: false },
+  { expression: "(()=>{const c=Promise.withResolvers();const p=(async()=>{await c.promise;return {}})();return async()=>{c.resolve();return await p}})()", expected: "Object.prototype", identity: false },
+  { expression: "(()=>{const c=Promise.withResolvers();const p=(async()=>{await c.promise;return /x/})();return async()=>{c.resolve();return await p}})()", expected: "RegExp.prototype", identity: false }
 ])("restores the originating realm for $expression", async ({ expression, expected, identity }) => {
   const source = `return [${expression},${expected}]`;
   const first = await run(source), second = await run(source);
@@ -35,10 +42,13 @@ it.each([
     for (const name of ["first", "second"]) {
       const graph = restored.currentScope.lookup(name).value;
       if (!Array.isArray(graph) || !isSandboxClosure(graph[0])) throw new Error("Missing restored reader");
-      const value = await invokeBuiltinClosure(graph[0], [], restored.budget, undefined, undefined);
+      const result = await invokeBuiltinClosure(graph[0], [], restored.budget, undefined, undefined);
+      const value = isSandboxPromise(result) ? await result.promise : result;
       if (value === null || typeof value !== "object") throw new Error("Missing guest object");
-      expect((identity ? value : getSandboxPrototype(value, new Budget())) === graph[1]).toBe(true);
+      expect((identity ? value : getSandboxPrototype(value, new Budget())) === graph[1], `${expression}: ${name}, round ${round}`).toBe(true);
     }
+    // Settlement can become observable before its reaction's cleanup finishes.
+    await setImmediate();
     if (round === 0) restored = restore(JSON.parse(JSON.stringify(serialize({ source, currentAstNodeId: 1,
       scopeChain: [{ id: "module", bindings: {
         first: restored.currentScope.lookup("first").value,

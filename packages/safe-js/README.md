@@ -91,10 +91,14 @@ repeated checkpoints, including literal prototypes and dynamic Function globals.
 Class constructors and public/private field initializers also retain their realm
 through repeated snapshots, including derived classes. Synchronous generators
 retain their realm when captured before first execution or suspended at a yield.
-Mixed-realm async continuations still need separate qualification.
+Same-source async generators and functions waiting on guest promises retain
+literal prototype identity when resumed. Settled results preserve that identity
+through subsequent checkpoints; data-copy helpers retain their separate rules.
+External host-operation resumption and broader async behavior remain unqualified.
 See the [closure ownership record](../../docs/plans/safejs-mixed-realm-closure-ownership.md).
 Class validation is recorded [separately](../../docs/plans/safejs-mixed-realm-class-ownership.md).
 See also the [generator ownership record](../../docs/plans/safejs-mixed-realm-generator-ownership.md).
+Async checks and the settled-result fix are recorded [here](../../docs/plans/safejs-mixed-realm-async-qualification.md).
 
 Guest symbols, supported prototype links, and mutated guest intrinsics can be
 represented in checkpoints. Plain data-copy helpers have narrower contracts:
@@ -930,7 +934,7 @@ owner-scheduled cleanup, cancellation, and heap snapshot restoration. Cleanup
 errors are reported to the owning run or persistent realm. These changes are not
 released or fully validated: unique-symbol weak references still fail on older
 Node.js 18 runtimes, and low-level registry restoration requires an execution
-owner with error reporting. All 2,093 snapshot tests across 155 files pass on
+owner with error reporting. All 2,111 snapshot tests across 155 files pass on
 Node 22.23.2, and 42 selected weak snapshot tests pass on Node 18.20.8; these
 are not full-package or conformance results.
 

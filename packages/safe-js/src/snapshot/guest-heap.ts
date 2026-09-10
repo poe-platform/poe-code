@@ -430,7 +430,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
     const { options, compare } = collatorState(value);
     return { kind: "guest-collator", options: { ...options }, ...(compare === undefined ? {} : { compare: encode(compare) }), state: captureObjectState(value, encode)! };
   }
-  if (getIntrinsicIdentity(value) === undefined && (hasGuestObjectState(value) || privateElements.has(value))) {
+  if (getIntrinsicIdentity(value) === undefined && (hasExplicitSandboxPrototype(value) || hasGuestObjectState(value) || privateElements.has(value))) {
     if (isSandboxRegex(value)) return { kind: "guest-regex", source: value.source, flags: value.flags, state: captureObjectState(value, encode)! };
     if (isSandboxBox(value)) return { kind: "guest-boxed", value: encode(boxedValue(value)), state: captureObjectState(value, encode)! };
     if (isSandboxDate(value)) return { kind: "guest-date", value: encode(dateTime(value)), state: captureObjectState(value, encode)! };
@@ -643,7 +643,9 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
         isSandboxGenerator(value) || isSandboxArguments(value) || isSandboxCollectionIterator(value) ||
         isSandboxRegExpIterator(value)) return undefined;
     const prototype = Object.getPrototypeOf(value);
-    if ((prototype === null || prototype === Object.prototype) && hasGuestObjectState(value)) {
+    // Null prototypes already have a lossless marker in the plain-data format.
+    if ((prototype === null || prototype === Object.prototype) &&
+        ((hasExplicitSandboxPrototype(value) && getSandboxPrototype(value) !== null) || hasGuestObjectState(value))) {
       const errorType = sandboxErrorTypes.get(value);
       return { kind: "guest-object", state: captureObjectState(value, encode)!,
         ...(errorType === undefined ? {} : { errorType }) };

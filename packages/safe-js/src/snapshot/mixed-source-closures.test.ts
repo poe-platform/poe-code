@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { run } from "../run.js";
 import { invokeBuiltinClosure } from "../interp/builtin-call.js";
-import { isSandboxClosure } from "../interp/values.js";
+import { isSandboxClosure, isSandboxPromise } from "../interp/values.js";
 import { serialize } from "./serialize.js";
 import { restore } from "./restore.js";
 
@@ -10,7 +10,15 @@ it.each([
   ["const value=1;return ()=>value", "const extra=0;const value=2;return ()=>value"],
   ["class C { value=1 };return ()=>new C().value", "class C { value=2 };return ()=>new C().value"],
   ["function* f(){yield 0;yield 1};const g=f();g.next();return ()=>g.next().value",
-    "function* f(){yield 0;yield 2};const g=f();g.next();return ()=>g.next().value"]
+    "function* f(){yield 0;yield 2};const g=f();g.next();return ()=>g.next().value"],
+  ["class C { #value=1;read(){return this.#value} };return ()=>new C().read()",
+    "const extra=0;class C { #value=2;read(){return this.#value} };return ()=>new C().read()"],
+  ["const c=Promise.withResolvers();const p=(async()=>{await c.promise;return 1})();return async()=>{c.resolve();return await p}",
+    "const extra=0;const c=Promise.withResolvers();const p=(async()=>{await c.promise;return 2})();return async()=>{c.resolve();return await p}"],
+  ["async function* f(){yield 0;yield 1};const g=f();await g.next();return async()=>(await g.next()).value",
+    "const extra=0;async function* f(){yield 0;yield 2};const g=f();await g.next();return async()=>(await g.next()).value"],
+  ["function* f(){try {yield 0}finally {yield 1}};const g=f();g.next();return ()=>g.next().value",
+    "const extra=0;function* f(){try {yield 0}finally {yield 2}};const g=f();g.next();return ()=>g.next().value"]
 ])("preserves distinct function bodies and captured state from %s", async (source, otherSource) => {
   const a = await run(source), b = await run(otherSource);
   if (!a.ok || !b.ok) throw new Error("Missing original functions");
@@ -26,7 +34,8 @@ it.each([
   for (const [name, expected] of [["first", 1], ["second", 2]] as const) {
     const closure = restored.currentScope.lookup(name).value;
     if (!isSandboxClosure(closure)) throw new Error("Missing restored function");
-    expect(await invokeBuiltinClosure(closure, [], restored.budget, undefined, undefined)).toBe(expected);
+    const result = await invokeBuiltinClosure(closure, [], restored.budget, undefined, undefined);
+    expect(isSandboxPromise(result) ? await result.promise : result).toBe(expected);
   }
 });
 

@@ -78,6 +78,9 @@ export interface ExpressionContext<Value> {
   /** Delegate to an already evaluated source. The capability owns guest
    * iterator acquisition, send/throw/close and completion-value semantics. */
   delegate?(source:Value):Generator<Value,Value,Value>;
+  /** Validate an awaitable and suspend on its iterator. Kept separate from
+   * ordinary yield-from acquisition, which accepts arbitrary iterables. */
+  awaitValue?(source:Value):Generator<Value,Value,Value>;
 }
 
 /** Host implementation gap, not a catchable guest exception. */
@@ -122,7 +125,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
  * routing an escaping exception into the enclosing statement continuation.
  * Pass the execution's actual None value on each bare send; host undefined is
  * not interpreted as guest None. Delegation requires an explicit capability;
- * await remains separate work. */
+ * await requires its own validating suspension capability. */
 export function createExpressionContinuation<Value>(expression:Extract<Expression,{kind:"subscript"}>,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode:"subscript-reference"):Generator<Value,SubscriptReference<Value>,Value>;
 export function createExpressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode:"branch"):Generator<Value,boolean,Value>;
 export function createExpressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode?:"value"):Generator<Value,Value,Value>;
@@ -133,7 +136,7 @@ export function createExpressionContinuation<Value>(expression:Expression,contex
 
 function* expressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,mode:"value"|"branch"|"subscript-reference",suspension?:{readonly none:Value}):Generator<Value,Value|boolean|SubscriptReference<Value>,Value> {
   if (mode === "subscript-reference" && expression.kind !== "subscript") throw new Error("subscript reference mode requires a subscript expression");
-  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | {kind:"yield"|"yield-from"} | (() => void);
+  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | {kind:"yield"|"yield-from"|"await"} | (() => void);
   const work: Task[] = [{ node: expression, test: mode === "branch" ? "branch" : "value" }];
   let reference: SubscriptReference<Value> | undefined;
   let value!: Value;
@@ -144,7 +147,7 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
     if (typeof task === "function") { task(); continue; }
     if("kind" in task) {
       meter.checkpoint(0);
-      value=task.kind==="yield-from"?yield* context.delegate!(value):yield value;
+      value=task.kind==="await"?yield* context.awaitValue!(value):task.kind==="yield-from"?yield* context.delegate!(value):yield value;
       meter.checkpoint();
       knownTruth=undefined;
       continue;
@@ -153,6 +156,11 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
     knownTruth = undefined;
     if (context.constants?.has(node)) { value = context.constants.get(node)!; continue; }
     switch (node.kind) {
+      case "await":
+        if(suspension===undefined||context.awaitValue===undefined)throw new UnsupportedExpressionError(node.kind);
+        meter.checkpoint(0,64);
+        work.push({kind:"await"},{node:node.value,test:"value"});
+        break;
       case "yield-from":
         if(suspension===undefined||context.delegate===undefined)throw new UnsupportedExpressionError(node.kind);
         meter.checkpoint(0,64);
@@ -432,7 +440,10 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
         work.push(next, { node: node.operands[0], test: "value" });
         break;
       }
-      default: throw new UnsupportedExpressionError(node.kind);
+      default: {
+        const unexpected:never=node;
+        throw new Error(`invalid expression node: ${unexpected}`);
+      }
     }
   }
   // A terminal node/continuation may call guest code without scheduling another

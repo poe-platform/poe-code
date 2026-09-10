@@ -10382,6 +10382,27 @@ extension, integration, or validation requirement is missing or unverified.
   package run (141.67s; bodies 10.02s).
   This does not complete generator names, frame/code metadata,
   finalization, async support, public runtime assembly or safe-fs integration.
+- Await acquisition and expression continuations (2026-09-10): added a metered
+  protocol boundary that distinguishes native coroutine/code flags from special
+  __await__ lookup. It validates the returned next slot without calling __iter__,
+  preserves source/iterator identity and protocol failures, rejects ordinary
+  iterators lacking await support and rejects native/generator-based coroutines
+  returned by __await__. CPython probes confirm these rules and the distinct
+  invalid-result diagnostics. Expression continuations now accept an explicit
+  await capability, preserving operands through nested awaits and injected errors;
+  absent or synchronous capabilities fail before source side effects. Thirteen
+  acquisition tests and three expression regressions pass after the missing
+  implementation and two unsupported-expression failures were demonstrated.
+  This is a required protocol/expression stage, not native coroutine execution.
+  The native coroutine object, await wrapper, reuse rules, prepared-iterator
+  delegation admission and default runtime wiring remain next. All 324 controlled
+  await-expression comparisons match CPython (not native coroutine integration).
+  Selected workspace build, typecheck and focused lint pass. All 7,481 tests in
+  509 files pass in the uncached one-worker package run (204.07s; bodies 14.97s).
+  Typechecking caught the now-exhaustive expression switch's obsolete fallback;
+  it now has a compile-time never guard. The final 77 focused tests also pass
+  after that guard and a fixture-only lint correction. Full async and safe-fs
+  execution remain open. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

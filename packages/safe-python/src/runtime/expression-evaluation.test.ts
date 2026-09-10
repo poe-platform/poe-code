@@ -45,6 +45,32 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("resumable expression execution",()=>{
+  it("retains operands across nested awaits without replaying their sources",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",10n],["b",20n]]));
+    context.awaitValue=function*(source){events.push(`await:${source}`);return yield source;};
+    const cursor=createExpressionContinuation(parseExpression("a + await (await b)"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:20n});
+    expect(cursor.next(2n)).toEqual({done:false,value:2n});
+    expect(cursor.next(3n)).toEqual({done:true,value:13n});
+    expect(events).toEqual(["load:a","load:b","await:20","await:2","binary:+"]);
+  });
+
+  it("rejects unavailable or synchronous await before source side effects",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",1n]])),expression=parseExpression("await a");
+    expect(()=>createExpressionContinuation(expression,context,budget(),null).next()).toThrow("await");
+    context.awaitValue=function*(){yield 1n;return 2n;};
+    expect(()=>evaluateExpression(expression,context,budget())).toThrow("await");
+    expect(events).toEqual([]);
+  });
+
+  it("delivers a thrown exception to the suspended await without later operand effects",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",1n],["b",2n]])),failure=Error("injected");
+    context.awaitValue=function*(source){yield source;return 9n;};
+    const cursor=createExpressionContinuation(parseExpression("await a + b"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:1n});expect(()=>cursor.throw(failure)).toThrow(failure);
+    expect(events).toEqual(["load:a"]);
+  });
+
   it("retains operands while a yield-from source itself yields, then uses the delegated return",()=>{
     const {context,events}=environment(new Map<string,Value>([["a",10n],["b",20n]])),meter=budget();
     context.delegate=function*(source){

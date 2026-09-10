@@ -39,6 +39,25 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["[member]", "(member,)"])("uses rich equality and guest truth for membership in %s", container => {
+    const state = fixture(`result=needle in ${container}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), truth = v.cell({}), trace: string[] = [];
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(operator, left, right) {
+      expect(operator).toBe("=="); expect(left).toBe(member); expect(right).toBe(needle);
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward() { trace.push("equal"); return truth; }, reflected: () => v.notImplemented } };
+    }, truth(value) { expect(value).toBe(truth); trace.push("truth"); return true; } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.true); expect(trace).toEqual(["equal", "truth"]);
+  });
+  it("continues list membership through elements appended by guest equality", () => {
+    const state = fixture("source=[member]\nresult=needle in source\n"), v = state.values, member = v.cell({}), needle = v.cell({});
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    let comparisons = 0;
+    state.hooks.expressions = () => ({ warn() {}, richComparison() { return { slots: {
+      rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented,
+      forward() { comparisons++; const source = state.globals.get("source"); if (source?.kind !== "list") throw Error("expected list"); source.items.append(needle); return v.false; }
+    } }; } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.true); expect(comparisons).toBe(1);
+  });
   it.each(["", "61", "61 62"])("decodes fromhex buffer input %s", text => {
     const state = fixture("result=b''.fromhex(source)\n"), v = state.values; let released = false;
     state.globals.set("source", v.cell({}));

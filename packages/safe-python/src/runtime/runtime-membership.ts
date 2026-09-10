@@ -9,12 +9,12 @@ import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { containsRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import { runtimeSetAccess } from "./runtime-set.js";
 import { protocolContains, type ContainmentContext } from "./containment-protocol.js";
-import { validateIndexResult, type IntegerIndexContext } from "./index-protocol.js";
+import { validateIndexResult } from "./index-protocol.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 
-export interface RuntimeMembershipContext {
-  readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
+export interface RuntimeMembershipContext extends RuntimeSearchEqualityContext {
   readonly buffers?: RuntimeBufferContext;
 }
 
@@ -49,13 +49,14 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
     found = rangeIndexOf(container.value, integer) !== undefined;
   } else if (container.kind === "tuple" || container.kind === "list" || container.kind === "iterator" || container.kind === "range") {
     const iterator = runtimeIterate(container, values, meter);
+    const equal = createRuntimeSearchEquality(values, meter, context);
     while (true) {
       meter.checkpoint();
       const item = iterator.next();
       meter.checkpoint();
       if (item.done) break;
       const member = item.value;
-      if (member === needle || runtimeComparison("==", member, needle, values, meter) === values.true) { found = true; break; }
+      if (member === needle || equal(member, needle)) { found = true; break; }
     }
   } else if (container.kind === "str") {
     if (needle.kind !== "str") {

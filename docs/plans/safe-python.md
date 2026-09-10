@@ -6895,6 +6895,16 @@ extension, integration, or validation requirement is missing or unverified.
   build pass. Concrete exporters, subclass constructors, remaining native
   protocols, automatic object assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected native list/tuple/iterator membership and noninteger range fallback
+  to the shared rich-equality/truth adapter already used by list search methods.
+  Membership had bypassed guest comparison bindings. Identity shortcuts and
+  live list iteration remain, so appended elements can satisfy later membership.
+- Three failing compiled regressions now pass. All 5,240 tests in 441 files pass;
+  48 CPython comparisons match results/errors and equality/truth traces across
+  lists, tuples, iterators, mutations and negation. Typecheck, scoped lint and
+  selected workspace build pass. Dictionary-view guest equality, remaining native
+  protocols, automatic object assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

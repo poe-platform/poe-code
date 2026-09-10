@@ -899,18 +899,27 @@ owner with error reporting. The snapshot and selected weak-reference checks pass
 ## Meaningful limitations
 
 Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
-`Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, and `Temporal.PlainDateTime` values
+`Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values
 with focused snapshot, replay and host-copy coverage. PlainTime currently has
 construction, subclassing, six field getters, `from`, `compare`, `equals`, `add`,
 `subtract`, `round`, `with`, `until`, `since`, `toString`, `toJSON`, `toLocaleString`,
 and the always-throwing `valueOf`. Method presence does not establish complete
 Temporal/Intl interoperability or conformance.
+`PlainTime.with` rejects owned date/time values before reading partial fields or
+options; `PlainTime.from` still accepts explicitly supplied time fields on a date.
 PlainDateTime has construction, calendar/date/time getters, `from`, `compare`,
-`equals`, `toPlainTime`, `with`, `withPlainTime`, `withCalendar`, `add`, `subtract`, `until`, `since`, `round`, `toString`, `toJSON`, `toLocaleString`, and `valueOf`, with
-focused copy and snapshot/replay coverage. Its conversions to missing date/zoned
-types remain unfinished. Expanded-year parsing preserves option-read order before
+`equals`, `toPlainTime`, `toPlainDate`, `with`, `withPlainTime`, `withCalendar`, `add`, `subtract`, `until`, `since`, `round`, `toString`, `toJSON`, `toLocaleString`, and `valueOf`, with
+focused copy and snapshot/replay coverage. Its `toZonedDateTime` conversion
+remains unfinished. Expanded-year parsing preserves option-read order before
 representable-range validation.
-Duration `relativeTo` accepts owned PlainDateTime values using their private ISO
+PlainDate currently has construction, calendar/date getters, `toString`, `toJSON`,
+and `valueOf`, with private data copying, host bindings, and heap/replay support.
+Its factories, arithmetic, field replacement, locale formatting, and conversions
+remain unfinished, as do private-date fast paths in related Temporal APIs.
+PlainDateTime input conversion and differences accept owned PlainDate values
+at midnight using their private ISO/calendar fields, without public getter reads.
+Calendar identifiers accept owned PlainDate and PlainDateTime values via private slots.
+Duration `relativeTo` accepts owned PlainDate and PlainDateTime values using their private ISO
 date and calendar, without reading shadowed public fields or using the time of day.
 Temporal string and relative-input validation rejects overflowing offset
 minutes/seconds rather than silently normalizing them; valid precise offsets
@@ -927,14 +936,15 @@ Intl formatting on older hosts remain incomplete.
 The last full SafeJS run, including an earlier partial PlainDateTime integration,
 passed 26,614 tests, failed two, and skipped 41. Both failures were native
 Promise property-import expectations. The newer PlainDateTime field replacement,
-arithmetic, differences, and locale/direct-Intl changes postdate that run.
+arithmetic, differences, locale/direct-Intl changes, and PlainDate integration
+postdate that run.
 The earlier timing failure did not recur.
 All 100 filesystem type contracts passed. No Temporal/Intl tests failed, but this is not a green package
 gate or complete JavaScript conformance; see the
 [current integration record](../../docs/plans/safejs-current-integration-gate.md).
 Instant differences (`until`/`since`) return
 Durations, and Instant `toLocaleString` supports locale-aware formatting.
-`Temporal.PlainDate`, `Temporal.PlainYearMonth`, `Temporal.PlainMonthDay`,
+`Temporal.PlainYearMonth`, `Temporal.PlainMonthDay`,
 `Temporal.ZonedDateTime`, and `Temporal.Now` are absent;
 Instant zoned conversion is still missing.
 Duration `compare` supports exact time comparisons and calendar/DST-relative inputs.

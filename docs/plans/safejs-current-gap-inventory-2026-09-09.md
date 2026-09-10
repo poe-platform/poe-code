@@ -53,8 +53,9 @@ It does not compare inherited typed-array methods or anonymous intrinsics.
 | Temporal.Duration | total, compare and round now present | Uncommitted implementation; broader calendar conformance remains open |
 | Temporal.PlainTime | Constructor, six field getters and all named prototype methods now present, including toLocaleString, with owned data copying and heap/replay codecs | Uncommitted public integration; direct Intl format/parts/ranges now accept PlainTime and Instant, with requested-options snapshot preservation; legacy snapshots use resolved fallback |
 | Intl fixed-offset zones on Node 18 | Strict offset validation and PlainTime.toLocaleString now pass focused Node 18 regressions | Numeric Date/Instant and direct Intl offset formatting remain incomplete; backend also fails all nine offset/type controls on Node 18 (d83fb6); see [offset-zone investigation](safejs-intl-offset-zone-portability.md) |
-| Temporal.PlainDateTime | Present with getters, from/compare/equals, with/withCalendar/withPlainTime, add/subtract, until/since, round, locale/ISO formatting and private copy/replay integration | Public integration remains uncommitted; toZonedDateTime and toPlainDate are still absent; direct Intl format/parts/ranges now accept owned PlainDateTime values |
-| Temporal.PlainDate, PlainYearMonth, PlainMonthDay, ZonedDateTime, Now | Absent | Remaining Temporal implementation work |
+| Temporal.PlainDateTime | Present with getters, from/compare/equals, with/withCalendar/withPlainTime, add/subtract, until/since, round, toPlainDate, locale/ISO formatting and private copy/replay integration | Public integration remains uncommitted; toZonedDateTime is still absent; direct Intl format/parts/ranges now accept owned PlainDateTime values |
+| Temporal.PlainDate | Constructor, calendar/date getters, toString/toJSON/valueOf, private copies, host bindings and heap/replay now exist in the working tree | Factories, arithmetic, replacement, locale formatting and conversions remain unfinished; see [PlainDate integration](safejs-temporal-plain-date.md) |
+| Temporal.PlainYearMonth, PlainMonthDay, ZonedDateTime, Now | Absent | Remaining Temporal implementation work |
 | Map.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; subsequently implemented locally | See [focused qualification](safejs-map-upsert.md); newer compatibility work, not a full conformance claim |
 | WeakMap.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; experimental implementation now exists | [WeakMap integration](safejs-weakmap-upsert.md) remains uncommitted and inherits older-Node weak-symbol limitations |
 | RegExp constructor | Native legacy capture/context properties absent | Compatibility difference requiring standards classification before a fix |
@@ -74,13 +75,24 @@ absent. This probe used the build qualified in the required-rounding-unit fix
 (e4c482), before the latest relativeTo calendar-bag adapter change. It does not
 establish behavioral or symbol/descriptor conformance, and it did not recheck Now.
 
-A newer source-runtime reflection check (f0a87e), compared against native
-Node 26.4.0, now finds only toPlainDate and toZonedDateTime missing from
+A subsequent source-runtime reflection check (f0a87e), compared against native
+Node 26.4.0, found only toPlainDate and toZonedDateTime missing from
 PlainDateTime's own prototype string names. Instant still lacks
 toZonedDateTimeISO; Duration and PlainTime have no missing names in this bounded
 comparison. PlainDate, PlainYearMonth, PlainMonthDay and ZonedDateTime remain
 absent, as does Now. This supersedes the earlier eight-method absence claim;
 it does not establish complete behavior, descriptors, symbols or delivery.
+That check predates the owned PlainDate integration and PlainDateTime.toPlainDate.
+The latter now passes all eight pinned upstream fixtures in both modes (16/16,
+bc79c9), plus focused private-slot, intrinsic-prototype and replay regressions;
+see safejs-temporal-plain-date.md. PlainDate remains partial, and the three other
+date/zoned constructors and Now remain unimplemented.
+
+After that reflection check, the PlainDate private core was committed locally
+as e7a984670. Constructor/getters, copying, host bindings and snapshot/replay
+integration now exist in the working tree, with seven public construction and
+host-result replay tests passing (ac537d). The earlier PlainDate absence result
+is historical; this partial implementation is not complete date interoperability.
 
 Recent upstream evidence at Test262 revision
 419d3e0a2273ba01a3bfcbec423f2801425b8e93: add/subtract passed all 168 runs;

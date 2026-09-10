@@ -13,7 +13,7 @@ import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./ru
  * when requested. Native iterator methods preserve completion metadata. Explicit
  * iteration policies remain responsible for custom exception-subclass matching. */
 export function createRuntimeIterationContext(values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext): IterationContext<RuntimeValue> {
-  meter.checkpoint(0, 640);
+  meter.checkpoint(0, 704);
   const typeName = (value: RuntimeValue): string => {
     const name = value.kind !== "iterator" && usesRuntimeGuestNumericSlots(value) ? invocation.typeName?.(value) : undefined;
     meter.checkpoint();
@@ -40,6 +40,7 @@ export function createRuntimeIterationContext(values: RuntimeValues, meter: Exec
       const present = usesRuntimeGuestNumericSlots(value) && (invocation.hasSpecial?.(value, "__next__") ?? false);
       meter.checkpoint(); return present;
     },
+    nativeIterator(value) { meter.checkpoint(); return value.kind === "iterator" ? value.value : undefined; },
     next(value) {
       const method = lookup(value, "__next__");
       // Explicit next() checks eligibility before this call. Iteration pulls

@@ -7616,6 +7616,18 @@ extension, integration, or validation requirement is missing or unverified.
   and scoped lint pass. Native iterator completion/hint audits, custom guest
   exception-subclass matching, full class/storage ownership and suspended safe-fs
   effects remain unfinished.
+- Preserved already-classified native exhaustion when guest __iter__ returns a
+  prepared native cursor. Two integration regressions failed first: loops and
+  containment converted native completion metadata to a throw, then incorrectly
+  classified it again. An optional native-cursor capability now returns completion
+  records intact, while explicit next still raises the recorded guest value,
+  including undefined. Six adapter tests cover record identity, resumability,
+  indexed fallback isolation, cancellation, native failures and reacquisition
+  without pulling. All 5,840 tests in 452 files, selected build, typecheck and
+  scoped lint pass; 120 guest iteration, 252 guest containment and 256 native
+  containment cases still match CPython. Native cursor hints, custom guest
+  exception-subclass matching, full class/storage ownership and suspended safe-fs
+  effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

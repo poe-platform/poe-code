@@ -17,7 +17,7 @@ export function createRuntimeContainmentPolicy(values: RuntimeValues, meter: Exe
     if (context !== undefined) return context;
     const iteration = invocation.iteration; meter.checkpoint();
     if (iteration === undefined) throw Error("containment requires an iteration policy");
-    meter.checkpoint(0, 768);
+    meter.checkpoint(0, 832);
     context = {
       lookupContains(value) {
         const method = invocation.lookupSpecial?.(value, "__contains__"); meter.checkpoint();
@@ -30,6 +30,7 @@ export function createRuntimeContainmentPolicy(values: RuntimeValues, meter: Exe
         };
       },
       lookupIter: iteration.lookupIter.bind(iteration), hasNext: iteration.hasNext.bind(iteration),
+      nativeIterator: iteration.nativeIterator?.bind(iteration),
       next: iteration.next.bind(iteration), hasSequenceItem: iteration.hasSequenceItem.bind(iteration),
       getItem: iteration.getItem.bind(iteration), isStopIteration: iteration.isStopIteration.bind(iteration),
       isIndexError: iteration.isIndexError.bind(iteration), typeName: iteration.typeName.bind(iteration),

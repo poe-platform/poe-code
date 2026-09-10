@@ -1255,3 +1255,17 @@ it("rejects cancelled contains methods before assigning results", () => {
   state.method(owner, "__contains__", "def contains(self, needle):\n stop()\n return False\n"); state.guest("guest", owner);
   expect(() => state.run("result=7 in guest\n")).toThrow("execution cancelled"); expect(state.globals.has("result")).toBe(false);
 });
+
+it.each(["for", "contains"])("preserves already-classified native exhaustion during guest %s consumption", consumer => {
+  for (const failure of [{ kind: "GuestStop" }, undefined]) {
+    const state = fixture(), owner = state.type("Guest"), v = state.v;
+    state.globals.set("native", v.iterator({ next: () => ({ done: true, value: undefined, exception: { value: failure } }) }));
+    state.method(owner, "__iter__", "def iterate(self):\n return native\n"); state.guest("guest", owner);
+    state.run(consumer === "for" ? "result=False\nfor item in guest:\n result=True\n" : "result=1 in guest\n");
+    expect(state.globals.get("result")).toBe(v.false);
+    state.globals.set("next", createNextBuiltin(v, state.meter));
+    let caught = false, error: unknown;
+    try { state.run("next(native)\n"); } catch (failure) { caught = true; error = failure; }
+    expect(caught).toBe(true); expect(error).toBe(failure);
+  }
+});

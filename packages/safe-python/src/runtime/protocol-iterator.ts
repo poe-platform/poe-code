@@ -1,7 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { SequenceIterator } from "./sequence-iterator.js";
-import type { CompletionResult } from "./iterator-completion.js";
+import type { CompletionIterator, CompletionResult } from "./iterator-completion.js";
 import { lengthHint, type LengthHintContext } from "./length-hint.js";
 
 export interface IterationContext<Value> {
@@ -15,6 +15,10 @@ export interface IterationContext<Value> {
   /** Check the next slot, without invoking it or requiring another __iter__. */
   hasNext(value: Value): boolean;
   next(iterator: Value): Value;
+  /** Adapt a prepared native cursor after iterator validation, without another
+   * __iter__ call. Its completion metadata is already classified; never convert
+   * it to a throw and then reclassify it through the guest exception policy. */
+  nativeIterator?(iterator: Value): CompletionIterator<Value> | undefined;
   /** Legacy sequence-slot eligibility, not merely an instance attribute check. */
   hasSequenceItem(value: Value): boolean;
   getItem(sequence: Value, index: bigint): Value;
@@ -61,9 +65,13 @@ export function resolveIteration<Value>(value: Value, context: IterationContext<
 export class ProtocolIterator<Value> implements IterableIterator<Value> {
   readonly #source: { value: Value } | undefined;
   readonly #sequence: SequenceIterator<Value> | undefined;
+  readonly #native: CompletionIterator<Value> | undefined;
 
   constructor(value: Value, private readonly context: IterationContext<Value>, private readonly meter: ExecutionMeter, notIterable?: (typeName: string) => never) {
     const source = resolveIteration(value, context, meter, notIterable);
+    meter.checkpoint(0, 8);
+    this.#native = source.sequence ? undefined : context.nativeIterator?.(source.value);
+    meter.checkpoint();
     this.#source = source.sequence ? undefined : source;
     this.#sequence = source.sequence ? new SequenceIterator(source.value, context, meter) : undefined;
   }
@@ -92,6 +100,9 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
   next(): CompletionResult<Value> {
     if (this.#sequence !== undefined) return this.#sequence.next();
     this.meter.checkpoint(1, 16);
+    if (this.#native !== undefined) {
+      const result = this.#native.next(); this.meter.checkpoint(); return result;
+    }
     let value: Value;
     try { value = this.context.next(this.#source!.value); }
     catch (error) {

@@ -8795,6 +8795,21 @@ extension, integration, or validation requirement is missing or unverified.
   interpreter/safe-fs integration.
   Workspace build, typecheck and focused lint pass; all 6,750 unit tests in 493
   files pass with two workers. All 450 differential cases above pass.
+- Implemented exact set/frozenset representation with metered key snapshots,
+  type-specific empty/recursive text and shared active-path guards. Seven RED
+  cases exposed missing set repr plus tuple/dict explicit calls bypassing active
+  guest callbacks. Native container repr adapters now acquire the caller's
+  representation context only for containers; scalar fast paths remain lazy.
+  Nine added tests cover guest elements, native formatting, snapshot mutation,
+  recursion, original exceptions and guard recovery within one execution.
+  All 90 set/container differential cases match CPython; comparisons avoid
+  depending on set iteration order, which is not a Python ordering guarantee.
+  Canonical set type slots/subclass storage, remaining native catalogs and full
+  public execution/safe-fs assembly are not completed by this increment.
+  Final workspace build, typecheck and focused lint pass; all 6,759 unit tests
+  in 493 files pass with two workers. The 90 new differential cases and earlier
+  106 decorator, 105 bound-callable, 78 descriptor, 81 object and 80 list cases
+  all pass (540 total).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

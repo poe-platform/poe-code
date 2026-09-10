@@ -20,6 +20,7 @@ export interface RuntimeFormatHooks extends RuntimeRepresentationHooks {
 export function hasNativeObjectFormat(value: RuntimeValue): boolean {
   return value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented"
     || value.kind === "bytes" || value.kind === "list" || value.kind === "tuple" || value.kind === "dict"
+    || value.kind === "set" || value.kind === "frozenset"
     || value.kind === "mappingproxy" || value.kind === "range" || value.kind === "dict_keys"
     || value.kind === "dict_values" || value.kind === "dict_items";
 }

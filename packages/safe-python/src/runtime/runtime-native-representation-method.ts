@@ -5,16 +5,17 @@ import { floatRepresentation } from "./float-representation.js";
 import { complexRepresentation } from "./complex-representation.js";
 import { rangeRepresentation } from "./range-representation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { createRuntimeRepresentationContext } from "./runtime-representation.js";
 import { representationObject } from "./representation-protocol.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
-type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "list" | "tuple" | "dict" | "mappingproxy" | "dict_keys" | "dict_values" | "dict_items" | "none" | "ellipsis" | "not-implemented" }>;
+type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "list" | "tuple" | "dict" | "set" | "frozenset" | "mappingproxy" | "dict_keys" | "dict_values" | "dict_items" | "none" | "ellipsis" | "not-implemented" }>;
 
 /** One capability guard shared by attribute and implicit representation lookup. */
 export function hasNativeRepresentation(value: RuntimeValue): value is NativeRepresentationValue {
   return value.kind === "str" || value.kind === "bytes" || value.kind === "int" || value.kind === "bool"
+    || value.kind === "set" || value.kind === "frozenset"
     || value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items"
     || value.kind === "float" || value.kind === "complex" || value.kind === "range" || value.kind === "list" || value.kind === "tuple" || value.kind === "dict" || value.kind === "mappingproxy" || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
 }
@@ -25,20 +26,20 @@ export function createRuntimeNativeRepresentationMethod(receiver: NativeRepresen
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `wrapper ${name}() takes no keyword arguments`);
       if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `expected 0 arguments, got ${positional.length}`);
-      return runtimeNativeRepresentation(receiver, name, values, meter);
+      return runtimeNativeRepresentation(receiver, name, values, meter, invocation);
     }
   });
 }
 
 /** Shared native slot operation, separate from explicit method argument checks. */
-export function runtimeNativeRepresentation(receiver: NativeRepresentationValue, name: "__str__" | "__repr__", values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
+export function runtimeNativeRepresentation(receiver: NativeRepresentationValue, name: "__str__" | "__repr__", values: RuntimeValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "formatting">): RuntimeValue {
   meter.checkpoint();
-  if (receiver.kind === "list" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "mappingproxy" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") {
-    const context = createRuntimeRepresentationContext(values, meter, {
+  if (receiver.kind === "list" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "set" || receiver.kind === "frozenset" || receiver.kind === "mappingproxy" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") {
+    const context = invocation?.formatting ?? createRuntimeRepresentationContext(values, meter, {
       defaultRepr() { throw new UnsupportedExpressionError("attribute"); }
     });
     return representationObject(receiver, name === "__str__" ? "str" : "repr", context, meter);

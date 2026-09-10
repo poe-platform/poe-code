@@ -49,6 +49,47 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("represents %s contents using active guest repr", (kind, construct) => {
+  const state = fixture(); state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
+  state.run(`class Value:\n def __repr__(self):\n  visit('repr')\n  return 'guest'\nitems=${kind}([Value()])\nresult=f'{items!r}'\nexplicit=items.__repr__()\ntext=items.__str__()\nformatted=items.__format__('')\nempty=f'{${kind}()!r}'\n`);
+  const expected = kind === "set" ? "{guest}" : "frozenset({guest})";
+  for (const name of ["result", "explicit", "text", "formatted"]) expect(state.globals.get(name)).toEqual(state.v.string(expected));
+  expect(state.globals.get("empty")).toEqual(state.v.string(`${kind}()`)); expect(state.events).toEqual(Array(4).fill("repr"));
+});
+
+it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("shares recursion guards with explicit %s repr", (kind, construct) => {
+  const state = fixture(); state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
+  state.run(`class Value:\n def __repr__(self):\n  return items.__repr__()\nitems=${kind}([Value()])\nresult=f'{items!r}'\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string(kind === "set" ? "{set(...)}" : "frozenset({frozenset(...)})"));
+});
+
+it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("restores %s representation guards after guest errors", (kind, construct) => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.builtins.set("recover", state.v.builtinFunction({ name: "recover", invoke(args, _keywords, _meter, invocation) {
+    if (invocation === undefined) throw Error("expected invocation");
+    let caught: unknown; try { invocation.call(args[0], []); } catch (error) { caught = error; }
+    expect(caught).toBe(failure); return invocation.call(args[0], []);
+  } }));
+  state.run(`class Value:\n def __init__(self):\n  self.first=True\n def __repr__(self):\n  if self.first:\n   self.first=False\n   fail()\n  return 'ok'\nitems=${kind}([Value()])\nresult=recover(items.__repr__)\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string(kind === "set" ? "{ok}" : "frozenset({ok})")); expect(state.calls.depth).toBe(0);
+  expect(() => state.run("items.__repr__(1)\n")).toThrow("expected 0 arguments, got 1");
+  expect(() => state.run("items.__repr__(x=1)\n")).toThrow("wrapper __repr__() takes no keyword arguments");
+  expect(() => state.run("items.__format__('x')\n")).toThrow(`unsupported format string passed to ${kind}.__format__`);
+});
+
+it("snapshots set members before guest representation mutates storage", () => {
+  const state = fixture();
+  state.run("class Value:\n def __init__(self,name):\n  self.name=name\n def __repr__(self):\n  visit(self.name)\n  items.clear()\n  return self.name\nitems={Value('first'),Value('second')}\nresult=f'{items!r}'\nempty=f'{items!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("{first, second}")); expect(state.events).toEqual(["first", "second"]); expect(state.globals.get("empty")).toEqual(state.v.string("set()"));
+});
+
+it.each([["(Value(),)", "(guest,)"], ["{'key':Value()}", "{'key': guest}"]])("uses active guest repr in explicit container representation %s", (source, expected) => {
+  const state = fixture(); state.run(`class Value:\n def __repr__(self):\n  visit('repr')\n  return 'guest'\nitems=${source}\nresult=items.__repr__()\ntext=items.__str__()\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string(expected)); expect(state.globals.get("text")).toEqual(state.v.string(expected)); expect(state.events).toEqual(["repr", "repr"]);
+});
+
 it.each(["staticmethod", "classmethod"] as const)("represents %s payloads and subclasses through active guest repr", kind => {
   const state = fixture(); state.globals.set(kind, state.registry.methodDecoratorType(kind));
   state.run(`class Value:\n def __repr__(self):\n  visit('repr')\n  return 'guest'\nclass Child(${kind}):\n pass\nitem=${kind}(Value())\nchild=Child(Value())\nresult=f'{item!r}'\nexplicit=item.__repr__()\ntext=item.__str__()\nformatted=item.__format__('')\nsub=f'{child!r}'\nempty=${kind}.__new__(${kind})\nuninitialized=f'{empty!r}'\n`);

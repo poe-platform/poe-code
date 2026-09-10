@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { createSumBuiltin, type SumContext } from "./builtin-sum.js";
-import { ExecutionBudget } from "./execution-budget.js";
+import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
+import { PythonRuntimeError } from "./error.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
@@ -46,4 +47,24 @@ it("uses complete native addition by default, including sequence diagnostics", (
   const { v, meter, keywords } = fixture(), builtin = createSumBuiltin(v, meter);
   expect(builtin.value.invoke([v.list([v.integer(1), v.integer(2)])], keywords, meter)).toBe(v.integer(3));
   expect(() => builtin.value.invoke([v.list([v.integer(1)]), v.list([])], keywords, meter)).toThrow('can only concatenate list (not "int") to list');
+});
+it("retains explicit addition policy and its receiver over invocation dispatch", () => {
+  const { v, meter, keywords, context } = fixture(), start = v.cell({}), member = v.cell({}), answer = v.cell({});
+  const unused = (): never => { throw Error("explicit addition must win"); };
+  context.add = function(left, right) { expect(this).toBe(context); expect(left).toBe(start); expect(right).toBe(member); return answer; };
+  expect(createSumBuiltin(v, meter, context).value.invoke([v.list([member]), start], keywords, meter, { call: unused, isStopIteration: unused, binary: unused })).toBe(answer);
+});
+it("propagates invocation addition StopIteration without treating it as source exhaustion", () => {
+  const { v, meter, keywords } = fixture(), start = v.cell({}), member = v.cell({}), fault = new PythonRuntimeError("StopIteration", "addition failed"); let pulls = 0;
+  const source = v.iterator({ next() { pulls++; return { done: false, value: member }; } }), unused = (): never => { throw Error("unexpected callback"); };
+  expect(() => createSumBuiltin(v, meter).value.invoke([source, start], keywords, meter, { call: unused, isStopIteration: unused, binary(operator, left, right) {
+    expect(operator).toBe("+"); expect(left).toBe(start); expect(right).toBe(member); throw fault;
+  } })).toThrow(fault); expect(pulls).toBe(1);
+});
+it("checks cancellation after invocation addition before requesting another item", () => {
+  const { v, meter, keywords } = fixture(), start = v.cell({}); let cancelled = false, pulls = 0;
+  const source = v.iterator({ next() { pulls++; return { done: false, value: start }; } }), unused = (): never => { throw Error("unexpected callback"); };
+  expect(() => createSumBuiltin(v, meter).value.invoke([source, start], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, {
+    call: unused, isStopIteration: unused, binary() { cancelled = true; return start; }
+  })).toThrow(ExecutionLimitError); expect(pulls).toBe(1);
 });

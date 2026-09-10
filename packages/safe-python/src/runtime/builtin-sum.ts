@@ -21,7 +21,7 @@ export interface SumContext {
  * source. Numeric phase progression is owned by the streaming sum kernel. */
 export function createSumBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: SumContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name: "sum", invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name: "sum", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     const count = positional.length + keywords.items.size;
     if (count > 2) throw new PythonRuntimeError("TypeError", `sum() takes at most 2 ${positional.length ? "" : "keyword "}arguments (${count} given)`);
@@ -38,13 +38,18 @@ export function createSumBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
         throw new PythonRuntimeError("TypeError", `sum() got an unexpected keyword argument '${label}'${hint}`);
       }
     }
-    const cursor = runtimeIterate(positional[0], values, meter, context.iteration);
+    const cursor = runtimeIterate(positional[0], values, meter, context.iteration ?? invocation?.iteration);
     if (start === undefined) start = values.integer(0);
     else {
       const kind = start.kind === "str" ? "strings" : start.kind === "bytes" ? "bytes" : context.stringStart?.(start);
       meter.checkpoint();
       if (kind !== undefined) throw new PythonRuntimeError("TypeError", `sum() can't sum ${kind} [use ${kind === "strings" ? "''" : "b''"}.join(seq) instead]`);
     }
-    return sumIterator(cursor, start, values, context.add?.bind(context) ?? ((a, b) => runtimeAddition(a, b, values, meter)), meter);
+    meter.checkpoint(0, 64);
+    return sumIterator(cursor, start, values, (left, right) => {
+      if (context.add !== undefined) return context.add(left, right);
+      if (invocation?.binary !== undefined) return invocation.binary("+", left, right);
+      return runtimeAddition(left, right, values, meter);
+    }, meter);
   } });
 }

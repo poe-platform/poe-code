@@ -7147,6 +7147,16 @@ extension, integration, or validation requirement is missing or unverified.
   absent, so host preallocation MemoryError behavior is not reproduced. Exact
   sort comparison schedules, remaining builtin integrations, concrete native
   types and resumable safe-fs execution remain unfinished.
+- Sum now inherits frame input iteration and ordinary binary-expression dispatch
+  for generic additions, retaining staged numeric fast paths and explicit
+  addition policy priority. Two compiled regressions failed before the change
+  (guest input rejection and missing reflected addition), then passed in nested
+  functions. Three additional tests cover explicit receiver/override priority,
+  addition-raised StopIteration identity and cancellation before another pull.
+  All 5,363 tests in 444 files pass; selected build, typecheck and scoped lint
+  pass. Guest string-subclass start classification still requires its explicit
+  policy; native type assembly, remaining builtin integrations, suspended effects
+  and full safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -291,3 +291,12 @@ These features are available but subject to breaking changes.
 - **[Ralph](packages/ralph/)** — Agentic build loop that iterates on a markdown doc
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.
 - **[Poe Agent](packages/poe-agent/)** — Composable agent runtime
+
+### Update Poe Code
+
+```sh
+npx poe-code@latest update
+npx poe-code@latest update --package-manager pnpm
+```
+
+For version checks, dry runs, and managed worktrees, see the [reference](docs/README_FULL.md#updates-and-managed-worktrees).

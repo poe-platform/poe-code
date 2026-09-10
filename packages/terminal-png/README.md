@@ -18,7 +18,11 @@ await renderTerminalPng(ansiText, {
 
 - `output`: path to the output PNG file
 - `window`: include terminal window chrome
-- `padding`: padding around the rendered terminal content
+- `padding`: non-negative integer padding around the rendered terminal content
+
+The ANSI parser supports common SGR styling, cursor positioning and movement, save/restore cursor,
+erase-in-line/display, tabs, double-width characters, and combining marks. Parsed terminal state is
+bounded to 1000 rows by 1000 columns to avoid unbounded renders from hostile control sequences.
 
 ## CLI
 

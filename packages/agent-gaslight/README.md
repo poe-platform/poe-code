@@ -125,3 +125,5 @@ After all rounds for a plan finish successfully, Gaslight leaves the plan file i
 - `collectHumanPrompts`: Injectable trace collector for tests and custom hosts.
 
 The ingest result contains the generated config path, prompt data path, prompt count, and trace count.
+
+The CLI accepts `--plans <paths...>` for sequential plans, `--worktree` for managed execution, and `--mode read|edit|yolo|auto` (default `auto`). Managed worktree execution belongs to the CLI and the root `poe-code` SDK wrapper; the package-level `runGaslight` options do not include `worktree`. `gaslight ingest` reads selected Claude/Codex traces with `--sources`, `--since`, `--limit`, and optional `--all-workspaces`, `--output`, and `--keep-data`. Existing `auto-archive`, setup/teardown, variable, and daemon settings remain independent of these options.

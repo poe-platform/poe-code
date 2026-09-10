@@ -59,6 +59,10 @@ State definition fields:
 | `mode`     | `"yolo" \| "auto" \| "edit" \| "read"` | agent-spawn default (`"auto"`) | Spawn mode for this state. Omit it to use the shared agent-spawn default.                          |
 | `terminal` | boolean                                | `false`                        | Marks this state as terminal. Terminal states are not dispatched and their workspaces are removed. |
 
+State names, prompts, workflow paths, and workflow config shapes are validated
+before tasks are dispatched. Blank state names/prompts and unsafe workflow names
+are rejected instead of falling back to defaults.
+
 ### Template variables
 
 | Variable           | Behavior                                  |

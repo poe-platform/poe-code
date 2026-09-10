@@ -95,8 +95,9 @@ spawn:<name>
 ## Failure Modes
 
 - Missing optional dependency: when `enabled` is `true` but `braintrust` is not installed, the first SDK load records a status error and Braintrust logging is skipped.
-- Missing `apiKey`: when `enabled` is `true` and `apiKey` is empty or absent, bootstrap fails with `Braintrust integration is enabled but apiKey is missing`.
-- Missing `project`: when `enabled` is `true` and `project` is empty or absent, bootstrap fails with `Braintrust integration is enabled but project is missing`.
+- Missing `apiKey`: when `enabled` is `true` and the trimmed `apiKey` is empty or absent, bootstrap fails with `Braintrust integration is enabled but apiKey is missing`.
+- Missing `project`: when `enabled` is `true` and the trimmed `project` is empty or absent, bootstrap fails with `Braintrust integration is enabled but project is missing`.
+- Invalid metrics: negative, fractional where integer totals are required, or non-finite pipeline, token, baseline, or score metrics are omitted instead of being written as telemetry.
 - Network or SDK errors: SDK initialization, logging, and flush failures are recorded in integration status and swallowed so the orchestrator can continue.
 
 ## Status

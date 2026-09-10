@@ -15,6 +15,13 @@ const { frontmatter, sections } = await readMarkdown({ file });
 const { markdown, section } = await readSection({ file, section: "2.1" });
 ```
 
+## Resolution rules
+
+- Empty file paths and empty section ids are rejected before reading from disk.
+- Numbered section paths are preferred over unnumbered headings whose literal title is numeric.
+- Lines inside HTML comments are ignored while scanning headings.
+- A leading thematic break is treated as Markdown body text unless it is valid YAML frontmatter.
+
 ## MCP tool names
 
 - `read`

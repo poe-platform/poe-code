@@ -94,6 +94,10 @@ Docs are auto-discovered from the shared plan directory, `docs/plans` by default
 3. Multiple — prompt for selection
 4. None — fail
 
+Ralph frontmatter validates plan status, iteration counters, configured agents,
+and maximum iterations before a run starts. Invalid plan metadata is reported as
+a document error instead of being coerced.
+
 ## Custom Plan Directory
 
 By default docs are discovered from `docs/plans`. To use a different directory:
@@ -135,6 +139,8 @@ Ralph archives completed docs by default. Disable this with `poe-code ralph run 
 poe-code ralph init [doc]  [--agent <name>] [--iterations <n>]
 poe-code ralph run  [doc]  [--agent <name>] [--iterations <n>] [--cwd <path>] [--archive|--no-archive] [--tui|--no-tui] [--runtime host|docker] [--worktree]
 ```
+
+Pass `--worktree` to the `poe-code ralph run` CLI to run the whole Ralph loop in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts. The root `poe-code` SDK wrapper also supports worktrees; the package-level runner below does not accept a `worktree` option.
 
 ## Package API
 

@@ -2,6 +2,8 @@
 
 `@poe-code/agent-spawn` contains the low-level spawn adapters used by the CLI and SDK to run supported coding agents, stream ACP-like events, pass model and permission-mode flags, inject MCP servers at spawn time, and resume prior sessions when an agent returns a thread/session ID.
 
+Cursor spawns use the authenticated `cursor-agent` installation and the user's Cursor account. The Cursor mapping does not inject Poe provider credentials; normal inherited and caller-supplied child environment values still apply. Supported modes map to Cursor's forced sandbox-disabled, forced edit, and plan/read-only modes. Cursor does not support `auto` mode.
+
 ## Usage
 
 ```ts
@@ -40,6 +42,12 @@ Omitting `mode` uses the shared `auto` default. Mode-specific args and env vars 
 ## MCP at spawn time
 
 Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
+
+MCP server names and commands must be non-blank before provider-specific serialization runs. Goose rejects MCP entries with `env` or `timeout` values because its CLI argument format cannot preserve them, and OpenCode rejects MCP timeouts because its environment-config path cannot preserve them. Temporary MCP files are written only through non-symlinked target paths and bridged resources are cleaned up if setup fails.
+
+## Resuming sessions
+
+Pass `resumeThreadId` to continue a prior provider thread/session. Declarative agent configs decide where the resume arguments are inserted and how user-facing resume hints are rendered. Claude Code, Codex, Cursor, OpenCode, Kimi, Goose, and Poe Agent have resume mappings; Poe Agent persists its local message history under `~/.poe-code/sessions/`.
 
 ## Autonomous streaming
 

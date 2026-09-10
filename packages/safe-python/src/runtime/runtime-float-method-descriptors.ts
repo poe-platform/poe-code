@@ -3,11 +3,28 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeFloatPayload } from "./runtime-float-payload.js";
 import { floatAsIntegerRatio, floatToInteger } from "./numeric-conversion.js";
 import { floatHex } from "./float-hex.js";
+import { floatRound } from "./rounding.js";
+import { integerIndex } from "./index-protocol.js";
+import { runtimeIntegerIndex } from "./runtime-integer-index.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Native float members inspect owned storage directly. Conversions produce
  * base values without invoking subclass overrides. */
 export function installRuntimeFloatMethodDescriptors(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+  meter.checkpoint(0,96);
+  owner.value.namespace.items.set(values.string("__round__"),values.methodDescriptor({owner,name:"__round__",doc:"Return the Integral closest to x, rounding half toward even.\n\nWhen an argument is passed, work like built-in round(x, ndigits).",accepts:receiver=>runtimeFloatPayload(receiver)!==undefined,
+    invoke(receiver,positional,keywords,meter,invocation) {
+      meter.checkpoint();
+      if(keywords.items.size!==0)throw new PythonRuntimeError("TypeError","float.__round__() takes no keyword arguments");
+      if(positional.length>1)throw new PythonRuntimeError("TypeError",`__round__ expected at most 1 argument, got ${positional.length}`);
+      const digits=positional[0];
+      const places=digits===undefined||digits.kind==="none"?undefined:invocation?.integerIndex===undefined?runtimeIntegerIndex(digits,meter):integerIndex(digits,invocation.integerIndex,meter);
+      // Binary64 ratios and decimal factors have a fixed bounded size.
+      meter.checkpoint(128,8192);
+      const payload=runtimeFloatPayload(receiver)!;
+      return places===undefined?values.integer(floatRound(payload.value)):values.float(floatRound(payload.value,places));
+    }
+  }));
   for (const [name,doc] of [["real","the real part of a complex number"],["imag","the imaginary part of a complex number"]] as const) {
     meter.checkpoint(0,96);
     owner.value.namespace.items.set(values.string(name),values.getsetDescriptor({owner,name,doc,accepts:receiver=>runtimeFloatPayload(receiver)!==undefined,

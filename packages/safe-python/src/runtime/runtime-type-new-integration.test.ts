@@ -67,6 +67,14 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("rounds owned floats through the canonical descriptor and index protocol", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());state.globals.set("Int",state.registry.integerType());
+  state.builtins.set("round",createRoundBuiltin(state.v,state.meter));
+  state.run("class Child(Float):\n def __float__(self):\n  visit('wrong')\n  return 9.0\nclass Digits:\n def __index__(self):\n  visit('index')\n  return 1\nx=Child(1.25)\ncorrect=round(x)==1 and type(round(x)) is Int and x.__round__(None)==1 and x.__round__(Digits())==1.2 and type(x.__round__(2)) is Float and Float.__round__(2.5)==2 and Float.__round__(3.5)==4 and Float.__round__.__objclass__ is Float\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["index"]);
+  expect(()=>state.run("x.__round__(ndigits=1)\n")).toThrow("takes no keyword arguments");
+});
+
 it("publishes float data descriptors without invoking subclass conversions", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Child(Float):\n def __float__(self):\n  visit('wrong')\n  return 9.0\nx=1.25\ny=Child(x)\ncorrect=Float.real.__get__(x) is x and x.real is x and y.real==x and type(y.real) is Float and y.imag==0.0 and type(y.imag) is Float and Float.imag.__objclass__ is Float\n");

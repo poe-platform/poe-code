@@ -9459,6 +9459,17 @@ extension, integration, or validation requirement is missing or unverified.
   package run. Float rounding, formatting and subclass-aware fromhex remain
   next; full interpreter and safe-fs execution remain unfinished. No push or
   release was requested.
+- Canonical float rounding (2026-09-10): a failing integration test confirmed
+  owned floats lacked __round__. Published the method descriptor with native
+  payload access, optional None handling, guest __index__ conversion and exact
+  argument diagnostics, reusing the metered exact-ratio rounding kernel.
+  Built-in round now reaches inherited float rounding for owned subclasses;
+  __float__ overrides remain untouched. All 522 descriptor/protocol cases and
+  2,000 seeded binary64 rounding comparisons match CPython exactly. Workspace
+  build, typecheck, focused lint and all 7,029 tests in 498 files pass in the
+  uncached one-worker package run. Float formatting and subclass-aware fromhex
+  remain next; full interpreter and safe-fs execution remain unfinished.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

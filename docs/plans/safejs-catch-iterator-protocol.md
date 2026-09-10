@@ -75,6 +75,28 @@ checks the restored scope node's string discriminator against only the two
 supported scope-bearing types. These are type-only changes; a fresh TypeScript
 check is running in session 30946. Do not integrate based only on focused passes.
 
+## Compatibility review and broader checks
+
+TypeScript session 30946 passed (78dee1). Review then identified that retaining
+the CatchClause scope while executing the body would unnecessarily change valid
+older body snapshots. The candidate now records that extra scope only during
+parameter binding, and the AST validator expects it only on that path. Body
+scope records keep their previous shape. The updated focused protocol,
+checkpoint and AST-ownership selection passes 52 cases (6e9c35).
+
+Three public dump snapshots created by unchanged main are accepted by the
+candidate (a8343c). Six old-runtime internal snapshots, spanning sync/async
+generators and destructuring/simple/omitted catch parameters, restore and resume
+to the expected final result (d25e34). This checks actual execution, not merely
+acceptance.
+
+Candidate snapshot run 19063 completed successfully: 2,186 passes, zero failures
+or skips, 160 files (0ee270). The parameter-only scope refinement occurred while
+that run was active, so this is broad candidate evidence, not a clean immutable
+final-source gate. The 52-case focused check covers that refinement separately.
+Final candidate lint/TypeScript command is session 52420; confirm its terminal
+result. Main integration session 69114 remains live and main sources unchanged.
+
 ## Repair requirements
 
 Prefer sharing the maintained binding/iterator implementation over perpetuating

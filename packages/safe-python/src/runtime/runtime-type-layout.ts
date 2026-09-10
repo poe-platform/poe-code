@@ -5,6 +5,13 @@ import type { ClassAttribute } from "./instance-attributes.js";
 import { resolveRuntimeClassAttribute, type RuntimeDescriptorContext } from "./runtime-descriptor.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
+export interface RuntimeTypeLayoutOptions {
+  /** Presence of the native sequence protocol table, not whether any slot is
+   * implemented or whether the type is a Sequence. Heap types have a table even
+   * when empty; static native types can omit it. This affects *= fallback. */
+  readonly sequenceTable?: boolean;
+}
+
 /** Immutable inheritance metadata with an owned, live namespace. The class
  * builder supplies explicit bases (including object) and prepares the namespace.
  * This is not a guest type value; metaclass policy and mutable __bases__ belong
@@ -15,12 +22,14 @@ export class RuntimeTypeLayout {
   readonly bases: readonly RuntimeTypeLayout[];
   readonly mro: readonly RuntimeTypeLayout[];
   readonly namespace: DictionaryValue;
+  readonly hasSequenceTable: boolean;
 
-  constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter) {
-    meter.checkpoint(1, 96 + 8 * bases.length);
+  constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
+    meter.checkpoint(1, 104 + 8 * bases.length);
     this.name = name;
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
+    this.hasSequenceTable = options.sequenceTable ?? true;
     this.mro = linearizeMro<RuntimeTypeLayout>(this, this.bases, base => base.mro, meter);
     Object.freeze(this);
   }

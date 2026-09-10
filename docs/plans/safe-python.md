@@ -7464,6 +7464,18 @@ extension, integration, or validation requirement is missing or unverified.
   for *= (unlike ordinary *); current assembly still allows that fallback. This
   sequence-table eligibility gap, guest __imul__, native-subclass adaptation,
   metaclass overrides and suspended safe-fs effects remain unfinished.
+- Fixed augmented right-sequence fallback eligibility. Type layouts now expose
+  immutable sequence-table presence (heap default true; native registration can
+  specify sequenceTable:false), independent of implemented slots or Sequence
+  membership. Bootstrap object/type omit the table. Frame multiplication carries
+  that metadata; native range/dict/set/view/proxy tables also block right fallback
+  when they have no repeat slot. Five regressions failed first. Ten added cases
+  cover heap errors, native tables/views, explicit native absence, numeric
+  precedence, lazy metadata reads and cancellation. All 76 native augmented and
+  five guest scenarios match CPython; 96 ordinary repetition comparisons still
+  match. All 5,643 tests in 450 files pass; selected build, typecheck and scoped lint pass.
+  Guest __imul__, native-subclass storage adaptation, metaclass overrides, broader
+  numeric assembly and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

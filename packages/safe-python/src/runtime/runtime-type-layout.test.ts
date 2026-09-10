@@ -17,6 +17,14 @@ function fixture() {
 }
 
 describe("runtime type inheritance layouts", () => {
+  it("distinguishes absent native sequence tables from empty heap-type tables", () => {
+    const { namespace, meter } = fixture();
+    const native = new RuntimeTypeLayout("Native", [], namespace(), meter, { sequenceTable: false });
+    const heap = new RuntimeTypeLayout("Heap", [native], namespace(), meter);
+    expect(native.hasSequenceTable).toBe(false);
+    expect(heap.hasSequenceTable).toBe(true);
+    expect(Object.isFrozen(heap)).toBe(true);
+  });
   it("owns immutable base/MRO metadata while retaining the live namespace", () => {
     const { type, namespace, meter } = fixture(), root = type("object"), bases = [root], dict = namespace();
     const child = new RuntimeTypeLayout("Child", bases, dict, meter); bases.length = 0;

@@ -6,7 +6,7 @@ import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-progr
 import { RuntimeValues, type RuntimeValue, type TypeValue } from "./runtime-values.js";
 import { ExecutionBudget } from "./execution-budget.js";
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
-import { RuntimeTypeLayout } from "./runtime-type-layout.js";
+import { RuntimeTypeLayout, type RuntimeTypeLayoutOptions } from "./runtime-type-layout.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { createRepresentationBuiltin } from "./builtin-representation.js";
@@ -27,8 +27,8 @@ function fixture(signal?: AbortSignal) {
     expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "method()", keywordName: unused, invoke: unused
   };
-  function type(name: string, base = registry.object): TypeValue {
-    return registry.publish(new RuntimeTypeLayout(name, [base.value], v.dictionary(new OrderedKeyMap(keys, meter)), meter), registry.type);
+  function type(name: string, base = registry.object, options: RuntimeTypeLayoutOptions = {}): TypeValue {
+    return registry.publish(new RuntimeTypeLayout(name, [base.value], v.dictionary(new OrderedKeyMap(keys, meter)), meter, options), registry.type);
   }
   function method(owner: TypeValue, name: string, source: string) {
     const code = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter);
@@ -241,4 +241,38 @@ it("retains repeated list slots when augmented target write-back fails", () => {
   state.guest("guest", owner); state.globals.set("container", state.v.tuple([items]));
   expect(() => state.run("container[0] *= guest\n")).toThrow("does not support item assignment");
   expect(items.items.snapshot()).toEqual([state.v.true, state.v.true]);
+});
+
+it.each(["list", "tuple", "str", "bytes"] as const)("rejects augmented right-%s fallback for an index-only heap type", kind => {
+  const state = fixture(), owner = state.type("Index"), v = state.v;
+  state.method(owner, "__index__", "def index(self):\n visit('index')\n return 2\n");
+  const guest = state.guest("guest", owner);
+  const right = kind === "list" ? v.list([v.true]) : kind === "tuple" ? v.tuple([v.true]) : kind === "str" ? v.string("x") : v.bytes(new Uint8Array([120]));
+  state.globals.set("right", right);
+  expect(() => state.run("guest *= right\n")).toThrow(`unsupported operand type(s) for *=: 'Index' and '${kind}'`);
+  expect(state.globals.get("guest")).toBe(guest);
+  expect(state.events).toEqual([]);
+});
+
+it("allows explicitly absent native sequence tables to use right-hand repetition", () => {
+  const state = fixture(), owner = state.type("NativeIndex", undefined, { sequenceTable: false }), v = state.v;
+  state.method(owner, "__index__", "def index(self):\n visit('index')\n return 2\n");
+  state.guest("guest", owner);
+  const right = v.list([v.true]); state.globals.set("right", right);
+  state.run("guest *= right\n");
+  const result = state.globals.get("guest");
+  expect(result?.kind).toBe("list");
+  if (result?.kind !== "list") throw Error("expected list");
+  expect(result).not.toBe(right); expect(result.items.snapshot()).toEqual([v.true, v.true]);
+  expect(right.items.snapshot()).toEqual([v.true]); expect(state.events).toEqual(["index"]);
+});
+
+it("runs numeric multiplication before testing right-sequence fallback eligibility", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__mul__", "def multiply(self, other):\n visit('numeric')\n return False\n");
+  state.method(owner, "__index__", "def index(self):\n visit('index')\n return 2\n");
+  state.guest("guest", owner);
+  state.run("guest *= [True]\n");
+  expect(state.globals.get("guest")).toBe(state.v.false);
+  expect(state.events).toEqual(["numeric"]);
 });

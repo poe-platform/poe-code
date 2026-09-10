@@ -2,6 +2,8 @@ import { expect, it, vi } from "vitest";
 import { runtimeMultiplication } from "./runtime-multiplication.js";
 import { ExecutionBudget } from "./execution-budget.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
+import { OrderedKeyMap } from "./ordered-key-map.js";
+import { createRange } from "./integer-sequence.js";
 
 it.each(["list", "tuple", "str", "bytes"] as const)("repeats %s through a guest index in either operand order", kind => {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -72,4 +74,29 @@ it("reports sequence and numeric failures after declined negotiation", () => {
     forward: () => v.notImplemented, reflected: () => v.notImplemented, reflectedIsOverridden: () => false };
   expect(runtimeMultiplication(v.string("x"), v.integer(3), v, meter, { numeric })).toEqual(v.string("xxx"));
   expect(() => runtimeMultiplication(v.integer(2), v.integer(3), v, meter, { numeric })).toThrow("unsupported operand type(s) for *: 'int' and 'int'");
+});
+
+it("does not use right-sequence fallback for native sequence tables without repeat slots", () => {
+  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
+  const keys = { hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => a === b };
+  const dictionary = v.dictionary(new OrderedKeyMap(keys, meter));
+  const values = [v.range(createRange(0n, 1n, 1n)), dictionary, v.mappingProxy(dictionary), v.set(new OrderedKeyMap(keys, meter)), v.frozenSet(new OrderedKeyMap(keys, meter)), v.dictionaryView(dictionary, "dict_keys"), v.dictionaryView(dictionary, "dict_items"), v.dictionaryView(dictionary, "dict_values")];
+  for (const left of values) expect(() => runtimeMultiplication(left, v.list([]), v, meter, {}, true)).toThrow(`unsupported operand type(s) for *=: '${left.kind}' and 'list'`);
+});
+
+it("reads sequence-table policy only when selecting augmented right fallback", () => {
+  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
+  const context = { get leftHasSequenceTable(): never { throw Error("unused sequence-table policy"); } };
+  expect(runtimeMultiplication(v.integer(2), v.string("x"), v, meter, context)).toEqual(v.string("xx"));
+  const list = v.list([v.true]);
+  expect(runtimeMultiplication(list, v.integer(2), v, meter, context, true)).toBe(list);
+  expect(list.items.snapshot()).toEqual([v.true, v.true]);
+});
+
+it("checks cancellation after reading augmented fallback metadata", () => {
+  const controller = new AbortController(), meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal: controller.signal }), v = new RuntimeValues(meter);
+  expect(() => runtimeMultiplication(v.none, v.list([]), v, meter, {
+    get leftHasSequenceTable() { controller.abort(); return false; },
+    get integerIndex(): never { throw Error("must stop before index acquisition"); }
+  }, true)).toThrow("execution cancelled");
 });

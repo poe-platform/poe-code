@@ -10,6 +10,9 @@ export interface MultiplicationContext {
   /** Prepared numeric slots, excluding sequence repetition. */
   readonly numeric?: BinaryDispatch<RuntimeValue>;
   readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
+  /** A present left sequence table blocks right-sequence *= fallback even
+   * when the table has no repeat slot. Omitted uses exact native metadata. */
+  readonly leftHasSequenceTable?: boolean;
   typeName?(value: RuntimeValue): string;
 }
 
@@ -25,7 +28,9 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
   }
   let source = left, multiplier = right;
   if (source.kind !== "list" && source.kind !== "tuple" && source.kind !== "str" && source.kind !== "bytes") {
-    source = right; multiplier = left;
+    const blocked = augmented && (context.leftHasSequenceTable ?? (left.kind === "range" || left.kind === "dict" || left.kind === "mappingproxy" || left.kind === "set" || left.kind === "frozenset" || left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values"));
+    meter.checkpoint(0);
+    if (!blocked) { source = right; multiplier = left; }
   }
   if (source.kind === "list" || source.kind === "tuple" || source.kind === "str" || source.kind === "bytes") {
     let count = multiplier.kind === "int" ? multiplier.value : multiplier.kind === "bool" ? multiplier.value ? 1n : 0n : undefined;

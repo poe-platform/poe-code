@@ -48,6 +48,7 @@ export function createRuntimeMultiplicationContext(left: RuntimeValue, right: Ru
     meter.checkpoint(); return result;
   };
   return {
+    leftHasSequenceTable: leftType?.value.hasSequenceTable,
     numeric: {
       relation, notImplemented: values.notImplemented,
       forward: () => call(left, right, leftType, "__mul__"),

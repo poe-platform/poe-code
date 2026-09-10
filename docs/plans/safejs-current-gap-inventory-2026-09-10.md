@@ -11,8 +11,9 @@ Temporal replay/heap support, originating intrinsic prototype parents and weak
 graph snapshots are locally committed. Earlier statements that Now is absent
 or those integrations are wholly uncommitted are obsolete.
 
-The latest snapshot-directory run passed 2,111 tests across 155 files, with five
-additional direct mixed-realm value tests passing separately afterward. This is
+The latest snapshot-directory run passed 2,111 tests across 155 files, with 15
+direct mixed-realm value/iterator tests passing separately afterward. See the
+[iterator qualification](safejs-mixed-realm-iterator-qualification.md). This is
 not a full-package result. The last full package gate passed 27,437 tests,
 failed 10 and skipped 48; all 100 filesystem type contracts passed. See
 [the full gate record](safejs-post-temporal-full-gate.md).

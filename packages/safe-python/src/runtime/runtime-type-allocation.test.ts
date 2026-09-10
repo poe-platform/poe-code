@@ -26,6 +26,13 @@ it("validates slot declarations before qualified names", () => {
   expect(create).toThrow("__slots__ items must be strings, not 'int'");
 });
 
+it("appends automatic hash disabling without changing the supplied namespace", () => {
+  const { v, namespace, create } = fixture(); namespace.items.set(v.string("__eq__"), v.integer(7));
+  const result = create();
+  expect(namespace.items.lookup(v.string("__hash__"))).toBeUndefined();
+  expect(result.value.namespace.items.snapshot().at(-1)).toEqual([v.string("__hash__"), v.none]);
+});
+
 it("retains the default module over a reserved module slot while allocating its position", () => {
   const { v, namespace, create } = fixture(); namespace.items.set(v.string("__slots__"), v.tuple([v.string("__module__")]));
   const cls = create(); expect(cls.value.slotCount).toBe(1);

@@ -8443,6 +8443,18 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and all 6,515 tests in 491 files pass. All 864 previous
   dictionary-view cases still match CPython. Automatic guest hash/key equality assembly and
   remaining native type/public execution catalogs are still unfinished.
+- Added automatic __hash__ = None to class namespaces defining __eq__ without
+  an own hash entry, after member-slot installation and before descriptor/subclass
+  initialization. The initial compiled inherited-hash regression lacked this
+  namespace entry. Five added cases cover lifecycle visibility, inheritance,
+  explicit hash preservation, equality/hash member slots, late assignments and
+  non-mutating source namespace copies. All 160 compiled declaration combinations
+  match CPython. Build, typecheck and scoped lint pass. The initial full-suite
+  run exhausted temporary storage; its generated cache cleaned itself up, and
+  all 6,520 tests in 491 files passed on the complete two-worker rerun without
+  repository configuration changes. This establishes class hash metadata;
+  automatic runtime guest hash/key-policy dispatch and canonical native object
+  hash methods remain unfinished, alongside the broader execution work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

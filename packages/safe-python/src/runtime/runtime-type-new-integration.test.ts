@@ -166,6 +166,31 @@ it("uses guest equality and truth for dictionary item view disjointness", () => 
   expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["equal", "truth"]);
 });
 
+it("disables inherited hashing when a class defines equality without a hash", () => {
+  const state = fixture();
+  state.run("class Base:\n def __hash__(self):\n  return 7\nclass Equal(Base):\n def __eq__(self,other):\n  return True\nresult=Equal.__dict__['__hash__']\n");
+  expect(state.globals.get("result")).toBe(state.v.none);
+});
+
+it("publishes automatic hash disabling before descriptor initialization and preserves inheritance", () => {
+  const state = fixture();
+  state.run("class Descriptor:\n def __set_name__(self,owner,name):\n  self.hash=owner.__dict__['__hash__']\nmarker=Descriptor()\nclass Equal:\n __eq__=None\n field=marker\nclass Child(Equal):\n pass\nseen=marker.hash\ninherited=Child.__hash__\nowned=Child.__dict__.get('__hash__','absent')\n");
+  expect(state.globals.get("seen")).toBe(state.v.none); expect(state.globals.get("inherited")).toBe(state.v.none); expect(state.globals.get("owned")).toEqual(state.v.string("absent"));
+});
+
+it("preserves explicit hash declarations and does not normalize late equality assignments", () => {
+  const state = fixture();
+  state.run("class Base:\n def __hash__(self):\n  return 7\nclass Explicit(Base):\n __eq__=None\n __hash__=Base.__hash__\nclass Late(Base):\n pass\nLate.__eq__=None\nexplicit=Explicit.__hash__\ninherited=Late.__hash__\noriginal=Base.__hash__\nowned=Late.__dict__.get('__hash__','absent')\nclass OnlyNe:\n __ne__=None\nne_hash=OnlyNe.__dict__.get('__hash__','absent')\n");
+  expect(state.globals.get("explicit")).toBe(state.globals.get("original")); expect(state.globals.get("inherited")).toBe(state.globals.get("original"));
+  expect(state.globals.get("owned")).toEqual(state.v.string("absent")); expect(state.globals.get("ne_hash")).toEqual(state.v.string("absent"));
+});
+
+it("accounts for equality and hash member slots before automatic hash disabling", () => {
+  const state = fixture();
+  state.run("class EqualSlot:\n __slots__=('__eq__',)\nclass HashSlot:\n __slots__=('__hash__',)\n __eq__=None\ndisabled=EqualSlot.__dict__['__hash__']\nmember=HashSlot.__dict__['__hash__']\n");
+  expect(state.globals.get("disabled")).toBe(state.v.none); expect(state.globals.get("member")?.kind).toBe("member_descriptor");
+});
+
 it.each(["&", "^"])("uses guest value equality in dictionary items %s", operator => {
   const state = fixture();
   state.run(`class Value:\n def __eq__(self,other):\n  visit('equal')\n  return True\n def __hash__(self):\n  return 1\nleft=Value()\nright=Value()\nresult={1:left}.items()${operator}{1:right}.items()\n`);

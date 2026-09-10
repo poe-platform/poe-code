@@ -79,5 +79,9 @@ export function allocateRuntimeType(name: Extract<RuntimeValue, { kind: "str" }>
     for (const name of slots.names) { meter.checkpoint(); if (name === "__module__") { namespace.items.set(moduleKey, options.module!); break; } }
   }
   if (namespace.items.lookup(docKey) === undefined) namespace.items.set(docKey, values.none);
+  if (namespace.items.lookup(values.string("__eq__")) !== undefined) {
+    const hashKey = values.string("__hash__");
+    if (namespace.items.lookup(hashKey) === undefined) namespace.items.set(hashKey, values.none);
+  }
   meter.checkpoint(); return result;
 }

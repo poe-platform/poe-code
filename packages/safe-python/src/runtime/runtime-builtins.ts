@@ -41,7 +41,7 @@ export interface RuntimeBuiltinContexts {
   integerIndex?: Parameters<typeof createChrBuiltin>[2];
   divmod?: Parameters<typeof createDivmodBuiltin>[2];
   enumerate?: Parameters<typeof createEnumerateBuiltin>[2];
-  filter: Parameters<typeof createFilterBuiltin>[2];
+  filter?: Parameters<typeof createFilterBuiltin>[2];
   format: Parameters<typeof createFormatBuiltin>[2];
   hash: Parameters<typeof createHashBuiltin>[2];
   identity: Parameters<typeof createIdBuiltin>[2];

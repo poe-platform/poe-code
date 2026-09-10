@@ -8,6 +8,7 @@ import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
+import { runtimeTruth } from "./runtime-truth.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter), unused = (): never => { throw Error("unexpected guest callback"); };
@@ -96,4 +97,24 @@ it("lets map invoke compiled callbacks after their creating frame returns", () =
     hooks: { expressions: () => ({ warn() {} }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
   }, meter);
   expect(globals.get("result")).toBe(v.true);
+});
+it("lets filter invoke a captured predicate after its creating frame returns", () => {
+  const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
+  delete context.filter;
+  const program = compileProgram<RuntimeValue>(analyzeModule("def selected(limit):\n return filter(lambda value: value>limit,[1,4,8])\nitems=selected(3)\nresult=next(items)==4 and next(items)==8\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {} }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(v.true);
+});
+it("routes filter predicate-result truth through the execution frame", () => {
+  const { meter, v, context } = fixture(), decision = v.cell({}), globals = new Map<string, RuntimeValue>([["decision", decision]]), unused = (): never => { throw Error("unexpected guest callback"); }; let conversions = 0;
+  delete context.filter;
+  const program = compileProgram<RuntimeValue>(analyzeModule("items=filter(lambda value: decision,[1,2])\nresult=next(items,99)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, truth(value) { if (value === decision) { conversions++; return false; } return runtimeTruth(value, meter); } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toEqual(v.integer(99)); expect(conversions).toBe(2);
 });

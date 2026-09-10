@@ -74,6 +74,7 @@ export interface BuiltinInvocationContext {
   /** Reenter this execution's normal argument/callability/function call path. */
   call(callee: RuntimeValue, positional: readonly RuntimeValue[]): RuntimeValue;
   isStopIteration(error: unknown): boolean;
+  truth?(value: RuntimeValue): boolean;
 }
 
 export interface BuiltinFunctionCapability {

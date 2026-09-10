@@ -7047,6 +7047,19 @@ extension, integration, or validation requirement is missing or unverified.
   empty sources and non-callable errors. Build, typecheck and scoped lint pass.
   Other callback builtins, native type/exception assembly, resumable filesystem
   effects and the complete public interpreter remain unfinished.
+- Filter now uses the runtime invocation capability for predicate calls when
+  explicit callbacks are absent. Invocation capabilities also expose the frame's
+  truth conversion, so predicate results follow guest truth hooks rather than
+  unconditional native truth. Explicit call/truth/exhaustion policies retain
+  priority, None/exact-bool predicates retain their fast path, and filtering stays
+  lazy. Filter registration no longer requires a separate callback context.
+- The compiled closure regression failed before implementation. Three additional
+  tests protect lazy invocation, override precedence and frame-owned guest truth.
+  All 5,320 tests in 444 files pass; 36 compiled filter cases match CPython across
+  functions, lambdas, captured closures, None predicates and empty/nonempty input.
+  Build, typecheck and scoped lint pass. Remaining callback builtins, native
+  type/exception assembly, resumable filesystem effects and the public interpreter
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -29,6 +29,23 @@ it("invokes predicates lazily and tests their results rather than source values"
   const cursor = call([fn, v.list([v.true, v.false])]); expect(seen).toEqual([]);
   expect(cursor.next().value).toBe(v.false); expect(seen).toEqual([v.true, v.false]);
 });
+it("uses invocation call and truth capabilities lazily", () => {
+  const { v, meter, keywords } = fixture(), predicate = v.cell({}), decision = v.cell({}), trace: string[] = [];
+  const filtered = createFilterBuiltin(v, meter).value.invoke([predicate, v.list([v.true])], keywords, meter, {
+    call(fn, args) { expect(fn).toBe(predicate); expect(args).toEqual([v.true]); trace.push("call"); return decision; },
+    truth(value) { expect(value).toBe(decision); trace.push("truth"); return true; }, isStopIteration: () => false
+  });
+  expect(trace).toEqual([]); if (filtered.kind !== "iterator") throw Error("expected iterator");
+  expect(filtered.value.next().value).toBe(v.true); expect(trace).toEqual(["call", "truth"]);
+});
+it("preserves explicit predicate and truth policies over invocation defaults", () => {
+  const { v, meter, keywords, context } = fixture(), predicate = v.builtinFunction({ name: "test", invoke: () => v.false });
+  context.truth = () => true;
+  const filtered = createFilterBuiltin(v, meter, context).value.invoke([predicate, v.list([v.true])], keywords, meter, {
+    call() { throw Error("explicit policy must win"); }, truth() { throw Error("explicit policy must win"); }, isStopIteration() { throw Error("explicit policy must win"); }
+  });
+  if (filtered.kind !== "iterator") throw Error("expected iterator"); expect(filtered.value.next().value).toBe(v.true);
+});
 it("validates arity and keywords before input acquisition and delays callability", () => {
   const { v, call, keywords } = fixture();
   for (const args of [[], [v.none], [v.none, v.none, v.none]]) expect(() => call(args)).toThrow(`filter expected 2 arguments, got ${args.length}`);

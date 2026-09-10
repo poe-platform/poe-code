@@ -8,6 +8,7 @@ import { createRuntimeNumericContext } from "./runtime-numeric-context.js";
 import { createRuntimePowerContext } from "./runtime-power-context.js";
 import { createRuntimeRichComparisonContext } from "./runtime-rich-comparison-context.js";
 import { createRuntimeIterationContext } from "./runtime-iteration-context.js";
+import { createRuntimeContainmentPolicy } from "./runtime-containment-context.js";
 import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
 import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { executeFunctionDefinition } from "./function-definition.js";
@@ -213,7 +214,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       unary: expressionHooks.unary ?? (specialMethods === undefined ? undefined : builtinCalls),
       truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeRichComparisonContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
-      containment: expressionHooks.containment?.bind(expressionHooks),
+      containment: expressionHooks.containment?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : createRuntimeContainmentPolicy(values, meter, builtinCalls)),
       get iteration() { return getIteration(); },
       get formatting() { return getFormatting(); },
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,

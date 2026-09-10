@@ -7603,6 +7603,19 @@ extension, integration, or validation requirement is missing or unverified.
   Containment composition, native cursor hint/exhaustion audits, custom guest
   exception-subclass matching, full class/storage ownership and suspended safe-fs
   effects remain unfinished.
+- Composed frame containment from shared MRO calls, iteration and raw rich
+  comparison. The cached policy preserves explicit iteration receivers and leaves
+  native containers/cursors on their kernels. Contains results undergo truth
+  conversion, including NotImplemented's Python 3.14 error; only missing methods
+  fall back to identity-first, member-first iteration. No hints or implicit close
+  are requested. Five regressions failed first. Fifteen added tests cover inherited
+  in/not-in, disabled/noncallable methods, custom truth, identity/equality ordering,
+  indexed early exit, acquisition-only TypeError rewriting, explicit policies and
+  cancellation. All 252 compiled guest and 256 variable-loaded native containment
+  comparisons match CPython. All 5,832 tests in 451 files, selected build, typecheck
+  and scoped lint pass. Native iterator completion/hint audits, custom guest
+  exception-subclass matching, full class/storage ownership and suspended safe-fs
+  effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

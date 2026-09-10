@@ -1159,3 +1159,99 @@ it.each(["for", "next"])("reports live removal of __next__ during %s consumption
   );
   expect(state.globals.get("result")).toBe(v.false);
 });
+
+it.each(["in", "not in"])("dispatches inherited contains methods for %s", operator => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("Derived", base);
+  state.method(base, "__contains__", "def contains(self, needle):\n visit('contains')\n return None\n"); state.guest("guest", owner);
+  state.run(`def contains():\n return 7 ${operator} guest\nresult=contains()\n`);
+  expect(state.globals.get("result")).toBe(operator === "in" ? state.v.false : state.v.true); expect(state.events).toEqual(["contains"]);
+});
+
+it("does not treat NotImplemented containment results as an iteration fallback", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__contains__", "def contains(self, needle):\n visit('contains')\n return NotImplemented\n");
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return self\n"); state.guest("guest", owner);
+  expect(() => state.run("result=7 in guest\n")).toThrow("NotImplemented should not be used in a boolean context"); expect(state.events).toEqual(["contains"]);
+});
+
+it("rejects disabled containment before iteration", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  owner.value.namespace.items.set(v.string("__contains__"), v.none);
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return self\n"); state.guest("guest", owner);
+  expect(() => state.run("result=7 in guest\n")).toThrow("'Guest' object is not a container"); expect(state.events).toEqual([]);
+});
+
+it("falls back to inherited iteration when contains is absent", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("native", v.iterator([v.integer(1), v.integer(2)].values()));
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return native\n"); state.guest("guest", owner);
+  state.run("result=2 in guest\n"); expect(state.globals.get("result")).toBe(v.true); expect(state.events).toEqual(["iter"]);
+});
+
+it("truth-converts a guest contains result before negating not-in", () => {
+  const state = fixture(), owner = state.type("Guest"), answerType = state.type("Answer");
+  state.method(answerType, "__bool__", "def truth(self):\n visit('truth')\n return False\n"); state.guest("answer", answerType);
+  state.method(owner, "__contains__", "def contains(self, needle):\n visit('contains')\n return answer\n"); state.guest("guest", owner);
+  state.run("result=7 not in guest\n"); expect(state.globals.get("result")).toBe(state.v.true); expect(state.events).toEqual(["contains", "truth"]);
+});
+
+it("does not ignore noncallable contains methods", () => {
+  const state = fixture(), owner = state.type("Guest"); owner.value.namespace.items.set(state.v.string("__contains__"), state.v.false); state.guest("guest", owner);
+  expect(() => state.run("result=7 in guest\n")).toThrow("'bool' object is not callable");
+});
+
+it.each([false, true])("uses member-first equality and skips it for identity (identical=%s)", identical => {
+  const state = fixture(), owner = state.type("Source"), memberType = state.type("Member"), needleType = state.type("Needle"), v = state.v;
+  state.method(memberType, "__eq__", "def equal(self, other):\n visit('member')\n return False\n");
+  state.method(needleType, "__eq__", "def equal(self, other):\n visit('needle')\n return True\n");
+  const member = state.guest("member", memberType); state.guest("needle", needleType);
+  if (identical) state.globals.set("needle", member);
+  state.globals.set("native", v.iterator([member].values()));
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return native\n");
+  state.method(owner, "__length_hint__", "def hint(self):\n visit('hint')\n return 1\n"); state.guest("source", owner);
+  state.run("result=needle in source\n"); expect(state.globals.get("result")).toBe(identical ? v.true : v.false);
+  expect(state.events).toEqual(identical ? ["iter"] : ["iter", "member"]);
+});
+
+it("searches indexed fallback only through the first match", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__getitem__", "def item(self, index):\n visit('item')\n return index\n");
+  state.method(owner, "__len__", "def length(self):\n visit('length')\n return 20\n"); state.guest("guest", owner);
+  state.run("result=1 in guest\n"); expect(state.globals.get("result")).toBe(state.v.true); expect(state.events).toEqual(["item", "item"]);
+});
+
+it.each(["acquire", "next"])("rewrites only iterator-acquisition TypeErrors (%s)", phase => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("fail", v.builtinFunction({ name: "fail", invoke(): never { throw new PythonRuntimeError("TypeError", "broken"); } }));
+  state.method(owner, "__iter__", phase === "acquire" ? "def iterate(self):\n return fail()\n" : "def iterate(self):\n return self\n");
+  state.method(owner, "__next__", "def advance(self):\n return fail()\n"); state.guest("guest", owner);
+  expect(() => state.run("result=7 in guest\n")).toThrow(phase === "acquire" ? "argument of type 'Guest' is not a container or iterable" : "broken");
+});
+
+it("preserves explicit iteration receivers without reading hints for containment", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner), v = state.v, cursor = v.cell({});
+  const iteration = {
+    get hints(): never { throw Error("containment must not request hints"); },
+    lookupIter(value: RuntimeValue) { expect(this).toBe(iteration); expect(value).toBe(guest); return () => cursor; },
+    hasNext(value: RuntimeValue) { expect(this).toBe(iteration); expect(value).toBe(cursor); return true; },
+    next(value: RuntimeValue) { expect(this).toBe(iteration); expect(value).toBe(cursor); return v.integer(7); },
+    hasSequenceItem: () => false, getItem: () => v.none,
+    isStopIteration: () => false, isIndexError: () => false, typeName: () => "Guest"
+  };
+  state.hooks.expressions = () => ({ warn() {}, iteration }); state.run("result=7 in guest\n"); expect(state.globals.get("result")).toBe(v.true);
+});
+
+it("retains explicit containment selection ahead of automatic MRO dispatch", () => {
+  const state = fixture(), owner = state.type("Guest"); state.guest("guest", owner);
+  state.hooks.specialMethods = () => ({ typeOf(): never { throw Error("explicit containment must win"); }, slots: () => undefined });
+  const bindings = { warn() {}, containment(value: RuntimeValue) { expect(this).toBe(bindings); expect(value).toBe(state.globals.get("guest")); return undefined; } };
+  state.hooks.expressions = () => bindings;
+  expect(() => state.run("result=7 in guest\n")).toThrow("argument of type 'cell' is not a container or iterable");
+});
+
+it("rejects cancelled contains methods before assigning results", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest");
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { controller.abort(); return state.v.none; } }));
+  state.method(owner, "__contains__", "def contains(self, needle):\n stop()\n return False\n"); state.guest("guest", owner);
+  expect(() => state.run("result=7 in guest\n")).toThrow("execution cancelled"); expect(state.globals.has("result")).toBe(false);
+});

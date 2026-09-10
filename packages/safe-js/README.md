@@ -880,6 +880,8 @@ preserving substitutions, member receivers, constructor arguments and parenthese
 Optional chains skip the remaining contiguous member accesses, calls and their
 arguments after a nullish short circuit. Parentheses end that propagation without
 discarding method receivers; ordinary undefined results still produce normal errors.
+Missing methods on functions and generators follow ordinary call evaluation:
+optional calls skip arguments, while non-optional calls evaluate them before throwing.
 Locale-list canonicalization observes Proxy membership and element reads in
 order, including inherited entries and throwing traps. This preserves locale
 selection for locale-aware case conversion, collation and Intl constructors.

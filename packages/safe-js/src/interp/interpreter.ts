@@ -3693,20 +3693,8 @@ async function evaluateMemberCallExpression(
       );
     }
 
-    if (isSandboxGenerator(member.object)) {
+    if (isSandboxGenerator(member.object) || isSandboxClosure(member.object)) {
       const memberValue = await getPropertyValue(member.object, member.property, context);
-      if (memberValue === undefined) {
-        throw new TypeError(`Generator#${String(member.property)} is not a supported method.`);
-      }
-      return evaluateResolvedCallExpression(node, memberValue, context, member.object);
-    }
-
-    if (isSandboxClosure(member.object)) {
-      const memberValue = await getPropertyValue(member.object, member.property, context);
-      if (memberValue === undefined) {
-        throw new TypeError(`Function#${String(member.property)} is not a supported method.`);
-      }
-
       return evaluateResolvedCallExpression(node, memberValue, context, member.object);
     }
 

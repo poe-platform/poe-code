@@ -187,7 +187,7 @@ describe("function methods", () => {
       })
     ).rejects.toMatchObject({
       name: "TypeError",
-      message: "Function#missing is not a supported method."
+      message: "Attempted to call a non-function value."
     });
   });
 });

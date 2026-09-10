@@ -36,3 +36,22 @@ each predicate-search directory and the repeat count-abrupt fixture now pass.
 The simultaneous full-package run is independent and remains pending. These
 passes do not resolve its historical ISO/Temporal or Promise-admission failures.
 No push or release was performed.
+
+## Character and range follow-up
+
+The same pinned strict in-memory procedure passed another 166 original
+top-level fixtures, with all native controls passing and no exclusions,
+unqualified cases or guest failures:
+
+| String.prototype directory | Passes |
+| --- | ---: |
+| at | 11 |
+| charAt | 30 |
+| charCodeAt | 25 |
+| codePointAt | 16 |
+| slice | 38 |
+| substring | 46 |
+
+Evidence: eb2238, 8f148f and 75da3c. This brings the two bounded selections to
+297 passing fixtures, not full conformance. Runtime files remained unchanged
+while full-package session 45190 continued running.

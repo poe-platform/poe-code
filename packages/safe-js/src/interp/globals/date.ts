@@ -1,4 +1,6 @@
 import type { Budget } from "../budget.js";
+import { createDataCheckpoint } from "../data-checkpoint.js";
+import { createSandboxTemporalInstant } from "../temporal-instant.js";
 import { getFunctionRealmPrototype } from "../function-realm.js";
 import { formatDateLocale } from "../date-locale.js";
 import { objectToPrimitive, sandboxNumber, sandboxString } from "../string-coercion.js";
@@ -132,6 +134,18 @@ export function createDateGlobal(
       })
     );
   methods.set("toGMTString", methods.get("toUTCString")!);
+  const toTemporalInstant = createSandboxClosure({
+    guest: true, sandbox: true, name: "toTemporalInstant", length: 0,
+    call: (_args, context) => {
+      const receiver = context?.thisValue;
+      if (!isSandboxDate(receiver)) throw new TypeError("Date#toTemporalInstant requires a Date receiver.");
+      const result = createSandboxTemporalInstant(BigInt(dateTime(receiver)) * 1000000n);
+      setSandboxPrototype(result, getFunctionRealmPrototype(toTemporalInstant, "Temporal.Instant", null), options.budget);
+      createDataCheckpoint(options.budget, context)(result, 0, true);
+      return result;
+    }
+  });
+  methods.set("toTemporalInstant", toTemporalInstant);
   methods.set(Symbol.toPrimitive, createSandboxClosure({
     guest: true,
     sandbox: true,

@@ -39,6 +39,16 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["[member]==[needle]", "(member,)==(needle,)", "{'k':member}=={'k':needle}", "[[member]]==[[needle]]"])("uses guest member equality in %s", expression => {
+    const state = fixture(`result=${expression}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), truth = v.cell({}), trace: string[] = [];
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(operator, left, right) {
+      if (left !== member || right !== needle) return undefined;
+      expect(operator).toBe("==");
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward() { trace.push("equal"); return truth; }, reflected: () => v.notImplemented } };
+    }, truth(value) { expect(value).toBe(truth); trace.push("truth"); return false; } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.false); expect(trace).toEqual(["equal", "truth"]);
+  });
   it.each(["needle in mapping.values()", "('key',needle) in mapping.items()"])("uses guest equality for dictionary view membership: %s", expression => {
     const state = fixture(`mapping={'key':member}\nresult=${expression}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), truth = v.cell({}), trace: string[] = [];
     state.globals.set("member", member); state.globals.set("needle", needle);

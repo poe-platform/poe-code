@@ -6914,6 +6914,17 @@ extension, integration, or validation requirement is missing or unverified.
   both views, mutations and negation. Typecheck, scoped lint and selected
   workspace build pass. Remaining native comparison protocols, automatic object
   assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected nested native container equality tasks to prepared guest equality
+  slots and truth conversion through frame capabilities. Undefined guest work
+  falls back to the existing explicit native comparison stack, avoiding host
+  recursion for native nesting. Identity shortcuts and comparison-depth limits
+  remain enforced; root guest comparison negotiation is unchanged.
+- Four failing compiled regressions now pass. All 5,246 tests in 441 files pass;
+  32 CPython comparisons match results/errors and traces across list, tuple,
+  dictionary and nested-list equality/inequality. Typecheck, scoped lint and
+  selected workspace build pass. Uncoerced guest ordering results, remaining
+  comparison protocols, automatic object assembly and broader interpreter/SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

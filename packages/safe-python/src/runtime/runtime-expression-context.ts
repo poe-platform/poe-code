@@ -105,7 +105,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       if (operator === "is" || operator === "is not") return runtimeComparison(operator, left, right, values, meter);
       const comparison = bindings.richComparison?.(operator, left, right);
       meter.checkpoint();
-      return runtimeRichComparison(operator, left, right, values, meter, comparison);
+      return runtimeRichComparison(operator, left, right, values, meter, comparison, members);
     },
     truth(value) {
       meter.checkpoint();
@@ -121,6 +121,14 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     iterate: context.iterate.bind(context), compare: context.compare.bind(context),
     truth: context.truth.bind(context), integerIndex: bindings.integerIndex, bytes: bindings.bytes,
     translation: bindings.translation, buffers: bindings.buffers
+  };
+  meter.checkpoint(0, 96);
+  const members = {
+    equality(left: RuntimeValue, right: RuntimeValue) {
+      const comparison = bindings.richComparison?.("==", left, right); meter.checkpoint();
+      return comparison === undefined ? undefined : runtimeRichComparison("==", left, right, values, meter, comparison);
+    },
+    truth: methods.truth
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
   context.formattedString = bindings.formattedString ?? createRuntimeFormattedStringContext(values, formatting, meter);

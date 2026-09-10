@@ -897,8 +897,9 @@ uncommitted, and portable weak-symbol lifetime support on Node.js 18 remains
 unresolved. This is not complete weak-collection support. See the
 [public integration record](../../docs/plans/safejs-weak-collection-public-reconciliation.md).
 
-Experimental, uncommitted `WeakRef` and `FinalizationRegistry` implementations now
-have focused coverage for job-scoped target retention, held-value budgets,
+The `WeakRef` public API is committed locally but unreleased. `FinalizationRegistry`
+and weak-state snapshot integration remain experimental and partly uncommitted.
+Focused coverage includes job-scoped target retention, held-value budgets,
 owner-scheduled cleanup, cancellation, and heap snapshot restoration. Cleanup
 errors are reported to the owning run or persistent realm. These changes are not
 released or fully validated: unique-symbol weak references still fail on older

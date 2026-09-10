@@ -54,5 +54,6 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "unescape",
   "WeakMap",
   "WeakSet",
+  "WeakRef",
   "console"
 ] as const;

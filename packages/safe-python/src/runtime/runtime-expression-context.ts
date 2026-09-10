@@ -108,7 +108,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       if (operator === "+") {
         const addition = bindings.addition?.(left, right);
         meter.checkpoint();
-        return runtimeAddition(left, right, values, meter, addition, augmented, bindings.buffers);
+        return runtimeAddition(left, right, values, meter, addition, augmented, bindings.buffers, context);
       }
       if (operator === "*") {
         const multiplication = bindings.multiplication?.(left, right);

@@ -2,7 +2,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { PythonRuntimeError } from "./error.js";
 import { runtimeBinary } from "./runtime-binary.js";
-import { runtimeIterate } from "./runtime-iteration.js";
+import { runtimeAddition } from "./runtime-addition.js";
 import { updateRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
@@ -36,9 +36,9 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
   }
   if (left.kind === "list") {
     if (operator === "+") {
-      if (right.kind === "list") left.items.extend(right.items);
-      else left.items.extendIterator(context.iterate === undefined ? runtimeIterate(right, values, meter) : context.iterate(right, undefined, true));
-      return left;
+      return context.binary === undefined
+        ? runtimeAddition(left, right, values, meter, undefined, true, undefined, context)
+        : context.binary(operator, left, right, true);
     }
     if (operator === "*" && (right.kind === "int" || right.kind === "bool")) {
       const count = right.kind === "int" ? right.value : right.value ? 1n : 0n;

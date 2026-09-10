@@ -7500,6 +7500,18 @@ extension, integration, or validation requirement is missing or unverified.
   native list += extension; the existing direct extension path still needs that
   integration. Other binary families, native-subclass storage, metaclass overrides
   and suspended safe-fs effects remain unfinished.
+- Fixed native list += ordering: ordinary numeric negotiation now precedes
+  extension, and only declined numeric methods reach the shared in-place list
+  fallback. Five compiled regressions first bypassed __radd__ or reported an
+  iteration error instead of the disabled-method call error. Eight added cases
+  cover False/None results, missing/declined extension paths, partial next failure,
+  disabled methods, deferred iteration acquisition, native self-extension and
+  failed target write-back. Existing guest length-hint behavior remains covered.
+  All seven new Python-semantic scenarios and sixty native addition comparisons
+  match CPython. All 5,685 tests in 450 files pass; selected build, typecheck and
+  scoped lint pass. Other binary families, native-subclass storage, metaclass
+  overrides, complete automatic iteration assembly and suspended safe-fs effects
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -32,6 +32,16 @@ it("falls back to concatenation after both numeric methods decline", () => {
     forward: () => v.notImplemented, reflected: () => { throw Error("must not reflect same type"); }, reflectedIsOverridden: () => false } };
   expect(runtimeAddition(source, source, v, meter, context)).toEqual(v.list([v.true, v.true]));
 });
+
+it("does not acquire extension capabilities after numeric augmented addition succeeds", () => {
+  const { v, meter } = fixture(), source = v.list([v.true]);
+  const numeric = { relation: "other" as const, notImplemented: v.notImplemented,
+    forward: () => v.notImplemented, reflected: () => v.false, reflectedIsOverridden: () => false };
+  expect(runtimeAddition(source, v.cell({}), v, meter, { numeric }, true, undefined, {
+    get iterate(): never { throw Error("must not acquire iteration"); }
+  })).toBe(v.false);
+  expect(source.items.snapshot()).toEqual([v.true]);
+});
 it("checks cancellation after a successful guest slot and bounds diagnostic type names", () => {
   const { v, meter } = fixture(); let cancelled = false;
   const numeric = { relation: "same" as const, notImplemented: v.notImplemented, forward() { cancelled = true; return v.true; }, reflected: () => v.notImplemented, reflectedIsOverridden: () => false };

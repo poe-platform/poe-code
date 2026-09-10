@@ -446,3 +446,54 @@ it("retains explicit addition policies ahead of default MRO lookup", () => {
   state.run("result=guest+1\n");
   expect(state.globals.get("result")).toBe(v.false);
 });
+
+it.each(["False", "None"])("accepts reflected list += result %s before extension", result => {
+  const state = fixture(), owner = state.type("Guest"), items = state.v.list([state.v.true]);
+  state.method(owner, "__radd__", `def add(self, other):\n visit('reflected')\n return ${result}\n`);
+  state.guest("guest", owner); state.globals.set("items", items);
+  state.run("alias=items\nitems += guest\n");
+  expect(state.globals.get("items")).toBe(result === "False" ? state.v.false : state.v.none);
+  expect(state.globals.get("alias")).toBe(items); expect(items.items.snapshot()).toEqual([state.v.true]);
+  expect(state.events).toEqual(["reflected"]);
+});
+
+it.each([false, true])("extends only after reflected addition declines, preserving partial progress (%s)", fails => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v, items = v.list([v.true]);
+  state.method(owner, "__radd__", "def add(self, other):\n visit('reflected')\n return NotImplemented\n");
+  const guest = state.guest("guest", owner), cursor = v.cell({}), stop = new Error("stop"), failure = new Error("next failed"); let pulls = 0;
+  state.globals.set("items", items);
+  state.hooks.expressions = () => ({ warn() {}, iteration: {
+    lookupIter(value) { expect(value).toBe(guest); state.events.push("iter"); return () => cursor; },
+    hasNext: value => value === cursor,
+    next() { state.events.push("next"); if (pulls++ === 0) return v.false; throw fails ? failure : stop; },
+    hasSequenceItem: () => false, getItem(): never { throw Error("unexpected item lookup"); },
+    isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+  } });
+  if (fails) expect(() => state.run("items += guest\n")).toThrow(failure);
+  else state.run("items += guest\n");
+  expect(state.globals.get("items")).toBe(items); expect(items.items.snapshot()).toEqual([v.true, v.false]);
+  expect(state.events).toEqual(["reflected", "iter", "next", "next"]);
+});
+
+it("does not extend after a disabled reflected addition method", () => {
+  const state = fixture(), owner = state.type("Guest"), items = state.v.list([state.v.true]);
+  owner.value.namespace.items.set(state.v.string("__radd__"), state.v.none);
+  state.guest("guest", owner); state.globals.set("items", items);
+  expect(() => state.run("items += guest\n")).toThrow("'NoneType' object is not callable");
+  expect(state.globals.get("items")).toBe(items); expect(items.items.snapshot()).toEqual([state.v.true]);
+});
+
+it("preserves native self-extension aliases through augmented addition dispatch", () => {
+  const state = fixture(), items = state.v.list([state.v.true]);
+  state.globals.set("items", items);
+  state.run("alias=items\nitems += items\n");
+  expect(state.globals.get("items")).toBe(items); expect(state.globals.get("alias")).toBe(items);
+  expect(items.items.snapshot()).toEqual([state.v.true, state.v.true]);
+});
+
+it("keeps extended slots when augmented addition target write-back fails", () => {
+  const state = fixture(), items = state.v.list([state.v.true]);
+  state.globals.set("container", state.v.tuple([items]));
+  expect(() => state.run("container[0] += [False]\n")).toThrow("does not support item assignment");
+  expect(items.items.snapshot()).toEqual([state.v.true, state.v.false]);
+});

@@ -2,7 +2,9 @@ import { dispatchBinaryOperation, type BinaryDispatch } from "./binary-dispatch.
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 import { runtimeBinary } from "./runtime-binary.js";
+import { runtimeIterate } from "./runtime-iteration.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -16,12 +18,20 @@ export interface AdditionContext {
 /** Complete ordinary addition for exact native values, or supplied numeric
  * negotiation followed by native sequence fallback. Sequence failures must not
  * preempt reflected numeric methods. Byte buffer concatenation follows numeric
- * negotiation; this never mutates either operand. */
-export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: AdditionContext = {}, augmented = false, buffers?: RuntimeBufferContext): RuntimeValue {
+ * negotiation. Augmented left-list fallback extends in place, preserving partial
+ * progress on iterator errors; ordinary addition never mutates either operand. */
+export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: AdditionContext = {}, augmented = false, buffers?: RuntimeBufferContext, iteration?: Partial<Pick<ExpressionContext<RuntimeValue>, "iterate">>): RuntimeValue {
   meter.checkpoint();
-  const result = context.numeric === undefined ? runtimeBinary("+", left, right, values, meter) : dispatchBinaryOperation(context.numeric, meter);
+  const result = context.numeric === undefined
+    ? augmented && left.kind === "list" ? values.notImplemented : runtimeBinary("+", left, right, values, meter)
+    : dispatchBinaryOperation(context.numeric, meter);
   meter.checkpoint();
   if (result !== values.notImplemented) return result;
+  if (augmented && left.kind === "list") {
+    if (right.kind === "list") left.items.extend(right.items);
+    else left.items.extendIterator(iteration?.iterate === undefined ? runtimeIterate(right, values, meter) : iteration.iterate(right, undefined, true));
+    return left;
+  }
   const sequence = left.kind === "list" || left.kind === "tuple" || left.kind === "str" || left.kind === "bytes";
   if (sequence && left.kind === right.kind) return runtimeBinary("+", left, right, values, meter);
   if (left.kind === "bytes" && buffers !== undefined) {

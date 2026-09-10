@@ -55,3 +55,34 @@ All executed native controls passed. The reduceRight exclusions are
 `15.4.4.22-9-b-16.js`, `15.4.4.22-9-b-29.js` and
 `15.4.4.22-9-c-ii-4-s.js`, excluded by noStrict metadata. Final process 77342
 terminated (07a834); full-package process 94973 remained active (8cb8fa).
+
+## Isolated repair candidate
+
+Two additional native-comparison failures confirm numeric entry keys in
+Object.fromEntries and Map construction. All 23 main-checkout regressions
+failed before the candidate (b9b780). The defect is shared across internal
+numeric-index callers, not confined to the array-method helper.
+
+An isolated source/test copy at `/tmp/safejs-property-key-candidate.XvG8an`
+normalizes numeric keys to strings at the beginning of sandboxGetProperty.
+Strings and symbols pass through unchanged. This restores the property-key
+invariant before the observable Proxy trap and its invariant checks without
+requiring each internal numeric-index caller to repeat the normalization.
+The main runtime file remains unchanged (ae1d64) during full gate 94973.
+
+Candidate evidence:
+
+- Initial 23 regressions pass (af5230).
+- Both original upstream proxy-access-count fixtures pass with fresh native
+  controls (6d16ef).
+- Broader array/Proxy/Reflect selection: 1,018 tests in 57 files pass (1f98a1).
+- Expanded 25-case regression includes pending/completed checkpoint replay and
+  passes (d08c70).
+- Maintained package TypeScript configuration with exactly one source overlay
+  for the candidate runtime: zero diagnostics (e95989).
+- Candidate runtime lint with the authoritative file configuration reports
+  zero errors/warnings (f815ac); expanded regression lint passes (620e0f).
+
+Transfer the checked candidate after the main integration gate terminates,
+then verify the main checkout and commit the runtime, tests and documentation
+together. The temporary candidate is not a delivered main-checkout fix.

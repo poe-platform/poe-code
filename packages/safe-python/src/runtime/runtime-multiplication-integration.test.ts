@@ -1279,3 +1279,25 @@ it.each([false, true])("exposes legacy cursor hints with source length present=%
   expect(state.globals.get("before")).toEqual(sized ? v.integer(3) : v.notImplemented);
   expect(state.globals.get("after")).toEqual(sized ? v.integer(2) : v.notImplemented);
 });
+
+it.each(["result=[]\nresult.extend(cursor)\n", "result=''.join(cursor)\n", "result=[]\nresult[:]=cursor\n", "*result,=cursor\n", "def collect(*args):\n return args\nresult=collect(0,*cursor)\n"])("validates native cursor hints before consumption: %s", source => {
+  for (const hint of [-1n, 1n << 70n]) {
+    const state = fixture(); let hints = 0, pulls = 0;
+    state.globals.set("cursor", state.v.iterator({ lengthHint() { hints++; return hint; }, next() { pulls++; return { done: true, value: undefined }; } }));
+    expect(() => state.run(source)).toThrow(hint < 0n ? "__length_hint__() should return >= 0" : "Python int too large to convert to C ssize_t");
+    expect(hints).toBe(1); expect(pulls).toBe(0);
+  }
+});
+
+it.each(["for item in cursor:\n pass\n", "def collect(*args):\n return args\nresult=collect(*cursor)\n", "a,b=cursor\n"])("does not request native hints for streaming consumption: %s", source => {
+  const state = fixture(); let pulls = 0;
+  state.globals.set("cursor", state.v.iterator({ lengthHint(): never { throw Error("must not request hint"); }, next() { return ++pulls <= 2 ? { done: false, value: state.v.true } : { done: true, value: undefined }; } }));
+  state.run(source); expect(pulls).toBe(3);
+});
+
+it("requests a native remainder hint only after the unpacking prefix", () => {
+  const state = fixture(), events: string[] = [];
+  state.globals.set("cursor", state.v.iterator({ lengthHint() { events.push("hint"); return -1n; }, next() { events.push("next"); return { done: false, value: state.v.true }; } }));
+  expect(() => state.run("head,*tail=cursor\n")).toThrow("__length_hint__() should return >= 0");
+  expect(events).toEqual(["next", "hint"]);
+});

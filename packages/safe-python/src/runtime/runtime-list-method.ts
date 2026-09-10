@@ -53,7 +53,7 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
       if (name === "append") receiver.items.append(value);
       else if (name === "extend") {
         if (value.kind === "list") receiver.items.extend(value.items);
-        else receiver.items.extendIterator(context.iterate === undefined ? runtimeIterate(value, values, meter) : context.iterate(value, undefined, true));
+        else receiver.items.extendIterator(context.iterate === undefined ? runtimeIterate(value, values, meter, undefined, undefined, true) : context.iterate(value, undefined, true));
       } else {
         if (name === "count") return values.integer(receiver.items.count(value, equal));
         if (!receiver.items.removeFirst(value, equal)) throw new PythonRuntimeError("ValueError", "list.remove(x): x not in list");

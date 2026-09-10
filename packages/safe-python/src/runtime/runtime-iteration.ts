@@ -8,6 +8,7 @@ import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import type { CompletionIterator } from "./iterator-completion.js";
 import { ProtocolIterator, type IterationContext } from "./protocol-iterator.js";
 import { lengthHint } from "./length-hint.js";
+import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
 
 /** Acquire host iteration for exact builtin runtime values. Prepared iterator
  * records preserve their cursor identity; lists use live storage, not snapshots.
@@ -25,7 +26,9 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
       meter.checkpoint(1, 32);
       return value.items.iterate(key => key, "set");
     case "dict_keys": case "dict_values": case "dict_items": return iterateRuntimeDictionaryView(value, values, meter);
-    case "iterator": return value.value;
+    case "iterator":
+      if (hint) nativeIteratorLengthHint(value.value, meter);
+      return value.value;
     case "list": return value.items.iterate();
     case "dict": case "mappingproxy":
       meter.checkpoint(1, 32);

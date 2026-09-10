@@ -7641,6 +7641,18 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. Consumer-side native hint handling and exact iterator
   type-name diagnostics remain unfinished, alongside full class/storage ownership
   and suspended safe-fs effects.
+- Connected native cursor hints at consumer boundaries: list-style collection,
+  joins/slice materialization, byte conversion and starred-assignment remainder
+  preparation. Five compiled regressions failed first. Shared validation retains
+  call-time TypeError fallback, propagates lookup/native failures, rejects
+  negative/oversized hints and checks cancellation after callbacks without
+  reserving memory from hints. Streaming consumers skip hints; starred unpacking
+  requests them after its prefix. Twenty-five added tests cover these boundaries
+  and standalone bytes/sorted/extend paths. All 240 native consumer cases and
+  120 prior guest iteration cases match CPython. All 5,877 tests in 453 files,
+  selected build, typecheck and scoped lint pass. Source-length overflow audits,
+  exact iterator type-name diagnostics, full class/storage ownership and suspended
+  safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

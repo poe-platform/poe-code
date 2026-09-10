@@ -9,6 +9,7 @@ import type { ExpressionContext } from "./expression-evaluation.js";
 import { ProtocolIterator } from "./protocol-iterator.js";
 import type { PercentBytesContext } from "./percent-bytes-conversion.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
 
 export type RuntimeBytesInputProtocol = Pick<PercentBytesContext<RuntimeValue>, "lookupBytes" | "byteString" | "typeName"> &
   Partial<Pick<PercentBytesContext<RuntimeValue>, "bufferBytes" | "byteArray">>;
@@ -51,6 +52,7 @@ export function runtimeBytesInput(source: RuntimeValue, values: RuntimeValues, m
     throw error;
   }
   if (iterator instanceof ProtocolIterator) iterator.lengthHint(8n, source);
+  else nativeIteratorLengthHint(iterator, meter);
   meter.checkpoint(0, 32);
   const items: number[] = [];
   while (true) {

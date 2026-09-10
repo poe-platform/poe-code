@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { ProtocolIterator } from "./protocol-iterator.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Acquire the iterator used by sequence materializers. Only initial acquisition
@@ -20,6 +21,6 @@ export function runtimeSequenceIterator(source: RuntimeValue, values: RuntimeVal
     const original = iterator;
     iterator = original.reacquire();
     original.lengthHint(8n);
-  }
+  } else nativeIteratorLengthHint(iterator, meter);
   return iterator;
 }

@@ -37,6 +37,7 @@ pass unchanged; neither result supersedes the full-package failure count.
 
 | Area | Evidence and remaining work |
 | --- | --- |
+| JSON reviver Proxy traversal | Six native-controlled reproductions and nine pinned Test262 cases confirm skipped Proxy traversal/traps. See [the repair record](safejs-json-reviver-proxy-gap.md). Runtime repair waits for the active full-package gate to finish. |
 | Full-suite reliability | Buffer compatibility and camera cases timed out in the full gate. Unchanged focused runs pass. Buffer cold imports consumed 2.43 seconds in one diagnostic; neither timeout is proved fixed. |
 | Host Promise properties | Two full-gate failures concern omitted own properties. Define safe admission without copying private async-hook symbols; do not equate arbitrary host metadata with guest data. |
 | ISO locale month names | Six full-gate failures concern PlainMonthDay/PlainYearMonth month names on Node 22.23.2. Preserve calendar semantics rather than substituting Gregorian output. |

@@ -19,7 +19,8 @@ describe("attribute lookup builtins", () => {
       attribute: (_object, name) => { expect(name).toBe(key); throw missing; },
       isAttributeError: error => error === missing
     });
-    expect(builtin.value.invoke([v.none, key, fallback], keywords, meter)).toBe(fallback);
+    const unused = (): never => { throw Error("explicit policy must win"); };
+    expect(builtin.value.invoke([v.none, key, fallback], keywords, meter, { call: unused, isStopIteration: unused, attribute: unused })).toBe(fallback);
   });
   it("does not let guest exception classification suppress fatal execution signals", () => {
     const { meter, values: v, keywords } = fixture(), failure = new ExecutionLimitError("allocation");
@@ -36,14 +37,16 @@ describe("attribute lookup builtins", () => {
     expect(builtin.value.invoke([object, key], keywords, meter)).toBe(name === "getattr" ? answer : v.true);
     expect(calls).toBe(1);
   });
-  it.each(["getattr", "hasattr"] as const)("suppresses only AttributeError for %s fallback", name => {
+  it.each([["getattr", false], ["getattr", true], ["hasattr", false], ["hasattr", true]] as const)("suppresses only AttributeError for %s fallback with explicit policy=%s", (name, explicit) => {
     const { meter, values: v, keywords } = fixture(), fallback = v.list([]);
     let failure = new PythonRuntimeError("AttributeError", "missing");
-    const builtin = createAttributeLookupBuiltin(name, v, meter, { attribute: () => { throw failure; } });
+    const attribute = () => { throw failure; }, unused = (): never => { throw Error("unexpected callback"); };
+    const builtin = createAttributeLookupBuiltin(name, v, meter, explicit ? { attribute } : undefined);
+    const invocation = { call: unused, isStopIteration: unused, attribute: explicit ? unused : attribute };
     const args = name === "getattr" ? [v.none, v.string("x"), fallback] : [v.none, v.string("x")];
-    expect(builtin.value.invoke(args, keywords, meter)).toBe(name === "getattr" ? fallback : v.false);
+    expect(builtin.value.invoke(args, keywords, meter, invocation)).toBe(name === "getattr" ? fallback : v.false);
     failure = new PythonRuntimeError("ValueError", "descriptor failed");
-    expect(() => builtin.value.invoke(args, keywords, meter)).toThrow(failure);
+    expect(() => builtin.value.invoke(args, keywords, meter, invocation)).toThrow(failure);
   });
   it("does not classify or suppress missing attributes without a getattr default", () => {
     const { meter, values: v, keywords } = fixture(), failure = new PythonRuntimeError("AttributeError", "missing");
@@ -57,5 +60,12 @@ describe("attribute lookup builtins", () => {
     expect(() => builtin.value.invoke([v.none, v.integer(1)], keywords, meter)).toThrow("attribute name must be string, not 'int'");
     keywords.items.set(v.string("x"), v.none);
     expect(() => builtin.value.invoke([], keywords, meter)).toThrow(`${name}() takes no keyword arguments`);
+  });
+  it.each(["getattr", "hasattr"] as const)("checks cancellation after %s invocation lookup", name => {
+    const { meter, values: v, keywords } = fixture(); let cancelled = false;
+    const unused = (): never => { throw Error("unexpected callback"); };
+    expect(() => createAttributeLookupBuiltin(name, v, meter).value.invoke([v.none, v.string("x")], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, {
+      call: unused, isStopIteration: unused, attribute() { cancelled = true; return v.none; }
+    })).toThrow(ExecutionLimitError);
   });
 });

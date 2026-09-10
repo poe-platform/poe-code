@@ -13,22 +13,31 @@ export interface AttributeLookupContext extends AttributeNameContext {
 
 /** Explicit positional-only getattr/hasattr registration. Lookup occurs once;
  * only missing-attribute exceptions enable defaults or a false result. */
-export function createAttributeLookupBuiltin(name: "getattr" | "hasattr", values: RuntimeValues, meter: ExecutionMeter, context: AttributeLookupContext): BuiltinFunctionValue {
+export function createAttributeLookupBuiltin(name: "getattr" | "hasattr", values: RuntimeValues, meter: ExecutionMeter, context?: AttributeLookupContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name, invoke(positional, keywords, meter) {
+  const names = context ?? {};
+  return values.builtinFunction({ name, invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${name}() takes no keyword arguments`);
     const count = positional.length;
     if (name === "hasattr" && count !== 2) throw new PythonRuntimeError("TypeError", `hasattr expected 2 arguments, got ${count}`);
     if (name === "getattr" && (count < 2 || count > 3)) throw new PythonRuntimeError("TypeError", `getattr expected at ${count < 2 ? "least 2" : "most 3"} arguments, got ${count}`);
     const key = positional[1];
-    validateAttributeName(key, context, meter);
+    validateAttributeName(key, names, meter);
+    let attributeName = "";
+    if (context === undefined && key.kind === "str") {
+      for (const point of key.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); attributeName += String.fromCodePoint(point); }
+    }
     let result: RuntimeValue;
-    try { result = context.attribute(positional[0], key); }
+    try {
+      if (context !== undefined) result = context.attribute(positional[0], key);
+      else if (invocation?.attribute !== undefined) result = invocation.attribute(positional[0], attributeName);
+      else throw new Error(`${name} requires an execution attribute capability`);
+    }
     catch (error) {
       meter.checkpoint();
       if (error instanceof ExecutionLimitError || (name === "getattr" && count === 2)) throw error;
-      const missing = context.isAttributeError === undefined
+      const missing = context?.isAttributeError === undefined
         ? error instanceof PythonRuntimeError && error.name === "AttributeError"
         : context.isAttributeError(error);
       meter.checkpoint();

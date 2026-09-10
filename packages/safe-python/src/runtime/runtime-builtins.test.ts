@@ -316,6 +316,26 @@ it.each(["125", "125.0"])("routes round(%s) digits through frame index conversio
   }, meter);
   expect(globals.get("result")).toEqual(number === "125" ? v.integer(120) : v.float(120)); expect(conversions).toBe(1);
 });
+it("lets getattr and hasattr use native expression attribute lookup", () => {
+  const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected callback"); };
+  delete context.attributeLookup;
+  const program = compileProgram<RuntimeValue>(analyzeModule("items=[]\nappend=getattr(items,'append')\nappend(7)\npresent=hasattr(items,'append')\nabsent=hasattr(items,'missing')\nfallback=getattr(items,'missing',99)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {} }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("items")).toEqual(v.list([v.integer(7)])); expect(globals.get("present")).toBe(v.true); expect(globals.get("absent")).toBe(v.false); expect(globals.get("fallback")).toEqual(v.integer(99));
+});
+it("preserves dynamic attribute text through frame lookup", () => {
+  const { meter, v, context } = fixture(), guest = v.cell({}), member = v.cell({}), globals = new Map<string, RuntimeValue>([["guest",guest], ["name",v.string("x\0😀\ud800")]]), unused = (): never => { throw Error("unexpected callback"); }; let lookups = 0;
+  delete context.attributeLookup;
+  const program = compileProgram<RuntimeValue>(analyzeModule("result=getattr(guest,name)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, attribute(object, name) { expect(object).toBe(guest); expect(name).toBe("x\0😀\ud800"); lookups++; return member; } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(member); expect(lookups).toBe(1);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

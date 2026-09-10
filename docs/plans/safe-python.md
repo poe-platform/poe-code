@@ -7194,6 +7194,16 @@ extension, integration, or validation requirement is missing or unverified.
   compiled pow and 717 compiled round cases. Guest __round__ lookup remains
   explicit-only; concrete guest types, remaining builtin integrations and
   suspended safe-fs execution remain unfinished.
+- Getattr/hasattr now use frame expression attribute lookup for exact string
+  names when no explicit attribute policy is configured. Explicit policies retain
+  original name objects, string-subclass classification and guest AttributeError
+  subclass recognition. Two compiled regressions failed first and now verify
+  native bound-method calls, presence/default handling and NUL/astral/lone-surrogate
+  dynamic names. Additional coverage checks explicit priority, inherited lookup
+  errors and post-lookup cancellation. All 5,389 tests in 444 files pass; selected
+  build, typecheck and scoped lint pass. Unified guest-name/exception identity
+  still requires explicit object policies; concrete guest type assembly, remaining
+  builtin integrations and suspended safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

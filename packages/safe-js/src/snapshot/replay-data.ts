@@ -442,7 +442,8 @@ export function decodeReplayData(
     const detachBuffers = work.detach;
     const decode = (entry: unknown, depth = initialDepth): SandboxValue => {
       if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
-      if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
+      if (typeof entry === "string") return compilation.owner?.budget.allocateString(entry) ?? entry;
+      if (entry === null || typeof entry === "boolean") return entry;
       if (typeof entry === "number" && Number.isFinite(entry)) return entry;
       const atom = record(entry);
       if (own(atom, "tag") === "imported-promise-reference") {
@@ -958,6 +959,7 @@ export function decodeReplayData(
       if (kind === "array" && node.nullPrototype) Object.setPrototypeOf(result, null);
       restored.set(id, result);
       defineProperties(result, record(own(node, "properties")), child, node.symbolProperties);
+      if (kind === "array") compilation.owner?.budget.allocateArrayLength(result.length);
       if (!node.extensible) Object.preventExtensions(result);
       return result;
     };

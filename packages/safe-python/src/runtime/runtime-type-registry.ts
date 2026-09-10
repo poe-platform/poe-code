@@ -190,8 +190,8 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
-  /** Canonical exact set layouts. Mutation-method publication and subclass
-   * native storage remain separate from the installed native protocol slots. */
+  /** Canonical set layouts and native protocol slots; the remaining mutation
+   * method catalog is installed separately from this publication path. */
   setType(kind: "set" | "frozenset"): TypeValue {
     this.meter.checkpoint();
     const existing = this.#sets.get(kind);

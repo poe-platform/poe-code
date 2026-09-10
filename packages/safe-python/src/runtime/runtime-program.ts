@@ -14,6 +14,7 @@ import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js
 import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { RepresentationStack } from "./representation-stack.js";
 import { listRepresentation } from "./list-representation.js";
+import { runtimeSetRepresentation } from "./runtime-set-representation.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
 import { executeFunctionDefinition } from "./function-definition.js";
 import type { FunctionCreationContext } from "./function-state.js";
@@ -211,6 +212,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (payload === undefined) throw Error("list representation requires list storage");
         const stack = representationState.stack ??= new RepresentationStack<RuntimeValue>(100, meter);
         return values.stringPoints(listRepresentation(value, payload.items, getFormatting(), stack, meter));
+      },
+      nativeSetRepr(value) {
+        meter.checkpoint();
+        const stack = representationState.stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+        return values.stringPoints(runtimeSetRepresentation(value, values, getFormatting(), stack, meter));
       },
       get moduleName() { return namespaces.globals.get("__name__"); },
       executeClassBody(fn, namespace) {

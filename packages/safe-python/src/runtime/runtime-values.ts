@@ -91,6 +91,8 @@ export interface BuiltinInvocationContext {
   nativeHash?(value: RuntimeValue): bigint;
   /** Native list repr with active guest elements and shared recursion state. */
   nativeListRepr?(value: RuntimeValue): RuntimeValue;
+  /** Native set repr with original receiver identity and active guest elements. */
+  nativeSetRepr?(value: RuntimeValue): RuntimeValue;
   formatting?: FormatContext<RuntimeValue>;
   /** Type-MRO presence only, without binding a descriptor. */
   hasSpecial?(object: RuntimeValue, name: string): boolean;
@@ -182,7 +184,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue;
+  readonly native?: ListValue | SetValue | FrozenSetValue;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute
@@ -324,7 +326,7 @@ export class RuntimeValues extends ConstantValues {
 
   /** Adopt explicitly allocated instance storage without running guest methods.
    * Missing dictionary denotes a dictionary-less layout, not lazy allocation. */
-  instance(type: TypeValue, dictionary?: DictionaryValue, native?: ListValue): InstanceValue {
+  instance(type: TypeValue, dictionary?: DictionaryValue, native?: ListValue | SetValue | FrozenSetValue): InstanceValue {
     this.runtimeMeter.checkpoint(1, native === undefined ? 48 : 56);
     const state = new RuntimeInstanceState(type, dictionary, this.runtimeMeter);
     return Object.freeze({ kind: "instance", state, native, get type() { return state.type; }, get dictionary() { return state.dictionary; } });

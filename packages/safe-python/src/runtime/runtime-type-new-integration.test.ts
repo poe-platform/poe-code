@@ -50,6 +50,64 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["set", "frozenset"] as const)("allocates owned %s subclasses with dictionaries and native protocols", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
+  state.run("class Child(Base):\n pass\nitems=Child([1])\nitems.label='owned'\nresult=f'{items!r}'\ncorrect=type(items) is Child\nsize=items.__len__()\nfound=items.__contains__(1)\nempty=f'{Child()!r}'\nbase=Base.__repr__(items)\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("Child({1})")); expect(state.globals.get("base")).toEqual(state.v.string("Child({1})")); expect(state.globals.get("empty")).toEqual(state.v.string("Child()"));
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.globals.get("size")).toEqual(state.v.integer(1n)); expect(state.globals.get("found")).toBe(state.v.true);
+  state.run("label=items.label\n"); expect(state.globals.get("label")).toEqual(state.v.string("owned")); expect(() => state.run("items.native\n")).toThrow("has no attribute 'native'");
+});
+
+it.each(["set", "frozenset"] as const)("preserves %s subclass slot storage and explicit repr semantics", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
+  state.run("class Child(Base):\n __slots__=('label',)\n def __repr__(self):\n  return 'override'\nitems=Child([1])\nitems.label=2\nresult=f'{items!r}'\nbase=Base.__repr__(items)\nlabel=items.label\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("override")); expect(state.globals.get("base")).toEqual(state.v.string("Child({1})")); expect(state.globals.get("label")).toEqual(state.v.integer(2n));
+  expect(() => state.run("items.extra=1\n")).toThrow("has no attribute 'extra'");
+});
+
+it.each(["set", "frozenset"] as const)("allows %s subclass initializers to receive their keyword arguments", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
+  state.run("class Child(Base):\n def __init__(self,source,label):\n  self.label=label\nitems=Child([1],label=2)\nresult=f'{items!r}'\nlabel=items.label\n");
+  expect(state.globals.get("result")).toEqual(state.v.string(kind === "set" ? "Child()" : "Child({1})")); expect(state.globals.get("label")).toEqual(state.v.integer(2n));
+});
+
+it.each(["set", "frozenset"] as const)("uses the %s subclass name in constructor arity errors", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind)); state.run("class Child(Base):\n pass\n");
+  expect(() => state.run("Child([1],[2])\n")).toThrow("Child expected at most 1 argument, got 2");
+});
+
+it.each(["set", "frozenset"] as const)("guards recursive %s subclass repr by original receiver identity", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
+  state.run("class Child(Base):\n pass\nclass Value:\n def __repr__(self):\n  return Base.__repr__(items)\nitems=Child([Value()])\nresult=f'{items!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("Child({Child(...)})"));
+});
+
+it("reads a set subclass name after guest repr mutates it", () => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType("set"));
+  state.run("class Child(Base):\n pass\nclass Value:\n def __repr__(self):\n  Child.__name__='Renamed'\n  return 'guest'\nitems=Child([Value()])\nresult=f'{items!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("Renamed({guest})"));
+});
+
+it.each(["disabled", "custom", "raises"])("uses %s hashing for native mutable-subclass membership probes", mode => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType("set")); state.globals.set("Frozen", state.registry.setType("frozenset"));
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw new PythonRuntimeError("TypeError", "hash failed"); } }));
+  state.run(`class Child(Base):\n ${mode === "disabled" ? "pass" : `def __hash__(self):\n  ${mode === "custom" ? "return 1" : "fail()"}`}\nitems=Frozen([Frozen([1])])\nprobe=Child([1])\nresult=items.__contains__(probe)\n`);
+  expect(state.globals.get("result")).toBe(mode === "custom" ? state.v.false : state.v.true);
+});
+
+it("converts mutable subclass probes after a comparison TypeError", () => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType("set"));
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw new PythonRuntimeError("TypeError", "eq failed"); } }));
+  state.run("class Bad:\n def __hash__(self):\n  return 1\n def __eq__(self,other):\n  fail()\nclass Probe(Base):\n def __hash__(self):\n  return 1\nitems={Bad()}\nresult=items.__contains__(Probe([1]))\n");
+  expect(state.globals.get("result")).toBe(state.v.false);
+});
+
+it("copies native set-subclass storage without invoking overridden iteration", () => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType("set"));
+  state.run("class Child(Base):\n def __iter__(self):\n  visit('iter')\n  return [2].__iter__()\nitems=Child([1])\ncopy=Base(items)\nresult=f'{copy!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("{1}")); expect(state.events).toEqual([]);
+});
+
 it("allocates exact sets through normal native type calls", () => {
   const state = fixture(); state.run("Set=type({1})\nitems=Set([2,3])\nresult=f'{items!r}'\nempty=Set()\nother=Set()\nfresh=empty is not other\ncorrect=type(items) is Set\n");
   expect(state.globals.get("result")).toEqual(state.v.string("{2, 3}")); expect(state.globals.get("fresh")).toBe(state.v.true); expect(state.globals.get("correct")).toBe(state.v.true);

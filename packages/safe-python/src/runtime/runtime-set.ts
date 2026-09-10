@@ -6,6 +6,7 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { UnhashableRuntimeValueError } from "./runtime-hash.js";
 import { RuntimeHashError } from "./runtime-hash-error.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import { runtimeSetPayload } from "./runtime-set-payload.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import type { DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
@@ -21,6 +22,11 @@ export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeVal
     if (operation === "discard") return set.items.delete(key, key.kind === "set" ? key.items.keySetHash() : undefined);
     set.items.set(key, values.none);
   } catch (error) {
+    const probe = key.kind === "instance" ? runtimeSetPayload(key) : undefined;
+    const typeError = error instanceof RuntimeHashError ? error.original.name === "TypeError" : error instanceof PythonRuntimeError && error.name === "TypeError";
+    if (operation !== "add" && probe?.kind === "set" && typeError) {
+      return operation === "contains" ? set.items.containsKey(probe, probe.items.keySetHash()) : set.items.delete(probe, probe.items.keySetHash());
+    }
     if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
     const type = error instanceof RuntimeHashError ? error.keyType : key.kind;
     throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error.message})`);
@@ -31,7 +37,8 @@ export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeVal
  * retain prior insertions on failure. Set iteration order is not an API promise. */
 export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): void {
   meter.checkpoint();
-  if (source.kind === "set" || source.kind === "frozenset") target.items.mergeKeysInPlace(source.items, "|");
+  const nativeSource = runtimeSetPayload(source);
+  if (nativeSource !== undefined) target.items.mergeKeysInPlace(nativeSource.items, "|");
   else if (source.kind === "dict") {
     meter.checkpoint(0, 16);
     target.items.mergeKeysInPlace(source.items, "|", { value: values.none });

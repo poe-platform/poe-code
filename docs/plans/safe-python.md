@@ -8850,6 +8850,25 @@ extension, integration, or validation requirement is missing or unverified.
   unfinished.
   Workspace build, typecheck and focused lint pass; all 6,779 unit tests in 493
   files pass with two workers. All 590 differential cases above pass.
+- Added owned set/frozenset subclass storage alongside list payloads, preserving
+  ordinary guest dictionaries, slots and dispatch. Seven initial RED regressions
+  reproduced blocked subclass allocation. Native storage adapters now support
+  subclass initialization, sequence slots, comparisons, hashing and representation
+  without exposing payload fields. Exact-source copying bypasses overridden
+  iteration. Custom frozen initializers receive keywords while default ones retain
+  native validation. Repr guards use original receiver identity and reread the
+  subclass name after guest callbacks. Additional RED checks corrected mutable
+  subclass probe fallback after hash/comparison TypeError and subclass constructor
+  arity diagnostics (including the native 200-byte type-name limit).
+  Sixteen added tests cover ownership, dictionary/slot storage, overrides,
+  mutation, recursion, keyword handling and probe behavior. All 167 subclass,
+  60 allocation, 52 initialization, 388 native-slot and 90 representation cases
+  match CPython, as do 114 list-subclass, 560 guest-comparison and 2,028 native
+  comparison cases. Remaining set mutation/algebra method publication, full
+  lifecycle auditing, other native subclasses and public interpreter/safe-fs
+  integration remain unfinished.
+  Final workspace build, typecheck and focused lint pass; all 6,795 unit tests
+  in 493 files pass with two workers. All 3,459 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

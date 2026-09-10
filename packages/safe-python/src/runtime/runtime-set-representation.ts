@@ -2,22 +2,26 @@ import type { CodePointString } from "./code-point-string.js";
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { representationObject, type RepresentationContext } from "./representation-protocol.js";
 import type { RepresentationStack } from "./representation-stack.js";
-import type { FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
+import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { runtimeSetPayload } from "./runtime-set-payload.js";
 
 /** Snapshot keys before any guest repr callback. Set storage order is not a
  * Python guarantee; shared active-path guards retain the original set identity. */
-export function runtimeSetRepresentation(owner: SetValue | FrozenSetValue, values: RuntimeValues, context: RepresentationContext<RuntimeValue>, stack: RepresentationStack<RuntimeValue>, meter: ExecutionMeter): CodePointString {
+export function runtimeSetRepresentation(owner: RuntimeValue, values: RuntimeValues, context: RepresentationContext<RuntimeValue>, stack: RepresentationStack<RuntimeValue>, meter: ExecutionMeter): CodePointString {
   meter.checkpoint();
-  if (owner.items.size === 0) return values.string(`${owner.kind}()`).value;
+  const payload = runtimeSetPayload(owner);
+  if (payload === undefined) throw Error("set representation requires native set storage");
+  const name = owner.kind === "instance" ? owner.type.value.name : payload.kind;
+  if (payload.items.size === 0) return values.string(`${name}()`).value;
   const restore = stack.enter(owner);
-  if (restore === undefined) return values.string(`${owner.kind}(...)`).value;
+  if (restore === undefined) return values.string(`${name}(...)`).value;
   try {
     meter.checkpoint(0, 64);
-    const snapshot: RuntimeValue[] = [], iterator = owner.items.iterate(key => key, "set");
+    const snapshot: RuntimeValue[] = [], iterator = payload.items.iterate(key => key, "set");
     for (let next = iterator.next(); !next.done; next = iterator.next()) {
       meter.checkpoint(1, 8); snapshot.push(next.value);
     }
-    const opening = values.string(owner.kind === "set" ? "{" : "frozenset({").value, closing = values.string(owner.kind === "set" ? "}" : "})").value;
+    const opening = values.string("{").value, closing = values.string("}").value;
     const comma = values.string(", ").value, parts = [opening];
     let length = opening.length + closing.length;
     for (let index = 0; index < snapshot.length; index++) {
@@ -31,6 +35,10 @@ export function runtimeSetRepresentation(owner: SetValue | FrozenSetValue, value
       parts.push(text);
     }
     meter.checkpoint(0, 8); parts.push(closing);
-    return values.string("").value.join(parts, meter);
+    const body = values.string("").value.join(parts, meter);
+    if (owner.kind === "set") return body;
+    const finalName = owner.kind === "instance" ? owner.type.value.name : payload.kind;
+    meter.checkpoint(0, 56);
+    return values.string("").value.join([values.string(`${finalName}(`).value, body, values.string(")").value], meter);
   } finally { restore(); }
 }

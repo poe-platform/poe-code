@@ -5,6 +5,29 @@ historical test evidence. The full JavaScript-completeness goal is unfinished.
 The audit covers the working tree, including uncommitted implementations; it
 does not describe the published package or only committed sources.
 
+## Latest verification update
+
+The post-PlainDateTime full package gate is currently running as session 33443,
+with its launch fingerprint and log recorded in
+[the integration report](safejs-current-integration-gate.md). All 100 filesystem
+type contracts passed before unit execution. No final result is available yet.
+The last completed full gate below predates the current PlainDateTime work.
+
+The post-offset/time-zone integration full package run completed with 26,420
+passed, three failed and 41 skipped tests (765f71). Failures were the two native
+Promise property-import expectations and the adversarial corpus exceeding its
+750 ms budget at 997.2 ms. An unchanged isolated corpus rerun passed at 272 ms;
+the full-run timing failure remains unresolved. See the exact fingerprint and
+saved-log hash in [the integration report](safejs-current-integration-gate.md).
+
+After that full run, local commit `ea35d7e77` repaired regex boundaries inside
+template substitutions. Its parser/template/regex selection passed 1,616 tests
+with one skipped; scoped lint, the maintained 23-task build and five fresh ESM
+checks passed. All 19 upstream PlainTime.from argument-string fixtures passed
+in both script modes (38/38), resolving the prior helper-parsing failures.
+See [the regression record](safejs-template-regex-boundaries.md). That change is
+outside the full-run fingerprint, and neither selection proves full conformance.
+
 ## Fresh runtime evidence
 
 Probe 302398 compared the built guest runtime with native Node 26.4.0 over 79
@@ -24,11 +47,14 @@ It does not compare inherited typed-array methods or anonymous intrinsics.
 | --- | --- | --- |
 | Proxy, WeakMap, WeakSet, WeakRef, FinalizationRegistry | Constructor bindings exist | Older absence claims are stale; semantic and lifetime gaps remain |
 | SharedArrayBuffer and Atomics | Constructor/object bindings exist | Presence does not prove concurrent behavior or recovery |
-| Temporal.Instant | until/since now present; toLocaleString and toZonedDateTimeISO absent | Partial, uncommitted implementation |
-| Temporal.Duration | compare, round and total absent | Partial, uncommitted implementation |
-| Temporal.PlainDate, PlainTime, PlainDateTime, PlainYearMonth, PlainMonthDay, ZonedDateTime, Now | Absent | Remaining Temporal implementation work |
+| Temporal.Instant | until/since and toLocaleString now present; toZonedDateTimeISO absent | Partial, uncommitted implementation |
+| Temporal.Duration | total, compare and round now present | Uncommitted implementation; broader calendar conformance remains open |
+| Temporal.PlainTime | Constructor, six field getters and all named prototype methods now present, including toLocaleString, with owned data copying and heap/replay codecs | Uncommitted public integration; direct Intl format/parts/ranges now accept PlainTime and Instant, with requested-options snapshot preservation; legacy snapshots use resolved fallback |
+| Intl fixed-offset zones on Node 18 | Strict offset validation and PlainTime.toLocaleString now pass focused Node 18 regressions | Numeric Date/Instant and direct Intl offset formatting remain incomplete; backend also fails all nine offset/type controls on Node 18 (d83fb6); see [offset-zone investigation](safejs-intl-offset-zone-portability.md) |
+| Temporal.PlainDateTime | Present with getters, from/compare/equals, withCalendar/withPlainTime, round, formatting and private copy/replay integration | Public integration remains uncommitted; with, add/subtract, until/since, toLocaleString, toZonedDateTime and toPlainDate are still absent |
+| Temporal.PlainDate, PlainYearMonth, PlainMonthDay, ZonedDateTime, Now | Absent | Remaining Temporal implementation work |
 | Map.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; subsequently implemented locally | See [focused qualification](safejs-map-upsert.md); newer compatibility work, not a full conformance claim |
-| WeakMap.prototype | getOrInsert and getOrInsertComputed absent | Newer native compatibility gap; classify separately from finalized requirements |
+| WeakMap.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; experimental implementation now exists | [WeakMap integration](safejs-weakmap-upsert.md) remains uncommitted and inherits older-Node weak-symbol limitations |
 | RegExp constructor | Native legacy capture/context properties absent | Compatibility difference requiring standards classification before a fix |
 | Error constructor | Native captureStackTrace, prepareStackTrace and stackTraceLimit absent | Engine-specific compatibility surface, not automatic proof of a language defect |
 
@@ -36,6 +62,22 @@ No other missing names were observed in this selected comparison. That does
 not mean all other JavaScript behavior is correct. Native Node is an additional
 oracle, not the normative definition: it includes extensions and can itself
 have implementation defects.
+
+A fresh built-runtime audit against Node 26.4.0 (ca8de4) checked all eight
+Temporal constructors and their own static/prototype string names. It confirms
+PlainDateTime is now present, with exactly the eight missing prototype names
+listed above; Instant still lacks toZonedDateTimeISO. Duration and PlainTime have
+no missing names in that comparison. The four date/zoned constructors remain
+absent. This probe used the build qualified in the required-rounding-unit fix
+(e4c482), before the latest relativeTo calendar-bag adapter change. It does not
+establish behavioral or symbol/descriptor conformance, and it did not recheck Now.
+
+Recent behavioral evidence includes all 71 rounding tests passing on Node
+18.18.2 and successful reruns of the two formerly failing upstream rounding
+fixtures in both script modes. The full upstream round directory's last result
+was 86/90 before that error-type fix; a fresh complete-directory pass is not
+claimed. Current Duration relativeTo integration passed 101 focused tests,
+covering private PlainDateTime fields and calendar-bearing property bags.
 
 The [ECMAScript 2026 global-object specification](https://tc39.es/ecma262/2026/multipage/global-object.html)
 provides the core classification reference. The [get-or-insert proposal](https://tc39.es/proposal-upsert/)
@@ -45,10 +87,22 @@ Temporal is audited against its [separate specification](https://tc39.es/proposa
 
 ## Behavioral and integration work still open
 
+The backend's acceptance of overflowing offset minutes/seconds was reproduced
+in Instant, PlainTime and Duration inputs. Local guards now reject these before
+normalization or later option reads while retaining valid precise offsets and
+clock leap seconds. See [component validation](safejs-temporal-offset-component-validation.md)
+for focused evidence; the post-change full gate failed as recorded above.
+The subsequently confirmed time-only, year-month and month-day time-zone input
+gap now has a local parser and Instant/Duration integration with date and
+annotation validation. See [zone-string conversion](safejs-temporal-time-zone-strings.md)
+for focused evidence and explicitly classified native/specification differences;
+the missing Temporal classes and full conformance audit remain open.
+
 - Temporal requires the missing classes and methods above, calendar/time-zone
-  conversions, and replay-aware Now behavior. Duration total has a recorded
-  exact-rounding discrepancy in both the selected backend and native Node;
-  do not substitute approximate comparisons. See safejs-temporal-gap.md.
+  conversions, and replay-aware Now behavior. The recorded Duration-total hour
+  and calendar-fraction rounding discrepancies now have exact arithmetic fixes;
+  broader conformance remains unproven. See safejs-temporal-duration-total.md
+  and safejs-exact-duration-division.md; do not substitute approximate comparisons.
 - Temporal host copying currently recognizes captured native/backend prototypes
   and tracked null-prototype exports. Arbitrary subclasses, foreign realms and
   untracked null-prototype hosts remain unsupported. Symbol-keyed host binding
@@ -75,6 +129,32 @@ checks. Actual built guest difference results matched native fields in 648
 cases. These selections overlap and must not be added as independent coverage.
 The maintained selected build and scoped lint passed for those changes.
 
+Later Duration integration passed 288 selected cases across sixteen files,
+followed by 30 focused rounding cases. These overlap, not additive coverage.
+The latest qualified build is 14b990. Fresh built reflection a7ab0a now finds
+no missing own static/prototype string names on Duration versus Node 26.4.0;
+Instant still lacks toZonedDateTimeISO. This two-constructor presence check
+does not establish descriptors, symbol properties or behavioral conformance.
+The post-Duration full-package run is recorded in safejs-current-integration-gate.md.
+
+The recorded rerun has now terminated (b4c7fe): 25,954 passed, two failed,
+41 skipped, with all 100 filesystem type contracts passing. Both failures are
+the native Promise property-import expectations. Source/test fingerprint
+`f2834179519887acd7b333cf145aea2812a0bd86a2a018e656fbbfd4eff7d65e`
+matched before and after the run. The replay timeout did not recur; this does
+not prove a performance repair. The saved log is
+`/tmp/safejs-full-gate.sOX0Xu/full-test.log` (SHA-256
+`a4da53e94e3ae89ab57aee61297626ef2f5bf2e4d90bfc8646687fc1ae840a4a`).
+This is historical package-level evidence, not a passing gate or a release.
+
+The newer post-PlainTime/direct-Intl full run completed (c4153e): 26,225 passed,
+two failed and 41 skipped, plus 100 passing filesystem type contracts. Only the
+same native Promise property-import expectations failed. The source fingerprint
+`03b3b7f7e0461e053524257b84f84b8a6acf4357c81d70d3a9d85ab3f45258bc`
+matched before/after (7b208c). Log: `/tmp/safejs-intl-gate.R8iePX/full-test.log`,
+SHA-256 `e5b98177ad7ebc0205f1a7fa57b13181add7d4575587464f0136ef11ff4337e1`.
+This remains a failing package gate, not completed delivery or conformance.
+
 The separate ESM initialization fix is committed as 83d854ab8. Its clean
 candidate reproduced the baseline crash, then passed 138 focused tests,
 the selected build, scoped lint and all five import checks on Node 18 and 22.
@@ -86,6 +166,25 @@ log referenced in earlier notes at
 on this refresh (5cbadf), so this audit does not elevate its historical counts
 to fresh evidence. The package manifest declares no Test262 task; selected
 native comparisons are not a substitute for an upstream conformance harness.
+
+Read-only gate-time audit (320e4e) inspected the existing
+`test/adversarial/test262-semantics.test.ts`: it contains seven handwritten
+cases, not an upstream Test262 runner. Its additional skipped no-op still labels
+proxies and weak references unsupported, despite their current experimental
+bindings. That label is stale evidence, not a real pending conformance test.
+After the frozen full-package run ends, replace the placeholder with meaningful
+bounded regressions against the current implementation; do not count removing
+the skip as adding language coverage. A separately maintained upstream corpus
+runner and per-feature disposition remain needed for a systematic audit.
+
+The skipped-test audit also distinguishes legitimate unavailable controls from
+that stale placeholder. Native Instant interoperability uses four conditional
+`runIf` cases; native `Math.f16round` comparisons are conditional on host support;
+parser fuzzing is opt-in. Filesystem conformance skips declared reference gaps
+and separately asserts fixture membership and exact gap reasons. These controls
+must not be enabled by pretending missing host support exists, removed merely
+to reduce skip counts, or reported as passes. This source audit classifies the
+declarations; the saved full-run result must supply the actual execution counts.
 
 The README now identifies the partial Temporal work explicitly. All unfinished
 implementation stays local. Pushes and releases remain held; neither local

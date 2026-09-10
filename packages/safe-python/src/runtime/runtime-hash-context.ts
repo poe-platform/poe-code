@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeHashContext } from "./runtime-hash.js";
+import { PythonRuntimeError } from "./error.js";
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext } from "./runtime-values.js";
 
 /** Compose execution-owned hash slots with a trusted identity/payload policy.
@@ -22,7 +23,14 @@ export function createRuntimeHashContext(base: RuntimeHashContext, meter: Execut
       meter.checkpoint(0, 192);
       return {
         lookupHash() {
-          const method = invocation.lookupSpecial!(value, "__hash__"); meter.checkpoint();
+          let method;
+          try { method = invocation.lookupSpecial!(value, "__hash__"); }
+          catch (error) {
+            meter.checkpoint();
+            if (error instanceof PythonRuntimeError && error.name === "AttributeError") return null;
+            throw error;
+          }
+          meter.checkpoint();
           if (method === undefined || method.kind === "none") return null;
           meter.checkpoint(0, 32);
           return () => invocation.call(method, []);

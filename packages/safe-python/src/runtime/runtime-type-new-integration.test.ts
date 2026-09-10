@@ -211,6 +211,22 @@ it("preserves guest hash exceptions and explicit extension precedence", () => {
   state.run("result=custom(value)\n"); expect(state.globals.get("result")).toEqual(state.v.integer(19));
 });
 
+it("treats missing hash descriptors as unhashable without masking hash-body errors", () => {
+  const state = fixture(), failure = new PythonRuntimeError("AttributeError", "hash attribute missing");
+  state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash)); state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Descriptor:\n def __get__(self,instance,owner):\n  visit('bind')\n  fail()\nclass Value:\n __hash__=Descriptor()\nvalue=Value()\n");
+  expect(() => state.run("hash(value)\n")).toThrow("unhashable type: 'Value'"); expect(() => state.run("hash((value,))\n")).toThrow("unhashable type: 'Value'");
+  state.run("def body(self):\n fail()\nValue.__hash__=body\n");
+  expect(() => state.run("hash(value)\n")).toThrow(failure); expect(state.events).toEqual(["bind", "bind"]);
+});
+
+it.each(["TypeError", "ValueError", "host"])("preserves %s failures from hash descriptor binding", name => {
+  const state = fixture(), failure = name === "host" ? new Error("host failure") : new PythonRuntimeError(name, "binding failed");
+  state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash)); state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Descriptor:\n def __get__(self,instance,owner):\n  fail()\nclass Value:\n __hash__=Descriptor()\nvalue=Value()\n");
+  expect(() => state.run("hash(value)\n")).toThrow(failure); expect(() => state.run("hash((value,))\n")).toThrow(failure);
+});
+
 it("publishes automatic hash disabling before descriptor initialization and preserves inheritance", () => {
   const state = fixture();
   state.run("class Descriptor:\n def __set_name__(self,owner,name):\n  self.hash=owner.__dict__['__hash__']\nmarker=Descriptor()\nclass Equal:\n __eq__=None\n field=marker\nclass Child(Equal):\n pass\nseen=marker.hash\ninherited=Child.__hash__\nowned=Child.__dict__.get('__hash__','absent')\n");

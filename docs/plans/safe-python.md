@@ -8468,6 +8468,16 @@ extension, integration, or validation requirement is missing or unverified.
   Collection key-policy assembly still needs to
   adopt the same adapter; canonical object.__hash__, native type catalogs and
   public execution assembly remain unfinished.
+- Corrected the hash descriptor lookup error boundary: AttributeError raised
+  while binding __hash__ means unhashable, but AttributeError from the invoked
+  hash body is preserved. Other guest and host binding failures are unchanged.
+  The initial regression leaked the binding AttributeError. Four added cases
+  cover direct/nested hashes and exception identity. All 48 descriptor/body error
+  combinations match CPython, including metaclasses and data descriptors. Build,
+  typecheck, scoped lint and all 6,529 tests in 491 files pass with two workers.
+  The prior 240 guest-hash differential cases also still match CPython.
+  Collection key integration and
+  canonical native object hash exposure remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -48,6 +48,86 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("allocates list subclasses with native contents and independent instance dictionaries", () => {
+  const state = fixture();
+  state.run("list_type=type([])\nclass Child(list_type):\n pass\nitems=Child([1,2])\nitems.label=7\nitems.append(3)\ncorrect=type(items) is Child\nlabel=items.label\nresult=0\nfor item in items:\n result=result*10+item\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.globals.get("label")).toEqual(state.v.integer(7)); expect(state.globals.get("result")).toEqual(state.v.integer(123));
+});
+
+it("keeps list subclass overrides separate from explicit native slots", () => {
+  const state = fixture();
+  state.run("list_type=type([])\nclass Child(list_type):\n def __len__(self):\n  return 9\n def __iter__(self):\n  return [7].__iter__()\n def __getitem__(self,key):\n  return 8\nitems=Child([1,2])\nlength=items.__len__()\nnative_length=list_type.__len__(items)\nitem=items[0]\nnative_item=list_type.__getitem__(items,0)\nresult=0\nfor value in items:\n result=result*10+value\n");
+  expect(state.globals.get("length")).toEqual(state.v.integer(9)); expect(state.globals.get("native_length")).toEqual(state.v.integer(2)); expect(state.globals.get("item")).toEqual(state.v.integer(8)); expect(state.globals.get("native_item")).toEqual(state.v.integer(1)); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+});
+
+it("retains list subclass identity for in-place operations and exact list results for copies", () => {
+  const state = fixture();
+  state.run("list_type=type([])\nclass Child(list_type):\n pass\nitems=Child([1,2])\nother=Child([3])\njoined=items+other\ncopy=items.copy()\nrepeated=items*2\nalias=items\nitems+=other\nitems*=2\nsame=items is alias\nexact=type(joined) is list_type and type(copy) is list_type and type(repeated) is list_type\nresult=0\nfor value in items:\n result=result*10+value\nequal=items==[1,2,3,1,2,3]\n");
+  expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("exact")).toBe(state.v.true); expect(state.globals.get("equal")).toBe(state.v.true); expect(state.globals.get("result")).toEqual(state.v.integer(123123));
+});
+
+it("stores declared slots alongside native list contents", () => {
+  const state = fixture();
+  state.run("list_type=type([])\nclass Child(list_type):\n __slots__=('label',)\nitems=Child([1])\nitems.label=7\nlabel=items.label\nitem=items[0]\n");
+  expect(state.globals.get("label")).toEqual(state.v.integer(7)); expect(state.globals.get("item")).toEqual(state.v.integer(1));
+  expect(() => state.run("items.extra=1\n")).toThrow("has no attribute 'extra'");
+});
+
+it("concatenates exact lists with list subclass payloads after reflected negotiation", () => {
+  const state = fixture();
+  state.run("list_type=type([])\nclass Child(list_type):\n pass\nclass Reflected(Child):\n def __radd__(self,other):\n  return 9\nitems=[1]+Child([2])\nresult=items[0]*10+items[1]\nreflected=[1]+Reflected([2])\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(12)); expect(state.globals.get("reflected")).toEqual(state.v.integer(9));
+});
+
+it("runs overridden list subclass initialization without implicit base initialization", () => {
+  const state = fixture();
+  state.run("class Child(type([])):\n def __init__(self,*,value):\n  self.append(value)\nitems=Child(value=7)\nresult=items[0]\nlength=items.__len__()\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7)); expect(state.globals.get("length")).toEqual(state.v.integer(1));
+  expect(() => state.run("items.native\n")).toThrow("has no attribute 'native'");
+});
+
+it.each(["items*1.0", "1.0*items", "items*=1.0"])("uses sequence repetition errors for list subclass expressions: %s", expression => {
+  const state = fixture(); state.run("class Child(type([])):\n pass\nitems=Child([1,2])\n");
+  expect(() => state.run(`${expression}\n`)).toThrow("can't multiply sequence by non-int of type 'float'");
+  expect(() => state.run("items.__mul__(1.0)\n")).toThrow("'float' object cannot be interpreted as an integer");
+});
+
+it("retains native subclass concatenation errors for unrelated instances", () => {
+  const state = fixture(); state.run("class Child(type([])):\n pass\nclass Other:\n pass\nitems=Child([1])\n");
+  expect(() => state.run("items+Other()\n")).toThrow('can only concatenate list (not "Other") to list');
+});
+
+it("runs inherited subclass in-place concatenation before reflected addition", () => {
+  const state = fixture(); state.run("class Child(type([])):\n pass\nclass Other:\n def __radd__(self,other):\n  visit('reflected')\n  return 9\nitems=Child([1])\n");
+  expect(() => state.run("items+=Other()\n")).toThrow("'Other' object is not iterable"); expect(state.events).toEqual([]);
+});
+
+it.each(["__add__", "__mul__"])("does not restore a native sequence fallback after %s declines", name => {
+  const state = fixture(), operator = name === "__add__" ? "+" : "*";
+  state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run(`class Child(type([])):\n def ${name}(self,other):\n  return NotImplemented\nclass Other:\n def __index__(self):\n  visit('index')\n  return 2\nitems=Child([1])\n`);
+  expect(() => state.run(`items${operator}Other()\n`)).toThrow(`unsupported operand type(s) for ${operator}: 'Child' and 'Other'`); expect(state.events).toEqual([]);
+});
+
+it.each(["+=", "*="])("uses ordinary result identity after a list subclass %s override declines", operator => {
+  const state = fixture(), name = operator === "+=" ? "__iadd__" : "__imul__", argument = operator === "+=" ? "[2]" : "2";
+  state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run(`class Child(type([])):\n def ${name}(self,other):\n  return NotImplemented\nitems=Child([1])\nalias=items\nitems${operator}${argument}\nsame=items is alias\nexact=type(items) is type([])\n`);
+  expect(state.globals.get("same")).toBe(state.v.false); expect(state.globals.get("exact")).toBe(state.v.true);
+});
+
+it.each([["__mul__", "[1]*Child([1])", "list"], ["__rmul__", "Child([1])*Child([1])", "Child"], ["__rmul__", "Child([1])*[1]", "list"]])("activates paired numeric repetition when %s is overridden", (name, expression, type) => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run(`class Child(type([])):\n def ${name}(self,other):\n  return NotImplemented\n`);
+  expect(() => state.run(`${expression}\n`)).toThrow(`'${type}' object cannot be interpreted as an integer`);
+});
+
+it.each(["append", "__len__", "__init__"])("binds inherited %s to the list subclass instance, not its payload", name => {
+  const state = fixture();
+  state.run(`class Child(type([])):\n pass\nitems=Child()\nreceiver=items.${name}.__self__ is items\n`);
+  expect(state.globals.get("receiver")).toBe(state.v.true);
+});
+
 it.each(["", "[3,4]", "Source()"])("constructs exact native lists through the normal type lifecycle: %s", args => {
   const state = fixture();
   state.run(`class Source:\n def __iter__(self):\n  visit('iterate')\n  return [3,4].__iter__()\nlist_type=type([])\nitems=list_type(${args})\ncorrect_type=type(items) is list_type\nresult=0\nfor item in items:\n result=result*10+item\n`);

@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeReceiverComparison } from "./runtime-receiver-comparison.js";
+import { runtimeListPayload } from "./runtime-list-payload.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 
 export type NativeBoundCallableKind = "method" | "method-wrapper" | "builtin_function_or_method";
@@ -14,12 +15,12 @@ export function installRuntimeComparisonMethods(kind: NativeBoundCallableKind | 
   if (kind === "list") slots.push(["__lt__", "<"], ["__le__", "<="], ["__gt__", ">"], ["__ge__", ">="]);
   for (const [name, operator] of slots) {
     meter.checkpoint(0, 96);
-    owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, doc: `Return self${operator}value.`, accepts: receiver => receiver.kind === kind,
+    owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, doc: `Return self${operator}value.`, accepts: receiver => kind === "list" ? runtimeListPayload(receiver) !== undefined : receiver.kind === kind,
       invoke(receiver, positional, keywords, meter, invocation) {
         meter.checkpoint();
         if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `wrapper ${name}() takes no keyword arguments`);
         if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `expected 1 argument, got ${positional.length}`);
-        return runtimeReceiverComparison(operator, receiver, positional[0], values, meter, undefined, invocation);
+        return runtimeReceiverComparison(operator, kind === "list" ? runtimeListPayload(receiver)! : receiver, kind === "list" ? runtimeListPayload(positional[0]) ?? positional[0] : positional[0], values, meter, undefined, invocation);
       }
     }));
   }

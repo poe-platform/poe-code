@@ -8680,6 +8680,27 @@ extension, integration, or validation requirement is missing or unverified.
   catalogs and public execution setup.
   Selected build, typecheck, scoped lint and all 6,668 tests in 493 files pass
   with two workers.
+- Replaced the list-subclass allocation boundary with owned native payloads on
+  ordinary instances. Subclasses retain actual type, dictionaries and declared
+  slots; native descriptors unwrap storage while bound metadata and in-place
+  results retain the guest receiver. List methods, initialization, subscription,
+  sequence operations and comparisons share existing storage kernels. Initial
+  regressions reproduced the allocation failure; follow-up regressions exposed
+  mixed concatenation and sequence-versus-numeric dispatch differences. Native
+  arithmetic descriptors now identify their sequence fallback operator. Live
+  dispatch tracks overridden fallback eligibility and paired forward/reflected
+  numeric activation; declined custom in-place methods use ordinary operations,
+  preserving fresh result identity instead of silently mutating the old list.
+  Twenty-one added tests cover allocation, overrides, dictionaries/slots, hidden
+  payload boundaries, binding identity, mixed operands, native errors, declined
+  overrides and paired-slot activation. All 114 subclass-slot/override, 195
+  subclass-arithmetic and 72 subclass-method differential cases match CPython.
+  This removes the explicit allocation blocker, but does not complete native
+  subclass conformance: representation, remaining native members and lifecycle
+  edge cases still need audits, as do other native catalogs and public execution.
+  Prior 195 exact-list arithmetic, 560 guest comparison and 2,028 native
+  comparison cases still pass. Final selected build, typecheck, scoped lint and
+  all 6,689 tests in 493 files pass with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

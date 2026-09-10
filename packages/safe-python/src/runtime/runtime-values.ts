@@ -166,12 +166,14 @@ export interface CellValue {
 }
 
 /** Concrete guest instance. Allocation/layout policy supplies its actual type
- * and optional owned dictionary; neither implies native-subclass payload storage. */
+ * and optional owned dictionary and native payload. Native payloads are not
+ * guest attributes and do not replace ordinary instance protocol dispatch. */
 export interface InstanceValue {
   readonly kind: "instance";
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
+  readonly native?: ListValue;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute
@@ -217,6 +219,8 @@ export interface MemberDescriptorValue {
 export interface MethodDescriptorCapability extends NativeDocumentation {
   readonly owner: TypeValue;
   readonly name: string;
+  /** Native sequence fallback, not a numeric slot during operator negotiation. */
+  readonly sequenceOperator?: "+" | "*";
   accepts(instance: RuntimeValue, meter: ExecutionMeter): boolean;
   invoke(instance: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, meter: ExecutionMeter, context?: BuiltinInvocationContext): RuntimeValue;
 }
@@ -304,10 +308,10 @@ export class RuntimeValues extends ConstantValues {
 
   /** Adopt explicitly allocated instance storage without running guest methods.
    * Missing dictionary denotes a dictionary-less layout, not lazy allocation. */
-  instance(type: TypeValue, dictionary?: DictionaryValue): InstanceValue {
-    this.runtimeMeter.checkpoint(1, 48);
+  instance(type: TypeValue, dictionary?: DictionaryValue, native?: ListValue): InstanceValue {
+    this.runtimeMeter.checkpoint(1, native === undefined ? 48 : 56);
     const state = new RuntimeInstanceState(type, dictionary, this.runtimeMeter);
-    return Object.freeze({ kind: "instance", state, get type() { return state.type; }, get dictionary() { return state.dictionary; } });
+    return Object.freeze({ kind: "instance", state, native, get type() { return state.type; }, get dictionary() { return state.dictionary; } });
   }
 
   /** Adopt trusted owned storage (for example, a slice) without a second copy. */

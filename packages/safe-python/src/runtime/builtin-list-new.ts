@@ -3,8 +3,8 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinFunctionValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
-/** Exact native allocation creates empty storage without consuming init args.
- * Native subclass payload/state integration is not yet implemented. */
+/** Native allocation creates empty storage without consuming init args.
+ * Subclasses retain ordinary instance dictionaries and declared slot storage. */
 export function createListNewBuiltin(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, owns: (type: TypeValue) => boolean): BuiltinFunctionValue {
   meter.checkpoint(0, 96);
   return values.builtinFunction({ name: "list.__new__", doc: "Create and return a new object.  See help(type) for accurate signature.",
@@ -24,8 +24,10 @@ export function createListNewBuiltin(owner: TypeValue, values: RuntimeValues, me
         const name = diagnosticTypeName(type.value.name, meter);
         throw new PythonRuntimeError("TypeError", `list.__new__(${name}): ${name} is not a subtype of list`);
       }
-      if (type !== owner) throw Error("native list subclass storage is not implemented");
-      return values.list([]);
+      const payload = values.list([]);
+      if (type === owner) return payload;
+      const dictionary = type.value.hasInstanceDictionary ? values.dictionary(owner.value.namespace.items.emptyCopy()) : undefined;
+      return values.instance(type, dictionary, payload);
     }
   });
 }

@@ -4,6 +4,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { validateIndexResult, type IntegerIndexContext } from "./index-protocol.js";
 import { runtimeBinary } from "./runtime-binary.js";
+import { runtimeListPayload } from "./runtime-list-payload.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 
@@ -24,11 +25,12 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
     const result = dispatchBinaryOperation(context.numeric, meter);
     if (result !== values.notImplemented) return result;
   }
-  let source = left, multiplier = right;
+  const nativeLeft = context.sequenceFallbacks?.left === false ? undefined : runtimeListPayload(left);
+  let source = nativeLeft ?? left, multiplier = right;
   if (source.kind !== "list" && source.kind !== "tuple" && source.kind !== "str" && source.kind !== "bytes") {
     const blocked = augmented && (context.leftHasSequenceTable ?? (left.kind === "range" || left.kind === "dict" || left.kind === "mappingproxy" || left.kind === "set" || left.kind === "frozenset" || left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values"));
     meter.checkpoint(0);
-    if (!blocked) { source = right; multiplier = left; }
+    if (!blocked) { source = context.sequenceFallbacks?.right === false ? right : runtimeListPayload(right) ?? right; multiplier = left; }
   }
   if (source.kind === "list" || source.kind === "tuple" || source.kind === "str" || source.kind === "bytes") {
     let count = multiplier.kind === "int" ? multiplier.value : multiplier.kind === "bool" ? multiplier.value ? 1n : 0n : undefined;
@@ -47,8 +49,8 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
       if (count === undefined) throw new PythonRuntimeError("TypeError", `can't multiply sequence by non-int of type '${name}'`);
       throw new PythonRuntimeError("OverflowError", `cannot fit '${name}' into an index-sized integer`);
     }
-    if (augmented && left.kind === "list") {
-      left.items.repeatInPlace(count);
+    if (augmented && nativeLeft !== undefined) {
+      nativeLeft.items.repeatInPlace(count);
       return left;
     }
     return runtimeBinary("*", source, values.integer(count), values, meter);

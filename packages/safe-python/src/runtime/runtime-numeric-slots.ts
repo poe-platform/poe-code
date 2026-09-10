@@ -4,6 +4,8 @@ import type { BinaryDispatch } from "./binary-dispatch.js";
 export interface RuntimeNumericContext {
   /** Prepared numeric slots, excluding sequence concat/repeat fallbacks. */
   numeric?: BinaryDispatch<RuntimeValue>;
+  /** Live dispatch records whether native subclass sequence slots survive overrides. */
+  sequenceFallbacks?: { readonly left: boolean; readonly right: boolean };
   typeName?(value: RuntimeValue): string;
 }
 

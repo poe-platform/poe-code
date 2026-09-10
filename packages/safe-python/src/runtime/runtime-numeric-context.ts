@@ -6,6 +6,7 @@ import { runtimeNumericMethods, usesRuntimeGuestNumericSlots } from "./runtime-n
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimePowerSlot } from "./runtime-power.js";
 import { runtimeDivmod } from "./runtime-divmod.js";
+import { runtimeListPayload } from "./runtime-list-payload.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Prepare one pair, keeping method lookup live until dispatch. Native pairs
@@ -30,6 +31,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     }
   }
   meter.checkpoint(0, 512);
+  const sequenceFallbacks = { left: !leftGuest || runtimeListPayload(left) === undefined, right: !rightGuest || runtimeListPayload(right) === undefined };
   const call = (receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined, name: string): RuntimeValue => {
     if (type === undefined) {
       if (operator === "divmod()") return runtimeDivmod(left, right, values, meter);
@@ -43,6 +45,18 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     }
     const method = lookupRuntimeSpecialMethod(receiver, type, values.string(name), special, values, meter);
     meter.checkpoint();
+    if (runtimeListPayload(receiver) !== undefined) {
+      let nativeSequence = method?.kind === "method-wrapper" && method.value.descriptor.value.sequenceOperator === operator && method.value.descriptor.value.name === name;
+      if (nativeSequence) {
+        // Forward/reflected overrides share the native numeric slot. Once one
+        // side is customized, the inherited partner is called as a descriptor.
+        const oppositeName = name === forwardName ? reflectedName : forwardName;
+        const opposite = resolveRuntimeTypeAttribute(type.value, values.string(oppositeName), special, values, meter)?.attribute.value;
+        nativeSequence = opposite === undefined || (opposite.kind === "wrapper_descriptor" && opposite.value.sequenceOperator === operator && opposite.value.name === oppositeName);
+      }
+      sequenceFallbacks[name === forwardName ? "left" : "right"] = nativeSequence;
+      if (nativeSequence) return values.notImplemented;
+    }
     if (method === undefined) return values.notImplemented;
     const ternary = operator === "**" && modulus.kind !== "none";
     meter.checkpoint(0, ternary ? 24 : 16);
@@ -56,6 +70,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     meter.checkpoint(); return result;
   };
   return {
+    sequenceFallbacks,
     leftHasSequenceTable: leftType?.value.hasSequenceTable,
     numeric: {
       relation, notImplemented: values.notImplemented,

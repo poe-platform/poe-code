@@ -55,7 +55,7 @@ for (const format of formats) {
       try { pulls++; yield encoded; pulls++; await cancelled(signal); }
       finally { returned = true; }
     })(), async (output, signal) => {
-      for await (const _chunk of output) { writes++; enter(); await cancelled(signal); }
+      for await (const ignoredChunk of output) { writes++; enter(); await cancelled(signal); }
     }, parseOptions(format, ["-dc"]), controller.signal);
     await entered;
     assert.equal(writes, 1);
@@ -161,4 +161,14 @@ test("native bzip2 level-nine 900 KB fixture yields bounded output and cancellab
       cancelled.released();
     } finally { clearTimeout(timer); }
   }
+});
+
+
+test("successful codec completion propagates a cleanup failure", async () => {
+  const signal = new AbortController().signal;
+  const reason = new Error("cleanup failure");
+  const output = boundedCodec(reader(new Uint8Array(), signal),
+    { format: "xz", level: 1, decompress: false }, signal,
+    () => ({ step: () => ({ consumed: 0, produced: 0, status: "end" }), close() { throw reason; } }));
+  await assert.rejects(collect(output), error => error === reason);
 });

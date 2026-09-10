@@ -112,7 +112,10 @@ export async function* boundedCodec(
     options.onFailure?.(error);
     throw error;
   } finally {
-    try { stream?.close(); }
-    catch (error) { if (!failed) throw error; }
+    if (failed) {
+      try { stream?.close(); } catch { /* Preserve the original failure. */ }
+    } else {
+      stream?.close();
+    }
   }
 }

@@ -23,3 +23,11 @@ guard traversal showed no clear gain: approximately 60–80 ms before and 60–6
 after, with identical 4,416 metadata operations. This change does not establish
 that the repository lint timeout is solved. Full unit and maintained lint gates
 remain required before delivery.
+
+The first maintained run after the change completed in 407.58 seconds within
+the unchanged supervision limits. It linted all 10,543 configured files with
+3,243,665 metadata operations and complete receipt handling. It exited 1 for
+50 errors and one warning in the new compression implementation and generated
+artifacts; completion is not a clean gate. A two-second native sample still
+showed directory reads in about half of the main-thread stacks. This is evidence
+of completion under the limit, not an isolated end-to-end speedup measurement.

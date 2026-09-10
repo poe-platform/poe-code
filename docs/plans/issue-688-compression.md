@@ -213,3 +213,38 @@ process events, escalation, and group-exit polling retain real timing. No PID
 file or production change is needed. All eight focused command-runner tests and
 strict TypeScript passed (`/tmp/poe-688-descendant-green.log` and
 `/tmp/poe-688-descendant-types.log`); full validation must still complete.
+
+The next maintained full run passed the shared phase (22,452 tests, two skips),
+Bash runner (307 tests), parallel Bash phase (125 tests), and serial Bash phase
+(28,302 passes, 86 skips, zero failures). SafeJS then failed: 21,656 tests passed,
+37 skipped, two tests hit their unchanged five-second deadlines, and a dependent
+completed-replay assertion lacked the result of one timed-out test. The failures
+are the 128-draw completed replay and minimal-proof-2 Error projection cases.
+Evidence: `/tmp/poe-688-readiness-full-unit.log`. Later workspace tasks and the
+root posttest did not run. The complete route is not a pass; investigate the
+confirmed timeouts without reducing scenarios, replay generations, assertions,
+or increasing deadlines.
+
+Profiling identified fresh-child transport/import work in the Error projection
+fixture. Its source mode now builds the executable ESM child once, sends that
+source on stdin, and sends the V8 request on fd 3. This removes repeated base64
+transport of the 8.1 MB runtime while retaining a fresh Node process, both real
+runtime restores, graph provenance, complete output flushing, and the existing
+three-second inner/five-second outer deadlines. Built mode retains its public
+package import. All 19 source and 19 built checks and focused strict TypeScript
+passed. Source qualification took 21.16 seconds against the earlier 36.76-second
+baseline; changing host load prevents a universal speedup claim. The completed
+observation is assigned before assertions so a failed assertion cannot erase
+the subsequent replay's input. Logs: `/tmp/poe-688-o12-raw-esm-green.log`,
+`/tmp/poe-688-o12-built-green.log`, and `/tmp/poe-688-o12-types.log`.
+
+The 128-draw profile instead found required fresh retained-graph accounting.
+Duplicate-root removal, alternate guest array construction, and bulk descriptor
+capture did not produce a safe measured improvement and were not applied.
+The test now uses separate success and exact return-value assertions, avoiding
+Vitest's duplicate subset comparison while strengthening equality. All widths,
+three replay generations, four snapshot serializations, and host-call counts
+remain. Eight focused tests and strict TypeScript passed; this small reduction
+does not by itself establish that the full-run timeout is resolved. Evidence:
+`/tmp/poe-688-completed-replay-green.log` and
+`/tmp/poe-688-completed-replay-types.log`.

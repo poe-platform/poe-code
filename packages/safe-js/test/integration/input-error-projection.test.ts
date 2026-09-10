@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import type { Writable } from "node:stream";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { deserialize, serialize } from "node:v8";
 import { build } from "esbuild";
@@ -16,12 +17,14 @@ const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 const apiMode = process.env.SAFEJS_O12_API ?? "source";
 if (apiMode !== "source" && apiMode !== "built") throw Error("Invalid O12 API mode");
 
-const childProgram = `
+const childProgram = (sourceMode: boolean) => `
 import { readFileSync } from 'node:fs';
 import { serialize, deserialize } from 'node:v8';
-const input = deserialize(readFileSync(0));
+const input = deserialize(readFileSync(${sourceMode ? 3 : 0}));
 const publicRuntimeURL = input.apiMode === 'built' ? import.meta.resolve('@poe-code/safe-js') : 'source-bundle';
-const api = await import(input.apiMode === 'built' ? '@poe-code/safe-js' : 'data:text/javascript;base64,' + input.bundle);
+${sourceMode
+  ? "import { run, dump, restore, declareHostOperation, deepCopyToSandbox, Budget } from './packages/safe-js/src/index.ts'; const api = { run, dump, restore, declareHostOperation, deepCopyToSandbox, Budget };"
+  : "const api = await import('@poe-code/safe-js');"}
 const calls = [];
 const hostTrace = [];
 const acknowledgements = [];
@@ -237,23 +240,35 @@ async function observe(
   outputPadding?: string
 ) {
   const observation = await new Promise<Observation>((accept, reject) => {
-    const child = spawn(process.execPath, ["--input-type=module", "-e", childProgram], {
-      cwd: repositoryRoot,
-      stdio: ["pipe", "pipe", "pipe"]
-    });
+    const child = apiMode === "source"
+      ? spawn(process.execPath, ["--input-type=module", "-"], {
+        cwd: repositoryRoot, stdio: ["pipe", "pipe", "pipe", "pipe"]
+      })
+      : spawn(process.execPath, ["--input-type=module", "-e", childProgram(false)], {
+        cwd: repositoryRoot, stdio: ["pipe", "pipe", "pipe"]
+      });
     const output: Buffer[] = [];
     let stderr = "";
-    const timer = setTimeout(() => {
+    let failure: Error | undefined;
+    const fail = (error: Error) => {
+      failure ??= error;
+      clearTimeout(timer);
       child.kill("SIGKILL");
-      reject(Error("Child deadline: " + stderr));
+    };
+    const timer = setTimeout(() => {
+      fail(Error("Child deadline: " + stderr));
     }, 5000);
+    child.stdin.on("error", fail);
+    child.stdout.on("error", fail);
+    child.stderr.on("error", fail);
     child.stdout.on("data", (chunk) => output.push(chunk));
     child.stderr.on("data", (chunk) => {
       stderr += chunk;
     });
-    child.on("error", reject);
+    child.on("error", fail);
     child.on("close", (code) => {
       clearTimeout(timer);
+      if (failure) return reject(failure);
       if (code !== 0) return reject(Error(`Child ${code}: ${stderr}`));
       try {
         accept(deserialize(Buffer.concat(output)));
@@ -261,20 +276,24 @@ async function observe(
         reject(error);
       }
     });
-    child.stdin.end(
-      serialize({
-        bundle,
-        source,
-        profile,
-        mode,
-        projection,
-        leftDomain,
-        outputPadding,
-        snapshot,
-        model: captured?.model,
-        apiMode
-      })
-    );
+    const input = serialize({
+      source,
+      profile,
+      mode,
+      projection,
+      leftDomain,
+      outputPadding,
+      snapshot,
+      model: captured?.model,
+      apiMode
+    });
+    if (apiMode === "source") {
+      // Keep code out of the V8 payload while retaining a fresh runtime per child.
+      const request = child.stdio[3] as Writable;
+      request.on("error", fail);
+      request.end(input);
+      child.stdin.end(bundle);
+    } else child.stdin.end(input);
   });
   console.log(
     JSON.stringify({
@@ -345,8 +364,7 @@ beforeAll(async () => {
   }
   const compiled = await build({
     stdin: {
-      contents:
-        "export { run, dump, restore, declareHostOperation, deepCopyToSandbox, Budget } from './packages/safe-js/src/index.ts';",
+      contents: childProgram(true),
       resolveDir: repositoryRoot,
       loader: "ts"
     },
@@ -373,7 +391,7 @@ beforeAll(async () => {
       }
     ]
   });
-  bundle = Buffer.from(compiled.outputFiles[0].text).toString("base64");
+  bundle = compiled.outputFiles[0].text;
   captured = await observe("capture");
 });
 
@@ -441,6 +459,7 @@ describe("O12 exact modeled Error proof projection", () => {
         const before = serialize(captured.saved);
         const receiptBefore = serialize(captured.model.receiptSnapshot);
         const resumed = await observe("restore", projection, captured.saved, leftDomain);
+        completedProof = resumed;
         expect(resumed.status).toBe("ok");
         expect(resumed.leftReceiptUnchanged).toBe(true);
         expectLeftProvenance(resumed.model.nativeLeft, false);
@@ -578,7 +597,6 @@ describe("O12 exact modeled Error proof projection", () => {
         );
         expect(serialize(captured.saved).equals(before)).toBe(true);
         expect(serialize(captured.model.receiptSnapshot).equals(receiptBefore)).toBe(true);
-        completedProof = resumed;
       });
 
       it(`${title}: completed replay`, async () => {

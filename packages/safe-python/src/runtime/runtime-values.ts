@@ -62,8 +62,7 @@ export function isRuntimeSet(value: RuntimeValue): value is SetValue | FrozenSet
 /** Live read-only guest view. Host storage is never exposed by guest attributes. */
 export interface MappingProxyValue {
   readonly kind: "mappingproxy";
-  readonly value: DictionaryValue;
-  readonly owner?: InstanceValue;
+  readonly value: RuntimeValue;
 }
 
 export type DictionaryViewValue = { readonly value: DictionaryValue; readonly owner?: InstanceValue } & (
@@ -471,9 +470,9 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "method-wrapper", value: Object.freeze({ descriptor, instance }) });
   }
 
-  mappingProxy(value: DictionaryValue, owner?: InstanceValue): MappingProxyValue {
+  mappingProxy(value: RuntimeValue, owner?: InstanceValue): MappingProxyValue {
     this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind: "mappingproxy", value, ...(owner === undefined ? {} : { owner }) });
+    return Object.freeze({ kind: "mappingproxy", value: owner ?? value });
   }
 
   dictionaryView(value: DictionaryValue, kind: DictionaryViewValue["kind"], owner?: InstanceValue): DictionaryViewValue {

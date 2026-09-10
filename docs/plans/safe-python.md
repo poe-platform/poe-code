@@ -9167,6 +9167,29 @@ extension, integration, or validation requirement is missing or unverified.
   files pass. Mapping-proxy construction/catalog and arbitrary mapping owners
   remain unfinished, alongside full interpreter and safe-fs execution work.
   No push or release was requested.
+- General mapping-proxy construction (2026-09-10): failing integration tests
+  established missing construction and arbitrary mapping retention. Added a
+  canonical immutable, non-subclassable mappingproxy type with native allocation
+  and keyword argument handling. Proxies now retain their original RuntimeValue
+  directly rather than a dictionary payload plus optional owner. Construction
+  accepts native mapping-protocol values and guest item-slot presence without
+  invoking descriptors; list/tuple subclasses remain excluded. Existing read,
+  iteration, membership, length, truth, hash, representation, comparison, union
+  and expansion paths forward to the retained mapping. Nested item/length/
+  iteration/containment and representation forwarding is iterative: a failing
+  5,000-proxy test reproduced host stack exhaustion, and CPython confirmed that
+  both str and repr must succeed. Framing is built in one metered operation.
+  Four added tests pass. All 98 constructor cases, 144 general-mapping operation
+  cases, 90 owner cases and 258 proxy edge cases match CPython (590 total).
+  The constructor audit needed a larger fixture budget: collision-heavy setup
+  plus lazy set registration completed at 102,149 steps; production limits were
+  unchanged. Hash comparisons use underlying-value equivalence, and slice-key
+  errors are compared structurally. Native slice repr remains an independently
+  confirmed missing feature, not a passing rendering claim. Workspace build,
+  typecheck, focused lint and all 6,921 package tests in 493 files pass. Canonical
+  proxy descriptor publication, slice representation/catalog, remaining native
+  lifecycle audits and full interpreter/safe-fs execution remain unfinished.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

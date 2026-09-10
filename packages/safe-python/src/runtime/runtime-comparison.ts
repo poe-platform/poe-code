@@ -110,10 +110,10 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     if (a.kind === "mappingproxy" || b.kind === "mappingproxy") {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       meter.checkpoint(0, 64);
-      if (a.kind === "mappingproxy") work.push({ operator: op, left: a.owner ?? a.value, right: b, depth: depth + 1, truth });
+      if (a.kind === "mappingproxy") work.push({ operator: op, left: a.value, right: b, depth: depth + 1, truth });
       else if (b.kind === "mappingproxy") {
         const reflected = op === "<" ? ">" : op === ">" ? "<" : op === "<=" ? ">=" : op === ">=" ? "<=" : op;
-        work.push({ operator: reflected, left: b.owner ?? b.value, right: a, depth: depth + 1, truth });
+        work.push({ operator: reflected, left: b.value, right: a, depth: depth + 1, truth });
       }
       continue;
     }

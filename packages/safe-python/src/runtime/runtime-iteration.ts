@@ -21,8 +21,10 @@ import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
  */
 export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: IterationContext<RuntimeValue>, notIterable?: (typeName: string) => never, hint = false): CompletionIterator<RuntimeValue> {
   meter.checkpoint();
-  if (value.kind === "mappingproxy" && value.owner !== undefined) {
-    const iterator = runtimeIterate(value.owner, values, meter, protocol, notIterable);
+  if (value.kind === "mappingproxy") {
+    let mapping = value.value;
+    while (mapping.kind === "mappingproxy") { meter.checkpoint(); mapping = mapping.value; }
+    const iterator = runtimeIterate(mapping, values, meter, protocol, notIterable);
     if (hint && protocol?.hints !== undefined) lengthHint(value, protocol.hints, meter, 8n);
     return iterator;
   }
@@ -35,9 +37,9 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
       if (hint) nativeIteratorLengthHint(value.value, meter);
       return value.value;
     case "list": return value.items.iterate();
-    case "dict": case "mappingproxy":
+    case "dict":
       meter.checkpoint(1, 32);
-      return (value.kind === "dict" ? value : value.value).items.iterate(key => key);
+      return value.items.iterate(key => key);
     case "range": {
       const iterator = createRuntimeRangeIterator(value.value, false, values, meter);
       if (hint) nativeIteratorLengthHint(iterator, meter);

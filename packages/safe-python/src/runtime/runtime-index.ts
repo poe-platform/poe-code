@@ -14,8 +14,8 @@ import { runtimeSequenceIndex } from "./runtime-sequence-index.js";
  */
 export function runtimeIndex(object: RuntimeValue, key: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): RuntimeValue {
   meter.checkpoint();
+  while (object.kind === "mappingproxy") { meter.checkpoint(); object = object.value; }
   if (object.kind === "dict") return runtimeDictionaryAccess(object, key, "get", meter);
-  if (object.kind === "mappingproxy") return runtimeDictionaryAccess(object.value, key, "get", meter);
   if (object.kind !== "list" && object.kind !== "range" && object.kind !== "tuple" && object.kind !== "str" && object.kind !== "bytes") {
     const name = object.kind === "none" ? "NoneType" : object.kind === "not-implemented" ? "NotImplementedType" : object.kind;
     throw new PythonRuntimeError("TypeError", `'${name}' object is not subscriptable`);

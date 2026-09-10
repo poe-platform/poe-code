@@ -23,9 +23,9 @@ export function createReversedBuiltin(values: RuntimeValues, meter: ExecutionMet
           case "list": return () => values.iterator(source.items.reversed());
           case "dict": return () => values.iterator(source.items.reversed(key => key));
           case "mappingproxy": return () => {
-            if (source.owner === undefined) return values.iterator(source.value.items.reversed(key => key));
+            if (source.value.kind === "dict") return values.iterator(source.value.items.reversed(key => key));
             if (invocation?.attribute === undefined) throw Error("mapping proxy reversal requires attribute access");
-            return invocation.call(invocation.attribute(source.owner, "__reversed__"), []);
+            return invocation.call(invocation.attribute(source.value, "__reversed__"), []);
           };
           case "dict_keys": case "dict_values": case "dict_items":
             return () => values.iterator(iterateRuntimeDictionaryView(source, values, meter, true));

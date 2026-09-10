@@ -13,12 +13,12 @@ import { runtimeLength } from "./runtime-length.js";
  */
 export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): boolean {
   meter.checkpoint();
-  if (value.kind === "mappingproxy" && value.owner !== undefined) return BigInt(runtimeLength(value.owner, meter, undefined, invocation)) !== 0n;
+  if (value.kind === "mappingproxy") return BigInt(runtimeLength(value.value, meter, undefined, invocation)) !== 0n;
   switch (value.kind) {
     case "staticmethod": case "classmethod": return true;
     case "list": return value.items.length !== 0;
     case "dict": case "set": case "frozenset": return value.items.size !== 0;
-    case "mappingproxy": case "dict_keys": case "dict_values": case "dict_items": return value.value.items.size !== 0;
+    case "dict_keys": case "dict_values": case "dict_items": return value.value.items.size !== 0;
     case "range": return value.value.length !== 0n;
     case "instance": case "iterator": case "function": case "builtin_function_or_method": case "method_descriptor": case "classmethod_descriptor": case "wrapper_descriptor": case "method-wrapper": case "method": case "cell": case "type": case "getset_descriptor": case "member_descriptor": {
       if (invocation === undefined) return true;

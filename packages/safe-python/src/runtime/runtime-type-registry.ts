@@ -30,6 +30,7 @@ import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from ".
 import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 import { installRuntimeDictionaryViewSlots } from "./runtime-dictionary-view-slots.js";
+import { createMappingProxyNewBuiltin } from "./builtin-mapping-proxy-new.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
@@ -75,6 +76,7 @@ export class RuntimeTypeRegistry {
   #tupleType: TypeValue | undefined;
   #dictionaryType: TypeValue | undefined;
   readonly #dictionaryViews = new Map<"dict_keys" | "dict_values" | "dict_items", TypeValue>();
+  #mappingProxyType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -255,6 +257,19 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods("dict", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#dictionaryType = type;
+    return type;
+  }
+
+  mappingProxyType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#mappingProxyType !== undefined) return this.#mappingProxyType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("mappingproxy", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false });
+    const type = this.values.type(layout, this.type, { immutable: true, keywordValidation: "callee" });
+    namespace.items.set(this.values.string("__new__"), createMappingProxyNewBuiltin(type, this.values, this.meter));
+    namespace.items.set(this.values.string("__doc__"), this.values.string("Read-only proxy of a mapping."));
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#mappingProxyType = type;
     return type;
   }
 

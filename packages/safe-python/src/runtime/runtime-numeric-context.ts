@@ -18,7 +18,7 @@ import { isRuntimeSet, type BuiltinInvocationContext, type RuntimeValue, type Ru
 export function createRuntimeNumericContext(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext, modulus: RuntimeValue = values.none): MultiplicationContext | undefined {
   meter.checkpoint();
   const leftGuest = usesRuntimeGuestNumericSlots(left), rightGuest = usesRuntimeGuestNumericSlots(right);
-  if (!leftGuest && !rightGuest && !(left.kind === "mappingproxy" && left.owner !== undefined) && !(right.kind === "mappingproxy" && right.owner !== undefined)) return undefined;
+  if (!leftGuest && !rightGuest && !(left.kind === "mappingproxy" && left.value.kind !== "dict") && !(right.kind === "mappingproxy" && right.value.kind !== "dict")) return undefined;
   const names = runtimeNumericMethods.get(operator);
   if (names === undefined) throw Error(`unsupported numeric operator: ${operator}`);
   const { forward: forwardName, reflected: reflectedName } = names;
@@ -41,7 +41,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
       if (operator === "+" || operator === "*") return values.notImplemented;
       if (operator === "|" && receiver.kind === "mappingproxy") {
         if (invocation.binary === undefined) throw Error("mapping proxy union requires a binary policy");
-        return name === forwardName ? invocation.binary(operator, receiver.owner ?? receiver.value, other) : invocation.binary(operator, other, receiver.owner ?? receiver.value);
+        return name === forwardName ? invocation.binary(operator, receiver.value, other) : invocation.binary(operator, other, receiver.value);
       }
       return runtimeBinary(operator, left, right, values, meter, invocation.iteration, invocation);
     }

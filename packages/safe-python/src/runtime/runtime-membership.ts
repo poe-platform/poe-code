@@ -25,6 +25,7 @@ export interface RuntimeMembershipContext extends RuntimeSearchEqualityContext {
 export function runtimeMembership(operator: string, needle: RuntimeValue, container: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: ContainmentContext<RuntimeValue>, context?: RuntimeMembershipContext): Extract<PrimitiveConstant, { kind: "bool" }> {
   meter.checkpoint();
   if (operator !== "in" && operator !== "not in") throw new Error(`unsupported constant membership operator: ${operator}`);
+  while (container.kind === "mappingproxy") { meter.checkpoint(); container = container.value; }
   if (protocol !== undefined) {
     const found = protocolContains(needle, container, protocol, meter);
     meter.checkpoint();
@@ -42,8 +43,8 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
       item = comparisons.next(equal(item.value[0], item.value[1]));
     }
     found = item.value;
-  } else if (container.kind === "dict" || container.kind === "mappingproxy") {
-    found = runtimeDictionaryAccess(container.kind === "dict" ? container : container.value, needle, "contains", meter);
+  } else if (container.kind === "dict") {
+    found = runtimeDictionaryAccess(container, needle, "contains", meter);
   } else if (container.kind === "range" && (needle.kind === "int" || needle.kind === "bool")) {
     const integer = needle.kind === "int" ? needle.value : needle.value ? 1n : 0n;
     found = rangeIndexOf(container.value, integer) !== undefined;

@@ -44,7 +44,11 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
       meter.checkpoint();
       if (value.kind === "mappingproxy") {
         meter.checkpoint(0, 64);
-        return () => representationObject(value.owner ?? value.value, "str", context, meter);
+        return () => {
+          let mapping = value.value;
+          while (mapping.kind === "mappingproxy") { meter.checkpoint(); mapping = mapping.value; }
+          return representationObject(mapping, "str", context, meter);
+        };
       }
       if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict" || value.kind === "set" || value.kind === "frozenset") return undefined; // object.__str__ falls back to repr.
       if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return undefined;
@@ -72,7 +76,11 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
       }
       if (value.kind === "mappingproxy") {
         meter.checkpoint(0, 64);
-        return () => values.stringPoints(mappingProxyRepresentation(value.owner ?? value.value, context, meter));
+        return () => {
+          let mapping = value.value, depth = 1;
+          while (mapping.kind === "mappingproxy") { meter.checkpoint(); depth++; mapping = mapping.value; }
+          return values.stringPoints(mappingProxyRepresentation(mapping, context, meter, depth));
+        };
       }
       if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict") {
         meter.checkpoint(0, 64);

@@ -10,7 +10,7 @@ import { mergeRuntimeMapping } from "./runtime-mapping-merge.js";
  */
 export function mergeRuntimeMappingProxy(target: DictionaryValue, source: MappingProxyValue, meter: ExecutionMeter, rejectDuplicate?: (key: RuntimeValue) => never, context?: { readonly values: RuntimeValues; readonly invocation?: BuiltinInvocationContext }): void {
   meter.checkpoint(1, 32);
-  if (source.owner !== undefined) {
+  if (source.value.kind !== "dict") {
     if (context === undefined) throw Error("mapping proxy expansion requires an execution context");
     mergeRuntimeMapping(target, source, context.values, meter, context.invocation, context.invocation?.iteration, rejectDuplicate);
     return;

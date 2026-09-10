@@ -69,7 +69,7 @@ export function createRuntimeIterationContext(values: RuntimeValues, meter: Exec
       if (hints === undefined) {
         meter.checkpoint(0, 384);
         hints = {
-          length: value => value.kind === "iterator" ? undefined : BigInt(runtimeLength(value, meter, undefined, usesRuntimeGuestNumericSlots(value) || (value.kind === "mappingproxy" && value.owner !== undefined) ? invocation : undefined)),
+          length: value => value.kind === "iterator" ? undefined : BigInt(runtimeLength(value, meter, undefined, usesRuntimeGuestNumericSlots(value) || (value.kind === "mappingproxy") ? invocation : undefined)),
           lookupHint(value) {
             const method = lookup(value, "__length_hint__");
             if (method === undefined) return undefined;

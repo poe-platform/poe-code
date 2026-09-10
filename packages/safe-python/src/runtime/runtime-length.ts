@@ -10,11 +10,11 @@ import { createRuntimeLengthContext } from "./runtime-length-context.js";
  * capability. Invocation adapters are prepared only for non-native inputs. */
 export function runtimeLength(value: RuntimeValue, meter: ExecutionMeter, protocol?: LengthProtocolContext<RuntimeValue>, invocation?: BuiltinInvocationContext): number | bigint {
   meter.checkpoint();
-  if (value.kind === "mappingproxy" && value.owner !== undefined) return runtimeLength(value.owner, meter, protocol, invocation);
+  while (value.kind === "mappingproxy") { meter.checkpoint(); value = value.value; }
   switch (value.kind) {
     case "list": case "tuple": return value.items.length;
     case "dict": case "set": case "frozenset": return value.items.size;
-    case "mappingproxy": case "dict_keys": case "dict_values": case "dict_items": return value.value.items.size;
+    case "dict_keys": case "dict_values": case "dict_items": return value.value.items.size;
     case "str": case "bytes": return value.value.length;
     case "range":
       if (BigInt.asIntN(64, value.value.length) !== value.value.length) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C ssize_t");

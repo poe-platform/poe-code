@@ -9,12 +9,12 @@ const suffix = Uint32Array.of(41), empty = new Uint32Array(0);
  * recursion detection; a proxy does not replace that marker with its own guard.
  * Fixed ASCII framing never round-trips guest storage through UTF-16.
  */
-export function mappingProxyRepresentation<Value>(mapping: Value, context: RepresentationContext<Value>, meter: ExecutionMeter): CodePointString {
+export function mappingProxyRepresentation<Value>(mapping: Value, context: RepresentationContext<Value>, meter: ExecutionMeter, depth = 1): CodePointString {
   meter.checkpoint(1, 64);
   const result = representationObject(mapping, "repr", context, meter);
   const storage = context.string(result); meter.checkpoint();
   if (storage === undefined) throw new Error("validated mapping repr lost string storage");
   return new CodePointString(empty, meter).join([
-    new CodePointString(prefix, meter), storage, new CodePointString(suffix, meter)
+    new CodePointString(prefix, meter).repeat(depth, meter), storage, new CodePointString(suffix, meter).repeat(depth, meter)
   ], meter);
 }

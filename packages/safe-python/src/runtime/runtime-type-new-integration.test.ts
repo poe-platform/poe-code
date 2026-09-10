@@ -22,8 +22,8 @@ import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 
-function fixture(identity?: IdentityContext) {
-  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
+function fixture(identity?: IdentityContext, maxSteps = 100000) {
+  const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
   const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
   const calls = new CallStack<object>(50, meter), keys = new RuntimeExecutionKeys(v, hash, meter, calls);
   const registry = new RuntimeTypeRegistry(v, keys, meter), native = new Map<string, TypeValue>();
@@ -40,6 +40,7 @@ function fixture(identity?: IdentityContext) {
       if (value.kind === "tuple") return registry.tupleType();
       if (value.kind === "dict") return registry.dictionaryType();
       if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return registry.dictionaryViewType(value.kind);
+      if (value.kind === "mappingproxy") return registry.mappingProxyType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -53,6 +54,39 @@ function fixture(identity?: IdentityContext) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("forwards deeply nested mapping proxies without host recursion", () => {
+  const state = fixture(undefined, 1000000); state.run("d={'a':1}\n");
+  let proxy = state.globals.get("d")!;
+  for (let index = 0; index < 5000; index++) proxy = state.v.mappingProxy(proxy);
+  state.globals.set("p", proxy);
+  state.run("value=p['a']\ntruth=not not p\ncorrect=value==1 and truth\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  state.run("text=f'{p!r}'\nplain=f'{p!s}'\n");
+  const text = state.globals.get("text"); if (text?.kind !== "str") throw Error("expected proxy representation");
+  expect(text.value.length).toBe(70008); expect(state.globals.get("plain")).toEqual(state.v.string("{'a': 1}"));
+});
+
+it("constructs live mapping proxies over arbitrary guest mappings", () => {
+  const state = fixture();
+  state.run("Proxy=type({}.keys().mapping)\nList=type([])\nclass Mapping:\n def __getitem__(self,key):\n  visit(key)\n  return 7\n def keys(self):\n  visit('keys')\n  return ['x']\n def __iter__(self):\n  visit('iter')\n  return ['x'].__iter__()\n def __len__(self):\n  visit('len')\n  return 1\n def __contains__(self,key):\n  visit('contains')\n  return True\nm=Mapping()\np=Proxy(mapping=m)\nvalue=p['x']\nentries=List(p)\nexpanded={**p}\nfound='missing' in p\ncorrect=value==7 and entries==['x'] and expanded=={'x':7} and found and type(p) is Proxy\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["x", "iter", "len", "keys", "x", "contains"]);
+});
+
+it("constructs mapping proxies over native subscriptable values and nested proxies", () => {
+  const state = fixture();
+  state.run("Proxy=type({}.keys().mapping)\nList=type([])\nd={'a':1}\np=Proxy(d)\nnested=Proxy(p)\nd['a']=2\ntext=Proxy('ab')\nbytes=Proxy(b'ab')\ncorrect=nested['a']==2 and text[1]=='b' and bytes[0]==97 and List(text)==['a','b'] and 'a' in text and not not text\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("checks mapping proxy applicability without binding item descriptors", () => {
+  const state = fixture();
+  state.run("Proxy=type({}.keys().mapping)\nclass Descriptor:\n def __get__(self,instance,owner):\n  visit('get')\n  return None\nclass Mapping:\n __getitem__=Descriptor()\np=Proxy(Mapping())\nclass Empty:\n __getitem__=None\nother=Proxy(Empty())\n");
+  expect(state.events).toEqual([]);
+  expect(() => state.run("Proxy([])\n")).toThrow("mappingproxy() argument must be a mapping, not list");
+  expect(() => state.run("Proxy()\n")).toThrow("mappingproxy() missing required argument 'mapping' (pos 1)");
+  expect(() => state.run("Proxy({},mapping={})\n")).toThrow("mappingproxy() takes at most 1 argument (2 given)");
+});
 
 it.each(["keys", "values", "items"] as const)("publishes canonical dictionary %s view protocols and allocation boundaries", method => {
   const state = fixture();

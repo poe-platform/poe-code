@@ -7377,6 +7377,16 @@ extension, integration, or validation requirement is missing or unverified.
   and scoped lint pass. Guest truth currently allocates a length adapter even when __bool__ wins;
   allocation optimization, automatic type/storage classification, generic object
   defaults and suspended safe-fs effects remain unfinished.
+- Split optional boolean truth validation from length fallback while preserving
+  the existing protocolTruth API. Runtime guest truth now acquires length/index
+  adapters only after __bool__ is absent. Five regressions failed first: four
+  rejected unnecessary index-policy reads for true/false/invalid/disabled bool
+  slots, and one exceeded a 400-byte bool-only adapter budget. All now pass,
+  alongside existing compiled precedence, index conversion and cancellation
+  coverage. All 5,549 tests in 446 files pass; selected build, typecheck and
+  scoped lint pass. Further allocation/performance audits, automatic type/storage
+  classification, generic object defaults and suspended safe-fs effects remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

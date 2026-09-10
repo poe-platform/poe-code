@@ -12,6 +12,24 @@ function fixture() {
 }
 
 describe("exact runtime value truth", () => {
+  it.each(["false", "true", "invalid", "disabled"])("does not acquire length/index policies when __bool__ is %s", mode => {
+    const { meter, values: v } = fixture(), receiver = v.cell({}), method = v.cell({});
+    const invocation = {
+      get integerIndex(): never { throw Error("unused length/index policy"); },
+      lookupSpecial(value: RuntimeValue, name: string) { expect(value).toBe(receiver); expect(name).toBe("__bool__"); return mode === "disabled" ? v.none : method; },
+      call(value: RuntimeValue) { expect(value).toBe(method); return mode === "invalid" ? v.integer(1) : v.boolean(mode === "true"); },
+      typeName: () => "Guest", isStopIteration: () => false
+    };
+    const run = () => runtimeTruth(receiver, meter, invocation);
+    if (mode === "invalid") expect(run).toThrow("__bool__ should return bool, returned int");
+    else if (mode === "disabled") expect(run).toThrow("'Guest' cannot be interpreted as a boolean");
+    else expect(run()).toBe(mode === "true");
+  });
+  it("fits bool-only dispatch without allocating a length adapter", () => {
+    const { values: v } = fixture(), receiver = v.cell({}), method = v.cell({});
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 400 });
+    expect(runtimeTruth(receiver, meter, { lookupSpecial: () => method, call: () => v.true, isStopIteration: () => false })).toBe(true);
+  });
   it("retains allocation-free native truth without reading invocation protocols", () => {
     const { values } = fixture(), unused = (): never => { throw Error("must not inspect guest policy"); };
     const invocation = { get integerIndex(): never { return unused(); }, lookupSpecial: unused, call: unused, isStopIteration: unused };

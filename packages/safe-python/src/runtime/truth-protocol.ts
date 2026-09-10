@@ -12,12 +12,23 @@ export interface TruthProtocolContext<Value> extends LengthProtocolContext<Value
   lookupBool(value: Value): (() => Value) | null | undefined;
 }
 
+export type BooleanTruthContext<Value> = Pick<TruthProtocolContext<Value>, "boolean" | "isNone" | "lookupBool" | "typeName">;
+
 /** Guest truth conversion with bool-before-length precedence. A present bool
  * method must return an exact bool; invalid results and errors never enable
  * length fallback. Slotless objects are true. Concrete type/descriptor dispatch,
  * recursive-call limits and complete allocation accounting remain external.
  */
 export function protocolTruth<Value>(value: Value, context: TruthProtocolContext<Value>, meter: ExecutionMeter): boolean {
+  const truth = optionalBooleanTruth(value, context, meter);
+  if (truth !== undefined) return truth;
+  const length = optionalLength(value, context, meter);
+  return length === undefined || length !== 0n;
+}
+
+/** Resolve bool/None and __bool__ without acquiring a length/index policy.
+ * Undefined alone permits length fallback; false is a completed conversion. */
+export function optionalBooleanTruth<Value>(value: Value, context: BooleanTruthContext<Value>, meter: ExecutionMeter): boolean | undefined {
   meter.checkpoint();
   const direct = context.boolean(value);
   if (direct !== undefined) return direct;
@@ -32,6 +43,5 @@ export function protocolTruth<Value>(value: Value, context: TruthProtocolContext
     if (truth === undefined) throw new PythonRuntimeError("TypeError", `__bool__ should return bool, returned ${context.typeName(result)}`);
     return truth;
   }
-  const length = optionalLength(value, context, meter);
-  return length === undefined || length !== 0n;
+  return undefined;
 }

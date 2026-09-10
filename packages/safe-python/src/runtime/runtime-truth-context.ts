@@ -1,15 +1,17 @@
 import type { ExecutionMeter } from "./execution-budget.js";
-import { createRuntimeLengthContext } from "./runtime-length-context.js";
-import type { TruthProtocolContext } from "./truth-protocol.js";
+import type { BooleanTruthContext } from "./truth-protocol.js";
 import type { BuiltinInvocationContext, RuntimeValue } from "./runtime-values.js";
 
-/** Bind guest truth slots through the current frame. Length/index validation
- * is shared with len(); None in __bool__ explicitly disables truth conversion.
+/** Bind guest boolean truth through the current frame, independently of the
+ * length/index fallback. None in __bool__ explicitly disables truth conversion.
  */
-export function createRuntimeTruthContext(invocation: BuiltinInvocationContext, meter: ExecutionMeter): TruthProtocolContext<RuntimeValue> {
-  meter.checkpoint(0, 192);
+export function createRuntimeTruthContext(invocation: BuiltinInvocationContext, meter: ExecutionMeter): BooleanTruthContext<RuntimeValue> {
+  meter.checkpoint(0, 256);
   return {
-    ...createRuntimeLengthContext(invocation, meter),
+    typeName(value) {
+      const name = value.kind === "int" || value.kind === "bool" ? value.kind : invocation.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind);
+      meter.checkpoint(); return name;
+    },
     boolean: value => value.kind === "bool" ? value.value : undefined,
     isNone: value => value.kind === "none",
     lookupBool(value) {

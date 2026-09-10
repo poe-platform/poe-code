@@ -78,6 +78,8 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Trusted signed 64-bit identity hash, with -1 remapped to -2; no guest slots. */
+  identityHash?(value: RuntimeValue): bigint;
   formatting?: FormatContext<RuntimeValue>;
   /** Type-MRO presence only, without binding a descriptor. */
   hasSpecial?(object: RuntimeValue, name: string): boolean;

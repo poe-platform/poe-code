@@ -8506,6 +8506,20 @@ extension, integration, or validation requirement is missing or unverified.
   configuration, canonical native object hash slots and suspension integration
   remain unfinished. Selected workspace build, typecheck, scoped lint and all
   6,538 tests in 493 files pass with two workers.
+- Installed canonical object.__hash__ as a native wrapper descriptor, including
+  explicit identity hashing of otherwise unhashable native values. A separate
+  trusted identity-hash capability flows from execution keys through builtin
+  invocation; it normalizes signed 64-bit hashes and never calls guest __hash__
+  recursively. Initial compiled regression failed on the missing object member.
+  Ten added tests cover direct/bound/inherited calls, explicit hash restoration
+  after equality overrides, instance shadowing, native receivers, argument error
+  precedence, normalization and cancellation after trusted callbacks. All 180
+  object-hash descriptor differential cases match CPython; the 96 collection-key
+  differential cases still pass. Legacy host key policies must supply the
+  optional identity capability when invoking this native slot; public execution
+  setup and remaining native object/type slots are still unfinished. Selected
+  workspace build, typecheck, scoped lint and all 6,548 tests in 493 files pass
+  with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -30,6 +30,13 @@ export class RuntimeExecutionKeys implements KeyOperations<RuntimeValue> {
     this.#frames.set(frame, createRuntimeKeyOperations(this.values, this.base, this.meter, invocation));
   }
 
+  identityHash(value: RuntimeValue): bigint {
+    this.meter.checkpoint(0, 32);
+    const hash = this.base.identity(value); this.meter.checkpoint();
+    const signed = BigInt.asIntN(64, hash);
+    return signed === -1n ? -2n : signed;
+  }
+
   hash(value: RuntimeValue): bigint {
     this.meter.checkpoint();
     const frame = this.calls.current;

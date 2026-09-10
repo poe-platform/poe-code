@@ -55,6 +55,24 @@ it.each(["dict", "set"])("dispatches guest key protocols in ordinary %s displays
   expect(state.events).toEqual(["hash", "hash", "equal", "hash", "equal"]);
 });
 
+it("exposes object identity hashing through direct, bound and inherited slots", () => {
+  const state = fixture();
+  state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run("class Key:\n def __eq__(self,other):\n  return False\n __hash__=object.__hash__\nkey=Key()\nkey.__hash__=None\ndirect=object.__hash__(key)\nbound=Key.__hash__.__get__(key,Key)()\nnormal=hash(key)\nclass_hash=hash(Key)\nnative=object.__hash__([])\nnumber=object.__hash__(7)\nnone=object.__hash__(None)\nresult={key:1}\nfound=key in result\n");
+  for (const name of ["direct", "bound", "normal", "class_hash", "native", "number", "none"]) expect(state.globals.get(name)).toEqual(state.v.integer(17));
+  expect(state.globals.get("found")).toBe(state.v.true);
+});
+
+it.each([
+  ["object.__hash__()", "descriptor '__hash__' of 'object' object needs an argument"],
+  ["object.__hash__([],1)", "expected 0 arguments, got 1"],
+  ["object.__hash__([],x=1)", "wrapper __hash__() takes no keyword arguments"],
+  ["object.__hash__([],1,x=1)", "wrapper __hash__() takes no keyword arguments"]
+])("validates native identity hash calls: %s", (source, message) => {
+  const state = fixture();
+  expect(() => state.run(`${source}\n`)).toThrow(message); expect(state.calls.depth).toBe(0);
+});
+
 it("unwinds failed key callbacks and rebinds protocols for later module executions", () => {
   const state = fixture(), failure = new PythonRuntimeError("ValueError", "hash failed");
   state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));

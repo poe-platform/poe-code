@@ -910,18 +910,18 @@ options; `PlainTime.from` still accepts explicitly supplied time fields on a dat
 PlainDateTime has construction, calendar/date/time getters, `from`, `compare`,
 `equals`, `toPlainTime`, `toPlainDate`, `with`, `withPlainTime`, `withCalendar`, `add`, `subtract`, `until`, `since`, `round`, `toString`, `toJSON`, `toLocaleString`, and `valueOf`, with
 focused copy and snapshot/replay coverage. Its `toZonedDateTime` conversion
-remains unfinished. Expanded-year parsing preserves option-read order before
+supports compatible, earlier, later and reject disambiguation. Expanded-year parsing preserves option-read order before
 representable-range validation.
-PlainDate currently has construction, calendar/date getters, `from`, `compare`, `equals`, `add`, `subtract`, `until`, `since`, `with`, `withCalendar`, `toPlainDateTime`, `toString`, `toJSON`, `toLocaleString`,
+PlainDate currently has construction, calendar/date getters, `from`, `compare`, `equals`, `add`, `subtract`, `until`, `since`, `with`, `withCalendar`, `toPlainDateTime`, `toZonedDateTime`, `toString`, `toJSON`, `toLocaleString`,
 and `valueOf`, with private data copying, host bindings, and heap/replay support.
-Its year-month/month-day/zoned conversions
-remain unfinished, as do private-date fast paths in related Temporal APIs.
-`PlainDate.from` accepts ISO strings, calendar-based date bags and owned date/date-time
-values, with ordered field/options reads and private-slot copies. Zoned input
-conversion remains unavailable because ZonedDateTime is not yet implemented.
+Its year-month/month-day conversions
+remain unfinished. `PlainDate.from` accepts ISO strings, calendar-based date bags
+and owned date/date-time/zoned values, with ordered field/options reads and
+private-slot copies. `PlainDateTime.from` also accepts owned zoned local fields;
+both date types reject ZonedDateTime partial updates before reading public properties.
 PlainDateTime input conversion and differences accept owned PlainDate values
 at midnight using their private ISO/calendar fields, without public getter reads.
-Calendar identifiers accept owned PlainDate and PlainDateTime values via private slots.
+Calendar identifiers accept owned PlainDate, PlainDateTime and ZonedDateTime values via private slots.
 Duration `relativeTo` accepts owned PlainDate and PlainDateTime values using their private ISO
 date and calendar, without reading shadowed public fields or using the time of day.
 Temporal string and relative-input validation rejects overflowing offset
@@ -936,7 +936,7 @@ resolved options as a fallback.
 `PlainTime.toLocaleString`, `PlainDateTime.toLocaleString` and `PlainDate.toLocaleString` accept valid fixed-offset
 time zones on Node 18 and preserve their wall-clock fields. Fixed-offset numeric Date/Instant and direct
 Intl formatting on older hosts remain incomplete.
-The latest full SafeJS run includes the working-tree PlainDateTime, PlainDate
+The latest completed full SafeJS run includes the working-tree PlainDateTime, PlainDate
 and direct-Intl integration: 26,777 tests passed, four failed and 41 were skipped.
 Two failures concern native Promise property-import expectations; two exceeded
 the 5-second timeout in completed replay and PPR2 continuation tests.
@@ -944,12 +944,48 @@ All 100 filesystem type contracts passed, and the source fingerprint matched
 before and after the run. No Temporal/Intl tests failed, but this is not a green
 package gate or complete JavaScript conformance; see the
 [full-run record](../../docs/plans/safejs-post-plain-date-full-gate.md).
+A newer [ZonedDateTime integration gate](../../docs/plans/safejs-post-zoned-integration-gate.md)
+is running against the current source. Its pending result does not supersede
+the completed failing gate above.
 Instant differences (`until`/`since`) return
 Durations, and Instant `toLocaleString` supports locale-aware formatting.
-`Temporal.PlainYearMonth`, `Temporal.PlainMonthDay`,
-`Temporal.ZonedDateTime`, and `Temporal.Now` are absent;
-Instant zoned conversion is still missing.
+`Temporal.ZonedDateTime` now has a constructor, field getters, owned copying,
+host-binding admission and heap/replay storage in the working tree. It converts
+to Instant, PlainDate, PlainTime and PlainDateTime using private fields. Its
+`from()` accepts zoned strings, property bags and owned values with overflow,
+offset and DST-disambiguation options. `compare()` orders instants, while
+`equals()` also considers time zone and calendar. `withTimeZone()` changes the
+zone while preserving the instant and calendar. `withCalendar()` changes the
+calendar while preserving the instant and zone; calendar-taking date methods
+also accept owned ZonedDateTime values. `toString()` supports precision,
+rounding and calendar/zone/offset display options; `toJSON()` preserves the
+default exact representation. `startOfDay()` returns the first valid instant
+of the local date, including dates with skipped midnight. `withPlainTime()`
+changes local time with compatible gap/overlap resolution, or selects the start
+of day when omitted. Time-taking methods read owned ZonedDateTime time slots;
+PlainTime partial updates reject ZonedDateTime values. `getTimeZoneTransition()`
+finds the next or previous transition, returning null when none exists.
+`add()` and `subtract()` distinguish calendar units from elapsed time across
+offset changes and support constrained or rejected calendar overflow.
+`round()` supports day and time units, accounting for actual local day length
+and offset transitions.
+`until()` and `since()` distinguish elapsed-time and calendar differences,
+support rounding, and validate calendar/zone compatibility.
+`with()` applies partial date/time fields using calendar-aware merging and
+explicit overflow, offset and disambiguation policies.
+`toLocaleString()` formats the owned zone with guest locale/option coercion,
+rejects an explicit `timeZone` option, and checks non-ISO calendar compatibility.
+On Node 18, fixed-offset zone locale formatting remains unsupported by the
+current backend; named zones work in the focused checks.
+Method presence does not establish full Temporal conformance.
+`Temporal.PlainYearMonth`, `Temporal.PlainMonthDay`, and `Temporal.Now` are absent;
+Instant `toZonedDateTimeISO()` preserves the exact epoch in a selected zone and
+ISO calendar. Instant input operations accept owned ZonedDateTime epochs without
+consulting public coercion hooks.
 Duration `compare` supports exact time comparisons and calendar/DST-relative inputs.
+Duration `compare`, `round`, and `total` accept owned ZonedDateTime `relativeTo`
+values through private slots, preserving the exact instant, zone and calendar
+without reading public getters.
 Duration `round` supports rounding modes, increments and calendar-relative inputs.
 Duration `total` supports unit strings and plain/zoned `relativeTo` strings or
 property bags, with exact time-unit and calendar-fraction division. Broader

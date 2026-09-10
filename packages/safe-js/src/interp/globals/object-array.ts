@@ -635,7 +635,13 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
           for (let index = 0; index < args.length; index += 1) {
             budget.visitNode();
             if (Array.isArray(result)) budget.allocateArrayLength(index + 1);
-            defineOwnDataProperty(objectProperties(result, true), String(index), args[index]);
+            if (typeof result === "object" && result !== null && guestProxyStates.has(result)) {
+              await defineDataProperty(result, String(index), {
+                value: args[index], writable: true, enumerable: true, configurable: true
+              }, budget, context);
+            } else {
+              defineOwnDataProperty(objectProperties(result, true), String(index), args[index]);
+            }
             checkData(result, 0, true);
           }
           await setSandboxProperty(result, "length", args.length, budget, true, context);
@@ -1140,7 +1146,13 @@ async function arrayFromSandboxValues(
           (Array.isArray(result) ? Math.max(0, index + 1 - result.length) : 0) +
           (budget.limits.dataSize === undefined ? 0 : measureSandboxData([currentValue]));
         budget.visitNode();
-        defineOwnDataProperty(objectProperties(result, true), key, currentValue);
+        if (typeof result === "object" && result !== null && guestProxyStates.has(result)) {
+          await defineDataProperty(result, key, {
+            value: currentValue, writable: true, enumerable: true, configurable: true
+          }, budget, context);
+        } else {
+          defineOwnDataProperty(objectProperties(result, true), key, currentValue);
+        }
         currentValue = undefined;
         checkData(result, growth, isSandboxClosure(result));
       } catch (error) {

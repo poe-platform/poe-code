@@ -638,7 +638,10 @@ failures. Their internal view
 no longer reads a guest `then` property. Species selection recognizes wrapped
 arrays, including nested Proxies and array subclasses. Proxy-valued species
 results receive element definitions through `defineProperty` traps, with failures
-stopping further writes. Concat spreads wrapped arrays by default and honors
+stopping further writes. `Array.from`, `Array.fromAsync`, and `Array.of` also
+dispatch element definitions when a custom constructor returns a Proxy;
+element-definition failures close the source iterator and preserve the original error.
+Concat spreads wrapped arrays by default and honors
 `Symbol.isConcatSpreadable` overrides. `flat` and `flatMap` traverse wrapped nested
 arrays, snapshot each nested length, and honor depth limits while skipping holes.
 Internal callable Proxies support direct, bound, callback, and Reflect.apply

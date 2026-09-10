@@ -1250,7 +1250,10 @@ function copyToSandbox(
   if (state.structuredClone && isSandboxModuleNamespace(value))
     throw new DOMException("Cannot clone a module namespace.", "DataCloneError");
 
-  if (isLiveCapability(value)) throw new TypeError("Live capabilities require their owning realm bridge.");
+  if (isLiveCapability(value)) {
+    if (state.structuredClone) throw new DOMException("Capabilities cannot be structured cloned.", "DataCloneError");
+    throw new TypeError("Live capabilities require their owning realm bridge.");
+  }
 
   if (isRawJson(value)) {
     const existing = state.seen.get(value);

@@ -2,16 +2,8 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
 import type { MultiplicationContext } from "./runtime-multiplication.js";
+import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
-
-/** Opaque values use the supplied type policy; exact native payloads do not. */
-function usesGuestSlots(value: RuntimeValue): boolean {
-  switch (value.kind) {
-    case "cell": case "type": case "function": case "method":
-    case "builtin_function_or_method": case "getset_descriptor": case "iterator": return true;
-    default: return false;
-  }
-}
 
 /** Prepare one pair, keeping method lookup live until dispatch. Native pairs
  * retain kernel fast paths. Mixed native/opaque pairs decline native numeric
@@ -19,7 +11,7 @@ function usesGuestSlots(value: RuntimeValue): boolean {
  * metaclass attribute overrides remain separate object-layer responsibilities. */
 export function createRuntimeMultiplicationContext(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext): MultiplicationContext | undefined {
   meter.checkpoint();
-  const leftGuest = usesGuestSlots(left), rightGuest = usesGuestSlots(right);
+  const leftGuest = usesRuntimeGuestNumericSlots(left), rightGuest = usesRuntimeGuestNumericSlots(right);
   if (!leftGuest && !rightGuest) return undefined;
   const leftType = leftGuest ? special.typeOf(left) : undefined; meter.checkpoint();
   const rightType = rightGuest ? special.typeOf(right) : undefined; meter.checkpoint();
@@ -65,7 +57,7 @@ export function createRuntimeMultiplicationContext(left: RuntimeValue, right: Ru
     },
     get integerIndex() { return invocation.integerIndex; },
     typeName(value) {
-      if (usesGuestSlots(value)) { const type = special.typeOf(value); meter.checkpoint(); return type.value.name; }
+      if (usesRuntimeGuestNumericSlots(value)) { const type = special.typeOf(value); meter.checkpoint(); return type.value.name; }
       return value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
     }
   };

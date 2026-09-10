@@ -5,6 +5,7 @@ import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
 import { createRuntimeMultiplicationContext } from "./runtime-multiplication-context.js";
+import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
 import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { executeFunctionDefinition } from "./function-definition.js";
 import type { FunctionCreationContext } from "./function-state.js";
@@ -204,10 +205,15 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)
     }, meter);
+    let inplace = statementHooks.inplace?.bind(statementHooks);
+    if (inplace === undefined && specialMethods !== undefined) {
+      meter.checkpoint(0, 64);
+      inplace = (operator, left, right) => runtimeInPlaceSpecialMethod(operator, left, right, values, meter, builtinCalls);
+    }
     return createRuntimeStatementContext(expressions, {
       get integerIndex() { return getIntegerIndex(); },
       deleteName: frame.delete.bind(frame),
-      inplace: statementHooks.inplace?.bind(statementHooks),
+      inplace,
       setAttribute: statementHooks.setAttribute.bind(statementHooks), deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),
       assertions: statementHooks.assertions, managers: statementHooks.managers, exceptions: statementHooks.exceptions,
       executeUnhandled(statement) {

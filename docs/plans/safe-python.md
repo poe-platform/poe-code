@@ -7476,6 +7476,18 @@ extension, integration, or validation requirement is missing or unverified.
   match. All 5,643 tests in 450 files pass; selected build, typecheck and scoped lint pass.
   Guest __imul__, native-subclass storage adaptation, metaclass overrides, broader
   numeric assembly and suspended safe-fs effects remain unfinished.
+- Added frame-owned MRO in-place dispatch for all thirteen augmented operators.
+  A shared native/opaque classifier keeps exact native payloads on existing
+  kernels; explicit statement hooks retain priority and receiver binding. Guest
+  descriptors bind after RHS evaluation, and only NotImplemented permits fresh
+  ordinary fallback. Seventeen compiled regressions failed first. Twenty-four
+  added cases cover inherited methods in nested frames, arbitrary return values,
+  disabled slots, descriptor ordering, type mutation, explicit/native policies,
+  cancellation, subtype precedence and failed write-back. CPython confirms
+  twenty-one scenarios; 172 prior repetition comparisons still match. All 5,667
+  tests in 450 files pass; selected build, typecheck and scoped lint pass. Ordinary numeric
+  MRO assembly outside multiplication, native-subclass storage, metaclass overrides
+  and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -276,3 +276,114 @@ it("runs numeric multiplication before testing right-sequence fallback eligibili
   expect(state.globals.get("guest")).toBe(state.v.false);
   expect(state.events).toEqual(["numeric"]);
 });
+
+it.each([
+  ["+", "__iadd__"], ["-", "__isub__"], ["*", "__imul__"], ["@", "__imatmul__"],
+  ["/", "__itruediv__"], ["//", "__ifloordiv__"], ["%", "__imod__"], ["**", "__ipow__"],
+  ["<<", "__ilshift__"], [">>", "__irshift__"], ["&", "__iand__"], ["^", "__ixor__"], ["|", "__ior__"]
+])("executes inherited %s= guest slots in nested frames", (operator, name) => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("Derived", base);
+  state.method(base, name, "def inplace(self, other):\n visit('inplace')\n return other\n");
+  state.guest("guest", owner);
+  state.run(`def calculate():\n value=guest\n value ${operator}= 7\n return value\nresult=calculate()\n`);
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(state.events).toEqual(["inplace"]);
+});
+
+it.each(["self", "False", "NotImplemented"])("honors __imul__ result %s before ordinary multiplication", result => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.method(owner, "__imul__", `def inplace(self, other):\n visit('inplace')\n return ${result}\n`);
+  state.method(owner, "__mul__", "def multiply(self, other):\n visit('ordinary')\n return 42\n");
+  const guest = state.guest("guest", owner);
+  state.run("guest *= 7\n");
+  expect(state.globals.get("guest")).toBe(result === "self" ? guest : result === "False" ? v.false : v.integer(42));
+  expect(state.events).toEqual(result === "NotImplemented" ? ["inplace", "ordinary"] : ["inplace"]);
+});
+
+it("does not fall back after a disabled __imul__ slot", () => {
+  const state = fixture(), owner = state.type("Guest");
+  owner.value.namespace.items.set(state.v.string("__imul__"), state.v.none);
+  state.method(owner, "__mul__", "def multiply(self, other):\n visit('ordinary')\n return 42\n");
+  const guest = state.guest("guest", owner);
+  expect(() => state.run("guest *= 7\n")).toThrow("'NoneType' object is not callable");
+  expect(state.globals.get("guest")).toBe(guest); expect(state.events).toEqual([]);
+});
+
+it("binds an in-place descriptor only after evaluating the right operand", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v, guest = state.guest("guest", owner), descriptor = v.cell({});
+  owner.value.namespace.items.set(v.string("__imul__"), descriptor);
+  state.globals.set("rhs", v.builtinFunction({ name: "rhs", invoke() { state.events.push("rhs"); return v.integer(7); } }));
+  const method = v.builtinFunction({ name: "bound", invoke(args) { expect(args).toEqual([v.integer(7)]); state.events.push("call"); return v.false; } });
+  const special = state.hooks.specialMethods!;
+  state.hooks.specialMethods = frame => ({ ...special(frame), slots(value) {
+    expect(value).toBe(descriptor);
+    return { get(instance, type) { expect(instance).toBe(guest); expect(type).toBe(owner); state.events.push("bind"); return method; } };
+  } });
+  state.run("guest *= rhs()\n");
+  expect(state.globals.get("guest")).toBe(v.false);
+  expect(state.events).toEqual(["rhs", "bind", "call"]);
+});
+
+it("prepares ordinary multiplication only after a declining in-place method mutates the type", () => {
+  const state = fixture(), owner = state.type("Guest");
+  const replacement = state.method(owner, "__mul__", "def multiply(self, other):\n visit('new')\n return 42\n");
+  state.method(owner, "__mul__", "def multiply(self, other):\n visit('old')\n return 1\n");
+  state.globals.set("mutate", state.v.builtinFunction({ name: "mutate", invoke() {
+    owner.value.namespace.items.set(state.v.string("__mul__"), replacement); return state.v.none;
+  } }));
+  state.method(owner, "__imul__", "def inplace(self, other):\n mutate()\n return NotImplemented\n");
+  state.guest("guest", owner);
+  state.run("guest *= 7\n");
+  expect(state.globals.get("guest")).toEqual(state.v.integer(42)); expect(state.events).toEqual(["new"]);
+});
+
+it("preserves explicit in-place hooks and their receiver ahead of MRO dispatch", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner), statements = state.hooks.statements;
+  state.hooks.specialMethods = () => ({ typeOf(): never { throw Error("explicit hook must win"); }, slots: () => undefined });
+  state.hooks.statements = frame => {
+    const bindings = { ...statements(frame), inplace(operator: string, left: RuntimeValue, right: RuntimeValue) {
+      expect(this).toBe(bindings); expect(operator).toBe("*"); expect(left).toBe(guest); expect(right).toEqual(state.v.integer(7));
+      return state.v.false;
+    } };
+    return bindings;
+  };
+  state.run("guest *= 7\n");
+  expect(state.globals.get("guest")).toBe(state.v.false);
+});
+
+it("keeps native augmented operations off the guest type policy", () => {
+  const state = fixture();
+  state.run("value=3\nvalue += 2\nvalue *= 4\nitems=[True]\nalias=items\nitems *= 2\n");
+  expect(state.globals.get("value")).toEqual(state.v.integer(20));
+  const items = state.globals.get("items");
+  expect(items).toBe(state.globals.get("alias"));
+  if (items?.kind !== "list") throw Error("expected list");
+  expect(items.items.snapshot()).toEqual([state.v.true, state.v.true]);
+});
+
+it("stops cancelled in-place calls before fallback or target write-back", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest"), guest = state.guest("guest", owner);
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { state.events.push("mutation"); controller.abort(); return state.v.none; } }));
+  state.method(owner, "__imul__", "def inplace(self, other):\n stop()\n return NotImplemented\n");
+  state.method(owner, "__mul__", "def multiply(self, other):\n visit('fallback')\n return 42\n");
+  expect(() => state.run("guest *= 7\n")).toThrow("execution cancelled");
+  expect(state.globals.get("guest")).toBe(guest); expect(state.events).toEqual(["mutation"]);
+});
+
+it("runs the left in-place method before a strict subtype's reflected method", () => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base);
+  state.method(base, "__imul__", "def inplace(self, other):\n visit('inplace')\n return False\n");
+  state.method(derived, "__rmul__", "def reflected(self, other):\n visit('reflected')\n return 42\n");
+  state.guest("left", base); state.guest("right", derived);
+  state.run("left *= right\n");
+  expect(state.globals.get("left")).toBe(state.v.false); expect(state.events).toEqual(["inplace"]);
+});
+
+it("does not undo in-place method effects after target write-back fails", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner);
+  state.method(owner, "__imul__", "def inplace(self, other):\n visit('mutation')\n return self\n");
+  state.globals.set("container", state.v.tuple([guest]));
+  expect(() => state.run("container[0] *= 7\n")).toThrow("does not support item assignment");
+  expect(state.events).toEqual(["mutation"]);
+  expect(state.globals.get("guest")).toBe(guest);
+});

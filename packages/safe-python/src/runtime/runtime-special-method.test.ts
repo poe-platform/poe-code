@@ -14,6 +14,7 @@ import { CallStack } from "./call-stack.js";
 import { createAbsBuiltin } from "./builtin-abs.js";
 import { createRoundBuiltin } from "./builtin-round.js";
 import { runtimeComparison } from "./runtime-comparison.js";
+import { createLenBuiltin } from "./builtin-len.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -112,4 +113,17 @@ it.each([["abs", "missing"], ["abs", "disabled"], ["abs", "result"], ["round", "
   if (state === "missing") expect(run).toThrow(name === "abs" ? "bad operand type for abs(): 'Derived'" : "type Derived doesn't define __round__ method");
   else if (state === "disabled") expect(run).toThrow("'NoneType' object is not callable");
   else { run(); expect(globals.get("result")).toBe(v.notImplemented); }
+});
+
+it.each([0, 7, -1])("executes compiled MRO length returning %s", length => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), globals = new Map<string, RuntimeValue>([["receiver", receiver]]), unused = (): never => { throw Error("unexpected lookup or call"); };
+  const methods = compileProgram<RuntimeValue>(analyzeModule(`def length(self): return ${length}\n`), { stripDocstring: false }, v, meter);
+  base.value.namespace.items.set(v.string("__len__"), v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter)));
+  const program = compileProgram<RuntimeValue>(analyzeModule("result=len(receiver)\n"), { stripDocstring: false }, v, meter);
+  const run = () => executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map([["len", createLenBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf: () => derived, slots: unused }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "length()", keywordName: unused, invoke: unused }
+  }, meter);
+  if (length < 0) expect(run).toThrow("__len__() should return >= 0");
+  else { run(); expect(globals.get("result")).toEqual(v.integer(length)); }
 });

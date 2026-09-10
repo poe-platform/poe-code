@@ -14,6 +14,25 @@ function fixture() {
 }
 
 describe("concrete len builtin", () => {
+  it.each(["int", "bool", "negative", "overflow", "float"])("validates invocation length-to-index conversion returning %s", mode => {
+    const { v, meter, keywords, len } = fixture(), guest = v.cell({}), indexed = v.cell({}), lengthMethod = v.cell({}), indexMethod = v.cell({}), events: string[] = [];
+    const result = mode === "bool" ? v.true : mode === "float" ? v.float(3) : v.integer(mode === "negative" ? -1n : mode === "overflow" ? 1n << 63n : 3n);
+    const invocation = {
+      lookupSpecial(value: RuntimeValue, name: string) {
+        events.push(name); expect(value).toBe(name === "__len__" ? guest : indexed);
+        return name === "__len__" ? lengthMethod : indexMethod;
+      },
+      call(method: RuntimeValue, args: readonly RuntimeValue[]) { expect(args).toEqual([]); return method === lengthMethod ? indexed : result; },
+      isStopIteration: () => false, typeName: (value: RuntimeValue) => value.kind,
+      warn(category: string, message: string) { expect(category).toBe("DeprecationWarning"); expect(message).toContain("strict subclass of int"); events.push("warning"); }
+    };
+    const run = () => len.value.invoke([guest], keywords, meter, invocation);
+    if (mode === "negative") expect(run).toThrow("__len__() should return >= 0");
+    else if (mode === "overflow") expect(run).toThrow("cannot fit 'int' into an index-sized integer");
+    else if (mode === "float") expect(run).toThrow("__index__ returned non-int (type float)");
+    else expect(run()).toEqual(v.integer(mode === "bool" ? 1 : 3));
+    expect(events).toEqual(mode === "bool" ? ["__len__", "__index__", "warning"] : ["__len__", "__index__"]);
+  });
   it.each([0n, 7n, -1n, 1n << 63n])("supports guest length slots returning %s", length => {
     const { v, meter, keywords } = fixture(), guest = v.cell({});
     const context: LengthProtocolContext<RuntimeValue> = {

@@ -7236,6 +7236,16 @@ extension, integration, or validation requirement is missing or unverified.
   existing compiled guest-round comparisons still match CPython. Actual type
   classification remains explicitly supplied; automatic instance/native type
   assembly, other protocols and suspended safe-fs effects remain unfinished.
+- Len now adapts invocation special lookup/calls to the shared length protocol.
+  Explicit length/index policies retain priority and receivers; absent index
+  policies use MRO __index__ lookup and frame warning dispatch. Three compiled
+  length regressions failed first and now cover zero, positive and negative
+  results. Five more cases validate length-to-index conversion, bool-result
+  warnings, negative lengths, overflow and noninteger results. All 5,419 tests in
+  445 files pass; selected build, typecheck and scoped lint pass. Per-call length
+  adapter allocation should be reduced without stale frame/policy capture.
+  Automatic native/instance type classification, remaining object protocols and
+  suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

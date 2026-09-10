@@ -103,6 +103,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      warn: expressionHooks.warn.bind(expressionHooks),
       lookupSpecial(value, name) {
         if (specialMethods === undefined) return undefined;
         const type = specialMethods.typeOf(value); meter.checkpoint();

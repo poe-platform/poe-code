@@ -21,12 +21,12 @@ function fixture(maxSteps = 100000) {
 
 describe("deletion target traversal", () => {
   it.each([["a", 71], ["(a,)", 72]] as const)("charges traversal frames before deletion: %s", (source, maxAllocatedBytes) => {
-    const state = fixture(), meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes });
+    const state = fixture(), meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 224 + maxAllocatedBytes });
     expect(() => deleteTargets(targets(source), state.context, meter)).toThrow("execution allocation limit exceeded");
     expect(state.events).toEqual([]); expect(state.names.has("a")).toBe(true);
   });
   it("retains earlier deletions when a later frame exceeds the allocation budget", () => {
-    const state = fixture(), meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 72 });
+    const state = fixture(), meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 224 + 72 });
     expect(() => deleteTargets(targets("a, (b, c)"), state.context, meter)).toThrow("execution allocation limit exceeded");
     expect(state.events).toEqual(["delete:a"]); expect([...state.names.keys()]).toEqual(["b", "c"]);
   });
@@ -67,7 +67,7 @@ describe("deletion target traversal", () => {
     let target: Expression = targets("a")[0];
     for (let i = 0; i < 10000; i++) target = { ...target, kind: "tuple", items: [target] };
     const state = fixture();
-    const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 72 + 10000 * 40 });
+    const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 224 + 72 + 10000 * 40 });
     deleteTargets([target], state.context, meter);
     expect(state.events).toEqual(["delete:a"]);
   });

@@ -1,17 +1,17 @@
 import type { Expression } from "../ast.js";
-import { executeAssignment, type AssignmentExecutionContext } from "./assignment-execution.js";
-import { assignTargets } from "./assignment-targets.js";
+import { createAssignmentContinuation, executeAssignment, type AssignmentExecutionContext, type ResumableAssignmentExecutionContext } from "./assignment-execution.js";
+import { assignTargets, createAssignmentTargetsContinuation } from "./assignment-targets.js";
 import { unpackAssignment } from "./assignment-unpacking.js";
-import { executeAugmentedAssignment, type AugmentedAssignmentContext } from "./augmented-assignment.js";
-import { deleteTargets } from "./deletion-targets.js";
+import { createAugmentedAssignmentContinuation, executeAugmentedAssignment, type AugmentedAssignmentContext } from "./augmented-assignment.js";
+import { createDeletionContinuation, deleteTargets } from "./deletion-targets.js";
 import { PythonRuntimeError } from "./error.js";
 import { ProtocolIterator } from "./protocol-iterator.js";
 import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
+import { createExpressionContinuation, evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { runtimeInPlace } from "./runtime-inplace.js";
-import { resolveRuntimeReference, type RuntimeReferenceWrites } from "./runtime-reference.js";
-import { type LeafStatement, type StatementContext } from "./statement-execution.js";
+import { createRuntimeReferenceContinuation, resolveRuntimeReference, type RuntimeReferenceWrites } from "./runtime-reference.js";
+import { UnsupportedStatementError, type LeafStatement, type ResumableStatementContext, type StatementContext } from "./statement-execution.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expression-statement" | "assignment" | "annotated-assignment" | "augmented-assignment" | "delete" }>;
@@ -25,6 +25,14 @@ export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
   inplace?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
   /** Execute definitions/imports/raise or throw an explicit implementation gap. */
   executeUnhandled(statement: UnhandledRuntimeStatement): void;
+  /** Resumable definition/import/raise assembly. Without this capability these
+   * leaf kinds fail explicitly; they never fall back to synchronous evaluation. */
+  executeUnhandledContinuation?(statement: UnhandledRuntimeStatement): Generator<RuntimeValue, void, RuntimeValue>;
+}
+
+export interface RuntimeStatementContext extends StatementContext<RuntimeValue> {
+  /** Bind source-level continuations lazily; do not execute guest code. */
+  suspend(): ResumableStatementContext<RuntimeValue>;
 }
 
 /** Connect analyzed statement traversal to concrete expressions, references and
@@ -33,8 +41,8 @@ export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
  * Guest in-place slots precede exact native mutation, then the expression
  * context performs ordinary binary fallback. All components share one meter.
  */
-export function createRuntimeStatementContext(expressions: ExpressionContext<RuntimeValue>, bindings: RuntimeStatementBindings, values: RuntimeValues, meter: ExecutionMeter): StatementContext<RuntimeValue> {
-  meter.checkpoint(1, 768);
+export function createRuntimeStatementContext(expressions: ExpressionContext<RuntimeValue>, bindings: RuntimeStatementBindings, values: RuntimeValues, meter: ExecutionMeter): RuntimeStatementContext {
+  meter.checkpoint(1, 832);
   const resolve = (target: Expression) => resolveRuntimeReference(target, expressions, bindings, values, meter);
   const assignment: AssignmentExecutionContext<RuntimeValue> = {
     evaluate: expression => evaluateExpression(expression, expressions, meter),
@@ -70,7 +78,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
     }
   };
   const deletion = { removeName: bindings.deleteName.bind(bindings), resolve };
-  const context: StatementContext<RuntimeValue> = {
+  const context: RuntimeStatementContext = {
     evaluate: assignment.evaluate,
     test: expression => evaluateExpression(expression, expressions, meter, "branch"),
     iterate: expressions.iterate.bind(expressions),
@@ -84,6 +92,36 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
         case "delete": deleteTargets(statement.targets, deletion, meter); return;
         default: bindings.executeUnhandled(statement);
       }
+    },
+    suspend() {
+      meter.checkpoint(1, 768);
+      const resolveSuspended = (target: Expression) => createRuntimeReferenceContinuation(target, expressions, bindings, values, meter);
+      const suspended: ResumableAssignmentExecutionContext<RuntimeValue> = {
+        ...assignment,
+        evaluate: expression => createExpressionContinuation(expression, expressions, meter, values.none),
+        resolve: resolveSuspended
+      };
+      const inPlace = { ...augmented, evaluate: suspended.evaluate, resolve: resolveSuspended };
+      const remove = { ...deletion, resolve: resolveSuspended };
+      function* executeLeaf(statement: LeafStatement): Generator<RuntimeValue, void, RuntimeValue> {
+        meter.checkpoint(0);
+        switch (statement.kind) {
+          case "expression-statement": yield* suspended.evaluate(statement.expression); return;
+          case "assignment": case "annotated-assignment": yield* createAssignmentContinuation(statement, suspended, meter); return;
+          case "augmented-assignment": yield* createAugmentedAssignmentContinuation(statement, inPlace, meter); return;
+          case "delete": yield* createDeletionContinuation(statement.targets, remove, meter); return;
+          default:
+            if (bindings.executeUnhandledContinuation === undefined) throw new UnsupportedStatementError(statement.kind);
+            yield* bindings.executeUnhandledContinuation(statement);
+        }
+      }
+      return {
+        evaluate: suspended.evaluate,
+        test: expression => createExpressionContinuation(expression, expressions, meter, values.none, "branch"),
+        iterate: context.iterate, assertions: context.assertions, managers: context.managers, exceptions: context.exceptions,
+        assign(target, value) { meter.checkpoint(0, 8); return createAssignmentTargetsContinuation([target], value, suspended, meter); },
+        execute(statement) { meter.checkpoint(1, 192); return executeLeaf(statement); }
+      };
     }
   };
   if (bindings.assertions) context.assertions = bindings.assertions;

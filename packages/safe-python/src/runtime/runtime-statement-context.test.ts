@@ -6,7 +6,8 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { CallStack } from "./call-stack.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeModule } from "./module-execution.js";
-import { UnsupportedStatementError } from "./statement-execution.js";
+import { createStatementContinuation, UnsupportedStatementError } from "./statement-execution.js";
+import { parseModule } from "../module.js";
 import { analyzeModule } from "../analysis.js";
 import { runtimeHash } from "./runtime-hash.js";
 import { runtimeComparison } from "./runtime-comparison.js";
@@ -31,8 +32,131 @@ function fixture(source: string, maxSteps = 100000) {
       }, v, meter);
     }
   };
-  return { v, meter, globals, calls, run: () => executeModule(code, context, meter) };
+  return { v, meter, globals, calls, run: () => executeModule(code, context, meter),
+    continuation(source: string) {
+      const bound = context.body({
+        load: name => globals.get(name)!, store: (name, value) => { globals.set(name, value); },
+        delete: name => { globals.delete(name); }
+      });
+      return createStatementContinuation(parseModule(source).body, bound.suspend(), meter);
+    }
+  };
 }
+
+describe("native suspended mutation operations", () => {
+  it("keeps the evaluated RHS and unpacked starred list across a target yield", () => {
+    const state = fixture(""), { v, globals } = state, obj = v.list([v.none]); globals.set("obj", obj);
+    const cursor = state.continuation("a = (yield 1)\nfirst, *obj[(yield 2)], last = a\nreturn last");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) });
+    const rhs = v.list([v.integer(3), v.integer(4), v.integer(5), v.integer(6)]);
+    expect(cursor.next(rhs)).toEqual({ done: false, value: v.integer(2) });
+    expect(globals.get("first")).toEqual(v.integer(3)); expect(globals.has("last")).toBe(false);
+    rhs.items.append(v.integer(99)); globals.set("a", v.none); globals.set("obj", v.list([]));
+    expect(cursor.next(v.integer(0))).toEqual({ done: true, value: { kind: "return", value: v.integer(6) } });
+    const middle = obj.items.get(0n); if (middle.kind !== "list") throw Error("expected starred list");
+    expect(middle.items.snapshot()).toEqual([v.integer(4), v.integer(5)]);
+  });
+
+  it("retains the old augmented value and receiver across both target and RHS yields", () => {
+    const state = fixture(""), { v, globals } = state, old = v.list([v.integer(1)]), obj = v.list([old]); globals.set("obj", obj);
+    const cursor = state.continuation("obj[(yield 1)] += (yield 2)\nreturn 3");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) });
+    expect(cursor.next(v.integer(0))).toEqual({ done: false, value: v.integer(2) });
+    obj.items.set(0n, v.none); globals.set("obj", v.list([]));
+    expect(cursor.next(v.list([v.integer(4)]))).toEqual({ done: true, value: { kind: "return", value: v.integer(3) } });
+    expect(obj.items.get(0n)).toBe(old); expect(old.items.snapshot()).toEqual([v.integer(1), v.integer(4)]);
+  });
+
+  it("preserves earlier deletes and the current receiver when a later target suspends", () => {
+    const state = fixture(""), { v, globals } = state, obj = v.list([v.integer(1), v.integer(2)]);
+    globals.set("obj", obj); globals.set("first", v.true); globals.set("last", v.false);
+    const cursor = state.continuation("del first, obj[(yield 0)], last\nreturn 7");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(0) });
+    expect(globals.has("first")).toBe(false); expect(globals.has("last")).toBe(true);
+    globals.set("obj", v.list([]));
+    expect(cursor.next(v.integer(1))).toEqual({ done: true, value: { kind: "return", value: v.integer(7) } });
+    expect(obj.items.snapshot()).toEqual([v.integer(1)]); expect(globals.has("last")).toBe(false);
+  });
+
+  it("ignores annotations while suspending valueless target expressions without reading them", () => {
+    const state = fixture(""), { v, globals } = state, obj = v.list([]); globals.set("obj", obj);
+    const cursor = state.continuation("obj[(yield 1)]: forbidden()\nx: forbidden() = (yield 2)\nreturn x");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) });
+    expect(cursor.next(v.integer(99))).toEqual({ done: false, value: v.integer(2) });
+    expect(cursor.next(v.true)).toEqual({ done: true, value: { kind: "return", value: v.true } });
+    expect(obj.items.length).toBe(0);
+  });
+
+  it("writes an augmented name back after the paused RHS replaces its binding", () => {
+    const state = fixture(""), { v, globals } = state; globals.set("x", v.integer(3));
+    const cursor = state.continuation("x *= (yield 1)\nreturn x");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) }); globals.set("x", v.integer(99));
+    expect(cursor.next(v.integer(4))).toEqual({ done: true, value: { kind: "return", value: v.integer(12) } });
+    expect(globals.get("x")).toEqual(v.integer(12));
+  });
+
+  it("preserves in-place mutation when a paused RHS leaves an invalid write-back target", () => {
+    const state = fixture(""), { v, globals } = state, old = v.list([v.integer(1)]), obj = v.list([old]); globals.set("obj", obj);
+    const cursor = state.continuation("obj[0] += (yield 1)\nafter = 7");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) }); obj.items.delete(0n);
+    expect(() => cursor.next(v.list([v.integer(2)]))).toThrow("list assignment index out of range");
+    expect(old.items.snapshot()).toEqual([v.integer(1), v.integer(2)]); expect(globals.has("after")).toBe(false);
+  });
+
+  it("does not undo earlier chained stores when a later target receives an exception", () => {
+    const state = fixture(""), { v, globals } = state, obj = v.list([v.none]); globals.set("obj", obj);
+    const cursor = state.continuation("first = obj[(yield 1)] = last = (yield 0)"), failure = Error("injected");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(0) });
+    expect(cursor.next(v.true)).toEqual({ done: false, value: v.integer(1) });
+    expect(globals.get("first")).toBe(v.true); expect(() => cursor.throw(failure)).toThrow(failure);
+    expect(globals.has("last")).toBe(false); expect(obj.items.get(0n)).toBe(v.none);
+  });
+
+  it("leaves previous deletes intact and later targets untouched after an injected error", () => {
+    const state = fixture(""), { v, globals } = state, obj = v.list([v.true]);
+    globals.set("obj", obj); globals.set("first", v.true); globals.set("last", v.false);
+    const cursor = state.continuation("del first, obj[(yield 0)], last"), failure = Error("injected");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(0) });
+    expect(() => cursor.throw(failure)).toThrow(failure);
+    expect(globals.has("first")).toBe(false); expect(globals.get("last")).toBe(v.false); expect(obj.items.get(0n)).toBe(v.true);
+  });
+
+  it("retains a previous target store when a later nested unpack fails after suspension", () => {
+    const state = fixture(""), { v, globals } = state, obj = v.list([v.none]); globals.set("obj", obj);
+    const cursor = state.continuation("obj[(yield 1)], (a, b) = [7, [8]]");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) });
+    expect(() => cursor.next(v.integer(0))).toThrow("not enough values to unpack");
+    expect(obj.items.get(0n)).toEqual(v.integer(7)); expect(globals.has("a")).toBe(false); expect(globals.has("b")).toBe(false);
+  });
+
+  it("does not mutate targets when a suspended RHS resumes after a fatal limit", () => {
+    const state = fixture(""), { v, globals, meter } = state;
+    // Independent storage remains inspectable after the execution meter fails.
+    const storage = new RuntimeValues(new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }));
+    const old = storage.list([v.true]); globals.set("x", old);
+    const cursor = state.continuation("x += (yield 1)\nafter = 7");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) });
+    expect(() => meter.checkpoint(100000)).toThrow(ExecutionLimitError);
+    expect(() => cursor.next(v.none)).toThrow(ExecutionLimitError);
+    expect(old.items.snapshot()).toEqual([v.true]); expect(globals.has("after")).toBe(false);
+  });
+
+  it("uses resumable assignment for for-loop targets and leaves the final binding", () => {
+    const state = fixture(""), { v, globals } = state, obj = v.list([v.none]); globals.set("obj", obj);
+    const cursor = state.continuation("for obj[(yield 1)] in [3, 4]:\n yield obj[0]\nelse:\n return obj[0]");
+    expect(cursor.next()).toEqual({ done: false, value: v.integer(1) });
+    expect(cursor.next(v.integer(0))).toEqual({ done: false, value: v.integer(3) });
+    expect(cursor.next(v.none)).toEqual({ done: false, value: v.integer(1) });
+    expect(cursor.next(v.integer(0))).toEqual({ done: false, value: v.integer(4) });
+    expect(cursor.next(v.none)).toEqual({ done: true, value: { kind: "return", value: v.integer(4) } });
+  });
+
+  it.each(["import pending", "def pending():\n pass", "class Pending:\n pass", "raise pending"])("keeps missing resumable leaf adapters explicit: %s", source => {
+    const state = fixture(""), cursor = state.continuation(source);
+    expect(() => cursor.next()).toThrow(UnsupportedStatementError);
+    expect(state.globals.size).toBe(0);
+  });
+});
 
 describe("concrete runtime statement context", () => {
   it("executes dictionary assignment, augmented mutation, reads and deletion", () => {

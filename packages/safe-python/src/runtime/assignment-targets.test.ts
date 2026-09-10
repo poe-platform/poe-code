@@ -32,7 +32,8 @@ function environment(meter = budget()) {
 
 describe("assignment target traversal", () => {
   it.each(["a = b", "a, b"])("charges queued target records before any child stores: %s", source => {
-    const { context, names, meter } = environment(new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 72 }));
+    // Reserve the continuation before testing queued-target allocations.
+    const { context, names, meter } = environment(new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 224 + 72 }));
     context.unpack = () => ({ leading: [1, 2], starred: undefined, trailing: [] });
     expect(() => assignTargets(targets(source), [1, 2], context, meter)).toThrow("execution allocation limit exceeded");
     expect(names.size).toBe(0);

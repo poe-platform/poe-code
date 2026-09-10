@@ -13,6 +13,14 @@ export interface AssignmentContext<Value> {
   resolve(target: Extract<Expression, { kind: "attribute" | "subscript" }>): { set(value: Value): void };
 }
 
+export interface ResumableAssignmentContext<Value> extends Omit<AssignmentContext<Value>, "resolve"> {
+  resolve(target: Extract<Expression, { kind: "attribute" | "subscript" }>): Generator<Value, { set(value: Value): void }, Value>;
+}
+
+type AssignmentTargetExecution<Value> =
+  | { kind: "synchronous"; context: AssignmentContext<Value> }
+  | { kind: "resumable"; context: ResumableAssignmentContext<Value> };
+
 /** Assign one already-evaluated RHS to statically validated chained targets.
  * Each unpack completes before that level's child stores; later failures do not
  * roll back earlier stores. Work is iterative, including nested starred targets.
@@ -22,7 +30,20 @@ export interface AssignmentContext<Value> {
 export function assignTargets<Value>(
   targets: readonly Expression[], value: Value, context: AssignmentContext<Value>, meter: ExecutionMeter
 ): void {
-  meter.checkpoint(1, 32);
+  meter.checkpoint(1, 224);
+  const result = assignmentTargetsContinuation<Value>(targets, value, { kind: "synchronous", context }, meter).next();
+  if (!result.done) throw Error("synchronous target assignment unexpectedly suspended");
+}
+
+/** Preserve queued unpacked values and earlier stores across target evaluation. */
+export function createAssignmentTargetsContinuation<Value>(targets: readonly Expression[], value: Value, context: ResumableAssignmentContext<Value>, meter: ExecutionMeter): Generator<Value, void, Value> {
+  meter.checkpoint(1, 224);
+  return assignmentTargetsContinuation<Value>(targets, value, { kind: "resumable", context }, meter);
+}
+
+function* assignmentTargetsContinuation<Value>(targets: readonly Expression[], value: Value, execution: AssignmentTargetExecution<Value>, meter: ExecutionMeter): Generator<Value, void, Value> {
+  meter.checkpoint(0, 32);
+  const context = execution.context;
   const work: { target: Expression; value: Value }[] = [];
   for (let index = targets.length - 1; index >= 0; index--) {
     meter.checkpoint(1, 40); work.push({ target: targets[index], value });
@@ -34,7 +55,7 @@ export function assignTargets<Value>(
       context.store(target.name, current.value);
       meter.checkpoint(0);
     } else if (target.kind === "attribute" || target.kind === "subscript") {
-      const reference = context.resolve(target);
+      const reference = execution.kind === "synchronous" ? execution.context.resolve(target) : yield* execution.context.resolve(target);
       meter.checkpoint();
       reference.set(current.value);
       meter.checkpoint(0);

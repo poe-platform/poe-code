@@ -10259,6 +10259,32 @@ extension, integration, or validation requirement is missing or unverified.
   definition/raise operations and default generator-function wiring remain next,
   alongside yield delegation, async execution and complete frame accounting.
   No push or release requested.
+- Native suspended mutation operations (2026-09-10): four failing native-value
+  regressions drove lazy resumable statement-context binding and shared reference,
+  ordinary/annotated assignment, unpacking, augmented-assignment and deletion
+  continuations. Suspended target evaluation retains receiver/key identities;
+  queued unpacked values, earlier stores/deletes and pre-RHS augmented values are
+  not replayed or rolled back. Actual get/set/delete dispatch still uses current
+  bound protocols. Annotation expressions remain ignored, while executable target
+  expressions may yield without reading the annotated target. For/with assignment
+  adapters use the same target engine. Definition/import/raise continuation hooks
+  are explicit capabilities; missing hooks fail without synchronous fallback.
+  Entry frames are charged before construction while preserving existing step
+  counts. Exact target/deletion-budget fixtures now reserve continuation storage
+  before checking queued records and nested frames. Nineteen new regressions cover
+  native mutations, slice references, failure/limit boundaries, lazy reference
+  access, invalid write-back after in-place mutation and absent leaf capabilities.
+  All 104 focused tests pass. All 2,000 parsed-suite native mutation comparisons
+  match CPython, including yielded values, errors and final bindings. These bind
+  native values to a controlled frame; full compiled generator-function assembly
+  is still pending. The 453 existing native generator/throw/comprehension
+  comparisons also pass, as do eight direct host-capability send/throw checks.
+  Selected workspace build, typecheck and focused lint pass. All 7,388 tests in
+  507 files pass in the uncached one-worker run (179.62s; bodies 11.11s).
+  Resumable definitions/raise and default
+  native generator-function wiring are next, with yield delegation, async execution
+  and complete continuation accounting still unfinished. No push or release
+  requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

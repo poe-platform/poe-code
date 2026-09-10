@@ -6,8 +6,8 @@ import { internalSymbols } from "./internal-symbols.js";
 import { isSandboxClosure } from "./values.js";
 import type { SandboxObject } from "./values.js";
 
-const identities = new WeakMap<object, string>();
-const realms = new WeakMap<Budget, Map<string, object>>();
+const identities = new WeakMap<object, { id: string; realm: object }>();
+const realms = new WeakMap<Budget, { identity: object; values: Map<string, object> }>();
 const runtimeGlobals = new WeakMap<Budget, SandboxObject>();
 const runtimeEvaluators = new WeakMap<Budget, object>();
 export const mutableBuiltinBindings = new WeakMap<object, ReadonlySet<string>>();
@@ -20,7 +20,7 @@ export function registerBuiltinIdentities(
   bindings: Record<string, unknown>
 ): void {
   let realm = realms.get(budget);
-  if (realm === undefined) realms.set(budget, realm = new Map());
+  if (realm === undefined) realms.set(budget, realm = { identity: Object.freeze(Object.create(null)), values: new Map() });
   type Path = Array<string | { symbol: string }>;
   const pending: Array<[Path, unknown]> = Object.entries(bindings).map(([name, value]) => [[name], value]);
   const visited = new WeakSet<object>();
@@ -31,13 +31,13 @@ export function registerBuiltinIdentities(
     if (path.length >= 2 && path.at(-1) === "prototype" && path.every(member => typeof member === "string"))
       registerRealmPrototype(budget, path.slice(0, -1).join("."), value);
     const id = JSON.stringify(path);
-    const previous = realm.get(id);
+    const previous = realm.values.get(id);
     if (previous !== undefined && previous !== value)
       throw new TypeError(`Duplicate intrinsic identity: ${id}`);
-    realm.set(id, value);
+    realm.values.set(id, value);
     if (path.length === 1 && path[0] === "globalThis") runtimeGlobals.set(budget, value as SandboxObject);
     if (path.length === 1 && path[0] === "eval") runtimeEvaluators.set(budget, value);
-    if (!identities.has(value)) identities.set(value, id);
+    if (!identities.has(value)) identities.set(value, { id, realm: realm.identity });
     if (visited.has(value)) continue;
     visited.add(value);
     const owner = isSandboxClosure(value) ? value.properties : value;
@@ -65,17 +65,22 @@ export function registerBuiltinIdentities(
 }
 
 export function getIntrinsicIdentity(value: object): string | undefined {
-  return identities.get(value);
+  return identities.get(value)?.id;
+}
+
+export function getIntrinsicRealmIdentity(value: object): object | undefined {
+  // This survives realm-table release without retaining the budget or its values.
+  return identities.get(value)?.realm;
 }
 
 export function resolveIntrinsicIdentity(budget: Budget, id: string): object {
-  const value = realms.get(budget)?.get(id);
+  const value = realms.get(budget)?.values.get(id);
   if (value === undefined) throw new TypeError(`Unknown intrinsic identity: ${id}`);
   return value;
 }
 
 export function listIntrinsicIdentities(budget: Budget): string[] {
-  return [...(realms.get(budget)?.keys() ?? [])];
+  return [...(realms.get(budget)?.values.keys() ?? [])];
 }
 
 export function releaseIntrinsicIdentities(budget: Budget): void {

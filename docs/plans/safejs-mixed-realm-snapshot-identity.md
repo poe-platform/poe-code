@@ -137,3 +137,24 @@ mutation becomes `second`. Native/pre-capture distinctions, the second label,
 within-realm constructor/prototype links and repeated binding aliases pass.
 The regression file remains uncommitted pending the runtime/format correction.
 No implementation fix, successful new package gate or release is claimed.
+
+## Origin identity foundation
+
+Five new metadata regressions first failed because intrinsic registration had
+no stable originating-realm identity (069240). Registration now stores the
+installation path together with an opaque frozen realm token. The active
+budget table owns that token and its resolution map; retained intrinsics keep
+only the token, not the table, budget or other realm values. Releasing and
+reusing a budget creates a new token without changing old identities. Importing
+an existing intrinsic as an alias does not reassign its original token.
+
+The new checks and existing intrinsic, budget-reuse and prototype tests pass
+all 68 cases across four files (c822d1). This is the first implementation step,
+not a mixed-realm snapshot fix: capture must still encode realm-qualified
+identity and restore must reconstruct coherent realm graphs. The three
+mixed-realm transport tests remain red and uncommitted. No independent budget
+or generic-object fallback is introduced.
+
+Focused ESLint (ab6f4e) and package TypeScript checking (b15971) pass for the
+origin-identity foundation. Keep its local commit separate from the still-open
+snapshot format and restoration changes.

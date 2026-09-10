@@ -373,7 +373,7 @@
     "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
     "lint:packages": "tsx packages/package-lint/src/cli.ts",
     "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs",
-    "lint:types": "tsc -p tsconfig.build.json --noEmit",
+    "lint:types": "tsc -p tsconfig.build.json --noEmit && npm run typecheck:contracts --workspace=@poe-code/safe-js",
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
     "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",

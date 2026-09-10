@@ -34,6 +34,8 @@ function fixture() {
     expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
+      if (value.kind === "list") return registry.listType();
+      if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
       const existing = native.get(value.kind); if (existing !== undefined) return existing;
       const type = registry.publish(new RuntimeTypeLayout(value.kind === "none" ? "NoneType" : value.kind, [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter, { objectLayout: false, instanceDictionary: false }), registry.type);
@@ -53,6 +55,38 @@ it.each(["dict", "set"])("dispatches guest key protocols in ordinary %s displays
   if (result.kind !== "dict" && result.kind !== "set") throw Error("expected collection");
   expect(result.items.size).toBe(1); expect(state.globals.get("found")).toBe(state.v.true);
   expect(state.events).toEqual(["hash", "hash", "equal", "hash", "equal"]);
+});
+
+it("exposes object equality as identity-or-NotImplemented without delegation", () => {
+  const state = fixture();
+  state.run("class Key:\n def __eq__(self,other):\n  visit('override')\n  return False\nleft=Key()\nright=Key()\nsame=object.__eq__(left,left)\ndifferent=object.__eq__(left,right)\nbound=object.__eq__.__get__(left,Key)(left)\nnative=object.__eq__([],[])\n");
+  for (const name of ["same", "bound"]) expect(state.globals.get(name)).toBe(state.v.true);
+  for (const name of ["different", "native"]) expect(state.globals.get(name)).toBe(state.v.notImplemented);
+  expect(state.events).toEqual([]);
+});
+
+it.each(["key.method", "key.__getattribute__", "items.append"])("preserves native bound equality while explicit object equality uses identity for %s", expression => {
+  const state = fixture();
+  state.run(`class Key:\n def method(self):\n  pass\nkey=Key()\nitems=[]\nleft=${expression}\nright=${expression}\nequal=left==right\nunequal=left!=right\nbase=object.__eq__(left,right)\nslot=type(left).__eq__(left,right)\ndeclined=type(left).__eq__(left,None)\n`);
+  expect(state.globals.get("equal")).toBe(state.v.true); expect(state.globals.get("unequal")).toBe(state.v.false);
+  expect(state.globals.get("base")).toBe(state.v.notImplemented);
+  expect(state.globals.get("slot")).toBe(state.v.true); expect(state.globals.get("declined")).toBe(state.v.notImplemented);
+});
+
+it.each(["append", "extend", "insert", "pop", "clear", "reverse", "copy", "count", "remove", "index", "__reversed__"])("retains canonical list %s binding metadata and key identity", name => {
+  const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run(`items=[]\nleft=items.${name}\nright=items.${name}\nresult={left:1,right:2}\nequal_hash=hash(left)==hash(right)\nreceiver=left.__self__ is items\nname=left.__name__\nqualified=left.__qualname__\n`);
+  const result = state.globals.get("result")!;
+  if (result.kind !== "dict") throw Error("expected dictionary");
+  expect(result.items.size).toBe(1); expect(state.globals.get("equal_hash")).toBe(state.v.true); expect(state.globals.get("receiver")).toBe(state.v.true);
+  expect(state.globals.get("name")).toEqual(state.v.string(name)); expect(state.globals.get("qualified")).toEqual(state.v.string(`list.${name}`));
+});
+
+it("calls canonical list descriptors with live guest iteration and equality", () => {
+  const state = fixture();
+  state.run("class Source:\n def __getitem__(self,index):\n  return [1,2][index]\nclass Key:\n def __eq__(self,other):\n  visit('equal')\n  return True\nitems=[]\ntype(items).extend(items,Source())\ntype(items).append(items,Key())\ncount=items.count(Key())\nsize=items.index(2)\n");
+  expect(state.globals.get("count")).toEqual(state.v.integer(3)); expect(state.globals.get("size")).toEqual(state.v.integer(1));
+  expect(state.events).toEqual(["equal", "equal", "equal"]);
 });
 
 it.each(["__lt__", "__le__", "__gt__", "__ge__"])("exposes non-delegating object ordering slot %s", name => {

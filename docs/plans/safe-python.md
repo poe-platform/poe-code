@@ -8545,6 +8545,26 @@ extension, integration, or validation requirement is missing or unverified.
   Earlier 560 guest and 2,028 native comparison cases also still match CPython.
   Selected build, typecheck, scoped lint and all 6,563 tests in 493 files pass
   with two workers.
+- Installed canonical object.__eq__ with identity-or-NotImplemented semantics.
+  The initial missing-member regressions then exposed why native callable types
+  need their own comparison slots: inherited base identity must not replace
+  function/receiver or implementation/receiver binding equality. Added canonical
+  method, method-wrapper and builtin-function/method types with receiver-validated
+  native __eq__/__ne__ descriptors, rather than bypassing the object descriptor.
+  Repeated list methods also lacked binding metadata; canonical list descriptors
+  now supply stable implementation identities for eleven maintained methods and
+  preserve active iteration, equality, truth and index capabilities on invocation.
+  Native list lookup binds those descriptors when the actual-type policy supplies
+  the canonical type; legacy unconfigured lookup remains available. Updated two
+  older integration fixtures to classify native values using the registry instead
+  of placeholder types, retaining index/callback count checks. Sixteen new cases
+  cover base/direct/native equality, all eleven list binding identities/metadata,
+  shared hash keys and live descriptor invocation. All 186 object/callable equality
+  and 66 canonical list-method cases match CPython. Native constructor catalogs,
+  remaining callable/list members (including explicit native hash slots), list
+  sort descriptor binding and public execution setup are still unfinished.
+  Earlier 560 guest and 2,028 native comparison cases still pass. Final selected
+  build, typecheck, scoped lint and all 6,579 tests in 493 files pass (two workers).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -64,6 +64,8 @@ import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } from "./runtime-native-method-metadata.js";
 import { runtimeFunctionDefaults } from "./runtime-function-defaults.js";
 import { readRuntimeDescriptorMethod } from "./runtime-descriptor-method.js";
+import { lookupMroAttribute } from "./class-attributes.js";
+import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
  * exposed; host payload fields and JavaScript prototypes are never inspected.
@@ -190,6 +192,11 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "sort") return createRuntimeListSortMethod(receiver, values, meter, beginCall);
     switch (name) {
       case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index": case "__reversed__":
+        if (methods?.actualType !== undefined) {
+          const type = methods.actualType(receiver); meter.checkpoint();
+          const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
+          if (member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
+        }
         return createRuntimeListMethod(receiver, name, values, meter, methods);
     }
   }

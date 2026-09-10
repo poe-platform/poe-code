@@ -35,7 +35,12 @@ function fixture(signal?: AbortSignal) {
   } })]]);
   const unused = (): never => { throw Error("unexpected guest operation"); };
   const hooks: RuntimeProgramHooks = {
-    specialMethods: () => ({ typeOf(value) { const type = types.get(value); if (!type) throw Error(`unexpected type lookup: ${value.kind}`); return type; }, slots: () => undefined }),
+    specialMethods: () => ({ typeOf(value) {
+      const type = types.get(value); if (type !== undefined) return type;
+      if (value.kind === "list") return registry.listType();
+      if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
+      throw Error(`unexpected type lookup: ${value.kind}`);
+    }, slots: () => undefined }),
     expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "method()", keywordName: unused, invoke: unused
   };
@@ -1590,9 +1595,7 @@ it("binds native descriptors used as implicit special methods", () => {
 });
 
 it("compares freshly bound native methods and deduplicates their dictionary keys", () => {
-  const state = fixture(), owner = state.type("C"), nativeType = state.type("builtin_function_or_method");
-  const resolve = state.hooks.specialMethods!;
-  state.hooks.specialMethods = frame => { const original = resolve(frame); return { ...original, typeOf: value => value.kind === "builtin_function_or_method" ? nativeType : original.typeOf(value) }; };
+  const state = fixture(), owner = state.type("C");
   owner.value.namespace.items.set(state.v.string("native"), state.v.methodDescriptor({ owner, name: "native", accepts: () => true, invoke: () => state.v.none }));
   state.instance("instance", owner); state.instance("other", owner);
   state.run("equal=instance.native==instance.native\nunequal=instance.native!=other.native\ndistinct=instance.native is not instance.native\nitems={instance.native:1,instance.native:2}\nresult=items[instance.native]\n");
@@ -2212,8 +2215,6 @@ it("uses base-object methods for function metadata without losing native policie
 
 it("binds the native subclass hook to the accessed class through class and instance reads", () => {
   const state = fixture(), cls = state.type("C"); state.globals.set("C", cls); state.globals.set("object", state.registry.object); state.instance("obj", cls);
-  const nativeType = state.type("builtin_function_or_method"), resolve = state.hooks.specialMethods!;
-  state.hooks.specialMethods = frame => { const original = resolve(frame); return { ...original, typeOf: value => value.kind === "builtin_function_or_method" ? nativeType : original.typeOf(value) }; };
   state.run("root=object.__init_subclass__()\nresult=C.__init_subclass__()\nclass_owner=C.__init_subclass__.__self__ is C\ninstance_owner=obj.__init_subclass__.__self__ is C\nsame=C.__init_subclass__ == obj.__init_subclass__\n");
   expect(state.globals.get("root")).toBe(state.v.none); expect(state.globals.get("result")).toBe(state.v.none);
   for (const name of ["class_owner", "instance_owner", "same"]) expect(state.globals.get(name)).toBe(state.v.true);

@@ -8,6 +8,7 @@ import { createObjectNewBuiltin } from "./builtin-object-new.js";
 import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createObjectHashWrapper } from "./builtin-object-hash.js";
 import { createObjectNeWrapper } from "./builtin-object-ne.js";
+import { createObjectEqWrapper } from "./builtin-object-eq.js";
 import { installObjectOrderingWrappers } from "./builtin-object-ordering.js";
 import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeNewBuiltin } from "./builtin-type-new.js";
@@ -21,6 +22,8 @@ import { createObjectClassDescriptor } from "./builtin-object-class.js";
 import { PythonRuntimeError } from "./error.js";
 import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from "./runtime-descriptor-method.js";
+import { installRuntimeBoundComparisonMethods, type NativeBoundCallableKind } from "./runtime-bound-comparison-method.js";
+import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -41,6 +44,8 @@ export class RuntimeTypeRegistry {
   readonly #entries: WeakMap<RuntimeTypeLayout, TypeEntry>;
   readonly #methodDecorators = new Map<"staticmethod" | "classmethod", TypeValue>();
   readonly #descriptors = new Map<IntrinsicDescriptorKind, TypeValue>();
+  readonly #boundCallables = new Map<NativeBoundCallableKind, TypeValue>();
+  #listType: TypeValue | undefined;
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 256);
@@ -58,6 +63,7 @@ export class RuntimeTypeRegistry {
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__hash__"), createObjectHashWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__ne__"), createObjectNeWrapper(values, meter, this.object));
+    objectLayout.namespace.items.set(values.string("__eq__"), createObjectEqWrapper(values, meter, this.object));
     installObjectOrderingWrappers(values, meter, this.object);
     objectLayout.namespace.items.set(values.string("__init_subclass__"), createObjectInitSubclassDescriptor(values, meter, this.object));
     typeLayout.namespace.items.set(values.string("__init__"), createTypeInitWrapper(values, meter, this.type));
@@ -145,6 +151,33 @@ export class RuntimeTypeRegistry {
     installRuntimeDescriptorMethods(kind, type, this.values, this.meter);
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#descriptors.set(kind, type);
+    return type;
+  }
+
+  /** Canonical bound-callable types; native comparison slots must shadow the
+   * identity-only object slot. Remaining native members are installed separately. */
+  boundCallableType(kind: NativeBoundCallableKind): TypeValue {
+    this.meter.checkpoint();
+    const existing = this.#boundCallables.get(kind);
+    if (existing !== undefined) return existing;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, subclassable: false, weakReferences: kind !== "method-wrapper" });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeBoundComparisonMethods(kind, type, this.values, this.meter);
+    this.meter.checkpoint(1, 96);
+    this.#entries.set(layout, { type }); this.#boundCallables.set(kind, type);
+    return type;
+  }
+
+  listType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#listType !== undefined) return this.#listType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("list", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeListMethodDescriptors(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#listType = type;
     return type;
   }
 

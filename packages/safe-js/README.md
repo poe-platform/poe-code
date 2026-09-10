@@ -637,6 +637,9 @@ The saved key-list format is unchanged.
 Lexical `for-in`, `for-of` and `for await-of` headers keep their bound names
 uninitialized while evaluating the RHS, separate from each iteration's bindings.
 Closures captured in the RHS retain that behavior across generator checkpoints.
+Loop assignment targets and nested destructuring assignments accept member
+access on array/object literals, such as `[holder][0].x`. Optional-chain
+assignment targets remain invalid.
 Array methods now await Proxy membership and deletion traps on array-like
 receivers. Internal index reads pass string keys to Proxy traps, including
 inherited Proxies and entry reads in `Object.fromEntries` and `Map` construction.

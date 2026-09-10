@@ -13,7 +13,10 @@ chain, enumeration and loop-header repairs are now covered. Fourteen failures
 match the Promise/locale findings; an additional regex cursor runner failure
 requires investigation. Its 12-case focused rerun passes, which does not make
 the full gate green. See [the completed gate](safejs-post-loop-header-integration-gate.md).
-The two isolated loop-parser candidates remain unintegrated.
+The literal-member assignment-target repair is now integrated locally with
+1,539 parser tests passing, one skipped, and clean lint/TypeScript checks. See
+[its regression record](safejs-literal-member-assignment-targets.md).
+The sloppy-let statement-body candidate remains unintegrated.
 
 At 9d2eeb443, the Temporal namespace includes Now and all eight constructors.
 Temporal replay/heap support, originating intrinsic prototype parents and weak

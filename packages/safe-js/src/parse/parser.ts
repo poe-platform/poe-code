@@ -2544,10 +2544,12 @@ class Parser {
 
   private tryParsePatternAssignmentExpression(): AssignmentExpression | undefined {
     const token = this.currentToken();
+    const following = this.tokenAfterBalancedGroup(this.index);
     if (
       token.type !== "punctuator" ||
       (token.value !== "[" && token.value !== "{") ||
-      !this.isPatternAssignmentStart(this.index)
+      following?.type !== "punctuator" ||
+      following.value !== "="
     ) {
       return undefined;
     }
@@ -2600,13 +2602,16 @@ class Parser {
 
   private parseAssignmentTarget(): AssignmentTarget {
     const token = this.currentToken();
-
-    if (token.type === "punctuator" && token.value === "[") {
-      return this.parseAssignmentArrayPattern();
-    }
-
-    if (token.type === "punctuator" && token.value === "{") {
-      return this.parseAssignmentObjectPattern();
+    if (token.type === "punctuator" && (token.value === "[" || token.value === "{")) {
+      const following = this.tokenAfterBalancedGroup(this.index);
+      const literalContinuation =
+        following?.type === "template" ||
+        (following?.type === "punctuator" && [".", "[", "(", "?."].includes(following.value));
+      if (!literalContinuation) {
+        return token.value === "["
+          ? this.parseAssignmentArrayPattern()
+          : this.parseAssignmentObjectPattern();
+      }
     }
 
     const expression = this.parseLeftHandSideExpression().node;
@@ -2617,7 +2622,7 @@ class Parser {
 
     if (
       expression.type === "MetaProperty" ||
-      (expression.type === "MemberExpression" && !expression.optional)
+      (expression.type === "MemberExpression" && !this.hasOptionalAssignmentChain(expression))
     ) {
       return expression;
     }
@@ -4069,13 +4074,13 @@ class Parser {
     return this.toPatternTarget(this.toAssignmentTarget(value));
   }
 
-  private isPatternAssignmentStart(startIndex: number): boolean {
+  private tokenAfterBalancedGroup(startIndex: number): Token | undefined {
     const startToken = this.tokens[startIndex];
     if (
       startToken?.type !== "punctuator" ||
       (startToken.value !== "[" && startToken.value !== "{")
     ) {
-      return false;
+      return undefined;
     }
 
     const stack: string[] = [];
@@ -4097,14 +4102,12 @@ class Parser {
         }
 
         if (stack.length === 0) {
-          return (
-            this.tokens[index + 1]?.type === "punctuator" && this.tokens[index + 1]?.value === "="
-          );
+          return this.tokens[index + 1];
         }
       }
     }
 
-    return false;
+    return undefined;
   }
 
   private isSingleParamArrowFunction(): boolean {

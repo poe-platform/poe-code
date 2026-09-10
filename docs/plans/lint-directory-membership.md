@@ -46,3 +46,10 @@ RED evidence: `/tmp/poe-688-receipt-fold-red.log`. All 279 focused guard tests
 pass in `/tmp/poe-688-receipt-fold-green.log`; a completed repository lint
 remains necessary, and this computation reduction alone does not prove a
 wall-clock improvement on the filesystem-heavy gate.
+
+The maintained repository lint on `f5358f19a` completed successfully in 473.03
+seconds with the same 600-second deadline and output/memory caps. All 10,588
+configured files were linted, all 25 receipts completed, and errors and warnings
+were zero. Root type checking and workflow lint also passed. Evidence:
+`/tmp/poe-688-csplit-lint.log` and `/tmp/poe-688-csplit-lint-result.json`.
+This establishes a clean gate, not an isolated end-to-end speedup measurement.

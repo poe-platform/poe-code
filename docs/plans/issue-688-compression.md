@@ -196,3 +196,20 @@ publication remain outstanding.
 The eight focused Bash integration files passed all 294 checks, covering the
 new command's public API and registration, current inventories and inspection
 positions, canonical peer inventory, and bounded BRE search with its native worker.
+
+The maintained lint passed on `f5358f19a` in 473.03 seconds, including all 10,588
+configured files, root types, and workflows. The subsequent full unit run failed
+in the shared phase: 906 files and 22,448 tests passed; one process-cleanup test
+failed reading its PID file with ENOENT after the 250 ms command timeout. Two
+existing skips remain skips. Evidence: `/tmp/poe-688-csplit-final-full-unit.log`.
+Later workspace phases did not run. The test must establish real descendant
+readiness before triggering the timeout; no production cleanup defect has been
+established. Full gate completion and publication remain outstanding.
+
+The repaired cleanup fixture captures the real shell's descendant PID on stdout
+and confirms it is alive before advancing the initial timeout clock. It remains
+alive at 249 ms and must be dead when the 250 ms timeout result resolves. Native
+process events, escalation, and group-exit polling retain real timing. No PID
+file or production change is needed. All eight focused command-runner tests and
+strict TypeScript passed (`/tmp/poe-688-descendant-green.log` and
+`/tmp/poe-688-descendant-types.log`); full validation must still complete.

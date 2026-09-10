@@ -60,7 +60,7 @@ export class YieldDelegation<Value, Iterator, Method> {
     return this.#advance("next");
   }
 
-  resume(request: { readonly kind: "send"; readonly value: Value } | { readonly kind: "throw"; readonly error: unknown }): YieldDelegationResult<Value> {
+  resume(request: { readonly kind: "send"; readonly value: Value } | { readonly kind: "throw"; readonly error: unknown; readonly closeDelegate?:boolean }): YieldDelegationResult<Value> {
     this.meter.checkpoint();
     const context = this.#context, iterator = this.#iterator;
     if (context === undefined || iterator === undefined) throw Error("delegation is not suspended");
@@ -71,7 +71,7 @@ export class YieldDelegation<Value, Iterator, Method> {
     }
     const error = request.error;
     if (error instanceof ExecutionLimitError || !context.isException(error, "BaseException")) { this.#finish(); throw error; }
-    const closing = context.isException(error, "GeneratorExit"); this.meter.checkpoint();
+    const closing = request.closeDelegate!==false&&context.isException(error, "GeneratorExit"); this.meter.checkpoint();
     this.meter.checkpoint(0,32);
     const captured={context,iterator:iterator.value};
     let method: Method;

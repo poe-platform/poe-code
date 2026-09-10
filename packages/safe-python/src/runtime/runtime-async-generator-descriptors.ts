@@ -34,7 +34,7 @@ export function installRuntimeAsyncGeneratorDescriptors(owner:TypeValue,values:R
                 meter.checkpoint();
                 if(!execution.delegating) {
                   if(args.length===3&&args[2].kind!=="none")throw new PythonRuntimeError("TypeError","throw() third argument must be a traceback object");
-                  input={kind:"throw",error:exceptions.throwError(args[0],args[1]??values.none,invocation)};
+                  input={...input,error:exceptions.throwError(args[0],args[1]??values.none,invocation)};
                 }
               }
               return execution.resume(input);

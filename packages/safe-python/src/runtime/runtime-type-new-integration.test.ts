@@ -268,6 +268,20 @@ it("rejects closed async-generator sends before throw construction or legacy war
   expect(state.globals.get("correct")).toBe(v.true);expect(state.events).toEqual([]);expect(warnings).toEqual([]);
 });
 
+it.each([false,true])("preserves asynchronous GeneratorExit propagation through native awaits (nested: %s)",nested=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`class I:\n def __await__(self):return self\n def __iter__(self):return self\n def __next__(self):return 1\n def throw(self,error):\n  visit('throw')\n  return 2\n def close(self):visit('close')\nasync def child():return await I()\nasync def source():yield await ${nested?"child()":"I()"}\ng=source()\na=g.__anext__()\na.send(None)\n`);
+  const generator=state.globals.get("g");
+  if(generator?.kind!=="instance"||generator.native?.kind!=="async_generator")throw Error("expected native async generator");
+  const result=generator.native.execution.resume({kind:"throw",error:state.exceptions!.signal("GeneratorExit"),closeDelegate:false});
+  expect(result).toEqual({done:false,value:v.integer(2)});expect(state.events).toEqual(["throw"]);
+  expect(generator.native.execution.delegating).toBe(true);expect(state.calls.depth).toBe(0);
+  let failure:unknown;
+  try{generator.native.execution.resume({kind:"throw",error:state.exceptions!.signal("GeneratorExit")});}catch(error){failure=error;}
+  expect(state.exceptions!.matches(failure,"GeneratorExit")).toBe(true);
+  expect(state.events).toEqual(["throw","close"]);expect(state.calls.depth).toBe(0);
+});
+
 it("awaits a generator expression's outer source before creating a lazy normal generator",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("iter",createIterBuiltin(v,state.meter));

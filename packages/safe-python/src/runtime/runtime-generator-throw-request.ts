@@ -15,11 +15,11 @@ export class RuntimeGeneratorThrowRequest {
 
 /** Execute a validated one-to-three-argument throw. Public descriptors own the
  * legacy warning; recursive native delegation must not emit it again. */
-export function throwRuntimeGenerator(state:RuntimeGeneratorState,args:readonly RuntimeValue[],invocation:BuiltinInvocationContext,values:RuntimeValues,meter:ExecutionMeter):RuntimeValue {
+export function throwRuntimeGenerator(state:RuntimeGeneratorState,args:readonly RuntimeValue[],invocation:BuiltinInvocationContext,values:RuntimeValues,meter:ExecutionMeter,closeDelegate=true):RuntimeValue {
   meter.checkpoint();
   if(!state.execution.delegating&&args.length===3&&args[2].kind!=="none")throw new PythonRuntimeError("TypeError","throw() third argument must be a traceback object");
   const error=state.execution.delegating?new RuntimeGeneratorThrowRequest(args,invocation,meter):state.exceptions.throwError(args[0],args[1]??values.none,invocation);
-  const result=state.execution.resume({kind:"throw",error});
+  const result=state.execution.resume({kind:"throw",error,closeDelegate});
   if(result.done)throw state.exceptions.completion(result.value);
   return result.value;
 }

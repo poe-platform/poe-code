@@ -96,6 +96,29 @@ it.each([false,true])("optionally closes and reraises GeneratorExit (present: %s
   expect(state.events).toEqual(present?["iter","next","get:close",["call"]]:["iter","next","get:close"]);
 });
 
+it("forwards GeneratorExit through throw when asynchronous cleanup must remain awaitable",()=>{
+  const state=fixture(),delegate=state.delegate(),error=new GuestError("GeneratorExit");
+  state.methods.set("close",()=>{throw Error("must not close");});state.methods.set("throw",value=>{expect(value).toBe(error);return 7;});
+  delegate.start();
+  expect(delegate.resume({kind:"throw",error,closeDelegate:false})).toEqual({kind:"yield",value:7});
+  expect(state.events).toEqual(["iter","next","get:throw",["call",error]]);
+});
+
+it("does not fall back to close when asynchronous GeneratorExit has no throw method",()=>{
+  const state=fixture(),delegate=state.delegate(),error=new GuestError("GeneratorExit");
+  state.methods.set("close",()=>{throw Error("must not close");});delegate.start();
+  expect(delegate.resume({kind:"throw",error,closeDelegate:false})).toEqual({kind:"raise",error});
+  expect(state.events).toEqual(["iter","next","get:throw"]);
+});
+
+it("keeps asynchronous GeneratorExit lookup failures caller-side instead of reporting them as unraisable",()=>{
+  const state=fixture(),delegate=state.delegate(),error=new GuestError("ValueError","lookup");delegate.start();
+  state.context.attribute=()=>{throw error;};
+  expect(delegate.resume({kind:"throw",error:new GuestError("GeneratorExit"),closeDelegate:false})).toEqual({kind:"reject",error});
+  expect(delegate.resume({kind:"send",value:null})).toEqual({kind:"yield",value:2});
+  expect(state.events).toEqual(["iter","next","next"]);
+});
+
 it.each(["ValueError","AttributeError"])("raises %s from an existing close method",kind=>{
   const state=fixture(),delegate=state.delegate(),failure=new GuestError(kind);
   state.methods.set("close",()=>{throw failure;});delegate.start();

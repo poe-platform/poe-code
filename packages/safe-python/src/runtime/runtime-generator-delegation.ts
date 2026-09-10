@@ -17,8 +17,9 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
   #pending:YieldDelegationResult<RuntimeValue>|undefined;
   #run:(<Result>(operation:()=>Result,preserveCallerException?:boolean)=>Result)|undefined;
   #throwing=false;
+  #closeDelegate=true;
   constructor(private readonly values:RuntimeValues,private readonly exceptions:RuntimeExceptionExecution,private readonly meter:ExecutionMeter,private readonly report?:(error:unknown,iterator:RuntimeValue)=>void) {
-    meter.checkpoint(1,128);
+    meter.checkpoint(1,136);
   }
   get active():boolean{return this.#current!==undefined;}
   get target():RuntimeValue|undefined{return this.#current?.iterator;}
@@ -81,7 +82,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
       call:(method,args)=>this.#owned(()=>{
         const binding=method.kind==="builtin_function_or_method"?method.binding:undefined,target=binding?.instance;
         if(target?.kind==="instance"&&(target.native?.kind==="generator"||target.native?.kind==="coroutine")&&binding!.implementation.value.owner===target.type&&binding!.implementation.value.name==="throw")
-          return throwRuntimeGenerator(target.native,args,invocation,values,meter);
+          return throwRuntimeGenerator(target.native,args,invocation,values,meter,this.#closeDelegate);
         return invocation.call(method,args);
       },starting),
       isException:(error,name)=>error instanceof RuntimeGeneratorThrowRequest?name==="BaseException"||name==="GeneratorExit"&&exceptions.matchesThrowTarget(error.arguments[0],"GeneratorExit"):exceptions.matches(error,name),
@@ -118,10 +119,10 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
 
   resume(input:GeneratorInput<RuntimeValue>,run:<Result>(operation:()=>Result,preserveCallerException?:boolean)=>Result):ReturnType<GeneratorDelegation<RuntimeValue>["resume"]> {
     if(this.#current===undefined)throw Error("no active native delegation");
-    const current=this.#current,previousRun=this.#run,previousThrowing=this.#throwing;
-    this.#run=run;this.#throwing=input.kind==="throw";
+    const current=this.#current,previousRun=this.#run,previousThrowing=this.#throwing,previousCloseDelegate=this.#closeDelegate;
+    this.#run=run;this.#throwing=input.kind==="throw";this.#closeDelegate=input.kind!=="throw"||input.closeDelegate!==false;
     let step:YieldDelegationResult<RuntimeValue>;
-    try {step=current.resume(input);}finally {this.#run=previousRun;this.#throwing=previousThrowing;}
+    try {step=current.resume(input);}finally {this.#run=previousRun;this.#throwing=previousThrowing;this.#closeDelegate=previousCloseDelegate;}
     if(step.kind==="yield")return {kind:"yield",value:step.value};
     if(step.kind==="reject")return {kind:"reject",error:step.error};
     if(step.kind==="raise")return {kind:"resume",input:{kind:"throw",error:step.error}};

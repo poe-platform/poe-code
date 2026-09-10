@@ -10519,6 +10519,23 @@ extension, integration, or validation requirement is missing or unverified.
   Async athrow/aclose, async generator expressions, metadata/hooks/finalization,
   context managers, public runtime, library/import and safe-fs integration remain
   unfinished. Synchronous wrapper close is not asynchronous generator aclose.
+- Async GeneratorExit delegation policy (2026-09-10): three failing protocol/
+  native-continuation regressions exposed synchronous delegate.close handling
+  where asynchronous termination needs delegate.throw. Added an explicit internal
+  throw-request policy, propagated through native coroutine/generator delegation
+  and preserved through normalization. Per-resume policy is restored after
+  reentry; ordinary close/throw behavior keeps its existing default. Cleanup can
+  now suspend through an awaited throw method, including through nested native
+  coroutines. Missing throw methods inject the original exception; lookup failures
+  remain caller-side rather than becoming unraisable close diagnostics.
+  CPython confirms direct and nested asynchronous close both call throw and yield
+  its result in these cases. Five new tests cover the policy and default restoration.
+  All 844 focused tests, build, typecheck and focused lint pass. Regression
+  comparisons match CPython for 10,368 native async-generator sequences, 768
+  coroutines and 512 generator-delegation sequences (11,648 total). The full
+  uncached one-worker package run passes all 7,531 tests in 510 files (171.79s;
+  test bodies 16.24s). This is the delegation prerequisite for asynchronous
+  athrow/aclose, not their public operation-wrapper implementation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

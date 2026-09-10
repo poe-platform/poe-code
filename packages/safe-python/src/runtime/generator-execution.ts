@@ -1,7 +1,11 @@
 import { PythonRuntimeError } from "./error.js";
 import { ExecutionLimitError,type ExecutionMeter } from "./execution-budget.js";
 
-export type GeneratorInput<Value>={readonly kind:"send";readonly value:Value}|{readonly kind:"throw";readonly error:unknown};
+export type GeneratorInput<Value>={readonly kind:"send";readonly value:Value}|{
+  readonly kind:"throw";readonly error:unknown;
+  /** Async termination forwards GeneratorExit through throw so cleanup may await. */
+  readonly closeDelegate?:boolean;
+};
 export type GeneratorRequest<Value>=GeneratorInput<Value>|{readonly kind:"close"};
 export type GeneratorPhase="created"|"running"|"suspended"|"closed";
 export type GeneratorKind="generator"|"coroutine"|"async generator";

@@ -74,7 +74,7 @@ export class RuntimeExceptionExecution {
       try {
         if(input.kind==="throw"&&input.error instanceof RuntimeRaisedException) {
           meter.checkpoint(0,32);
-          input={kind:"throw",error:this.chain(input.error.value,"local")};
+          input={...input,error:this.chain(input.error.value,"local")};
         }
         return driver(input);
       }

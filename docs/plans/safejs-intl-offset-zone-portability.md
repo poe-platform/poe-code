@@ -1,5 +1,23 @@
 # Intl fixed-offset zones on the minimum Node runtime
 
+## Maintained fallback investigation
+
+FormatJS documents offset-zone support, but its
+[DateTimeFormat documentation](https://formatjs.github.io/docs/polyfills/intl-datetimeformat/)
+also limits calendar support to Gregorian. A pinned source inspection at
+revision `839f19c5eb65f89aeb11d98dd12652055b9bab19` confirms the limitation:
+[ToLocalTime](https://github.com/formatjs/formatjs/blob/839f19c5eb65f89aeb11d98dd12652055b9bab19/packages/ecma402-abstract/DateTimeFormat/ToLocalTime.ts)
+asserts that the calendar is gregory or iso8601 before computing date fields
+(ef54c4). Thus a wholesale replacement would not satisfy existing non-Gregorian
+Temporal/Intl behavior. This is a source-level rejection of that integration
+strategy, not a runtime test of the package or a rejection of every possible
+reuse of its formatting machinery.
+
+The registry reported version 7.6.1 and 174,634,358 unpacked bytes (339d14);
+repository main reported 7.6.2 (1ee8a0). Do not conflate these versions or use
+the documentation's general conformance claim as proof of SafeJS compatibility.
+No dependency was installed and no runtime or lockfile changed during the gate.
+
 ## ZonedDateTime locale extension of the gap
 
 After ZonedDateTime.toLocaleString was implemented, all 32 original upstream

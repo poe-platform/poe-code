@@ -7032,6 +7032,21 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. Full builtin/object assembly, callback
   invocation integration, resumable filesystem effects and the public interpreter
   remain incomplete.
+- Added an optional builtin invocation capability supplied by concrete runtime
+  frames. Callback calls reenter normal argument collection, callability checks,
+  bound-method handling and compiled-function dispatch, retaining execution call
+  limits and lexical namespaces. StopIteration classification excludes fatal
+  execution signals and can use the frame's guest iteration policy.
+- Map now uses this invocation capability when no explicit callback policy was
+  configured; explicit policies retain priority. Lazy iterators preserve the
+  capability needed to invoke closures after their creating function returns.
+  Map context registration is therefore optional in the shared namespace.
+- The compiled closure regression failed before implementation; two additional
+  tests protect laziness and explicit overrides. All 5,316 tests in 444 files
+  pass; 36 compiled map cases match CPython across functions, lambdas, closures,
+  empty sources and non-callable errors. Build, typecheck and scoped lint pass.
+  Other callback builtins, native type/exception assembly, resumable filesystem
+  effects and the complete public interpreter remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

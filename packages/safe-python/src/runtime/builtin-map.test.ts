@@ -30,6 +30,22 @@ it("calls the mapper lazily with complete rows and preserves returned identity",
   expect(cursor.next().value).toBe(result); expect(rows).toEqual([[v.true, v.false]]);
   expect(cursor.next().done).toBe(true); expect(rows).toHaveLength(1);
 });
+it("uses invocation callbacks lazily when no explicit policy was configured", () => {
+  const { v, meter, keywords } = fixture(), marker = v.cell({}), result = v.cell({}); let calls = 0;
+  const mapped = createMapBuiltin(v, meter).value.invoke([marker, v.list([v.true])], keywords, meter, {
+    call(fn, args) { expect(fn).toBe(marker); expect(args).toEqual([v.true]); calls++; return result; }, isStopIteration: () => false
+  });
+  expect(calls).toBe(0); if (mapped.kind !== "iterator") throw Error("expected iterator");
+  expect(mapped.value.next().value).toBe(result); expect(calls).toBe(1);
+});
+it("retains an explicit callback policy when an invocation capability is supplied", () => {
+  const { v, meter, keywords, context } = fixture(), fn = v.builtinFunction({ name: "mapper", invoke: () => v.true });
+  const mapped = createMapBuiltin(v, meter, context).value.invoke([fn, v.list([v.false])], keywords, meter, {
+    call() { throw Error("explicit policy must win"); }, isStopIteration() { throw Error("explicit policy must win"); }
+  });
+  if (mapped.kind !== "iterator") throw Error("expected iterator");
+  expect(mapped.value.next().value).toBe(v.true);
+});
 it("does not check mapper callability before a complete row exists", () => {
   const { v, call, keywords } = fixture();
   expect(call([v.none, v.list([])]).next().done).toBe(true);

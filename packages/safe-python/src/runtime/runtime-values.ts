@@ -70,12 +70,18 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * No payload fields are exposed through guest JavaScript property access. The
  * synchronous implementation owns its internal work and resource checkpoints.
  */
+export interface BuiltinInvocationContext {
+  /** Reenter this execution's normal argument/callability/function call path. */
+  call(callee: RuntimeValue, positional: readonly RuntimeValue[]): RuntimeValue;
+  isStopIteration(error: unknown): boolean;
+}
+
 export interface BuiltinFunctionCapability {
   readonly name: string;
   /** Native keyword-dict calling conventions may validate names after their
    * positional work. Opted-in callees must perform their own keyword checks. */
   readonly keywordValidation?: "callee";
-  invoke(positional: readonly RuntimeValue[], keywords: DictionaryValue, meter: ExecutionMeter): RuntimeValue;
+  invoke(positional: readonly RuntimeValue[], keywords: DictionaryValue, meter: ExecutionMeter, context?: BuiltinInvocationContext): RuntimeValue;
 }
 
 export interface BuiltinFunctionValue {

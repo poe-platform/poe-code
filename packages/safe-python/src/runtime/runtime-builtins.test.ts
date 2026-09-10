@@ -87,3 +87,13 @@ it("executes a compiled module and nested function with the assembled namespace"
   }, meter);
   expect(globals.get("result")).toBe(v.true); expect(chunks).toEqual(["A", " ", "2", "\n"]);
 });
+it("lets map invoke compiled callbacks after their creating frame returns", () => {
+  const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
+  delete context.map;
+  const program = compileProgram<RuntimeValue>(analyzeModule("def mapped(offset):\n return map(lambda value: value+offset,[4,8])\nitems=mapped(3)\nresult=next(items)==7 and next(items)==11\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {} }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(v.true);
+});

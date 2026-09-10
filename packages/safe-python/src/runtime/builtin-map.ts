@@ -8,22 +8,23 @@ import { runtimeStrictOption } from "./runtime-strict-option.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export interface MapBuiltinContext extends MapIterationContext<RuntimeValue> {
+export interface MapBuiltinContext extends Partial<MapIterationContext<RuntimeValue>> {
   iteration?: IterationContext<RuntimeValue>;
   truth?(value: RuntimeValue): boolean;
 }
 
 /** Native constructor binding with eager input acquisition but lazy calls.
- * The explicit call capability owns callability/argument dispatch; no mapper
+ * Explicit callbacks override the invocation's normal runtime call capability.
+ * The selected capability owns callability/argument dispatch; no mapper
  * inspection occurs before a complete row is pulled. MapIterator owns strict
  * mismatch handling, resumability and callback exhaustion metadata. Native type
  * registration and subclass construction remain separate runtime concerns. */
-export function createMapBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: MapBuiltinContext): BuiltinFunctionValue {
+export function createMapBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: MapBuiltinContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 96);
   const truth = { truth: context.truth?.bind(context) ?? ((value: RuntimeValue) => runtimeTruth(value, meter)) };
   return values.builtinFunction({
     name: "map",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       const strict = runtimeStrictOption("map", keywords, truth, meter);
       if (positional.length < 2) throw new PythonRuntimeError("TypeError", "map() must have at least two arguments.");
       const count = positional.length - 1;
@@ -32,7 +33,20 @@ export function createMapBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
       for (let i = 0; i < count; i++) {
         meter.checkpoint(); sources[i] = runtimeIterate(positional[i + 1], values, meter, context.iteration);
       }
-      return values.iterator(new MapIterator(positional[0], sources, strict, context, meter));
+      meter.checkpoint(0, 128);
+      const callbacks: MapIterationContext<RuntimeValue> = {
+        call(callee, arguments_) {
+          if (context.call !== undefined) return context.call(callee, arguments_);
+          if (invocation !== undefined) return invocation.call(callee, arguments_);
+          throw new Error("map requires an execution call capability");
+        },
+        isStopIteration(error) {
+          if (context.isStopIteration !== undefined) return context.isStopIteration(error);
+          if (invocation !== undefined) return invocation.isStopIteration(error);
+          return error instanceof PythonRuntimeError && error.name === "StopIteration";
+        }
+      };
+      return values.iterator(new MapIterator(positional[0], sources, strict, callbacks, meter));
     }
   });
 }

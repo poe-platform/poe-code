@@ -1,4 +1,5 @@
-import type { ExecutionMeter } from "./execution-budget.js";
+import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
+import { PythonRuntimeError } from "./error.js";
 import { evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
@@ -17,7 +18,7 @@ import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "
 import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
 import { createRuntimeStatementContext, type RuntimeStatementBindings } from "./runtime-statement-context.js";
-import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { ClassFrame } from "./class-frame.js";
 import { executeClassBody } from "./class-body.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
@@ -67,7 +68,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
       callable: value => runtimeCallable(value, meter, hooks),
       invoke(value, positional, keywords) {
-        if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter);
+        if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter, builtinCalls);
         const fn = value.kind === "method" ? value.value.function : value;
         let args = positional;
         if (value.kind === "method") {
@@ -97,6 +98,20 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         return invokeRuntimeFunction(fn, args, keywords, invocation, meter);
       }
     }, meter);
+    meter.checkpoint(0, 128);
+    const builtinCalls: BuiltinInvocationContext = {
+      call(callee, positional) {
+        const call = beginCall(callee);
+        for (const value of positional) { meter.checkpoint(); call.positional(value); }
+        return call.invoke();
+      },
+      isStopIteration(error) {
+        if (error instanceof ExecutionLimitError) return false;
+        if (error instanceof PythonRuntimeError && error.name === "StopIteration") return true;
+        const result = expressionHooks.iteration?.isStopIteration(error) ?? false;
+        meter.checkpoint(); return result;
+      }
+    };
     const definitionBindings: RuntimeFunctionDefinitionBindings = {
       globals: namespaces.globals, builtins: namespaces.builtins,
       capture: frame instanceof LexicalFrame || frame instanceof ClassFrame ? frame.capture.bind(frame) : undefined,

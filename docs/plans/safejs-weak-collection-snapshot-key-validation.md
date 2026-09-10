@@ -31,3 +31,18 @@ TypeScript/lint. Record separately whether a fully formed internal record can
 pass whole-snapshot validation; do not overstate the direct-validator finding.
 
 No fix or release is claimed. The release hold remains active.
+
+## Whole-restore control
+
+A follow-up Node 22.23.2 in-memory probe (853771) serializes a real guest
+closure, then points a forged weak-map or weak-set key at its fully formed
+scope-frame node. Both whole restores reject with SnapshotValidationError:
+`Internal scopes cannot be guest data`, at the collection entry key path.
+This uses an existing valid internal record rather than a kind-only placeholder.
+
+Thus the direct node-validator inconsistency does not establish a full restore
+admission bug for scope frames. Treat a stricter node check as defense in depth,
+not a demonstrated escape repair. Keep the validated host Instant clone defect
+ahead of this work; do not change runtime code merely because one validation
+layer is less restrictive than another. Other internal kinds have not received
+equivalent whole-restore qualification in this probe.

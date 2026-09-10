@@ -7167,6 +7167,15 @@ extension, integration, or validation requirement is missing or unverified.
   in 444 files pass; selected build, typecheck and scoped lint pass. Concrete
   native type/exception assembly, remaining builtin frame integration and
   suspended safe-fs execution remain unfinished.
+- Callable now inherits invocation callability when no explicit policy is
+  configured, with a post-inspection cancellation checkpoint. Compiled eligible
+  and ineligible guest regressions failed first, then verified shared frame
+  inspection, no speculative calls and native-function bypass. Two additional
+  tests cover explicit-policy receiver/priority, argument validation ordering and
+  invocation cancellation. All 5,371 tests in 444 files pass; selected build,
+  typecheck and scoped lint pass. Reversed still has explicit-only guest policy;
+  remaining builtin integrations, concrete guest types, suspended effects and
+  full safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

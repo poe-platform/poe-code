@@ -277,6 +277,15 @@ it("routes sentinel-first equality and truth through the frame", () => {
   }, meter);
   expect(globals.get("result")).toEqual(v.integer(99)); expect(comparisons).toBe(1);
 });
+it.each([false, true])("shares frame callability with callable builtin for guest eligibility=%s", eligible => {
+  const { meter, v, context } = fixture(), guest = v.cell({}), globals = new Map<string, RuntimeValue>([["guest",guest]]), unused = (): never => { throw Error("must not invoke inspected values"); }; let inspections = 0;
+  const program = compileProgram<RuntimeValue>(analyzeModule("def inspect(): return callable(guest)\nresult=inspect()\nnative=callable(inspect)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {} }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable(value) { expect(value).toBe(guest); inspections++; return eligible; }, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(v.boolean(eligible)); expect(globals.get("native")).toBe(v.true); expect(inspections).toBe(1);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

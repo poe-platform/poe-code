@@ -36,3 +36,17 @@ The original main suite, session 82564, remains active and main runtime/test
 files remain unchanged. Neither isolated candidate is integrated or delivered.
 Transfer the two fixes with separate commits after the original suite becomes
 terminal, then verify them in main. No CLI visual change requires screenshots.
+
+## Main integration
+
+After full-suite session 82564 terminated, raw-value normalization was committed
+separately as `3e3338622`. The diagnostic regression then reproduced nine
+failures and twelve passes in main (3d3d2b), before its runtime change.
+Validating original text before cooked normalization fixes the diagnostic index.
+Main parser checks now pass 1,495 tests with one skip across 60 files (b2013d).
+Scoped ESLint passes (0b1b48), as does package TypeScript no-emit (e2903f).
+README and current gap inventory are updated. The latest completed full-package
+result remains 28,077 passed, 14 failed and 47 skipped and predates both parser
+repairs; these focused checks do not turn that result into a full-package pass.
+All 30 pinned String/raw fixtures also pass in main, with no exclusions or
+native-unqualified cases (1e0aa6), under the same bounded probe protocol.

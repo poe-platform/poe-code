@@ -13,9 +13,9 @@ or those integrations are wholly uncommitted are obsolete.
 
 The latest snapshot-directory run passed 2,134 tests across 157 files, including
 mixed-realm iterator and mixed-source/template tests. This is
-not a full-package result. The latest completed full package gate passed 28,025 tests,
+not a full-package result. The latest completed full package gate passed 28,077 tests,
 failed 14 and skipped 47; all 100 filesystem type contracts passed. See
-[the full gate record](safejs-post-string-integration-gate.md). Its failures are two
+[the full gate record](safejs-post-raw-integration-gate.md). Its failures are two
 Promise-property admission cases and twelve ISO month-formatting cases.
 No timeout failures were reported. Earlier 34- and ten-failure totals are historical.
 
@@ -28,11 +28,11 @@ tests pass in that selection; this does not establish full-suite timing
 reliability. The newer full-package result above now supersedes that selection
 as the broad result. It includes the JSON, Date and Iterator setter repairs,
 and the Proxy index-key and string argument-coercion repairs through concat.
-It predates Proxy locale-list membership, direct collation, and direct String.raw.
+It includes Proxy locale-list membership, direct collation, and direct String.raw.
 
-A new maintained full-package run at runtime 246946605 is in progress; see
-[the new gate record](safejs-post-raw-integration-gate.md). Do not treat an active
-run or its successful pretest contracts as a terminal unit-test result.
+The maintained full-package run at runtime 246946605 is terminal, with 1,237
+files represented in its report. It predates the raw-template line-ending and
+template diagnostic-position repairs. Their focused checks are separate evidence.
 
 After the string repairs through `e62c4290d`, a combined selection of
 `interp/methods/string`, `interp/globals/string-`, run.string-coercion and
@@ -54,8 +54,9 @@ pass unchanged; neither result supersedes the full-package failure count.
 | JSON reviver traversal and writes | Locally repaired: 268 focused tests and all 77 pinned JSON/parse cases pass in the main checkout. See [the repair record](safejs-json-reviver-proxy-gap.md). Included in the latest full-package result. |
 | Date JSON hooks and primitive receivers | Removed-hook serialization repaired in `95a991445`; generic BigInt/Symbol receiver boxing separately validated and repaired. See [hook removal](safejs-json-date-hook-removal.md) and [primitive boxing](safejs-date-json-primitive-boxing.md). Both repairs are included in the latest full-package result. |
 | Proxy internal numeric read keys | Repaired locally in `987bc7274`: 1,024 focused tests pass, including 29 regressions. See [the repair record](safejs-array-proxy-index-keys.md). Included in the latest completed full-package result. |
-| String argument coercion | Search predicates, index searches, repeat, character access, slice/substring/substr, normalize, padding, ignored arguments and concat repairs are included in the latest completed full gate. Direct String.raw was subsequently repaired in `246946605`, with 154 focused passes; see [its record](safejs-string-raw-direct-coercion.md). Other string behavior still requires audit. |
-| Locale-list and direct collation conversion | Proxy locale-list membership (`6e32b7851`) and direct collation conversion (`c15f7bcff`) pass focused checks. The active full gate includes them; the latest completed full result does not. |
+| String argument coercion | Search predicates, index searches, repeat, character access, slice/substring/substr, normalize, padding, ignored arguments, concat and direct String.raw repairs are included in the latest completed full gate. See [raw conversion](safejs-string-raw-direct-coercion.md). Other string behavior still requires audit. |
+| Locale-list and direct collation conversion | Proxy locale-list membership (`6e32b7851`) and direct collation conversion (`c15f7bcff`) pass focused checks and are included in the latest completed full gate. |
+| Template line endings | Raw-text CR/CRLF normalization is repaired locally in `3e3338622`. Diagnostic source-position correction has a separate regression and repair record. See [raw values](safejs-template-raw-line-normalization.md) and [diagnostics](safejs-template-escape-positions.md). Neither repair is covered by the latest completed full gate. |
 | Full-suite reliability | The latest full gate reports no timeout failures. Prior buffer/camera timeouts were not reproduced; repeatability remains unproven. |
 | Host Promise properties | Two full-gate failures concern omitted own properties. Define safe admission without copying private async-hook symbols; do not equate arbitrary host metadata with guest data. |
 | ISO locale month names | Twelve full-gate failures concern standalone/range and PlainMonthDay/PlainYearMonth month names on Node 22.23.2. Preserve calendar semantics rather than substituting Gregorian output. |

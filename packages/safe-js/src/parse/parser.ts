@@ -5058,14 +5058,13 @@ function decodeTemplateElementCooked(
   value: string,
   allowMalformedEscapes: boolean
 ): { invalid?: { index: number; message: string }; value?: string } {
-  const normalized = normalizeTemplateLineTerminators(value);
-  const invalid = findMalformedTemplateEscape(normalized);
+  const invalid = findMalformedTemplateEscape(value);
   if (invalid !== undefined) {
     return allowMalformedEscapes ? { invalid } : { invalid };
   }
 
   return {
-    value: decodeEscapedText(normalized)
+    value: decodeEscapedText(normalizeTemplateLineTerminators(value))
   };
 }
 

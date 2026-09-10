@@ -873,6 +873,8 @@ direct intrinsic calls. Raw values may be array-like objects or boxed primitives
 length is captured once, Symbols are rejected, and iteration is budgeted.
 Template raw text normalizes literal CR and CRLF line endings to LF, including
 line continuations, while preserving escaped character spellings and source offsets.
+Malformed template escapes report positions in the original source, including
+after CRLF line endings.
 Locale-list canonicalization observes Proxy membership and element reads in
 order, including inherited entries and throwing traps. This preserves locale
 selection for locale-aware case conversion, collation and Intl constructors.

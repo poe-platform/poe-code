@@ -57,8 +57,8 @@ describe("PlaygroundSession", () => {
     expect(result.stdout).toContain("64 KiB");
     expect(result.stdout).toContain("5-second deadline terminates the dedicated shell worker");
     expect(result.stdout).toContain("not installed");
-    expect(result.stdout).toContain("All 103 agent commands");
-    for (const name of ["bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort"]) {
+    expect(result.stdout).toContain("All 104 agent commands");
+    for (const name of ["bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor"]) {
       expect(result.stdout).toContain(name);
     }
     expect(result.stdout).toContain("Web Workers");

@@ -2,6 +2,7 @@ import * as defaultEntry from "@poe-platform/safe-bash";
 import { createCsplitCommand as createSubpathCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";
 import { createPrCommand as createSubpathPrCommand, createPrCommands as createSubpathPrCommands, prCommands as subpathPrCommands } from "@poe-platform/safe-bash/commands/pr";
 import { createTsortCommand as createSubpathTsortCommand, createTsortCommands as createSubpathTsortCommands, tsortCommands as subpathTsortCommands } from "@poe-platform/safe-bash/commands/tsort";
+import { createFactorCommand as createSubpathFactorCommand, createFactorCommands as createSubpathFactorCommands, factorCommands as subpathFactorCommands } from "@poe-platform/safe-bash/commands/factor";
 import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs/core";
 
 export const expectedAgentCommandNames = Object.freeze([
@@ -11,7 +12,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor",
 ].sort());
 
 export const checksumWorkflows = Object.freeze([
@@ -307,6 +308,90 @@ export async function verifyPrCommands(entry = defaultEntry) {
       await candidate.dispose();
     }
   }
+  for (const name of ["pr", "tsort"]) for (const phase of ["factory", "next", "capability", "write"]) {
+    const caller = new AbortController();
+    let release;
+    let returned;
+    const gate = new Promise(resolve => { release = resolve; });
+    const returnEntered = new Promise(resolve => { returned = resolve; });
+    let factories = 0;
+    let reads = 0;
+    let returns = 0;
+    let writes = 0;
+    let writeGetters = 0;
+    let settled = false;
+    let drained = false;
+    const iterator = {
+      get next() {
+        if (this !== iterator) throw new Error("Direct input next getter lost its receiver");
+        if (phase === "next") caller.abort(false);
+        return async function () {
+          if (this !== iterator) throw new Error("Direct input next lost its receiver");
+          reads++;
+          return { done: true, value: undefined };
+        };
+      },
+      async return() {
+        if (this !== iterator) throw new Error("Direct input return lost its receiver");
+        returns++;
+        returned();
+        if (phase === "next") await gate;
+        drained = true;
+        return { done: true, value: undefined };
+      },
+    };
+    const stdin = {
+      get [Symbol.asyncIterator]() {
+        if (this !== stdin) throw new Error("Direct input factory getter lost its receiver");
+        if (phase === "factory") caller.abort(false);
+        return function () {
+          if (this !== stdin) throw new Error("Direct input factory lost its receiver");
+          factories++;
+          return iterator;
+        };
+      },
+    };
+    const capability = {
+      consumerClosed: new AbortController().signal,
+      get write() {
+        if (this !== capability) throw new Error("Direct stderr write getter lost its receiver");
+        writeGetters++;
+        if (phase === "write") caller.abort(false);
+        return async function () {
+          if (this !== capability) throw new Error("Direct stderr write lost its receiver");
+          writes++;
+        };
+      },
+    };
+    const stderr = {
+      async write() { throw new Error("Direct stderr used opaque write instead of its capability"); },
+      get ownedOutput() {
+        if (this !== stderr) throw new Error("Direct stderr capability getter lost its receiver");
+        if (phase === "capability") caller.abort(false);
+        return capability;
+      },
+    };
+    const command = name === "pr" ? entry.createPrCommand() : entry.createTsortCommand();
+    const diagnostic = phase === "capability" || phase === "write";
+    const outcome = Promise.resolve(command.execute({
+      command: name, args: diagnostic ? ["--unknown"] : name === "pr" ? ["-t"] : [],
+      cwd: "/", env: { LC_ALL: "C", TZ: "UTC" }, fs: new entry.MemoryFileSystem(),
+      signal: caller.signal, stdin, stderr,
+      stdout: { async write() { throw new Error("Direct canceled command wrote stdout"); } },
+    })).then(value => { settled = true; return { ok: true, value }; }, error => { settled = true; return { ok: false, error }; });
+    try {
+      if (phase === "next") {
+        await Promise.race([returnEntered, outcome.then(() => { throw new Error(`Direct ${name} did not retain input cleanup`); })]);
+        for (let turn = 0; turn < 2; turn++) await new Promise(resolve => setTimeout(resolve, 0));
+        if (settled || drained || returns !== 1) throw new Error(`Direct ${name} settled before retained input cleanup`);
+        release();
+      }
+      const result = await outcome;
+      if (result.ok || result.error !== false || factories !== (phase === "next" ? 1 : 0) || reads !== 0 || returns !== (phase === "next" ? 1 : 0) || writes !== 0 || writeGetters !== (phase === "write" ? 1 : 0) || drained !== (phase === "next")) {
+        throw new Error(`Direct ${name} ${phase} getter admitted canceled work: ${JSON.stringify({ ok: result.ok, factories, reads, returns, writes, writeGetters, drained })}`);
+      }
+    } finally { release(); await outcome; }
+  }
 }
 
 export async function verifyTsortCommands(entry = defaultEntry) {
@@ -337,6 +422,42 @@ export async function verifyTsortCommands(entry = defaultEntry) {
         if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public tsort ${name} ${stream} differs: ${JSON.stringify(Array.from(actual))}`);
       }
     }
+  } finally { await shell.dispose(); }
+}
+
+export async function verifyFactorCommands(entry = defaultEntry) {
+  const filesystem = new entry.MemoryFileSystem();
+  const encoder = new TextEncoder();
+  await filesystem.mkdir("/factor-work");
+  await filesystem.writeFile("/factor-work/args.sh", encoder.encode('factor -- "$@"\n'));
+  await filesystem.writeFile("/factor-work/stdin.sh", encoder.encode('factor < "$1"\n'));
+  const cases = [
+    ["args", "sh args.sh 0 1 2 12 360 97", "", 0, "0:\n1:\n2: 2\n12: 2 2 3\n360: 2 2 2 3 3 5\n97: 97\n", ""],
+    ["stdin", "sh stdin.sh stdin", "\n0 1\t12\n+18 00025  \n", 0, "0:\n1:\n12: 2 2 3\n18: 2 3 3\n25: 5 5\n", ""],
+    ["invalid", "sh args.sh 12 bad 18 -bad", "", 1, "12: 2 2 3\n18: 2 3 3\n", "factor: 'bad' is not a valid positive integer\nfactor: '-bad' is not a valid positive integer\n"],
+    ["nul", "sh stdin.sh nul", "12\0junk 18\n", 0, "12: 2 2 3\n18: 2 3 3\n", ""],
+    ["ceiling", "sh args.sh 4294967296 12", "", 1, "12: 2 2 3\n", "factor: '4294967296' exceeds supported maximum 4294967295\n"],
+  ];
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/factor-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+  try {
+    if (entry.createFactorCommand().name !== "factor") throw new Error("Public factor factory is missing");
+    if (entry.createFactorCommand !== createSubpathFactorCommand || entry.createFactorCommands !== createSubpathFactorCommands || entry.factorCommands !== subpathFactorCommands) throw new Error("Factor subpath factory identity differs");
+    for (const [name, script, input, status, stdout, stderr] of cases) {
+      await filesystem.writeFile(`/factor-work/${name}`, encoder.encode(input));
+      const result = await shell.exec(script);
+      if (result.exitCode !== status) throw new Error(`Public factor ${name} status differs: ${result.exitCode}`);
+      for (const [stream, expected] of [["stdoutBytes", encoder.encode(stdout)], ["stderrBytes", encoder.encode(stderr)]]) {
+        const actual = result[stream];
+        if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public factor ${name} ${stream} differs: ${JSON.stringify(Array.from(actual))}`);
+      }
+    }
+    shell.use(entry.factorCommands({ replace: true, limits: { maxValue: 100 } }));
+    const limited = await shell.exec("sh args.sh 100 101 12");
+    if (limited.exitCode !== 1 || limited.stdout !== "100: 2 2 5 5\n12: 2 2 3\n" || limited.stderr !== "factor: '101' exceeds supported maximum 100\n") throw new Error(`Public factor configured cap failed: ${JSON.stringify(limited)}`);
+    let invalidLimit;
+    try { entry.createFactorCommand({ limits: { maxValue: 4294967296 } }); }
+    catch (error) { invalidLimit = error; }
+    if (invalidLimit?.name !== "RangeError") throw new Error("Public factor allowed a limit above its supported maximum");
   } finally { await shell.dispose(); }
 }
 

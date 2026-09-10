@@ -191,6 +191,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/csplit",
       "./safe-bash/commands/du",
       "./safe-bash/commands/expr",
+      "./safe-bash/commands/factor",
       "./safe-bash/commands/file",
       "./safe-bash/commands/grep-aliases",
       "./safe-bash/commands/html-to-markdown",

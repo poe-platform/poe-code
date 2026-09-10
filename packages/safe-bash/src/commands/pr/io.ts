@@ -38,7 +38,12 @@ export class Lifecycle {
       if (!diagnostic) budget.retain(value.length * 3);
       try {
         const sink = diagnostic ? budget.context.stderr : budget.context.stdout;
-        await (sink.ownedOutput ?? sink).write(bytes(value));
+        this.assertOpen();
+        const destination = sink.ownedOutput ?? sink;
+        this.assertOpen();
+        const write = destination.write;
+        this.assertOpen();
+        await Reflect.apply(write, destination, [bytes(value)]);
       } finally { if (!diagnostic) budget.retain(-value.length * 3); }
     }, diagnostic);
   }
@@ -74,25 +79,46 @@ export class Reader {
     if (this.name === "-") return;
     const { budget } = this.lifecycle;
     this.path = resolvePath(budget.context.cwd, pathText(this.name));
-    this.stat = await this.lifecycle.operation(() => budget.context.fs.stat(this.path!, { signal: budget.signal }));
+    this.stat = await this.lifecycle.operation(() => {
+      const fs = budget.context.fs;
+      this.lifecycle.assertOpen();
+      const stat = fs.stat;
+      this.lifecycle.assertOpen();
+      return Reflect.apply(stat, fs, [this.path!, { signal: budget.signal }]);
+    });
     if (this.stat.type !== "file" && this.stat.type !== "directory" && this.stat.type !== "character") throw new FsError("ENOTSUP", { path: this.path });
   }
   private async acquire(): Promise<void> {
     const { budget } = this.lifecycle;
-    const { fs, stdin } = budget.context;
     await this.lifecycle.operation(async () => {
       let source: ByteSource;
-      if (this.path === undefined) source = stdin;
+      let needsAcquisitionCleanup = false;
+      if (this.path === undefined) source = budget.context.stdin;
       else {
-        const capabilities = await fs.capabilitiesFor?.(this.path, { signal: budget.signal }) ?? fs.capabilities;
-        budget.signal.throwIfAborted();
-        if (fs.readStream && capabilities.streamingRead !== false) source = fs.readStream(this.path, { signal: budget.signal, chunkSize: 16_384 });
+        const fs = budget.context.fs;
+        this.lifecycle.assertOpen();
+        const capabilitiesFor = fs.capabilitiesFor;
+        this.lifecycle.assertOpen();
+        const selected = capabilitiesFor ? await Reflect.apply(capabilitiesFor, fs, [this.path, { signal: budget.signal }]) : undefined;
+        this.lifecycle.assertOpen();
+        const capabilities = selected ?? fs.capabilities;
+        this.lifecycle.assertOpen();
+        const readStream = fs.readStream;
+        this.lifecycle.assertOpen();
+        const streamingRead = readStream && capabilities.streamingRead !== false;
+        this.lifecycle.assertOpen();
+        if (readStream && streamingRead) {
+          source = Reflect.apply(readStream, fs, [this.path, { signal: budget.signal, chunkSize: 16_384 }]);
+          needsAcquisitionCleanup = budget.signal.aborted;
+        }
         else {
           const maximum = Math.min(budget.limits.maxInputBytes, Math.floor(budget.limits.maxBufferedBytes / 2));
           budget.check(this.stat!.size, maximum, "buffered input bytes");
           budget.retain(maximum);
           this.snapshotBytes = maximum;
-          const content = await fs.readFile(this.path, { signal: budget.signal, maxBytes: maximum });
+          const readFile = fs.readFile;
+          this.lifecycle.assertOpen();
+          const content = await Reflect.apply(readFile, fs, [this.path, { signal: budget.signal, maxBytes: maximum }]);
           if (!(content instanceof Uint8Array)) throw new TypeError("pr input requires bytes");
           budget.check(content.length, maximum, "buffered input bytes");
           budget.retain(content.length - maximum);
@@ -101,7 +127,10 @@ export class Reader {
           source = { async *[Symbol.asyncIterator]() { try { yield content; } finally { releaseSnapshot(); } } };
         }
       }
-      this.iterator = source[Symbol.asyncIterator]();
+      if (!needsAcquisitionCleanup) this.lifecycle.assertOpen();
+      const factory = source[Symbol.asyncIterator];
+      if (!needsAcquisitionCleanup) this.lifecycle.assertOpen();
+      this.iterator = Reflect.apply(factory, source, []);
     });
   }
   unget(value: number): void { this.pushed = value; }
@@ -116,7 +145,12 @@ export class Reader {
       let next: IteratorResult<Uint8Array>;
       try {
         if (!this.iterator) await this.acquire();
-        next = await this.lifecycle.operation(() => this.iterator!.next());
+        next = await this.lifecycle.operation(() => {
+          const iterator = this.iterator!;
+          const advance = iterator.next;
+          this.lifecycle.assertOpen();
+          return Reflect.apply(advance, iterator, []);
+        });
       } catch (error) {
         if (error instanceof FsError) throw new PrReadError(`${fileQuote(this.name === "-" ? "standard input" : this.name)}: ${fsDetail(error)}`);
         throw error;

@@ -105,6 +105,12 @@
       "browser": "./dist/commands/tsort/index.browser.js",
       "import": "./dist/commands/tsort/index.js"
     },
+    "./commands/factor": {
+      "types": "./dist/commands/factor/index.d.ts",
+      "workerd": "./dist/commands/factor/index.browser.js",
+      "browser": "./dist/commands/factor/index.browser.js",
+      "import": "./dist/commands/factor/index.js"
+    },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
       "import": "./dist/commands/time-env/index.js"

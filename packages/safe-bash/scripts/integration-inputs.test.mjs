@@ -1898,6 +1898,15 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/shell/owned-output-drain.test.ts"));
   assert.ok(files.includes("tests/plugins/pr-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/tsort-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/factor-commands.test.ts"));
+  assert.ok(files.includes("tests/commands/factor/native.test.ts"));
+  assert.ok(files.includes("tests/commands/factor/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/factor/getters.test.ts"));
+  assert.ok(files.includes("tests/commands/factor-independent/review.test.ts"));
+  assert.ok(files.includes("tests/commands/factor-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/factor-independent/limits.test.ts"));
+  assert.ok(files.includes("tests/commands/command-getter-admission/pr-tsort.test.ts"));
+  assert.ok(files.includes("tests/commands/command-getter-admission/fs-getters.test.ts"));
   assert.ok(files.includes("tests/commands/tsort/native.test.ts"));
   assert.ok(files.includes("tests/commands/tsort/safety.test.ts"));
   assert.ok(files.includes("tests/commands/tsort-independent/native.test.ts"));

@@ -89,6 +89,13 @@ inconsistency, not a proven ordinary guest-language defect; see
 [the qualification](safejs-math-direct-coercion-qualification.md). No candidate
 runtime change was integrated.
 
+The bounded new-expression selection passes 58 fixtures; its one native-unqualified
+cross-realm case passes an adapted internal guest-value probe. Public live-realm
+callback transport is a different boundary: callbacks exported by one live realm
+are rejected when injected into another realm or ordinary run bindings. See
+[the qualification and admission evidence](safejs-new-expression-qualification.md).
+Do not describe the internal result as transparent live-realm interoperability.
+
 Typed-array source contains accessor rejection in its legacy allocation path,
 but normal guest object inputs use the iterator/property-aware allocator.
 A source-text restriction alone is not proof of a public constructor defect.

@@ -18,7 +18,11 @@ it.each([
   { expression: "(()=>{const C=class { constructor(){return /x/} };return ()=>new C()})()", expected: "RegExp.prototype", identity: false },
   { expression: "(()=>{class C { value=[] };return ()=>new C().value})()", expected: "Array.prototype", identity: false },
   { expression: "(()=>{class C { #value={};get(){return this.#value} };return ()=>new C().get()})()", expected: "Object.prototype", identity: false },
-  { expression: "(()=>{class B{};class C extends B { value=/x/ };return ()=>new C().value})()", expected: "RegExp.prototype", identity: false }
+  { expression: "(()=>{class B{};class C extends B { value=/x/ };return ()=>new C().value})()", expected: "RegExp.prototype", identity: false },
+  { expression: "(()=>{function* f(){yield 0;while(true)yield []};const g=f();g.next();return ()=>g.next().value})()", expected: "Array.prototype", identity: false },
+  { expression: "(()=>{function* f(){yield 0;while(true)yield {}};const g=f();g.next();return ()=>g.next().value})()", expected: "Object.prototype", identity: false },
+  { expression: "(()=>{function* f(){yield 0;while(true)yield /x/};const g=f();g.next();return ()=>g.next().value})()", expected: "RegExp.prototype", identity: false },
+  { expression: "(()=>{function* f(){while(true)yield []};const g=f();return ()=>g.next().value})()", expected: "Array.prototype", identity: false }
 ])("restores the originating realm for $expression", async ({ expression, expected, identity }) => {
   const source = `return [${expression},${expected}]`;
   const first = await run(source), second = await run(source);
@@ -45,7 +49,8 @@ it.each([
 
 it.each([
   { source: "return ()=>[]", kind: "guest-function", label: "function" },
-  { source: "return class {}", kind: "guest-class", label: "class" }
+  { source: "return class {}", kind: "guest-class", label: "class" },
+  { source: "return (function*(){yield []})()", kind: "guest-generator", label: "generator" }
 ])("keeps legacy single-realm $label records and rejects malformed realm IDs", async ({ source, kind, label }) => {
   const result = await run(source);
   if (!result.ok) throw result.error;

@@ -1753,7 +1753,7 @@ function restoreGuestGenerator(
     : state.guestScopes.get((serialized.suspendedScope as SerializedReferenceValue).id);
   if (scope === undefined || closureScope === undefined) throw new TypeError("Missing generator scope.");
   const context: AsyncEvaluationContext = {
-    scope: closureScope, budget: state.budget, compilation: state.compilation,
+    scope: closureScope, budget: serialized.realm === undefined ? state.budget : initializeIntrinsicRealm(state, serialized.realm), compilation: state.compilation,
     strict: functionStrictness.get(node) ?? true,
     signal: state.signal, rootNode: state.rootNode,
     callStack: [], activeLoopIterations: new Map(), restoredLoopIterations: new Map(),

@@ -89,10 +89,12 @@ establish arbitrary mixed-source interpreted-closure transport.
 Same-source interpreted closures also retain their originating realm through
 repeated checkpoints, including literal prototypes and dynamic Function globals.
 Class constructors and public/private field initializers also retain their realm
-through repeated snapshots, including derived classes. Active-generator realm
-restoration still needs separate qualification.
+through repeated snapshots, including derived classes. Synchronous generators
+retain their realm when captured before first execution or suspended at a yield.
+Mixed-realm async continuations still need separate qualification.
 See the [closure ownership record](../../docs/plans/safejs-mixed-realm-closure-ownership.md).
 Class validation is recorded [separately](../../docs/plans/safejs-mixed-realm-class-ownership.md).
+See also the [generator ownership record](../../docs/plans/safejs-mixed-realm-generator-ownership.md).
 
 Guest symbols, supported prototype links, and mutated guest intrinsics can be
 represented in checkpoints. Plain data-copy helpers have narrower contracts:

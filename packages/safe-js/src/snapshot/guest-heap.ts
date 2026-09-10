@@ -160,6 +160,7 @@ export type GuestHeapNode<T> =
   | { kind: "set"; values: T[]; propertyState?: PropertyDescriptorData<T>; prototype?: T; privateElements?: PrivateElementData<T>[] }
   | { kind: "raw-json"; text: string }
   | { kind: "guest-generator"; state: "start" | "running" | "suspended" | "done"; astNodeId: number;
+      realm?: number;
       dynamicSource?: T;
       asyncFunction?: true;
       resultPrototype?: T;

@@ -1131,7 +1131,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "guest-generator") {
-    fields(node, ["kind", "state", "astNodeId", "async", "scope", "closureScope", "sent"], ["suspendedScope", "yieldNodeId", "environment", "blockScopes", "finallyCompletions", "expressionStates", "objectState", "asyncFunction", "driver", "awaitPhase", "dynamicSource", "resultPrototype"]);
+    fields(node, ["kind", "state", "astNodeId", "async", "scope", "closureScope", "sent"], ["suspendedScope", "yieldNodeId", "environment", "blockScopes", "finallyCompletions", "expressionStates", "objectState", "asyncFunction", "driver", "awaitPhase", "dynamicSource", "resultPrototype", "realm"]);
+    if (Object.hasOwn(node, "realm") && (!Number.isSafeInteger(node.realm) || (node.realm as number) < 1))
+      throw new TypeError("Invalid generator realm identity.");
     if (node.resultPrototype !== undefined && node.resultPrototype !== null) reference(node.resultPrototype);
     if (node.dynamicSource !== undefined) reference(node.dynamicSource, ["guest-source", "guest-script"]);
     if (node.asyncFunction !== undefined && (node.asyncFunction !== true || node.async !== false)) throw new TypeError("Invalid async function suspension frame.");

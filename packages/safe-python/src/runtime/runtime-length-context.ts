@@ -1,6 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { LengthProtocolContext } from "./length-protocol.js";
 import type { BuiltinInvocationContext, RuntimeValue } from "./runtime-values.js";
+import { createRuntimeIndexContext } from "./runtime-index-context.js";
 
 /** Adapt execution-owned special lookup/calls to shared length validation.
  * Explicit index policies retain their receivers. Otherwise __index__ follows
@@ -14,13 +15,7 @@ export function createRuntimeLengthContext(invocation: BuiltinInvocationContext,
     meter.checkpoint(0, 64);
     return () => { meter.checkpoint(0, 8); return invocation.call(method, []); };
   };
-  const index = invocation.integerIndex ?? {
-    integer: (value: RuntimeValue) => value.kind === "int" ? value.value : value.kind === "bool" ? value.value ? 1n : 0n : undefined,
-    isExactInteger: (value: RuntimeValue) => value.kind === "int",
-    lookupIndex: (value: RuntimeValue) => lookup(value, "__index__"),
-    typeName: (value: RuntimeValue) => value.kind === "int" || value.kind === "bool" ? value.kind : invocation.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind),
-    warn: (category: "DeprecationWarning", message: string) => { invocation.warn?.(category, message); }
-  };
+  const index = invocation.integerIndex ?? createRuntimeIndexContext(invocation, meter);
   return {
     lookupLength: value => lookup(value, "__len__"),
     integer: index.integer.bind(index), isExactInteger: index.isExactInteger.bind(index),

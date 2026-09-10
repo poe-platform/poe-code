@@ -131,10 +131,10 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     getItem: (object, key) => runtimeIndex(object, key, values, meter, bindings.integerIndex),
     iterate: (value, notIterable, hint) => runtimeIterate(value, values, meter, bindings.iteration, notIterable, hint)
   };
-  meter.checkpoint(0, 320);
+  meter.checkpoint(0, 384);
   const methods = {
     iterate: context.iterate.bind(context), compare: context.compare.bind(context),
-    truth: context.truth.bind(context), integerIndex: bindings.integerIndex, bytes: bindings.bytes,
+    truth: context.truth.bind(context), get integerIndex() { return bindings.integerIndex; }, bytes: bindings.bytes,
     translation: bindings.translation, buffers: bindings.buffers
   };
   meter.checkpoint(0, 160);

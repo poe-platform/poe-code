@@ -17,6 +17,8 @@ import type { CompiledProgram } from "./program-compilation.js";
 import { beginRuntimeCall, type RuntimeCallContext } from "./runtime-call.js";
 import { runtimeCallable } from "./runtime-callability.js";
 import { runtimeTruth } from "./runtime-truth.js";
+import { createRuntimeIndexContext } from "./runtime-index-context.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "./runtime-expression-context.js";
 import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
@@ -69,7 +71,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
   let defaultFormatting: FormatContext<RuntimeValue> | undefined;
   const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
   const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null) => {
-    meter.checkpoint(1, 448);
+    meter.checkpoint(1, 512);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
     const specialMethods = hooks.specialMethods?.(frame); meter.checkpoint();
@@ -131,7 +133,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       power: expressionHooks.power,
       isCallable: value => runtimeCallable(value, meter, hooks),
       binary: (operator, left, right) => expressions.binary(operator, left, right),
-      integerIndex: expressionHooks.integerIndex,
+      get integerIndex() { return getIntegerIndex(); },
       iteration: expressionHooks.iteration,
       truth: value => expressions.truth(value),
       compareTruth(operator, left, right) {
@@ -149,6 +151,15 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const result = expressionHooks.iteration?.isStopIteration(error) ?? false;
         meter.checkpoint(); return result;
       }
+    };
+    let integerIndex: IntegerIndexContext<RuntimeValue> | undefined, indexResolved = false;
+    const getIntegerIndex = () => {
+      meter.checkpoint();
+      if (!indexResolved) {
+        integerIndex = expressionHooks.integerIndex ?? (specialMethods === undefined ? undefined : createRuntimeIndexContext(builtinCalls, meter));
+        meter.checkpoint(); indexResolved = true;
+      }
+      return integerIndex;
     };
     let formatting: FormatContext<RuntimeValue> | undefined;
     const getFormatting = () => {
@@ -171,7 +182,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       bytes: expressionHooks.bytes,
       translation: expressionHooks.translation,
       buffers: expressionHooks.buffers,
-      integerIndex: expressionHooks.integerIndex,
+      get integerIndex() { return getIntegerIndex(); },
       constants: literals?.folded,
       literal: literals === null ? undefined : node => {
         meter.checkpoint();
@@ -192,7 +203,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       createLambda: definitions.create.bind(definitions)
     }, meter);
     return createRuntimeStatementContext(expressions, {
-      integerIndex: expressionHooks.integerIndex,
+      get integerIndex() { return getIntegerIndex(); },
       deleteName: frame.delete.bind(frame),
       inplace: statementHooks.inplace?.bind(statementHooks),
       setAttribute: statementHooks.setAttribute.bind(statementHooks), deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),

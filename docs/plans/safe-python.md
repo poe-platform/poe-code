@@ -7387,6 +7387,17 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint pass. Further allocation/performance audits, automatic type/storage
   classification, generic object defaults and suspended safe-fs effects remain
   unfinished.
+- Added a shared MRO index adapter and lazily cached frame index policy, used
+  by expressions, assignment/deletion, native members, builtins and length
+  conversion. Existing explicit policies retain priority/receivers; arithmetic
+  frames do not acquire unused index capabilities. Five compiled regressions
+  failed first, covering indexed reads/writes/deletion/slices, hex/chr, bool
+  warnings and missing/disabled/invalid slots. Four more cases cover explicit
+  cache ownership and cancellation after lookup, calls and warnings. CPython
+  confirms all five scenarios and six bool-result warnings. All 5,558 tests in
+  447 files pass; selected build, typecheck and scoped lint pass. Automatic
+  type/storage classification, additional protocol assembly, allocation audits,
+  generic object defaults and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

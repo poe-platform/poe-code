@@ -22,6 +22,8 @@ import { createRepresentationBuiltin } from "./builtin-representation.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { createPrintBuiltin } from "./builtin-print.js";
 import { createAllAnyBuiltin } from "./builtin-all-any.js";
+import { createChrBuiltin } from "./builtin-chr.js";
+import { createRadixBuiltin } from "./builtin-radix.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -276,4 +278,26 @@ it.each([
   }, meter);
   if (typeof expected === "string") expect(run).toThrow(expected);
   else { run(); expect(globals.get("condition")).toBe(v.boolean(expected)); expect(globals.get("negated")).toBe(v.boolean(!expected)); expect(globals.get("reduced")).toBe(v.boolean(expected)); expect(globals.get("native")).toBe(v.true); }
+});
+it.each(["integer", "boolean", "missing", "disabled", "invalid"])("shares MRO index conversion across reads, writes, slices and builtins: %s", mode => {
+  const { meter, v, base, derived } = fixture(), index = v.cell({}), globals = new Map<string, RuntimeValue>([["index", index]]), warnings: string[] = [], unused = (): never => { throw Error("unexpected ordinary lookup or call"); };
+  if (mode !== "missing") {
+    const methods = compileProgram<RuntimeValue>(analyzeModule(`def special(self): return ${mode === "boolean" ? "True" : mode === "invalid" ? "self" : "1"}\n`), { stripDocstring: false }, v, meter);
+    base.value.namespace.items.set(v.string("__index__"), mode === "disabled" ? v.none : v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter)));
+  }
+  const program = compileProgram<RuntimeValue>(analyzeModule('data=[10,20,30]\nread=data[index]\ndata[index]=99\ndel data[index]\ntail=data[index:]\nencoded=hex(index)\nletter=chr(index)\n'), { stripDocstring: false }, v, meter);
+  const run = () => executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map([["hex", createRadixBuiltin("hex", v, meter)], ["chr", createChrBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(index); return derived; }, slots: () => undefined }), expressions: () => ({ warn(category) { warnings.push(category); }, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  if (mode === "missing") expect(run).toThrow("list indices must be integers or slices, not Derived");
+  else if (mode === "disabled") expect(run).toThrow("'NoneType' object is not callable");
+  else if (mode === "invalid") expect(run).toThrow("__index__ returned non-int (type Derived)");
+  else {
+    run(); expect(globals.get("read")).toEqual(v.integer(20)); expect(globals.get("encoded")).toEqual(v.string("0x1")); expect(globals.get("letter")).toEqual(v.string("\x01"));
+    const data = globals.get("data"), tail = globals.get("tail");
+    expect(data?.kind === "list" ? data.items.snapshot() : undefined).toEqual([v.integer(10), v.integer(30)]);
+    expect(tail?.kind === "list" ? tail.items.snapshot() : undefined).toEqual([v.integer(30)]);
+    expect(warnings).toEqual(mode === "boolean" ? Array(6).fill("DeprecationWarning") : []);
+  }
 });

@@ -51,10 +51,24 @@ describe("assembled concrete runtime programs", () => {
   it("does not acquire execution formatting for an arithmetic-only program", () => {
     const state = fixture("result=1+2\n");
     const expressions = state.hooks.expressions;
-    state.hooks.expressions = frame => ({ ...expressions(frame), get formattedString(): never { throw Error("unused f-string capability"); } });
+    state.hooks.expressions = frame => ({ ...expressions(frame), get formattedString(): never { throw Error("unused f-string capability"); }, get integerIndex(): never { throw Error("unused index capability"); } });
     const program = compileProgram<RuntimeValue>(analyzeModule("result=1+2\n"), { stripDocstring: false }, state.values, state.meter);
     executeRuntimeProgram(program, { ...state, get formatting(): never { throw Error("unused execution formatting"); } }, state.meter);
     expect(state.globals.get("result")).toEqual(state.values.integer(3));
+  });
+  it("retains and caches an explicit index policy ahead of MRO dispatch", () => {
+    const state = fixture("first=[10,20][index]\nsecond=[30,40][index]\n"), v = state.values, index = v.cell({}); let acquisitions = 0;
+    state.globals.set("index", index);
+    const policy = {
+      integer: (value: RuntimeValue) => value.kind === "int" ? value.value : undefined,
+      isExactInteger: (value: RuntimeValue) => value.kind === "int",
+      lookupIndex(value: RuntimeValue) { expect(this).toBe(policy); expect(value).toBe(index); return () => v.integer(1); },
+      typeName: () => "Guest", warn() { throw Error("unexpected warning"); }
+    };
+    state.hooks.expressions = () => ({ warn() {}, get integerIndex() { acquisitions++; return policy; } });
+    state.hooks.specialMethods = () => ({ typeOf() { throw Error("explicit index policy must win"); }, slots() { throw Error("unexpected descriptor"); } });
+    state.run();
+    expect(state.globals.get("first")).toEqual(v.integer(20)); expect(state.globals.get("second")).toEqual(v.integer(40)); expect(acquisitions).toBe(1);
   });
   it("runs print through explicit builtin and stream capabilities", () => {
     const state = fixture("result=print(12, 'hello', sep='|', end='!', flush=True)\n"), v = state.values, stream = v.cell({}), chunks: string[] = []; let flushed = false;

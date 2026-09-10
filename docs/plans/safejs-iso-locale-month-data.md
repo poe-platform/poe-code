@@ -109,3 +109,30 @@ Next, evaluate whether native working-width parts can locate the missing field
 without changing ISO layout, and separately resolve the required wide-name
 grammatical context. Do not assume short and long patterns or range collapsing
 are interchangeable: validate those boundaries before adopting this route.
+
+## Rejected working-width substitution and range regression
+
+A read-only Node 26.8.1 probe used the 662 supported locales from installed
+CLDR units locale directories, eight component combinations, two date pairs
+(same month and different months), and single/range parts. Replacing short
+ISO month parts with Gregorian wide-name parts differed from native long ISO
+output in 4,435 of 21,184 comparisons (f183a9). This is a comparison against
+the patched runtime, not an exhaustive or normative conformance count.
+
+For example, Afrikaans month/hour long formatting uses the literal ` om `,
+where short formatting uses a space; month/era long formatting includes a
+localized month label that short formatting omits. Thus even correctly sourced
+month names cannot make wholesale short-part substitution sound.
+
+The affected Node 22 runtime also collapses different-month long-name ranges:
+February–March month-only parts are empty, and year/month parts contain only
+the shared year and space. Retaining broken long-range parts and inserting
+names cannot recover the correct range structure by itself.
+
+Three new guest regressions require both range month names with start/end
+source attribution and agreement between range text and concatenated parts.
+The full focused file now has 12 passes and six failures on Node 22 (79691b),
+and all 18 pass unchanged on Node 26.8.1 (ae92db). Runtime code is unchanged.
+The next repair candidate must provide long-pattern selection and range
+partitioning, not only month-name lookup. The direct short-part replacement
+candidate is rejected.

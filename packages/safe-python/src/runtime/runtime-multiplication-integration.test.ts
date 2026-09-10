@@ -1567,3 +1567,14 @@ it("compares freshly bound native methods and deduplicates their dictionary keys
   expect(state.globals.get("result")).toEqual(state.v.integer(2));
   const items = state.globals.get("items"); if (items?.kind !== "dict") throw Error("expected dictionary"); expect(items.items.size).toBe(1);
 });
+
+it("reads native method metadata through compiled attributes and getattr", () => {
+  const state = fixture(), base = state.type("Base"), child = state.type("Child", base);
+  const descriptor = state.v.methodDescriptor({ owner: base, name: "native", accepts: () => true, invoke() { throw Error("metadata must not call method"); } });
+  base.value.namespace.items.set(state.v.string("native"), descriptor); state.globals.set("descriptor", descriptor);
+  const instance = state.instance("instance", child);
+  state.globals.set("getattr", createAttributeLookupBuiltin("getattr", state.v, state.meter));
+  state.run("method=instance.native\nreceiver=method.__self__\nname=method.__name__\nowner=descriptor.__objclass__\nbuiltin_receiver=getattr(method,'__self__')\n");
+  expect(state.globals.get("receiver")).toBe(instance); expect(state.globals.get("builtin_receiver")).toBe(instance);
+  expect(state.globals.get("owner")).toBe(base); expect(state.globals.get("name")).toEqual(state.v.string("native"));
+});

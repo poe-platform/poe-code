@@ -7751,10 +7751,20 @@ extension, integration, or validation requirement is missing or unverified.
   Twelve tests cover aliases, distinct receivers/implementations, ordinary native
   functions, identity versus equality, hash normalization, ordering rejection,
   immutable metadata and compiled dictionary-key behavior. All 1,014 observations
-  over 169 method pairs match CPython. All 5,996 tests in 459 files, selected build
+  over 169 method pairs match CPython. All 5,996 tests in 459 files, selected build,
   typecheck and scoped lint pass. Public native metadata, wrapper descriptors, conversion of
   legacy per-attribute native capabilities, complete object/type bootstrap and
   suspended safe-fs effects remain unfinished.
+- Exposed native descriptor __name__/__objclass__ and bound native method
+  __name__/__self__ through the normal attribute path. Three initial regressions
+  failed on missing metadata. Reads retain defining-owner versus actual-receiver
+  identity and the accessed alias name without invoking methods/getters or
+  exposing host capability fields. Twelve tests cover direct/compiled reads,
+  getattr parity, inherited methods, aliases, getsets, missing fields and
+  cancellation. All 30 targeted metadata cases match CPython. All 6,008 tests
+  in 460 files, selected build, typecheck and scoped lint pass. Qualified names,
+  doc/signature/module metadata, native attribute mutation diagnostics, wrapper
+  descriptors and complete object/type bootstrap remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1352,7 +1352,7 @@ class Parser {
       };
     }
 
-    if (this.isVariableDeclarationStart()) {
+    if (this.isVariableDeclarationStart(allowDeclarations)) {
       return this.parseVariableDeclaration();
     }
 
@@ -1439,11 +1439,11 @@ class Parser {
         return declaration;
       }
       if (["const", "class", "function", "export"].includes(token.value) ||
-          (token.value === "let" && this.isVariableDeclarationStart()) ||
+          (token.value === "let" && this.isVariableDeclarationStart(false)) ||
           (token.value === "import" && this.peekToken(1).value !== "(") ||
           this.isAsyncFunctionDeclarationStart() || this.resourceDeclarationHint() !== undefined)
         throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
-      const statement = this.parseStatement();
+      const statement = this.parseStatement(false);
       if (statement.type === "ImportDeclaration" || statement.type === "ExportDefaultDeclaration" || statement.type === "ExportNamedDeclaration")
         throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
       return { ...statement, labels, span: createSpan(firstLabelToken.start, statement.span.end) };
@@ -1956,14 +1956,16 @@ class Parser {
     };
   }
 
-  private isVariableDeclarationStart(): boolean {
+  private isVariableDeclarationStart(allowDeclarations = true): boolean {
     const token = this.currentToken();
     if ((token.type === "identifier" && token.value === "var") ||
         (token.type === "keyword" && token.value === "const")) return true;
     if (token.type !== "keyword" || token.value !== "let") return false;
     if (this.lexicalContext.grammar?.strict !== false) return true;
     const next = this.peekToken(1);
-    return next.value === "[" || next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next);
+    // Statement-only positions allow sloppy `let` as an expression, but never `let [`.
+    return next.value === "[" || (allowDeclarations &&
+      (next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next)));
   }
 
   private parseVariableDeclaration(): VariableDeclaration {

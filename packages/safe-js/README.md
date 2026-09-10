@@ -640,6 +640,9 @@ Closures captured in the RHS retain that behavior across generator checkpoints.
 Loop assignment targets and nested destructuring assignments accept member
 access on array/object literals, such as `[holder][0].x`. Optional-chain
 assignment targets remain invalid.
+Non-strict statement-only bodies distinguish a `let` identifier followed by a
+newline from a lexical declaration; strict-mode and declaration restrictions
+still apply.
 Array methods now await Proxy membership and deletion traps on array-like
 receivers. Internal index reads pass string keys to Proxy traps, including
 inherited Proxies and entry reads in `Object.fromEntries` and `Map` construction.

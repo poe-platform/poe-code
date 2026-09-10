@@ -16,7 +16,9 @@ the full gate green. See [the completed gate](safejs-post-loop-header-integratio
 The literal-member assignment-target repair is now integrated locally with
 1,539 parser tests passing, one skipped, and clean lint/TypeScript checks. See
 [its regression record](safejs-literal-member-assignment-targets.md).
-The sloppy-let statement-body candidate remains unintegrated.
+The sloppy-let statement-body repair is also integrated; the combined parser
+selection passes 1,559 tests with one skipped. See
+[its regression record](safejs-sloppy-let-statement-bodies.md).
 
 At 9d2eeb443, the Temporal namespace includes Now and all eight constructors.
 Temporal replay/heap support, originating intrinsic prototype parents and weak
@@ -74,7 +76,7 @@ pass unchanged; neither result supersedes the full-package failure count.
 | Async optional chains | The six previously excluded fixtures are now qualified: five pass, and one differs because SafeJS reports an intentionally unhandled rejection. Across all 38 top-level fixtures: 24 runtime passes, 12 parse rejections, one Script-context mismatch and one rejection-policy difference. All 72 selected optional-chain regressions pass. See [the async qualification](safejs-optional-chain-async-qualification.md). |
 | Logical assignment | All 78 pinned top-level fixtures qualify: 66 runtime passes and 12 parse rejections, with no exclusions or native-unqualified cases. Twenty-seven independent suspension comparisons and 18 new JSON checkpoint-restore tests pass without runtime changes. See [the qualification record](safejs-logical-assignment-qualification.md). This is not exhaustive conformance. |
 | For-in enumeration and headers | Built-in enumeration and primitive boxing are repaired in `a2bccef6c`; 562 related tests pass. Header lexical bindings are separately repaired for for-in/of/await-of with 26 regressions/checkpoint cases and 2,748 broader test passes. The repeated top-level for-in probe reports 51 runtime passes, 26 parse rejections and nine exclusions, with no failures; five corresponding for-of cases pass. See [enumeration](safejs-for-in-builtin-enumeration.md) and [header scopes](safejs-for-head-lexical-scope.md). The full gate predates both repairs. |
-| Remaining loop parser gaps | Supplementary non-strict and dstr probes account for all 119 for-in fixtures: 54 runtime passes, 62 parse rejections and three confirmed parser failures. Independent reproductions identify literal-member assignment targets (also for-of) and sloppy statement-body `let` ASI. See [the findings and live integration-gate record](safejs-for-in-remaining-parser-gaps.md). Neither gap is repaired yet. |
+| Loop parser gaps | Literal-member assignment targets and sloppy statement-body `let` ASI are repaired locally in separate improvements. The combined isolated probe of all 119 for-in fixtures reports 57 runtime passes and 62 parse rejections, with no failures or exclusions. Main parser checks pass 1,559 cases with one skip; a new full integration gate remains required. See [literal targets](safejs-literal-member-assignment-targets.md) and [sloppy let](safejs-sloppy-let-statement-bodies.md). |
 | Full-suite reliability | The latest full gate reports no timeout failures. Prior buffer/camera timeouts were not reproduced; repeatability remains unproven. |
 | Host Promise properties | Two full-gate failures concern omitted own properties. Define safe admission without copying private async-hook symbols; do not equate arbitrary host metadata with guest data. |
 | ISO locale month names | Twelve full-gate failures concern standalone/range and PlainMonthDay/PlainYearMonth month names on Node 22.23.2. Preserve calendar semantics rather than substituting Gregorian output. |

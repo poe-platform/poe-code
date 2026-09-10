@@ -15,6 +15,8 @@ import { createAbsBuiltin } from "./builtin-abs.js";
 import { createRoundBuiltin } from "./builtin-round.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { createLenBuiltin } from "./builtin-len.js";
+import { createReversedBuiltin } from "./builtin-reversed.js";
+import { createNextBuiltin } from "./builtin-iteration.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -126,4 +128,35 @@ it.each([0, 7, -1])("executes compiled MRO length returning %s", length => {
   }, meter);
   if (length < 0) expect(run).toThrow("__len__() should return >= 0");
   else { run(); expect(globals.get("result")).toEqual(v.integer(length)); }
+});
+
+it.each(["method", "sequence", "descriptor", "disabled"])("executes reversed with MRO %s policy", mode => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), globals = new Map<string, RuntimeValue>([["receiver", receiver]]), unused = (): never => { throw Error("unexpected attribute lookup or invocation"); };
+  const definitions = mode === "method" ? [["__reversed__", "def reverse(self): return self\n"]] : [["__len__", "def length(self): return 2\n"], ["__getitem__", "def item(self,index): return index+10\n"]];
+  for (const [name, source] of definitions) {
+    const methods = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter);
+    base.value.namespace.items.set(v.string(name), v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter)));
+  }
+  if (mode === "disabled") base.value.namespace.items.set(v.string("__reversed__"), v.none);
+  const descriptor = v.cell({}); let bindings = 0;
+  if (mode === "descriptor") base.value.namespace.items.set(v.string("__getitem__"), descriptor);
+  const sequence = mode === "sequence" || mode === "descriptor";
+  const program = compileProgram<RuntimeValue>(analyzeModule(sequence ? "def create(): return reversed(receiver)\nitems=create()\nfirst=next(items)\nsecond=next(items)\nlast=next(items,99)\n" : "result=reversed(receiver)\n"), { stripDocstring: false }, v, meter);
+  const run = () => executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map<string, RuntimeValue>([["reversed", createReversedBuiltin(v, meter)], ["next", createNextBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf: () => derived, slots(value) {
+      if (value === v.none) return undefined;
+      expect(value).toBe(descriptor);
+      return { get(instance, owner) {
+        expect(instance).toBe(receiver); expect(owner).toBe(derived);
+        expect(globals.has("items")).toBe(true); bindings++;
+        return v.builtinFunction({ name: "item", invoke: args => v.integer(args[0].kind === "int" ? args[0].value + 10n : -1n) });
+      } };
+    } }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  if (mode === "disabled") expect(run).toThrow("'Derived' object is not reversible");
+  else { run(); if (mode === "method") expect(globals.get("result")).toBe(receiver);
+    else { expect(globals.get("first")).toEqual(v.integer(11)); expect(globals.get("second")).toEqual(v.integer(10)); expect(globals.get("last")).toEqual(v.integer(99)); }
+  }
+  expect(bindings).toBe(mode === "descriptor" ? 2 : 0);
 });

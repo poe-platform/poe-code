@@ -74,6 +74,8 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Type-MRO presence only, without binding a descriptor. */
+  hasSpecial?(object: RuntimeValue, name: string): boolean;
   warn?(category: "DeprecationWarning", message: string): void;
   lookupSpecial?(object: RuntimeValue, name: string): RuntimeValue | undefined;
   typeName?(value: RuntimeValue): string;

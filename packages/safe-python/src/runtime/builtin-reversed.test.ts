@@ -83,4 +83,30 @@ describe("concrete reversed builtin", () => {
     const builtin = createReversedBuiltin(v, meter, { lookupReversed: () => () => { controller.abort(); return v.none; }, hasSequenceItem: unused, typeName: unused, length: unused, getItem: unused, isIndexError: unused, isStopIteration: unused });
     expect(() => builtin.value.invoke([v.cell({})], dictionary(), meter)).toThrow(ExecutionLimitError);
   });
+  it("keeps lazy invocation policies separate and honors explicit overrides", () => {
+    const { meter, v, dictionary, collect } = fixture(), source = v.cell({}), length = v.cell({}), item = v.cell({}), builtin = createReversedBuiltin(v, meter);
+    const policy = (offset: number) => ({
+      lookupSpecial(value: RuntimeValue, name: string) { expect(this).toBe(invocations[offset]); expect(value).toBe(source); return name === "__len__" ? length : name === "__getitem__" ? item : undefined; },
+      hasSpecial(value: RuntimeValue, name: string) { expect(this).toBe(invocations[offset]); expect(value).toBe(source); expect(name).toBe("__getitem__"); return true; },
+      call(method: RuntimeValue, args: readonly RuntimeValue[]) { expect(this).toBe(invocations[offset]); if (method === length) return v.integer(2); expect(method).toBe(item); expect(args[0].kind).toBe("int"); return v.integer(offset + Number((args[0] as Extract<RuntimeValue, { kind: "int" }>).value)); },
+      isStopIteration: () => false
+    });
+    const invocations = [policy(0), policy(1)];
+    const first = builtin.value.invoke([source], dictionary(), meter, invocations[0]);
+    const second = builtin.value.invoke([source], dictionary(), meter, invocations[1]);
+    expect(collect(second)).toEqual([v.integer(2), v.integer(1)]);
+    expect(collect(first)).toEqual([v.integer(1), v.integer(0)]);
+    const unused = (): never => { throw Error("unexpected fallback"); };
+    const explicit = createReversedBuiltin(v, meter, { lookupReversed: () => () => v.true, hasSequenceItem: unused, length: unused, getItem: unused, isIndexError: unused, isStopIteration: unused, typeName: unused });
+    expect(explicit.value.invoke([source], dictionary(), meter, { lookupSpecial: unused, call: unused, isStopIteration: unused })).toBe(v.true);
+  });
+  it.each(["lookup", "presence", "call"])("observes invocation cancellation during %s", phase => {
+    const controller = new AbortController(), { meter, v, dictionary } = fixture(controller.signal), source = v.cell({}), method = v.cell({});
+    const invocation = {
+      lookupSpecial() { if (phase === "lookup") controller.abort(); return phase === "presence" ? undefined : method; },
+      hasSpecial() { controller.abort(); return true; },
+      call() { controller.abort(); return v.none; }, isStopIteration: () => false
+    };
+    expect(() => createReversedBuiltin(v, meter).value.invoke([source], dictionary(), meter, invocation)).toThrow(ExecutionLimitError);
+  });
 });

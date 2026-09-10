@@ -7254,6 +7254,15 @@ extension, integration, or validation requirement is missing or unverified.
   pass; selected build, typecheck and scoped lint pass. Guest adapters remain
   per invocation; broader performance/accounting audits, automatic type assembly,
   remaining protocols and suspended safe-fs effects remain unfinished.
+- Reversed now uses frame-owned MRO __reversed__ dispatch and lazy indexed
+  fallback through __len__/__getitem__. A presence-only MRO capability avoids
+  binding the item descriptor during eligibility checks. Three compiled
+  regressions failed before implementation; eight new cases cover inherited
+  methods, disabled None, descriptor timing, escaped-frame iterators, separate
+  invocation ownership, explicit override priority and cancellation. CPython
+  confirms descriptor timing and disabled reversal behavior. All 5,429 tests
+  in 445 files pass; selected build, typecheck and scoped lint pass. Automatic type assembly,
+  remaining protocols and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

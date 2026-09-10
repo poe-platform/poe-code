@@ -24,6 +24,7 @@ import { executeClassBody } from "./class-body.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
 import { executeClassDefinition } from "./class-definition.js";
 import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { lookupMroAttribute } from "./class-attributes.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -103,6 +104,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      hasSpecial(value, name) {
+        if (specialMethods === undefined) return false;
+        const type = specialMethods.typeOf(value); meter.checkpoint();
+        return lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter) !== undefined;
+      },
       warn: expressionHooks.warn.bind(expressionHooks),
       lookupSpecial(value, name) {
         if (specialMethods === undefined) return undefined;

@@ -28,6 +28,7 @@ import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 import { changeStringLocaleCase, compareStringLocale } from "./string-locale.js";
 import { createStringHtml, stringHtmlMethods } from "./string-html.js";
 import { callStringSearch } from "./string-search.js";
+import { callStringRange } from "./string-range.js";
 
 const stringMethodLengths = {
   ...Object.fromEntries(Object.entries(stringHtmlMethods).map(([name, [, attribute]]) => [name, attribute === "" ? 0 : 1])) as Record<keyof typeof stringHtmlMethods, number>,
@@ -223,6 +224,11 @@ function callStringMethodBody(
   if (methodName === "concat" && args.some(argument => argument !== null && typeof argument === "object")) {
     return callConcat(value, args, budget, context);
   }
+  if (methodName === "slice" || methodName === "substring") {
+    if (args.slice(0, 2).every(argument => argument === null || (typeof argument !== "object" && typeof argument !== "function")))
+      return budget.allocateString(value[methodName](args[0] as number, args[1] as number | undefined));
+    return callStringRange(value, methodName, args, budget, context);
+  }
   if (methodName === "repeat" || methodName === "at" || methodName === "charAt" || methodName === "charCodeAt" || methodName === "codePointAt") {
     const apply = (number: number) => {
       const result = value[methodName](number);
@@ -362,16 +368,8 @@ function callStringMethodBody(
         return budget.allocateString(
           value.padStart(asNumber(args[0]), asStringOrUndefined(args[1]))
         );
-      case "slice":
-        return budget.allocateString(
-          value.slice(asNumberOrUndefined(args[0]), asNumberOrUndefined(args[1]))
-        );
       case "substr":
         return budget.allocateString(value.substr(asNumber(args[0]), asNumberOrUndefined(args[1])));
-      case "substring":
-        return budget.allocateString(
-          value.substring(asNumber(args[0]), asNumberOrUndefined(args[1]))
-        );
       case "toLowerCase":
         return budget.allocateString(value.toLowerCase());
       case "toUpperCase":

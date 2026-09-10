@@ -128,6 +128,19 @@ it.each(["min", "max"])("lets %s invoke compiled key functions", name => {
   }, meter);
   expect(globals.get("result")).toEqual(v.integer(name === "min" ? 8 : 1));
 });
+it.each(["all", "any"])("routes %s input iteration and short-circuit truth through the frame", name => {
+  const { meter, v, context } = fixture(), source = v.cell({}), decision = v.cell({}), globals = new Map<string, RuntimeValue>([["source", source]]), events: string[] = [], unused = (): never => { throw Error("unexpected guest callback"); };
+  const program = compileProgram<RuntimeValue>(analyzeModule(`result=${name}(source)\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, iteration: {
+      lookupIter(value) { expect(value).toBe(source); events.push("iter"); return () => source; }, hasNext: () => true,
+      next() { events.push("next"); if (events.length > 3) throw Error("over-pulled"); return decision; },
+      hasSequenceItem: () => false, getItem: unused, isStopIteration: () => false, isIndexError: () => false, typeName: () => "Guest"
+    }, truth(value) { expect(value).toBe(decision); events.push("truth"); return name === "any"; } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(v.boolean(name === "any")); expect(events).toEqual(["iter", "next", "truth"]);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

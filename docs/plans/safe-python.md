@@ -7084,6 +7084,14 @@ extension, integration, or validation requirement is missing or unverified.
   scheduling, remaining callback/iteration integrations, native type/exception
   assembly, resumable filesystem effects and the full public interpreter remain
   unfinished.
+- Added invocation-owned iteration capability and routed `all`/`any` through
+  frame iteration and truth policies when no explicit builtin policy is supplied.
+  Both compiled guest-input regressions failed before implementation and now
+  verify short-circuit pull/truth order. Additional regressions preserve explicit
+  truth overrides and propagate truth-raised StopIteration rather than consuming
+  it as iterator exhaustion. All 5,335 tests in 444 files pass; selected workspace
+  build, typecheck and scoped lint pass. Remaining builtin input-iteration dispatch (including
+  map/filter), guest object assembly and resumable safe-fs effects remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

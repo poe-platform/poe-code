@@ -8,6 +8,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { CellStorage } from "./lexical-frame.js";
 import type { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { CompletionIterator } from "./iterator-completion.js";
+import type { IterationContext } from "./protocol-iterator.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -71,6 +72,7 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  readonly iteration?: IterationContext<RuntimeValue>;
   /** Reenter this execution's normal argument/callability/function call path. */
   call(callee: RuntimeValue, positional: readonly RuntimeValue[]): RuntimeValue;
   isStopIteration(error: unknown): boolean;

@@ -17,17 +17,18 @@ export interface AllAnyContext {
 export function createAllAnyBuiltin(name: "all" | "any", values: RuntimeValues, meter: ExecutionMeter, context: AllAnyContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   const decisive = name === "any";
-  return values.builtinFunction({ name, invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name, invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${name}() takes no keyword arguments`);
     if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `${name}() takes exactly one argument (${positional.length} given)`);
-    const cursor = runtimeIterate(positional[0], values, meter, context.iteration);
+    const cursor = runtimeIterate(positional[0], values, meter, context.iteration ?? invocation?.iteration);
     for (;;) {
       meter.checkpoint();
       const item = cursor.next();
       meter.checkpoint();
       if (item.done) return values.boolean(!decisive);
-      const truth = context.truth === undefined ? runtimeTruth(item.value, meter) : context.truth(item.value);
+      const truth = context.truth !== undefined ? context.truth(item.value)
+        : invocation?.truth !== undefined ? invocation.truth(item.value) : runtimeTruth(item.value, meter);
       meter.checkpoint();
       if (truth === decisive) return values.boolean(decisive);
     }

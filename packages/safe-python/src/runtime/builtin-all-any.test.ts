@@ -70,3 +70,14 @@ it("bounds infinite input without allocating a collection of consumed values", (
   expect(() => builtin.value.invoke([cursor], keywords, meter)).toThrow("execution step limit exceeded");
   expect(meter.usage.allocatedBytes).toBe(0);
 });
+it.each(["all", "any"] as const)("keeps explicit %s truth policy ahead of invocation policy", name => {
+  const context: AllAnyContext = { truth() { expect(this).toBe(context); return name === "any"; } };
+  const { v, builtin, keywords, meter } = fixture(name, context);
+  const unused = (): never => { throw Error("unexpected invocation callback"); };
+  expect(builtin.value.invoke([v.list([v.none])], keywords, meter, { call: unused, isStopIteration: unused, truth: unused })).toBe(v.boolean(name === "any"));
+});
+it.each(["all", "any"] as const)("propagates %s invocation truth StopIteration instead of treating it as exhaustion", name => {
+  const { v, builtin, keywords, meter } = fixture(name), fault = new PythonRuntimeError("StopIteration", "truth failed");
+  const unused = (): never => { throw Error("unexpected invocation callback"); };
+  expect(() => builtin.value.invoke([v.list([v.none])], keywords, meter, { call: unused, isStopIteration: unused, truth() { throw fault; } })).toThrow(fault);
+});

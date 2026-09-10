@@ -1547,7 +1547,7 @@ function copyToSandbox(
     }
 
     const copy = createPlainObject(
-      !cloneSandboxCollections || Object.getPrototypeOf(value) === null
+      !state.structuredClone && (!cloneSandboxCollections || Object.getPrototypeOf(value) === null)
     );
     if (!state.structuredClone && hasNullObjectPrototype(value)) setSandboxPrototype(copy, null);
     state.seen.set(value, copy);

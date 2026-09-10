@@ -81,3 +81,105 @@ files (4d22b3); report `/tmp/safejs-symbol-accounting-candidate.json`.
    the narrower selection alone.
 5. Continue investigating if timeout headroom remains inadequate. Preserve full
    numeric conformance coverage. No releases or pushes during the hold.
+
+## September 10 follow-up qualification
+
+The complete isolated camera rerun failed five of eight sandbox batches at
+5000ms; all three native controls passed. Total test duration was 41.324 seconds.
+Report `/tmp/safejs-camera-symbol-candidate-full.json`, terminal 7955e5. This
+rules out calling the allocation candidate a sufficient timeout repair.
+
+A second isolated directory `/tmp/safejs-camera-closure-symbols.ZXRzwR` contains
+the allocation candidate plus an experimental factory-wrapper symbol exemption.
+The factory freezes each wrapper, checks its own keys after host initializer
+callbacks, and records only exact wrappers whose symbols are all internal in a
+private WeakSet. Measurement still traverses mutable guest properties, private
+slots and captures. Proxies and inherited brands are not members.
+
+`closure-symbol-scan.test.ts` first failed its no-enumeration regression, with
+four passing controls for guest-table mutation, host-added wrapper symbols,
+inherited brands and native proxy traps (2e6b59). After implementation, ten
+focused tests passed across three files (a9da5b). TypeScript passed (a0463e).
+
+This is the same hypothesis previously tested and rejected in the historical
+`safejs-camera-ci-performance.md` frozen-wrapper experiment. Do not treat it as
+a novel discovery or integrate it merely because focused tests pass. The fresh
+paired source comparison against the allocation-only candidate passed all 18
+full native/recorded checks; aggregate CPU was 24,547.475ms versus 23,199.169ms
+(about 5.5% lower). Trial totals were 8389.346/7858.624, 8265.843/7764.327 and
+7892.286/7576.218ms. The modest additional saving needs independent confirmation
+before accepting extra runtime state. The full package gate was concurrent and
+a short conformance rerun overlapped part of the experiment. No source from this
+experiment has been integrated into main.
+
+The broader second-candidate accounting run 99880 passed all 609 tests across
+54 files (833bb9), report `/tmp/safejs-closure-symbol-accounting-candidate.json`.
+Scoped lint passed (84ae99).
+The first candidate's conformance test now also contains a separate stale
+RegExp expectation correction; do not bundle that test change with performance.
+See `safejs-host-regexp-conformance-refresh.md`.
+
+A fresh process reversed the comparison order and again preserved all 18 full
+traces (fd2c6e). Allocation-only CPU total was 25,756.681ms; the frozen-wrapper
+candidate used 25,087.486ms, only about 2.6% lower. Individual paired executions
+include regressions. Defer the extra WeakSet optimization: the small and varying
+additional gain does not yet justify adopting this previously rejected approach.
+Keep its isolated directory as experimental evidence, not a qualified source for
+main integration. The simpler allocation-only candidate remains the next runtime
+change to qualify.
+
+A related direct-root symbol-accounting discrepancy was investigated without a
+runtime change; the attempted public bypass was rejected at replay admission.
+See `safejs-intrinsic-symbol-accounting-audit.md`. The speculative failing tests
+were removed from the allocation candidate, with the probe preserved separately.
+
+Independent allocation-only confirmation reversed the original ordering in a
+fresh process. All 18 complete native/recorded checks passed (7c9359).
+Baseline CPU was 28,467.542ms; candidate CPU was 24,757.196ms (about 13% lower).
+This corroborates the original 11.4% result. Wall times were highly contended;
+one candidate run took 14,848.645ms elapsed but 3522.555ms process CPU. Do not
+claim a stable wall-clock timeout fix from these measurements.
+
+The native-only naming selection passed all three selected tests (ea80cb).
+Its JSON report contains all 11 unique, untruncated test names (1d4933);
+the eight sandbox cases were intentionally skipped in that naming-only check.
+Report `/tmp/safejs-camera-native-names-qualification.json`. Earlier full-file
+and selected-batch timing failures remain relevant.
+
+## Main integration after the baseline gate
+
+Gate 14148 ended before main runtime/test integration. The new main allocation
+regression first failed with one filter call (953694); its two semantic controls
+passed. The main runtime change now byte-matches the qualified allocation-only
+candidate (f061ac). No frozen-wrapper exemption was imported.
+
+Focused main integration (90167, terminal 175520) ran with one worker: 714 passed,
+four failed across 58 files. All 11 camera tests passed, with sandbox batches
+2080–3565ms and 22.634 seconds for the file. The accounting selection passed.
+The four failures are three newly exposed async-host nested-Promise replay hangs
+and the unchanged 128-draw completed-replay timing case; neither is dismissed as
+irrelevant. See safejs-completed-promise-expectation-refresh.md for the confirmed
+hang. Report `/tmp/safejs-camera-main-integration-focused.json`.
+
+Main scoped lint and the maintained build remain required before the runtime
+commit. A fresh full package gate is still required; this focused result does
+not establish that full-suite camera timeouts are resolved.
+
+Main scoped ESLint subsequently passed for values.ts, the new allocation guards
+and camera test names (2ff34e). The maintained workspace build is the remaining
+pre-commit check for the allocation change.
+
+Maintained build started as session 72722 with
+`npm run build:workspaces -- --workspace=@poe-code/safe-js` (a26eb3).
+Keep source fixed while it runs and collect its terminal result before claiming
+build success. After that, commit only values.ts, measure-symbol-capture.test.ts
+and this plan for the runtime optimization. The camera naming and RegExp test
+corrections have separate commits; the completed-Promise test remains a failing
+regression for a real replay scheduling bug.
+
+The maintained build completed successfully (b9eebb): 23 declared workspace
+builds and all five fresh-process built-import checks passed. Scoped lint and
+focused accounting/camera evidence above qualify this local allocation commit.
+No full-package-green or CI timeout-resolution claim is made. The next full gate
+should include the actual async-host Promise replay repair rather than repeatedly
+rerunning a known hanging regression without a code change.

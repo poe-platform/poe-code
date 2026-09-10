@@ -909,10 +909,13 @@ export function measureSandboxData(
     }
     if (!isGuestHostObject(value)) {
       const symbols = Object.getOwnPropertySymbols(value);
-      const descriptors = symbols.length === 0 ? [] : symbols
-        .filter(key => !internalSymbols.has(key))
-        .map(key => [key, Object.getOwnPropertyDescriptor(value, key)!] as const);
-      for (const [key, descriptor] of descriptors) {
+      let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
+      // Capture before visiting: retained callbacks can mutate later properties.
+      for (const key of symbols) {
+        if (!internalSymbols.has(key))
+          (descriptors ??= []).push([key, Object.getOwnPropertyDescriptor(value, key)!]);
+      }
+      if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
         usage += 1;
         visit(key, depth + 1);
         if ("value" in descriptor) visit(descriptor.value, depth + 1);

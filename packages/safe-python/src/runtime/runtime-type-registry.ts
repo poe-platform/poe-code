@@ -8,6 +8,7 @@ import { createObjectNewBuiltin } from "./builtin-object-new.js";
 import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
+import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -40,6 +41,10 @@ export class RuntimeTypeRegistry {
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
     typeLayout.namespace.items.set(values.string("__init__"), createTypeInitWrapper(values, meter, this.type));
     typeLayout.namespace.items.set(values.string("__call__"), createTypeCallWrapper(values, meter, this.type));
+    for (const name of ["__getattribute__", "__setattr__", "__delattr__"] as const) {
+      meter.checkpoint();
+      typeLayout.namespace.items.set(values.string(name), createTypeAttributeWrapper(name, values, meter, this.type));
+    }
     meter.checkpoint(1, 192);
     const descriptors = [
       { name: "__mro__", get: (instance: TypeValue) => this.metadata(instance, "mro") },

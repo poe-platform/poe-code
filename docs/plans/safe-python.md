@@ -7852,6 +7852,19 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint pass. Intrinsic type names/qualified names, native default
   attribute wrappers, type.__new__, complete class construction and suspended
   safe-fs effects remain unfinished.
+- Installed native type.__getattribute__, __setattr__ and __delattr__ wrappers.
+  Two compiled regressions first failed because these slots were absent. Explicit
+  default execution capabilities bypass metaclass overrides; getattribute excludes
+  getattr fallback while ordinary reads retain it. Native wrappers validate the
+  receiver, keywords, arity and string name in CPython order, preserve assigned
+  identity, return None for mutation and check cancellation after callbacks.
+  Eighteen tests cover direct/bound contracts, metaclass delegation, disabled
+  overrides, fallback boundaries and cancellation. All 800 descriptor operations,
+  144 direct/bound validation cases and 96 compiled constructor cases match CPython.
+  All 6,113 tests in 466 files, selected build, typecheck and scoped lint pass.
+  Default object attribute slots, intrinsic type names/qualified names, native
+  type.__new__, complete class construction and suspended safe-fs effects remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -85,6 +85,9 @@ export interface BuiltinInvocationContext {
   actualType?(value: RuntimeValue): TypeValue;
   /** Enter type.__call__ directly, bypassing metaclass __call__ overrides. */
   callTypeDefault?(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue): RuntimeValue;
+  /** Default type attribute slots, without metaclass overrides or getattr. */
+  typeAttributeDefault?(type: TypeValue, name: string): RuntimeValue;
+  mutateTypeAttributeDefault?(type: TypeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }): void;
   typeName?(value: RuntimeValue): string;
   setAttribute?(object: RuntimeValue, name: string, value: RuntimeValue): void;
   deleteAttribute?(object: RuntimeValue, name: string): void;

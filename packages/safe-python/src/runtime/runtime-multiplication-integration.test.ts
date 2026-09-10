@@ -1731,6 +1731,34 @@ it("bounds class names in missing attribute diagnostics", () => {
   expect(() => state.run("C.missing\n")).toThrow(`type object '${"é".repeat(50)}' has no attribute 'missing'`);
 });
 
+it("exposes explicit default type attribute operations without metaclass redispatch", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta);
+  state.globals.set("C", owner); state.globals.set("type", state.registry.type);
+  for (const name of ["__getattribute__", "__setattr__", "__delattr__"]) meta.value.namespace.items.set(state.v.string(name), state.v.none);
+  state.run("type.__setattr__(C,'value',7)\nresult=type.__getattribute__(C,'value')\ntype.__delattr__(C,'value')\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(owner.value.namespace.items.lookup(state.v.string("value"))).toBeUndefined();
+});
+
+it("lets metaclass overrides delegate to native default attribute slots", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta);
+  state.globals.set("C", owner); state.globals.set("type", state.registry.type);
+  state.method(meta, "__getattribute__", "def read(cls,name):\n return type.__getattribute__(cls,name)\n");
+  state.method(meta, "__setattr__", "def write(cls,name,value):\n return type.__setattr__(cls,name,value)\n");
+  state.method(meta, "__delattr__", "def remove(cls,name):\n return type.__delattr__(cls,name)\n");
+  state.run("C.value=9\nresult=C.value\ndel C.value\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(9));
+  expect(owner.value.namespace.items.lookup(state.v.string("value"))).toBeUndefined();
+});
+
+it("keeps getattr fallback outside explicit default type reads", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta);
+  state.globals.set("C", owner); state.globals.set("type", state.registry.type);
+  state.method(meta, "__getattr__", "def fallback(cls,name):\n return 7\n");
+  state.run("result=C.missing\n"); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(() => state.run("type.__getattribute__(C,'missing')\n")).toThrow("type object 'C' has no attribute 'missing'");
+});
+
 it("assigns and deletes class attributes without mutating inherited namespaces", () => {
   const state = fixture(), base = state.type("Base"), owner = state.type("C", base); state.globals.set("C", owner); state.globals.set("Base", base);
   base.value.namespace.items.set(state.v.string("value"), state.v.integer(1));

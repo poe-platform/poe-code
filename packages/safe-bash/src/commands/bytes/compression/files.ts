@@ -4,7 +4,7 @@ import {
 } from "../../../contracts/index.js";
 import { codeOf, pathOf } from "../../internal.js";
 import { PublicDiagnostic } from "../../../diagnostics.js";
-import type { CompressionOptions } from "./options.js";
+import { profiles, type CompressionOptions } from "./options.js";
 import { chunkBytes, stagingLimit, transform } from "./stream.js";
 
 export interface Operand {
@@ -38,6 +38,17 @@ async function existing(context: CommandContext, path: string): Promise<FileStat
 }
 
 function outputPath(source: string, options: CompressionOptions): string {
+  if (options.format !== "gzip") {
+    const suffix = profiles.find(profile => profile.format === options.format)!.suffix;
+    if (options.decompress) {
+      if (!source.endsWith(suffix)) throw new FsError("EINVAL", { path: source, message: `unknown ${options.format} suffix (use -c for stdout)` });
+      const destination = source.slice(0, -suffix.length);
+      if (destination.endsWith("/")) throw new FsError("EINVAL", { path: source, message: "empty output filename" });
+      return destination;
+    }
+    if (!options.force && source.endsWith(suffix)) throw new FsError("EINVAL", { path: source, message: `already has a ${options.format} suffix (use -f to compress again)` });
+    return source + suffix;
+  }
   if (options.decompress) {
     if (/\.(?:tgz|taz)$/iu.test(source)) return source.slice(0, -4) + ".tar";
     const suffix = /(?:\.gz|\.z|-gz|-z|_z)$/iu.exec(source);

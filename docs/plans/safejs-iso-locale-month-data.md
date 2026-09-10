@@ -151,3 +151,42 @@ ISO-preserving repair, irrespective of newer main-branch documentation.
 
 Range regressions now also assert `resolvedOptions().calendar === 'iso8601'`
 to reject a calendar-substitution implementation that merely restores names.
+
+## Published ICU4X capability check
+
+The published `icu@2.3.2` package was inspected and executed read-only in memory
+on Node 22.23.2 (761e42). Its registry reports 23,272,786 unpacked bytes; the
+archive contains a 20,547,922-byte WebAssembly module. The probe instantiated
+that module with its required logging/error imports and loaded the unchanged
+JavaScript bindings through VM modules. It did not install a dependency, alter
+global Intl, or extract package files into the checkout.
+
+`CalendarKind.create` reports `Iso` for en-US, pl-PL, ru-RU and af with the
+`u-ca-iso8601` extension. Nevertheless, long year/month formatting of February
+2000 yields `February 2000`, `luty 2000`, `февраль 2000 г.` and `Februarie 2000`:
+these do not preserve the ISO root year-first layouts under investigation.
+The standalone long month outputs are localized correctly, but February–March
+standalone ranges contain `M02` and `M03` in English and Afrikaans. Russian
+month/day and year/month/day ranges also contain those placeholder names.
+The package does expose date and date/time range formatters; their formatting
+methods return strings. Inspection of all 50 date/time declaration files finds
+no formatting-to-parts method, leaving field identity and range-source
+attribution unavailable through this public interface.
+
+This rejects the published package as a drop-in repair for the current gap,
+not ICU4X as a general-purpose library. A positive calendar-kind check and
+correct standalone month text are insufficient qualification. No runtime
+change was justified by this candidate.
+
+Sources: [published package](https://www.npmjs.com/package/icu/v/2.3.2),
+[Unicode's JavaScript date-formatting tutorial](https://icu4x.unicode.org/2_2/tutorials/date-picker/).
+The [January 2026 ECMA-402 meeting notes](https://raw.githubusercontent.com/tc39/ecma402/main/meetings/notes-2026-01-08.md)
+also discuss preserving ISO field order, separators and hour-cycle conventions.
+Their recommendation to CLDR is not an enacted normative requirement and is
+not presented here as one.
+
+The full package gate recorded elsewhere has now terminated with 14 failures;
+the earlier in-progress statements above are historical. The ISO failures
+remain unresolved. Next investigate an ISO pattern/data implementation with
+explicit parts and range partitions; neither tested published formatter is
+sufficient on its own.

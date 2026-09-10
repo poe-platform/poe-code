@@ -68,3 +68,19 @@ The newly validated internal continuation reference-admission cases were
 read-only probes outside this frozen test suite and are not included in its
 pass/fail count. The next code change must add failing regressions and restrict
 those references without breaking their legitimate internal owners.
+
+## Focused timeout recheck after continuation validation
+
+At local commit 5ed293447, reran the unchanged
+array-buffer-host-compatibility.test.ts and float32-camera.test.ts together.
+Session 23487 completed successfully: 13 tests across two files passed in
+26.32 seconds (7ec5e8). No timeout, fixture, assertion or budget was changed.
+Only the unrelated three SafeBash files remained staged after the commit.
+
+This focused result does not reproduce the two full-gate timeouts and does
+not establish their repair. The buffer compatibility test dynamically imports
+the runtime inside each timed test after resetting modules, while the camera
+file imports it before its test bodies. Separate module-loading cost from
+execution cost before attributing the buffer failure to runtime semantics.
+The full-package failure remains authoritative; no green package or release
+is claimed.

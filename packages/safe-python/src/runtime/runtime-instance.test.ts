@@ -33,6 +33,24 @@ it("adopts owned dictionaries without copying shared members or cycles", () => {
   member.items.append(instance); expect(instance.dictionary!.items.lookup(v.string("member"))!.value).toBe(member);
 });
 
+it("materializes lazy dictionaries once and permits replacement without allocation",()=>{
+  const {v,type,meter,dictionary}=fixture();let calls=0;
+  const instance=v.instance(type,()=>{calls++;return dictionary();});
+  expect(instance.dictionary).toBeUndefined();expect(instance.state.dictionaryObject).toBeUndefined();expect(calls).toBe(0);
+  const first=instance.state.ensureDictionary(meter);
+  expect(instance.state.ensureDictionary(meter)).toBe(first);expect(instance.dictionary).toBe(first);expect(calls).toBe(1);
+  const other=v.instance(type,()=>{throw Error("must not allocate replaced storage");}),replacement=dictionary();
+  other.state.mutateDictionary(replacement,v,meter);expect(other.state.ensureDictionary(meter)).toBe(replacement);
+});
+
+it("does not publish a lazy dictionary when post-allocation cancellation is observed",()=>{
+  const {v,type,meter,dictionary}=fixture();let calls=0,steps=0;
+  const instance=v.instance(type,()=>{calls++;return dictionary();});
+  expect(()=>instance.state.ensureDictionary({checkpoint(){if(++steps===2)throw new ExecutionLimitError("cancelled");}})).toThrow(ExecutionLimitError);
+  expect(instance.dictionary).toBeUndefined();expect(instance.state.dictionaryObject).toBeUndefined();expect(calls).toBe(1);
+  expect(instance.state.ensureDictionary(meter)?.kind).toBe("dict");expect(calls).toBe(2);
+});
+
 it("uses intrinsic ownership rather than shadow __class__ attributes or external policy", () => {
   const { v, meter, type, registry, dictionary } = fixture(), attributes = dictionary(), instance = v.instance(type, attributes);
   attributes.items.set(v.string("__class__"), registry.object);

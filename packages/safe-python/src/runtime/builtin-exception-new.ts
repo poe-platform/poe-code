@@ -24,7 +24,8 @@ export function createExceptionNewBuiltin(owner:TypeValue,values:RuntimeValues,m
       if(!subtype)throw new PythonRuntimeError("TypeError",`BaseException.__new__(${name}): ${name} is not a subtype of BaseException`);
       if(type.value.nativeStorage!==owner.value)throw new PythonRuntimeError("TypeError",`BaseException.__new__(${name}) is not safe, use ${name}.__new__()`);
       const args=values.tuple(positional.length-1,index=>positional[index+1]);
-      const dictionary=values.dictionary(owner.value.namespace.items.emptyCopy());
+      meter.checkpoint(0,32);
+      const dictionary=()=>values.dictionary(owner.value.namespace.items.emptyCopy());
       return values.instance(type,dictionary,new RuntimeExceptionState(args,meter));
     }
   });

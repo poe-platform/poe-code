@@ -64,6 +64,7 @@ export function runtimeMutateInstanceAttribute(instance: AttributeInstanceValue,
       meter.checkpoint();
       instance.state.attributes.set(name, value); return;
     }
+    instance.state.ensureDictionary(meter);
     if (instance.dictionary === undefined) throw missingAttribute(instance, name, meter, attribute === undefined ? "no-dictionary" : "readonly");
     instance.dictionary.items.set(key, value);
   }, meter);
@@ -72,6 +73,7 @@ export function runtimeMutateInstanceAttribute(instance: AttributeInstanceValue,
       if (!instance.state.attributes.delete(name)) throw missingAttribute(instance, name, meter);
       return;
     }
+    instance.state.ensureDictionary(meter);
     if (instance.dictionary === undefined) throw missingAttribute(instance, name, meter, attribute === undefined ? "no-dictionary" : "readonly");
     if (!instance.dictionary.items.delete(key)) throw missingAttribute(instance, name, meter);
   }, meter);

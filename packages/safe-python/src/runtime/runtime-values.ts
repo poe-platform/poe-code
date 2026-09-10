@@ -345,8 +345,9 @@ export class RuntimeValues extends ConstantValues {
   }
 
   /** Adopt explicitly allocated instance storage without running guest methods.
-   * Missing dictionary denotes a dictionary-less layout, not lazy allocation. */
-  instance(type: TypeValue, dictionary?: DictionaryValue, native?: InstanceValue["native"]): InstanceValue {
+   * Missing dictionary denotes a dictionary-less layout; a trusted factory
+   * supplies lazy storage without making ordinary reads allocate it. */
+  instance(type: TypeValue, dictionary?: DictionaryValue | (() => DictionaryValue), native?: InstanceValue["native"]): InstanceValue {
     this.runtimeMeter.checkpoint(1, native === undefined ? 48 : 56);
     const state = new RuntimeInstanceState(type, dictionary, this.runtimeMeter);
     return Object.freeze({ kind: "instance", state, native, get type() { return state.type; }, get dictionary() { return state.dictionary; } });

@@ -15,9 +15,11 @@ export function createInstanceDictionaryDescriptor(owner: TypeValue, values: Run
       for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
       return false;
     },
-    get(instance) {
-      if (instance.kind !== "instance" || instance.dictionary === undefined) throw Error("dictionary descriptor requires owned instance storage");
-      return instance.state.dictionaryObject!;
+    get(instance,meter) {
+      if (instance.kind !== "instance") throw Error("dictionary descriptor requires owned instance storage");
+      const dictionary=instance.state.ensureDictionary(meter);
+      if(dictionary===undefined)throw Error("dictionary descriptor requires owned instance storage");
+      return dictionary;
     },
     set(instance, value, meter) {
       if (instance.kind !== "instance") throw Error("invalid instance dictionary receiver");

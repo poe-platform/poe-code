@@ -9704,6 +9704,19 @@ extension, integration, or validation requirement is missing or unverified.
   this is confirmed by CPython probes and remains pending alongside tracebacks,
   the exception hierarchy, raise/try wiring and interpreter/safe-fs assembly.
   No push or release was requested.
+- Exception reduction (2026-09-10): failing integration tests drove native
+  BaseException.__reduce__ and genuinely lazy dictionary allocation. Reduction
+  retains the actual type, argument tuple and existing dictionary object without
+  attribute hooks. Untouched dictionaries are omitted; explicit dictionary reads
+  and attribute mutations materialize them. Failed reads stay lazy, whereas
+  failed deletions materialize empty storage, matching CPython. Two native tests
+  verify one-time allocation, allocation-free replacement and cancellation before
+  publishing storage. All 66 reduction comparisons, the prior 82 dictionary
+  comparisons and 252 note comparisons match CPython. Focused tests, typecheck,
+  lint, the selected workspace build and all 7,129 tests in 502 files pass in
+  the uncached one-worker package run. State restoration, traceback support,
+  the exception hierarchy, raise/try wiring and interpreter/safe-fs assembly
+  remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

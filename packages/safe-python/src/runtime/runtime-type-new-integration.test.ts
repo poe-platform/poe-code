@@ -69,6 +69,27 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("reduces exceptions without materializing untouched dictionaries",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("e=BaseException(1,'two')\ninitial=e.__reduce__()\nempty=e.__dict__\nexposed=e.__reduce__()\ne.add_note('note')\nnoted=e.__reduce__()\ncorrect=initial==(BaseException,(1,'two')) and exposed==(BaseException,(1,'two'),{'__notes__':['note']}) and exposed[2] is empty and noted[2] is empty\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("leaves exception dictionaries lazy on failed reads but materializes failed deletions",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.run("e=BaseException()\n");
+  expect(()=>state.run("e.missing\n")).toThrow("has no attribute 'missing'");
+  state.run("unread=e.__reduce__()==(BaseException,())\ne.args=(1,)\nunchanged=e.__reduce__()==(BaseException,(1,))\n");
+  expect(()=>state.run("del e.missing\n")).toThrow("has no attribute 'missing'");
+  state.run("materialized=e.__reduce__()==(BaseException,(1,),{})\n");
+  for(const key of ["unread","unchanged","materialized"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("reduces native exception state without invoking attribute overrides",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class E(BaseException):\n def __getattribute__(self,name):\n  if name in ('__dict__','args','__class__'):\n   return 1/0\n  return object.__getattribute__(self,name)\nclass D(Dict):\n pass\ne=E(1)\nd=D(x=2)\ne.__dict__=d\nr=e.__reduce__()\ncorrect=r[0] is E and r[1]==(1,) and r[2] is d\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("exposes exception dictionaries and rejects deletion without detaching aliases",()=>{
   const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
   state.run("e=BaseException()\ne.tag=1\nold=e.__dict__\nreplacement={'tag':2}\ne.__dict__=replacement\ne.other=3\ncorrect=old=={'tag':1} and e.__dict__ is replacement and replacement=={'tag':2,'other':3}\n");

@@ -9470,6 +9470,16 @@ extension, integration, or validation requirement is missing or unverified.
   uncached one-worker package run. Float formatting and subclass-aware fromhex
   remain next; full interpreter and safe-fs execution remain unfinished.
   No push or release was requested.
+- Canonical float formatting (2026-09-10): two failing integration tests drove
+  float.__format__ publication, owned subclass numeric formatting, empty-spec
+  __str__ dispatch and lazy execution-locale sharing. Nonempty specifications
+  inspect native storage without invoking __float__; diagnostics preserve the
+  actual subclass name. All 414 descriptor/argument comparisons and 2,000 seeded
+  native/subclass fixed, scientific, general and percentage formatting cases
+  match CPython exactly. Workspace build, typecheck, focused lint and all 7,031
+  tests in 498 files pass in the uncached one-worker package run. Subclass-aware
+  float.fromhex remains next; full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

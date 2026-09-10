@@ -67,6 +67,25 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("formats float subclass storage while preserving empty-spec string overrides", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __str__(self):\n  visit('str')\n  return 'custom'\n def __float__(self):\n  visit('wrong')\n  return 9.0\nx=Child(1.25)\ncorrect=Float.__format__(x,'')=='custom' and x.__format__('.1f')=='1.2' and f'{x:.2f}'=='1.25' and x.__format__('n')=='1.25' and Float.__format__.__objclass__ is Float\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["str"]);
+  expect(()=>state.run("x.__format__('q')\n")).toThrow("Unknown format code 'q' for object of type 'Child'");
+});
+
+it("shares numeric locale lazily with explicit float formatting", () => {
+  const state=fixture();const {v,meter}=state;let reads=0;
+  const locale=new NumericLocale({decimalPoint:v.string(",").value,thousandsSeparator:v.string(".").value,grouping:[3,0]},meter);
+  const formatting=createRuntimeFormatContext(v,meter,{numericLocale(){reads++;return locale;},defaultRepr(){throw Error("unexpected representation");}});
+  const method=state.registry.floatType().value.namespace.items.lookup(v.string("__format__"))?.value;
+  if(method?.kind!=="method_descriptor")throw Error("expected float format descriptor");
+  const keywords=v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,meter));
+  const invocation={formatting,call():never{throw Error("unexpected guest call");}};
+  expect(method.value.invoke(v.float(1234.5),[v.string(".1f")],keywords,meter,invocation)).toEqual(v.string("1234.5"));expect(reads).toBe(0);
+  expect(method.value.invoke(v.float(1234.5),[v.string("n")],keywords,meter,invocation)).toEqual(v.string("1.234,5"));expect(reads).toBe(1);
+});
+
 it("rounds owned floats through the canonical descriptor and index protocol", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());state.globals.set("Int",state.registry.integerType());
   state.builtins.set("round",createRoundBuiltin(state.v,state.meter));

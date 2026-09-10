@@ -16,6 +16,7 @@ import "./safe-packages-named-mutations.mjs";
 import "./safe-packages-console-override.mjs";
 import "./safe-packages-callback-phases.mjs";
 import "./safe-packages-curl-output.mjs";
+import "./safe-packages-response-body-mode.mjs";
 import { Budget, run } from "@poe-platform/safe-js";
 import { FsError, createDeviceFileSystem, createMemoryFileSystem, createReadOnlyFileSystem } from "@poe-platform/safe-fs";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs";

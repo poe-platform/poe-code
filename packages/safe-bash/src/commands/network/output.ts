@@ -1,4 +1,4 @@
-import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
+import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { openFileOutput } from "../../contracts/filesystem-output.js";
 import { outputFailure } from "../../contracts/io.js";
 import { pathOf } from "../internal.js";
@@ -42,7 +42,7 @@ export async function writeOutput(context: CommandContext, path: string | undefi
   } catch (error) {
     signal.throwIfAborted();
     if (error instanceof CurlError) throw error;
-    throw new CurlError(23, "Failed writing virtual output file");
+    throw new CurlError(23, error instanceof FsError ? `Failed writing virtual output file: ${error.message}` : "Failed writing virtual output file");
   }
 }
 

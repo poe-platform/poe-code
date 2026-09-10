@@ -1563,6 +1563,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         for (const [key, symbol] of entries) registry.set(key, symbol);
       });
     } else if (serialized.kind === "guest-class") {
+      if (serialized.realm !== undefined) valueBudget = initializeIntrinsicRealm(state, serialized.realm);
       const nodes = serialized.dynamicSource === undefined ? state.nodeById
         : state.dynamicSources.get((serialized.dynamicSource as SerializedReferenceValue).id)!.nodes;
       const node = nodes.get(serialized.astNodeId);
@@ -1571,7 +1572,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       if (scope === undefined) throw new TypeError("Missing class scope.");
       const fields: Field[] = [];
       const constructor = createClassConstructor(node, {
-        scope, budget: state.budget, compilation: state.compilation, rootNode: state.rootNode,
+        scope, budget: valueBudget, compilation: state.compilation, rootNode: state.rootNode,
         signal: state.signal, inferredName: serialized.name,
         callStack: [], activeLoopIterations: new Map(), restoredLoopIterations: new Map(),
         stats: { currentDataSize: 0, nodeVisits: 0, peakDataSize: 0 }

@@ -304,7 +304,7 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
   }
 
   if (state.intrinsicRealms.size === 1) {
-    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic" || node.kind === "guest-function") delete node.realm;
+    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class") delete node.realm;
   }
 
   return {
@@ -368,7 +368,7 @@ function serializeValue(
       state.serializedHeapIds.add(id);
       const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state), state.weakEntries.get(value), state.weakTargets.get(value), state.finalizationTargets.get(value));
       if (node === undefined) throw new TypeError(`Missing guest heap state at ${path}.`);
-      if (node.kind === "intrinsic" || node.kind === "guest-function") {
+      if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class") {
         const realmValue = node.kind === "intrinsic" ? value
           : isSandboxClosure(value) ? getFunctionRealmPrototype(value, "Object", undefined) : undefined;
         const origin = realmValue === undefined ? undefined : getIntrinsicRealmIdentity(realmValue);

@@ -12,7 +12,13 @@ it.each([
   { expression: "()=>({})", expected: "Object.prototype", identity: false },
   { expression: "()=>/x/", expected: "RegExp.prototype", identity: false },
   { expression: "()=>new Map()", expected: "Map.prototype", identity: false },
-  { expression: 'Function("return this")', expected: "globalThis", identity: true }
+  { expression: 'Function("return this")', expected: "globalThis", identity: true },
+  { expression: "(()=>{const C=class { constructor(){return []} };return ()=>new C()})()", expected: "Array.prototype", identity: false },
+  { expression: "(()=>{const C=class { constructor(){return {}} };return ()=>new C()})()", expected: "Object.prototype", identity: false },
+  { expression: "(()=>{const C=class { constructor(){return /x/} };return ()=>new C()})()", expected: "RegExp.prototype", identity: false },
+  { expression: "(()=>{class C { value=[] };return ()=>new C().value})()", expected: "Array.prototype", identity: false },
+  { expression: "(()=>{class C { #value={};get(){return this.#value} };return ()=>new C().get()})()", expected: "Object.prototype", identity: false },
+  { expression: "(()=>{class B{};class C extends B { value=/x/ };return ()=>new C().value})()", expected: "RegExp.prototype", identity: false }
 ])("restores the originating realm for $expression", async ({ expression, expected, identity }) => {
   const source = `return [${expression},${expected}]`;
   const first = await run(source), second = await run(source);
@@ -37,20 +43,22 @@ it.each([
   }
 });
 
-it("keeps legacy single-realm functions and rejects malformed function realm IDs", async () => {
-  const source = "return ()=>[]";
+it.each([
+  { source: "return ()=>[]", kind: "guest-function", label: "function" },
+  { source: "return class {}", kind: "guest-class", label: "class" }
+])("keeps legacy single-realm $label records and rejects malformed realm IDs", async ({ source, kind, label }) => {
   const result = await run(source);
   if (!result.ok) throw result.error;
   const saved = serialize({ source, currentAstNodeId: 1,
     scopeChain: [{ id: "module", bindings: { value: result.returnValue } }],
     callStack: [], pendingPromises: [], moduleBindings: {} });
-  const entry = Object.entries(saved.heap!).find(([, node]) => node.kind === "guest-function");
+  const entry = Object.entries(saved.heap!).find(([, node]) => node.kind === kind);
   if (entry === undefined) throw new Error("Missing guest function");
   expect(Object.hasOwn(entry[1], "realm")).toBe(false);
   expect(() => restore(JSON.parse(JSON.stringify(saved)), { source })).not.toThrow();
   for (const realm of [0, -1, 1.5, "1", null, Number.MAX_SAFE_INTEGER + 1]) {
     const forged = JSON.parse(JSON.stringify(saved));
     forged.heap[entry[0]].realm = realm;
-    expect(() => restore(forged, { source })).toThrow("Invalid function realm identity");
+    expect(() => restore(forged, { source })).toThrow(`Invalid ${label} realm identity`);
   }
 });

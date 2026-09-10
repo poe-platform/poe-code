@@ -1067,7 +1067,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       }
     }
   } else if (node.kind === "guest-class") {
-    fields(node, ["kind", "astNodeId", "scope", "state", "fields"], ["name", "privateMethods", "dynamicSource"]);
+    fields(node, ["kind", "astNodeId", "scope", "state", "fields"], ["name", "privateMethods", "dynamicSource", "realm"]);
+    if (Object.hasOwn(node, "realm") && (!Number.isSafeInteger(node.realm) || (node.realm as number) < 1))
+      throw new TypeError("Invalid class realm identity.");
     if (node.dynamicSource !== undefined) reference(node.dynamicSource, ["guest-source", "guest-script"]);
     if (node.privateMethods !== undefined) privateState(node.privateMethods, true);
     if (integer(node.astNodeId) < 1) throw new TypeError("Invalid class AST identity.");

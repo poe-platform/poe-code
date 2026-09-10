@@ -155,7 +155,7 @@ export type GuestHeapNode<T> =
   | { kind: "guest-regexp-iterator"; matcher: T; input: T; exhausted: boolean; global?: boolean; unicode?: boolean; state: GuestObjectState<T> }
   | { kind: "bound-function"; target: T; thisValue: T; args: T[]; name?: string; length: T; state: GuestObjectState<T> }
   | { kind: "array-iterator"; source: T; index: number; method: "keys" | "values" | "entries"; state: GuestObjectState<T> }
-  | { kind: "guest-class"; astNodeId: number; scope: T; name?: string; fields: Array<{ index: number; key: T; privateName?: T }>; privateMethods?: PrivateElementData<T>[]; state: GuestObjectState<T>; dynamicSource?: T }
+  | { kind: "guest-class"; astNodeId: number; scope: T; name?: string; realm?: number; fields: Array<{ index: number; key: T; privateName?: T }>; privateMethods?: PrivateElementData<T>[]; state: GuestObjectState<T>; dynamicSource?: T }
   | { kind: "map"; entries: Array<[T,T]>; propertyState?: PropertyDescriptorData<T>; prototype?: T; privateElements?: PrivateElementData<T>[] }
   | { kind: "set"; values: T[]; propertyState?: PropertyDescriptorData<T>; prototype?: T; privateElements?: PrivateElementData<T>[] }
   | { kind: "raw-json"; text: string }

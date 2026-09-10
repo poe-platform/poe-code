@@ -40,6 +40,15 @@ it("assembles existing builtin families without invoking guest capabilities", ()
   expect(len.value.invoke([v.tuple([v.true, v.false])], keywords, meter)).toEqual(v.integer(2));
   expect(builtins.get("None")).toBe(v.none); expect(builtins.get("NotImplemented")).toBe(v.notImplemented);
 });
+it("registers aiter with the configured async acquisition policy",()=>{
+  const {meter,v,context,keywords}=fixture();
+  context.aiter={lookupSpecial:()=>v.true,hasSpecial:()=>true,call:()=>v.false,typeName:()=>"Custom"};
+  const builtin=createRuntimeBuiltins(v,meter,context).get("aiter");
+  expect(builtin?.kind).toBe("builtin_function_or_method");
+  if(builtin?.kind!=="builtin_function_or_method")throw Error("missing aiter");
+  expect(builtin.value.invoke([v.none],keywords,meter)).toBe(v.false);
+});
+
 it("allows explicit extensions and replacement without mutating another namespace", () => {
   const { meter, v, context } = fixture(), first = createRuntimeBuiltins(v, meter, context), replacement = v.cell({});
   const second = createRuntimeBuiltins(v, meter, context, [["len", replacement], ["application", v.true]]);

@@ -1,6 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { createAbsBuiltin } from "./builtin-abs.js";
+import {createAiterBuiltin} from "./builtin-aiter.js";
 import { createAllAnyBuiltin } from "./builtin-all-any.js";
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
 import { createAttributeMutationBuiltin } from "./builtin-attribute-mutation.js";
@@ -33,6 +34,7 @@ import { createZipBuiltin } from "./builtin-zip.js";
  * never fall back to host attributes, console output or filesystem access. */
 export interface RuntimeBuiltinContexts {
   abs?: Parameters<typeof createAbsBuiltin>[2];
+  aiter?:Parameters<typeof createAiterBuiltin>[2];
   allAny?: Parameters<typeof createAllAnyBuiltin>[3];
   attributeLookup?: Parameters<typeof createAttributeLookupBuiltin>[3];
   attributeMutation?: Parameters<typeof createAttributeMutationBuiltin>[3];
@@ -74,6 +76,7 @@ export function createRuntimeBuiltins(values: RuntimeValues, meter: ExecutionMet
     namespace.set(value.value.name, value);
   };
   register(createAbsBuiltin(values, meter, context.abs));
+  register(createAiterBuiltin(values,meter,context.aiter));
   for (const name of ["all", "any"] as const) register(createAllAnyBuiltin(name, values, meter, context.allAny));
   for (const name of ["getattr", "hasattr"] as const) register(createAttributeLookupBuiltin(name, values, meter, context.attributeLookup));
   for (const name of ["setattr", "delattr"] as const) register(createAttributeMutationBuiltin(name, values, meter, context.attributeMutation));

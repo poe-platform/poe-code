@@ -10608,6 +10608,22 @@ extension, integration, or validation requirement is missing or unverified.
   package suite was not rerun for this slice. Native frame/code objects,
   exception attachment, traceback descriptors/constructor and context-manager
   exception arguments remain required integration work, not completed support.
+- Native aiter builtin (2026-09-10): added direct asynchronous iterator
+  acquisition to builtin assembly, with an optional explicit protocol policy.
+  Native invocation inherits the execution's type-level lookup/call capabilities.
+  aiter and async-for acquisition share one adapter: it preserves iterator
+  identity, bypasses instance attribute lookup, checks the anext slot without
+  binding it, and never advances, awaits or falls back to synchronous iteration.
+  Failing tests drove builtin registration, cancellation that could be masked by
+  callback failure, and CPython's distinct 200/100-byte type-name diagnostics.
+  Scoped verification passes 871 tests. Build, typecheck and focused lint pass.
+  Final comparisons pass 260 aiter protocol/argument cases, 12 long-name cases
+  (including multibyte names), 512 async-for regressions and 1,728 async generator
+  expression sequences (2,512 total). The final uncached one-worker package suite
+  passes all 7,607 tests in 514 files (156.29s; test bodies 13.51s).
+  anext, native context-manager protocols,
+  traceback/frame integration, public runtime, library/import and safe-fs work
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

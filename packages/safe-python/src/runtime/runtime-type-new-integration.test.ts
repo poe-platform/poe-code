@@ -28,6 +28,7 @@ import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { createIterBuiltin,createNextBuiltin } from "./builtin-iteration.js";
+import { createAiterBuiltin } from "./builtin-aiter.js";
 import { constructRuntimeInteger } from "./runtime-integer-construction.js";
 import { constructRuntimeFloat } from "./runtime-float-construction.js";
 import { createRoundBuiltin } from "./builtin-round.js";
@@ -88,6 +89,18 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("acquires native async iterators through aiter without instance lookup or advancing them",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("aiter",createAiterBuiltin(v,state.meter));
+  state.run("events=[]\nclass I:\n def __aiter__(self):\n  events.append('iter')\n  return self\n def __anext__(self):raise RuntimeError('must not advance')\n def __getattribute__(self,name):raise RuntimeError('must not lookup instance')\ni=I()\ncorrect=aiter(i) is i and events==['iter']\nasync def source():yield 1\ng=source()\nnative=aiter(g) is g\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.globals.get("native")).toBe(v.true);
+});
+
+it("validates async iterator slots without invoking their descriptors",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("aiter",createAiterBuiltin(v,state.meter));
+  state.run("class Slot:\n def __get__(self,*args):raise RuntimeError('must not bind next')\nclass I:\n __anext__=Slot()\n def __aiter__(self):return self\ni=I()\ncorrect=aiter(i) is i\nclass Bad:\n def __aiter__(self):return 1\ntry:aiter(Bad())\nexcept TypeError as error:invalid=error.args==(\"aiter() returned not an async iterator of type 'int'\",)\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.globals.get("invalid")).toBe(v.true);
+});
 
 it("carries explicit async-manager hooks into native coroutine statement continuations",()=>{
   const state=exceptionFixture(),{v}=state,statements=state.hooks.statements;

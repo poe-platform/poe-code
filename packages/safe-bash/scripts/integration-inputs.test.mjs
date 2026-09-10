@@ -1917,6 +1917,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/line-endings/native.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/extra-native.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/publication.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings-independent/native.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings-independent/safety.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings-independent/snapshot.test.ts"));

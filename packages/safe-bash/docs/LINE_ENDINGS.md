@@ -108,6 +108,11 @@ byte filenames are outside this VFS path profile.
 Conversion requires stable, comparable file/directory identities and path-specific
 atomic rename, exclusive creation, and permission capabilities. Append/removal
 must be available. Output ancestors must be real directories, not symlinks;
+an initially absent destination additionally requires `atomicRenameNoReplace`.
+Publication uses `rename({ noReplace: true })` so a concurrent new destination
+is preserved. Providers without that capability, including the portable real
+filesystem adapter, refuse absent destinations before creating a stage;
+existing-target conversion still uses ordinary atomic rename. Any
 capability or identity uncertainty is refused rather than falling back to
 truncate-in-place. Default output symlinks are skipped. A new-file input symlink
 may resolve to a regular VFS target; path enforcement still belongs to the VFS.

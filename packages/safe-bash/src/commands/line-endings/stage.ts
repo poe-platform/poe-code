@@ -75,6 +75,9 @@ export class Stage {
     if (capabilities.atomicRename !== true || capabilities.exclusiveCreate !== true || capabilities.permissions !== true || capabilities.append === false || capabilities.remove === false) {
       throw new LineEndingError("file conversion requires atomic rename, exclusive create, permissions, append and cleanup capabilities");
     }
+    if (this.expected === undefined && capabilities.atomicRenameNoReplace !== true) {
+      throw new LineEndingError("new destination requires atomic no-replace rename capability");
+    }
     this.parents = await this.files.parents(this.path);
     for (let attempt = 0; attempt < limits.maxTempAttempts; attempt++) {
       this.temporary = resolvePath(dirname(this.path), `.line-ending-${attempt + 1}`);
@@ -122,7 +125,7 @@ export class Stage {
     await this.checked();
     const current = await this.files.stat(this.path);
     if (current ? !this.expected || current.type !== "file" || !sameIdentity(current, this.expected) : this.expected !== undefined) throw new LineEndingError("destination changed before publication");
-    await this.files.call(fs => fs.rename, [this.temporary, this.path, { signal }]);
+    await this.files.call(fs => fs.rename, [this.temporary, this.path, { signal, noReplace: this.expected === undefined }]);
     this.created = false;
   }
 }

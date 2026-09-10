@@ -984,7 +984,11 @@ rejects an explicit `timeZone` option, and checks non-ISO calendar compatibility
 On Node 18, fixed-offset zone locale formatting remains unsupported by the
 current backend; named zones work in the focused checks.
 Method presence does not establish full Temporal conformance.
-`Temporal.Now` is absent. The local `Temporal.PlainYearMonth` implementation
+The local `Temporal.Now` namespace provides `timeZoneId`, `instant`,
+`plainDateTimeISO`, `zonedDateTimeISO`, `plainDateISO` and `plainTimeISO`.
+Clock and default-zone reads are recorded for replay. The injected clock retains
+millisecond precision; returning nanosecond units does not invent finer precision.
+The local `Temporal.PlainYearMonth` implementation
 supports construction, `from`, `compare`, `equals`, `with`, calendar getters, `toString`, `toJSON`, and rejecting
 `valueOf`, with private-slot copying, host imports, and heap/replay preservation.
 Owned year-months also supply private calendars to calendar-bearing inputs and

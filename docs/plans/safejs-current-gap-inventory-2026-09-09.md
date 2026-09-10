@@ -10,7 +10,9 @@ does not describe the published package or only committed sources.
 The absence claims below are historical. The local working tree now implements
 PlainMonthDay and PlainYearMonth, including their public methods, owned copying,
 host boundaries, snapshot/replay and direct Intl admission. PlainDate now has
-toPlainMonthDay and toPlainYearMonth. Temporal.Now remains absent. Substantial
+toPlainMonthDay and toPlainYearMonth. Temporal.Now now has a local six-method
+implementation with recorded clock/default-zone reads; initial replay tests
+pass, but broader qualification remains open (see safejs-temporal-now.md). Substantial
 integration remains uncommitted; API presence is not full conformance.
 
 Fresh pinned Test262 rechecks pass both script modes for all 59 PlainMonthDay
@@ -19,8 +21,9 @@ exclusions. The formerly blocked ZonedDateTime until/since calendar-object
 fixtures also pass. See [cross-type qualification](safejs-temporal-cross-type-requalification.md).
 
 The maintained SafeJS build passed with five fresh ESM import checks. The newer
-default-Node package test session 26401 is still running and has emitted failure
-markers; it has not passed. See [current gate](safejs-post-year-month-integration-gate.md).
+default-Node package test session 26401 finished with 27,188 passes, nine failures
+and 41 skips, on an unchanged pre-Now candidate. It has not passed. See
+[current gate](safejs-post-year-month-integration-gate.md).
 Promise import policy, locale portability and broader semantic qualification
 remain open. No remote delivery or release is claimed.
 

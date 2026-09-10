@@ -17,7 +17,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
       - run: npm run build
       - run: npm run codegen:plan-schemas
@@ -32,9 +32,9 @@ jobs:
       - run: npm run lint
       - run: npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
       - run: npm run typecheck
-      - name: Route Node22-only virtual-bash tests
+      - name: Route the complete virtual-bash tests separately
         run: |
-          echo "virtual-bash requires Node >=22; Node20 does not meet its test-discovery prerequisite."
+          echo "Both unit jobs use Node22 for native-reference APIs and virtual-bash test discovery."
           echo "Its complete test:unit suite runs in the separate virtual-bash-node22 job; no tests are waived."
       - run: npm test -- --concurrency=4 --exclude-workspace=virtual-bash
       - run: npm run smoke

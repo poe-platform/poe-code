@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { extname } from "node:path";
 import type { Writable } from "node:stream";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { deserialize, serialize } from "node:v8";
@@ -384,8 +385,11 @@ beforeAll(async () => {
               kind: args.kind,
               pluginData: true
             });
-            if (resolved.path && !resolved.external)
+            if (resolved.path && !resolved.external) {
+              if ([".ts", ".tsx", ".mts", ".cts"].includes(extname(resolved.path)))
+                return { path: resolved.path };
               return { path: pathToFileURL(resolved.path).href, external: true };
+            }
           });
         }
       }

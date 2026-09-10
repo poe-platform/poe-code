@@ -67,6 +67,18 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("formats owned float percent operands without numeric override calls", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __float__(self):\n  visit('wrong')\n  return 9.0\n def __int__(self):\n  visit('int')\n  return 7\nx=Child(1.25)\ncorrect='%.2f'%x=='1.25' and b'%.2f'%x==b'1.25' and '%d'%x=='7'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["int"]);
+});
+
+it("shares numeric conversion and representation callbacks with percent formatting", () => {
+  const state=fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Number:\n def __float__(self):\n  visit('float')\n  return 1.25\n def __int__(self):\n  visit('int')\n  return 3\n def __index__(self):\n  visit('index')\n  return 15\n def __str__(self):\n  visit('str')\n  return 'custom'\nclass Integer(Int):\n def __int__(self):\n  visit('wrong')\n  return 0\nx=Number()\ncorrect='%.2f %d %x %s'%(x,x,x,x)=='1.25 3 f custom' and '%d'%Integer(7)=='7' and '%*d'%(Integer(3),2)=='  2'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["float","int","index","str"]);
+});
+
 it("reports virtual IEEE formats through the float class descriptor", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Child(Float):\n pass\ncorrect=Float.__getformat__('float')=='IEEE, little-endian' and Child.__getformat__('double')=='IEEE, little-endian' and Child.__getformat__.__self__ is Child and (1.0).__getformat__.__self__ is Float\n");

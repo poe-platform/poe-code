@@ -9517,6 +9517,19 @@ extension, integration, or validation requirement is missing or unverified.
   7,035 tests in 498 files pass in the uncached one-worker package run. Remaining
   scalar consumers (including owned float percent conversion), full interpreter
   and safe-fs execution remain unfinished. No push or release was requested.
+- Percent numeric/representation integration (2026-09-10): two failing
+  integration tests exposed missing owned-number payload inspection and absent
+  execution callbacks in percent formatting. Native percent conversion now
+  recognizes owned integer/float storage; floating formats bypass float-subclass
+  __float__ while decimal integer formats retain their __int__ dispatch.
+  Percent expressions receive active numeric-conversion, warning and shared
+  representation policies, including positional tuples containing guest values.
+  Integer subclasses also work as dynamic field widths without conversion.
+  All 324 CPython text/bytes numeric and representation comparisons match.
+  Workspace build, typecheck, focused lint and all 7,037 tests in 498 files pass
+  in the uncached one-worker package run. Guest mapping and tuple-subclass
+  percent binding remain to be integrated, as do remaining scalar consumers,
+  full interpreter and safe-fs execution. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

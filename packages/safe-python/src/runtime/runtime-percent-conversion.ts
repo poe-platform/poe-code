@@ -5,6 +5,8 @@ import type { PercentFloatContext } from "./percent-float-conversion.js";
 import type { CodePointString } from "./code-point-string.js";
 import type { RuntimeValue } from "./runtime-values.js";
 import type { PercentBytesContext } from "./percent-bytes-conversion.js";
+import { runtimeFloatPayload } from "./runtime-float-payload.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 
 export interface RuntimePercentConversionHooks {
   /** Pure guest integer-subclass payload inspection, never conversion. */
@@ -39,13 +41,14 @@ export function createRuntimePercentConversionContext(meter: ExecutionMeter, hoo
   return {
     integer(value) {
       meter.checkpoint();
-      if (value.kind === "int") return value.value;
-      if (value.kind === "bool") return value.value ? 1n : 0n;
+      const payload=runtimeIntegerPayload(value);
+      if (payload?.kind === "int") return payload.value;
+      if (payload?.kind === "bool") return payload.value ? 1n : 0n;
       return hooks?.integer?.(value);
     },
     isExactInteger(value) { meter.checkpoint(); return value.kind === "int"; },
     float(value) { meter.checkpoint(); return value.kind === "float" ? value.value : undefined; },
-    floating(value) { meter.checkpoint(); return value.kind === "float" ? value.value : hooks?.floating?.(value); },
+    floating(value) { meter.checkpoint(); return runtimeFloatPayload(value)?.value ?? hooks?.floating?.(value); },
     isExactFloat(value) { meter.checkpoint(); return value.kind === "float"; },
     lookupFloat(value) { meter.checkpoint(); return hooks?.lookupFloat?.(value); },
     isPythonException(error) { meter.checkpoint(); return hooks?.isPythonException?.(error) ?? false; },

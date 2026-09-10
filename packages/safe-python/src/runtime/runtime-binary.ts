@@ -5,7 +5,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import type { RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
-import { isRuntimeSet, isRuntimeSetView, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { isRuntimeSet, isRuntimeSetView, type BuiltinInvocationContext, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { runtimeDictionaryViewBinary } from "./runtime-dictionary-view-algebra.js";
 import { textPercentFormat } from "./text-percent-format.js";
 import { bytesPercentFormat } from "./bytes-percent-format.js";
@@ -19,7 +19,7 @@ import { UnsupportedExpressionError } from "./expression-evaluation.js";
  * Matched-operation errors propagate. Unsupported operand combinations and
  * unavailable families decline with NotImplemented for the later guest layer.
  */
-export function runtimeBinary(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>, comparison?: RuntimeSearchEqualityContext): RuntimeValue {
+export function runtimeBinary(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>, comparison?: RuntimeSearchEqualityContext, invocation?: BuiltinInvocationContext): RuntimeValue {
   meter.checkpoint();
   switch (operator) {
     case "+": case "-": case "*": case "/": case "//": case "%": case "**":
@@ -27,14 +27,21 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     default: throw new Error(`unsupported runtime binary operator: ${operator}`);
   }
   if (operator === "%" && (left.kind === "str" || left.kind === "bytes")) {
-    // A format accepts arbitrary positional/mapping operands; it must run before
-    // the family guards below. Other native/guest repr slots remain explicit
-    // implementation gaps until their runtime representation policies exist.
+    // Formats accept arbitrary operands before the family guards below.
+    // Guest conversions and representation share the active execution policy.
     meter.checkpoint(0, 384);
+    const slot=(value:RuntimeValue,name:string):(()=>RuntimeValue)|undefined=>{
+      const method=invocation?.lookupSpecial?.(value,name);meter.checkpoint();
+      if(method===undefined)return undefined;
+      meter.checkpoint(0,64);return ()=>invocation!.call(method,[]);
+    };
     const context = {
       ...createRuntimePercentBindingContext(values, meter),
-      ...createRuntimePercentConversionContext(meter),
-      ...createRuntimeRepresentationContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("binary"); } })
+      ...createRuntimePercentConversionContext(meter,invocation===undefined?undefined:{
+        lookupFloat:value=>slot(value,"__float__"),lookupInt:value=>slot(value,"__int__"),lookupIndex:value=>slot(value,"__index__"),
+        typeName:value=>invocation.typeName?.(value),warn:(category,message)=>invocation.warn?.(category,message)
+      }),
+      ...(invocation?.formatting??createRuntimeRepresentationContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("binary"); } }))
     };
     if (left.kind === "str") return textPercentFormat(left, right, context, meter);
     meter.checkpoint(0, 448);

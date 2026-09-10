@@ -44,6 +44,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   { readonly formatting?: FormatContext<RuntimeValue>;
     readonly mapping?: BuiltinInvocationContext;
     readonly subscription?: BuiltinInvocationContext;
+    /** Active numeric-conversion and representation policy for percent formats. */
+    readonly percent?: BuiltinInvocationContext;
     readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
     readonly bytes?: RuntimeBytesInputProtocol;
     readonly translation?: RuntimeStringTranslationContext;
@@ -133,7 +135,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       }
       const numeric = bindings.numeric?.(operator, left, right);
       meter.checkpoint();
-      return runtimeNumericOperation(operator, left, right, values, meter, numeric, augmented, methods);
+      return runtimeNumericOperation(operator, left, right, values, meter, numeric, augmented, methods, bindings.percent);
     },
     compare(operator, left, right) {
       if (operator === "in" || operator === "not in") {

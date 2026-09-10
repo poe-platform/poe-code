@@ -2225,7 +2225,7 @@ async function evaluateForInStatement(
 
   const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
   let keys: string[] = [];
-  const release = retainValues(context.budget, () => [right.value, keys]);
+  const release = retainValues(context.budget, () => [right.value, object as SandboxValue, keys]);
   try {
   const restoredIteration = consumeRestoredLoopIteration(node, context);
   keys = restored?.keys ?? (
@@ -2284,19 +2284,13 @@ async function evaluateForInStatement(
 }
 
 function forInObject(value: SandboxValue): object | undefined {
-  if (isSandboxClosure(value)) return value;
-  if (value === null || value === undefined) {
-    return undefined;
-  }
-  if (
-    typeof value === "string" ||
-    Array.isArray(value) ||
-    isNumericTypedArray(value) ||
-    isPlainForInObject(value)
-  ) {
-    return Object(value);
-  }
-  return undefined;
+  if (value === null || value === undefined || typeof value === "function") return undefined;
+  if (typeof value !== "object") return createSandboxBox(value);
+  if (hasExplicitSandboxPrototype(value) || isSandboxDate(value) ||
+      isSandboxClosure(value) || Array.isArray(value) || isNumericTypedArray(value)) return value;
+  // Preserve the internal interpreter's data-only boundary for unimported host objects.
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === null || prototype === Object.prototype ? value : undefined;
 }
 
 async function forInKeys(object: object, budget: Budget, context: SandboxCallContext): Promise<string[]> {
@@ -2357,14 +2351,6 @@ async function hasForInProperty(object: object, key: string, budget: Budget, con
 function isArrayIndexKey(key: string): boolean {
   const index = Number(key);
   return Number.isInteger(index) && index >= 0 && index < 4_294_967_295 && String(index) === key;
-}
-
-function isPlainForInObject(value: unknown): value is Record<string, SandboxValue> {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
 }
 
 function normalEmptyResult(): EvaluationResult {

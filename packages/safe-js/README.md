@@ -628,6 +628,9 @@ Ordinary enumeration also handles existing string/symbol properties made
 enumerable by an earlier getter.
 Ordinary `for-in` includes enumerable non-index string properties on arrays and
 array ancestors, including when a generator resumes from a checkpoint.
+Guest Dates, buffers and DataViews also expose their enumerable own and inherited
+properties to `for-in`. Primitive values use their guest boxed prototypes;
+unimported host objects remain outside the internal interpreter's supported boundary.
 Internal Proxy `for-in` now uses own-key, prototype, and descriptor operations,
 including virtual keys, inherited properties, deletion, and early loop exits.
 The saved key-list format is unchanged.

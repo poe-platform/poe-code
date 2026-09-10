@@ -110,3 +110,11 @@ it("initializes a child realm before its Function constructor is used", async ()
       .toMatchObject({ status: "normal", value: true });
   } finally { await realm.dispose(); }
 });
+
+it("shares the test's work allowance across child realms", async () => {
+  const realm = createTest262Realm({ maxSteps: 1000 });
+  try {
+    expect(await realm.evaluate('$262.createRealm().evalScript("for(let i=0;i<150;i++){}");$262.createRealm().evalScript("for(let i=0;i<150;i++){}");1'))
+      .toMatchObject({ status: "host-error", error: { code: "budgetExceeded", budget: "steps" } });
+  } finally { await realm.dispose(); }
+});

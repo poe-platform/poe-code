@@ -1,5 +1,5 @@
 import { parseEvalScript } from "../../src/parse/parser.js";
-import { Budget, SandboxError, type BudgetOptions } from "../../src/interp/budget.js";
+import { Budget, SandboxError, type BudgetOptions, type CompileOwner } from "../../src/interp/budget.js";
 import { createBuiltinBindings } from "../../src/interp/globals.js";
 import { interpret, Scope, type InterpreterValue } from "../../src/interp/interpreter.js";
 import { getRealmGlobalObject } from "../../src/interp/intrinsics.js";
@@ -19,10 +19,10 @@ export type Test262Realm = {
   dispose(): Promise<void>;
 };
 
-export function createTest262Realm(options: BudgetOptions = {}, onPrint?: (message: string) => void): Test262Realm {
-  const budget = new Budget(options);
-  const bindings = createBuiltinBindings({ budget });
-  const operation = budget.acquireCompileOwner(false);
+export function createTest262Realm(options: BudgetOptions = {}, onPrint?: (message: string) => void, owner?: CompileOwner): Test262Realm {
+  const budget = owner?.budget.forkRealm() ?? new Budget(options);
+  const bindings = createBuiltinBindings({ budget, compileOwner: owner });
+  const operation = budget.acquireCompileOwner(false, owner);
   const jobs = new SandboxJobQueue();
   const controller = new AbortController();
   const scope = new Scope(bindings).child({}, { globalEnvironment: true });
@@ -75,7 +75,7 @@ export function createTest262Realm(options: BudgetOptions = {}, onPrint?: (messa
   });
   const createRealm = createSandboxClosure({ guest: true, sandbox: true, name: "createRealm", length: 0,
     call: async () => {
-      const child = createTest262Realm(options, onPrint);
+      const child = createTest262Realm(options, onPrint, operation.owner);
       children.push(child);
       const initialized = await child.evaluate("", true);
       if (initialized.status !== "normal") throw initialized.error;

@@ -289,3 +289,33 @@ The bounded command exited zero (33658, terminal 2c2259), preserving the
 Its header and summary record the explicit limits. The command budget flags
 are qualified for their own local commit; child-account sharing remains a
 separate pending host correction, not a reason to claim aggregate safety yet.
+
+Command budget options are local commit 17b44d64b. A read-only probe confirmed
+300 iterations exceed a 1,000-step allowance in one realm, but two fresh child
+realms with 150 iterations each incorrectly complete (37794, terminal c61aeb).
+The focused regression reproduced this with twelve controls passing (40585,
+terminal 609cd9). The host candidate now forks the existing budget's realm view
+and shares its explicit compile owner with children. Intrinsic caches retain
+distinct realm identities; limits and accounting are shared using the existing
+Budget mechanism. Combined host/infrastructure tests and scoped lint are running.
+
+The first shared-budget candidate failed four host cases with reentry errors
+(25439, terminal 996d61), including the new budget check; 81 controls passed.
+Builtin initialization creates a host bridge and needs the inherited owner
+too. The host now passes the owner through the existing `createBuiltinBindings`
+option, without changing Budget's reentry guard. Rechecking the full
+infrastructure selection precedes another real cross-realm corpus run.
+
+The corrected ownership path passed all 85 infrastructure tests (76407); lint
+is still live. The bounded real `Array.of` command exited zero again (87583,
+terminal f09af9), with all 32 variants passed in
+`/tmp/safejs-test262-shared-budget-array-of-fixed.jsonl`. The new aggregate
+step-budget regression now passes without losing cross-realm or cancellation
+behavior. No full-corpus run has started yet.
+
+The previous lint handle was unavailable on resumption, and a process check
+confirmed no conformance qualification was live. A fresh unchanged selection
+passed all 85 tests and scoped lint (32157, terminal 223654). This qualifies
+the shared child-realm budget correction for a local atomic commit. The full
+pinned corpus will be measured with explicit resource limits; those results
+must distinguish failures, unsupported modes and incomplete execution.

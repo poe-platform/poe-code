@@ -7560,6 +7560,18 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 450 files, selected workspace build, typecheck and scoped lint pass. Automatic rich
   comparison/iteration assembly, native-subclass storage, metaclass overrides and
   suspended safe-fs effects remain unfinished.
+- Added an explicit native comparison decline boundary needed by rich MRO
+  dispatch. Unsupported root pairs can now return NotImplemented before final
+  equality fallback or ordering errors; supported native comparisons and all
+  delegated/member comparisons still resolve fully. This is a combined native
+  kernel capability, not a claim to expose individual builtin type slots. Seven
+  regressions failed first. Fourteen new tests cover all six operators, native
+  numeric/identity behavior, nested lists and cells, raw proxy delegation,
+  composition with reflected dispatch and cancellation. CPython confirms 22
+  scenarios; 504 prior cell/proxy/list-mutation comparisons remain unchanged.
+  All 5,774 tests in 451 files, selected build, typecheck and scoped lint pass.
+  Automatic frame rich-comparison MRO assembly remains unfinished, including
+  default object inequality delegation and actual native/guest type ownership.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -8,6 +8,10 @@ import { compareRuntimeDictionaryViews } from "./runtime-dictionary-view.js";
 import { runtimeTruth } from "./runtime-truth.js";
 
 export interface RuntimeComparisonContext {
+  /** Return NotImplemented for unsupported root pairs so an outer dispatcher
+   * can try guest reflection. Delegated/member comparisons still resolve fully.
+   * This is a combined native-kernel boundary, not an exposed single-type slot. */
+  readonly declineUnsupported?: boolean;
   /** Prepared guest slots for any delegated comparison. When supplied, this
    * replaces the specialized equality/ordering callbacks below. */
   comparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue | undefined;
@@ -185,6 +189,10 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
       };
       work.push(next);
       continue;
+    }
+    if (depth === 0) {
+      const decline = context?.declineUnsupported; meter.checkpoint();
+      if (decline && (a !== b || op !== "==" && op !== "!=")) return values.notImplemented;
     }
     if (op === "==" || op === "!=") { result = op === "==" ? a === b : a !== b; continue; }
     const aName = a.kind === "none" ? "NoneType" : a.kind === "not-implemented" ? "NotImplementedType" : a.kind;

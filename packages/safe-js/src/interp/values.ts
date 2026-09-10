@@ -1364,7 +1364,7 @@ function copyToSandbox(
     return copy;
   }
 
-  if (isHostPromise(value)) {
+  if (nodeTypes.isPromise(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
     const promise = Promise.resolve(value).then(
@@ -1895,10 +1895,6 @@ function isSandboxPrimitive(value: unknown): value is SandboxPrimitive {
     typeof value === "boolean" ||
     typeof value === "symbol"
   );
-}
-
-function isHostPromise(value: unknown): value is Promise<unknown> {
-  return value instanceof Promise;
 }
 
 function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {

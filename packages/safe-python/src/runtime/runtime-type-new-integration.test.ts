@@ -55,6 +55,24 @@ it.each(["dict", "set"])("dispatches guest key protocols in ordinary %s displays
   expect(state.events).toEqual(["hash", "hash", "equal", "hash", "equal"]);
 });
 
+it.each(["__lt__", "__le__", "__gt__", "__ge__"])("exposes non-delegating object ordering slot %s", name => {
+  const state = fixture();
+  state.run(`class Key:\n def ${name}(self,other):\n  visit('override')\n  return True\nkey=Key()\ndirect=object.${name}(key,key)\nbound=object.${name}.__get__(key,Key)(key)\nnative=object.${name}(1,2)\n`);
+  for (const result of ["direct", "bound", "native"]) expect(state.globals.get(result)).toBe(state.v.notImplemented);
+  expect(state.events).toEqual([]);
+});
+
+it.each(["__lt__", "__le__", "__gt__", "__ge__"])("validates object ordering arguments for %s", name => {
+  const state = fixture();
+  for (const [args, message] of [
+    ["", `descriptor '${name}' of 'object' object needs an argument`],
+    ["1", "expected 1 argument, got 0"], ["1,2,3", "expected 1 argument, got 2"],
+    ["1,x=2", `wrapper ${name}() takes no keyword arguments`],
+    ["1,2,3,x=4", `wrapper ${name}() takes no keyword arguments`]
+  ]) expect(() => state.run(`object.${name}(${args})\n`)).toThrow(message);
+  expect(state.calls.depth).toBe(0);
+});
+
 it("delegates object inequality only to receiver equality and preserves NotImplemented", () => {
   const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
   state.run("class Left:\n def __eq__(self,other):\n  visit('left')\n  return NotImplemented\nclass Right(Left):\n def __eq__(self,other):\n  visit('right')\n  return True\nleft=Left()\nright=Right()\ndirect=object.__ne__(left,right)\nbound=left.__ne__(right)\nnormal=left!=right\nnative=object.__ne__(1,2)\nunsupported=object.__ne__(1,'x')\n");

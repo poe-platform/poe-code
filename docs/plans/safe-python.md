@@ -8534,6 +8534,17 @@ extension, integration, or validation requirement is missing or unverified.
   Earlier comparison/collection differential suites also pass (560 guest, 2,028
   native, 96 key cases). Final selected build, typecheck, scoped lint and all
   6,555 tests in 493 files pass with two workers.
+- Installed the four canonical object ordering descriptors (__lt__, __le__,
+  __gt__, __ge__). Each declines every pair without delegating to guest overrides
+  or native payload ordering; descriptor binding, documentation and argument
+  validation use the normal wrapper path. Four initial regressions failed on
+  absent slots. Eight added tests cover direct/bound/native calls and argument
+  error precedence for every slot. All 432 CPython differential cases match,
+  including native/guest receivers, None binding and descriptor documentation.
+  Base object equality and complete native type catalogs remain unfinished.
+  Earlier 560 guest and 2,028 native comparison cases also still match CPython.
+  Selected build, typecheck, scoped lint and all 6,563 tests in 493 files pass
+  with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

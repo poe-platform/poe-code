@@ -57,7 +57,8 @@ describe("concrete runtime iteration", () => {
   it("honors construction and range value allocation limits", () => {
     const { values: v } = fixture(), range = v.range(createRange(0n, 10n));
     expect(() => runtimeIterate(range, v, new ExecutionBudget({ maxSteps: 0, maxAllocatedBytes: 10000 }))).toThrow(ExecutionLimitError);
-    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 280 }), values = new RuntimeValues(meter);
+    // Includes the range adapter's bound length-hint callback, but not a pull.
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 344 }), values = new RuntimeValues(meter);
     const iterator = runtimeIterate(range, values, meter);
     expect(() => iterator.next()).toThrow(ExecutionLimitError);
   });

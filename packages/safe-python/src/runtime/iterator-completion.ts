@@ -9,4 +9,7 @@ export type CompletionResult<Value> = IteratorYieldResult<Value> | (IteratorRetu
 /** Ordinary host iterators are structurally compatible and need no adapter. */
 export interface CompletionIterator<Value> extends Iterator<Value> {
   next(): CompletionResult<Value>;
+  /** Optional advisory remaining length. Undefined maps to NotImplemented;
+   * callers must not interpret a hint as an exact count or allocation budget. */
+  lengthHint?(): number | bigint | undefined;
 }

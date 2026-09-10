@@ -1269,3 +1269,13 @@ it.each(["for", "contains"])("preserves already-classified native exhaustion dur
     expect(caught).toBe(true); expect(error).toBe(failure);
   }
 });
+
+it.each([false, true])("exposes legacy cursor hints with source length present=%s", sized => {
+  const state = fixture(), owner = state.type("Sequence"), v = state.v;
+  state.method(owner, "__getitem__", "def item(self, index):\n return index\n");
+  if (sized) state.method(owner, "__len__", "def length(self):\n return 3\n");
+  state.guest("guest", owner); state.globals.set("iter", createIterBuiltin(v, state.meter)); state.globals.set("next", createNextBuiltin(v, state.meter));
+  state.run("cursor=iter(guest)\nbefore=cursor.__length_hint__()\nnext(cursor)\nafter=cursor.__length_hint__()\n");
+  expect(state.globals.get("before")).toEqual(sized ? v.integer(3) : v.notImplemented);
+  expect(state.globals.get("after")).toEqual(sized ? v.integer(2) : v.notImplemented);
+});

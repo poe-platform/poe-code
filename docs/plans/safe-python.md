@@ -7628,6 +7628,19 @@ extension, integration, or validation requirement is missing or unverified.
   containment cases still match CPython. Native cursor hints, custom guest
   exception-subclass matching, full class/storage ownership and suspended safe-fs
   effects remain unfinished.
+- Exposed prepared cursor __length_hint__ through the native attribute and frame
+  special-method path. Six regressions failed first. Optional cursor hints retain
+  number/bigint results without premature machine-size conversion; missing hints
+  remain absent and unavailable indexed-source lengths return NotImplemented.
+  Range adapters preserve their underlying cursor's hint and meter its bound
+  callback. Twelve added tests cover immutable/live sequences, mappings/views,
+  sets, large ranges, guest indexed cursors, argument validation and cancellation.
+  The allocation-boundary test now includes the new callback while still failing
+  on the first pull. All 432 native hint observations in 48 traces and the prior
+  120 guest iteration cases match CPython. All 5,852 tests in 452 files, selected
+  build, typecheck and scoped lint pass. Consumer-side native hint handling and exact iterator
+  type-name diagnostics remain unfinished, alongside full class/storage ownership
+  and suspended safe-fs effects.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

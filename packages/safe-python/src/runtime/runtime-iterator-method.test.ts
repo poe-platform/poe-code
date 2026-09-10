@@ -88,3 +88,57 @@ it("checks cancellation after pulling, before delivering values or exhaustion", 
     expect(() => call(iterator, "__next__")).toThrow(ExecutionLimitError);
   }
 });
+
+it.each(["list", "tuple", "str", "bytes", "range"])("exposes remaining %s iterator hints without pulling", kind => {
+  const { v, call } = fixture();
+  const sources = { list: v.list([v.true, v.false]), tuple: v.tuple([v.true, v.false]), str: v.string("😀x"), bytes: v.bytes(Uint8Array.of(1, 2)), range: v.range(createRange(0n, 2n)) };
+  const iterator = call(sources[kind as keyof typeof sources], "__iter__");
+  expect(call(iterator, "__length_hint__")).toEqual(v.integer(2));
+  expect(call(iterator, "__length_hint__")).toEqual(v.integer(2));
+  call(iterator, "__next__"); expect(call(iterator, "__length_hint__")).toEqual(v.integer(1));
+  call(iterator, "__next__"); expect(call(iterator, "__length_hint__")).toEqual(v.integer(0));
+});
+
+it("retains unbounded range hints without machine-size conversion", () => {
+  const { v, call } = fixture(), size = 1n << 100n;
+  const iterator = call(v.range(createRange(0n, size)), "__iter__");
+  expect(call(iterator, "__length_hint__")).toEqual(v.integer(size));
+  call(iterator, "__next__"); expect(call(iterator, "__length_hint__")).toEqual(v.integer(size - 1n));
+});
+
+it("reads live list hints and keeps exhaustion sticky", () => {
+  const { v, call } = fixture(), list = v.list([v.true]), iterator = call(list, "__iter__");
+  list.items.append(v.false); expect(call(iterator, "__length_hint__")).toEqual(v.integer(2));
+  list.items.clear(); expect(call(iterator, "__length_hint__")).toEqual(v.integer(0));
+  list.items.append(v.true); expect(call(iterator, "__length_hint__")).toEqual(v.integer(1));
+  call(iterator, "__next__"); expect(() => call(iterator, "__next__")).toThrow(expect.objectContaining({ name: "StopIteration" }));
+  list.items.append(v.true); expect(call(iterator, "__length_hint__")).toEqual(v.integer(0));
+});
+
+it("exposes mapping and set cursor hints without projecting items", () => {
+  const { v, call, meter } = fixture();
+  const map = new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 1n, equal: (a, b) => a === b }, meter);
+  map.set(v.true, v.false); map.set(v.none, v.true);
+  const dict = v.dictionary(map);
+  for (const source of [dict, v.mappingProxy(dict), v.dictionaryView(dict, "dict_keys"), v.dictionaryView(dict, "dict_values"), v.dictionaryView(dict, "dict_items"), v.set(map), v.frozenSet(map)]) {
+    const iterator = call(source, "__iter__");
+    expect(call(iterator, "__length_hint__")).toEqual(v.integer(2));
+    call(iterator, "__next__"); expect(call(iterator, "__length_hint__")).toEqual(v.integer(1));
+  }
+});
+
+it("leaves hintless cursors without a length-hint attribute", () => {
+  const { v, call } = fixture();
+  expect(() => call(v.iterator({ next: () => ({ done: true, value: undefined }) }), "__length_hint__")).toThrow("has no attribute '__length_hint__'");
+});
+
+it("validates hint arguments and checks cancellation after the callback", () => {
+  let cancelled = false, calls = 0;
+  const { v, call, keywords } = fixture({ checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } });
+  const iterator = v.iterator({ next: () => ({ done: true, value: undefined }), lengthHint() { calls++; cancelled = true; return 1n; } });
+  expect(() => call(iterator, "__length_hint__", [v.none])).toThrow("expected 0 arguments");
+  keywords.items.set(v.string("x"), v.none);
+  expect(() => call(iterator, "__length_hint__")).toThrow("takes no keyword arguments");
+  keywords.items.clear(); expect(calls).toBe(0);
+  expect(() => call(iterator, "__length_hint__")).toThrow(ExecutionLimitError); expect(calls).toBe(1);
+});

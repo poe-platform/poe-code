@@ -142,3 +142,15 @@ The maintained type route also exposed exact-optional-property and TextDecoder
 receiver type errors in two existing test files. Narrow corrections preserve
 the fixture behavior and passed focused strict typechecking and runtime tests;
 they are separate from the codec implementation.
+
+Remote main advanced to `bf6f21440` with ZIP commands and retained filesystem
+cleanup. The merge preserves both feature sets and resolves current command
+inventories to 100 (101 with an additional custom command), retaining all nine
+compression names and the ZIP pair. The raw-deflate addition preserves existing
+gzip initialization and uses the separate portable driver unchanged. The normal
+merged workspace build passed. Rebuilding corrected the first focused run's
+stale 98-command playground outputs; all 128 root/playground and retained-cleanup
+checks then passed. Full maintained unit/lint gates and publication remain required.
+The seven focused Bash files passed all 194 checks, including exact default
+registration and stream-inspection positions, canonical peer inventory, gzip
+cancellation, raw-deflate framing, and invocation cleanup.

@@ -5,7 +5,7 @@ import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { openRetainedResizeFile, retainedResizeCapabilities } from "./capabilities.js";
 
-const originals = new WeakMap<FileSystem, FileSystem>();
+const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void }>();
 const operations = new Set<keyof FileSystem>([
   "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
@@ -13,8 +13,8 @@ const operations = new Set<keyof FileSystem>([
   "writeFile", "writeStream",
 ]);
 
-export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal): FileSystem {
-  const original = originals.get(filesystem) ?? filesystem;
+export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge): FileSystem {
+  const original = originals.get(filesystem)?.filesystem ?? filesystem;
   const methods = new Map<PropertyKey, { original: unknown; scoped: unknown }>();
   const assertOpen = (options?: FsOptions): void => {
     signal.throwIfAborted();
@@ -139,7 +139,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         }
         if (property === "compareEntry") {
           const peer = args[1] as FileSystem;
-          args[1] = originals.get(peer) ?? peer;
+          args[1] = originals.get(peer)?.filesystem ?? peer;
         }
         if (property === "rename" && (args[2] as RenameOptions | undefined)?.noReplace) return (async () => {
           const options = args[2] as RenameOptions;
@@ -171,10 +171,96 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return scoped;
     },
   });
-  originals.set(view, original);
+  originals.set(view, { filesystem: original, signal, cleanupCharge });
   registerEntryView(view, async (path, options) => {
     assertOpen(options);
     return { filesystem: original, path };
   });
   return view;
+}
+
+export interface RetainedFileSystemCleanupView {
+  readonly lstat: FileSystem["lstat"];
+  readonly realpath: FileSystem["realpath"];
+  readonly rm: (path: string, options?: FsOptions) => Promise<void>;
+  readonly rmdir?: NonNullable<FileSystem["rmdir"]>;
+}
+
+export interface RetainedFileSystemCleanupOptions {
+  readonly maxOperations?: number;
+}
+
+export function retainFileSystemCleanup(
+  filesystem: FileSystem,
+  cleanupCallback: (view: RetainedFileSystemCleanupView) => void | PromiseLike<void>,
+  options?: RetainedFileSystemCleanupOptions,
+): () => Promise<void> {
+  const maximum = options?.maxOperations === undefined ? 256 : options.maxOperations;
+  if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > 4096) throw new RangeError("cleanup maxOperations must be an integer between 0 and 4096");
+  if (typeof cleanupCallback !== "function") throw new TypeError("cleanup callback must be a function");
+  const scope = originals.get(filesystem);
+  scope?.signal.throwIfAborted();
+  const backing = scope?.filesystem ?? filesystem;
+  const pending = new Set<Promise<PromiseSettledResult<void>>>();
+  let operations = 0;
+  let active = false;
+  let closing: Promise<void> | undefined;
+  const invoke = (method: keyof RetainedFileSystemCleanupView, path: string, settings?: FsOptions): Promise<unknown> => {
+    if (!active) {
+      const rejected = Promise.reject(new FsError("EBADF", { syscall: method, path, message: "cleanup callback is not active" }));
+      void rejected.catch(() => {});
+      return rejected;
+    }
+    let result: Promise<unknown>;
+    try {
+      settings?.signal?.throwIfAborted();
+      if (operations >= maximum) throw new FsError("EFBIG", { syscall: method, path, message: "cleanup operation limit exceeded" });
+      operations++;
+      scope?.cleanupCharge();
+      settings?.signal?.throwIfAborted();
+      const operation = backing[method];
+      if (typeof operation !== "function") throw new FsError("ENOTSUP", { syscall: method, path });
+      const parameters = method === "rm" ? { ...settings, recursive: false, force: false } : settings;
+      result = Promise.resolve(Reflect.apply(operation, backing, [path, parameters]));
+    } catch (error) {
+      result = Promise.reject(error);
+      void result.catch(() => {});
+      return result;
+    }
+    const completion = result.then<PromiseSettledResult<void>, PromiseSettledResult<void>>(
+      () => { pending.delete(completion); return { status: "fulfilled", value: undefined }; },
+      error => { pending.delete(completion); return { status: "rejected", reason: error }; },
+    );
+    pending.add(completion);
+    return result;
+  };
+  const view: RetainedFileSystemCleanupView = Object.freeze(Object.assign(Object.create(null) as RetainedFileSystemCleanupView, {
+    lstat: invoke.bind(undefined, "lstat") as RetainedFileSystemCleanupView["lstat"],
+    realpath: invoke.bind(undefined, "realpath") as RetainedFileSystemCleanupView["realpath"],
+    rm: invoke.bind(undefined, "rm") as RetainedFileSystemCleanupView["rm"],
+    ...(typeof backing.rmdir === "function" ? { rmdir: invoke.bind(undefined, "rmdir") as NonNullable<RetainedFileSystemCleanupView["rmdir"]> } : {}),
+  }));
+  scope?.signal.throwIfAborted();
+  return () => {
+    if (!closing) {
+      closing = Promise.resolve().then(async () => {
+        active = true;
+        let callbackFailed = false;
+        let callbackFailure: unknown;
+        try {
+          const result = cleanupCallback(view);
+          if (result !== undefined) await result;
+        } catch (error) { callbackFailed = true; callbackFailure = error; }
+        finally { active = false; }
+        const outcomes = await Promise.all(pending);
+        if (callbackFailed) throw callbackFailure;
+        const failures: unknown[] = [];
+        for (const outcome of outcomes) if (outcome.status === "rejected") failures.push(outcome.reason);
+        if (failures.length === 1) throw failures[0];
+        if (failures.length > 1) throw new AggregateError(failures, "retained filesystem cleanup failed");
+      });
+      void closing.catch(() => {});
+    }
+    return closing;
+  };
 }

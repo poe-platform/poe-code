@@ -202,6 +202,10 @@ export class Budget {
 
   fileSystemOperation(): void {
     this.cpuCheckpoint();
+    this.fileSystemCleanupOperation();
+  }
+
+  fileSystemCleanupOperation(): void {
     if (this.#fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
     this.#fileSystemOperations++;
   }
@@ -1155,7 +1159,7 @@ export class Runtime {
     readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
     private readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs,
   ) {
-    this.fs = scopeFileSystem(fs, () => budget.fileSystemOperation(), signal);
+    this.fs = scopeFileSystem(fs, () => budget.fileSystemOperation(), signal, () => budget.fileSystemCleanupOperation());
     const checkpoint = () => budget.cpuCheckpoint();
     registerYieldCheckpoint(signal, checkpoint);
     registerYieldCheckpoint(commandSignal, checkpoint);

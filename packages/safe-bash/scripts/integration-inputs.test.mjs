@@ -1886,6 +1886,14 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/grep-bre-literals.test.ts"));
   assert.ok(files.includes("tests/commands/archive/permissions.test.ts"));
   assert.ok(files.includes("tests/commands/find-printf.test.ts"));
+  assert.ok(files.includes("tests/shell/filesystem-cleanup.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-codec.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-format.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-review.test.ts"));
+  assert.ok(files.includes("tests/commands/zip.test.ts"));
+  assert.ok(files.includes("tests/commands/unzip.test.ts"));
+  assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/zip-safety.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/utf8-subject-review.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/bounded-expr-provider.test.ts"));
   assert.ok(files.includes("tests/commands/expr/bre-engine.test.ts"));

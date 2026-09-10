@@ -16,10 +16,10 @@ runtimes. Compression, archives, checksums and timers use supported pure Node
 builtins. It does not promise a zero-Node-builtins browser runtime. The separate
 `/browser` entry retains its original lightweight, polyfill-free builtin contract.
 
-The authoritative inventory is `portableAgentCommandNames`: the same 79 default
+The authoritative inventory is `portableAgentCommandNames`: the same 91 default
 commands as `agentCommands`, without duplicate registration. It includes standard
 filesystem and stream tools, find, sed/awk, jq, search, byte encoders and checksums,
-compression, diff/patch, metadata, tar, table and stream formatting, splitting,
+compression, diff/patch, metadata, tar, zip/unzip, table and stream formatting, splitting,
 time/environment tools, tree/file, aliases, column, HTML conversion, du, expr,
 which, timeout and apply_patch. It excludes curl, node and safejs; these remain
 separate explicit capability opt-ins. Existing Node `agentCommands` and

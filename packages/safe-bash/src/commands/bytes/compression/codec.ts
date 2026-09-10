@@ -38,7 +38,7 @@ export class CodecReader implements CodecInput {
 }
 
 interface CodecOptions {
-  readonly mode: "gzip" | "gunzip" | "inflate-raw";
+  readonly mode: "gzip" | "gunzip" | "inflate-raw" | "deflate-raw";
   readonly chunkSize?: number;
   readonly level?: number;
   readonly onFailure?: (error: unknown) => void;
@@ -56,10 +56,10 @@ export async function* codec(input: CodecInput, options: CodecOptions, signal: A
   if (!Number.isSafeInteger(requestedSize) || requestedSize <= 0) throw new RangeError("invalid codec chunk size");
   const chunkSize = Math.min(requestedSize, 64 * 1024);
   let output = new Uint8Array(chunkSize);
-  const encoding = options.mode === "gzip";
+  const encoding = options.mode === "gzip" || options.mode === "deflate-raw";
   const stream = new ZStream();
   const initialized = encoding
-    ? zlibDeflateInit2(stream, options.level ?? 6, 8, 31, 8, 0, true)
+    ? zlibDeflateInit2(stream, options.level ?? 6, 8, options.mode === "deflate-raw" ? -15 : 31, 8, 0, true)
     : zlibInflateInit2(stream, options.mode === "inflate-raw" ? -15 : 31);
   if (initialized !== Z_OK) {
     if (encoding) zlibDeflateEnd(stream);

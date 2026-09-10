@@ -6,7 +6,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
   "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
-  "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
   "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint",
 ].sort());
@@ -158,6 +158,29 @@ export async function verifyNumfmtCommands(entry = defaultEntry) {
     if (binary.exitCode !== 0 || binary.stderr !== "" || JSON.stringify(Array.from(binary.stdoutBytes)) !== "[255,44,49,46,48,75,10]") {
       throw new Error(`Public numfmt binary output changed: ${JSON.stringify(binary)}`);
     }
+  } finally { await shell.dispose(); }
+}
+
+export async function verifyZipCommands(entry = defaultEntry) {
+  const filesystem = new entry.MemoryFileSystem();
+  await filesystem.mkdir("/zip-work");
+  const binary = new Uint8Array([0, 255, 128, 10, 13, 65]);
+  await filesystem.writeFile("/zip-work/binary", binary);
+  await filesystem.writeFile("/zip-work/retained", new TextEncoder().encode("retained\n"));
+  await filesystem.writeFile("/zip-work/workflow.sh", new TextEncoder().encode(
+    "zip archive binary retained\nprintf 'updated\\n' > retained\nzip archive retained\nunzip -o -d extracted archive.zip\n",
+  ));
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/zip-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+  try {
+    if (entry.createZipCommand().name !== "zip" || entry.createUnzipCommand().name !== "unzip") throw new Error("Public ZIP factories are missing");
+    const result = await shell.exec("sh workflow.sh");
+    const expected = "  adding: binary (stored 0%)\n  adding: retained (stored 0%)\nupdating: retained (stored 0%)\nArchive:  archive.zip\n extracting: extracted/binary        \n extracting: extracted/retained      \n";
+    if (result.exitCode !== 0 || result.stderr !== "" || result.stdout !== expected) throw new Error(`Public ZIP saved script failed: ${JSON.stringify(result)}`);
+    const restored = await filesystem.readFile("/zip-work/extracted/binary");
+    if (restored.length !== binary.length || restored.some((value, index) => value !== binary[index])) throw new Error("Public ZIP binary content changed");
+    if (new TextDecoder().decode(await filesystem.readFile("/zip-work/extracted/retained")) !== "updated\n") throw new Error("Public ZIP update failed");
+    const listed = await shell.exec("unzip -l archive.zip");
+    if (listed.exitCode !== 0 || listed.stderr !== "" || !listed.stdout.endsWith("---------                     -------\n       14                     2 files\n")) throw new Error(`Public ZIP listing failed: ${JSON.stringify(listed)}`);
   } finally { await shell.dispose(); }
 }
 

@@ -1,5 +1,5 @@
 import "./safe-packages-portable-search-types.mjs";
-import { agentCommands, createAgentCommands, createBoundedRegexProvider, type AgentCommandsOptions } from "@poe-platform/safe-bash";
+import { agentCommands, createAgentCommands, createBoundedRegexProvider, createZipCommand, createUnzipCommand, type AgentCommandsOptions, type ArchiveCommandsOptions } from "@poe-platform/safe-bash";
 import { createNodeRegexProvider } from "@poe-platform/safe-bash/node";
 import { posix } from "node:path";
 import { posixPath as contractPath, type CommandDefinition, type CommandInput } from "@poe-platform/safe-bash/contracts";
@@ -39,6 +39,9 @@ for (const paths of nodePaths) {
   void formatted;
 }
 const agentOptions: AgentCommandsOptions = { regexExecutor: createBoundedRegexProvider(), regex: { maxWorkers: 1 } };
+const archiveOptions: ArchiveCommandsOptions = { limits: { maxMembers: 100 } };
+const zipCommands: readonly CommandDefinition[] = [createZipCommand(archiveOptions), createUnzipCommand(archiveOptions)];
+void zipCommands;
 const commandNames: readonly string[] = createAgentCommands(agentOptions).map(command => command.name);
 void commandNames;
 const inputCommand: CommandDefinition = {

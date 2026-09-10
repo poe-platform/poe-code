@@ -154,3 +154,21 @@ checks then passed. Full maintained unit/lint gates and publication remain requi
 The seven focused Bash files passed all 194 checks, including exact default
 registration and stream-inspection positions, canonical peer inventory, gzip
 cancellation, raw-deflate framing, and invocation cleanup.
+
+The merged full unit run reported two five-second timeouts in the portable XML
+and YQ factory-identity checks (`/tmp/poe-688-zip-merged-full-unit.log`). Source
+inspection found nine identical portable graph builds and seven complete
+generated-artifact rewrite passes per test-file run. The existing `beforeAll`
+now builds that graph and prepares its memory-only artifacts once. Every distinct
+consumer build, fresh VM, graph/import assertion, factory-identity assertion,
+runtime check, and existing hook/test deadline remains intact. Nothing is cached
+across test-file runs. Focused validation is pending the current full run's
+termination; that run's already-recorded failures are not treated as passes.
+
+The failed shared run was intentionally stopped after the two reported bundle
+failures so the completed repair could be validated promptly. Its later stages
+are not counted as passes. The focused bundle file then passed all 13 checks in
+6.50 seconds (5.65 seconds of tests). Independent review confirmed private
+read-only artifact reuse, unchanged initialization order and deadlines, and all
+consumer/VM assertions retained. Host contention prevents an isolated timing
+comparison with the earlier full-run measurements. A fresh full run is required.

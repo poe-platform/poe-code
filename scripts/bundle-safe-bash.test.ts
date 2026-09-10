@@ -3,12 +3,15 @@ import { fileURLToPath } from "node:url";
 import { createContext, runInContext } from "node:vm";
 import { readFile } from "node:fs/promises";
 import { Volume } from "memfs";
-import { build, type OutputFile } from "esbuild";
+import { build, type BuildResult } from "esbuild";
 import { beforeAll, expect, it } from "vitest";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Build and rewrite once per test-file run; consumer builds and VMs stay separate.
+let portableBuild: BuildResult;
+const artifacts = new Volume();
 
 it("exposes the complete default shell under browser conditions without Node builtins", async () => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
@@ -16,19 +19,13 @@ it("exposes the complete default shell under browser conditions without Node bui
   expect(manifest.exports["./portable"]).toBeUndefined();
   expect(manifest.exports["."].browser).toBe("./dist/core.browser.js");
   expect(manifest.exports["."].types.browser).toBe("./dist/core.d.ts");
-  const result = await build(resolveBrowserShellBuild(root));
+  const result = portableBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
   expect(result.outputFiles!.some(output => output.path.endsWith("/core.browser.js"))).toBe(true);
 });
 
-async function bundlePublicConsumer(outputs: readonly OutputFile[], contents: string) {
-  const artifacts = new Volume();
-  for (const output of outputs.filter(output => output.path.endsWith(".js"))) {
-    artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
-    artifacts.writeFileSync(output.path, rewriteModuleSpecifiers(output.path, output.text, specifier =>
-      specifier === "poe-code/safe-fs/core" ? "@poe-platform/safe-fs/core" : specifier));
-  }
+async function bundlePublicConsumer(contents: string) {
   const directory = path.join(root, "packages/safe-bash");
   const manifest = JSON.parse(await readFile(path.join(directory, "package.json"), "utf8"));
   const consumer = await build({
@@ -58,8 +55,7 @@ it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
   expect(manifest.exports[`./commands/${command}`]?.browser).toBe(`./dist/commands/${command}/index.browser.js`);
   expect(manifest.exports[`./commands/${command}`]?.workerd).toBe(`./dist/commands/${command}/index.browser.js`);
-  const result = await build(resolveBrowserShellBuild(root));
-  const compiled = await bundlePublicConsumer(result.outputFiles!, `
+  const compiled = await bundlePublicConsumer(`
     import { ${factory} as fromRoot } from "@poe-platform/safe-bash";
     import { ${factory} as fromSubpath } from "@poe-platform/safe-bash/commands/${command}";
     export const shared = fromRoot === fromSubpath;
@@ -77,8 +73,7 @@ it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "
 });
 
 it("runs nested env/xargs and truncate through the public default browser entry", async () => {
-  const result = await build(resolveBrowserShellBuild(root));
-  const consumer = await bundlePublicConsumer(result.outputFiles!, await readFile(path.join(root, "scripts/fixtures/safe-packages-mixed-entry-runtime.mjs"), "utf8"));
+  const consumer = await bundlePublicConsumer(await readFile(path.join(root, "scripts/fixtures/safe-packages-mixed-entry-runtime.mjs"), "utf8"));
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
@@ -109,8 +104,7 @@ it("runs nested env/xargs and truncate through the public default browser entry"
 });
 
 it("builds the portable shell without Node workers, adapters, or duplicate filesystem identity", async () => {
-  const options = resolveBrowserShellBuild(root);
-  const result = await build(options);
+  const result = portableBuild;
   const outputs = result.metafile!.outputs;
   const pending = Object.keys(outputs).filter(filename => filename.endsWith("/core.browser.js"));
   const reachable = new Set<string>();
@@ -140,12 +134,12 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
     "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
   });
-  const result = await build(options);
+  const result = portableBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   for (const imported of imports.filter(item => item.external)) {
     expect(imported.path).toBe("poe-code/safe-fs/core");
   }
-  const compiled = await bundlePublicConsumer(result.outputFiles!, 'export * from "@poe-platform/safe-bash";');
+  const compiled = await bundlePublicConsumer('export * from "@poe-platform/safe-bash";');
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
@@ -214,8 +208,13 @@ beforeAll(async () => {
     bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"],
     format: "cjs", target: "es2022",
   });
-  const consumer = await build(resolveBrowserShellBuild(root));
-  const compiled = await bundlePublicConsumer(consumer.outputFiles!, 'export * from "@poe-platform/safe-bash";');
+  portableBuild = await build(resolveBrowserShellBuild(root));
+  for (const output of portableBuild.outputFiles!.filter(output => output.path.endsWith(".js"))) {
+    artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
+    artifacts.writeFileSync(output.path, rewriteModuleSpecifiers(output.path, output.text, specifier =>
+      specifier === "poe-code/safe-fs/core" ? "@poe-platform/safe-fs/core" : specifier));
+  }
+  const compiled = await bundlePublicConsumer('export * from "@poe-platform/safe-bash";');
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
@@ -313,8 +312,7 @@ it("cancels active custom commands and disposes the shell", async () => {
 });
 
 it("portable network factories require transport injection and preserve HTTP header validation", async () => {
-  const built = await build(resolveBrowserShellBuild(root));
-  const compiled = await bundlePublicConsumer(built.outputFiles!, `
+  const compiled = await bundlePublicConsumer(`
     import { createNetworkCommands, createMemoryFileSystem, toByteSource } from "@poe-platform/safe-bash";
     export async function probe() {
       let refused = false;

@@ -7715,6 +7715,19 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Default object allocation and metadata
   descriptors, mutable class/dictionary ownership, slots/native payload layouts,
   full class bootstrap and suspended safe-fs effects remain unfinished.
+- Installed the canonical registry-owned object allocator. Two compiled tests
+  failed first because ordinary classes had no inherited allocator. Heap instances
+  now receive fresh dictionaries unless their layout excludes them; inherited
+  dictionaries cannot be removed, and native payload incompatibility propagates
+  through derived layouts. Allocation validates type ownership and argument rules
+  without invoking constructors or initializers. Twelve new tests cover direct and
+  compiled calls, inherited init, distinct storage, dictionary-less layouts,
+  native safety, foreign registries and cancellation. Updated two older tests to
+  account for the now-populated object namespace. All 72 direct allocation cases
+  and 96 compiled type-call cases match CPython. All 5,971 tests in 457 files,
+  selected build, typecheck and scoped lint pass. Default object initialization and
+  metadata descriptors, abstract-class/native-layout validation, complete class
+  bootstrap and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

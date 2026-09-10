@@ -1425,6 +1425,7 @@ it("resolves the live initializer after allocation mutates its namespace", () =>
 
 it("reports types with no allocator as non-instantiable", () => {
   const state = fixture(); state.globals.set("C", state.type("C"));
+  state.registry.object.value.namespace.items.delete(state.v.string("__new__"));
   expect(() => state.run("result=C()\n")).toThrow("cannot create 'C' instances");
 });
 
@@ -1508,4 +1509,18 @@ it("shares instance attributes between builtins and attribute syntax", () => {
   expect(state.globals.get("result")).toEqual(state.v.integer(7));
   expect(state.globals.get("read")).toEqual(state.v.integer(7)); expect(state.globals.get("present")).toBe(state.v.false); expect(state.globals.get("fallback")).toEqual(state.v.integer(9));
   expect(() => state.run("instance.value\n")).toThrow("'C' object has no attribute 'value'");
+});
+
+it("allocates fresh dictionary-backed instances through inherited object new", () => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("C", base); state.globals.set("C", owner);
+  state.method(base, "__init__", "def initialize(self,value):\n self.value=value\n");
+  state.run("first=C(3)\nsecond=C(value=7)\na=first.value\nb=second.value\n");
+  expect(state.globals.get("a")).toEqual(state.v.integer(3)); expect(state.globals.get("b")).toEqual(state.v.integer(7));
+  expect(state.globals.get("first") === state.globals.get("second")).toBe(false);
+});
+
+it("rejects constructor arguments when object new and init are both default", () => {
+  const state = fixture(); state.globals.set("C", state.type("C"));
+  expect(() => state.run("C(1)\n")).toThrow("C() takes no arguments");
+  expect(() => state.run("C(value=1)\n")).toThrow("C() takes no arguments");
 });

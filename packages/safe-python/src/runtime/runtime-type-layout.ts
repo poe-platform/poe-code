@@ -10,6 +10,12 @@ export interface RuntimeTypeLayoutOptions {
    * implemented or whether the type is a Sequence. Heap types have a table even
    * when empty; static native types can omit it. This affects *= fallback. */
   readonly sequenceTable?: boolean;
+  /** Heap instances normally have dictionaries. Inherited dictionary storage
+   * cannot be removed by a derived dictionary-less layout. */
+  readonly instanceDictionary?: boolean;
+  /** False for native payload layouts that object.__new__ cannot allocate.
+   * Derived layouts cannot turn an unsafe native base back into plain objects. */
+  readonly objectLayout?: boolean;
 }
 
 /** Immutable inheritance metadata with an owned, live namespace. The class
@@ -23,13 +29,19 @@ export class RuntimeTypeLayout {
   readonly mro: readonly RuntimeTypeLayout[];
   readonly namespace: DictionaryValue;
   readonly hasSequenceTable: boolean;
+  readonly hasInstanceDictionary: boolean;
+  readonly hasObjectLayout: boolean;
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
-    meter.checkpoint(1, 104 + 8 * bases.length);
+    meter.checkpoint(1, 120 + 8 * bases.length);
     this.name = name;
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
     this.hasSequenceTable = options.sequenceTable ?? true;
+    let dictionary = options.instanceDictionary ?? true, objectLayout = options.objectLayout ?? true;
+    for (const base of bases) { meter.checkpoint(); dictionary ||= base.hasInstanceDictionary; objectLayout &&= base.hasObjectLayout; }
+    this.hasInstanceDictionary = dictionary;
+    this.hasObjectLayout = objectLayout;
     this.mro = linearizeMro<RuntimeTypeLayout>(this, this.bases, base => base.mro, meter);
     Object.freeze(this);
   }

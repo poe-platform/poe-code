@@ -46,6 +46,6 @@ it("configures keyword dictionaries assembled for calls", () => {
 });
 it("configures bootstrap type namespaces", () => {
   const { meter, v, keys } = fixture(), registry = new RuntimeTypeRegistry(v, keys, meter);
-  expect(registry.object.value.namespace.items.nextDictionaryEntry(0)).toBeUndefined();
+  expect(registry.object.value.namespace.items.nextDictionaryEntry(0)).toMatchObject({ key: v.string("__new__"), value: { kind: "builtin_function_or_method" } });
   expect(registry.type.value.namespace.items.nextDictionaryEntry(0)).toBeDefined();
 });

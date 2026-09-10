@@ -4,6 +4,7 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { createObjectNewBuiltin } from "./builtin-object-new.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -26,12 +27,13 @@ export class RuntimeTypeRegistry {
   constructor(private readonly values: RuntimeValues, keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 192);
     this.#entries = new WeakMap();
-    const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false });
-    const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false });
+    const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false });
+    const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false });
     this.type = values.type(typeLayout, "self", { immutable: true });
     this.object = values.type(objectLayout, this.type, { immutable: true });
     this.#entries.set(objectLayout, { type: this.object });
     this.#entries.set(typeLayout, { type: this.type });
+    objectLayout.namespace.items.set(values.string("__new__"), createObjectNewBuiltin(values, meter, keys, this.object, type => this.#entries.get(type.value)?.type === type));
     meter.checkpoint(1, 192);
     const descriptors = [
       { name: "__mro__", get: (instance: TypeValue) => this.metadata(instance, "mro") },

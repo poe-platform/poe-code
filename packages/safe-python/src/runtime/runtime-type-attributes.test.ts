@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readRuntimeTypeAttribute, mutateRuntimeTypeAttribute, runtimeTypeAttribute } from "./runtime-type-attributes.js";
+import { readRuntimeTypeAttribute, mutateRuntimeTypeAttribute, runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type-attributes.js";
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
@@ -28,6 +28,18 @@ function fixture(signal?: AbortSignal) {
 }
 
 describe("concrete default type attribute access", () => {
+  it("supports explicit default mutation without applying metaclass overrides", () => {
+    const { v, meter, cls, meta, context, name } = fixture();
+    meta.value.namespace.items.set(v.string("__setattr__"), v.none); meta.value.namespace.items.set(v.string("__delattr__"), v.none);
+    const special = { ...context, typeOf: () => meta };
+    runtimeMutateTypeAttribute(cls, "x", { kind: "set", value: v.true }, v, meter, special); expect(cls.value.namespace.items.lookup(name)?.value).toBe(v.true);
+    runtimeMutateTypeAttribute(cls, "x", { kind: "delete" }, v, meter, special); expect(cls.value.namespace.items.lookup(name)).toBeUndefined();
+  });
+  it.each(["set", "delete"] as const)("checks cancellation after class mutation override %s", kind => {
+    const controller = new AbortController(), { v, meter, cls, meta, context } = fixture(controller.signal);
+    meta.value.namespace.items.set(v.string(kind === "set" ? "__setattr__" : "__delattr__"), v.builtinFunction({ name: "override", invoke: () => v.none }));
+    expect(() => runtimeMutateTypeAttribute(cls, "x", kind === "set" ? { kind, value: v.true } : { kind }, v, meter, { ...context, typeOf: () => meta }, { call() { controller.abort(); return v.true; } })).toThrow("execution cancelled");
+  });
   it("omits metaclass overrides and fallback when requesting default type lookup", () => {
     const { v, meter, cls, meta, name, context } = fixture();
     cls.value.namespace.items.set(name, v.true);

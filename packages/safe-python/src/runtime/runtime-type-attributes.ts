@@ -8,6 +8,12 @@ import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
+function missingTypeAttribute(cls: TypeValue, name: string, meter: ExecutionMeter): PythonRuntimeError {
+  const typeName = diagnosticTypeName(cls.value.name, meter, 100);
+  meter.checkpoint(0, 128 + 2 * (name.length + typeName.length));
+  return new PythonRuntimeError("AttributeError", `type object '${typeName}' has no attribute '${name}'`);
+}
+
 /** Ordinary class reads apply metaclass overrides and AttributeError fallback.
  * Omit invocation to expose default type lookup without recursively reapplying
  * overrides, as required by an explicit type.__getattribute__ adapter. */
@@ -23,9 +29,7 @@ export function runtimeTypeAttribute(cls: TypeValue, name: string, values: Runti
     }
     const found = readRuntimeTypeAttribute(cls, key, special, values, meter); meter.checkpoint();
     if (found !== undefined) return found.value;
-    const typeName = diagnosticTypeName(cls.value.name, meter, 100);
-    meter.checkpoint(0, 128 + 2 * (name.length + typeName.length));
-    throw new PythonRuntimeError("AttributeError", `type object '${typeName}' has no attribute '${name}'`);
+    throw missingTypeAttribute(cls, name, meter);
   } catch (error) {
     meter.checkpoint();
     if (invocation === undefined || !(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
@@ -34,6 +38,23 @@ export function runtimeTypeAttribute(cls: TypeValue, name: string, values: Runti
     meter.checkpoint(0, 16);
     const result = invocation.call(fallback, [key]); meter.checkpoint(); return result;
   }
+}
+
+/** Ordinary class writes/deletes invoke metaclass overrides without a pre-read.
+ * Default mutation retains immutable-type and metaclass data-descriptor rules.
+ * Omit invocation for an explicit default type setattr/delattr adapter. */
+export function runtimeMutateTypeAttribute(cls: TypeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation?: Pick<BuiltinInvocationContext, "call">): void {
+  meter.checkpoint(1, 96);
+  const key = values.string(name);
+  const override = invocation === undefined ? undefined : lookupRuntimeSpecialMethod(cls, cls.metaclass, values.string(change.kind === "set" ? "__setattr__" : "__delattr__"), special, values, meter);
+  meter.checkpoint();
+  if (override !== undefined) {
+    meter.checkpoint(0, change.kind === "set" ? 24 : 16);
+    invocation!.call(override, change.kind === "set" ? [key, change.value] : [key]);
+    meter.checkpoint(); return;
+  }
+  const changed = mutateRuntimeTypeAttribute(cls, key, change, special, values, meter); meter.checkpoint();
+  if (!changed) throw missingTypeAttribute(cls, name, meter);
 }
 
 /** Default type lookup from live metaclass/class MROs. Descriptor callbacks see

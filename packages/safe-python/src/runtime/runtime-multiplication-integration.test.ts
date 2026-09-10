@@ -1730,3 +1730,57 @@ it("bounds class names in missing attribute diagnostics", () => {
   const state = fixture(); state.globals.set("C", state.type("é".repeat(100)));
   expect(() => state.run("C.missing\n")).toThrow(`type object '${"é".repeat(50)}' has no attribute 'missing'`);
 });
+
+it("assigns and deletes class attributes without mutating inherited namespaces", () => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("C", base); state.globals.set("C", owner); state.globals.set("Base", base);
+  base.value.namespace.items.set(state.v.string("value"), state.v.integer(1));
+  state.run("C.value=2\nown=C.value\nbase=Base.value\ndel C.value\ninherited=C.value\n");
+  expect(state.globals.get("own")).toEqual(state.v.integer(2)); expect(state.globals.get("base")).toEqual(state.v.integer(1)); expect(state.globals.get("inherited")).toEqual(state.v.integer(1));
+  expect(() => state.run("del C.value\n")).toThrow("type object 'C' has no attribute 'value'");
+});
+
+it("shares class mutation behavior between attribute syntax and builtins", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner);
+  state.globals.set("setattr", createAttributeMutationBuiltin("setattr", state.v, state.meter)); state.globals.set("delattr", createAttributeMutationBuiltin("delattr", state.v, state.meter));
+  state.run("setattr(C,'value',7)\nresult=C.value\ndelattr(C,'value')\n"); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(owner.value.namespace.items.lookup(state.v.string("value"))).toBeUndefined();
+});
+
+it("invokes metaclass mutation overrides without pre-reading and discards their results", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta); state.globals.set("C", owner);
+  state.globals.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw Error("must not read class attribute"); } }));
+  state.method(meta, "__getattribute__", "def attribute(cls,name):\n return fail()\n");
+  state.method(meta, "__setattr__", "def write(cls,name,value):\n visit(name)\n visit(value)\n return 7\n");
+  state.method(meta, "__delattr__", "def remove(cls,name):\n visit(name)\n return 9\n");
+  state.run("C.value='payload'\ndel C.value\n"); expect(state.events).toEqual(["value", "payload", "value"]);
+  expect(owner.value.namespace.items.lookup(state.v.string("value"))).toBeUndefined();
+});
+
+it("mutates metaclass data descriptors without invoking their getters", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta); state.globals.set("C", owner);
+  meta.value.namespace.items.set(state.v.string("value"), state.v.getsetDescriptor({ owner: meta, name: "value", accepts: value => value === owner, get() { throw Error("must not get"); }, set(_receiver, value) { expect(value).toEqual(state.v.integer(9)); state.events.push("set"); }, delete() { state.events.push("delete"); } }));
+  owner.value.namespace.items.set(state.v.string("value"), state.v.integer(7));
+  state.run("C.value=9\ndel C.value\n"); expect(state.events).toEqual(["set", "delete"]); expect(owner.value.namespace.items.lookup(state.v.string("value"))?.value).toEqual(state.v.integer(7));
+});
+
+it("replaces descriptors stored on the class without invoking their setters", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner);
+  owner.value.namespace.items.set(state.v.string("value"), state.v.getsetDescriptor({ owner, name: "value", accepts: () => true, get() { throw Error("must not get"); }, set() { throw Error("must not set descriptor"); }, delete() { throw Error("must not delete descriptor"); } }));
+  state.run("C.value=7\nresult=C.value\ndel C.value\n"); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+});
+
+it.each(["object", "type"] as const)("rejects assignment and deletion on immutable builtin %s", name => {
+  const state = fixture(); state.globals.set("target", state.registry[name]);
+  for (const source of ["target.value=7\n", "del target.value\n"]) expect(() => state.run(source)).toThrow(`cannot set 'value' attribute of immutable type '${name}'`);
+});
+
+it.each(["__mro__", "__dict__"])("preserves read-only class metadata %s", name => {
+  const state = fixture(); state.globals.set("C", state.type("C"));
+  for (const source of [`C.${name}=None\n`, `del C.${name}\n`]) expect(() => state.run(source)).toThrow(`attribute '${name}' of 'type' objects is not writable`);
+});
+
+it.each(["__setattr__", "__delattr__"])("rejects disabled metaclass mutation slot %s", slot => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta); state.globals.set("C", owner);
+  meta.value.namespace.items.set(state.v.string(slot), state.v.none);
+  expect(() => state.run(slot === "__setattr__" ? "C.value=7\n" : "del C.value\n")).toThrow("'NoneType' object is not callable");
+});

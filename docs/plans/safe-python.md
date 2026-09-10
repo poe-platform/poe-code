@@ -7840,6 +7840,18 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Class mutation wiring, intrinsic
   type names/qualified names, native type.__new__, complete class construction and
   suspended safe-fs effects remain unfinished.
+- Connected ordinary class assignment/deletion and setattr/delattr to the shared
+  type mutation path. Two compiled regressions first failed on unsupported writes.
+  Metaclass overrides run without pre-reading attributes; default mutation keeps
+  metaclass data-descriptor precedence, immutable-type restrictions and own-only
+  namespace deletion. Override return values are discarded and cancellation is
+  checked after callbacks. Fourteen tests cover inherited shadowing, builtin parity,
+  descriptor ownership, disabled overrides, read-only metadata and cancellation.
+  All 800 operations across 160 descriptor configurations and 96 compiled type-call
+  cases match CPython. All 6,095 tests in 465 files, selected build, typecheck and
+  scoped lint pass. Intrinsic type names/qualified names, native default
+  attribute wrappers, type.__new__, complete class construction and suspended
+  safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

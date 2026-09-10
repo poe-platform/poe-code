@@ -110,7 +110,7 @@ export class RuntimeTypeRegistry {
   #baseExceptionType:TypeValue|undefined;
   #generatorType:TypeValue|undefined;
   #coroutineTypes=new Map<"coroutine"|"coroutine_wrapper",TypeValue>();
-  #asyncGeneratorTypes=new Map<"async_generator"|"async_generator_asend",TypeValue>();
+  #asyncGeneratorTypes=new Map<"async_generator"|"async_generator_asend"|"async_generator_athrow",TypeValue>();
   #noneType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
@@ -460,13 +460,13 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
-  asyncGeneratorType(kind:"async_generator"|"async_generator_asend"="async_generator"):TypeValue {
+  asyncGeneratorType(kind:"async_generator"|"async_generator_asend"|"async_generator_athrow"="async_generator"):TypeValue {
     this.meter.checkpoint();
     const existing=this.#asyncGeneratorTypes.get(kind);if(existing!==undefined)return existing;
     const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
     const layout=new RuntimeTypeLayout(kind,[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:kind==="async_generator",subclassable:false,instantiable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
-    installRuntimeAsyncGeneratorDescriptors(type,this.values,this.meter,()=>this.asyncGeneratorType("async_generator_asend"));
+    installRuntimeAsyncGeneratorDescriptors(type,this.values,this.meter,kind=>this.asyncGeneratorType(kind));
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#asyncGeneratorTypes.set(kind,type);
     return type;
   }

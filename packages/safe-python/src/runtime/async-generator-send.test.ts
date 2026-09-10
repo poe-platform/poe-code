@@ -104,3 +104,11 @@ it("releases operation ownership when cancellation follows the body result",()=>
   expect(()=>op.resume({kind:"send",value:null})).toThrow(ExecutionLimitError);
   expect(op.phase).toBe("closed");expect(f.activity.running).toBe(false);
 });
+
+it.each([false,true])("handles close-signal construction failure without releasing another owner (started: %s)",started=>{
+  const f=fixture([{kind:"await",value:1}]),op=f.send(),error=new ExecutionLimitError("cancelled");
+  if(started)op.resume({kind:"send",value:null});else f.activity.running=true;
+  f.context.generatorExit=()=>{throw error;};
+  expect(()=>op.resume({kind:"close"})).toThrow(error);
+  expect(op.phase).toBe("closed");expect(f.activity.running).toBe(!started);
+});

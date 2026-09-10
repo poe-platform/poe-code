@@ -18,7 +18,7 @@ import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
 import { RuntimeMethodDecoratorState } from "./runtime-method-decorator-state.js";
 import { RuntimeInstanceState } from "./runtime-instance-state.js";
 import type { RuntimeExceptionState } from "./runtime-exception-state.js";
-import type { RuntimeGeneratorState,RuntimeCoroutineWrapperState,RuntimeAsyncGeneratorState,RuntimeAsyncGeneratorSendState } from "./runtime-generator-state.js";
+import type { RuntimeGeneratorState,RuntimeCoroutineWrapperState,RuntimeAsyncGeneratorState,RuntimeAsyncGeneratorOperationState } from "./runtime-generator-state.js";
 import { ExecutionIdentity } from "./execution-identity.js";
 import type { IdentityContext } from "./builtin-id.js";
 
@@ -212,7 +212,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorSendState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
+  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute

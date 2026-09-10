@@ -7,8 +7,8 @@ import type { BuiltinInvocationContext, RuntimeValue,RuntimeValues } from "./run
  * list before exception/traceback validation or constructor invocation. */
 export class RuntimeGeneratorThrowRequest {
   readonly arguments:readonly RuntimeValue[];
-  constructor(arguments_:readonly RuntimeValue[],readonly invocation:BuiltinInvocationContext,meter:ExecutionMeter) {
-    meter.checkpoint(1,64+8*arguments_.length);
+  constructor(arguments_:readonly RuntimeValue[],readonly invocation:BuiltinInvocationContext,meter:ExecutionMeter,readonly warnLegacy=true) {
+    meter.checkpoint(1,72+8*arguments_.length);
     this.arguments=Object.freeze(arguments_.slice());Object.freeze(this);
   }
 }

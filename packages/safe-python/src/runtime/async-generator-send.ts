@@ -33,8 +33,14 @@ export class AsyncGeneratorSend<Value> {
     this.meter.checkpoint(1,64);
     if(request.kind!=="close")return this.#advance(request);
     if(this.#phase==="closed")return {done:true,value:this.context.none};
+    let exit:unknown;
+    try {exit=this.context.generatorExit();}
+    catch(error){
+      if(this.#phase==="active")this.activity.running=false;
+      this.#phase="closed";throw error;
+    }
     try {
-      const result=this.#advance({kind:"throw",error:this.context.generatorExit()});
+      const result=this.#advance({kind:"throw",error:exit});
       if(result.done)return {done:true,value:this.context.none};
     } catch(error) {
       if(error instanceof ExecutionLimitError)throw error;

@@ -282,6 +282,35 @@ it.each([false,true])("preserves asynchronous GeneratorExit propagation through 
   expect(state.events).toEqual(["throw","close"]);expect(state.calls.depth).toBe(0);
 });
 
+it("awaits native async-generator close cleanup and rejects reuse",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):yield 9\nasync def source():\n try:yield 1\n finally:await A()\ng=source()\ntry:g.__anext__().send(None)\nexcept StopIteration:pass\nc=g.aclose()\nwaiting=c.send(None)\nactive=g.ag_running\ntry:c.send(None)\nexcept StopIteration as error:closed=error.value is None and not g.ag_running\ntry:c.send(None)\nexcept RuntimeError as error:reused=error.args==('cannot reuse already awaited aclose()/athrow()',)\ntry:g.__anext__().send(None)\nexcept StopAsyncIteration:exhausted=True\n");
+  expect(state.globals.get("waiting")).toEqual(v.integer(9));
+  for(const name of ["active","closed","reused","exhausted"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("preserves native athrow completion behavior after an internal await",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):\n  yield 9\n  return 2\nasync def source():\n try:yield 1\n except ValueError:yield await A()\n yield 3\ng=source()\ntry:g.__anext__().send(None)\nexcept StopIteration:pass\nt=g.athrow(ValueError)\nwaiting=t.send(None)\ntry:t.send(None)\nexcept StopIteration as error:first=error.value\ntry:t.send(None)\nexcept StopIteration as error:second=error.value\ntry:t.send(None)\nexcept StopAsyncIteration:exhausted=True\ntry:t.send(None)\nexcept StopIteration:finished=True\n");
+  expect(state.globals.get("waiting")).toEqual(v.integer(9));expect(state.globals.get("first")).toEqual(v.integer(2));expect(state.globals.get("second")).toEqual(v.integer(3));
+  expect(state.globals.get("exhausted")).toBe(v.true);expect(state.globals.get("finished")).toBe(v.true);
+});
+
+it("defers athrow arity errors until awaiting and preserves the resulting operation state",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("async def source():yield 1\ng=source()\nt=g.athrow()\ncreated=not g.ag_running\ntry:t.send(None)\nexcept TypeError as error:invalid=error.args==('athrow expected at least 1 argument, got 0',) and g.ag_running\ntry:t.send(None)\nexcept StopIteration as error:retried=error.value==1 and not g.ag_running\n");
+  for(const name of ["created","invalid","retried"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("warns about legacy athrow arguments when creating the operation, not when awaiting it",()=>{
+  const warnings:string[]=[],state=exceptionFixture({warn(_category,message){warnings.push(message);}}),{v}=state;
+  const message="the (type, exc, tb) signature of athrow() is deprecated, use the single-arg signature instead.";
+  state.run("async def source():yield 1\ng=source()\nt=g.athrow(ValueError,None)\n");
+  expect(warnings).toEqual([message]);
+  state.run("try:t.send(None)\nexcept ValueError:caught=True\n");
+  expect(warnings).toEqual([message]);expect(state.globals.get("caught")).toBe(v.true);
+});
+
 it("awaits a generator expression's outer source before creating a lazy normal generator",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("iter",createIterBuiltin(v,state.meter));

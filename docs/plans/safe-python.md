@@ -10536,6 +10536,23 @@ extension, integration, or validation requirement is missing or unverified.
   uncached one-worker package run passes all 7,531 tests in 510 files (171.79s;
   test bodies 16.24s). This is the delegation prerequisite for asynchronous
   athrow/aclose, not their public operation-wrapper implementation.
+- Native asynchronous generator termination (2026-09-10): added native athrow
+  and aclose awaitables with separate lifecycle handling from asend. Cleanup can
+  await; competing operations retain their owner; stored throw arguments are
+  validated at first send, while legacy-signature warnings occur at creation.
+  Post-await athrow reuse follows CPython's distinct send-completion behavior.
+  Native wrappers share exception normalization and delegation policy without
+  duplicating the body engine. Failing tests drove native integration, exact
+  warning text, fatal preparation cleanup and termination-signal construction
+  failures. Failed signal construction closes only the affected operation and
+  does not release a competing owner.
+  All 827 focused tests pass. CPython comparisons match 6,912 mixed termination
+  sequences, 156 argument cases and 768 coroutine regressions (7,836 total).
+  Selected workspace build, typecheck and focused lint pass. The full uncached
+  one-worker package run passes all 7,549 tests in 511 files (153.04s; test bodies
+  11.16s).
+  Async generator expressions, metadata/hooks/finalization, context managers,
+  public runtime, library/import and safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

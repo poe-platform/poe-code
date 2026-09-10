@@ -9416,6 +9416,19 @@ extension, integration, or validation requirement is missing or unverified.
   package tests in 497 files pass. Float protocol construction and canonical
   float type integration remain next; full interpreter and safe-fs execution
   remain unfinished. No push or release was requested.
+- Float protocol construction (2026-09-10): failing integration tests drove
+  native argument binding and conversion through __float__, then __index__,
+  then text/bytearray/buffer parsing. Exact float identities are retained;
+  __int__ and __bytes__ are not fallback conversions. Added owned float payload
+  inspection/storage for strict-subclass result normalization and warnings.
+  Buffer leases release after success, syntax failure and cancellation; guest
+  acquisition errors are rewritten while host faults propagate. A failing
+  regression ensured execution-limit errors cannot be swallowed even by an
+  overbroad guest-exception predicate. All 104 CPython construction comparisons
+  match. Workspace build, typecheck, focused lint and all 7,021 package tests in
+  498 files pass. Canonical float type allocation and method catalog remain
+  next; full interpreter and safe-fs execution remain unfinished. No push or
+  release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

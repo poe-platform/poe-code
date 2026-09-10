@@ -22,6 +22,7 @@ import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { constructRuntimeInteger } from "./runtime-integer-construction.js";
+import { constructRuntimeFloat } from "./runtime-float-construction.js";
 import { createRoundBuiltin } from "./builtin-round.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { NumericLocale } from "./numeric-locale.js";
@@ -64,6 +65,24 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("constructs floats from native values and text while retaining exact float identity", () => {
+  const state = fixture();
+  state.builtins.set("Float",state.v.builtinFunction({name:"float",invoke(args,keywords,meter,invocation){return constructRuntimeFloat(args,keywords,state.v,meter,{invocation});}}));
+  state.run("x=1.25\ncorrect=Float(x) is x and Float()==0.0 and Float(True)==1.0 and Float(10**30)==1e30 and Float(' ١.٢e٣ ')==1200.0 and Float(b'1_2.5')==12.5\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("Float(1,2)\n")).toThrow("float expected at most 1 argument, got 2");
+  expect(()=>state.run("Float(x=1)\n")).toThrow("float() takes no keyword arguments");
+});
+
+it("prefers float conversion to index and never falls back to int or bytes methods", () => {
+  const state = fixture();
+  state.builtins.set("Float",state.v.builtinFunction({name:"float",invoke(args,keywords,meter,invocation){return constructRuntimeFloat(args,keywords,state.v,meter,{invocation});}}));
+  state.run("x=1.25\nclass Both:\n def __float__(self):\n  visit('float')\n  return x\n def __index__(self):\n  visit('wrong')\n  return 2\nclass Index:\n def __index__(self):\n  visit('index')\n  return 3\nclass IntOnly:\n def __int__(self):\n  visit('wrong')\n  return 1\n def __bytes__(self):\n  visit('wrong')\n  return b'1'\ncorrect=Float(Both()) is x and Float(Index())==3.0\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("Float(IntOnly())\n")).toThrow("float() argument must be a string or a real number, not 'IntOnly'");
+  expect(state.events).toEqual(["float","index"]);
+});
 
 it("formats slices through object formatting and guest component repr", () => {
   const state = fixture();state.globals.set("Slice",state.registry.sliceType());

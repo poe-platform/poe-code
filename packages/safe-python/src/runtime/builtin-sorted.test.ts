@@ -4,6 +4,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
+import type { IterationContext } from "./protocol-iterator.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -100,4 +101,32 @@ it("orders guest iterator acquisition, length hints, consumption and reverse tru
   const unused = (): never => { throw Error("explicit extension policy must win"); };
   expect(builtin.value.invoke([source], keywords, meter, { call: unused, isStopIteration: unused, iteration: { ...context.extension, lookupIter: unused } })).toEqual(v.list([v.integer(1), v.integer(2), v.integer(3)]));
   expect(events).toEqual(["iter", "len", "hint", "next", "next", "next", "next", "reverse"]);
+});
+it.each(["negative", "overflow", "noninteger", "failure"])("rejects %s invocation length hints before pulling or sorting", mode => {
+  const { v, meter, keywords } = fixture(), source = v.cell({}), cursor = v.cell({}), fault = Error("hint failed"), events: string[] = [];
+  const unused = (): never => { throw Error("must not pull or sort"); };
+  keywords.items.set(v.string("reverse"), v.true);
+  const iteration: IterationContext<RuntimeValue> = {
+    lookupIter(value) { expect(value).toBe(source); events.push("iter"); return () => cursor; }, hasNext: value => value === cursor,
+    next: unused, hasSequenceItem: () => false, getItem: unused, isStopIteration: () => false, isIndexError: () => false, typeName: () => "Guest",
+    hints: {
+      length(value) { expect(value).toBe(source); return undefined; },
+      lookupHint(value) { expect(value).toBe(source); return () => { events.push("hint"); if (mode === "failure") throw fault; return mode === "negative" ? v.integer(-1) : mode === "overflow" ? v.integer(1n << 64n) : v.none; }; },
+      integer: value => value.kind === "int" ? value.value : undefined, isNotImplemented: () => false, isTypeError: () => false, typeName: () => "NoneType"
+    }
+  };
+  expect(() => createSortedBuiltin(v, meter).value.invoke([source], keywords, meter, { call: unused, truth: unused, isStopIteration: unused, iteration })).toThrow(mode === "failure" ? fault : mode === "negative" ? "__length_hint__() should return >= 0" : mode === "overflow" ? "Python int too large to convert to C ssize_t" : "__length_hint__ must be an integer, not NoneType");
+  expect(events).toEqual(["iter", "hint"]);
+});
+it.each(["length", "hint"])("checks cancellation after invocation %s callbacks", stage => {
+  const { v, meter, keywords } = fixture(), source = v.cell({}); let cancelled = false;
+  const unused = (): never => { throw Error("must stop before pulling or sorting"); };
+  const iteration: IterationContext<RuntimeValue> = {
+    lookupIter: () => () => source, hasNext: () => true, next: unused, hasSequenceItem: () => false, getItem: unused,
+    isStopIteration: () => false, isIndexError: () => false, typeName: () => "Guest", hints: {
+      length() { if (stage === "length") cancelled = true; return undefined; }, lookupHint: () => () => { cancelled = true; return v.integer(0); },
+      integer: value => value.kind === "int" ? value.value : undefined, isNotImplemented: () => false, isTypeError: () => false, typeName: () => "Guest"
+    }
+  };
+  expect(() => createSortedBuiltin(v, meter).value.invoke([source], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, { call: unused, isStopIteration: unused, iteration })).toThrow(ExecutionLimitError);
 });

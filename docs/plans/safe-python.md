@@ -7135,6 +7135,18 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and scoped lint. Sentinel iter, sorted advisory hints, sum/reversed
   dispatch, concrete native types, resumable effects and safe-fs execution remain
   unfinished; this is not a full-interpreter completion claim.
+- Sorted now requests source length hints through its invocation iterator policy
+  using the existing runtimeIterate collector path. The compiled trace regression
+  failed first because length/hint calls were absent; it now proves iterator
+  acquisition precedes source hints and zero hints do not truncate consumption.
+  Min/max still do not request hints. Six additional cases validate negative,
+  oversized and noninteger hints, original hint failures, and post-callback
+  cancellation before pulls/sorting. All 5,358 tests in 444 files pass; selected
+  build, typecheck and scoped lint pass, and 64 compiled sorted differential cases
+  still match CPython. Advisory speculative preallocation remains intentionally
+  absent, so host preallocation MemoryError behavior is not reproduced. Exact
+  sort comparison schedules, remaining builtin integrations, concrete native
+  types and resumable safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

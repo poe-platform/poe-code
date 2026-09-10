@@ -185,7 +185,11 @@ it.each(["min", "max", "sorted"])("lets %s consume guest iteration through the f
   const program = compileProgram<RuntimeValue>(analyzeModule(`result=${name}(source,key=lambda value:-value)\n`), { stripDocstring: false }, v, meter);
   executeRuntimeProgram(program, {
     values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
-    hooks: { expressions: () => ({ warn() {}, iteration: {
+    hooks: { expressions: () => ({ warn() {}, iteration: { hints: {
+      length(value) { expect(value).toBe(source); events.push("len"); return undefined; },
+      lookupHint(value) { expect(value).toBe(source); return () => { events.push("hint"); return v.integer(0); }; },
+      integer: value => value.kind === "int" ? value.value : undefined, isNotImplemented: () => false, isTypeError: () => false, typeName: () => "Guest"
+    },
       lookupIter(value) { expect(value).toBe(source); events.push("iter"); return () => source; }, hasNext: () => true,
       next() { events.push("next"); if (index === members.length) throw stop; return members[index++]; },
       hasSequenceItem: () => false, getItem: unused, isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
@@ -194,7 +198,7 @@ it.each(["min", "max", "sorted"])("lets %s consume guest iteration through the f
   const result = globals.get("result");
   if (name === "sorted") { if (result?.kind !== "list") throw Error("expected list"); expect(result.items.snapshot()).toEqual([members[0], members[2], members[1]]); }
   else expect(result).toBe(members[name === "min" ? 0 : 1]);
-  expect(events).toEqual(["iter", "next", "next", "next", "next"]);
+  expect(events).toEqual(name === "sorted" ? ["iter", "len", "hint", "next", "next", "next", "next"] : ["iter", "next", "next", "next", "next"]);
 });
 it.each([false, true])("routes iter/next through frame protocols with sequence fallback=%s", sequence => {
   const { meter, v, context } = fixture(), source = v.cell({}), cursor = v.cell({}), member = v.cell({}), fallback = v.cell({}), globals = new Map<string, RuntimeValue>([["source", source], ["fallback", fallback]]), events: string[] = [], unused = (): never => { throw Error("unexpected guest callback"); };

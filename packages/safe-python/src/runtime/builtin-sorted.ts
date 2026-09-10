@@ -11,7 +11,7 @@ import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtim
 export interface SortedContext {
   /** Complete execution-owned list materialization protocol, including native
    * inputs, guest iteration and length hints. Omission uses native inputs and
-   * invocation-owned guest iteration; guest length hints require this policy. */
+   * invocation-owned guest iteration and its optional length-hint policy. */
   extension?: ListExtensionContext<RuntimeValue>;
   callKey?(key: RuntimeValue, value: RuntimeValue): RuntimeValue;
   less?(left: RuntimeValue, right: RuntimeValue): boolean;
@@ -29,7 +29,7 @@ export function createSortedBuiltin(values: RuntimeValues, meter: ExecutionMeter
     const source = positional[0], result = new ListStorage<RuntimeValue>([], meter);
     if (context.extension !== undefined) extendList(result, source, context.extension, meter);
     else if (source.kind === "list") result.extend(source.items);
-    else result.extendIterator(runtimeIterate(source, values, meter, invocation?.iteration));
+    else result.extendIterator(runtimeIterate(source, values, meter, invocation?.iteration, undefined, true));
     meter.checkpoint();
     if (keywords.items.size > 2) throw new PythonRuntimeError("TypeError", `sort() takes at most 2 keyword arguments (${keywords.items.size} given)`);
     meter.checkpoint(0, 64 + keywords.items.size * 32);

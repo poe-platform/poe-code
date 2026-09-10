@@ -261,7 +261,7 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
   const initialize = (prototype: SandboxValue): T | Promise<T> => {
     if (typeof prototype !== "object" || prototype === null)
       prototype = getFunctionRealmPrototype(context?.newTarget, name, getSandboxPrototype(collection, budget)) as SandboxValue;
-    if (typeof prototype === "object" && prototype !== null && prototype !== getSandboxPrototype(collection, budget))
+    if (typeof prototype === "object" && prototype !== null)
       setSandboxPrototype(collection, prototype, budget);
     if (source === undefined || source === null) return collection;
     const descriptor = getSandboxPropertyDescriptor(collection, method, budget);

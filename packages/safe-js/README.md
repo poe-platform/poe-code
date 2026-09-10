@@ -81,6 +81,8 @@ const result = await run(`
 Builtin prototypes retain their originating Object prototype when inspected
 from another realm, including when a budget is reused. Checkpoints preserve
 constructor/prototype identity and their supported property mutations.
+Map and Set instances also retain their selected prototype during inspection
+from another realm.
 
 Guest symbols, supported prototype links, and mutated guest intrinsics can be
 represented in checkpoints. Plain data-copy helpers have narrower contracts:

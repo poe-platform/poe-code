@@ -6815,6 +6815,15 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Remaining native buffer consumers, concrete exporters,
   automatic object assembly and broader interpreter/SDK/safe-fs integration
   remain unfinished.
+- Connected bytes.find/rfind/index/rindex/count to contiguous buffer needles.
+  Bounds convert first, then buffer exports take precedence over guest index
+  slots; absent exports fall through to the existing integer-needle protocol.
+  Leases release on search success and failure, including missing required matches.
+- Six failing compiled regressions now pass. All 5,206 tests in 441 files pass;
+  800 CPython comparisons match output/errors and lease traces across methods,
+  patterns and bounds. Typecheck, scoped lint and selected workspace build pass.
+  Remaining native buffer consumers, concrete exporters, automatic object
+  assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

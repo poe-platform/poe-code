@@ -39,6 +39,27 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["find",0], ["rfind",2], ["index",0], ["rindex",2], ["count",2]])("searches byte buffers with %s after bounds conversion", (method, expected) => {
+    const state = fixture(`result=b'aba'.${method}(needle,start)\n`), v = state.values, needle = v.cell({}), start = v.cell({}), trace: string[] = [];
+    state.globals.set("needle", needle); state.globals.set("start", start);
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", warn() {}, typeName: () => "Guest",
+      lookupIndex: value => value === start ? () => { trace.push("bound"); return v.integer(0); } : () => { throw Error("buffer must precede needle index"); }
+    }, buffers: {
+      acquireSimple(value) { expect(value).toBe(needle); trace.push("acquire"); return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() { trace.push("release"); } }; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.integer(expected));
+    expect(trace).toEqual(["bound", "acquire", "release"]);
+  });
+  it("releases search buffers when a required match is absent", () => {
+    const state = fixture("result=b'a'.index(needle)\n"), v = state.values; let released = false;
+    state.globals.set("needle", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(98)).value, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow("subsection not found"); expect(released).toBe(true);
+  });
   it.each([["split", "", "ba"], ["rsplit", "ab", ""]])("acquires %s separator buffers after maxsplit conversion", (method, left, right) => {
     const state = fixture(`result=b'aba'.${method}(separator,count)\n`), v = state.values, trace: string[] = [];
     const data = Uint8Array.of(98);

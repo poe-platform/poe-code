@@ -106,7 +106,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "upper" || name === "lower" || name === "title" || name === "capitalize" || name === "swapcase") return createRuntimeBytesCaseMethod(receiver, name, values, meter);
     switch (name) {
       case "find": case "rfind": case "index": case "rindex": case "count":
-        return createRuntimeBytesSearchMethod(receiver, name, values, meter, methods?.integerIndex);
+        return createRuntimeBytesSearchMethod(receiver, name, values, meter, methods?.integerIndex, methods?.buffers);
       case "isascii": case "isspace": case "isalpha": case "isalnum": case "isdigit": case "islower": case "isupper": case "istitle":
         return createRuntimeBytesClassificationMethod(receiver, name, values, meter);
     }

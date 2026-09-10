@@ -73,6 +73,33 @@ it.each(["key.method", "key.__getattribute__", "items.append"])("preserves nativ
   expect(state.globals.get("slot")).toBe(state.v.true); expect(state.globals.get("declined")).toBe(state.v.notImplemented);
 });
 
+it.each(["key.method", "key.__getattribute__", "items.append"])("uses native callable hash slots for %s", expression => {
+  const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run(`class Key:\n def method(self):\n  pass\nkey=Key()\nitems=[]\nmethod=${expression}\nnormal=hash(method)\ndirect=type(method).__hash__(method)\nbound=type(method).__hash__.__get__(method,type(method))()\nidentity=object.__hash__(method)\nattribute=method.__hash__()\nequal=method.__eq__(method)\nunequal=method.__ne__(method)\n`);
+  expect(state.globals.get("normal")).toEqual(state.v.integer(0)); expect(state.globals.get("direct")).toEqual(state.globals.get("normal"));
+  expect(state.globals.get("bound")).toEqual(state.globals.get("normal")); expect(state.globals.get("identity")).toEqual(state.v.integer(17));
+  expect(state.globals.get("attribute")).toEqual(state.globals.get("normal")); expect(state.globals.get("equal")).toBe(state.v.true); expect(state.globals.get("unequal")).toBe(state.v.false);
+});
+
+it("keeps nested callable hashes guest-aware in explicit native method hashing", () => {
+  const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.builtins.set("bind", state.v.builtinFunction({ name: "bind", invoke(args) { return state.v.boundMethod(args[0], args[1]); } }));
+  state.run("class Callable:\n def __call__(self):\n  pass\n def __hash__(self):\n  visit('hash')\n  return 9\nmethod=bind(Callable(),[])\nnormal=hash(method)\ndirect=type(method).__hash__(method)\n");
+  expect(state.globals.get("normal")).toEqual(state.v.integer(24)); expect(state.globals.get("direct")).toEqual(state.v.integer(24)); expect(state.events).toEqual(["hash", "hash"]);
+});
+
+it("preserves nested hash exceptions through the native callable slot", () => {
+  const state = fixture(), failure = new PythonRuntimeError("TypeError", "sentinel");
+  state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.builtins.set("bind", state.v.builtinFunction({ name: "bind", invoke(args) { return state.v.boundMethod(args[0], args[1]); } }));
+  state.run("class Callable:\n def __call__(self):\n  pass\n def __hash__(self):\n  fail()\nmethod=bind(Callable(),[])\n");
+  for (const source of ["hash(method)\n", "type(method).__hash__(method)\n"]) {
+    let thrown: unknown; try { state.run(source); } catch (error) { thrown = error; }
+    expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+  }
+});
+
 it.each(["append", "extend", "insert", "pop", "clear", "reverse", "copy", "count", "remove", "index", "__reversed__"])("retains canonical list %s binding metadata and key identity", name => {
   const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
   state.run(`items=[]\nleft=items.${name}\nright=items.${name}\nresult={left:1,right:2}\nequal_hash=hash(left)==hash(right)\nreceiver=left.__self__ is items\nname=left.__name__\nqualified=left.__qualname__\n`);

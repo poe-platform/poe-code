@@ -74,6 +74,7 @@ export interface RuntimeExecutionContext {
     /** Optional execution-owned policy; collection identity stays shared. */
     bindInvocation?(frame: RuntimeFrame, invocation: BuiltinInvocationContext): void;
     identityHash?(value: RuntimeValue): bigint;
+    nativeHash?(value: RuntimeValue): bigint;
   };
   readonly calls: Pick<CallStack<RuntimeFrame>, "enter">;
   readonly hooks: RuntimeProgramHooks;
@@ -180,6 +181,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
       identityHash: keys.identityHash?.bind(keys),
+      nativeHash: keys.nativeHash?.bind(keys),
       get formatting() { return getFormatting(); },
       hasSpecial(value, name) {
         if (specialMethods === undefined) return false;

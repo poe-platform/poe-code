@@ -8565,6 +8565,20 @@ extension, integration, or validation requirement is missing or unverified.
   sort descriptor binding and public execution setup are still unfinished.
   Earlier 560 guest and 2,028 native comparison cases still pass. Final selected
   build, typecheck, scoped lint and all 6,579 tests in 493 files pass (two workers).
+- Installed native __hash__ descriptors for method, method-wrapper and builtin
+  function/method types. Initial regressions showed explicit type-slot calls
+  returning object identity instead of the native binding hash. A metered native
+  root-hash capability now bypasses only the outer guest slot, retaining active
+  guest hashing for nested callable members and original exception identity.
+  Follow-up regressions exposed missing ordinary callable __hash__/__eq__/__ne__
+  attribute access; these now bind the defining native wrapper through the actual
+  type MRO. Five added tests cover all three callable kinds, ordinary/direct/bound
+  access, nested guest hashing and original nested errors. All 78 callable hash
+  and 42 comparison-attribute differential cases match CPython; the previous 186
+  object/callable equality cases still pass. Native constructor catalogs, remaining
+  list members/slots and complete public execution assembly remain unfinished.
+  Final selected build, typecheck, scoped lint and all 6,584 tests in 493 files
+  pass with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

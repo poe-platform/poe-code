@@ -114,6 +114,13 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (descriptorMethod !== undefined) return descriptorMethod;
   const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
   if (metadata !== undefined) return metadata;
+  if ((name === "__eq__" || name === "__ne__" || name === "__hash__")
+    && (receiver.kind === "method" || receiver.kind === "method-wrapper" || receiver.kind === "builtin_function_or_method")
+    && methods?.actualType !== undefined) {
+    const type = methods.actualType(receiver); meter.checkpoint();
+    const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
+    if (member?.kind === "wrapper_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
+  }
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
     const supplied = typeof formatting === "function" ? formatting() : formatting; meter.checkpoint();
     const context = supplied ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });

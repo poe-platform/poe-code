@@ -80,6 +80,8 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
 export interface BuiltinInvocationContext {
   /** Trusted signed 64-bit identity hash, with -1 remapped to -2; no guest slots. */
   identityHash?(value: RuntimeValue): bigint;
+  /** Native outer hash slot with normal guest hashing for nested members. */
+  nativeHash?(value: RuntimeValue): bigint;
   formatting?: FormatContext<RuntimeValue>;
   /** Type-MRO presence only, without binding a descriptor. */
   hasSpecial?(object: RuntimeValue, name: string): boolean;

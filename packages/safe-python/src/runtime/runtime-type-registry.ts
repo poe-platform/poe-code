@@ -24,6 +24,7 @@ import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from "./runtime-descriptor-method.js";
 import { installRuntimeBoundComparisonMethods, type NativeBoundCallableKind } from "./runtime-bound-comparison-method.js";
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
+import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -164,6 +165,7 @@ export class RuntimeTypeRegistry {
     const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, subclassable: false, weakReferences: kind !== "method-wrapper" });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeBoundComparisonMethods(kind, type, this.values, this.meter);
+    namespace.items.set(this.values.string("__hash__"), createBoundCallableHashWrapper(kind, type, this.values, this.meter));
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#boundCallables.set(kind, type);
     return type;

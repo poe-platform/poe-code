@@ -42,11 +42,17 @@ const functionPropertyRevisions = new WeakMap<object, {
 const trackedIntrinsicObjects = new WeakSet<object>();
 const prototypes = new WeakMap<object, object | null>();
 const trackedPrototypes = new WeakMap<object, { current: object | null }>();
+// Identity tokens cannot overflow. Unrelated mutations conservatively invalidate
+// all groups without retaining subscriber lists or their owning budgets.
+let intrinsicMutationToken = {};
 
 function storePrototype(value: object, prototype: object | null): void {
   prototypes.set(value, prototype);
   const tracked = trackedPrototypes.get(value);
-  if (tracked !== undefined) tracked.current = prototype;
+  if (tracked !== undefined && tracked.current !== prototype) {
+    tracked.current = prototype;
+    intrinsicMutationToken = {};
+  }
 }
 const intrinsicPrototypes = new WeakMap<Budget, SandboxObject>();
 const boxedPrototypes = new WeakMap<Budget, Map<BoxedKind, SandboxObject>>();
@@ -140,12 +146,18 @@ function trackPropertyTable(properties: SandboxObject): SandboxObject {
   const tracked = new Proxy(properties, {
     defineProperty(target, key, descriptor) {
       const changed = Reflect.defineProperty(target, key, descriptor);
-      if (changed) state.revision++;
+      if (changed) {
+        state.revision++;
+        intrinsicMutationToken = {};
+      }
       return changed;
     },
     deleteProperty(target, key) {
       const changed = Reflect.deleteProperty(target, key);
-      if (changed) state.revision++;
+      if (changed) {
+        state.revision++;
+        intrinsicMutationToken = {};
+      }
       return changed;
     }
   });
@@ -293,6 +305,7 @@ export function completeIntrinsicObjectInitialization(budget: Budget, value: San
     const record = records.find(record => record.target === value);
     if (record === undefined) continue;
     Object.assign(record, captureIntrinsicRecords([value])[0]);
+    intrinsicMutationToken = {};
     return;
   }
 }
@@ -371,7 +384,14 @@ function trackIntrinsicState(
     retainedRecords.push(record);
   }
   if (retainedRecords.length === 0) return;
+  const cacheable = retainedRecords.every(record => record.revision !== undefined);
+  let capturedToken: object | undefined;
+  let capturedRoots: unknown[] = [];
   budget.setRetainedValues(root, () => {
+    // O(1) root collection when tracked tables are unchanged. Only references
+    // are reused: measurement still recursively visits their current contents.
+    // Restored/untracked tables must always take the conservative scan below.
+    if (cacheable && capturedToken === intrinsicMutationToken) return capturedRoots;
     // Capture every change before measurement invokes retained-value callbacks.
     const retained: unknown[] = [];
     for (const record of retainedRecords) {
@@ -389,6 +409,10 @@ function trackIntrinsicState(
         record.capturedRevision = revision?.revision ?? -1;
       }
       for (const item of record.captured) retained.push(item);
+    }
+    if (cacheable) {
+      capturedRoots = retained;
+      capturedToken = intrinsicMutationToken;
     }
     return retained;
   });

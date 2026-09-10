@@ -145,3 +145,9 @@ All 51 infrastructure tests and scoped realm lint passed (12579, terminal
 4740fa). The unchanged pinned upstream cross-realm case now passes in both
 sloppy and strict modes (87601, terminal 28c72c). The child initialization
 repair is qualified independently of still-missing module and agent adapters.
+
+The Script executor is also qualified for its scoped local commit: its source
+and tests have not changed since the 50-test/lint pass, and the subsequent
+51-test run and unchanged upstream case exercise it with the repaired host.
+Corpus acquisition, revision verification, discovery and a durable report
+remain the next missing layer; these commits alone do not cover the corpus.

@@ -227,6 +227,18 @@ it("creates native generator functions without running their bodies and accepts 
   expect(state.events).toEqual(["start"]);expect(state.globals.get("first")).toEqual(v.integer(3));expect(state.globals.get("result")).toEqual(v.integer(7));
 });
 
+it.each(["[x*2 async for x in I()]","{x*2 async for x in I()}","{x:x*2 async for x in I()}"])("materializes native async comprehension %s",expression=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`class A:\n def __await__(self):return (yield 1)\nclass I:\n def __init__(self):self.i=0\n def __aiter__(self):return self\n async def __anext__(self):\n  await A()\n  self.i+=1\n  if self.i>2:raise StopAsyncIteration\n  return self.i\nasync def f():return ${expression}\nc=f()\nc.send(None)\nc.send(None)\nc.send(None)\ntry:c.send(None)\nexcept StopIteration as error:result=error.value\ncorrect=result==${expression.startsWith("[")?"[2,4]":expression.includes(":")?"{1:2,2:4}":"{2,4}"}\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("awaits comprehension filters and elements while isolating targets",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __init__(self,value):self.value=value\n def __await__(self):\n  yield self.value\n  return self.value\nasync def f():\n x=99\n result=[await A(x*2) for x in [1,2] if await A(x==2)]\n return (result,x)\nc=f()\na=c.send(None)\nb=c.send(None)\nd=c.send(None)\ntry:c.send(None)\nexcept StopIteration as error:correct=error.value==([4],99)\n");
+  expect(state.globals.get("a")).toBe(v.false);expect(state.globals.get("b")).toBe(v.true);expect(state.globals.get("d")).toEqual(v.integer(4));expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("does not inspect async-next diagnostics after fatal await acquisition",()=>{
   const state=exceptionFixture(),failure=new ExecutionLimitError("cancelled"),typeName=vi.fn(()=>"A");
   const delegation=new RuntimeGeneratorDelegation(state.v,state.exceptions!,state.meter);

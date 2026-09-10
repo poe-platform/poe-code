@@ -56,7 +56,7 @@ import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-
 import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
 import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
-import { ComprehensionCursor,executeComprehensionClauses } from "./comprehension-execution.js";
+import { ComprehensionCursor,executeComprehensionClauses,createComprehensionContinuation,type ComprehensionIterator } from "./comprehension-execution.js";
 import { createStatementContinuation } from "./statement-execution.js";
 import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
 import { createRuntimeAsyncIterator } from "./runtime-async-iteration.js";
@@ -451,6 +451,36 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       meter.checkpoint(0,128);
       expressions.delegate=source=>suspension.delegate(source,builtinCalls);
       expressions.awaitValue=source=>suspension.delegate(source,builtinCalls,true);
+      expressions.comprehensionContinuation=function*(node) {
+        if(node.kind==="comprehension"&&node.collection==="generator")return expressions.comprehension!(node);
+        const scope=comprehensions?.get(node);
+        if(scope===undefined)throw Error("comprehension has no matching compiled scope");
+        const source=yield* createExpressionContinuation(node.clauses[0].iterable,expressions,meter,values.none);
+        meter.checkpoint(0,256);
+        const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
+          ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>suspension.delegate(value,builtinCalls,"anext"),values,meter)}
+          :{kind:"sync",value:expressions.iterate(source)};
+        const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
+        const child=new LexicalFrame(scope,{...namespaces,closure},meter);
+        // Comprehension locals are isolated, but their awaits belong to the
+        // enclosing coroutine's active frame and handled-exception state.
+        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,suspension).suspend();
+        if(node.kind==="dictionary-comprehension") {
+          const result=expressions.beginDictionary([]);
+          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){
+            const key=yield* inner.evaluate(node.key),value=yield* inner.evaluate(node.value);result.set(key,value);
+          },meter);
+          return result.finish();
+        }
+        if(node.collection==="set") {
+          const result=expressions.beginSet([]);
+          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.add(yield* inner.evaluate(node.element));},meter);
+          return result.finish();
+        }
+        const result=values.list([]);
+        yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.items.append(yield* inner.evaluate(node.element));},meter);
+        return result;
+      };
     }
     keys.bindInvocation?.(frame, builtinCalls); meter.checkpoint();
     let inplace = statementHooks.inplace?.bind(statementHooks);

@@ -75,6 +75,8 @@ export interface ExpressionContext<Value> {
   /** Scope-aware execution owns outer-iterator acquisition, target isolation,
    * collection construction and any suspension policy. */
   comprehension?(node:ComprehensionNode):Value;
+  /** Scope-aware materialization whose clauses, filters and elements may await. */
+  comprehensionContinuation?(node:ComprehensionNode):Generator<Value,Value,Value>;
   /** Delegate to an already evaluated source. The capability owns guest
    * iterator acquisition, send/throw/close and completion-value semantics. */
   delegate?(source:Value):Generator<Value,Value,Value>;
@@ -174,6 +176,7 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
         else work.push({node:node.value,test:"value"});
         break;
       case "comprehension": case "dictionary-comprehension":
+        if(suspension!==undefined&&context.comprehensionContinuation!==undefined){value=yield* context.comprehensionContinuation(node);break;}
         if(context.comprehension===undefined)throw new UnsupportedExpressionError(node.kind);
         value=context.comprehension(node);break;
       case "interpolated-string": {

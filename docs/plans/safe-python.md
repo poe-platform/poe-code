@@ -10446,6 +10446,24 @@ extension, integration, or validation requirement is missing or unverified.
   Async comprehensions, aiter/anext builtins,
   async generators, context-manager integration and the broader public runtime,
   traceback and safe-fs work remain unfinished.
+- Materialized async comprehensions (2026-09-10): native suspended functions can
+  now build list/set/dictionary comprehensions with async clauses and awaits in
+  source expressions, filters and elements. The outer iterator is acquired in the
+  enclosing scope; target locals are isolated while awaits retain the enclosing
+  coroutine's frame and handled-exception state. Synchronous pull cursors and
+  suspended materialization share one iterative clause traversal, without
+  recursive clause nesting. Four native failures drove list/set/dict and filter/
+  element support. The existing 5,000-clause allocation test exposed redundant
+  iterator wrappers; traversal now uses clause flags and pre-reserved raw iterator
+  slots instead of allocating a wrapper per nesting level. All 512 initial native
+  mixed/nested comprehension comparisons match CPython. The 98 synchronous
+  comprehension and 512 native delegation comparisons also pass (1,122 total).
+  Final focused verification passes 798 tests in two files; selected workspace
+  build, typecheck and focused lint pass. The final uncached one-worker package
+  run passes all 7,500 tests in 509 files (380.25s; test bodies 24.37s).
+  Async generator expressions and generator expressions whose outer source awaits
+  remain separate unfinished work, alongside async generators, context managers,
+  traceback/public runtime assembly and safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

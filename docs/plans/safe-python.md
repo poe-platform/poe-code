@@ -9002,6 +9002,25 @@ extension, integration, or validation requirement is missing or unverified.
   lint and all 6,855 unit tests in 493 files pass with two workers. Dictionary
   protocol slots, construction, fromkeys and owned subclass storage remain open.
   No push or release was requested.
+- Canonical dictionary protocols (2026-09-10): failing integration tests
+  reproduced absent item slots, inherited object repr and inherited object
+  equality on explicit dict type calls. Added len, iteration, representation,
+  item mutation and equality wrappers; contains/getitem retain their distinct
+  method-descriptor identities and argument diagnostics. Dictionary __hash__ is
+  explicitly None. Instance binding now consults the canonical dictionary type
+  before native representation fallbacks. Existing storage operations retain
+  active guest key/equality/representation policies and recursive repr guards.
+  Differential checks exposed premature keyword-name validation for native
+  wrappers: wrapper descriptors and bound method-wrappers now perform their own
+  validation, matching CPython, without changing method-descriptor call rules.
+  Five added tests cover protocols, live guest repr, equality/hash metadata and
+  bound/unbound wrapper keyword rejection. All 927 dictionary protocol cases,
+  2,655 list/tuple/set protocol regression cases (including invalid dictionary
+  receivers), 515 mutation-method and 330 read-method cases match CPython.
+  Workspace build, typecheck, focused lint and all 6,860 unit tests in 493 files
+  pass with two workers. Dictionary construction, fromkeys, union operators and
+  owned subclass storage remain unfinished, as does the broader interpreter goal.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

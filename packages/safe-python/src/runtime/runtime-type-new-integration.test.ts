@@ -52,6 +52,33 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["Dict.__len__(d,**{1:2})", "d.__len__(**{1:2})"])("lets native wrappers reject keyword dictionaries in %s", expression => {
+  const state = fixture(); state.run("Dict=type({})\nd={}\n");
+  expect(() => state.run(expression + "\n")).toThrow("wrapper __len__() takes no keyword arguments");
+});
+
+it("publishes canonical dictionary indexing and iteration protocols", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nList=type([])\nd={}\nwritten=Dict.__setitem__(d,'a',1)\nDict.__setitem__(d,'b',2)\nsize=Dict.__len__(d)\nfound=Dict.__contains__(d,'a')\nvalue=Dict.__getitem__(d,'a')\nkeys=List(Dict.__iter__(d))\ndeleted=Dict.__delitem__(d,'a')\nbound=d.__getitem__.__self__ is d\nowner=Dict.__getitem__.__objclass__ is Dict\ncorrect=written is None and deleted is None and size==2 and found and value==1 and keys==['a','b'] and d=={'b':2} and bound and owner\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("uses active guest representations and recursion guards in explicit dict repr", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Value:\n def __repr__(self):\n  visit('repr')\n  return 'value'\nd={'a':Value()}\ntext=Dict.__repr__(d)\nd['self']=d\nrecursive=d.__repr__()\n");
+  expect(state.globals.get("text")).toEqual(state.v.string("{'a': value}"));
+  expect(state.globals.get("recursive")).toEqual(state.v.string("{'a': value, 'self': {...}}"));
+  expect(state.events).toEqual(["repr", "repr"]);
+});
+
+it("publishes dictionary equality with guest member comparisons and disabled hashing", () => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("Dict=type({})\nclass Value:\n def __eq__(self,other):\n  visit('equal')\n  return True\nleft={'a':Value()}\nright={'a':Value()}\nequal=Dict.__eq__(left,right)\ndifferent=Dict.__ne__(left,right)\ndeclined=Dict.__eq__(left,[]) is NotImplemented\nunhashable=Dict.__hash__ is None and left.__hash__ is None\n");
+  expect(state.globals.get("equal")).toBe(state.v.true); expect(state.globals.get("different")).toBe(state.v.false);
+  expect(state.globals.get("declined")).toBe(state.v.true); expect(state.globals.get("unhashable")).toBe(state.v.true);
+  expect(state.events).toEqual(["equal", "equal"]);
+});
+
 it("publishes canonical dictionary mutation methods and receiver metadata", () => {
   const state = fixture();
   state.run("Dict=type({})\nd={}\nbound=d.update.__self__ is d\nowner=Dict.update.__objclass__ is Dict\nupdated=Dict.update(d,[('a',1)],b=2)\nexisting=Dict.setdefault(d,'a',9)\ninserted=Dict.setdefault(d,'c',3)\npopped=Dict.pop(d,'b')\nlast=Dict.popitem(d)\ncleared=Dict.clear(d)\ncorrect=bound and owner and updated is None and existing==1 and inserted==3 and popped==2 and last==('c',3) and cleared is None and d=={}\n");

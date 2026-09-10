@@ -114,9 +114,10 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (descriptorMethod !== undefined) return descriptorMethod;
   const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
   if (metadata !== undefined) return metadata;
-  if (receiver.kind === "tuple" && methods?.actualType !== undefined) {
+  if ((receiver.kind === "tuple" || receiver.kind === "dict") && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();
     const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
+    if (name === "__hash__" && member?.kind === "none") return member;
     if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }
   if ((name === "__eq__" || name === "__ne__" || name === "__lt__" || name === "__le__" || name === "__gt__" || name === "__ge__" || name === "__hash__" || name === "__repr__" || name === "__str__" || name === "__format__"
@@ -217,11 +218,6 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     }
   }
   if (receiver.kind === "dict" || receiver.kind === "mappingproxy") {
-    if (receiver.kind === "dict" && methods?.actualType !== undefined) {
-      const type = methods.actualType(receiver); meter.checkpoint();
-      const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
-      if (member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
-    }
     switch (name) {
       case "fromkeys":
         if (receiver.kind === "dict") {

@@ -28,6 +28,17 @@ import { createSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields, type
 
 let intrinsicKinds: Map<string, boolean> | undefined;
 
+const objectKinds = ["object", "array", "map", "set", "float32array", "typedarray", "arraybuffer", "sharedarraybuffer", "dataview",
+  "boxed", "date", "regex-object", "module-namespace", "raw-json", "guest-proxy", "guest-proxy-revoker",
+  "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver",
+  "aggregate-handler", "adoption-resolver", "capability-executor", "intrinsic", "bound-function", "promise-resolver",
+  "pending-promise", "promise-reaction", "guest-function", "guest-class", "guest-generator", "mapped-arguments",
+  "guest-temporal-plain-year-month", "guest-temporal-plain-month-day", "guest-temporal-zoned-date-time", "guest-temporal-plain-date", "guest-temporal-plain-date-time", "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-temporal-instant", "guest-temporal-duration", "guest-temporal-plain-time", "guest-locale", "guest-listformat", "guest-pluralrules",
+  "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator",
+  "guest-durationformat", "guest-segmenter", "guest-segments", "guest-regex", "guest-promise", "guest-weakcollection", "guest-weakref",
+  "array-iterator", "string-iterator", "async-disposable-stack", "disposable-stack", "iterator-wrapper", "iterator-helper",
+  "guest-collection-iterator", "guest-regexp-iterator", "guest-finalization-registry"];
+
 function intrinsicCatalogue(): Map<string, boolean> {
   if (intrinsicKinds !== undefined) return intrinsicKinds;
   const budget = new Budget();
@@ -145,13 +156,29 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     createRawJson(node.text);
     return true;
   }
-  if (node.kind !== "guest-temporal-plain-year-month" && node.kind !== "guest-temporal-plain-month-day" && node.kind !== "guest-temporal-zoned-date-time" && node.kind !== "guest-temporal-plain-date" && node.kind !== "guest-temporal-plain-date-time" && node.kind !== "guest-temporal-plain-time" && node.kind !== "guest-temporal-duration" && node.kind !== "guest-temporal-instant" && node.kind !== "guest-proxy" && node.kind !== "guest-proxy-revoker" && !["guest-durationformat", "guest-segmenter", "guest-segments", "module-function", "async-generator-driver", "async-generator-handler", "async-function-driver", "async-function-handler", "thenable-state", "thenable-resolver", "construction-environment", "capability-executor", "promise-aggregate", "aggregate-entry", "aggregate-handler", "intrinsic", "bound-function", "promise-resolver", "pending-promise", "promise-reaction", "promise-adoption", "adoption-resolver", "guest-function", "guest-class", "guest-generator", "scope-frame", "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules", "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator", "guest-regex", "guest-promise", "array-iterator", "string-iterator", "async-disposable-stack", "async-cleanup", "async-cleanup-handler", "disposable-stack", "iterator-wrapper", "iterator-helper", "guest-collection-iterator", "guest-regexp-iterator", "map", "set"].includes(String(node.kind))) return false;
+  if (node.kind !== "guest-temporal-plain-year-month" && node.kind !== "guest-temporal-plain-month-day" && node.kind !== "guest-temporal-zoned-date-time" && node.kind !== "guest-temporal-plain-date" && node.kind !== "guest-temporal-plain-date-time" && node.kind !== "guest-temporal-plain-time" && node.kind !== "guest-temporal-duration" && node.kind !== "guest-temporal-instant" && node.kind !== "guest-proxy" && node.kind !== "guest-proxy-revoker" && !["guest-finalization-registry", "guest-weakref", "guest-weakcollection", "guest-durationformat", "guest-segmenter", "guest-segments", "module-function", "async-generator-driver", "async-generator-handler", "async-function-driver", "async-function-handler", "thenable-state", "thenable-resolver", "construction-environment", "capability-executor", "promise-aggregate", "aggregate-entry", "aggregate-handler", "intrinsic", "bound-function", "promise-resolver", "pending-promise", "promise-reaction", "promise-adoption", "adoption-resolver", "guest-function", "guest-class", "guest-generator", "scope-frame", "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules", "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator", "guest-regex", "guest-promise", "array-iterator", "string-iterator", "async-disposable-stack", "async-cleanup", "async-cleanup-handler", "disposable-stack", "iterator-wrapper", "iterator-helper", "guest-collection-iterator", "guest-regexp-iterator", "map", "set"].includes(String(node.kind))) return false;
   const reference = (value: unknown, kinds?: string[]) => {
     const ref = record(value);
     fields(ref, ["kind", "id"]);
     if (ref.kind !== "ref" || integer(ref.id) < 1 || !Object.hasOwn(heap, String(ref.id))) throw new TypeError("Invalid guest heap reference.");
     const target = record(heap[String(ref.id)]);
     if (kinds !== undefined && !kinds.includes(String(target.kind))) throw new TypeError("Wrong guest heap reference kind.");
+    return target;
+  };
+  const weakTarget = (value: unknown) => {
+    if (absent(value)) return undefined;
+    const target = reference(value, [...objectKinds, "symbol"]);
+    if (target.kind === "symbol") {
+      for (const rawOwner of Object.values(heap)) {
+        const owner = record(rawOwner);
+        if (owner.kind !== "intrinsic" || owner.symbolRegistry === undefined) continue;
+        for (const rawRegistered of array(owner.symbolRegistry)) {
+          const registered = array(rawRegistered);
+          if (registered.length !== 2) throw new TypeError("Invalid symbol registry entry.");
+          if (reference(registered[1]) === target) throw new TypeError("Registered symbols cannot be weak targets.");
+        }
+      }
+    }
     return target;
   };
   const callable = (value: unknown) => {
@@ -244,17 +271,6 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     if (typeof node.callable !== "boolean" || typeof node.constructible !== "boolean" ||
         (node.constructible && !node.callable)) throw new TypeError("Invalid Proxy callable flags.");
     if ((node.target === null) !== (node.handler === null)) throw new TypeError("Invalid revoked Proxy state.");
-    const objectKinds = ["object", "array", "map", "set", "float32array", "typedarray", "arraybuffer", "sharedarraybuffer", "dataview",
-      "boxed", "date", "regex-object", "module-namespace", "raw-json", "guest-proxy", "guest-proxy-revoker",
-      "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver",
-      "aggregate-handler", "adoption-resolver", "capability-executor", "intrinsic", "bound-function", "promise-resolver",
-      "pending-promise", "promise-reaction", "guest-function", "guest-class", "guest-generator", "mapped-arguments",
-      "guest-temporal-instant", "guest-temporal-zoned-date-time", "guest-temporal-duration", "guest-temporal-plain-time", "guest-temporal-plain-date-time", "guest-temporal-plain-date", "guest-temporal-plain-month-day", "guest-temporal-plain-year-month",
-      "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules",
-      "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator",
-      "guest-durationformat", "guest-segmenter", "guest-segments", "guest-regex", "guest-promise", "guest-weakcollection",
-      "array-iterator", "string-iterator", "async-disposable-stack", "disposable-stack", "iterator-wrapper", "iterator-helper",
-      "guest-collection-iterator", "guest-regexp-iterator"];
     if (node.target !== null) {
       reference(node.handler, objectKinds);
       const seen = new Set([node]);
@@ -536,6 +552,39 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       const value = createSandboxSegments({ segmenter: owner, input: node.input });
       if ((node.index as number) < node.input.length && segmentState(value).native.containing(node.index as number)?.index !== node.index)
         throw new TypeError("Invalid segment iterator boundary.");
+    }
+    state(node.state);
+  } else if (node.kind === "guest-weakref") {
+    fields(node, ["kind", "target", "state"]);
+    weakTarget(node.target);
+    state(node.state);
+  } else if (node.kind === "guest-finalization-registry") {
+    fields(node,["kind","callback","cells","state"]);
+    if (absent(node.callback)) throw new TypeError("Missing finalization cleanup callback.");
+    callable(node.callback);
+    const cells = array(node.cells);
+    if (cells.length > maxArrayLength) throw new TypeError("Too many finalization cells.");
+    for (const rawCell of cells) {
+      const cell = record(rawCell);
+      fields(cell,["target","token","heldValue"]);
+      const target = weakTarget(cell.target);
+      weakTarget(cell.token);
+      if (target !== undefined && cell.heldValue !== null && typeof cell.heldValue === "object" &&
+          record(cell.heldValue).kind === "ref" && reference(cell.heldValue) === target)
+        throw new TypeError("Finalization target and held value must differ.");
+    }
+    state(node.state);
+  } else if (node.kind === "guest-weakcollection") {
+    fields(node, ["kind", "collectionKind", "entries", "state"]);
+    if (node.collectionKind !== "map" && node.collectionKind !== "set") throw new TypeError("Invalid weak collection kind.");
+    const keys = new Set<unknown>();
+    for (const rawEntry of array(node.entries)) {
+      const entry = array(rawEntry);
+      if (entry.length !== 2) throw new TypeError("Invalid weak collection entry.");
+      const target = weakTarget(entry[0]);
+      if (target === undefined || keys.has(target)) throw new TypeError("Invalid weak collection key.");
+      keys.add(target);
+      if (node.collectionKind === "set" && !absent(entry[1])) throw new TypeError("Invalid weak set value.");
     }
     state(node.state);
   } else if (node.kind === "guest-durationformat") {

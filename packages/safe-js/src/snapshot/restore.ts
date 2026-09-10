@@ -1,3 +1,6 @@
+import { createWeakReferenceState, weakReferenceStates } from "../interp/weak-reference.js";
+import { finalizationRegistryStates } from "../interp/finalization-registry-state.js";
+import { createOwnedFinalizationRegistryState, type FinalizationActivation } from "../interp/owned-finalization-registry.js";
 import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
 import { createBoundFunction } from "../interp/bound-function.js";
 import { invokeBuiltinClosure } from "../interp/builtin-call.js";
@@ -56,6 +59,7 @@ import { createGuestProxyCarrier, createGuestProxyRevoker, guestProxyStates, gue
 import { createSandboxDisplayNames } from "../interp/intl-displaynames.js";
 import { createSandboxPluralRules } from "../interp/intl-pluralrules.js";
 import { createSandboxDurationFormat } from "../interp/intl-durationformat.js";
+import { createWeakCollection, setWeakEntry } from "../interp/weak-collection.js";
 import { createSandboxSegmenter, createSandboxSegments, isSandboxSegmenter } from "../interp/intl-segmenter.js";
 import { createSandboxNumberFormat, numberFormatState } from "../interp/intl-numberformat.js";
 import { createSandboxDateTimeFormat, dateTimeFormatState } from "../interp/intl-datetimeformat.js";
@@ -213,6 +217,7 @@ export type RestoredSnapshot = {
 };
 
 type RestoreState = {
+  finalizationActivation: FinalizationActivation;
   atomicWaits: Array<{order: number; activate: () => Promise<void>}>;
   moduleFunctions: ModuleEnvironment;
   thenableBridges: Map<number, ReturnType<typeof createThenableBridge>>;
@@ -251,6 +256,10 @@ export function restore(
   const budget = options.budget ?? new Budget();
   const operation = budget.acquireCompileOwner(false, owner);
   const compilation = new CompileScope(operation.owner);
+  const finalizationActivation: FinalizationActivation = {phase:"pending",pending:[],rollback:[]};
+  let failure: {reason: unknown} | undefined;
+  let restored!: RestoredSnapshot;
+  const cleanupErrors: unknown[] = [];
   try {
     validateSnapshotSourceHash(snapshot);
     let currentSourceHash: string;
@@ -278,6 +287,7 @@ export function restore(
     }
 
     const state: RestoreState = {
+      finalizationActivation,
       atomicWaits: [],
       moduleFunctions: createModuleEnvironment(options.modules, {budget,compileOwner:operation.owner,signal:options.signal}),
       promiseReactionRecords: new Map(),
@@ -378,8 +388,11 @@ export function restore(
       if (orders.has(wait.order)) throw new TypeError("Duplicate atomic wait order.");
       orders.add(wait.order);
     }
+    finalizationActivation.phase = "active";
+    finalizationActivation.rollback.length = 0;
+    for (const dispatch of finalizationActivation.pending.splice(0)) dispatch();
     let activation: Promise<void> | undefined;
-    return {
+    restored = {
       activateAtomicWaits() {
         return activation ??= (async () => {
           for (const wait of state.atomicWaits.sort((a, b) => a.order - b.order)) await wait.activate();
@@ -400,10 +413,27 @@ export function restore(
       signal: options.signal,
       sourceHash: snapshot.sourceHash
     };
+  } catch (reason) {
+    failure = {reason};
   } finally {
-    compilation.dispose();
-    operation.release();
+    let cleanups: Array<() => void> = [];
+    if (finalizationActivation.phase === "pending") {
+      finalizationActivation.phase = "cancelled";
+      finalizationActivation.pending.length = 0;
+      cleanups = finalizationActivation.rollback.splice(0).reverse();
+    }
+    cleanups.push(() => compilation.dispose(), () => operation.release());
+    for (const cleanup of cleanups) {
+      try { cleanup(); }
+      catch (error) { cleanupErrors.push(error); }
+    }
   }
+  if (cleanupErrors.length > 0) {
+    throw new AggregateError(failure === undefined ? cleanupErrors : [failure.reason,...cleanupErrors],
+      "SafeJS snapshot restoration cleanup failed.");
+  }
+  if (failure !== undefined) throw failure.reason;
+  return restored;
 }
 
 function isSandboxSnapshotValue(value: unknown): value is SandboxValue {
@@ -1264,7 +1294,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     state.heapValueById.set(id, resolver);
     return resolver;
   }
-  if (serialized.kind === "guest-temporal-plain-year-month" || serialized.kind === "guest-temporal-plain-month-day" || serialized.kind === "guest-temporal-zoned-date-time" || serialized.kind === "guest-temporal-plain-date" || serialized.kind === "guest-temporal-plain-date-time" || serialized.kind === "guest-temporal-plain-time" || serialized.kind === "guest-temporal-duration" || serialized.kind === "guest-temporal-instant" || serialized.kind === "guest-durationformat" || serialized.kind === "guest-segmenter" || serialized.kind === "guest-segments" || serialized.kind === "module-function" || serialized.kind === "thenable-resolver" || serialized.kind === "capability-executor" || serialized.kind === "intrinsic" || serialized.kind === "bound-function" || serialized.kind === "promise-resolver" || serialized.kind === "pending-promise" || serialized.kind === "promise-reaction" || serialized.kind === "guest-function" || serialized.kind === "guest-class" || serialized.kind === "guest-object" || serialized.kind === "guest-array" || serialized.kind === "guest-boxed" || serialized.kind === "guest-pluralrules" || serialized.kind === "guest-displaynames" || serialized.kind === "guest-relativetimeformat" || serialized.kind === "guest-listformat" || serialized.kind === "guest-datetimeformat" || serialized.kind === "guest-numberformat" || serialized.kind === "guest-collator" || serialized.kind === "guest-locale" || serialized.kind === "guest-date" || serialized.kind === "guest-regex" || serialized.kind === "guest-promise" || serialized.kind === "array-iterator" || serialized.kind === "string-iterator" || serialized.kind === "async-disposable-stack" || serialized.kind === "disposable-stack" || serialized.kind === "iterator-wrapper" || serialized.kind === "iterator-helper") {
+  if (serialized.kind === "guest-temporal-plain-year-month" || serialized.kind === "guest-temporal-plain-month-day" || serialized.kind === "guest-temporal-zoned-date-time" || serialized.kind === "guest-temporal-plain-date" || serialized.kind === "guest-temporal-plain-date-time" || serialized.kind === "guest-temporal-plain-time" || serialized.kind === "guest-temporal-duration" || serialized.kind === "guest-temporal-instant" || serialized.kind === "guest-finalization-registry" || serialized.kind === "guest-weakref" || serialized.kind === "guest-weakcollection" || serialized.kind === "guest-durationformat" || serialized.kind === "guest-segmenter" || serialized.kind === "guest-segments" || serialized.kind === "module-function" || serialized.kind === "thenable-resolver" || serialized.kind === "capability-executor" || serialized.kind === "intrinsic" || serialized.kind === "bound-function" || serialized.kind === "promise-resolver" || serialized.kind === "pending-promise" || serialized.kind === "promise-reaction" || serialized.kind === "guest-function" || serialized.kind === "guest-class" || serialized.kind === "guest-object" || serialized.kind === "guest-array" || serialized.kind === "guest-boxed" || serialized.kind === "guest-pluralrules" || serialized.kind === "guest-displaynames" || serialized.kind === "guest-relativetimeformat" || serialized.kind === "guest-listformat" || serialized.kind === "guest-datetimeformat" || serialized.kind === "guest-numberformat" || serialized.kind === "guest-collator" || serialized.kind === "guest-locale" || serialized.kind === "guest-date" || serialized.kind === "guest-regex" || serialized.kind === "guest-promise" || serialized.kind === "array-iterator" || serialized.kind === "string-iterator" || serialized.kind === "async-disposable-stack" || serialized.kind === "disposable-stack" || serialized.kind === "iterator-wrapper" || serialized.kind === "iterator-helper") {
     let value: RuntimeSnapshotValue;
     if (serialized.kind === "thenable-resolver") {
       const bridge = restoreThenableBridge(serialized.continuation, state);
@@ -1402,6 +1432,46 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       value = createSandboxPluralRules(serialized.options.locale as string, serialized.options);
     } else if (serialized.kind === "guest-durationformat") {
       value = createSandboxDurationFormat(serialized.settings);
+    } else if (serialized.kind === "guest-finalization-registry") {
+      value = Object.create(null);
+      state.initializeIterators.push(() => {
+        const callback = deserializeValue(serialized.callback,state);
+        if (!isSandboxClosure(callback)) throw new TypeError("Invalid finalization cleanup callback.");
+        const registry = createOwnedFinalizationRegistryState(callback,state.budget,undefined,state.finalizationActivation);
+        finalizationRegistryStates.set(value as object,{state:registry,callback});
+        for (const cell of serialized.cells) {
+          const target = deserializeValue(cell.target,state);
+          const token = deserializeValue(cell.token,state);
+          const heldValue = deserializeValue(cell.heldValue,state) as SandboxValue;
+          if (target !== undefined && (target === null || typeof target !== "object" && typeof target !== "symbol") ||
+              token !== undefined && (token === null || typeof token !== "object" && typeof token !== "symbol"))
+            throw new TypeError("Invalid restored finalization weak edge.");
+          if (target !== undefined && Object.is(target,heldValue)) throw new TypeError("Invalid restored finalization held value.");
+          state.budget.allocateCollectionEntries(registry.cells.size + 1);
+          registry.register(target as Extract<SandboxValue,object | symbol> | undefined,heldValue,
+            token as Extract<SandboxValue,object | symbol> | undefined);
+        }
+      });
+    } else if (serialized.kind === "guest-weakref") {
+      value = Object.create(null);
+      state.initializeIterators.push(() => {
+        const target = deserializeValue(serialized.target, state);
+        if (target === undefined) weakReferenceStates.set(value as object, { deref: () => undefined });
+        else {
+          if (target === null || typeof target !== "object" && typeof target !== "symbol")
+            throw new TypeError("Invalid WeakRef target.");
+          weakReferenceStates.set(value as object, createWeakReferenceState(target as Extract<SandboxValue, object | symbol>));
+        }
+      });
+    } else if (serialized.kind === "guest-weakcollection") {
+      value = createWeakCollection(serialized.collectionKind);
+      state.initializeIterators.push(() => {
+        for (const [keyReference, entryReference] of serialized.entries) {
+          const key = deserializeValue(keyReference, state);
+          if (key === null || typeof key !== "object" && typeof key !== "symbol") throw new TypeError("Invalid weak collection key.");
+          setWeakEntry(value as object, key, deserializeValue(entryReference, state) as SandboxValue);
+        }
+      });
     } else if (serialized.kind === "guest-segmenter") {
       value = createSandboxSegmenter(serialized.options.locale, serialized.options);
     } else if (serialized.kind === "guest-segments") {

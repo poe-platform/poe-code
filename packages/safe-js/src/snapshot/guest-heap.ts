@@ -1,5 +1,7 @@
 import { getClosureOrigin, getGeneratorOrigin } from "../interp/closure-origin.js";
 import { atomicWaitStates } from "../interp/atomic-wait-state.js";
+import { weakReferenceStates } from "../interp/weak-reference.js";
+import { finalizationRegistryStates } from "../interp/finalization-registry-state.js";
 import { guestProxyStates, guestProxyRevokers } from "../interp/guest-proxy.js";
 import { mappedArgumentStates } from "../interp/arguments.js";
 import { dynamicNodeSources, dynamicSourceRecords, type DynamicSource, type EvalSourceContext } from "../parse/function-source.js";
@@ -31,6 +33,7 @@ import { isSandboxRelativeTimeFormat, relativeTimeFormatState, type ResolvedRela
 import { isSandboxDisplayNames, displayNamesState, type ResolvedDisplayNamesOptions } from "../interp/intl-displaynames.js";
 import { isSandboxPluralRules, pluralRulesState, type ResolvedPluralRulesOptions } from "../interp/intl-pluralrules.js";
 import { isSandboxDurationFormat, durationFormatState, type DurationSettings } from "../interp/intl-durationformat.js";
+import { weakCollectionStates } from "../interp/weak-collection.js";
 import { isSandboxSegmenter, isSandboxSegments, segmenterState, segmentState, type SegmenterOptions } from "../interp/intl-segmenter.js";
 import { isSandboxNumberFormat, numberFormatState, type NumberFormatOptions } from "../interp/intl-numberformat.js";
 import { isSandboxDateTimeFormat, dateTimeFormatState, type DateTimeFormatOptions } from "../interp/intl-datetimeformat.js";
@@ -134,6 +137,9 @@ export type GuestHeapNode<T> =
   | { kind: "guest-displaynames"; options: ResolvedDisplayNamesOptions; state: GuestObjectState<T> }
   | { kind: "guest-pluralrules"; options: ResolvedPluralRulesOptions; state: GuestObjectState<T> }
   | { kind: "guest-durationformat"; settings: DurationSettings; state: GuestObjectState<T> }
+  | { kind: "guest-weakcollection"; collectionKind: "map" | "set"; entries: Array<[T, T]>; state: GuestObjectState<T> }
+  | { kind: "guest-weakref"; target: T; state: GuestObjectState<T> }
+  | { kind: "guest-finalization-registry"; callback: T; cells: Array<{target:T;token:T;heldValue:T}>; state: GuestObjectState<T> }
   | { kind: "guest-segmenter"; options: SegmenterOptions; state: GuestObjectState<T> }
   | { kind: "guest-segments"; segmenter: T; input: string; index?: number; state: GuestObjectState<T> }
   | { kind: "iterator-helper"; method: IteratorHelperState["method"]; status: "start" | "yield" | "done";
@@ -187,7 +193,18 @@ export type GuestHeapNode<T> =
 
 // The enclosing graph serializer allocates the reference before calling this
 // function, so self-referential properties and captured environments can cycle.
-export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) => T): GuestHeapNode<T> | undefined {
+export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) => T, weakEntries: ReadonlyArray<readonly [unknown, unknown]> = [], weakTarget?: object | symbol,
+  finalizationTargets: ReadonlyArray<{target?:object | symbol;token?:object | symbol}> = []): GuestHeapNode<T> | undefined {
+  const finalization = finalizationRegistryStates.get(value);
+  if (finalization !== undefined) return {
+    kind:"guest-finalization-registry", callback:encode(finalization.callback),
+    cells:[...finalization.state.cells].map((cell,index) => ({
+      target:encode(finalizationTargets[index]?.target),token:encode(finalizationTargets[index]?.token),heldValue:encode(cell.heldValue)
+    })),state:captureObjectState(value,encode)!
+  };
+  if (weakReferenceStates.has(value)) return {
+    kind: "guest-weakref", target: encode(weakTarget), state: captureObjectState(value, encode)!
+  };
   const proxy = guestProxyStates.get(value);
   if (proxy !== undefined) return {
     kind: "guest-proxy", target: encode(proxy.target), handler: encode(proxy.handler),
@@ -206,6 +223,12 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
   if (mapped !== undefined) return {kind: "mapped-arguments", scope: encode(mapped.scope),
     parameters: [...mapped.parameters], nativeIterator: Object.getOwnPropertyDescriptor(value, Symbol.iterator)?.value === Array.prototype.values,
     state: captureObjectState(value, entry => encode(entry === Array.prototype.values ? undefined : entry))!};
+  const weakState = weakCollectionStates.get(value);
+  if (weakState !== undefined) return {
+    kind: "guest-weakcollection", collectionKind: weakState.kind,
+    entries: weakEntries.map(([key, entry]) => [encode(key), encode(entry)]),
+    state: captureObjectState(value, encode)!
+  };
   const generatorDriver = asyncGeneratorDrivers.get(value);
   if (generatorDriver === value) {
     if (generatorDriver.phase === "running") throw new SnapshotNotReadyError("Cannot snapshot an active async generator request.");

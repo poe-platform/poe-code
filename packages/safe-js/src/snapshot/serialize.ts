@@ -1,4 +1,8 @@
+import { weakReferenceStates } from "../interp/weak-reference.js";
+import { finalizationRegistryStates } from "../interp/finalization-registry-state.js";
+import { wellKnownSymbols } from "../interp/symbols.js";
 import { hashSource } from "../parse/hash.js";
+import { weakCollectionStates, type WeakCollectionKey } from "../interp/weak-collection.js";
 import type { PropertyDescriptorData } from "./property-descriptors.js";
 import { serializeCollectionProperties } from "./collection-properties.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
@@ -239,6 +243,9 @@ type SerializationState = {
   heap: Record<string, SerializedHeapValue>;
   heapIds: Map<object | symbol, number>;
   guestValues: Set<object>;
+  weakEntries: Map<object, Array<[WeakCollectionKey, unknown]>>;
+  weakTargets: Map<object, object | symbol>;
+  finalizationTargets: Map<object, Array<{target?:object | symbol;token?:object | symbol}>>;
   serializedHeapIds: Set<number>;
 };
 
@@ -351,7 +358,7 @@ function serializeValue(
     const id = state.heapIds.get(value)!;
     if (!state.serializedHeapIds.has(id)) {
       state.serializedHeapIds.add(id);
-      const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state));
+      const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state), state.weakEntries.get(value), state.weakTargets.get(value), state.finalizationTargets.get(value));
       if (node === undefined) throw new TypeError(`Missing guest heap state at ${path}.`);
       state.heap[String(id)] = node;
     }
@@ -668,7 +675,7 @@ function withSerializableContainer<TValue>(
   }
 }
 
-function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "heapIds" | "guestValues"> {
+function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "heapIds" | "guestValues" | "weakEntries" | "weakTargets" | "finalizationTargets"> {
   const stats = new Map<
     object,
     {
@@ -680,10 +687,43 @@ function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "h
   >();
   const ancestors = new WeakSet<object>();
   const guestValues = new Set<object>();
+  const weakEntries = new Map<object, Array<[WeakCollectionKey, unknown]>>();
+  const seenSymbols = new Set<symbol>();
+  type Contribution = { owner: object; key: WeakCollectionKey; value: unknown; depth: number };
+  const waiting = new Map<WeakCollectionKey, Contribution[]>();
+  const ready: Contribution[] = [];
+  const reached = (value: WeakCollectionKey, depth: number) => {
+    if (typeof value === "symbol") {
+      if (seenSymbols.has(value)) return;
+      seenSymbols.add(value);
+    }
+    const unlocked = waiting.get(value);
+    if (unlocked !== undefined) {
+      for (const contribution of unlocked) ready.push(contribution);
+      waiting.delete(value);
+    }
+    if (typeof value === "symbol") return;
+    const weakState = weakCollectionStates.get(value);
+    if (weakState === undefined) return;
+    weakEntries.set(value, []);
+    for (const reference of weakState.references) {
+      const key = reference.deref();
+      if (key === undefined) continue;
+      const entry = weakState.entries.get(key);
+      if (entry === undefined) continue;
+      const contribution = { owner: value, key, value: weakState.kind === "map" ? entry.value : undefined, depth: depth + 1 };
+      if (typeof key === "symbol" ? seenSymbols.has(key) || Object.values(wellKnownSymbols).includes(key) : stats.has(key)) ready.push(contribution);
+      else {
+        const pending = waiting.get(key);
+        if (pending === undefined) waiting.set(key, [contribution]);
+        else pending.push(contribution);
+      }
+    }
+  };
 
   for (const scope of input.scopeChain) {
     for (const value of Object.values(scope.bindings)) {
-      collectContainerStats(value, stats, ancestors, guestValues);
+      collectContainerStats(value, stats, ancestors, guestValues, 0, reached);
     }
   }
 
@@ -693,10 +733,36 @@ function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "h
         continue;
       }
 
-      collectContainerStats(value as RuntimeSnapshotValue, stats, ancestors, guestValues);
+      collectContainerStats(value as RuntimeSnapshotValue, stats, ancestors, guestValues, 0, reached);
     }
   }
 
+  for (let index = 0; index < ready.length; index++) {
+    const contribution = ready[index]!;
+    weakEntries.get(contribution.owner)!.push([contribution.key, contribution.value]);
+    if (typeof contribution.key === "object") stats.get(contribution.key)!.forceHeap = true;
+    collectContainerStats(contribution.value, stats, ancestors, guestValues, contribution.depth, reached);
+    if (contribution.value !== null && typeof contribution.value === "object") {
+      const stat = stats.get(contribution.value);
+      if (stat !== undefined) stat.forceHeap = true;
+    }
+  }
+  const weakTargets = new Map<object, object | symbol>();
+  const finalizationTargets = new Map<object, Array<{target?:object | symbol;token?:object | symbol}>>();
+  const reachableWeakTarget = (target: object | symbol | undefined): object | symbol | undefined => {
+    if (typeof target === "symbol") return seenSymbols.has(target) || Object.values(wellKnownSymbols).includes(target) ? target : undefined;
+    if (target === undefined || !stats.has(target)) return undefined;
+    stats.get(target)!.forceHeap = true;
+    return target;
+  };
+  for (const value of guestValues) {
+    const target = reachableWeakTarget(weakReferenceStates.get(value)?.deref());
+    if (target !== undefined) weakTargets.set(value,target);
+    const finalization = finalizationRegistryStates.get(value);
+    if (finalization !== undefined) finalizationTargets.set(value,[...finalization.state.cells].map(cell => ({
+      target:reachableWeakTarget(cell.target.deref()),token:reachableWeakTarget(cell.token?.deref())
+    })));
+  }
   const heapIds = new Map<object | symbol, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
@@ -728,7 +794,7 @@ function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "h
     }
   }
 
-  return { heapIds, guestValues };
+  return { heapIds, guestValues, weakEntries, weakTargets, finalizationTargets };
 }
 
 function collectContainerStats(
@@ -736,8 +802,13 @@ function collectContainerStats(
   stats: Map<object, { count: number; cyclic: boolean; expanded: boolean; forceHeap?: boolean }>,
   ancestors: WeakSet<object>,
   guestValues: Set<object>,
-  depth = 0
+  depth = 0,
+  reached?: (value: WeakCollectionKey, depth: number) => void
 ): void {
+  if (typeof value === "symbol") {
+    reached?.(value, depth);
+    return;
+  }
   if (
     value === null ||
     typeof value !== "object" ||
@@ -757,6 +828,7 @@ function collectContainerStats(
       expanded: false
     };
     stats.set(value, stat);
+    reached?.(value, depth);
   }
 
   stat.count += 1;
@@ -786,7 +858,7 @@ function collectContainerStats(
   if (guest !== undefined) {
     if (!isNumericTypedArray(value) && !isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value)) guestValues.add(value);
     for (const entry of guestEntries) {
-      collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
+      collectContainerStats(entry, stats, ancestors, guestValues, depth + 1, reached);
       if (entry !== null && typeof entry === "object") {
         const entryStat = stats.get(entry);
         if (entryStat !== undefined) entryStat.forceHeap = true;
@@ -832,12 +904,13 @@ function collectContainerStats(
     });
   }
   for (const entry of entries) {
-    collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
+    collectContainerStats(entry, stats, ancestors, guestValues, depth + 1, reached);
   }
   for (const key of ownSerializableSymbolKeys(value)) {
+    collectContainerStats(key, stats, ancestors, guestValues, depth + 1, reached);
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
     if ("value" in descriptor)
-      collectContainerStats(descriptor.value, stats, ancestors, guestValues, depth + 1);
+      collectContainerStats(descriptor.value, stats, ancestors, guestValues, depth + 1, reached);
   }
 
   ancestors.delete(value);

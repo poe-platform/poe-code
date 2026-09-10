@@ -901,21 +901,24 @@ implementation, remote delivery, and successful publication are separate
 milestones.
 
 The WeakMap/WeakSet public API, symbol-registry validation and linter support
-are committed locally but unreleased. Snapshot integration remains partly
-uncommitted, and portable weak-symbol lifetime support on Node.js 18 remains
-unresolved. This is not complete weak-collection support. See the
+are committed locally but unreleased. Snapshot integration preserves entries
+whose keys are strongly reachable, including chains of weak-map values, without
+promoting weak-only keys into snapshot roots. Portable weak-symbol lifetime
+support across all supported Node.js 18 versions remains unresolved. See the
 [public integration record](../../docs/plans/safejs-weak-collection-public-reconciliation.md).
 
 The `WeakRef` and `FinalizationRegistry` public APIs are committed locally but
-unreleased. Weak-state snapshot integration remains experimental and partly
-uncommitted.
+unreleased. Weak-state snapshots retain strongly reachable targets and preserve
+aliases; weak-only targets and unregister tokens are omitted. Finalization held
+values remain strong, and rejected restoration rolls back pending registrations.
 Focused coverage includes job-scoped target retention, held-value budgets,
 owner-scheduled cleanup, cancellation, and heap snapshot restoration. Cleanup
 errors are reported to the owning run or persistent realm. These changes are not
 released or fully validated: unique-symbol weak references still fail on older
 Node.js 18 runtimes, and low-level registry restoration requires an execution
-owner with error reporting. The snapshot and selected weak-reference checks pass
-1,806 tests across 138 files; this is not a full-package or conformance result.
+owner with error reporting. All 2,082 snapshot tests across 153 files pass on
+Node 22.23.2, and 42 selected weak snapshot tests pass on Node 18.20.8; these
+are not full-package or conformance results.
 
 ## Meaningful limitations
 
@@ -935,7 +938,7 @@ rejected. This codec integration does not complete heap restoration or qualify
 the full snapshot system. Heap capture and restoration now also have typed records
 for all eight Temporal types, preserving private slots alongside object state.
 Focused heap tests cover aliases, cycles, custom prototypes and invalid records;
-weak-reference serialization and broader realm integration remain separate work.
+these results do not establish complete cross-realm transport or a green package.
 Raw owned Temporal values now resolve their default prototype from the receiving
 realm's registered Temporal constructors. Explicit custom or null prototypes
 take precedence; this does not add support for arbitrary foreign host subclasses.

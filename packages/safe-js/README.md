@@ -871,6 +871,9 @@ conversion paths, preserving conversion order and abrupt completion.
 Locale-list canonicalization observes Proxy membership and element reads in
 order, including inherited entries and throwing traps. This preserves locale
 selection for locale-aware case conversion, collation and Intl constructors.
+Direct intrinsic collation calls also use guest comparison, locale-entry and
+option conversion rather than copying those values into host data. Accessor
+invocation still requires an execution context; native getters are not executed.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the
 originating guest String prototype. Getter and Proxy-ancestor reads preserve
 the primitive receiver, including later guest iterator overrides.

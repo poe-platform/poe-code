@@ -13,7 +13,6 @@ import { setSandboxProperty } from "../interpreter.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
-  deepCopyFromSandbox,
   getSandboxRegexPattern,
   isSandboxClosure,
   isSandboxRegex,
@@ -311,7 +310,7 @@ function callStringMethodBody(
 
   if (methodName === "toLocaleLowerCase" || methodName === "toLocaleUpperCase")
     return changeStringLocaleCase(value, methodName, args, budget, context);
-  if (methodName === "localeCompare" && context?.getProperty !== undefined)
+  if (methodName === "localeCompare")
     return compareStringLocale(value, args, budget, context);
 
   const operation = budget.acquireCompileOwner(false, parent?.owner);
@@ -319,53 +318,6 @@ function callStringMethodBody(
   try {
     if (methodName === "match" || methodName === "matchAll" || methodName === "search") {
       return callMatchLikeMethod(value, methodName, args, compilation);
-    }
-
-    if (methodName === "localeCompare") {
-      if (isSandboxClosure(args[0])) {
-        throw new TypeError("String#localeCompare does not support function comparison values.");
-      }
-      const comparison = budget.allocateString(
-        String(deepCopyFromSandbox(args[0], { compilation }))
-      );
-      const locales: string[] = Reflect.apply(Intl.getCanonicalLocales, Intl, [
-        deepCopyFromSandbox(args[1], { compilation })
-      ]);
-      const options = args[2];
-      const nativeOptions =
-        options === undefined || options === null
-          ? options
-          : Object.fromEntries(
-              [
-                "usage",
-                "localeMatcher",
-                "collation",
-                "numeric",
-                "caseFirst",
-                "sensitivity",
-                "ignorePunctuation"
-              ].map((property) => {
-                const descriptor = Object.getOwnPropertyDescriptor(options, property);
-                if (descriptor !== undefined && !("value" in descriptor)) {
-                  throw new TypeError("String#localeCompare only supports data option properties.");
-                }
-                const option: SandboxValue = descriptor?.value;
-                return [
-                  property,
-                  option === undefined
-                    ? undefined
-                    : property === "numeric" || property === "ignorePunctuation"
-                      ? Boolean(option)
-                      : deepCopyFromSandbox(option, { compilation })
-                ];
-              })
-            );
-      budget.visitNode(value.length + comparison.length);
-      return Reflect.apply(String.prototype.localeCompare, value, [
-        comparison,
-        locales,
-        nativeOptions
-      ]);
     }
 
     switch (methodName) {

@@ -127,7 +127,7 @@ describe("String#localeCompare", () => {
     }
   });
 
-  it("keeps existing string and locale-option admission ahead of work charging", async () => {
+  it("validates primitive strings and locales before charging guest option reads", async () => {
     const budget = new Budget({ maxSteps: 0, stringLength: 8 });
     const member = getStringMember("a", "localeCompare", budget);
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
@@ -136,10 +136,9 @@ describe("String#localeCompare", () => {
     try {
       await expect(member.call([123456789], { stack: [], thisValue: "a" })).rejects.toThrow("stringLength");
       await expect(member.call(["b", "en_US", options], { stack: [], thisValue: "a" })).rejects.toThrow(RangeError);
-      await expect(member.call(["b", "en", options], { stack: [], thisValue: "a" })).rejects.toThrow(
-        "only supports data option properties"
-      );
       expect(budget.stepsUsed).toBe(0);
+      await expect(member.call(["b", "en", options], { stack: [], thisValue: "a" })).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
+      expect(budget.stepsUsed).toBe(1);
       expect(native).not.toHaveBeenCalled();
     } finally {
       native.mockRestore();
@@ -270,7 +269,7 @@ describe("String#localeCompare", () => {
     });
     const member = getStringMember("a", "localeCompare", new Budget());
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
-    await expect(member.call([closure], { stack: [], thisValue: "a" })).rejects.toThrow(TypeError);
+    await expect(member.call([closure], { stack: [], thisValue: "a" })).resolves.toBeLessThan(0);
     expect(calls).toBe(0);
   });
 

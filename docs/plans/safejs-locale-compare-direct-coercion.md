@@ -65,3 +65,19 @@ through the primitive-locale flag; an explicit guarded string/undefined cast
 resolved it. The maintained package compiler with exactly those two runtime
 overlays now reports zero diagnostics (50b797). This type-only correction does
 not alter the tested runtime behavior. Main transfer remains pending.
+
+## Main-worktree integration
+
+Following the terminal full-package run and the separately committed Proxy
+locale-list fix, all six direct-call regressions still failed in main (ecdb42).
+The four existing candidate files matched their original main versions before
+transfer (e7361e), so unrelated edits were not overwritten.
+
+The candidate is now transferred. The combined locale-method and Proxy locale
+regression selection passed 205 tests in seven files (606f85). Targeted ESLint
+and the maintained package TypeScript configuration passed (a13f91). The README
+notes direct intrinsic conversion and the retained accessor execution boundary.
+
+The latest full-package result predates this change. No push, issue closure or
+release was performed, and no complete public SDK parity claim follows from
+these internal direct-call tests.

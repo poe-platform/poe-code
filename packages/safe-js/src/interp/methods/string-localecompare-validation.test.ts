@@ -113,13 +113,8 @@ describe("independent localeCompare candidate validation", () => {
       const forwarded = spy.mock.calls.at(-1);
       expect(forwarded?.[0]).toBe("10");
       expect(forwarded?.[1]).toStrictEqual(["en"]);
-      expect(forwarded?.[2]).toStrictEqual({
-        usage: undefined,
-        localeMatcher: undefined,
-        collation: undefined,
+      expect(forwarded?.[2]).toEqual({
         numeric: true,
-        caseFirst: undefined,
-        sensitivity: undefined,
         ignorePunctuation: true
       });
     } finally {
@@ -162,7 +157,7 @@ describe("independent localeCompare candidate validation", () => {
     expect(reads).toBe(0);
   });
 
-  it("rejects comparison closures without running them", async () => {
+  it("stringifies comparison closures without running them", async () => {
     let calls = 0;
     const callback = createSandboxClosure({
       name: "comparison",
@@ -173,7 +168,7 @@ describe("independent localeCompare candidate validation", () => {
     });
     const member = getStringMember("a", "localeCompare", new Budget());
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare");
-    await expect(member.call([callback], { stack: [], thisValue: "a" })).rejects.toThrow(TypeError);
+    await expect(member.call([callback], { stack: [], thisValue: "a" })).resolves.toBeLessThan(0);
     expect(calls).toBe(0);
   });
 

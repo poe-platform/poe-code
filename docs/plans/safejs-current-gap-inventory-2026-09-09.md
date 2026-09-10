@@ -121,13 +121,33 @@ It does not compare inherited typed-array methods or anonymous intrinsics.
 | Temporal.ZonedDateTime | Constructor/getters, from/compare/equals, zone/calendar/time replacement, startOfDay, transition lookup, add/subtract, with, round, until/since, plain/instant conversions and ISO/JSON/locale formatting exist with owned copying and snapshots | No missing own static/prototype names in audit 61688c; broader conformance remains unfinished |
 | Map.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; subsequently implemented locally | See [focused qualification](safejs-map-upsert.md); newer compatibility work, not a full conformance claim |
 | WeakMap.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; experimental implementation now exists | [WeakMap integration](safejs-weakmap-upsert.md) remains uncommitted and inherits older-Node weak-symbol limitations |
-| RegExp constructor | Native legacy capture/context properties absent | Compatibility difference requiring standards classification before a fix |
+| RegExp constructor | Native legacy capture/context properties absent; fresh probe 77f19a confirms seven selected properties remain missing | Legacy compatibility gap: TC39 still lists the feature as Stage 3, not a finished core-language requirement; see classification below |
 | Error constructor | Native captureStackTrace, prepareStackTrace and stackTraceLimit absent | Engine-specific compatibility surface, not automatic proof of a language defect |
 
 No other missing names were observed in this selected comparison. That does
 not mean all other JavaScript behavior is correct. Native Node is an additional
 oracle, not the normative definition: it includes extensions and can itself
 have implementation defects.
+
+### September 10 legacy RegExp classification
+
+A fresh Node 22.23.2 source-runtime probe (77f19a) executes `/(a)(b)/` against
+`zabq`, then checks own-property presence and values for input, lastMatch,
+lastParen, leftContext, rightContext, $1 and $2. SafeJS has none of the seven
+properties; native Node has all seven and returns the expected input, match,
+context and captures. JSON displays the guest's undefined array entries as
+null; the explicit false presence flags establish absence.
+
+The [TC39 active proposal list](https://github.com/tc39/proposals#stage-3)
+still places Legacy RegExp features at Stage 3. The
+[proposal](https://github.com/tc39/proposal-regexp-legacy-features) describes
+Annex B amendments and realm/subclass restrictions, and explicitly distinguishes
+its intended behavior from existing implementations. Therefore this is a
+validated legacy compatibility gap, not evidence of a missing finished core
+ECMAScript requirement. It remains in the broader compatibility inventory.
+Any implementation must own its match state per guest realm and qualify
+snapshot/replay and deletion semantics; forwarding host RegExp statics would
+expose unrelated host matches. No implementation change was made in this audit.
 
 A fresh built-runtime audit against Node 26.4.0 (ca8de4) checked all eight
 Temporal constructors and their own static/prototype string names. It confirms

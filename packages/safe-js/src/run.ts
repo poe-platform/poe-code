@@ -286,6 +286,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               writable: true
             });
           }
+          const inputPromiseReplacements = new WeakMap<SandboxPromise, SandboxPromise>();
           const prepareInputPromise = (promise: SandboxPromise | undefined, id: string): SandboxPromise => {
             if (promise !== undefined) observeSandboxPromise(promise);
             const operation = declareHostOperation(() => {
@@ -293,10 +294,14 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               return promise.promise;
             }, "read-side-effect");
             const binding = wrapCallerInjectedBindings({[id]:operation},{
-              budget,hostCalls,moduleId:"<inputs>",compileOwner:compilation.owner,signal:options.signal,lifecycle
+              budget,hostCalls,moduleId:"<inputs>",compileOwner:compilation.owner,signal:options.signal,lifecycle,
+              promiseReplacements: inputPromiseReplacements
             })[id]!;
             if (!isSandboxClosure(binding)) throw new TypeError("Invalid initial promise operation.");
-            return binding.call([]) as SandboxPromise;
+            const prepared = binding.call([]) as SandboxPromise;
+            hostCalls.registerInputPromise(prepared);
+            if (promise !== undefined) inputPromiseReplacements.set(promise, prepared);
+            return prepared;
           };
           let moduleEnvironment: ModuleEnvironment | undefined;
           const moduleOptions: ModuleEnvironmentOptions = {budget,compileOwner:operation.owner,hostCalls,signal:options.signal};

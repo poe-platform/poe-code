@@ -427,6 +427,9 @@ settlement-only: own string and symbol properties are not copied, because they
 can contain private host async-context state. Property admission is unresolved.
 Maps and Sets in imported Promise fulfillment values retain their collection
 behavior, cycles, and aliases through input conversion and completed replay.
+References to already imported Promises inside fulfillment data resolve to the
+same input wrappers, including self-references and completed replay. Ordinary
+settlement data remains separately copied, and independent imports stay isolated.
 
 </details>
 

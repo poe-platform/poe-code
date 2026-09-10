@@ -8,10 +8,12 @@ import { copyNativeDate, serializedDateTime } from "./date.js";
 import {
   cloneSandboxValue,
   createSandboxClosure,
+  createSandboxPromise,
   defineOwnDataProperty,
   isArrayIndexKey,
   measureSandboxData,
   type SandboxClosure,
+  type SandboxPromise,
   type SandboxValue
 } from "./values.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
@@ -140,6 +142,8 @@ export class HostCallJournal {
   private retainedSize = 0;
   private readonly outcomeSizes = new Map<string, number>();
   private readonly capabilities = new Map<string, SandboxClosure>();
+  private readonly inputPromises = new Map<string, SandboxPromise>();
+  private readonly inputPromiseIds = new WeakMap<SandboxPromise, string>();
   private readonly requiredHostCapabilities = new Set<string>();
   private readonly capabilityIds = new WeakMap<SandboxClosure, string>();
   readonly nativeClosures = new WeakMap<object, SandboxClosure>();
@@ -159,6 +163,12 @@ export class HostCallJournal {
     }
   >();
   readonly identifyCapability = this.capabilityIds.get.bind(this.capabilityIds);
+  readonly identifyPromise = this.inputPromiseIds.get.bind(this.inputPromiseIds);
+  readonly resolvePromise = (id: string): SandboxPromise => {
+    const promise = this.inputPromises.get(id);
+    if (promise === undefined) throw new UnresolvedReplayCapabilityError(id);
+    return promise;
+  };
   readonly resolveCapability = (id: string): SandboxClosure => {
     const capability = this.capabilities.get(id);
     if (capability === undefined) throw new UnresolvedReplayCapabilityError(id);
@@ -250,9 +260,11 @@ export class HostCallJournal {
       }
       this.restored = [...this.records];
       const capabilities = this.capabilities;
+      const inputPromises = this.inputPromises;
       const sharedStorage = this.exposedSharedStorage;
       this.budget?.setRetainedValues(this, function* () {
         yield* capabilities.values();
+        yield* inputPromises.values();
         yield* sharedStorage.values();
       });
     } finally {
@@ -473,6 +485,7 @@ export class HostCallJournal {
     this.capabilities.clear();
     this.budget?.setRetainedDataUsage(this.exposedSharedStorage, 0);
     this.exposedSharedStorage.clear();
+    this.inputPromises.clear();
     this.sharedAppliedOrder.clear();
     this.sharedArguments.clear();
     this.deferredSharedOutcomes.clear();
@@ -511,6 +524,21 @@ export class HostCallJournal {
     this.hostSources.set(closure, native);
   }
 
+  registerInputPromise(promise: SandboxPromise): void {
+    const record = promise.hostCall;
+    if (record === undefined || promise.hostCallJournal !== this ||
+        record.moduleId !== "<inputs>" || !this.records.includes(record))
+      throw new TypeError("Invalid input Promise capability.");
+    const id = `${record.id}/promise`;
+    const existing = this.inputPromises.get(id);
+    if (existing !== undefined && existing !== promise)
+      throw new TypeError(`Conflicting input Promise capability '${id}'.`);
+    this.inputPromises.set(id, promise);
+    this.inputPromiseIds.set(promise, id);
+    this.capabilityWaiters.get(id)?.resolve();
+    this.capabilityWaiters.delete(id);
+  }
+
   rebindHostCapability(original: SandboxClosure, restored: SandboxClosure): void {
     const identity = this.capabilityIds.get(original);
     const source = this.hostSources.get(original);
@@ -528,7 +556,7 @@ export class HostCallJournal {
   }
 
   waitForCapability(id: string): Promise<void> {
-    if (this.capabilities.has(id)) return Promise.resolve();
+    if (this.capabilities.has(id) || this.inputPromises.has(id)) return Promise.resolve();
     const owner = id.slice(0, id.lastIndexOf("/function/"));
     if (this.completedCallbackOwners.has(owner))
       return Promise.reject(new UnresolvedReplayCapabilityError(id));
@@ -654,7 +682,7 @@ export class HostCallJournal {
         const memo={nodes:encoded.data.nodes,values:new Map<number,SandboxValue>()};
         let value = decodeReplayData(
           encoded.data,
-          { resolveCapability: this.resolveCapability, memo },
+          { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, memo },
           compilation
         );
         let recordedArguments:SharedArrayBuffer[]|undefined;
@@ -734,7 +762,7 @@ export class HostCallJournal {
         const outcomeValue=outcome?.status==="fulfilled"?outcome.value:outcome?.reason;
         const data=outcome===undefined?undefined:encoded?.data??encodeReplayData(
           effects.length===0?outcomeValue:[outcomeValue,...effects],
-          {identifyCapability:this.identifyCapability,onValueEncoded:(id,value)=>{
+          {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,onValueEncoded:(id,value)=>{
             if (!isSandboxSharedArrayBuffer(value)) return;
             const block=sharedArrayBufferStorage(value).block;
             const index=associations?.get(block);
@@ -838,6 +866,12 @@ function restoreReplayCalls(
     throw new TypeError("Invalid host call replay header.");
   }
   const capabilities = new Map<string, SandboxClosure>();
+  const inputPromises = new Map<string, SandboxPromise>();
+  for (const entry of input.calls) {
+    if (entry?.moduleId === "<inputs>" && entry.asynchronous === true &&
+        entry.policy === "read-side-effect" && typeof entry.id === "string")
+      inputPromises.set(`${entry.id}/promise`, createSandboxPromise(Promise.resolve(undefined), { trackReplay: false }));
+  }
   for (const entry of input.calls) {
     if (entry?.functions === undefined) continue;
     if (
@@ -936,7 +970,9 @@ function restoreReplayCalls(
       )
         throw new TypeError("Invalid replay call outcome.");
       const memo={nodes:entry.outcome.data.nodes,values:new Map<number,SandboxValue>()};
-      let value = decodeReplayData(entry.outcome.data, { resolveCapability, memo }, compilation);
+      let value = decodeReplayData(entry.outcome.data, {
+        resolveCapability, resolvePromise: id => inputPromises.get(id), memo
+      }, compilation);
       const blocks=new Set<object>();
       const indices=new Set<number>();
       if (entry.outcome.sharedArguments!==undefined) {

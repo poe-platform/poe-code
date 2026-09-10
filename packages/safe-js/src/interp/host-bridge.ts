@@ -60,6 +60,7 @@ import {
   isSandboxPromise,
   measureSandboxData,
   type SandboxClosure,
+  type SandboxPromise,
   type SandboxCallContext,
   type SandboxObject,
   type SandboxValue
@@ -112,6 +113,7 @@ export type HostBridgeOptions = {
   signal?: AbortSignal;
   lifecycle?: RunLifecycle;
   proofFunctions?: WeakMap<object, SandboxClosure>;
+  promiseReplacements?: WeakMap<SandboxPromise, SandboxPromise>;
 };
 
 type HostCallbacks = {
@@ -956,6 +958,7 @@ export function copyHostValueToSandbox(
   state: {
     seen: WeakMap<object, SandboxValue>;
     float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
+    promiseIdentities?: WeakMap<object, SandboxValue>;
   },
   path: string
 ): SandboxValue {
@@ -997,6 +1000,7 @@ export function copyHostValueToSandbox(
   if (isSandboxClosure(value) || isSandboxPromise(value)) {
     if (options.proofFunctions !== undefined)
       throw new TypeError(`Unsupported proof value at ${path}: sandbox capability`);
+    if (isSandboxPromise(value)) return options.promiseReplacements?.get(value) ?? value;
     return deepCopyToSandbox(value);
   }
 
@@ -1169,7 +1173,8 @@ export function copyHostValueToSandbox(
   if (!options.errorData && isPromiseLike(value)) {
     if (options.proofFunctions !== undefined)
       throw new TypeError(`Unsupported proof value at ${path}: promise`);
-    const existing = state.seen.get(value);
+    const promiseIdentities = state.promiseIdentities ??= new WeakMap<object, SandboxValue>();
+    const existing = state.seen.get(value) ?? promiseIdentities.get(value);
     if (existing !== undefined) return existing;
     const promise = wrapHostPromiseWithSignal(Promise.resolve(value), options.signal).then(
       (resolved) => {
@@ -1179,7 +1184,8 @@ export function copyHostValueToSandbox(
             stackFrames,
             options,
             {
-              seen: new WeakMap()
+              seen: new WeakMap(),
+              promiseIdentities
             },
             "<root>"
           );
@@ -1201,6 +1207,7 @@ export function copyHostValueToSandbox(
     );
     const sandboxPromise = createSandboxPromise(promise);
     state.seen.set(value, sandboxPromise);
+    promiseIdentities.set(value, sandboxPromise);
     const span = getBoundOtelSpan(value);
     if (span !== undefined) {
       bindOtelSpan(promise, span);

@@ -244,6 +244,7 @@ type CopyFromSandboxOptions = {
 };
 
 type CopyState<TValue> = {
+  nativePromises?: WeakMap<object, SandboxPromise>;
   float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
   sharedBufferSnapshots?: WeakMap<object, SharedArrayBuffer>;
   seen: WeakMap<object, TValue>;
@@ -1556,14 +1557,16 @@ function copyToSandbox(
   }
 
   if (nodeTypes.isPromise(value)) {
-    const existing = state.seen.get(value);
+    const nativePromises = state.nativePromises ??= new WeakMap<object, SandboxPromise>();
+    const existing = state.seen.get(value) ?? nativePromises.get(value);
     if (existing !== undefined) return existing;
     const promise = Promise.resolve(value).then(
-      (resolved) => copyToSandbox(resolved, { seen: new WeakMap() }),
-      (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap() }))
+      (resolved) => copyToSandbox(resolved, { seen: new WeakMap(), nativePromises }),
+      (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap(), nativePromises }))
     );
     const sandboxPromise = createSandboxPromise(promise);
     state.seen.set(value, sandboxPromise);
+    nativePromises.set(value, sandboxPromise);
     const span = getBoundOtelSpan(value);
     if (span !== undefined) {
       bindOtelSpan(promise, span);

@@ -85,7 +85,8 @@ it does not establish complete behavior, descriptors, symbols or delivery.
 Recent upstream evidence at Test262 revision
 419d3e0a2273ba01a3bfcbec423f2801425b8e93: add/subtract passed all 168 runs;
 until passed 188 of 196 runs, with eight failures in fixtures requiring missing
-date/zoned types; since remains running. All fifteen intl402 PlainDateTime
+date/zoned types; since passed 182 of 190 runs, with the same eight missing-type
+failures. All fifteen intl402 PlainDateTime
 toLocaleString fixtures passed in both modes (30/30) after reproducing and
 fixing direct Intl admission of private PlainDateTime values. That latest
 locale result used current source, not a rebuilt artifact. See
@@ -96,8 +97,8 @@ and have not been pushed or released.
 Recent behavioral evidence includes all 71 rounding tests passing on Node
 18.18.2 and successful reruns of the two formerly failing upstream rounding
 fixtures in both script modes. The full upstream round directory's last result
-was 86/90 before that error-type fix; a fresh complete-directory pass is not
-claimed. Current Duration relativeTo integration passed 101 focused tests,
+was 86/90 before that error-type fix. A fresh complete-directory source-runtime
+rerun now passes all 90 runs, with no exclusions (ffb0d5). Current Duration relativeTo integration passed 101 focused tests,
 covering private PlainDateTime fields and calendar-bearing property bags.
 
 The [ECMAScript 2026 global-object specification](https://tc39.es/ecma262/2026/multipage/global-object.html)

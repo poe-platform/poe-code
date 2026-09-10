@@ -906,9 +906,8 @@ construction, subclassing, six field getters, `from`, `compare`, `equals`, `add`
 and the always-throwing `valueOf`. Method presence does not establish complete
 Temporal/Intl interoperability or conformance.
 PlainDateTime has construction, calendar/date/time getters, `from`, `compare`,
-`equals`, `toPlainTime`, `withPlainTime`, `withCalendar`, `round`, `toString`, `toJSON`, and `valueOf`, with
-focused copy and snapshot/replay coverage. Its arithmetic, general field
-replacement, locale formatting, and conversions to missing date/zoned
+`equals`, `toPlainTime`, `with`, `withPlainTime`, `withCalendar`, `add`, `subtract`, `until`, `since`, `round`, `toString`, `toJSON`, `toLocaleString`, and `valueOf`, with
+focused copy and snapshot/replay coverage. Its conversions to missing date/zoned
 types remain unfinished. Expanded-year parsing preserves option-read order before
 representable-range validation.
 Duration `relativeTo` accepts owned PlainDateTime values using their private ISO
@@ -919,15 +918,17 @@ and leap-second clock values remain supported.
 Instant formatting and Duration relative-input bags accept zone-bearing time,
 year-month and month-day strings, with date and annotation validation.
 Direct `Intl.DateTimeFormat` formatting, parts and ranges now accept owned
-PlainTime and Instant values, with requested options preserved in new snapshots.
+PlainTime, PlainDateTime and Instant values, with requested options preserved in new snapshots.
 Legacy formatter snapshots lack original requested options and use their saved
 resolved options as a fallback.
-`PlainTime.toLocaleString` accepts valid fixed-offset time zones on Node 18 and
-preserves its wall-clock fields. Fixed-offset numeric Date/Instant and direct
+`PlainTime.toLocaleString` and `PlainDateTime.toLocaleString` accept valid fixed-offset
+time zones on Node 18 and preserve their wall-clock fields. Fixed-offset numeric Date/Instant and direct
 Intl formatting on older hosts remain incomplete.
-The last full SafeJS run, including the current partial PlainDateTime integration,
+The last full SafeJS run, including an earlier partial PlainDateTime integration,
 passed 26,614 tests, failed two, and skipped 41. Both failures were native
-Promise property-import expectations. The earlier timing failure did not recur.
+Promise property-import expectations. The newer PlainDateTime field replacement,
+arithmetic, differences, and locale/direct-Intl changes postdate that run.
+The earlier timing failure did not recur.
 All 100 filesystem type contracts passed. No Temporal/Intl tests failed, but this is not a green package
 gate or complete JavaScript conformance; see the
 [current integration record](../../docs/plans/safejs-current-integration-gate.md).

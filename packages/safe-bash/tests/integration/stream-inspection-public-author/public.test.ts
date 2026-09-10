@@ -22,7 +22,7 @@ function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
 }
 
-test("root family exports preserve four inspection definitions in the 108-command aggregate", async () => {
+test("root family exports preserve four inspection definitions in the 110-command aggregate", async () => {
   const limits: Partial<StreamInspectionLimits> = { maxInputBytes: 1024 };
   const options: StreamInspectionCommandsOptions = { limits };
   const aggregate: AgentCommandsOptions = { streamInspection: options };
@@ -31,7 +31,7 @@ test("root family exports preserve four inspection definitions in the 108-comman
   assert.equal(definitions.length, 110);
   assert.equal(new Set(definitions).size, 110);
   assert.deepEqual(definitions.slice(75, 79), names);
-  assert.deepEqual(definitions.slice(79), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv"]);
+  assert.deepEqual(definitions.slice(79), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos"]);
   const target = host();
   await agentCommands(aggregate).setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name), definitions);

@@ -17,9 +17,9 @@ async function direct(definition: CommandDefinition, args: string[], overrides: 
   finally { await Promise.all(cleanups.flatMap(cleanup => [cleanup(), cleanup()])); }
 }
 
-test("public108 inventory retains frozen expr76 plus which, timeout, apply_patch, three SHA-2 commands, cmp, fmt, shuf, numfmt, truncate, XML queries, nine native compression commands, zip, unzip, csplit, pr, tsort, factor, getopt, hexdump, hd and iconv", async () => {
+test("public110 inventory retains frozen expr76 plus which, timeout, apply_patch, three SHA-2 commands, cmp, fmt, shuf, numfmt, truncate, XML queries, nine native compression commands, zip, unzip, csplit, pr, tsort, factor, getopt, hexdump, hd, iconv, dos2unix and unix2dos", async () => {
   assert.equal(expected.names76.length, 76); assert.equal(new Set(expected.names76).size, 76);
-  const names107 = [...expected.names76, "which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "cmp", "fmt", "shuf", "numfmt", "truncate", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv"].sort();
+  const names107 = [...expected.names76, "which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "cmp", "fmt", "shuf", "numfmt", "truncate", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos"].sort();
   assert.equal(names107.length, 110); assert.equal(new Set(names107).size, 110);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), names107);
   const target = host(); await agentCommands().setup(target);

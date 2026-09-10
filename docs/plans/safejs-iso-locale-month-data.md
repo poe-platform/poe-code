@@ -71,3 +71,18 @@ resolves the month-name alias with its required grammatical context and preserve
 the requested ISO layout. Any candidate must still satisfy the earlier range,
 locale, numbering-system and calendar checks. No new dependency or runtime
 change was made during this research; the full package gate remains running.
+
+## Direct guest-API regression
+
+New uncommitted tests exercise standalone long month names through guest
+`Intl.DateTimeFormat.formatToParts`, `Temporal.PlainMonthDay.toLocaleString` and
+`Temporal.PlainYearMonth.toLocaleString` for en-US, pl-PL and ru-RU. All three
+locale cases fail on Node 22.23.2: Intl returns an empty parts array and both
+Temporal methods return empty strings. The same tests pass unchanged on cached
+Node 26.8.1 / ICU 78.3, producing February, luty and февраль respectively.
+All three cases also pass unchanged on supported Node 18.20.8.
+
+These assertions avoid the existing year/month test's native expected-value
+precondition: they validate actual guest results against known standalone names.
+They do not assume a universal year/month ordering across CLDR versions.
+No runtime workaround has been added; the full-package run is still active.

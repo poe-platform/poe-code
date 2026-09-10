@@ -76,6 +76,18 @@ export interface StatementContext<Value> {
   };
 }
 
+/** Suspensions occur only in explicit source expressions/targets/leaf operations.
+ * Iterator and synchronous context-manager protocol calls remain ordinary calls.
+ * Each callback yields guest values and receives guest send values; adapters own
+ * expression/leaf semantics and checkpoints before publication/resumed effects.
+ */
+export interface ResumableStatementContext<Value> extends Omit<StatementContext<Value>, "evaluate" | "test" | "assign" | "execute"> {
+  evaluate(expression: Expression): Generator<Value, Value, Value>;
+  test(expression: Expression): Generator<Value, boolean, Value>;
+  assign(target: Expression, value: Value): Generator<Value, void, Value>;
+  execute(statement: LeafStatement): Generator<Value, void, Value>;
+}
+
 /** An absent return value means bare return; the frame supplies guest None. */
 export type StatementCompletion<Value> =
   | { readonly kind: "normal" }
@@ -111,11 +123,15 @@ type Frame<Value> =
   | { kind: "handler-cleanup"; alias: string | null; restore: () => void }
   | { kind: "resume"; transfer: Transfer<Value>; restore?: () => void };
 
+type StatementExecution<Value> =
+  | { readonly kind: "synchronous"; readonly context: StatementContext<Value> }
+  | { readonly kind: "resumable"; readonly context: ResumableStatementContext<Value> };
+
 /** Synchronous execution of statically validated suites using explicit frames.
  * Finally suites run during normal and abrupt completion; guest exception state
  * is scoped to exception-triggered cleanup and ordinary except handlers. Except*
- * groups, async context managers, match
- * and suspensions are not implemented here yet; unsupported compounds fail
+ * groups, async context managers and match are not implemented here yet;
+ * unsupported compounds fail
  * before evaluating their operands. Contexts own guest protocols and internal
  * metering; frame allocation still requires full heap accounting.
  */
@@ -124,7 +140,33 @@ export function executeStatements<Value>(
   context: StatementContext<Value>,
   meter: ExecutionMeter
 ): StatementCompletion<Value> {
-  meter.checkpoint();
+  meter.checkpoint(1, 224);
+  const result = statementContinuation<Value>(body, { kind: "synchronous", context }, meter).next();
+  if (!result.done) throw Error("synchronous statement execution unexpectedly suspended");
+  return result.value;
+}
+
+/** Allocate an unstarted suite continuation sharing the synchronous frame
+ * machine. Injected errors reach the paused operation's enclosing guest handlers;
+ * pending returns, loop transfers, exits and exception cleanup survive yields.
+ * The caller owns lifecycle and saved exception-frame activation on each resume.
+ * Python close must inject GeneratorExit with throw, not use host return: host
+ * return only releases bookkeeping and does not run guest finally/with cleanup.
+ * Async operations, native leaf assembly and full frame heap accounting remain
+ * separate integration work.
+ */
+export function createStatementContinuation<Value>(
+  body: readonly Statement[], context: ResumableStatementContext<Value>, meter: ExecutionMeter
+): Generator<Value, StatementCompletion<Value>, Value> {
+  meter.checkpoint(1, 224);
+  return statementContinuation<Value>(body, { kind: "resumable", context }, meter);
+}
+
+function* statementContinuation<Value>(
+  body: readonly Statement[], execution: StatementExecution<Value>, meter: ExecutionMeter
+): Generator<Value, StatementCompletion<Value>, Value> {
+  meter.checkpoint(0);
+  const context = execution.context;
   const frames: Frame<Value>[] = [{ kind: "block", body, index: 0 }];
   let transfer: Transfer<Value> | undefined;
   const guestFailure = (error: unknown): Transfer<Value> => {
@@ -220,7 +262,7 @@ export function executeStatements<Value>(
             continue;
           }
           const item = frame.statement.items[frame.index++];
-          const value = context.evaluate(item.context);
+          const value = execution.kind === "synchronous" ? execution.context.evaluate(item.context) : yield* execution.context.evaluate(item.context);
           meter.checkpoint();
           const manager = context.managers!.prepare(value),
             exit = manager.exit;
@@ -230,7 +272,8 @@ export function executeStatements<Value>(
           frames.push({ kind: "with-exit", exit }, frame);
           if (item.target !== null) {
             meter.checkpoint();
-            context.assign(item.target, entered);
+            if (execution.kind === "synchronous") execution.context.assign(item.target, entered);
+            else yield* execution.context.assign(item.target, entered);
           }
           continue;
         }
@@ -253,7 +296,7 @@ export function executeStatements<Value>(
           }
           const handler = frame.statement.handlers[frame.index++];
           if (handler.exception !== null) {
-            const type = context.evaluate(handler.exception);
+            const type = execution.kind === "synchronous" ? execution.context.evaluate(handler.exception) : yield* execution.context.evaluate(handler.exception);
             meter.checkpoint();
             if (!context.exceptions!.handlers!.match(frame.error, type)) continue;
           }
@@ -285,7 +328,8 @@ export function executeStatements<Value>(
           continue;
         }
         if (frame.kind === "while") {
-          if (context.test(frame.statement.condition)) {
+          const accepted = execution.kind === "synchronous" ? execution.context.test(frame.statement.condition) : yield* execution.context.test(frame.statement.condition);
+          if (accepted) {
             frames.push({ kind: "block", body: frame.statement.body, index: 0 });
           } else {
             frames.pop();
@@ -300,7 +344,8 @@ export function executeStatements<Value>(
             frames.push({ kind: "block", body: frame.statement.otherwise, index: 0 });
           } else {
             meter.checkpoint();
-            context.assign(frame.statement.target, next.value);
+            if (execution.kind === "synchronous") execution.context.assign(frame.statement.target, next.value);
+            else yield* execution.context.assign(frame.statement.target, next.value);
             frames.push({ kind: "block", body: frame.statement.body, index: 0 });
           }
           continue;
@@ -315,7 +360,8 @@ export function executeStatements<Value>(
             let selected = statement.otherwise;
             for (const branch of statement.branches) {
               meter.checkpoint();
-              if (context.test(branch.condition)) {
+              const accepted = execution.kind === "synchronous" ? execution.context.test(branch.condition) : yield* execution.context.test(branch.condition);
+              if (accepted) {
                 selected = branch.body;
                 break;
               }
@@ -328,7 +374,7 @@ export function executeStatements<Value>(
             break;
           case "for": {
             if (statement.async) throw new UnsupportedStatementError(statement.kind);
-            const iterable = context.evaluate(statement.iterable);
+            const iterable = execution.kind === "synchronous" ? execution.context.evaluate(statement.iterable) : yield* execution.context.evaluate(statement.iterable);
             meter.checkpoint();
             const iterator = context.iterate(iterable);
             frames.push({ kind: "for", statement, iterator });
@@ -342,15 +388,17 @@ export function executeStatements<Value>(
             transfer =
               statement.value === null
                 ? { kind: "return" }
-                : { kind: "return", value: context.evaluate(statement.value) };
+                : { kind: "return", value: execution.kind === "synchronous" ? execution.context.evaluate(statement.value) : yield* execution.context.evaluate(statement.value) };
             break;
           case "assert": {
             if (!context.assertions) throw new UnsupportedStatementError(statement.kind);
-            if (!context.assertions.enabled || context.test(statement.condition)) break;
+            if (!context.assertions.enabled) break;
+            const accepted = execution.kind === "synchronous" ? execution.context.test(statement.condition) : yield* execution.context.test(statement.condition);
+            if (accepted) break;
             let message: { readonly value: Value } | null = null;
             if (statement.message !== null) {
               meter.checkpoint();
-              message = { value: context.evaluate(statement.message) };
+              message = { value: execution.kind === "synchronous" ? execution.context.evaluate(statement.message) : yield* execution.context.evaluate(statement.message) };
             }
             meter.checkpoint();
             return context.assertions.fail(message);
@@ -374,7 +422,8 @@ export function executeStatements<Value>(
           case "match":
             throw new UnsupportedStatementError(statement.kind);
           default:
-            context.execute(statement);
+            if (execution.kind === "synchronous") execution.context.execute(statement);
+            else yield* execution.context.execute(statement);
         }
       } catch (error) {
         transfer = guestFailure(error);

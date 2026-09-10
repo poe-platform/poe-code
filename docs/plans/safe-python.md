@@ -10235,6 +10235,30 @@ extension, integration, or validation requirement is missing or unverified.
   backend, native generator-function integration, yield delegation, async execution
   and complete continuation heap accounting remain unfinished. No push or release
   requested.
+- Resumable statement frame machine (2026-09-10): four failing tests drove a
+  suite continuation sharing the synchronous executor's explicit frames. Typed
+  resumable callbacks preserve pending return/break/continue transfers, loop
+  iterators, selected branches, manager exits, exception searches and handler
+  cleanup across yields. Exceptions injected at a suspended expression/target/
+  leaf operation enter the existing guest-unwind path. Fatal errors and cancellation
+  restore bookkeeping without executing guest cleanup. The entry allocation is
+  reserved before creation; moving the existing entry step there retains the
+  synchronous step-budget contract. Native adapters must activate the saved
+  exception frame at each resume and inject GeneratorExit for Python close;
+  host generator return is not Python finalization.
+  Sixteen new regressions include suspended for/with targets, exception-type
+  evaluation, assertions, return replacement, alias cleanup and 5,000 nested
+  yielding finalizers. All 76 focused statement/finally/with/assert tests pass.
+  All 2,000 parsed-suite send/throw traces match CPython; these use primitive
+  protocol/leaf fixtures, not complete native generator-function assembly.
+  The 355 existing native generator-expression and throw comparisons also pass.
+  Reference semantics: https://docs.python.org/3/reference/expressions.html#yield-expressions
+  Selected workspace build, typecheck and focused lint pass. All 7,369 tests in
+  507 files pass in the uncached one-worker run (275.11s; bodies 15.51s).
+  Native resumable references, assignment/deletion/
+  definition/raise operations and default generator-function wiring remain next,
+  alongside yield delegation, async execution and complete frame accounting.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -366,16 +366,14 @@ describe("string methods", () => {
     expectStringMethod("abc", "normalize", ["NFC"], "abc", budget);
   });
 
-  it("rejects function arguments for non-callback string methods", () => {
+  it("converts function search arguments to strings", async () => {
     const budget = new Budget();
     const value = createSandboxClosure({
       call: () => "b",
       name: "value"
     });
 
-    expect(() => callStringMethod("abc", "includes", [value], budget)).toThrow(
-      "String#includes does not support function arguments."
-    );
+    await expect(callStringMethod("abc", "includes", [value], budget)).resolves.toBe(false);
   });
 });
 

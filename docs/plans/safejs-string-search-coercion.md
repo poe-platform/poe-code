@@ -49,3 +49,28 @@ completed. Add direct SDK and checkpoint checks before claiming full repair.
 The main runtime remains unchanged under full-package gate 94973. Tests added
 after its launch are independently checked, not assumed to be in that gate.
 No string repair, push or release is claimed yet.
+
+## Main-worktree repair and qualification
+
+After the full-package gate terminated, the expanded native-comparison baseline
+failed 36 of 63 cases (c35deb). The isolated candidate's original 27 cases had
+passed (9e840e). The guest property/coercion repair was then transferred into
+the main worktree; all 63 comparisons passed (f1e077). Three direct-call tests
+without interpreter context and two pending/completed checkpoint cases expand
+the regression file to 68 passing tests (562893).
+
+The broader string selection initially found four failures (5068f9): primitive
+direct calls had become asynchronous, an existing zero-allocation predicate
+check incurred a string budget charge, and an old test expected function search
+arguments to be rejected. Primitive-only search/position inputs now retain
+native synchronous matching and coercion; object inputs use the guest protocol.
+The obsolete function-rejection assertion now checks string conversion instead.
+The initial broad run is not a passing qualification.
+
+After those corrections, the same broad string/coercion selection passed all
+2,232 tests in 34 files with no unhandled errors (2a766c). Targeted ESLint and
+the maintained package TypeScript configuration passed (246c0f). This includes
+the 68-case regression file and the existing primitive-call budget checks.
+
+The preceding full-package result predates this repair. Repeat count coercion
+is still a separate validated gap. No push or release has been performed.

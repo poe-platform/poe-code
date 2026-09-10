@@ -841,6 +841,11 @@ created later by exported closures. Pristine Dates remain copyable as data;
 modified prototype chains reject copying rather than losing guest behavior.
 Array member calls also accept guest-defined own and inherited methods; missing
 or non-callable members fail the normal callability check.
+String `startsWith`, `endsWith`, and `includes` honor guest `Symbol.match`,
+string-conversion and position-conversion hooks in order, including Proxy
+lookups and abrupt completion. RegExp searches are rejected unless their
+`Symbol.match` override disables RegExp treatment. Primitive-only searches
+retain their synchronous direct-call path.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the
 originating guest String prototype. Getter and Proxy-ancestor reads preserve
 the primitive receiver, including later guest iterator overrides.

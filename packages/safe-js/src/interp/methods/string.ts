@@ -27,6 +27,7 @@ import { executeRegex, getRegexMember, regexExec, regexFlagProperties, regexSear
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 import { changeStringLocaleCase, compareStringLocale } from "./string-locale.js";
 import { createStringHtml, stringHtmlMethods } from "./string-html.js";
+import { callStringSearch } from "./string-search.js";
 
 const stringMethodLengths = {
   ...Object.fromEntries(Object.entries(stringHtmlMethods).map(([name, [, attribute]]) => [name, attribute === "" ? 0 : 1])) as Record<keyof typeof stringHtmlMethods, number>,
@@ -214,6 +215,11 @@ function callStringMethodBody(
   if (Object.hasOwn(stringHtmlMethods, methodName)) {
     return createStringHtml(value, stringHtmlMethods[methodName as keyof typeof stringHtmlMethods], args[0], budget, context);
   }
+  if (methodName === "startsWith" || methodName === "endsWith" || methodName === "includes") {
+    if (args.slice(0, 2).every(argument => argument === null || (typeof argument !== "object" && typeof argument !== "function")))
+      return value[methodName](args[0] as string, args[1] as number | undefined);
+    return callStringSearch(value, methodName, args, budget, context);
+  }
   if (methodName === "concat" && args.some(argument => argument !== null && typeof argument === "object")) {
     return callConcat(value, args, budget, context);
   }
@@ -348,10 +354,6 @@ function callStringMethodBody(
         return value.codePointAt(asNumber(args[0]));
       case "concat":
         return budget.allocateString(value.concat(...args.map(String)));
-      case "endsWith":
-        return value.endsWith(String(args[0]), asNumberOrUndefined(args[1]));
-      case "includes":
-        return value.includes(String(args[0]), asNumberOrUndefined(args[1]));
       case "indexOf":
         return value.indexOf(String(args[0]), asNumberOrUndefined(args[1]));
       case "lastIndexOf":
@@ -370,8 +372,6 @@ function callStringMethodBody(
         return budget.allocateString(
           value.slice(asNumberOrUndefined(args[0]), asNumberOrUndefined(args[1]))
         );
-      case "startsWith":
-        return value.startsWith(String(args[0]), asNumberOrUndefined(args[1]));
       case "substr":
         return budget.allocateString(value.substr(asNumber(args[0]), asNumberOrUndefined(args[1])));
       case "substring":

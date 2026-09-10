@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { importedPromises, importedPromiseSnapshots, promiseStates } from "../interp/promise-state.js";
 import { Budget } from "../interp/budget.js";
 import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
 import { decodeSharedArrayBufferStorage, encodeSharedArrayBufferStorage, type SharedArrayBufferData } from "./shared-array-buffer.js";
@@ -36,8 +37,11 @@ import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "../inte
 import { validateBoxedProperties } from "./boxed.js";
 import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import {
+  cloneSandboxValue,
   createSandboxArguments,
   createSandboxClosure,
+  createSandboxPromise,
+  getPromiseProperties,
   createSandboxMap,
   createSandboxRegex,
   createSandboxSet,
@@ -67,12 +71,14 @@ type Atom =
   | { tag: "number"; value: "NaN" | "Infinity" | "-Infinity" | "-0" }
   | { tag: "capability"; id: string }
   | { tag: "promise-capability"; id: string }
+  | { tag: "imported-promise-reference"; callId: string; node: number }
   | { tag: "ref"; id: number };
 type Properties = Record<
   string,
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "settled-imported-promise"; status: "fulfilled" | "rejected"; outcome: Atom }
   | { kind: "module-namespace"; entries: Array<[string, Atom]> }
   | { kind: "raw-json"; text: string }
   | { kind: "regexp-iterator"; matcher: Atom; input: Atom; exhausted: boolean; global?: boolean; unicode?: boolean; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
@@ -127,6 +133,8 @@ export function encodeReplayData(
   options: {
     identifyCapability?: (value: SandboxClosure, path: readonly ReplayPathSegment[]) => string | undefined;
     captureCapabilityProperties?: boolean;
+    captureSettledImportedPromises?: boolean;
+    identifyImportedPromise?: (value: SandboxPromise) => { callId: string; node: number } | undefined;
     identifyPromise?: (value: SandboxPromise, path: readonly ReplayPathSegment[]) => string | undefined;
     context?: ReturnType<typeof createReplayEncodingContext>;
     path?: readonly ReplayPathSegment[];
@@ -163,6 +171,24 @@ export function encodeReplayData(
     if (isSandboxPromise(entry)) {
       const id = options.identifyPromise?.(entry, path);
       if (typeof id === "string" && id.length > 0) return { tag: "promise-capability", id };
+      const snapshot = importedPromiseSnapshots.get(entry);
+      if (options.captureSettledImportedPromises && snapshot?.ok === false) throw snapshot.error;
+      const state = snapshot?.ok ? snapshot.state : undefined;
+      if (options.captureSettledImportedPromises && importedPromises.has(entry) &&
+          state !== undefined &&
+          !hasGuestObjectState(entry) && Reflect.ownKeys(getPromiseProperties(entry)).length === 0) {
+        const existing = seen.get(entry);
+        if (existing !== undefined) return { tag: "ref", id: existing };
+        const reference = options.identifyImportedPromise?.(entry);
+        if (reference !== undefined) return { tag: "imported-promise-reference", ...reference };
+        const index = nodes.length;
+        seen.set(entry, index);
+        nodes.push(undefined as unknown as DataNode);
+        options.onValueEncoded?.(index, entry);
+        nodes[index] = { kind: "settled-imported-promise", status: state.status,
+          outcome: encode(state.value, depth + 1, [...path, "<settlement>"]) };
+        return { tag: "ref", id: index };
+      }
     }
     if (typeof entry === "object" && entry !== null && hasGuestObjectState(entry) && !isSandboxModuleNamespace(entry) &&
         !(!hasExplicitSandboxPrototype(entry) && (capabilityProperties || hostFunctionPropertyTables.has(entry) || (isSandboxClosure(entry) && !isGuestClosure(entry))))) {
@@ -365,17 +391,35 @@ export function encodeReplayData(
   }
 }
 
+type ReplayDecodingWork = {
+  initialize: Array<() => void>;
+  capture: Array<() => void>;
+  settle: Array<() => void>;
+  detach: Array<() => void>;
+  rollback: Array<() => void>;
+  scopes: Array<{ scope: CompileScope; parent?: CompileScope }>;
+};
+
 export function decodeReplayData(
   input: unknown,
   options: {
     resolveCapability?: (id: string) => SandboxClosure | undefined;
     resolvePromise?: (id: string) => SandboxPromise | undefined;
     onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void;
+    onImportedPromiseRestored?: (promise: SandboxPromise) => void;
+    graphId?: string;
+    importedPromiseMemo?: Map<string, Map<number, SandboxPromise>>;
+    resolvePromiseGraph?: (id: string) => unknown;
     memo?: { nodes: ReplayData["nodes"]; values: Map<number, SandboxValue> };
   } = {},
-  parent?: CompileScope
+  parent?: CompileScope,
+  pendingWork?: ReplayDecodingWork,
+  initialDepth = 0
 ): SandboxValue {
+  const ownsWork = pendingWork === undefined;
+  const work = pendingWork ?? { initialize: [], capture: [], settle: [], detach: [], rollback: [], scopes: [] };
   const compilation = new CompileScope(parent?.owner);
+  work.scopes.push({ scope: compilation, parent });
   const sharedStorageBudget = compilation.owner?.budget ?? new Budget();
   try {
     validateSnapshotData(input);
@@ -384,13 +428,32 @@ export function decodeReplayData(
     if (options.memo !== undefined && options.memo.nodes !== nodes)
       throw new TypeError("Replay memo belongs to a different graph.");
     const restored = new Map<number, SandboxValue>(options.memo?.values);
-    const initializeValues: Array<() => void> = [];
-    const detachBuffers: Array<() => void> = [];
-    const decode = (entry: unknown, depth = 0): SandboxValue => {
+    const initializeValues = work.initialize;
+    const captureImportedSettlements = work.capture;
+    const detachBuffers = work.detach;
+    const decode = (entry: unknown, depth = initialDepth): SandboxValue => {
       if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
       if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
       if (typeof entry === "number" && Number.isFinite(entry)) return entry;
       const atom = record(entry);
+      if (own(atom, "tag") === "imported-promise-reference") {
+        const callId = own(atom, "callId");
+        const nodeId = own(atom, "node");
+        if (typeof callId !== "string" || callId.length === 0 ||
+            typeof nodeId !== "number" || !Number.isSafeInteger(nodeId) || nodeId < 0)
+          throw new TypeError("Invalid imported Promise reference.");
+        const target = options.resolvePromiseGraph?.(callId);
+        if (target === undefined || options.importedPromiseMemo === undefined)
+          throw new TypeError("Missing imported Promise declaration.");
+        validateSnapshotData(target);
+        const targetNodes = list(own(record(target), "nodes"));
+        if (nodeId >= targetNodes.length || own(record(targetNodes[nodeId]), "kind") !== "settled-imported-promise")
+          throw new TypeError("Invalid imported Promise declaration.");
+        const existing = options.importedPromiseMemo.get(callId)?.get(nodeId);
+        if (existing !== undefined) return existing;
+        return decodeReplayData({ root: { tag: "ref", id: nodeId }, nodes: targetNodes },
+          { ...options, graphId: callId, memo: undefined }, compilation, work, depth);
+      }
       if (own(atom, "tag") === "promise-capability") {
         const id = own(atom, "id");
         if (typeof id !== "string" || id.length === 0)
@@ -448,6 +511,51 @@ export function decodeReplayData(
         throw new TypeError("Invalid replay error metadata.");
       }
       const child = (value: unknown) => decode(value, depth + 1);
+      if (kind === "settled-imported-promise") {
+        const status = own(node, "status");
+        if (status !== "fulfilled" && status !== "rejected")
+          throw new TypeError("Invalid imported Promise settlement.");
+        const globalMemo = options.importedPromiseMemo;
+        const graphId = options.graphId;
+        const existing = graphId === undefined ? undefined : globalMemo?.get(graphId)?.get(id);
+        if (existing !== undefined) {
+          restored.set(id, existing);
+          return existing;
+        }
+        let resolve!: (value: SandboxValue) => void;
+        let reject!: (value: SandboxValue) => void;
+        const native = new Promise<SandboxValue>((yes, no) => { resolve = yes; reject = no; });
+        void native.catch(() => undefined);
+        const promise = createSandboxPromise(native, { trackReplay: false });
+        importedPromises.add(promise);
+        restored.set(id, promise);
+        if (globalMemo !== undefined && graphId !== undefined) {
+          let entries = globalMemo.get(graphId);
+          if (entries === undefined) globalMemo.set(graphId, entries = new Map());
+          entries.set(id, promise);
+          const registered = entries;
+          work.rollback.push(() => {
+            if (registered.get(id) === promise) registered.delete(id);
+            if (registered.size === 0 && globalMemo.get(graphId) === registered) globalMemo.delete(graphId);
+          });
+        }
+        options.onImportedPromiseRestored?.(promise);
+        initializeValues.push(() => {
+          const value = child(own(node, "outcome"));
+          if (status === "fulfilled" && isSandboxPromise(value))
+            throw new TypeError("A fulfilled Promise cannot directly contain a Promise.");
+          captureImportedSettlements.push(() => {
+            importedPromiseSnapshots.set(promise, { ok: true,
+              state: { status, value: cloneSandboxValue(value, { compilation, sharedBufferSnapshots: new WeakMap() }) }
+            });
+          });
+          work.settle.push(() => {
+            promiseStates.set(promise, { status, value });
+            if (status === "fulfilled") resolve(value); else reject(value);
+          });
+        });
+        return promise;
+      }
       if (kind === "module-namespace") {
         const entries = list(own(node,"entries"));
         const names = new Set<string>();
@@ -822,14 +930,24 @@ export function decodeReplayData(
       return result;
     };
     const result = decode(own(graph, "root"));
-    for (const initialize of initializeValues) initialize();
-    for (const detach of detachBuffers) detach();
-    if (parent !== undefined) compilation.forward(compilation.tickets, parent);
+    if (ownsWork) {
+      for (const initialize of work.initialize) initialize();
+      for (const capture of work.capture) capture();
+      for (const detach of work.detach) detach();
+      for (let index = work.scopes.length - 1; index >= 0; index--) {
+        const { scope, parent: owner } = work.scopes[index]!;
+        if (owner !== undefined) scope.forward(scope.tickets, owner);
+      }
+      for (const settle of work.settle) settle();
+    }
     if (options.memo !== undefined)
       for (const [id, value] of restored) options.memo.values.set(id, value);
     return result;
+  } catch (error) {
+    if (ownsWork) for (let index = work.rollback.length - 1; index >= 0; index--) work.rollback[index]!();
+    throw error;
   } finally {
-    compilation.dispose();
+    if (ownsWork) for (let index = work.scopes.length - 1; index >= 0; index--) work.scopes[index]!.scope.dispose();
   }
 }
 

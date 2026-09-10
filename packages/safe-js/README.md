@@ -430,6 +430,12 @@ behavior, cycles, and aliases through input conversion and completed replay.
 References to already imported Promises inside fulfillment data resolve to the
 same input wrappers, including self-references and completed replay. Ordinary
 settlement data remains separately copied, and independent imports stay isolated.
+Newly encountered imported Promises that have settled also support completed
+replay, including aliases across separate host outcomes and cyclic fulfillment
+data. Replay uses the original settlement data, not later guest mutations.
+Cross-outcome reconstruction enforces the combined nesting limit without
+recursively expanding the host stack. Newly encountered Promises that are still
+pending cannot yet be checkpointed without an explicit resume capability.
 
 Native RegExp values can be imported through bindings, host returns, Promise
 settlements, entry-point arguments, and `import.meta`. Matching uses the bounded

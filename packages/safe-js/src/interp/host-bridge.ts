@@ -1,5 +1,6 @@
 import { types } from "node:util";
 import { readNativeRegExp } from "./native-regexp.js";
+import { importedPromises } from "./promise-state.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
 import { sandboxGetProperty } from "./guest-proxy-get.js";
@@ -1238,7 +1239,8 @@ export function copyHostValueToSandbox(
         return Promise.reject(createHostErrorValue(reason, stackFrames, budget));
       }
     );
-    const sandboxPromise = createSandboxPromise(promise);
+    const sandboxPromise = createSandboxPromise(promise, { importCompileOwner: options.compileOwner });
+    importedPromises.add(sandboxPromise);
     state.seen.set(value, sandboxPromise);
     promiseIdentities.set(value, sandboxPromise);
     const span = getBoundOtelSpan(value);

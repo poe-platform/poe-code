@@ -5,6 +5,7 @@ import { wrapCallerInjectedBindings } from "./interp/host-bridge.js";
 import { deepCopyToSandbox, isSandboxPromise } from "./interp/values.js";
 import { CompileScope } from "./interp/regex/compile-guard.js";
 import { dump, restore, run } from "./index.js";
+import { encodeReplayData } from "./snapshot/replay-data.js";
 
 it.each(["binding", "return", "settlement", "arguments", "importMeta"] as const)(
   "imports native RegExp through %s without using the host matcher",
@@ -81,6 +82,23 @@ it("retains compilation limits for regexes arriving in Promise settlements", asy
     const value = deepCopyToSandbox(Promise.resolve(new RegExp("a".repeat(200))), { compilation });
     if (!isSandboxPromise(value)) throw new Error("Expected imported Promise");
     await expect(value.promise).rejects.toMatchObject({ code: "budgetExceeded", budget: "stringLength" });
+  } finally {
+    compilation.dispose();
+    operation.release();
+  }
+});
+
+it("charges settlement snapshot compilation to the importing owner", async () => {
+  const budget = new Budget({ maxSteps: 250 });
+  const operation = budget.acquireCompileOwner();
+  const compilation = new CompileScope(operation.owner);
+  try {
+    const value = deepCopyToSandbox(Promise.resolve(new RegExp("a".repeat(20))), { compilation });
+    if (!isSandboxPromise(value)) throw new Error("Expected imported Promise");
+    await expect(value.promise).resolves.toMatchObject({ kind: "regex" });
+    expect(() => encodeReplayData(value, { captureSettledImportedPromises: true }))
+      .toThrow(SandboxError);
+    expect(budget.stepsUsed).toBeGreaterThan(250);
   } finally {
     compilation.dispose();
     operation.release();

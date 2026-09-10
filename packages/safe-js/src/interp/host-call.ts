@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { observeSandboxPromise } from "./promise-tracker.js";
 import { typedArrayDataProperties, typedArrayStorage, typedArrayViewLayouts, isNumericTypedArray } from "./typed-array.js";
 import { arrayBufferDataProperties, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "./array-buffer.js";
 import { isSandboxSharedArrayBuffer, sharedArrayBufferStorage, snapshotSharedArrayBufferStorage } from "./shared-array-buffer.js";
@@ -11,6 +12,7 @@ import {
   createSandboxPromise,
   defineOwnDataProperty,
   isArrayIndexKey,
+  isSandboxPromise,
   measureSandboxData,
   type SandboxClosure,
   type SandboxPromise,
@@ -144,6 +146,7 @@ export class HostCallJournal {
   private readonly capabilities = new Map<string, SandboxClosure>();
   private readonly inputPromises = new Map<string, SandboxPromise>();
   private readonly inputPromiseIds = new WeakMap<SandboxPromise, string>();
+  private readonly importedPromiseMemo = new Map<string, Map<number, SandboxPromise>>();
   private readonly requiredHostCapabilities = new Set<string>();
   private readonly capabilityIds = new WeakMap<SandboxClosure, string>();
   readonly nativeClosures = new WeakMap<object, SandboxClosure>();
@@ -261,10 +264,12 @@ export class HostCallJournal {
       this.restored = [...this.records];
       const capabilities = this.capabilities;
       const inputPromises = this.inputPromises;
+      const importedPromises = this.importedPromiseMemo;
       const sharedStorage = this.exposedSharedStorage;
       this.budget?.setRetainedValues(this, function* () {
         yield* capabilities.values();
         yield* inputPromises.values();
+        for (const entries of importedPromises.values()) yield* entries.values();
         yield* sharedStorage.values();
       });
     } finally {
@@ -486,6 +491,7 @@ export class HostCallJournal {
     this.budget?.setRetainedDataUsage(this.exposedSharedStorage, 0);
     this.exposedSharedStorage.clear();
     this.inputPromises.clear();
+    this.importedPromiseMemo.clear();
     this.sharedAppliedOrder.clear();
     this.sharedArguments.clear();
     this.deferredSharedOutcomes.clear();
@@ -682,7 +688,9 @@ export class HostCallJournal {
         const memo={nodes:encoded.data.nodes,values:new Map<number,SandboxValue>()};
         let value = decodeReplayData(
           encoded.data,
-          { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, memo },
+          { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, memo,
+            graphId: record.id, importedPromiseMemo: this.importedPromiseMemo,
+            resolvePromiseGraph: id => this.encodedOutcomes.get(id)?.data },
           compilation
         );
         let recordedArguments:SharedArrayBuffer[]|undefined;
@@ -749,6 +757,9 @@ export class HostCallJournal {
   }
 
   snapshotReplay(): HostCallReplay {
+    const importedIdentities = new WeakMap<SandboxPromise, { callId: string; node: number }>();
+    for (const [callId, entries] of this.importedPromiseMemo)
+      for (const [node, promise] of entries) importedIdentities.set(promise, { callId, node });
     return structuredClone({
       version: this.records.some(record => record.callbacks?.some(callback => callback.hasReceiver)) ? 2 : 1,
       calls: this.records.map(({ outcome: ignoredOutcome, asynchronous, ...record }) => {
@@ -762,7 +773,9 @@ export class HostCallJournal {
         const outcomeValue=outcome?.status==="fulfilled"?outcome.value:outcome?.reason;
         const data=outcome===undefined?undefined:encoded?.data??encodeReplayData(
           effects.length===0?outcomeValue:[outcomeValue,...effects],
-          {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,onValueEncoded:(id,value)=>{
+          {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,captureSettledImportedPromises:true,
+            identifyImportedPromise: value => importedIdentities.get(value),onValueEncoded:(id,value)=>{
+            if (isSandboxPromise(value)) importedIdentities.set(value, { callId: record.id, node: id });
             if (!isSandboxSharedArrayBuffer(value)) return;
             const block=sharedArrayBufferStorage(value).block;
             const index=associations?.get(block);
@@ -866,6 +879,8 @@ function restoreReplayCalls(
     throw new TypeError("Invalid host call replay header.");
   }
   const capabilities = new Map<string, SandboxClosure>();
+  const importedPromiseMemo = new Map<string, Map<number, SandboxPromise>>();
+  const replayCalls = input.calls;
   const inputPromises = new Map<string, SandboxPromise>();
   for (const entry of input.calls) {
     if (entry?.moduleId === "<inputs>" && entry.asynchronous === true &&
@@ -971,7 +986,10 @@ function restoreReplayCalls(
         throw new TypeError("Invalid replay call outcome.");
       const memo={nodes:entry.outcome.data.nodes,values:new Map<number,SandboxValue>()};
       let value = decodeReplayData(entry.outcome.data, {
-        resolveCapability, resolvePromise: id => inputPromises.get(id), memo
+        resolveCapability, resolvePromise: id => inputPromises.get(id), memo,
+        graphId: entry.id, importedPromiseMemo,
+        resolvePromiseGraph: id => replayCalls.find(call => call?.id === id)?.outcome?.data,
+        onImportedPromiseRestored: promise => observeSandboxPromise(promise, true)
       }, compilation);
       const blocks=new Set<object>();
       const indices=new Set<number>();

@@ -56,7 +56,7 @@ import { isSandboxDurationFormat, durationFormatState } from "./intl-durationfor
 import { createRawJson, isRawJson } from "./raw-json.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
-import type { Budget, CompileTicket } from "./budget.js";
+import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
 import { CompileScope, RegexCompileGuard, regexCompiledData } from "./regex/compile-guard.js";
 import {
@@ -70,7 +70,7 @@ import {
 import type { GeneratorChannel } from "./generator.js";
 import { SandboxError } from "./budget.js";
 import { observeSandboxPromise, trackSandboxPromise } from "./promise-tracker.js";
-import { promiseStates } from "./promise-state.js";
+import { importedPromises, importedPromiseSnapshots, promiseStates } from "./promise-state.js";
 import { promiseContinuations, promiseReactionResults, promiseProducers } from "./promise-continuations.js";
 import { atomicWaitStates } from "./atomic-wait-state.js";
 import { asyncGeneratorDrivers, asyncGeneratorRequestOwners } from "./async-generator-driver.js";
@@ -394,6 +394,7 @@ export function createSandboxPromise(
   promise: Promise<SandboxValue>,
   metadata: {
     trackReplay?: boolean;
+    importCompileOwner?: CompileOwner;
     synchronousPrefix?: Promise<void>;
     hostCall?: import("./host-call.js").HostCallRecord;
     hostCallJournal?: import("./host-call.js").HostCallJournal;
@@ -443,9 +444,30 @@ export function createSandboxPromise(
   }
 
   promiseStates.set(sandboxPromise, {status: "pending"});
+  const recordSettlement = (status: "fulfilled" | "rejected", value: SandboxValue) => {
+    promiseStates.set(sandboxPromise, { status, value });
+    // Importers brand the wrapper synchronously, before this reaction runs.
+    // Preserve the original data, not the mutable object exposed to the guest.
+    if (importedPromises.has(sandboxPromise) && !importedPromiseSnapshots.has(sandboxPromise)) {
+      const compilation = new CompileScope(metadata.importCompileOwner);
+      try {
+        const captured = cloneSandboxValue(value, { compilation, sharedBufferSnapshots: new WeakMap() });
+        metadata.importCompileOwner?.budget.chargeDataUsage(measureSandboxData([captured]));
+        importedPromiseSnapshots.set(sandboxPromise, {
+          ok: true, state: { status, value: captured }
+        });
+      } catch (error) {
+        // A snapshot limitation must not turn a fulfilled host import into a
+        // rejected execution, or create an unobserved tracking rejection.
+        importedPromiseSnapshots.set(sandboxPromise, { ok: false, error });
+      } finally {
+        compilation.dispose();
+      }
+    }
+  };
   original.then(
-    value => { promiseStates.set(sandboxPromise, {status: "fulfilled", value}); },
-    value => { promiseStates.set(sandboxPromise, {status: "rejected", value}); }
+    value => { recordSettlement("fulfilled", value); },
+    value => { recordSettlement("rejected", value); }
   );
   trackSandboxPromise(sandboxPromise);
   registerPromiseCancellation(sandboxPromise);
@@ -1122,6 +1144,8 @@ export function measureSandboxData(
       visit(asyncGeneratorRequestOwners.get(value), depth + 1);
       const settlement = promiseStates.get(value);
       if (settlement !== undefined && settlement.status !== "pending") visit(settlement.value, depth + 1);
+      const importedSnapshot = importedPromiseSnapshots.get(value);
+      if (importedSnapshot?.ok) visit(importedSnapshot.state.value, depth + 1);
       const continuation = promiseContinuations.get(value);
       if (continuation?.kind === "capability" && continuation.resolution !== undefined)
         visit(continuation.resolution.value, depth + 1);
@@ -1568,7 +1592,8 @@ function copyToSandbox(
       (resolved) => copyToSandbox(resolved, { seen: new WeakMap(), nativePromises, compilation: state.compilation }),
       (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap(), nativePromises, compilation: state.compilation }))
     );
-    const sandboxPromise = createSandboxPromise(promise);
+    const sandboxPromise = createSandboxPromise(promise, { importCompileOwner: state.compilation?.owner });
+    importedPromises.add(sandboxPromise);
     state.seen.set(value, sandboxPromise);
     nativePromises.set(value, sandboxPromise);
     const span = getBoundOtelSpan(value);

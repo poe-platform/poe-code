@@ -190,3 +190,50 @@ focused ESLint also passes (20bda0). The template regression confirms that a
 reset through a child view clears all three views' cached source-site objects
 and shared retained roots, rather than only clearing the caller's cache.
 The same final 20-test selection passes on Node 18.20.8 (e4f9e9).
+
+## Realm-qualified capture and restoration candidate
+
+Mixed captures now assign positive realm IDs to intrinsic nodes from distinct
+origin tokens. Single-origin captures omit the field to preserve the legacy
+shape. Validation rejects malformed IDs. Restoration initializes each numbered
+realm through its own shared-accounting Budget view and keeps symbol-registry
+consistency checks scoped to the corresponding originating sandbox realm.
+Default, unnumbered snapshots retain the existing primary-budget route.
+
+The original three mixed-realm regressions and 46 existing prototype checks
+pass (2cc423). Stronger constructor invocation then exposed a separate Map
+instance-origin defect (073b00). Direct Map/Set controls reproduced it outside
+snapshot restoration; its independent correction and qualification are in
+safejs-collection-instance-origin.md.
+
+The expanded mixed-realm file passes five cases (5f0602): independent Number,
+Date and Map constructor/prototype graphs, mutations, aliases, actual instance
+construction, a second capture/restore cycle, legacy single-realm shape,
+malformed IDs and distinct sandbox symbol registries. Post-hydration failure
+injection confirms that created foreign-realm roots are released and compile
+ownership is available afterward. An initial dataSize=1 setup rejected input
+before hydration and therefore did not establish rollback coverage; the final
+test injects failure at final compiled-value reconciliation instead.
+
+The full snapshot directory is running in session 94536 on unchanged candidate
+source/tests. Await its terminal result. This candidate is not yet committed,
+and no package-wide conformance or publication claim follows from five cases.
+Arbitrary mixed-source interpreted closures still require separate ownership
+and source-format work; this change reconstructs intrinsic realm graphs.
+
+The five mixed-realm cases also pass on Node 18.20.8 (88a248). Final package
+TypeScript checking passes (35534d), as does focused lint after the rollback
+test correction (0efddc).
+
+A read-only current-source probe (47dc55) additionally preserves separate
+constructors, prototypes, Object prototypes, mutations and within-realm links
+for 17 families: Object, Array, Boolean, String, RegExp, Set, WeakMap, WeakSet,
+WeakRef, FinalizationRegistry, ArrayBuffer, SharedArrayBuffer, DataView,
+Uint8Array, Intl.Collator, Temporal.Instant and Temporal.Duration. This probe
+does not claim constructor invocation coverage for all 17 families.
+
+Full snapshot session 94536 completed successfully: 2,087 tests across 154
+files passed in 108.33 seconds (6ff8f3). No source or test edits were made
+during that run; only documentation and the independent collection commit
+changed. This qualifies the intrinsic-graph correction, not arbitrary
+mixed-source interpreted closures or the still-failing full package gate.

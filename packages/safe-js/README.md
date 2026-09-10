@@ -83,6 +83,9 @@ from another realm, including when a budget is reused. Checkpoints preserve
 constructor/prototype identity and their supported property mutations.
 Map and Set instances also retain their selected prototype during inspection
 from another realm.
+Mixed-realm intrinsic checkpoints preserve separate constructor/prototype
+identities and mutations while sharing one execution budget. This does not
+establish arbitrary mixed-source interpreted-closure transport.
 
 Guest symbols, supported prototype links, and mutated guest intrinsics can be
 represented in checkpoints. Plain data-copy helpers have narrower contracts:

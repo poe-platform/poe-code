@@ -979,7 +979,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       throw new TypeError("Invalid module function identity.");
     state(node.state);
   } else if (node.kind === "intrinsic") {
-    fields(node, ["kind", "id"], ["state", "symbolRegistry"]);
+    fields(node, ["kind", "id"], ["state", "symbolRegistry", "realm"]);
+    if (Object.hasOwn(node, "realm") && (!Number.isSafeInteger(node.realm) || (node.realm as number) < 1))
+      throw new TypeError("Invalid intrinsic realm identity.");
     if (typeof node.id !== "string" || !intrinsicCatalogue().has(node.id)) throw new TypeError("Unknown intrinsic identity.");
     if (Object.hasOwn(node, "symbolRegistry")) {
       if (![JSON.stringify(["Symbol"]), JSON.stringify(["Symbol", "for"]), JSON.stringify(["Symbol", "keyFor"])].includes(node.id) || !Array.isArray(node.symbolRegistry))

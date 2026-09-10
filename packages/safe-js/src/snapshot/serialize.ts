@@ -1,4 +1,5 @@
 import { weakReferenceStates } from "../interp/weak-reference.js";
+import { getIntrinsicRealmIdentity } from "../interp/intrinsics.js";
 import { finalizationRegistryStates } from "../interp/finalization-registry-state.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { hashSource } from "../parse/hash.js";
@@ -237,6 +238,7 @@ export type SerializedSnapshot = {
 };
 
 type SerializationState = {
+  intrinsicRealms: Map<object, number>;
   float32Buffers: WeakMap<ArrayBuffer, number>;
   sharedBlocks?:WeakMap<object,number>;
   ancestors: WeakMap<object, string>;
@@ -275,6 +277,7 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
     }
   }
   const state: SerializationState = {
+    intrinsicRealms: new Map(),
     float32Buffers: new WeakMap(),
     ancestors: new WeakMap(),
     heap: Object.create(null) as Record<string, SerializedHeapValue>,
@@ -297,6 +300,10 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
 
   if (Object.keys(state.heap).length === 0) {
     return snapshot;
+  }
+
+  if (state.intrinsicRealms.size === 1) {
+    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic") delete node.realm;
   }
 
   return {
@@ -360,6 +367,13 @@ function serializeValue(
       state.serializedHeapIds.add(id);
       const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state), state.weakEntries.get(value), state.weakTargets.get(value), state.finalizationTargets.get(value));
       if (node === undefined) throw new TypeError(`Missing guest heap state at ${path}.`);
+      if (node.kind === "intrinsic") {
+        const origin = getIntrinsicRealmIdentity(value);
+        if (origin === undefined) throw new TypeError("Missing intrinsic realm identity.");
+        let realm = state.intrinsicRealms.get(origin);
+        if (realm === undefined) state.intrinsicRealms.set(origin, realm = state.intrinsicRealms.size + 1);
+        node.realm = realm;
+      }
       state.heap[String(id)] = node;
     }
     return { kind: "ref", id };

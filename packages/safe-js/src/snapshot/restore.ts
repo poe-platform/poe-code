@@ -67,7 +67,7 @@ import { restoreBoxedProperties } from "./boxed.js";
 import { sandboxErrorNames, sandboxErrorTypes } from "../error/shape.js";
 import { SnapshotMismatchError } from "../restore.js";
 import { evaluateNode, Scope, setSandboxProperty } from "../interp/interpreter.js";
-import { getGuestFunctionProperties, getGuestFunctionProperty, getSandboxDataProperty, isGuestClosure, materializeFunctionProperties, registerGuestClosure, setSandboxPrototype } from "../interp/object-model.js";
+import { getGuestFunctionProperties, getGuestFunctionProperty, getSandboxDataProperty, isGuestClosure, materializeFunctionProperties, registerGuestClosure, releaseObjectPrototype, setSandboxPrototype } from "../interp/object-model.js";
 import { functionSources } from "../parse/function-source.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import { restoreSandboxCollectionIterator } from "../interp/collection-iterator.js";
@@ -227,11 +227,11 @@ type RestoreState = {
     reactionCapability?: Extract<PromiseContinuation, {kind: "reaction"}>["capability"]}>;
   promiseReactionOrders: Map<SandboxPromise, SandboxPromise[]>;
   pendingCapabilities: WeakMap<SandboxPromise, ReturnType<typeof createPendingPromiseCapability>>;
-  symbolRegistry?: Map<string, symbol>;
+  symbolRegistries: Map<number, Map<string, symbol>>;
   guestScopes: Map<number, Scope>;
   rootNode: ParseResult;
   signal?: AbortSignal;
-  intrinsicsInitialized: boolean;
+  intrinsicBudgets: Map<number, Budget>;
   initializeIterators: Array<() => void>;
   detachBuffers: Array<() => void>;
   budget: Budget;
@@ -260,6 +260,7 @@ export function restore(
   let failure: {reason: unknown} | undefined;
   let restored!: RestoredSnapshot;
   const cleanupErrors: unknown[] = [];
+  const intrinsicBudgets = new Map<number, Budget>();
   try {
     validateSnapshotSourceHash(snapshot);
     let currentSourceHash: string;
@@ -298,7 +299,8 @@ export function restore(
       guestScopes: new Map(),
       rootNode: currentNode,
       signal: options.signal,
-      intrinsicsInitialized: false,
+      intrinsicBudgets,
+      symbolRegistries: new Map(),
       initializeIterators: [],
       detachBuffers: [],
       budget,
@@ -425,6 +427,13 @@ export function restore(
     cleanups.push(() => compilation.dispose(), () => operation.release());
     for (const cleanup of cleanups) {
       try { cleanup(); }
+      catch (error) { cleanupErrors.push(error); }
+    }
+  }
+  if (failure !== undefined || cleanupErrors.length > 0) {
+    for (const view of intrinsicBudgets.values()) {
+      if (view === budget) continue;
+      try { releaseObjectPrototype(view); }
       catch (error) { cleanupErrors.push(error); }
     }
   }
@@ -814,9 +823,13 @@ function isSerializedRegexValue(
   );
 }
 
-function initializeIntrinsicRealm(state: RestoreState): void {
-  if (state.intrinsicsInitialized) return;
-  const prototype = Object.values(state.heap).find(node => node.kind === "intrinsic" && node.id === '["%FunctionPrototype%"]');
+function initializeIntrinsicRealm(state: RestoreState, realm = 0): Budget {
+  const installed = state.intrinsicBudgets.get(realm);
+  if (installed !== undefined) return installed;
+  const budget = realm === 0 ? state.budget : state.budget.forkRealm();
+  state.intrinsicBudgets.set(realm, budget);
+  const nodes = Object.values(state.heap).filter(node => node.kind === "intrinsic" && (node.realm ?? 0) === realm);
+  const prototype = nodes.find(node => node.kind === "intrinsic" && node.id === '["%FunctionPrototype%"]');
   // Older heaps could omit this property or contain a guest-defined hook.
   // Do not preinstall a nonconfigurable property over their captured state.
   const functionHasInstance = prototype?.kind !== "intrinsic" || prototype.state === undefined ||
@@ -830,7 +843,7 @@ function initializeIntrinsicRealm(state: RestoreState): void {
       const method = state.heap[String(value.id)];
       return method?.kind === "intrinsic" && method.id === '["%FunctionPrototype%",{"symbol":"hasInstance"}]';
     });
-  const errorConstructors = Object.values(state.heap).filter(node =>
+  const errorConstructors = nodes.filter(node =>
     node.kind === "intrinsic" && sandboxErrorNames.some(name => node.id === JSON.stringify([name])));
   const errorPrototypes = errorConstructors.every(node => node.kind === "intrinsic" &&
     node.state?.properties.properties.some(([key, descriptor]) => {
@@ -842,12 +855,12 @@ function initializeIntrinsicRealm(state: RestoreState): void {
       return prototype?.kind === "intrinsic" &&
         prototype.id === JSON.stringify([...JSON.parse(node.id) as string[], "prototype"]);
     }));
-  const float32 = Object.values(state.heap).find(node => node.kind === "intrinsic" && node.id === '["Float32Array"]');
+  const float32 = nodes.find(node => node.kind === "intrinsic" && node.id === '["Float32Array"]');
   const typedArrayPrototypes = float32?.kind !== "intrinsic" ||
     float32.state?.properties.properties.some(([key, descriptor]) => key === "prototype" && descriptor.kind === "data" &&
       !descriptor.writable && !descriptor.enumerable && !descriptor.configurable) === true;
-  createBuiltinBindings({ budget: state.budget, compileOwner: state.compilation.owner, functionHasInstance, errorPrototypes, typedArrayPrototypes });
-  state.intrinsicsInitialized = true;
+  createBuiltinBindings({ budget, compileOwner: state.compilation.owner, functionHasInstance, errorPrototypes, typedArrayPrototypes });
+  return budget;
 }
 
 function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue {
@@ -1296,6 +1309,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   }
   if (serialized.kind === "guest-temporal-plain-year-month" || serialized.kind === "guest-temporal-plain-month-day" || serialized.kind === "guest-temporal-zoned-date-time" || serialized.kind === "guest-temporal-plain-date" || serialized.kind === "guest-temporal-plain-date-time" || serialized.kind === "guest-temporal-plain-time" || serialized.kind === "guest-temporal-duration" || serialized.kind === "guest-temporal-instant" || serialized.kind === "guest-finalization-registry" || serialized.kind === "guest-weakref" || serialized.kind === "guest-weakcollection" || serialized.kind === "guest-durationformat" || serialized.kind === "guest-segmenter" || serialized.kind === "guest-segments" || serialized.kind === "module-function" || serialized.kind === "thenable-resolver" || serialized.kind === "capability-executor" || serialized.kind === "intrinsic" || serialized.kind === "bound-function" || serialized.kind === "promise-resolver" || serialized.kind === "pending-promise" || serialized.kind === "promise-reaction" || serialized.kind === "guest-function" || serialized.kind === "guest-class" || serialized.kind === "guest-object" || serialized.kind === "guest-array" || serialized.kind === "guest-boxed" || serialized.kind === "guest-pluralrules" || serialized.kind === "guest-displaynames" || serialized.kind === "guest-relativetimeformat" || serialized.kind === "guest-listformat" || serialized.kind === "guest-datetimeformat" || serialized.kind === "guest-numberformat" || serialized.kind === "guest-collator" || serialized.kind === "guest-locale" || serialized.kind === "guest-date" || serialized.kind === "guest-regex" || serialized.kind === "guest-promise" || serialized.kind === "array-iterator" || serialized.kind === "string-iterator" || serialized.kind === "async-disposable-stack" || serialized.kind === "disposable-stack" || serialized.kind === "iterator-wrapper" || serialized.kind === "iterator-helper") {
     let value: RuntimeSnapshotValue;
+    let valueBudget = state.budget;
     if (serialized.kind === "thenable-resolver") {
       const bridge = restoreThenableBridge(serialized.continuation, state);
       value = bridge.resolvers[serialized.action === "fulfilled" ? 0 : 1];
@@ -1529,8 +1543,8 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       });
       moduleFunctionOrigins.set(value as SandboxClosure, { module: serialized.module, path: [...serialized.path] });
     } else if (serialized.kind === "intrinsic") {
-      initializeIntrinsicRealm(state);
-      value = resolveIntrinsicIdentity(state.budget, serialized.id) as RuntimeSnapshotValue;
+      valueBudget = initializeIntrinsicRealm(state, serialized.realm ?? 0);
+      value = resolveIntrinsicIdentity(valueBudget, serialized.id) as RuntimeSnapshotValue;
       if (serialized.symbolRegistry !== undefined) state.initializeIterators.push(() => {
         const registry = isSandboxClosure(value) ? symbolRegistryOrigins.get(value) : undefined;
         if (registry === undefined) throw new TypeError("Invalid symbol registry owner.");
@@ -1540,10 +1554,11 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
           if (typeof symbol !== "symbol") throw new TypeError("Invalid registered symbol.");
           entries.set(key, symbol);
         }
-        if (state.symbolRegistry !== undefined && (entries.size !== state.symbolRegistry.size ||
-          [...entries].some(([key, symbol]) => state.symbolRegistry!.get(key) !== symbol)))
+        const existing = state.symbolRegistries.get(serialized.realm ?? 0);
+        if (existing !== undefined && (entries.size !== existing.size ||
+          [...entries].some(([key, symbol]) => existing.get(key) !== symbol)))
           throw new TypeError("Conflicting symbol registries.");
-        state.symbolRegistry = entries;
+        state.symbolRegistries.set(serialized.realm ?? 0, entries);
         registry.clear();
         for (const [key, symbol] of entries) registry.set(key, symbol);
       });
@@ -1683,7 +1698,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : value as object;
       if (target === undefined) throw new TypeError(`Missing restored function properties for ${serialized.kind === "intrinsic" ? serialized.id : serialized.kind}.`);
       if (objectState.prototype !== undefined)
-        setSandboxPrototype(value as object, deserializeValue(objectState.prototype, state) as object | null, state.budget);
+        setSandboxPrototype(value as object, deserializeValue(objectState.prototype, state) as object | null, valueBudget);
       if (serialized.kind === "guest-object" && serialized.errorType !== undefined)
         sandboxErrorTypes.set(value as object, serialized.errorType);
       if (serialized.kind !== "module-function")

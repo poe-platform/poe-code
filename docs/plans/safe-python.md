@@ -9688,6 +9688,22 @@ extension, integration, or validation requirement is missing or unverified.
   pass in the uncached one-worker package run. Dictionary/serialization and traceback descriptors, exception
   hierarchy, fault translation, raise/try wiring and full interpreter/safe-fs
   assembly remain unfinished. No push or release was requested.
+- Exception dictionaries (2026-09-10): two failing integration tests drove the
+  BaseException dictionary descriptor and dictionary-subclass assignment for
+  ordinary instances as well as exceptions. Instance state retains the guest
+  dictionary object separately from its exposed native payload; attribute reads,
+  writes and deletions bypass mapping overrides while descriptor reads preserve
+  identity. Exception dictionary deletion is rejected; ordinary instance deletion
+  still detaches aliases. A third failing regression drove complete-character
+  UTF-8 truncation of invalid replacement type names. All 82 focused CPython
+  comparisons match, covering direct descriptors, inherited storage, ownership,
+  invalid values, replacement aliases and exception notes. Focused tests,
+  typecheck, lint, the selected workspace build and all 7,124 tests in 502 files
+  pass in the uncached one-worker package run.
+  Serialization must distinguish unmaterialized from exposed empty dictionaries;
+  this is confirmed by CPython probes and remains pending alongside tracebacks,
+  the exception hierarchy, raise/try wiring and interpreter/safe-fs assembly.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

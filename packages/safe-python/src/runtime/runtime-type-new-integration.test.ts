@@ -69,6 +69,28 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("exposes exception dictionaries and rejects deletion without detaching aliases",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("e=BaseException()\ne.tag=1\nold=e.__dict__\nreplacement={'tag':2}\ne.__dict__=replacement\ne.other=3\ncorrect=old=={'tag':1} and e.__dict__ is replacement and replacement=={'tag':2,'other':3}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("del e.__dict__\n")).toThrow("cannot delete __dict__");
+  state.run("retained=e.__dict__ is replacement\n");expect(state.globals.get("retained")).toBe(state.v.true);
+});
+
+it("retains dictionary subclass identity while instance attributes bypass mapping overrides",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class D(Dict):\n def __getitem__(self,key):\n  return 1/0\n def __setitem__(self,key,value):\n  return 1/0\n def __delitem__(self,key):\n  return 1/0\nclass C:\n pass\nfor cls in (C,BaseException):\n obj=cls()\n d=D(tag=1)\n obj.__dict__=d\n obj.other=2\n del obj.tag\n correct=obj.__dict__ is d and obj.other==2 and d=={'other':2}\n visit('ok' if correct else 'bad')\n");
+  expect(state.events).toEqual(["ok","ok"]);
+});
+
+it("limits invalid instance dictionary type names to complete UTF-8 characters",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.run("e=BaseException()\n");
+  for(const [name,display] of [["X".repeat(250),"X".repeat(200)],["字".repeat(100),"字".repeat(66)]]) {
+    state.run(`Wrong=type('${name}',(),{})\nwrong=Wrong()\n`);
+    expect(()=>state.run("e.__dict__=wrong\n")).toThrow(`__dict__ must be set to a dictionary, not a '${display}'`);
+  }
+});
+
 it("adds exception notes through native list storage while preserving list identity",()=>{
   const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("List",state.registry.listType());
   state.run("e=BaseException('message')\nfirst=e.add_note('first')\nnotes=e.__notes__\ne.add_note('second')\nclass L(List):\n def append(self,value):\n  visit('wrong')\ne.__notes__=L()\ne.add_note('third')\ncorrect=first is None and notes==['first','second'] and e.__notes__==['third']\n");

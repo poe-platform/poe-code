@@ -1,11 +1,12 @@
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { DictionaryValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import type { DictionaryValue, InstanceValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
 import { RuntimeSlotStorage } from "./runtime-slot-storage.js";
 
 /** Owned instance storage. Replacing or deleting a dictionary detaches aliases;
  * deleting never clears the old object or removes the layout's storage ability. */
 export class RuntimeInstanceState {
-  #dictionary?: DictionaryValue;
+  #dictionary?: DictionaryValue | InstanceValue;
   #type: TypeValue;
   readonly slots: RuntimeSlotStorage;
 
@@ -17,7 +18,8 @@ export class RuntimeInstanceState {
     Object.freeze(this);
   }
 
-  get dictionary(): DictionaryValue | undefined { return this.#dictionary; }
+  get dictionary(): DictionaryValue | undefined { return this.#dictionary===undefined?undefined:runtimeDictionaryPayload(this.#dictionary); }
+  get dictionaryObject(): DictionaryValue | InstanceValue | undefined { return this.#dictionary; }
   get type(): TypeValue { return this.#type; }
 
   /** Adopt only after the object layer validates ownership and layout. */
@@ -25,10 +27,11 @@ export class RuntimeInstanceState {
     meter.checkpoint(); this.#type = type;
   }
 
-  mutateDictionary(value: DictionaryValue | undefined, values: RuntimeValues, meter: ExecutionMeter): void {
+  mutateDictionary(value: DictionaryValue | InstanceValue | undefined, values: RuntimeValues, meter: ExecutionMeter): void {
     meter.checkpoint();
     if (this.#dictionary === undefined) throw Error("instance layout has no dictionary storage");
-    const replacement = value ?? values.dictionary(this.#dictionary.items.emptyCopy());
+    if(value!==undefined&&runtimeDictionaryPayload(value)===undefined)throw Error("instance dictionary requires owned dictionary storage");
+    const replacement = value ?? values.dictionary(this.dictionary!.items.emptyCopy());
     meter.checkpoint(); this.#dictionary = replacement;
   }
 }

@@ -15,6 +15,11 @@ failures concern native Promise property imports, and two are 5-second timeouts
 in the completed-replay 128-draw case and PPR2 `co` continuation scenario.
 This is a failing gate, not completed integration or JavaScript conformance.
 
+After that gate, ZonedDateTime private storage and captured host-slot readers
+were implemented and passed 19 focused tests on each of Node 18.18.2, 22.23.2
+and 26.4.0. The public constructor is still absent; copy/budget and snapshot
+integration remain outstanding. See the [implementation record](safejs-temporal-zoned-date-time.md).
+
 A source-runtime reflection check against Node 26.4.0 (153cde) now finds only
 three missing PlainDate conversion names, the zoned conversions on Instant and
 PlainDateTime, and the three missing constructors PlainYearMonth, PlainMonthDay

@@ -103,7 +103,30 @@ be presented as partial constructor conformance.
 7. Run maintained scoped lint/build/tests, CLI screenshot checks for exposed
    behavior, then a fresh full package gate after shared integration changes.
 
-This plan is not an implementation or completion claim. The full package gate
-is still running, source remains unchanged, and no ZonedDateTime code or tests
-have been added yet. Releases and pushes remain paused; local implementation
-commits and remote delivery must be reported separately.
+## Private storage implementation
+
+The full package gate finished before this code was added; its evidence is in
+safejs-post-plain-date-full-gate.md. Its source fingerprint does not include
+this implementation.
+
+The new temporal-zoned-date-time module owns an immutable null-prototype slot
+record behind a WeakMap brand. It validates internal data descriptors without
+guest coercion, canonicalizes identifiers through the backend constructor and
+keeps the full instant endpoint range. Captured native/backend getters admit
+host slots without invoking overridden own getters; proxies are excluded and
+tracked host exports retain their slots after prototype removal.
+
+TDD evidence: f0d3a6 failed to resolve the absent module before implementation.
+The completed private-core selection passed 19 tests on Node 22.23.2 (1dd1fb),
+19 on minimum Node 18.18.2 (df5d0d) and 19 on native-Temporal Node 26.4.0
+(2a0994). These cover private immutable fields, exact range endpoints,
+canonical/invalid zones, accessor/proxy rejection, forged brands and host
+prototype handling. TypeScript passed (794870).
+Scoped ESLint passed (0167fd). The maintained selected-workspace build passed
+all 23 build tasks and five fresh native ESM import checks (1ca37e).
+
+This is private storage only, not public ZonedDateTime support. Copy/budget,
+snapshot and public constructor/method integration are still required. There
+is no CLI-visible behavior change to screenshot in this increment. Releases
+and pushes remain paused; local implementation commits and remote delivery
+must be reported separately.

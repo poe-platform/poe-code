@@ -37,4 +37,12 @@ The constructor-dispatch audit also found an iterator protocol bridge that does
 not forward an explicit newTarget. No user-visible failure has been reproduced
 for that path, so no speculative change is included.
 
+A follow-up read-only probe exercised a guest protocol adapter through an array
+with an explicit iterator prototype. Its iterator factory constructs through
+the supplied invocation callback using an alternate newTarget. Both synchronous
+and async-from-sync paths preserve that alternate target (354aa3). A first probe
+used a raw ordinary record and reached the native-iterator route instead; its
+callability rejection was a probe setup error, not evidence against the guest
+bridge. The tested constructor path therefore does not justify a runtime fix.
+
 Local integration only. Pushes and releases remain paused.

@@ -875,6 +875,8 @@ Template raw text normalizes literal CR and CRLF line endings to LF, including
 line continuations, while preserving escaped character spellings and source offsets.
 Malformed template escapes report positions in the original source, including
 after CRLF line endings.
+Tagged templates in `new` expressions run the tag before constructing its result,
+preserving substitutions, member receivers, constructor arguments and parentheses.
 Locale-list canonicalization observes Proxy membership and element reads in
 order, including inherited entries and throwing traps. This preserves locale
 selection for locale-aware case conversion, collation and Intl constructors.

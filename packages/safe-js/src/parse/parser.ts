@@ -3143,24 +3143,8 @@ class Parser {
       }
 
       if (this.currentToken().type === "template") {
-        const quasi = createTemplateLiteral(
-          this.currentToken(),
-          {
-            allowMalformedEscapes: true,
-            functionContext: this.functionContext,
-            lexicalContext: this.lexicalContext,
-            source: this.source
-          },
-          this.compilation
-        );
-        this.index += 1;
         expression = {
-          node: {
-            type: "TaggedTemplateExpression",
-            tag: expression.node,
-            quasi,
-            span: createSpan(expression.node.span.start, quasi.span.end)
-          },
+          node: this.parseTaggedTemplate(expression.node),
           parenthesized: false
         };
         continue;
@@ -3386,6 +3370,11 @@ class Parser {
         continue;
       }
 
+      if (this.currentToken().type === "template") {
+        callee = { node: this.parseTaggedTemplate(callee.node), parenthesized: false };
+        continue;
+      }
+
       break;
     }
 
@@ -3405,6 +3394,26 @@ class Parser {
         span: createSpan(newToken.start, end.end)
       },
       parenthesized: false
+    };
+  }
+
+  private parseTaggedTemplate(tag: Expression): TaggedTemplateExpression {
+    const quasi = createTemplateLiteral(
+      this.currentToken(),
+      {
+        allowMalformedEscapes: true,
+        functionContext: this.functionContext,
+        lexicalContext: this.lexicalContext,
+        source: this.source
+      },
+      this.compilation
+    );
+    this.index += 1;
+    return {
+      type: "TaggedTemplateExpression",
+      tag,
+      quasi,
+      span: createSpan(tag.span.start, quasi.span.end)
     };
   }
 

@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../../contracts/yield.js";
+import { inheritYieldCheckpoint, yieldTurn } from "../../../contracts/yield.js";
 import { FsError, readBytes, type ByteSource } from "../../../contracts/index.js";
 import type { CompressionOptions } from "./options.js";
 import { gunzipMembers } from "./gunzip.js";
@@ -60,6 +60,7 @@ export async function transform(
 ): Promise<boolean> {
   const controller = new AbortController();
   const signal = AbortSignal.any([parentSignal, controller.signal]);
+  inheritYieldCheckpoint(parentSignal, signal);
   let failure: unknown;
   let hasFailure = false;
   const fail = (error: unknown): void => {

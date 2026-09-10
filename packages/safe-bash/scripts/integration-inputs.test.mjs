@@ -400,6 +400,7 @@ function assertSource7Discovery(files) {
     "tests/commands/network/wget.test.ts",
     "tests/commands/bytes-stress/portable-compression.test.ts",
     "tests/commands/bytes/compression/bounded-codec.test.ts",
+    "tests/commands/bytes/compression/checkpoint-propagation.test.ts",
     "tests/commands/bytes/compression/native-codecs.test.ts",
     "tests/source-census.test.ts",
     "tests/commands/bytes/compression/native-codec-safety.test.ts",

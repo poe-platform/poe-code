@@ -20,6 +20,7 @@ import { createNextBuiltin } from "./builtin-iteration.js";
 import { createFormatBuiltin } from "./builtin-format.js";
 import { createRepresentationBuiltin } from "./builtin-representation.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
+import { createPrintBuiltin } from "./builtin-print.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -235,4 +236,22 @@ it.each([
   }, meter);
   expect(globals.get("result")).toEqual(v.string(expected));
   expect(globals.get("again")).toEqual(v.string(again));
+});
+it.each(["__str__", "__repr__"])("prints through compiled %s and invocation flush truth", slot => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), flag = v.cell({}), file = v.cell({}), events: string[] = [], unused = (): never => { throw Error("unexpected ordinary lookup or call"); };
+  const methods = compileProgram<RuntimeValue>(analyzeModule('def special(self): return "guest"\n'), { stripDocstring: false }, v, meter);
+  base.value.namespace.items.set(v.string(slot), v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter)));
+  const builtin = createPrintBuiltin(v, meter, {
+    stdout() { events.push("stdout"); return file; },
+    lookupWrite(target) { expect(target).toBe(file); events.push("lookup"); return text => { if (text.kind !== "str") throw Error("expected string"); events.push(String.fromCodePoint(...text.value)); }; },
+    flush(target) { expect(target).toBe(file); events.push("flush"); }
+  });
+  const globals = new Map<string, RuntimeValue>([["receiver", receiver], ["flag", flag]]);
+  const program = compileProgram<RuntimeValue>(analyzeModule('def render(): return print(receiver,flush=flag)\nresult=render()\n'), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map([["print", builtin]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); events.push("special"); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused, truth(value) { expect(value).toBe(flag); events.push("truth"); return true; } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(v.none);
+  expect(events).toEqual(["truth", "stdout", "lookup", ...(slot === "__str__" ? ["special"] : ["special", "special"]), "guest", "lookup", "\n", "flush"]);
 });

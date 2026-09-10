@@ -8,7 +8,7 @@ import { OrderedKeyMap } from "./ordered-key-map.js";
 function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal }), v = new RuntimeValues(meter), file = v.cell({}), trace: string[] = [];
   const keywords = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 1n, equal: (a,b) => a === b }, meter));
-  const context: PrintContext = {
+  const context: PrintContext & { representation: ReturnType<typeof createRuntimeRepresentationContext> } = {
     representation: createRuntimeRepresentationContext(v, meter, { defaultRepr() { throw Error("unresolved repr"); } }),
     stdout() { trace.push("stdout"); return file; },
     lookupWrite(target) { expect(target).toBe(file); trace.push("lookup"); return text => { if (text.kind !== "str") throw Error("expected string"); trace.push(String.fromCodePoint(...text.value)); }; },
@@ -21,6 +21,44 @@ it("writes separate converted arguments, separators and terminator, then flushes
   keywords.items.set(v.string("sep"), v.string("|")); keywords.items.set(v.string("end"), v.string("!")); keywords.items.set(v.string("flush"), v.true);
   expect(call([v.integer(12), v.string("x")])).toBe(v.none);
   expect(trace).toEqual(["stdout", "lookup", "12", "lookup", "|", "lookup", "x", "lookup", "!", "flush"]);
+});
+it("uses native conversion when only explicit stream capabilities are supplied", () => {
+  const { v, meter, keywords, context, trace } = fixture();
+  createPrintBuiltin(v, meter, { ...context, representation: undefined }).value.invoke([v.integer(12), v.none], keywords, meter);
+  expect(trace).toEqual(["stdout", "lookup", "12", "lookup", " ", "lookup", "None", "lookup", "\n"]);
+});
+it("skips representation policy acquisition for disabled stdout after invocation flush truth", () => {
+  const { v, meter, keywords, context, trace } = fixture();
+  keywords.items.set(v.string("flush"), v.cell({}));
+  const invocation = { get formatting(): never { throw Error("must not acquire representation"); }, truth() { expect(this).toBe(invocation); trace.push("truth"); return true; }, call: () => v.none, isStopIteration: () => false };
+  const builtin = createPrintBuiltin(v, meter, { ...context, representation: undefined, stdout() { trace.push("stdout"); return v.none; } });
+  expect(builtin.value.invoke([v.cell({})], keywords, meter, invocation)).toBe(v.none);
+  expect(trace).toEqual(["truth", "stdout"]);
+});
+it("honors explicit representation and truth without reading invocation policies", () => {
+  const { v, meter, keywords, context, trace } = fixture();
+  keywords.items.set(v.string("flush"), v.cell({}));
+  const policy = { ...context, truth() { expect(this).toBe(policy); trace.push("truth"); return false; } };
+  createPrintBuiltin(v, meter, policy).value.invoke([v.true], keywords, meter, {
+    get formatting(): never { throw Error("explicit representation must win"); }, get truth(): never { throw Error("explicit truth must win"); }, call: () => v.none, isStopIteration: () => false
+  });
+  expect(trace).toEqual(["truth", "stdout", "lookup", "True", "lookup", "\n"]);
+});
+it("checks cancellation after acquiring invocation representation", () => {
+  const { v, meter, keywords, context, trace } = fixture(); let cancelled = false;
+  const formatting = { ...context.representation, isExactInteger: () => false, lookupFormat: () => undefined };
+  const builtin = createPrintBuiltin(v, meter, { ...context, representation: undefined });
+  expect(() => builtin.value.invoke([v.none], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, {
+    get formatting() { cancelled = true; return formatting; }, call: () => v.none, isStopIteration: () => false
+  })).toThrow(ExecutionLimitError);
+  expect(trace).toEqual(["stdout"]);
+});
+it("retains partial writes when invocation string conversion fails", () => {
+  const { v, meter, keywords, context, trace } = fixture(), guest = v.cell({}), failure = Error("guest str failed");
+  keywords.items.set(v.string("flush"), v.true);
+  const formatting = { ...context.representation, isExactInteger: () => false, lookupFormat: () => undefined, lookupStr(value: RuntimeValue) { expect(this).toBe(formatting); expect(value).toBe(guest); return () => { throw failure; }; } };
+  expect(() => createPrintBuiltin(v, meter, { ...context, representation: undefined }).value.invoke([v.string("first"), guest], keywords, meter, { formatting, call: () => v.none, isStopIteration: () => false })).toThrow(failure);
+  expect(trace).toEqual(["stdout", "lookup", "first", "lookup", " ", "lookup"]);
 });
 it("uses explicit files and None defaults and writes a newline with no arguments", () => {
   const { v, file, keywords, trace, call } = fixture();

@@ -7333,6 +7333,16 @@ extension, integration, or validation requirement is missing or unverified.
   and scoped lint pass. This is a test-only increment. Automatic type/storage classification,
   generic object defaults, allocation optimization and suspended safe-fs effects
   remain unfinished.
+- Print now uses invocation formatting and flush truth when its explicit
+  representation/truth policies are absent; streams remain mandatory explicit
+  capabilities. Two compiled regressions failed first and now exercise inherited
+  __str__/__repr__ fallback plus flush conversion ordering. Five additional cases
+  cover native defaults, disabled stdout, explicit priority, acquisition
+  cancellation and partial writes after conversion failure. All 5,519 tests in
+  446 files pass; selected build, typecheck and scoped lint pass. All 216 existing print
+  comparisons still match CPython. No implicit host stream or filesystem access
+  was added. Automatic type/storage classification, generic object defaults,
+  allocation optimization and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

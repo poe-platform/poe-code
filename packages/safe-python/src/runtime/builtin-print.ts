@@ -2,12 +2,13 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { representationObject, type RepresentationContext } from "./representation-protocol.js";
+import { createRuntimeRepresentationContext } from "./runtime-representation.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import { suggestName } from "./name-suggestion.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface PrintContext {
-  readonly representation: RepresentationContext<RuntimeValue>;
+  readonly representation?: RepresentationContext<RuntimeValue>;
   /** Resolve the execution's current sys.stdout. Missing attributes must throw;
    * None disables output. No host stream is selected implicitly. */
   stdout(): RuntimeValue;
@@ -25,7 +26,7 @@ export interface PrintContext {
  */
 export function createPrintBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: PrintContext): BuiltinFunctionValue {
   meter.checkpoint(1, 96);
-  return values.builtinFunction({ name: "print", invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name: "print", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     let sep: RuntimeValue = values.none, end: RuntimeValue = values.none, file: RuntimeValue = values.none, flush: RuntimeValue | undefined;
     for (const [key, value] of keywords.items.snapshot()) {
@@ -42,22 +43,26 @@ export function createPrintBuiltin(values: RuntimeValues, meter: ExecutionMeter,
         throw new PythonRuntimeError("TypeError", `print() got an unexpected keyword argument '${name}'${hint}`);
       }
     }
-    const shouldFlush = flush === undefined ? false : context.truth === undefined ? runtimeTruth(flush, meter) : context.truth(flush);
+    const shouldFlush = flush === undefined ? false : context.truth !== undefined ? context.truth(flush) : invocation?.truth !== undefined ? invocation.truth(flush) : runtimeTruth(flush, meter);
     meter.checkpoint();
     if (file.kind === "none") { file = context.stdout(); meter.checkpoint(); }
     if (file.kind === "none") return values.none;
+    const representation = context.representation ?? invocation?.formatting ?? createRuntimeRepresentationContext(values, meter, {
+      defaultRepr() { throw new Error("print() requires a representation policy for this value"); }
+    });
+    meter.checkpoint();
     meter.checkpoint(0, 112);
     for (const [name, value] of [["sep", sep], ["end", end]] as const) {
       meter.checkpoint();
-      if (value.kind !== "none" && context.representation.string(value) === undefined) {
-        throw new PythonRuntimeError("TypeError", `${name} must be None or a string, not ${diagnosticTypeName(context.representation.typeName(value), meter)}`);
+      if (value.kind !== "none" && representation.string(value) === undefined) {
+        throw new PythonRuntimeError("TypeError", `${name} must be None or a string, not ${diagnosticTypeName(representation.typeName(value), meter)}`);
       }
       meter.checkpoint();
     }
     meter.checkpoint(0, 64);
     const write = (value: RuntimeValue) => {
       const invoke = context.lookupWrite(file); meter.checkpoint();
-      const text = representationObject(value, "str", context.representation, meter);
+      const text = representationObject(value, "str", representation, meter);
       invoke(text); meter.checkpoint();
     };
     for (let i = 0; i < positional.length; i++) {

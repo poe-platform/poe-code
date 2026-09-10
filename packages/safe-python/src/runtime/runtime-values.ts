@@ -101,7 +101,7 @@ export interface BuiltinInvocationContext {
   readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
   readonly iteration?: IterationContext<RuntimeValue>;
   /** Reenter this execution's normal argument/callability/function call path. */
-  call(callee: RuntimeValue, positional: readonly RuntimeValue[]): RuntimeValue;
+  call(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords?: DictionaryValue): RuntimeValue;
   isStopIteration(error: unknown): boolean;
   truth?(value: RuntimeValue): boolean;
   /** Rich comparison followed by the execution's guest truth conversion. */

@@ -175,9 +175,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const result = expressions.compare(operator, left, right); meter.checkpoint();
         return expressions.truth(result);
       },
-      call(callee, positional) {
+      call(callee, positional, keywords) {
         const call = beginCall(callee);
         for (const value of positional) { meter.checkpoint(); call.positional(value); }
+        if (keywords !== undefined) { meter.checkpoint(); call.mapping(keywords); }
         return call.invoke();
       },
       isStopIteration(error) {

@@ -21,6 +21,7 @@ import { createAttributeMutationBuiltin } from "./builtin-attribute-mutation.js"
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
 import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 import { allocateRuntimeType } from "./runtime-type-allocation.js";
+import { finalizeRuntimeType } from "./runtime-type-finalization.js";
 
 function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal }), v = new RuntimeValues(meter);
@@ -1803,6 +1804,33 @@ it("preserves full failed class names in constructor diagnostics", () => {
   expect(() => allocateRuntimeType(state.v.string(name), [state.registry.object, state.registry.object], source, state.registry.type, state.registry, state.v, state.meter)).toThrow("duplicate base class object");
   const owner = cell.value.content?.value; if (owner?.kind !== "type") throw Error("expected failed class"); state.globals.set("C", owner);
   expect(() => state.run("C()\n")).toThrow(`cannot create '${name}' instances`);
+});
+
+it("forwards explicit keyword dictionaries when native code reenters a guest callback", () => {
+  const state = fixture(), keywords = state.type("Keywords").value.namespace;
+  keywords.items.set(state.v.string("flag"), state.v.integer(7));
+  state.hooks.keywordName = value => value.kind === "str" ? String.fromCodePoint(...value.value) : "invalid";
+  state.globals.set("invoke", state.v.builtinFunction({ name: "invoke", invoke(args, _keywords, _meter, invocation) {
+    if (!invocation) throw Error("expected invocation context"); return invocation.call(args[0], [], keywords);
+  } }));
+  state.run("def hook(*,flag):\n return flag\nresult=invoke(hook)\n"); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+});
+
+it("runs compiled set-name and inherited subclass hooks on an allocated class", () => {
+  const state = fixture(), base = state.type("Base"), descriptorType = state.type("Descriptor"), source = state.type("Source").value.namespace, keywords = state.type("Keywords").value.namespace;
+  state.hooks.keywordName = value => value.kind === "str" ? String.fromCodePoint(...value.value) : "invalid";
+  state.method(descriptorType, "__set_name__", "def set_name(self,owner,name):\n owner.assigned=name\n visit(name)\n return 7\n");
+  // Assigned after creation: unlike a class-body declaration this is not
+  // automatically wrapped as a classmethod, so super's class access stays unbound.
+  state.method(base, "__init_subclass__", "def initialize(*,flag):\n visit(flag)\n return 9\n");
+  source.items.set(state.v.string("x"), state.v.instance(descriptorType)); keywords.items.set(state.v.string("flag"), state.v.string("subclass"));
+  const cls = allocateRuntimeType(state.v.string("C"), [base], source, state.registry.type, state.registry, state.v, state.meter); state.globals.set("C", cls);
+  state.globals.set("finish", state.v.builtinFunction({ name: "finish", invoke(_args, _keywords, _meter, invocation) {
+    if (!invocation) throw Error("expected invocation context");
+    finalizeRuntimeType(cls, keywords, { typeOf: value => state.types.get(value) ?? state.registry.object, slots: () => undefined }, state.v, state.meter, { call: invocation.call, repr() { throw Error("unexpected diagnostic"); } });
+    return state.v.none;
+  } }));
+  state.run("finish()\nresult=C.assigned\ninstance=C()\n"); expect(state.events).toEqual(["x", "subclass"]); expect(state.globals.get("result")).toEqual(state.v.string("x"));
 });
 
 it("assigns and deletes class attributes without mutating inherited namespaces", () => {

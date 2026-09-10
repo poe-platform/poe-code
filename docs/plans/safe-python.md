@@ -7897,6 +7897,21 @@ extension, integration, or validation requirement is missing or unverified.
   descriptor set-name and subclass hooks must be connected before exposing this
   as native type.__new__. Full class construction and suspended safe-fs effects
   remain unfinished.
+- Added post-allocation descriptor/subclass finalization. Own namespace entries
+  are snapshotted once, descriptor special methods are resolved live, and inherited
+  __init_subclass__ lookup happens after descriptor effects while skipping the new
+  class's own hook. Native-to-guest calls now optionally preserve a keyword
+  dictionary; a compiled keyword-only callback first failed without this path.
+  Set-name call failures retain their exception and append metered contextual
+  notes; differential evidence corrected an initial overbroad handler that also
+  annotated binding failures. Host termination is not converted to guest errors.
+  Sixteen tests cover snapshots, mutation, binding, keyword forwarding, exception
+  notes, cancellation and compiled hooks on allocated classes. All 240 finalization
+  cases and 192 compiled constructor cases match CPython. All 6,156 tests in 469
+  files, selected build, typecheck and scoped lint pass. Native classmethod/staticmethod values,
+  automatic method wrapping, native object subclass hooks, full type.__new__
+  integration, guest exception-note exposure and suspended safe-fs effects remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

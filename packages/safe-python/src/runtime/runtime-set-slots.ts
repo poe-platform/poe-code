@@ -2,6 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeNativeRepresentation } from "./runtime-native-representation-method.js";
 import { runtimeSetAccess } from "./runtime-set.js";
+import { createSetInitWrapper } from "./builtin-set-init.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Exact set storage slots; native membership uses cached hashes and the
@@ -10,7 +11,10 @@ export function installRuntimeSetSlots(kind: "set" | "frozenset", owner: TypeVal
   const names = [["__repr__", "Return repr(self)."], ["__len__", "Return len(self)."], ["__iter__", "Implement iter(self)."]];
   meter.checkpoint(0, 192);
   if (kind === "frozenset") names.push(["__hash__", "Return hash(self)."]);
-  else owner.value.namespace.items.set(values.string("__hash__"), values.none);
+  else {
+    owner.value.namespace.items.set(values.string("__hash__"), values.none);
+    owner.value.namespace.items.set(values.string("__init__"), createSetInitWrapper(owner, values, meter));
+  }
   for (const [name, doc] of names) {
     meter.checkpoint(0, 96);
     owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, doc, accepts: receiver => receiver.kind === kind,

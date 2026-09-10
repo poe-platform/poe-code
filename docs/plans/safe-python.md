@@ -8824,6 +8824,18 @@ extension, integration, or validation requirement is missing or unverified.
   public interpreter/safe-fs assembly remain unfinished.
   Workspace build, typecheck and focused lint pass; all 6,768 unit tests in 493
   files pass with two workers. All 3,066 differential cases above pass.
+- Published canonical mutable set initialization. Five RED cases reproduced
+  inherited object-init behavior and missing ordinary __init__ access. Argument
+  errors precede clearing; source acquisition and streaming happen after clearing,
+  with original exceptions and partial progress preserved. Existing set update
+  storage paths retain cached hashes and native source handling. Five added tests
+  cover replacement, self-initialization, zero arguments, invalid arguments,
+  noniterables and failing guest iterators. All 52 initialization differential
+  cases match CPython, including final contents after errors and ignored length
+  hints; 388 canonical slot and 90 representation cases remain green. Native
+  allocation, subclass storage and the remaining full-interpreter scope stay open.
+  Workspace build, typecheck and focused lint pass; all 6,773 unit tests in 493
+  files pass with two workers. All 530 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

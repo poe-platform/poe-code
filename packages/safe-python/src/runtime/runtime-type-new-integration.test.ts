@@ -50,6 +50,31 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("initializes existing sets through their canonical native slot", () => {
+  const state = fixture(); state.run("items={1}\nresult=type(items).__init__(items,[2,3])\ncontents=f'{items!r}'\nitems.__init__(items)\nempty=f'{items!r}'\nitems.add(4)\nitems.__init__()\ncleared=f'{items!r}'\n");
+  expect(state.globals.get("result")).toBe(state.v.none); expect(state.globals.get("contents")).toEqual(state.v.string("{2, 3}"));
+  for (const name of ["empty", "cleared"]) expect(state.globals.get(name)).toEqual(state.v.string("set()"));
+});
+
+it.each([["items.__init__(1,2)", "set expected at most 1 argument, got 2"], ["items.__init__(x=1)", "set() takes no keyword arguments"]])("validates set initialization before mutation: %s", (source, message) => {
+  const state = fixture(); state.run("items={1}\n"); expect(() => state.run(source+"\n")).toThrow(message);
+  state.run("result=f'{items!r}'\n"); expect(state.globals.get("result")).toEqual(state.v.string("{1}"));
+});
+
+it("clears a set before acquiring a guest iterator and retains partial failure", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "iteration failed");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Source:\n def __iter__(self):\n  visit(f'{items!r}')\n  self.first=True\n  return self\n def __next__(self):\n  if self.first:\n   self.first=False\n   return 2\n  fail()\nitems={1}\n");
+  let caught: unknown; try { state.run("items.__init__(Source())\n"); } catch (error) { caught = error; }
+  expect(caught).toBe(failure); expect(state.events).toEqual(["set()"]); expect(state.calls.depth).toBe(0);
+  state.run("result=f'{items!r}'\n"); expect(state.globals.get("result")).toEqual(state.v.string("{2}"));
+});
+
+it("clears a set before rejecting a noniterable initializer", () => {
+  const state = fixture(); state.run("items={1}\n"); expect(() => state.run("items.__init__(None)\n")).toThrow("'NoneType' object is not iterable");
+  state.run("result=f'{items!r}'\n"); expect(state.globals.get("result")).toEqual(state.v.string("set()"));
+});
+
 it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("publishes canonical %s representation and sequence slots", (kind, construct) => {
   const state = fixture(); state.builtins.set(kind, state.v.builtinFunction({ name: kind, invoke(args, keywords, meter, invocation) { return construct(args, keywords, state.v, state.keys, meter, invocation?.iteration); } }));
   state.run(`items=${kind}([1])\nowner=type(items)\nresult=owner.__repr__(items)\nsize=owner.__len__(items)\ncontains=owner.__contains__(items,1)\nmethod=items.__repr__\ncanonical=method.__objclass__ is owner\niterator=owner.__iter__(items)\nseen=0\nfor value in iterator:\n seen=seen+value\n`);

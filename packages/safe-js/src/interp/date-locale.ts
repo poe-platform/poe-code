@@ -35,7 +35,8 @@ const dateTimeOptions: ReadonlyArray<readonly [string, IntlOptionType | "number"
 export async function readDateTimeFormatOptions(
   input: SandboxValue,
   budget: Budget,
-  context?: SandboxCallContext
+  context?: SandboxCallContext,
+  rejectTimeZone = false
 ): Promise<Record<string, string | number | boolean>> {
   const options: Record<string, string | number | boolean> = Object.create(null);
   const release = retainValues(budget, () => [input, options]);
@@ -44,6 +45,8 @@ export async function readDateTimeFormatOptions(
     for (const [key, type] of dateTimeOptions) {
       const value = await readIntlProperty(inputOptions, key, budget, context);
       if (value === undefined) continue;
+      if (key === "timeZone" && rejectTimeZone)
+        throw new TypeError("ZonedDateTime locale formatting does not accept timeZone.");
       if (type === "number") {
         const number = await sandboxNumber(value, budget, context);
         if (!Number.isFinite(number) || number < 1 || number > 3)

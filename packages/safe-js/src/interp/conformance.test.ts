@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { parse, type ParseResult } from "../parse.js";
 import { parseModule } from "../parse/parser.js";
+import { run as execute } from "../run.js";
 import { Budget } from "./budget.js";
 import { createCollectionGlobals } from "./globals/collections.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
@@ -10,7 +11,6 @@ import { createMathGlobals } from "./globals/math.js";
 import { createMiscGlobals } from "./globals/misc.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
 import { createRegexGlobals } from "./globals/regex.js";
-import { wrapCallerInjectedBindings } from "./host-bridge.js";
 import { interpret } from "./interpreter.js";
 import { createPromiseGlobals } from "./promise.js";
 import type { InterpreterValue } from "./values.js";
@@ -468,10 +468,17 @@ describe("JavaScript conformance matrix", () => {
       );
     });
 
-    it("rejects host RegExp bindings", () => {
-      const budget = new Budget();
-      expect(() => wrapCallerInjectedBindings({ pattern: /x/ }, { budget })).toThrow(TypeError);
-    });
+  });
+
+  it("imports host RegExp bindings without sharing the native matcher cursor", async () => {
+    const pattern = /x/g;
+    pattern.lastIndex = 1;
+    const result = await execute(
+      "return [pattern.source, pattern.flags, pattern.lastIndex, pattern.test('ax'), pattern.lastIndex]",
+      { bindings: { pattern } }
+    );
+    expect(result).toMatchObject({ ok: true, returnValue: ["x", "g", 1, true, 2] });
+    expect(pattern.lastIndex).toBe(1);
   });
 });
 

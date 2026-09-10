@@ -79,7 +79,7 @@ At pinned Test262 revision 419d3e0a2273ba01a3bfcbec423f2801425b8e93 on Node
 26.8.1, the two top-level Now fixtures pass both modes (four passes, d8db1d),
 and all nine Now/instant fixtures pass both modes (18 passes, 991104). Original
 sources/harnesses and completion sentinels were used, with zero exclusions.
-The other Now method directories remain to qualify. This is not full conformance.
+The subsequent method-directory results are recorded below. This is not full conformance.
 
 An adhoc CLI screenshot (64e351) exercises all six methods, including a fixed
 offset; the rendered output was inspected. Fresh scoped lint passed (c5e28e).
@@ -90,6 +90,36 @@ fresh native ESM import checks. The earlier Intl formatToParts session
 The factory/tests are an atomic local addition, but public wiring depends on
 the broader uncommitted Temporal integration in globals.ts and temporal.ts.
 Do not claim a standalone delivered feature or a clean full gate. Default-host
-precision/range qualification, further budgeting/recovery checks, complete
-upstream method coverage and integration delivery remain open. No push or
+precision/range qualification, further budgeting/recovery checks and integration
+delivery remain open. No push or
 release is authorized by this plan.
+
+## Complete pinned Now fixture-tree qualification
+
+The directory listing was audited after the six method runs: it also contains
+toStringTag, which was then tested. The method directories have no nested
+directories (c5ba4c, d49bf8). All runs use the same pinned revision and Node
+26.8.1 process runtime, original fixture/harness sources, both script modes and
+completion sentinels. There are no excluded or unsupported fixtures.
+
+| Directory under test/built-ins/Temporal/Now | Fixtures | Passed executions | Evidence |
+| --- | ---: | ---: | --- |
+| top-level | 2 | 4 | d8db1d |
+| instant | 9 | 18 | 991104 |
+| plainDateISO | 9 | 18 | b9eea1 |
+| zonedDateTimeISO | 15 | 30 | 053134 |
+| plainDateTimeISO | 13 | 26 | ab70b8 |
+| plainTimeISO | 10 | 20 | cc582c |
+| timeZoneId | 6 | 12 | 2ac98b |
+| toStringTag | 2 | 4 | 510cd1 |
+
+Total: 66 fixtures, 132 passing executions, zero failures. This qualifies the
+pinned Now fixture tree, not the entire Temporal implementation, every runtime,
+or all host precision/range and sandbox-budget interactions.
+
+Six additional focused tests cover exact negative/positive millisecond clock
+endpoints and rejection of NaN, Infinity, fractional and out-of-range injected
+clock values. All 14 Now tests pass on Node 22.23.2 (1a1436); TypeScript passes
+(8db51e), and scoped test lint passes (e3e217). These tests preserve the existing Date clock validation and convert
+to BigInt before scaling, without inventing sub-millisecond precision. Runtime
+implementation sources did not change during this qualification.

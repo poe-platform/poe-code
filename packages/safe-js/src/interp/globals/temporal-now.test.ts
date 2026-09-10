@@ -92,3 +92,13 @@ it("continues both branches of a pending checkpoint before the clock read", asyn
     expect(now).toHaveBeenCalledTimes(2);
   } finally { await completed; }
 });
+
+it.each([-8640000000000000,8640000000000000])("preserves exact clock milliseconds at the %s endpoint", async milliseconds => {
+  expect(await run("return Temporal.Now.instant().epochNanoseconds",{clock:{now:()=>milliseconds,snapshot:()=>undefined}}))
+    .toMatchObject({ok:true,returnValue:BigInt(milliseconds)*1000000n});
+});
+
+it.each([NaN,Infinity,1.5,8640000000000001])("retains Date clock validation for %s", async milliseconds => {
+  expect(await run("try{Temporal.Now.instant()}catch(e){return e.name}",{clock:{now:()=>milliseconds,snapshot:()=>undefined}}))
+    .toMatchObject({ok:true,returnValue:"TypeError"});
+});

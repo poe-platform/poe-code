@@ -8,6 +8,8 @@ import { RuntimeTypeNames } from "./runtime-type-names.js";
 import { PythonRuntimeError } from "./error.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Static native types such as dictionary views cannot be allocated directly. */
+  readonly instantiable?: boolean;
   /** Prepared, sorted/mangled own slot names; duplicates occupy separate cells. */
   readonly slots?: readonly string[];
   readonly weakReferences?: boolean;
@@ -47,6 +49,7 @@ export class RuntimeTypeLayout {
   readonly hasInstanceDictionary: boolean;
   readonly hasObjectLayout: boolean;
   readonly isSubclassable: boolean;
+  readonly isInstantiable: boolean;
   /** Defining native payload layout. Heap subclasses share it; introducing a
    * new native payload establishes a distinct layout even above a native base. */
   readonly nativeStorage: RuntimeTypeLayout | undefined;
@@ -65,6 +68,7 @@ export class RuntimeTypeLayout {
     this.namespace = namespace;
     this.hasSequenceTable = options.sequenceTable ?? true;
     this.isSubclassable = options.subclassable ?? true;
+    this.isInstantiable = options.instantiable ?? true;
     this.layoutBase = layoutBase;
     this.slotNames = Object.freeze([...(options.slots ?? [])]);
     this.slotCount = (layoutBase?.slotCount ?? 0) + this.slotNames.length;

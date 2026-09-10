@@ -39,6 +39,7 @@ function fixture(identity?: IdentityContext) {
       if (value.kind === "list") return registry.listType();
       if (value.kind === "tuple") return registry.tupleType();
       if (value.kind === "dict") return registry.dictionaryType();
+      if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return registry.dictionaryViewType(value.kind);
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -52,6 +53,23 @@ function fixture(identity?: IdentityContext) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it.each(["keys", "values", "items"] as const)("publishes canonical dictionary %s view protocols and allocation boundaries", method => {
+  const state = fixture();
+  state.run(`List=type([])\nd={'a':1}\nv=d.${method}()\nView=type(v)\nlength=View.__len__(v)\nentries=List(View.__iter__(v))\nreverse=List(View.__reversed__(v))\ntext=View.__repr__(v)\nbound=v.__iter__.__self__ is v\nowner=View.__iter__.__objclass__ is View\nmethodOwner=View.__reversed__.__objclass__ is View\nproxy=View.mapping.__get__(v)\ncorrect=length==1 and entries==reverse and bound and owner and methodOwner and proxy==d\n`);
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.globals.get("text")).toEqual(state.v.string(`dict_${method}(${method === "keys" ? "['a']" : method === "values" ? "[1]" : "[('a', 1)]"})`));
+  expect(() => state.run("View()\n")).toThrow(`cannot create 'dict_${method}' instances`);
+  expect(() => state.run("object.__new__(View)\n")).toThrow(`cannot create 'dict_${method}' instances`);
+  expect(() => state.run("class Child(View):\n pass\n")).toThrow(`type 'dict_${method}' is not an acceptable base type`);
+  expect(() => state.run("View.extra=1\n")).toThrow("immutable type");
+});
+
+it.each(["keys", "items"] as const)("publishes dictionary %s view comparison and algebra descriptors", method => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run(`d={'a':1}\nv=d.${method}()\nView=type(v)\nother=${method === "keys" ? "{'a'}" : "{('a',1)}"}\ncorrect=View.__eq__(v,other) and View.__le__(v,other) and not View.__lt__(v,other) and View.__eq__(v,[]) is NotImplemented and View.__or__(v,[])==other and View.__rsub__(v,[])==type(other)() and v.isdisjoint([]) and View.__hash__ is None\n`);
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
 
 it.each(["object", "type", "list", "tuple", "dict", "set", "frozenset"] as const)("retains the defining owner on %s allocation functions", kind => {
   const state = fixture();

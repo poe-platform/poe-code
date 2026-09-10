@@ -9151,6 +9151,22 @@ extension, integration, or validation requirement is missing or unverified.
   tests and all 6,912 package tests in 493 files pass. Broader native type/catalog,
   full interpreter and safe-fs execution requirements remain unfinished.
   No push or release was requested.
+- Canonical dictionary view types (2026-09-10): five failing integration tests
+  established missing native view types and descriptor catalogs. Added lazy
+  canonical dict_keys, dict_values and dict_items layouts with native iteration,
+  length, representation, reversal and read-only mapping descriptors. Key/item
+  views also publish comparison, containment, disjointness and forward/reflected
+  set-algebra slots; values views retain object identity comparison and hashing.
+  Native layout metadata now records direct allocation prohibition; views reject
+  allocation, subclassing and type mutation while inheriting object.__new__.
+  Exact view attribute lookup binds canonical descriptors before legacy kernel
+  fallbacks. Shared method operations avoid creating temporary bound callables
+  during descriptor invocation. All 880 bound/unbound slot cases, 81 lifecycle
+  and metadata cases and 90 proxy-owner regressions match CPython (1,051 total).
+  Workspace build, typecheck, focused lint and all 6,917 package tests in 493
+  files pass. Mapping-proxy construction/catalog and arbitrary mapping owners
+  remain unfinished, alongside full interpreter and safe-fs execution work.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

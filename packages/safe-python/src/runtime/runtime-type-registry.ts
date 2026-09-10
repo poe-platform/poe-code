@@ -29,6 +29,7 @@ import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from "./runtime-descriptor-method.js";
 import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
+import { installRuntimeDictionaryViewSlots } from "./runtime-dictionary-view-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
@@ -73,6 +74,7 @@ export class RuntimeTypeRegistry {
   #listType: TypeValue | undefined;
   #tupleType: TypeValue | undefined;
   #dictionaryType: TypeValue | undefined;
+  readonly #dictionaryViews = new Map<"dict_keys" | "dict_values" | "dict_items", TypeValue>();
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -253,6 +255,19 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods("dict", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#dictionaryType = type;
+    return type;
+  }
+
+  dictionaryViewType(kind: "dict_keys" | "dict_values" | "dict_items"): TypeValue {
+    this.meter.checkpoint();
+    const existing = this.#dictionaryViews.get(kind);
+    if (existing !== undefined) return existing;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false, instantiable: false });
+    const type = this.values.type(layout, this.type, { immutable: true, keywordValidation: "callee" });
+    installRuntimeDictionaryViewSlots(kind, type, this.values, this.meter);
+    this.meter.checkpoint(1, 96);
+    this.#entries.set(layout, { type }); this.#dictionaryViews.set(kind, type);
     return type;
   }
 

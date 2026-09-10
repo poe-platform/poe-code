@@ -12,6 +12,7 @@ import { createRuntimeDictionaryMethod } from "./runtime-dictionary-method.js";
 import { createRuntimeDictionaryMutationMethod } from "./runtime-dictionary-mutation-method.js";
 import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.js";
 import { readRuntimeDictionaryViewAttribute } from "./runtime-dictionary-view-attributes.js";
+import { readRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
 import { createRuntimeSetAlgebraMethod } from "./runtime-set-algebra-method.js";
 import { createRuntimeSetMutationMethod } from "./runtime-set-mutation-method.js";
 import { createRuntimeSetRelationMethod } from "./runtime-set-relation-method.js";
@@ -114,10 +115,11 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (descriptorMethod !== undefined) return descriptorMethod;
   const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
   if (metadata !== undefined) return metadata;
-  if ((receiver.kind === "tuple" || receiver.kind === "dict") && methods?.actualType !== undefined) {
+  if ((receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();
     const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
     if (name === "__hash__" && member?.kind === "none") return member;
+    if (name === "mapping" && member?.kind === "getset_descriptor") return readRuntimeGetsetDescriptor(member, receiver, type, meter);
     if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor" || member?.kind === "classmethod_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }
   if ((name === "__eq__" || name === "__ne__" || name === "__lt__" || name === "__le__" || name === "__gt__" || name === "__ge__" || name === "__hash__" || name === "__repr__" || name === "__str__" || name === "__format__"

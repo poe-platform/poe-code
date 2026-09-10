@@ -10311,6 +10311,37 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and focused lint pass. Full-suite failures exposed old internal
   sentinel assumptions and an incomplete fixture type resolver; both fixtures now
   exercise the canonical None/absent distinction. No push or release requested.
+- Yield-delegation protocol (2026-09-10): added explicit iterator delegation
+  state with separate yielded, returned, body-raised and caller-rejected results.
+  Acquisition happens lazily and exactly once; sends resolve current ordinary
+  methods, and throw forwarding preserves the original argument array. Missing
+  throw or successful close defers normalization until injection is necessary.
+  Invalid normalization and failing throw-attribute lookup preserve suspension.
+  Source: CPython 3.14 Objects/genobject.c, especially gen_close_iter, gen_close,
+  _gen_throw and _PyGen_FetchStopIterationValue, alongside PEP 380. Differential
+  checks exposed behavior beyond the PEP's illustrative expansion: close-method
+  StopIteration completes yield-from, close-lookup failures are unraisable, and
+  throw-lookup failures belong to the caller rather than the Python body. A host
+  generator implementation could not preserve that last distinction and was
+  replaced by the explicit result/state protocol. Completion releases source,
+  iterator and context references; fatal execution limits bypass guest handling.
+  The expression continuation can evaluate a yielding delegation source and
+  retain pending operands through a trusted delegation capability; absent or
+  synchronous capabilities fail before source side effects. Twenty-five protocol
+  tests and two expression regressions pass. All 6,912 controlled-protocol
+  comparisons match CPython, including operation traces, optional/missing/failing
+  methods, completion and later resumes after rejection. This oracle uses a
+  controlled lifecycle adapter, not compiled native generator functions.
+  Native integration must intercept delegated requests before entering the outer
+  body, preserve raw throw argument lists before normalization, and route reject
+  results back to callers without closing that body. A CPython probe confirms
+  gi_running is false during throw-attribute lookup but true during the forwarded
+  call, send lookup/call and close lookup/call; preflight cannot simply run wholly
+  inside the ordinary running-body entry. The default native runtime
+  still does not execute yield-from; this is the next implementation step, not a
+  completed delegation claim. Selected workspace build, typecheck and focused lint
+  pass. All 7,440 tests in 508 files pass in the uncached one-worker run (156.17s;
+  bodies 9.92s). No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

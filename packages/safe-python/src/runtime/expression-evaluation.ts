@@ -75,6 +75,9 @@ export interface ExpressionContext<Value> {
   /** Scope-aware execution owns outer-iterator acquisition, target isolation,
    * collection construction and any suspension policy. */
   comprehension?(node:ComprehensionNode):Value;
+  /** Delegate to an already evaluated source. The capability owns guest
+   * iterator acquisition, send/throw/close and completion-value semantics. */
+  delegate?(source:Value):Generator<Value,Value,Value>;
 }
 
 /** Host implementation gap, not a catchable guest exception. */
@@ -118,7 +121,8 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
  * operands. The caller owns generator lifecycle, frame/exception activation and
  * routing an escaping exception into the enclosing statement continuation.
  * Pass the execution's actual None value on each bare send; host undefined is
- * not interpreted as guest None. Await and yield-from remain separate work. */
+ * not interpreted as guest None. Delegation requires an explicit capability;
+ * await remains separate work. */
 export function createExpressionContinuation<Value>(expression:Extract<Expression,{kind:"subscript"}>,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode:"subscript-reference"):Generator<Value,SubscriptReference<Value>,Value>;
 export function createExpressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode:"branch"):Generator<Value,boolean,Value>;
 export function createExpressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode?:"value"):Generator<Value,Value,Value>;
@@ -129,7 +133,7 @@ export function createExpressionContinuation<Value>(expression:Expression,contex
 
 function* expressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,mode:"value"|"branch"|"subscript-reference",suspension?:{readonly none:Value}):Generator<Value,Value|boolean|SubscriptReference<Value>,Value> {
   if (mode === "subscript-reference" && expression.kind !== "subscript") throw new Error("subscript reference mode requires a subscript expression");
-  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | {kind:"yield"} | (() => void);
+  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | {kind:"yield"|"yield-from"} | (() => void);
   const work: Task[] = [{ node: expression, test: mode === "branch" ? "branch" : "value" }];
   let reference: SubscriptReference<Value> | undefined;
   let value!: Value;
@@ -140,7 +144,7 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
     if (typeof task === "function") { task(); continue; }
     if("kind" in task) {
       meter.checkpoint(0);
-      value=yield value;
+      value=task.kind==="yield-from"?yield* context.delegate!(value):yield value;
       meter.checkpoint();
       knownTruth=undefined;
       continue;
@@ -149,6 +153,11 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
     knownTruth = undefined;
     if (context.constants?.has(node)) { value = context.constants.get(node)!; continue; }
     switch (node.kind) {
+      case "yield-from":
+        if(suspension===undefined||context.delegate===undefined)throw new UnsupportedExpressionError(node.kind);
+        meter.checkpoint(0,64);
+        work.push({kind:"yield-from"},{node:node.value,test:"value"});
+        break;
       case "yield":
         if(suspension===undefined)throw new UnsupportedExpressionError(node.kind);
         meter.checkpoint(0,node.value===null?32:64);

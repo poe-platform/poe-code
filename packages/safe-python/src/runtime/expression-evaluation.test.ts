@@ -45,6 +45,26 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("resumable expression execution",()=>{
+  it("retains operands while a yield-from source itself yields, then uses the delegated return",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",10n],["b",20n]])),meter=budget();
+    context.delegate=function*(source){
+      events.push("delegate");yield source;events.push("return");return 9n;
+    };
+    const cursor=createExpressionContinuation(parseExpression("a + (yield from (yield b))"),context,meter,null);
+    expect(cursor.next()).toEqual({done:false,value:20n});
+    expect(cursor.next(2n)).toEqual({done:false,value:2n});
+    expect(cursor.next(null)).toEqual({done:true,value:19n});
+    expect(events).toEqual(["load:a","load:b","delegate","return","binary:+"]);
+  });
+
+  it("rejects unavailable or synchronous delegation before source side effects",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",1n]])),expression=parseExpression("(yield from a)");
+    expect(()=>createExpressionContinuation(expression,context,budget(),null).next()).toThrow("yield-from");
+    context.delegate=function*(){yield 1n;return 2n;};
+    expect(()=>evaluateExpression(expression,context,budget())).toThrow("yield-from");
+    expect(events).toEqual([]);
+  });
+
   it("suspends binary operands without repeating earlier loads or operations",()=>{
     const {context,names,events}=environment(new Map<string,Value>([["a",10n],["b",20n],["c",30n]]));
     const cursor=createExpressionContinuation(parseExpression("a + (yield b) * c"),context,budget(),null);

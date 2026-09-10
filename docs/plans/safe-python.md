@@ -7407,6 +7407,15 @@ extension, integration, or validation requirement is missing or unverified.
   change was needed. All 5,572 tests in 448 files pass; typecheck and scoped lint
   pass. Automatic type/storage classification, additional protocol assembly,
   allocation audits and suspended safe-fs effects remain unfinished.
+- Binary special-method negotiation now checks cancellation/latched resource
+  failure after forward and reflected callbacks, before accepting their results.
+  Four cancellation regressions failed first across same-type, ordinary and
+  prioritized reflected dispatch. They cover accepted and NotImplemented results;
+  another regression verifies that swallowing an allocation-limit exception cannot
+  recover execution. Zero-step post-callback checks preserve existing operation
+  charges and method ordering. All 5,577 tests in 448 files pass; selected build,
+  typecheck and scoped lint pass. Broader numeric/MRO assembly, other dispatch
+  boundaries, native classification and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

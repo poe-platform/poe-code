@@ -5,6 +5,27 @@ import { ExecutionBudget } from "./execution-budget.js";
 const notImplemented = Symbol("NotImplemented");
 
 describe("binary special-method dispatch", () => {
+  it.each([
+    ["same", "forward"], ["other", "forward"],
+    ["other", "reflected"], ["right-subtype", "reflected"]
+  ] as const)("observes cancellation after %s %s returns", (relation, stage) => {
+    for (const result of ["accepted", notImplemented]) {
+      const controller = new AbortController();
+      const events: string[] = [];
+      const run = (name: string) => {
+        events.push(name);
+        if (name === stage) { controller.abort(); return result; }
+        return notImplemented;
+      };
+      expect(() => dispatchBinaryOperation<unknown>({
+        relation, notImplemented,
+        forward: () => run("forward"), reflected: () => run("reflected"),
+        reflectedIsOverridden: () => true
+      }, new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0, signal: controller.signal }))).toThrow("execution cancelled");
+      expect(events).toEqual(stage === "forward" ? ["forward"] : relation === "other" ? ["forward", "reflected"] : ["reflected"]);
+    }
+  });
+
   it.each(["same", "other", "right-subtype"] as const)("orders methods for %s operand types", relation => {
     const events: string[] = [];
     const options: BinaryDispatch<unknown> = {
@@ -56,6 +77,20 @@ describe("binary special-method dispatch", () => {
       forward: () => { result = "new"; return notImplemented; },
       reflected: () => result, reflectedIsOverridden: () => false
     })).toBe("new");
+  });
+
+  it("does not accept a result after a callback swallows an exhausted budget", () => {
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0 });
+    const reflected = vi.fn();
+    expect(() => dispatchBinaryOperation<unknown>({
+      relation: "other", notImplemented, reflected,
+      reflectedIsOverridden: () => false,
+      forward() {
+        try { meter.checkpoint(0, 1); } catch { /* Guest adapters cannot recover the meter. */ }
+        return "accepted";
+      }
+    }, meter)).toThrow("execution allocation limit exceeded");
+    expect(reflected).not.toHaveBeenCalled();
   });
 
   it("checks budgets before each potentially guest-executing callback", () => {

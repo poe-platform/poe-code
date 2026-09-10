@@ -37,7 +37,7 @@ export function readRuntimeDictionaryViewAttribute(view: DictionaryViewValue, na
         const item = iterator.next();
         meter.checkpoint();
         if (item.done) return values.true;
-        const found = runtimeMembership("in", item.value, target, values, meter);
+        const found = runtimeMembership("in", item.value, target, values, meter, undefined, invocation);
         meter.checkpoint();
         if (found.value) return values.false;
       }

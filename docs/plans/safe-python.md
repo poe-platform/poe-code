@@ -8433,6 +8433,16 @@ extension, integration, or validation requirement is missing or unverified.
   backing contents, result members and iteration effects. Build, typecheck and
   scoped lint and all 6,508 tests in 491 files pass. Canonical native type catalogs, full guest comparison/hash
   assembly, exception rendering and public execution assembly remain unfinished.
+- Connected dictionary-item view disjointness, intersection and item-view xor
+  to active rich equality and truth policies. Native numeric fallback now carries
+  the comparison policy even when both outer operands are native views. Three
+  initial compiled regressions skipped guest __eq__. Seven added cases cover
+  non-boolean equality results, identity shortcuts and truth exceptions before
+  assignment publication. All 168 guest-value differential cases match CPython,
+  including subtype precedence, NotImplemented and iterator effects. Build,
+  typecheck, scoped lint and all 6,515 tests in 491 files pass. All 864 previous
+  dictionary-view cases still match CPython. Automatic guest hash/key equality assembly and
+  remaining native type/public execution catalogs are still unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -160,6 +160,33 @@ it("retains guest numeric precedence around dictionary view union", () => {
   expect(state.globals.get("left")?.kind).toBe("set"); expect(state.globals.get("right")).toEqual(state.v.integer(77)); expect(state.events).toEqual(["get", "get", "forward"]);
 });
 
+it("uses guest equality and truth for dictionary item view disjointness", () => {
+  const state = fixture();
+  state.run("class Truth:\n def __bool__(self):\n  visit('truth')\n  return True\nclass Value:\n def __eq__(self,other):\n  visit('equal')\n  return Truth()\nleft=Value()\nright=Value()\nresult={1:left}.items().isdisjoint([(1,right)])\n");
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["equal", "truth"]);
+});
+
+it.each(["&", "^"])("uses guest value equality in dictionary items %s", operator => {
+  const state = fixture();
+  state.run(`class Value:\n def __eq__(self,other):\n  visit('equal')\n  return True\n def __hash__(self):\n  return 1\nleft=Value()\nright=Value()\nresult={1:left}.items()${operator}{1:right}.items()\n`);
+  const result = state.globals.get("result")!; if (result.kind !== "set") throw Error("expected set"); expect(result.items.size).toBe(operator === "&" ? 1 : 0); expect(state.events).toEqual(["equal"]);
+});
+
+it("retains identity shortcuts for dictionary item view comparisons", () => {
+  const state = fixture();
+  state.run("class Value:\n def __eq__(self,other):\n  visit('equal')\n  return False\n def __hash__(self):\n  return 1\nvalue=Value()\nleft={1:value}.items()\nright={1:value}.items()\ndisjoint=left.isdisjoint(right)\ncommon=left&right\ndifferent=left^right\n");
+  expect(state.globals.get("disjoint")).toBe(state.v.false); expect(state.events).toEqual([]);
+  const common = state.globals.get("common")!, different = state.globals.get("different")!;
+  if (common.kind !== "set" || different.kind !== "set") throw Error("expected sets"); expect(common.items.size).toBe(1); expect(different.items.size).toBe(0);
+});
+
+it.each(["left.isdisjoint(right)", "left&right", "left^right"])("propagates guest truth failures during %s", expression => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "truth failed");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Truth:\n def __bool__(self):\n  visit('truth')\n  fail()\nclass Value:\n def __eq__(self,other):\n  visit('equal')\n  return Truth()\nleft={1:Value()}.items()\nright={1:Value()}.items()\nresult=99\n");
+  expect(() => state.run(`result=${expression}\n`)).toThrow(failure); expect(state.globals.get("result")).toEqual(state.v.integer(99)); expect(state.events).toEqual(["equal", "truth"]);
+});
+
 it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("constructs %s through active guest iteration", (name, construct) => {
   const state = fixture();
   state.builtins.set(name, state.v.builtinFunction({ name, invoke(args, keywords, meter, context) { return construct(args, keywords, state.v, state.keys, meter, context?.iteration); } }));

@@ -3,6 +3,7 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { IterationContext } from "./protocol-iterator.js";
+import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 import { runtimeMembership } from "./runtime-membership.js";
 import { runtimeSetAccess, subtractRuntimeSet, symmetricDifferenceUpdateRuntimeSet, updateRuntimeSet } from "./runtime-set.js";
 import { isRuntimeSetView, type RuntimeValue, type RuntimeValues, type SetValue } from "./runtime-values.js";
@@ -10,7 +11,7 @@ import { isRuntimeSetView, type RuntimeValue, type RuntimeValues, type SetValue 
 /** Exact dict-key/item view numeric slots, including reflected iterable inputs.
  * The caller resolves mapping-proxy forwarding and guarantees one set-like
  * view. Values views can be iterable operands but do not own these slots. */
-export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): SetValue {
+export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>, comparison?: RuntimeSearchEqualityContext): SetValue {
   meter.checkpoint();
   const view = isRuntimeSetView(left) ? left : isRuntimeSetView(right) ? right : undefined;
   if (view === undefined) throw new Error("dictionary-view algebra requires a set-like view");
@@ -18,7 +19,7 @@ export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", lef
     const remaining = left.value.items.copy(), result = values.set(remaining.emptyCopy());
     meter.checkpoint(1, 64);
     const missing = remaining.subtractMatchingItems(right.value.items,
-      (a, b) => runtimeComparison("==", a, b, values, meter).value,
+      comparison === undefined ? (a, b) => runtimeComparison("==", a, b, values, meter).value : createRuntimeSearchEquality(values, meter, comparison),
       (key, value) => runtimeSetAccess(result, values.tuple([key, value]), "add", values, meter));
     if (missing !== undefined) throw new PythonKeyError(missing.key, meter);
     updateRuntimeSet(result, values.dictionaryView(values.dictionary(remaining), "dict_items"), values, meter);
@@ -39,7 +40,7 @@ export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", lef
       const item = iterator.next();
       meter.checkpoint();
       if (item.done) return result;
-      if (runtimeMembership("in", item.value, left, values, meter).value) runtimeSetAccess(result, item.value, "add", values, meter);
+      if (runtimeMembership("in", item.value, left, values, meter, undefined, comparison).value) runtimeSetAccess(result, item.value, "add", values, meter);
     }
   }
   const result = values.set(view.value.items.emptyCopy());

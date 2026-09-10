@@ -132,7 +132,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       }
       const numeric = bindings.numeric?.(operator, left, right);
       meter.checkpoint();
-      return runtimeNumericOperation(operator, left, right, values, meter, numeric, augmented);
+      return runtimeNumericOperation(operator, left, right, values, meter, numeric, augmented, methods);
     },
     compare(operator, left, right) {
       if (operator === "in" || operator === "not in") {

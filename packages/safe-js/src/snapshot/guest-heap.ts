@@ -112,7 +112,7 @@ export type GuestHeapNode<T> =
   | { kind: "guest-locale"; tag: string; state: GuestObjectState<T> }
   | { kind: "guest-collator"; options: ResolvedCollatorOptions; compare?: T; state: GuestObjectState<T> }
   | { kind: "guest-numberformat"; options: NumberFormatOptions; format?: T; state: GuestObjectState<T> }
-  | { kind: "guest-datetimeformat"; options: DateTimeFormatOptions; format?: T; state: GuestObjectState<T> }
+  | { kind: "guest-datetimeformat"; options: DateTimeFormatOptions; requestedOptions?: DateTimeFormatOptions; format?: T; state: GuestObjectState<T> }
   | { kind: "guest-listformat"; options: ResolvedListFormatOptions; state: GuestObjectState<T> }
   | { kind: "guest-relativetimeformat"; options: ResolvedRelativeTimeFormatOptions; state: GuestObjectState<T> }
   | { kind: "guest-displaynames"; options: ResolvedDisplayNamesOptions; state: GuestObjectState<T> }
@@ -354,8 +354,8 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       units: Object.fromEntries(Object.entries(settings.units).map(([unit, options]) => [unit, { ...options }])) }, state: captureObjectState(value, encode)! };
   }
   if (isSandboxDateTimeFormat(value)) {
-    const { options, format } = dateTimeFormatState(value);
-    return { kind: "guest-datetimeformat", options: { ...options }, ...(format === undefined ? {} : { format: encode(format) }), state: captureObjectState(value, encode)! };
+    const { options, requestedOptions, format } = dateTimeFormatState(value);
+    return { kind: "guest-datetimeformat", options: { ...options }, ...(requestedOptions === undefined ? {} : { requestedOptions: { ...requestedOptions } }), ...(format === undefined ? {} : { format: encode(format) }), state: captureObjectState(value, encode)! };
   }
   if (isSandboxNumberFormat(value)) {
     const { options, format } = numberFormatState(value);

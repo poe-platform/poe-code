@@ -456,7 +456,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     if (typeof node.source !== "string" || typeof node.flags !== "string") throw new TypeError("Invalid guest RegExp payload.");
     state(node.state);
   } else if (node.kind === "guest-datetimeformat") {
-    fields(node, ["kind", "options", "state"], ["format"]);
+    fields(node, ["kind", "options", "state"], ["format", "requestedOptions"]);
     const options = record(node.options);
     fields(options, ["locale", "calendar", "numberingSystem", "timeZone"], ["hourCycle", "hour12", "weekday", "era", "year", "month", "day", "dayPeriod", "hour", "minute", "second", "fractionalSecondDigits", "timeZoneName", "dateStyle", "timeStyle"]);
     if (typeof options.locale !== "string" || Object.values(options).some(value => !["string", "number", "boolean"].includes(typeof value)))
@@ -464,6 +464,17 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     const restored = dateTimeFormatState(createSandboxDateTimeFormat(options.locale, options as DateTimeFormatOptions, true)).options;
     if (Object.keys(options).length !== Object.keys(restored).length || Object.keys(restored).some(key => options[key] !== restored[key]))
       throw new TypeError("Invalid resolved DateTimeFormat options.");
+    if (node.requestedOptions !== undefined) {
+      const requested = record(node.requestedOptions);
+      fields(requested, [], ["localeMatcher", "calendar", "numberingSystem", "hourCycle", "hour12", "timeZone", "weekday", "era", "year", "month", "day", "dayPeriod", "hour", "minute", "second", "fractionalSecondDigits", "timeZoneName", "formatMatcher", "dateStyle", "timeStyle"]);
+      if (Object.entries(requested).some(([key, value]) => key === "hour12" ? typeof value !== "boolean"
+        : key === "fractionalSecondDigits" ? typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 3
+        : typeof value !== "string"))
+        throw new TypeError("Invalid requested DateTimeFormat option type.");
+      const actual = dateTimeFormatState(createSandboxDateTimeFormat(options.locale, { timeZone: options.timeZone, ...requested } as DateTimeFormatOptions)).options;
+      if (Object.keys(options).length !== Object.keys(actual).length || Object.keys(actual).some(key => options[key] !== actual[key]))
+        throw new TypeError("Requested DateTimeFormat options do not match resolved options.");
+    }
     if (node.format !== undefined) {
       const format = reference(node.format, ["bound-function"]);
       if (reference(format.thisValue) !== node || array(format.args).length !== 0 || format.name !== "" || format.length !== 1 ||

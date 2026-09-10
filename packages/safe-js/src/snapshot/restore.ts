@@ -1361,7 +1361,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     } else if (serialized.kind === "guest-boxed") {
       value = createSandboxBox(deserializeValue(serialized.value, state));
     } else if (serialized.kind === "guest-datetimeformat") {
-      value = createSandboxDateTimeFormat(serialized.options.locale as string, serialized.options, true);
+      value = createSandboxDateTimeFormat(serialized.options.locale as string, serialized.options, true, serialized.requestedOptions);
       if (serialized.format !== undefined) state.initializeIterators.push(() => {
         const format = deserializeValue(serialized.format!, state);
         if (!isSandboxClosure(format)) throw new TypeError("Invalid cached DateTimeFormat function.");

@@ -114,6 +114,9 @@ export interface BuiltinFunctionCapability {
 export interface BuiltinFunctionValue {
   readonly kind: "builtin_function_or_method";
   readonly value: BuiltinFunctionCapability;
+  /** Execution-owned native binding. The canonical implementation token may
+   * differ from the accessed descriptor when native methods alias one callback. */
+  readonly binding?: { readonly descriptor: MethodDescriptorValue; readonly implementation: MethodDescriptorValue; readonly instance: RuntimeValue };
 }
 
 export interface BoundMethodValue {
@@ -212,6 +215,7 @@ export type RuntimeValue =
  * separate concerns; this is not yet the complete Python object model.
  */
 export class RuntimeValues extends ConstantValues {
+  #nativeImplementations?: WeakMap<MethodDescriptorCapability["invoke"], MethodDescriptorValue>;
   constructor(private readonly runtimeMeter: ExecutionMeter) {
     super(runtimeMeter);
   }
@@ -245,11 +249,21 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "function", value });
   }
 
-  /** Retain a prepared explicit capability; creation never invokes it. Native
-   * bound-method self/function equality remains separate work. */
-  builtinFunction(value: BuiltinFunctionCapability): BuiltinFunctionValue {
+  /** Retain an explicit capability without calling it. Native bindings retain
+   * one implementation-identity token per callback in this execution, allowing
+   * the ordinary identity-hash policy to hash aliases consistently. */
+  builtinFunction(value: BuiltinFunctionCapability, binding?: { readonly descriptor: MethodDescriptorValue; readonly instance: RuntimeValue }): BuiltinFunctionValue {
     this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind: "builtin_function_or_method", value });
+    if (binding === undefined) return Object.freeze({ kind: "builtin_function_or_method", value });
+    if (this.#nativeImplementations === undefined) { this.runtimeMeter.checkpoint(0, 64); this.#nativeImplementations = new WeakMap(); }
+    let implementation = this.#nativeImplementations.get(binding.descriptor.value.invoke);
+    if (implementation === undefined) {
+      this.runtimeMeter.checkpoint(0, 48);
+      implementation = binding.descriptor;
+      this.#nativeImplementations.set(binding.descriptor.value.invoke, implementation);
+    }
+    this.runtimeMeter.checkpoint(0, 48);
+    return Object.freeze({ kind: "builtin_function_or_method", value, binding: Object.freeze({ descriptor: binding.descriptor, implementation, instance: binding.instance }) });
   }
 
   /** Exact Python-function binding. General MethodType callable inputs and

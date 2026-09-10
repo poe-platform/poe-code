@@ -1555,3 +1555,15 @@ it("binds native descriptors used as implicit special methods", () => {
   state.run("result=instance+7\n");
   expect(state.globals.get("result")).toEqual(state.v.integer(7));
 });
+
+it("compares freshly bound native methods and deduplicates their dictionary keys", () => {
+  const state = fixture(), owner = state.type("C"), nativeType = state.type("builtin_function_or_method");
+  const resolve = state.hooks.specialMethods!;
+  state.hooks.specialMethods = frame => { const original = resolve(frame); return { ...original, typeOf: value => value.kind === "builtin_function_or_method" ? nativeType : original.typeOf(value) }; };
+  owner.value.namespace.items.set(state.v.string("native"), state.v.methodDescriptor({ owner, name: "native", accepts: () => true, invoke: () => state.v.none }));
+  state.instance("instance", owner); state.instance("other", owner);
+  state.run("equal=instance.native==instance.native\nunequal=instance.native!=other.native\ndistinct=instance.native is not instance.native\nitems={instance.native:1,instance.native:2}\nresult=items[instance.native]\n");
+  expect(state.globals.get("equal")).toBe(state.v.true); expect(state.globals.get("unequal")).toBe(state.v.true); expect(state.globals.get("distinct")).toBe(state.v.true);
+  expect(state.globals.get("result")).toEqual(state.v.integer(2));
+  const items = state.globals.get("items"); if (items?.kind !== "dict") throw Error("expected dictionary"); expect(items.items.size).toBe(1);
+});

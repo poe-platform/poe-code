@@ -7742,6 +7742,19 @@ extension, integration, or validation requirement is missing or unverified.
   public metadata, wrapper descriptors, default object initialization and complete
   object/type bootstrap remain unfinished; this increment supplies native method
   binding, not the completed builtin object model.
+- Preserved native bound-method implementation and receiver identity. Four
+  failing regressions showed unequal repeated lookups, inconsistent hashes and
+  duplicate dictionary keys. Bindings now retain immutable metadata and an
+  execution-local weak implementation-token cache shared by callback aliases.
+  Native equality compares identity without invoking receiver equality; hashing
+  combines implementation/receiver identity without hashing unhashable receivers.
+  Twelve tests cover aliases, distinct receivers/implementations, ordinary native
+  functions, identity versus equality, hash normalization, ordering rejection,
+  immutable metadata and compiled dictionary-key behavior. All 1,014 observations
+  over 169 method pairs match CPython. All 5,996 tests in 459 files, selected build
+  typecheck and scoped lint pass. Public native metadata, wrapper descriptors, conversion of
+  legacy per-attribute native capabilities, complete object/type bootstrap and
+  suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

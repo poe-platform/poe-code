@@ -37,5 +37,5 @@ export function getRuntimeMethodDescriptor(descriptor: MethodDescriptorValue, in
     meter.checkpoint();
     const result = descriptor.value.invoke(instance, positional, keywords, meter, context);
     meter.checkpoint(); return result;
-  } });
+  } }, { descriptor, instance });
 }

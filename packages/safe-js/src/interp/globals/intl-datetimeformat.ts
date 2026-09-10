@@ -3,7 +3,7 @@ import { getFunctionRealmPrototype } from "../function-realm.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { createBoundFunction } from "../bound-function.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
-import { createSandboxDateTimeFormat, formatDateTimeValue, dateTimeFormatState } from "../intl-datetimeformat.js";
+import { createSandboxDateTimeFormat, formatDateTimeValue, dateTimeFormatState, isTemporalDateTimeInput } from "../intl-datetimeformat.js";
 import { readDateTimeFormatOptions } from "../date-locale.js";
 import { canonicalizeGuestLocales, convertIntlOption, intlOptionsObject, readIntlProperty } from "../intl-options.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
@@ -20,10 +20,10 @@ export function createDateTimeFormatConstructor(budget: Budget, now: SandboxClos
     guest: true, sandbox: true, name: "", length: 1,
     call: async ([input], context) => {
       dateTimeFormatState(context?.thisValue);
-      let value = 0;
+      let value: SandboxValue = 0;
       const release = retainValues(budget, () => [context?.thisValue, value]);
       try {
-        value = input === undefined ? await now.call([], context) as number : await sandboxNumber(input, budget, context);
+        value = input === undefined ? await now.call([], context) as number : isTemporalDateTimeInput(input) ? input : await sandboxNumber(input, budget, context);
         return allocateProducedSandboxValue(formatDateTimeValue(context?.thisValue, "format", [value]), budget);
       } finally { release(); }
     }
@@ -95,11 +95,11 @@ export function createDateTimeFormatConstructor(budget: Budget, now: SandboxClos
       call: async ([first, second], context) => {
         dateTimeFormatState(context?.thisValue);
         if (range && (first === undefined || second === undefined)) throw new TypeError("DateTimeFormat range requires both values.");
-        const values: number[] = [];
+        const values: SandboxValue[] = [];
         const release = retainValues(budget, () => [context?.thisValue, values]);
         try {
-          values.push(!range && first === undefined ? await now.call([], context) as number : await sandboxNumber(first, budget, context));
-          if (range) values.push(await sandboxNumber(second, budget, context));
+          values.push(!range && first === undefined ? await now.call([], context) as number : isTemporalDateTimeInput(first) ? first : await sandboxNumber(first, budget, context));
+          if (range) values.push(isTemporalDateTimeInput(second) ? second : await sandboxNumber(second, budget, context));
           return allocateProducedSandboxValue(formatDateTimeValue(context?.thisValue, method, values), budget);
         } finally { release(); }
       }

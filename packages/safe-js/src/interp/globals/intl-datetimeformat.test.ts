@@ -46,7 +46,7 @@ it("uses the injected clock without consulting a guest replacement of Date.now",
 it("accounts for private formatter options with a null guest prototype", async () => {
   const result = await run("return Object.setPrototypeOf(new Intl.DateTimeFormat('en',{timeZone:'UTC'}),null)");
   if (!result.ok) throw result.error;
-  expect(measureSandboxData([result.returnValue])).toBe(1 + measureSandboxData([new Intl.DateTimeFormat("en", { timeZone: "UTC" }).resolvedOptions()]));
+  expect(measureSandboxData([result.returnValue])).toBe(1 + measureSandboxData([new Intl.DateTimeFormat("en", { timeZone: "UTC" }).resolvedOptions(), { timeZone: "UTC" }]));
 });
 
 it("bounds produced date strings", async () => {

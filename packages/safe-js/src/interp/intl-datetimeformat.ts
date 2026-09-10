@@ -6,6 +6,7 @@ import { isSandboxTemporalPlainDateTime, temporalPlainDateTimeFields } from "./t
 import { isSandboxTemporalPlainDate, temporalPlainDateFields } from "./temporal-plain-date.js";
 import { isSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
 import { isSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
+import { isSandboxTemporalZonedDateTime } from "./temporal-zoned-date-time.js";
 
 const NativeDateTimeFormat = Intl.DateTimeFormat;
 const resolvedOptions = NativeDateTimeFormat.prototype.resolvedOptions;
@@ -40,12 +41,14 @@ export function dateTimeFormatState(value: unknown) {
 }
 
 export function isTemporalDateTimeInput(value: unknown): boolean {
-  return isSandboxTemporalInstant(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainMonthDay(value) || isSandboxTemporalPlainYearMonth(value);
+  return isSandboxTemporalInstant(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainMonthDay(value) || isSandboxTemporalPlainYearMonth(value) || isSandboxTemporalZonedDateTime(value);
 }
 
 export function formatDateTimeValue(receiver: unknown, method: "format" | keyof typeof methods, values: SandboxValue[]): SandboxValue {
   const state = dateTimeFormatState(receiver);
   const { native } = state;
+  if (values.some(isSandboxTemporalZonedDateTime))
+    throw new TypeError("Intl.DateTimeFormat cannot format ZonedDateTime values; use toLocaleString instead.");
   if (values.some(isTemporalDateTimeInput)) {
     const plain = isSandboxTemporalPlainTime(values[0]);
     const dateTime = isSandboxTemporalPlainDateTime(values[0]);

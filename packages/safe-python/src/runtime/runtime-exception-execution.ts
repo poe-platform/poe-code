@@ -48,6 +48,11 @@ export class RuntimeExceptionExecution {
     return new RuntimeRaisedException(this.native("StopIteration",value.kind==="none"?[]:[value]),this.meter);
   }
 
+  /** Internal termination signals bypass guest constructors and caller chaining. */
+  signal(name:"GeneratorExit"|"StopAsyncIteration"):RuntimeRaisedException {
+    return new RuntimeRaisedException(this.native(name,[]),this.meter);
+  }
+
   /** Replace a guest protocol error with a contextual diagnostic, retaining its
    * original cause/context. Opaque host failures and execution limits escape. */
   caused(error:unknown,name:StandardExceptionName,message:string):RuntimeRaisedException {
@@ -60,8 +65,9 @@ export class RuntimeExceptionExecution {
 
   /** Assemble an unstarted generator/coroutine around a trusted resumable body.
    * Only the running body owns a call-stack entry and saved exception activation. */
-  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>,kind:"generator"|"coroutine"="generator"):InstanceValue {
+  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>,kind:"generator"|"coroutine"|"async-generator"="generator"):InstanceValue {
     const {values,meter}=this;
+    const executionKind=kind==="async-generator"?"async generator":kind;
     meter.checkpoint(0,512);
     const handled=this.#handled.createFrame(meter);
     const execution=new GeneratorExecution<RuntimeValue>(input=>{
@@ -74,7 +80,7 @@ export class RuntimeExceptionExecution {
       }
       catch(error){throw this.prepare(error);}
     },{
-      none:values.none,kind,delegation,enterDelegated:calls.enter.bind(calls,frame),
+      none:values.none,kind:executionKind,delegation,enterDelegated:calls.enter.bind(calls,frame),
       enter:()=>{
         meter.checkpoint(0,64);
         const leave=calls.enter(frame);
@@ -86,14 +92,20 @@ export class RuntimeExceptionExecution {
       generatorExit:()=>new RuntimeRaisedException(this.native("GeneratorExit",[]),meter),
       isGeneratorExit:error=>this.matches(error,"GeneratorExit"),
       isStopIteration:error=>this.matches(error,"StopIteration"),
+      isStopAsyncIteration:error=>this.matches(error,"StopAsyncIteration"),
       wrapStopIteration:error=>{
         const original=this.prepare(error);
         if(!(original instanceof RuntimeRaisedException))throw Error("generator conversion requires native StopIteration");
-        const replacement=this.native("RuntimeError",[values.string(`${kind} raised StopIteration`)]),storage=runtimeExceptionPayload(replacement)!;
+        const termination=this.matches(original,"StopIteration")?"StopIteration":"StopAsyncIteration";
+        const replacement=this.native("RuntimeError",[values.string(`${executionKind} raised ${termination}`)]),storage=runtimeExceptionPayload(replacement)!;
         storage.assignCause(original.value,meter);storage.assignContext(original.value,meter);
         return new RuntimeRaisedException(replacement,meter);
       }
     },meter);
+    if(kind==="async-generator") {
+      meter.checkpoint(0,64);
+      return values.instance(this.registry.asyncGeneratorType(),undefined,Object.freeze({kind:"async_generator",execution,exceptions:this,activity:{running:false,closed:false}}));
+    }
     return values.instance(kind==="generator"?this.registry.generatorType():this.registry.coroutineType(),undefined,Object.freeze({kind,execution,exceptions:this}));
   }
 

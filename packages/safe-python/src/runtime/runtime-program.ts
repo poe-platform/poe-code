@@ -19,7 +19,7 @@ import { runtimeSetRepresentation } from "./runtime-set-representation.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
 import { createFunctionDefinitionContinuation, executeFunctionDefinition } from "./function-definition.js";
 import type { FunctionCreationContext } from "./function-state.js";
-import { UnsupportedFunctionExecutionError, type FunctionInvocationContext } from "./function-invocation.js";
+import type { FunctionInvocationContext } from "./function-invocation.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
 import type { ModuleFrame, ModuleNamespaces } from "./module-frame.js";
 import { executeModule } from "./module-execution.js";
@@ -193,7 +193,6 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
         else if (context.exceptions) invocation.suspended = (kind, child, code) => {
-          if (kind !== "generator"&&kind!=="coroutine") throw new UnsupportedFunctionExecutionError(kind);
           meter.checkpoint(0, 288);
           const origin = fn.value;
           const delegation=new RuntimeGeneratorDelegation(values,context.exceptions!,meter,context.unraisable);

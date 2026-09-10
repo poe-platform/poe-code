@@ -233,6 +233,41 @@ it.each(["[x*2 async for x in I()]","{x*2 async for x in I()}","{x:x*2 async for
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("creates native async generators lazily and completes each send with one item",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("async def f():\n visit('start')\n x=yield 1\n yield x\ng=f()\na=g.__anext__()\nkind=type(g).__name__\nwrapper=type(a).__name__\nidentity=g.__aiter__() is g and a.__await__() is a and a.__iter__() is a\n");
+  expect(state.events).toEqual([]);
+  state.run("try:a.send(None)\nexcept StopIteration as error:first=error.value\ntry:g.asend(7).send(None)\nexcept StopIteration as error:second=error.value\ntry:g.__anext__().send(None)\nexcept StopAsyncIteration:exhausted=True\n");
+  expect(state.globals.get("kind")).toEqual(v.string("async_generator"));expect(state.globals.get("wrapper")).toEqual(v.string("async_generator_asend"));
+  expect(state.globals.get("identity")).toBe(v.true);expect(state.globals.get("first")).toEqual(v.integer(1));expect(state.globals.get("second")).toEqual(v.integer(7));
+  expect(state.globals.get("exhausted")).toBe(v.true);expect(state.events).toEqual(["start"]);expect(state.calls.depth).toBe(0);
+});
+
+it("retains async-generator operation ownership across an internal await",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 9)\nasync def f():yield await A()\ng=f()\na=g.__anext__()\nwaiting=a.send(None)\nactive=g.ag_running and g.ag_await is not None\ntry:g.__anext__().send(None)\nexcept RuntimeError as error:busy=error.args==('anext(): asynchronous generator is already running',)\ntry:a.send(7)\nexcept StopIteration as error:item=error.value\nidle=not g.ag_running and g.ag_await is None\ntry:a.send(None)\nexcept RuntimeError as error:reused=error.args==('cannot reuse already awaited __anext__()/asend()',)\n");
+  expect(state.globals.get("waiting")).toEqual(v.integer(9));expect(state.globals.get("item")).toEqual(v.integer(7));
+  for(const name of ["active","busy","idle","reused"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it.each(["StopIteration","StopAsyncIteration"])("converts escaping native async-generator %s",name=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`async def f():\n raise ${name}('body')\n yield\ng=f()\ntry:g.__anext__().send(None)\nexcept RuntimeError as error:correct=error.args==('async generator raised ${name}',) and type(error.__cause__) is ${name} and error.__context__ is error.__cause__\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("consumes native async generators through async-for await continuations",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 9)\nasync def source():\n yield 1\n yield await A()\nasync def consume():\n items=[]\n async for x in source():items.append(x)\n return items\nc=consume()\nwaiting=c.send(None)\ntry:c.send(7)\nexcept StopIteration as error:correct=error.value==[1,7]\n");
+  expect(state.globals.get("waiting")).toEqual(v.integer(9));expect(state.globals.get("correct")).toBe(v.true);expect(state.calls.depth).toBe(0);
+});
+
+it("rejects closed async-generator sends before throw construction or legacy warnings",()=>{
+  const warnings:string[]=[],state=exceptionFixture({warn(category){warnings.push(category);}}),{v}=state;
+  state.run("class E(ValueError):\n def __init__(self):visit('constructed')\nasync def source():yield 1\na=source().__anext__()\ntry:a.send(None)\nexcept StopIteration:pass\ntry:a.throw(E,None)\nexcept RuntimeError as error:correct=error.args==('cannot reuse already awaited __anext__()/asend()',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.events).toEqual([]);expect(warnings).toEqual([]);
+});
+
 it("awaits a generator expression's outer source before creating a lazy normal generator",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("iter",createIterBuiltin(v,state.meter));

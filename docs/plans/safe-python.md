@@ -10501,6 +10501,24 @@ extension, integration, or validation requirement is missing or unverified.
   in 510 files (205.28s; test bodies 12.90s). Native async-generator
   objects, asynchronous athrow/aclose operations, async generator expressions,
   hooks/finalization and the wider runtime/safe-fs work remain unfinished.
+- Native async-generator sends (2026-09-10): connected classified async-generator
+  functions to lazy native objects, canonical non-instantiable types, __aiter__,
+  __anext__, asend and their await/iteration/send/throw/close wrapper descriptors.
+  Native ag_running and ag_await distinguish operation ownership from body-frame
+  activation. Raw throw arguments are validated after reuse/ownership checks and
+  remain deferred through active await delegation. Internal GeneratorExit and
+  StopAsyncIteration signals bypass guest constructors and implicit caller chains;
+  escaping body termination exceptions receive native RuntimeError cause/context.
+  Four unsupported-function failures drove integration. Two further regressions
+  cover native async-for consumption and closed-send validation ordering.
+  All 832 focused tests pass. Native CPython comparisons match 10,368 operation
+  sequences and 81 argument cases; 768 existing coroutine comparisons also pass
+  (11,217 total). Build, typecheck and focused lint pass. The final uncached
+  one-worker package run passes all 7,526 tests in 510 files (163.83s; test bodies
+  12.35s).
+  Async athrow/aclose, async generator expressions, metadata/hooks/finalization,
+  context managers, public runtime, library/import and safe-fs integration remain
+  unfinished. Synchronous wrapper close is not asynchronous generator aclose.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

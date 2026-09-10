@@ -9190,6 +9190,21 @@ extension, integration, or validation requirement is missing or unverified.
   proxy descriptor publication, slice representation/catalog, remaining native
   lifecycle audits and full interpreter/safe-fs execution remain unfinished.
   No push or release was requested.
+- Native slice representation (2026-09-10): three failing integration tests
+  reproduced generic object text, missing explicit repr and incorrect recursive
+  container rendering. Added a metered slice renderer that expands nested exact
+  slices iteratively, invokes component repr in order without coercion, and
+  leaves mutable-container cycle markers to their shared guards. Native repr,
+  str, ascii and default formatting now use this operation. A 1,000-level nested
+  slice renders without host recursion; CPython with a sufficient configured
+  recursion limit confirms the same output length. All 3,072 component/format
+  combinations match CPython, including invalid guest repr results and Unicode.
+  The 144-case general-proxy audit now also matches rendered slice-key errors,
+  removing its earlier structural-only exception for this missing feature.
+  Workspace build, typecheck, focused lint and all 6,924 package tests in 493
+  files pass. Canonical slice allocation, descriptors and the broader interpreter,
+  native catalog and safe-fs execution work remain unfinished. No push or release
+  was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

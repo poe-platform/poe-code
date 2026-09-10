@@ -10,13 +10,13 @@ import { createRuntimeRepresentationContext } from "./runtime-representation.js"
 import { representationObject } from "./representation-protocol.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
-type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "list" | "tuple" | "dict" | "set" | "frozenset" | "mappingproxy" | "dict_keys" | "dict_values" | "dict_items" | "none" | "ellipsis" | "not-implemented" }>;
+type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "list" | "tuple" | "dict" | "set" | "frozenset" | "mappingproxy" | "slice" | "dict_keys" | "dict_values" | "dict_items" | "none" | "ellipsis" | "not-implemented" }>;
 
 /** One capability guard shared by attribute and implicit representation lookup. */
 export function hasNativeRepresentation(value: RuntimeValue): value is NativeRepresentationValue {
   return value.kind === "str" || value.kind === "bytes" || value.kind === "int" || value.kind === "bool"
     || value.kind === "set" || value.kind === "frozenset"
-    || value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items"
+    || value.kind === "slice" || value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items"
     || value.kind === "float" || value.kind === "complex" || value.kind === "range" || value.kind === "list" || value.kind === "tuple" || value.kind === "dict" || value.kind === "mappingproxy" || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
 }
 
@@ -38,7 +38,7 @@ export function createRuntimeNativeRepresentationMethod(receiver: NativeRepresen
 /** Shared native slot operation, separate from explicit method argument checks. */
 export function runtimeNativeRepresentation(receiver: NativeRepresentationValue, name: "__str__" | "__repr__", values: RuntimeValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "formatting">): RuntimeValue {
   meter.checkpoint();
-  if (receiver.kind === "list" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "set" || receiver.kind === "frozenset" || receiver.kind === "mappingproxy" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") {
+  if (receiver.kind === "list" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "set" || receiver.kind === "frozenset" || receiver.kind === "mappingproxy" || receiver.kind === "slice" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") {
     const context = invocation?.formatting ?? createRuntimeRepresentationContext(values, meter, {
       defaultRepr() { throw new UnsupportedExpressionError("attribute"); }
     });

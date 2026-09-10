@@ -10,6 +10,7 @@ import { mappingProxyRepresentation } from "./mapping-proxy-representation.js";
 import { RepresentationStack } from "./representation-stack.js";
 import { runtimeDictionaryViewRepresentation } from "./runtime-dictionary-view-representation.js";
 import { runtimeSetRepresentation } from "./runtime-set-representation.js";
+import { runtimeSliceRepresentation } from "./runtime-slice-representation.js";
 
 export interface RuntimeRepresentationHooks {
   /** Pure guest str-subclass storage inspection. */
@@ -51,7 +52,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
         };
       }
       if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict" || value.kind === "set" || value.kind === "frozenset") return undefined; // object.__str__ falls back to repr.
-      if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return undefined;
+      if (value.kind === "slice" || value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return undefined;
       if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeNativeRepresentation(value, "__str__", values, meter);
@@ -60,6 +61,10 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     },
     lookupRepr(value) {
       meter.checkpoint();
+      if (value.kind === "slice") {
+        meter.checkpoint(0, 64);
+        return () => values.stringPoints(runtimeSliceRepresentation(value, context, meter));
+      }
       if (value.kind === "set" || value.kind === "frozenset") {
         meter.checkpoint(0, 64);
         return () => {

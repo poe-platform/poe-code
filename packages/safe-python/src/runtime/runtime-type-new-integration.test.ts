@@ -55,6 +55,28 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("represents slices using guest repr slots in component order", () => {
+  const state = fixture();
+  state.run("class Capture:\n def __getitem__(self,key):\n  return key\nclass Component:\n def __repr__(self):\n  visit('repr')\n  return 'part'\n def __str__(self):\n  visit('str')\n  return 'wrong'\ns=Capture()[Component():Component():Component()]\ntext=f'{s!r}'\nplain=f'{s!s}'\nexplicit=s.__repr__()\n");
+  for (const name of ["text", "plain", "explicit"]) expect(state.globals.get(name)).toEqual(state.v.string("slice(part, part, part)"));
+  expect(state.events).toEqual(Array(9).fill("repr"));
+});
+
+it("retains container recursion markers inside slice representations", () => {
+  const state = fixture();
+  state.run("class Capture:\n def __getitem__(self,key):\n  return key\nitems=[]\ns=Capture()[:items:]\nitems.append(s)\ntext=f'{s!r}'\n");
+  expect(state.globals.get("text")).toEqual(state.v.string("slice(None, [slice(None, [...], None)], None)"));
+});
+
+it("represents deeply nested slices without host recursion", () => {
+  const state = fixture(undefined, 1000000);
+  let slice: RuntimeValue = state.v.none;
+  for (let index = 0; index < 1000; index++) slice = state.v.slice({ upper: slice });
+  state.globals.set("s", slice); state.run("text=f'{s!r}'\n");
+  const text = state.globals.get("text"); if (text?.kind !== "str") throw Error("expected slice representation");
+  expect(text.value.length).toBe(19004);
+});
+
 it("forwards deeply nested mapping proxies without host recursion", () => {
   const state = fixture(undefined, 1000000); state.run("d={'a':1}\n");
   let proxy = state.globals.get("d")!;

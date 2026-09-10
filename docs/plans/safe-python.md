@@ -9929,6 +9929,23 @@ extension, integration, or validation requirement is missing or unverified.
   escaping __set_name__ currently lack CPython's contextual diagnostic note.
   That note integration is next work, not a passing comparison.
   No push or release requested.
+- Set-name exception diagnostics (2026-09-10): failing regressions drove native
+  diagnostic notes on explicit guest exceptions and translated native faults
+  escaping descriptor __set_name__. Native note addition bypasses overridden
+  add_note methods, preserves existing notes and exception identity, and exposes
+  the outer handled exception during note lookup, mutation and key repr. Failures
+  in those callbacks replace the original error and receive its context directly,
+  including CPython's self/cyclic links. Host failures, spoofed names and execution
+  limits remain fatal. All 48 targeted CPython comparisons, the prior 210
+  method-wrapper/class-namespace comparisons and 669 focused tests pass. The
+  selected workspace build, typecheck, focused lint and all 7,203 tests in 503
+  files pass in the uncached one-worker package run (295.43s; test bodies 14.70s).
+  A separate two-case audit confirms one remaining mismatch: guest AttributeError
+  from a nonclass base's __mro_entries__ lookup must count as a missing attribute
+  during direct type allocation. This is next work, not a passing comparison.
+  Exception metadata/tracebacks/groups, suspension, remaining native protocols,
+  public interpreter assembly and safe-fs integration remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

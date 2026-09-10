@@ -93,6 +93,10 @@ export interface BuiltinInvocationContext {
   /** Borrow native exception args without virtual attribute lookup or copying.
    * Undefined means this execution does not expose arguments for this carrier. */
   exceptionArguments?(error: unknown): readonly RuntimeValue[] | undefined;
+  /** Add a native diagnostic note, bypassing an overridable add_note method.
+   * Preserve the handled scope during callbacks; chain their failures to error.
+   * Return the exception to propagate (native faults may become guest carriers). */
+  addExceptionNote?(error: unknown, build: () => string): unknown;
   /** Account for recursive native operations that do not enter a guest body.
    * Always invoke the returned unmetered restoration in a finally block. */
   enterRecursiveCall?(): () => void;

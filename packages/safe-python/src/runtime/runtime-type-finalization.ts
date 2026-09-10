@@ -1,11 +1,12 @@
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { resolveRuntimeClassAttribute } from "./runtime-descriptor.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
-export interface RuntimeTypeFinalizationContext extends Pick<BuiltinInvocationContext, "call"> {
+export interface RuntimeTypeFinalizationContext extends Pick<BuiltinInvocationContext, "call" | "isException" | "addExceptionNote"> {
   /** Ordinary guest repr for the namespace key in a failing set-name note. */
   repr(value: RuntimeValue): string;
 }
@@ -27,10 +28,15 @@ export function finalizeRuntimeType(type: TypeValue, keywords: DictionaryValue, 
       meter.checkpoint(0, 32); context.call(hook, [type, name]); meter.checkpoint();
     } catch (error) {
       meter.checkpoint();
-      if (error instanceof PythonRuntimeError) {
-        const descriptorName = diagnosticTypeName(actual.value.name, meter, 100), className = diagnosticTypeName(type.value.name, meter, 100);
-        const key = context.repr(name); meter.checkpoint(0, 128 + 2 * (descriptorName.length + className.length + key.length));
-        error.addNote(`Error calling __set_name__ on '${descriptorName}' instance ${key} in '${className}'`, meter);
+      if (error instanceof PythonRuntimeError || runtimeExceptionMatches(error,"BaseException",context)) {
+        meter.checkpoint(0,32);
+        const note=()=>{
+          const descriptorName = diagnosticTypeName(actual.value.name, meter, 100), className = diagnosticTypeName(type.value.name, meter, 100);
+          const key = context.repr(name); meter.checkpoint(0, 128 + 2 * (descriptorName.length + className.length + key.length));
+          return `Error calling __set_name__ on '${descriptorName}' instance ${key} in '${className}'`;
+        };
+        if(context.addExceptionNote)throw context.addExceptionNote(error,note);
+        else if(error instanceof PythonRuntimeError)error.addNote(note(),meter);
       }
       throw error;
     }

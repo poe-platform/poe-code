@@ -83,6 +83,25 @@ export class RuntimeExceptionExecution {
     if(error instanceof RuntimeRaisedException)return runtimeExceptionPayload(error.value)?.args.items;
     return error instanceof PythonKeyError?error.args:undefined;
   }
+  addNote(error:unknown,build:()=>string,invocation:BuiltinInvocationContext):unknown {
+    const prepared=this.prepare(error),{values,meter}=this;
+    if(!(prepared instanceof RuntimeRaisedException)) {
+      if(!(prepared instanceof PythonRuntimeError))throw Error("exception notes require a guest exception");
+      prepared.addNote(build(),meter);return prepared;
+    }
+    meter.checkpoint(0,64);
+    try {
+      const note=build(),method=createExceptionAddNoteDescriptor(this.registry.baseExceptionType(),values,meter);
+      invocation.call(method,[prepared.value,values.string(note)]);
+      return prepared;
+    } catch(failure) {
+      // Native note diagnostics assign context directly, preserving even
+      // self/cyclic links. Callbacks retain the outer handled exception.
+      const replacement=this.prepare(failure);
+      if(replacement instanceof RuntimeRaisedException)runtimeExceptionPayload(replacement.value)!.assignContext(prepared.value,meter);
+      throw replacement;
+    }
+  }
   statements(frame:RuntimeFrame):NonNullable<StatementContext<RuntimeValue>["exceptions"]> {
     this.meter.checkpoint(0,160);
     return {

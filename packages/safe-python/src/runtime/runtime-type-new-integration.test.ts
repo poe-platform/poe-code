@@ -79,6 +79,61 @@ function exceptionFixture() {
   return state;
 }
 
+it("adds native diagnostic notes to guest set-name failures without replacing identity",()=>{
+  const state=exceptionFixture();
+  state.run("class Failure(ValueError):\n def add_note(self,note):\n  visit('override')\nerror=Failure('original')\nclass Descriptor:\n def __set_name__(self,owner,name):\n  raise error\ntry:\n class C:\n  field=Descriptor()\nexcept Failure as caught:\n correct=caught is error and caught.__notes__==[\"Error calling __set_name__ on 'Descriptor' instance 'field' in 'C'\"]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+});
+
+it("adds set-name notes to translated arithmetic exceptions",()=>{
+  const state=exceptionFixture();
+  state.run("class Descriptor:\n def __set_name__(self,owner,name):\n  1/0\ntry:\n class C:\n  field=Descriptor()\nexcept ZeroDivisionError as error:\n correct=error.__notes__==[\"Error calling __set_name__ on 'Descriptor' instance 'field' in 'C'\"]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("propagates failures adding set-name notes instead of preserving the original error",()=>{
+  const state=exceptionFixture();
+  state.run("original=ValueError('original')\noriginal.__notes__=None\nclass Descriptor:\n def __set_name__(self,owner,name):\n  raise original\ntry:\n class C:\n  field=Descriptor()\nexcept TypeError as error:\n correct=error.args==('Cannot add note: __notes__ is not a list',) and error.__context__ is original\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("chains failures formatting a set-name note to the original exception",()=>{
+  const state=exceptionFixture();
+  state.run("original=ValueError('original')\nclass Key:\n def __repr__(self):\n  raise RuntimeError('repr')\nclass Descriptor:\n def __set_name__(self,owner,name):\n  raise original\ntry:\n type('C',(),{Key():Descriptor()})\nexcept RuntimeError as error:\n correct=error.args==('repr',) and error.__context__ is original\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("keeps the outer handled exception visible to set-name note callbacks",()=>{
+  for(const outer of [false,true])for(const callback of ["repr","getter","setter"]) {
+    const state=exceptionFixture();
+    const hook=callback==="repr"?"class Key:\n def __repr__(self):\n  raise\n":callback==="getter"?"class Failure(ValueError):\n def __getattribute__(self,name):\n  if name=='__notes__':\n   raise\n  return object.__getattribute__(self,name)\n":"class Failure(ValueError):\n def __setattr__(self,name,value):\n  if name=='__notes__':\n   raise\n  object.__setattr__(self,name,value)\n";
+    const action=`type('C',(),{${callback==="repr"?"Key()":"'field'"}:Descriptor()})`;
+    const block=`try:\n ${action}\nexcept BaseException as error:\n correct=error.__context__ is original and ${outer?"error is outer and original.__context__ is outer":"type(error) is RuntimeError and error.args==('No active exception to reraise',)"}\n`;
+    state.run(hook+`outer=TypeError('outer')\noriginal=${callback==="repr"?"ValueError":"Failure"}('original')\nclass Descriptor:\n def __set_name__(self,owner,name):\n  raise original\n`+(outer?"try:\n raise outer\nexcept TypeError:\n"+block.split("\n").filter(Boolean).map(line=>" "+line).join("\n")+"\n":block));
+    expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
+it("retains self-context when a set-name note callback raises the original error",()=>{
+  const state=exceptionFixture();
+  state.run("original=ValueError('original')\nclass Key:\n def __repr__(self):\n  raise original\nclass Descriptor:\n def __set_name__(self,owner,name):\n  raise original\ntry:\n type('C',(),{Key():Descriptor()})\nexcept ValueError as error:\n correct=error is original and error.__context__ is original\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("translates direct native set-name faults before adding diagnostic notes",()=>{
+  const state=exceptionFixture();state.builtins.set("nativefail",state.v.builtinFunction({name:"nativefail",invoke(){throw new PythonRuntimeError("ValueError","native");}}));
+  state.run("class Descriptor:\n __set_name__=nativefail\ntry:\n class C:\n  field=Descriptor()\nexcept ValueError as error:\n correct=error.args==('native',) and error.__notes__==[\"Error calling __set_name__ on 'Descriptor' instance 'field' in 'C'\"]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("restores handled state after host failures while formatting set-name notes",()=>{
+  for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"ValueError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("class Key:\n def __repr__(self):\n  fail()\nclass Descriptor:\n def __set_name__(self,owner,name):\n  raise ValueError('original')\ntry:\n type('C',(),{Key():Descriptor()})\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
 it("ignores guest AttributeError subclasses when copying method-wrapper metadata",()=>{
   for(const kind of ["staticmethod","classmethod"] as const) {
     const state=exceptionFixture();state.globals.set("Wrapper",state.registry.methodDecoratorType(kind));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));

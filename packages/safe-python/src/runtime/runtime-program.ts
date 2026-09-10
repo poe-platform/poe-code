@@ -239,6 +239,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       finalizeType: specialMethods === undefined ? undefined : (type, keywords) => finalizeRuntimeType(type, keywords, specialMethods, values, meter, {
         call: builtinCalls.call.bind(builtinCalls),
+        isException: builtinCalls.isException, addExceptionNote: builtinCalls.addExceptionNote,
         repr(value) {
           const formatting = getFormatting(), result = representationObject(value, "repr", formatting, meter), points = formatting.string(result); meter.checkpoint();
           if (points === undefined) throw Error("representation did not produce string storage");
@@ -298,6 +299,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       isException: context.exceptions?.matches.bind(context.exceptions),
       exceptionArguments: context.exceptions?.arguments.bind(context.exceptions),
+      addExceptionNote: context.exceptions===undefined?undefined:(error,build)=>context.exceptions!.addNote(error,build,builtinCalls),
       isStopIteration(error) {
         if (error instanceof ExecutionLimitError) return false;
         if (error instanceof PythonRuntimeError && error.name === "StopIteration") return true;

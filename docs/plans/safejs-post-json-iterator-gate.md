@@ -23,9 +23,14 @@ Started the maintained command in session `94973` (a00e3e):
 npm test --workspace=@poe-code/safe-js -- --reporter=json --outputFile=/tmp/safejs-post-json-iterator-gate.xKWLzs/results.json
 ```
 
-The previous completed full-package result remains 27,619 passed, 14 failed
-and 48 skipped until this run terminates. JSON reporter silence is not a hang
-or completion signal. Resume the original live session, not a duplicate run.
+The run finished with 27,690 passed, 14 failed and 47 skipped. The JSON report
+was inspected after the worker process terminated. Twelve failures concern
+ISO month names and Temporal locale formatting; two concern native Promise
+own-property admission. These remain unresolved, not waived.
+
+The updated test262-semantics file contributed nine passing tests. The later
+array-proxy-index-keys and string-search-coercion files were absent from this
+run's discovery, so this result does not qualify either pending repair.
 
 ## Read-only reflection qualification
 

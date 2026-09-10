@@ -113,3 +113,15 @@ defect and is not counted as an original fixture pass.
 `Map/proto-from-ctor-realm.js` cannot run its native control without `$262` and
 remains unqualified. No new Map runtime change is inferred from these two
 adapter limitations. Full-package session 94973 was still active (b64662).
+
+## Main-worktree repair
+
+After the full integration run terminated, the unchanged main worktree failed
+all 29 regressions (3f169a). Numeric-key normalization was then transferred to
+sandboxGetProperty. The broader Proxy, array and Reflect selection passed
+1,024 tests in 57 files, including all 29 regressions (49edbe). Targeted ESLint
+and the maintained package TypeScript configuration passed (6e098c).
+
+The README now documents the observable string-key behavior. This repair is
+local only; no push or release was performed. The preceding full-package run
+did not discover this regression file and does not qualify this runtime change.

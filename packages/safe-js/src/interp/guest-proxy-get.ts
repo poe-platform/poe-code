@@ -13,6 +13,7 @@ import { assertSandboxDataDepth } from "../graph-depth.js";
 export function sandboxGetProperty(
   value: SandboxValue, key: PropertyKey, receiver: SandboxValue, budget: Budget, context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> {
+  if (typeof key === "number") key = String(key);
   objectProperties(value);
   let current = value as object, depth = 0;
   for (;;) {

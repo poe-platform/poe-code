@@ -69,7 +69,10 @@ export interface RuntimeExecutionContext {
   /** Shared by all frames; builtin registration can use this same context. */
   readonly formatting?: FormatContext<RuntimeValue>;
   readonly values: RuntimeValues;
-  readonly keys: KeyOperations<RuntimeValue>;
+  readonly keys: KeyOperations<RuntimeValue> & {
+    /** Optional execution-owned policy; collection identity stays shared. */
+    bindInvocation?(frame: RuntimeFrame, invocation: BuiltinInvocationContext): void;
+  };
   readonly calls: Pick<CallStack<RuntimeFrame>, "enter">;
   readonly hooks: RuntimeProgramHooks;
 }
@@ -330,6 +333,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)
     }, meter);
+    keys.bindInvocation?.(frame, builtinCalls); meter.checkpoint();
     let inplace = statementHooks.inplace?.bind(statementHooks);
     if (inplace === undefined && specialMethods !== undefined) {
       meter.checkpoint(0, 64);

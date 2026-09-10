@@ -5,7 +5,6 @@ import { RuntimeValues, type RuntimeValue, type TypeValue } from "./runtime-valu
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
-import { runtimeComparison } from "./runtime-comparison.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
@@ -15,16 +14,16 @@ import { createCallableBuiltin } from "./builtin-callable.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.js";
-import { runtimeHash } from "./runtime-hash.js";
 import { constructRuntimeSet } from "./runtime-set.js";
 import { constructRuntimeFrozenSet } from "./runtime-frozenset.js";
 import { createHashBuiltin } from "./builtin-hash.js";
 import { createRuntimeKeyOperations } from "./runtime-key-operations.js";
+import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
   const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
-  const keys = { hash: (value: RuntimeValue) => runtimeHash(value, hash, meter), equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, v, meter).value };
+  const calls = new CallStack<object>(50, meter), keys = new RuntimeExecutionKeys(v, hash, meter, calls);
   const registry = new RuntimeTypeRegistry(v, keys, meter), native = new Map<string, TypeValue>();
   const globals = new Map<string, RuntimeValue>([["type", registry.type], ["object", registry.object], ["__name__", v.string("example")]]), events: string[] = [];
   const builtins = new Map<string, RuntimeValue>([["visit", v.builtinFunction({ name: "visit", invoke(args) { const value = args[0]; if (value.kind !== "str") throw Error("expected string"); events.push(String.fromCodePoint(...value.value)); return v.none; } })]]);
@@ -41,12 +40,32 @@ function fixture() {
       native.set(value.kind, type); return type;
     } })
   };
-  const calls = new CallStack<object>(50, meter);
   function run(source: string) {
     executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it.each(["dict", "set"])("dispatches guest key protocols in ordinary %s displays across frames", kind => {
+  const state = fixture();
+  state.run(`class Key:\n def __hash__(self):\n  visit('hash')\n  return 7\n def __eq__(self,other):\n  visit('equal')\n  return True\nleft=Key()\nright=Key()\ndef make():\n return ${kind === "dict" ? "{left:1}" : "{left}"}\ndef merge(target):\n target|=${kind === "dict" ? "{right:2}" : "{right}"}\nresult=make()\nmerge(result)\nfound=right in result\n`);
+  const result = state.globals.get("result")!;
+  if (result.kind !== "dict" && result.kind !== "set") throw Error("expected collection");
+  expect(result.items.size).toBe(1); expect(state.globals.get("found")).toBe(state.v.true);
+  expect(state.events).toEqual(["hash", "hash", "equal", "hash", "equal"]);
+});
+
+it("unwinds failed key callbacks and rebinds protocols for later module executions", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "hash failed");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Key:\n def __hash__(self):\n  fail()\nkey=Key()\ndef make():\n return {key:1}\n");
+  expect(() => state.run("result=make()\n")).toThrow(failure); expect(state.calls.depth).toBe(0);
+  const key = state.globals.get("key")!;
+  expect(() => state.keys.hash(key)).toThrow("guest key hashing requires an active runtime frame");
+  expect(() => state.keys.hash(state.v.tuple([key]))).toThrow("guest key hashing requires an active runtime frame");
+  state.run("def good(self):\n visit('good')\n return 7\nKey.__hash__=good\nresult=make()\nfound=key in result\n");
+  expect(state.globals.get("found")).toBe(state.v.true); expect(state.events).toEqual(["good", "good"]); expect(state.calls.depth).toBe(0);
+});
 
 it.each(["dict", "set"])("uses guest hash, reflected equality and truth for %s keys", kind => {
   const state = fixture(), { v, meter } = state;

@@ -8490,6 +8490,22 @@ extension, integration, or validation requirement is missing or unverified.
   and a suitable invocation lifetime still need public execution integration.
   Selected workspace build, typecheck, scoped lint and all 6,534 tests in 492
   files pass (two workers).
+- Added call-stack-aware execution key storage and frame binding in concrete
+  program assembly. Registry/bootstrap storage and guest collections can now
+  share one stable key-policy identity while hashing/equality dispatch uses the
+  active frame, not the frame that created a collection. Weak frame bindings
+  retain no exited activation by themselves. Native bootstrap keys work without
+  a frame; hashing owned guest keys outside an active bound frame fails instead
+  of silently using a different identity hash. Existing explicit key policies
+  remain supported. Initial compiled dictionary/set regressions kept two equal
+  keys; ordinary displays and cross-function cached-hash merges now retain one.
+  Four new tests cover these paths, nested frame restoration, exception cleanup,
+  and reuse across module executions. All 96 CPython differential cases match
+  results and callback order across dict/set, direct/tuple keys, reflected
+  equality, truth conversion, merges, membership and removal. Public execution
+  configuration, canonical native object hash slots and suspension integration
+  remain unfinished. Selected workspace build, typecheck, scoped lint and all
+  6,538 tests in 493 files pass with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -17,6 +17,7 @@ export interface GeneratorDelegation<Value> {
 
 export interface GeneratorExecutionContext<Value> {
   readonly none:Value;
+  readonly kind?:"generator"|"coroutine";
   readonly delegation?:GeneratorDelegation<Value>;
   /** Host-only frame/handled-exception activation. Failure must restore its own
    * partial entry; successful entry returns unmetered, non-throwing cleanup.
@@ -43,8 +44,9 @@ export class GeneratorExecution<Value> {
   #driver:((input:GeneratorInput<Value>)=>IteratorResult<Value,Value>)|undefined;
   #context:GeneratorExecutionContext<Value>|undefined;
   readonly #none:Value;
+  readonly #kind:"generator"|"coroutine";
   constructor(driver:(input:GeneratorInput<Value>)=>IteratorResult<Value,Value>,context:GeneratorExecutionContext<Value>,private readonly meter:ExecutionMeter) {
-    meter.checkpoint(1,112);this.#driver=driver;this.#context=context;this.#none=context.none;Object.freeze(this);
+    meter.checkpoint(1,120);this.#driver=driver;this.#context=context;this.#none=context.none;this.#kind=context.kind??"generator";Object.freeze(this);
   }
   get phase():GeneratorPhase{return this.#phase;}
   get delegating():boolean{return this.#phase==="suspended"&&this.#context?.delegation?.active===true;}
@@ -52,7 +54,7 @@ export class GeneratorExecution<Value> {
 
   #runDelegated<Result>(operation:()=>Result,context:GeneratorExecutionContext<Value>,preserveCallerException=false):Result {
     const previous=this.#phase;
-    if(previous==="running")throw new PythonRuntimeError("ValueError","generator already executing");
+    if(previous==="running")throw new PythonRuntimeError("ValueError",`${this.#kind} already executing`);
     this.#phase="running";
     let restore:()=>void;
     try {restore=preserveCallerException&&context.enterDelegated!==undefined?context.enterDelegated():context.enter();}
@@ -68,9 +70,10 @@ export class GeneratorExecution<Value> {
   resume(request:GeneratorRequest<Value>):IteratorResult<Value,Value> {
     const {meter}=this;
     meter.checkpoint(1,64);
-    if(this.#phase==="running")throw new PythonRuntimeError("ValueError","generator already executing");
+    if(this.#phase==="running")throw new PythonRuntimeError("ValueError",`${this.#kind} already executing`);
+    if(this.#phase==="closed"&&this.#kind==="coroutine"&&request.kind!=="close")throw new PythonRuntimeError("RuntimeError","cannot reuse already awaited coroutine");
     if(this.#phase==="created"&&request.kind==="send"&&request.value!==this.#none)
-      throw new PythonRuntimeError("TypeError","can't send non-None value to a just-started generator");
+      throw new PythonRuntimeError("TypeError",`can't send non-None value to a just-started ${this.#kind}`);
     if(this.#phase==="closed"||this.#phase==="created"&&request.kind!=="send") {
       this.#finish();
       if(request.kind==="throw")throw request.error;
@@ -87,7 +90,7 @@ export class GeneratorExecution<Value> {
       } catch(error){this.#finish();throw error;}
       if(delegated.kind==="reject")throw delegated.error;
       if(delegated.kind==="yield") {
-        if(request.kind==="close")throw new PythonRuntimeError("RuntimeError","generator ignored GeneratorExit");
+        if(request.kind==="close")throw new PythonRuntimeError("RuntimeError",`${this.#kind} ignored GeneratorExit`);
         return {done:false,value:delegated.value};
       }
       input=delegated.input;
@@ -126,7 +129,7 @@ export class GeneratorExecution<Value> {
       this.#phase="suspended";
       // This error belongs to the close caller. The body remains suspended at
       // its illicit yield and can still be resumed or closed again.
-      if(request.kind==="close")throw new PythonRuntimeError("RuntimeError","generator ignored GeneratorExit");
+      if(request.kind==="close")throw new PythonRuntimeError("RuntimeError",`${this.#kind} ignored GeneratorExit`);
       return result;
     } finally {restore();}
   }

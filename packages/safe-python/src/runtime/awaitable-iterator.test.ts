@@ -25,7 +25,7 @@ it("acquires once and validates next without calling iter or advancing",()=>{
 });
 
 it("rejects plain iterators that lack the await protocol",()=>{
-  expect(()=>acquireAwaitableIterator({next:true,name:"iterator"},fixture(),budget())).toThrow("object iterator can't be used in 'await' expression");
+  expect(()=>acquireAwaitableIterator({next:true,name:"iterator"},fixture(),budget())).toThrow("'iterator' object can't be awaited");
 });
 
 it.each(["list","int","NoneType"])("rejects an await method returning %s instead of an iterator",name=>{

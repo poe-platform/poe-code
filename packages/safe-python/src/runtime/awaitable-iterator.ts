@@ -21,7 +21,7 @@ export function acquireAwaitableIterator<Value>(value:Value,context:AwaitableCon
   const method=context.lookupAwait(value);meter.checkpoint();
   if(method===undefined) {
     const name=context.typeName(value);meter.checkpoint();
-    throw new PythonRuntimeError("TypeError",`object ${name} can't be used in 'await' expression`);
+    throw new PythonRuntimeError("TypeError",`'${name}' object can't be awaited`);
   }
   const iterator=method();meter.checkpoint();
   const returnedKind=context.nativeKind(iterator);meter.checkpoint();

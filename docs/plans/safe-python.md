@@ -10403,6 +10403,28 @@ extension, integration, or validation requirement is missing or unverified.
   it now has a compile-time never guard. The final 77 focused tests also pass
   after that guard and a fixture-only lint correction. Full async and safe-fs
   execution remain open. No push or release requested.
+- Native coroutines and await wrappers (2026-09-10): default compiled async
+  functions now create lazy native coroutine objects. They share the metered
+  suspension engine with generators while retaining distinct initial-send,
+  reentrancy, ignored-close and exhausted-reuse diagnostics. Coroutine await
+  wrappers are separate self-iterating objects retaining the same coroutine;
+  coroutine objects themselves are not ordinary iterators. Native await uses
+  prepared-iterator acquisition, skips a returned iterator's __iter__, preserves
+  cr_await identity and rejects a coroutine already suspended in another await.
+  Send/throw/close forwarding and saved exception contexts use the existing
+  delegation machinery; close preserves a body/finalizer return value.
+  Five native unsupported-coroutine failures drove default integration. Further
+  failing regressions corrected current non-awaitable diagnostics and two close
+  return paths. CPython confirms the extra legacy warning at an await-wrapper
+  boundary, unlike direct native coroutine/generator forwarding. All 768 native
+  operation-sequence comparisons match CPython; 90 coroutine/wrapper argument
+  comparisons and 512 prior native generator comparisons also pass (1,370 total).
+  Selected workspace build, typecheck and focused lint pass. All 7,490 tests in
+  509 files pass in the uncached one-worker run (170.00s; bodies 10.99s).
+  Coroutine names/frame/code
+  metadata, finalization warnings/origin tracking, generator-based coroutine flags,
+  async generators, async-for/with, and event-loop/public runtime/safe-fs assembly
+  remain unfinished. This does not establish complete async support.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

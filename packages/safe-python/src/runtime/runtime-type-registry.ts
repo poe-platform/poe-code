@@ -108,6 +108,7 @@ export class RuntimeTypeRegistry {
   #complexType: TypeValue | undefined;
   #baseExceptionType:TypeValue|undefined;
   #generatorType:TypeValue|undefined;
+  #coroutineTypes=new Map<"coroutine"|"coroutine_wrapper",TypeValue>();
   #noneType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
@@ -443,6 +444,17 @@ export class RuntimeTypeRegistry {
     installRuntimeGeneratorDescriptors(type,this.values,this.meter);
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#generatorType=type;
+    return type;
+  }
+
+  coroutineType(kind:"coroutine"|"coroutine_wrapper"="coroutine"):TypeValue {
+    this.meter.checkpoint();
+    const existing=this.#coroutineTypes.get(kind);if(existing!==undefined)return existing;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout(kind,[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:kind==="coroutine",subclassable:false,instantiable:false});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    installRuntimeGeneratorDescriptors(type,this.values,this.meter,kind==="coroutine"?()=>this.coroutineType("coroutine_wrapper"):undefined);
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#coroutineTypes.set(kind,type);
     return type;
   }
 

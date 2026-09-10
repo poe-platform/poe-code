@@ -226,6 +226,59 @@ it("creates native generator functions without running their bodies and accepts 
   expect(state.events).toEqual(["start"]);expect(state.globals.get("first")).toEqual(v.integer(3));expect(state.globals.get("result")).toEqual(v.integer(7));
 });
 
+it("reports the current Python diagnostic for a non-awaitable operand",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("async def f():return await 1\nc=f()\ntry:c.send(None)\nexcept TypeError as error:result=error.args\n");
+  expect(state.globals.get("result")).toEqual(v.tuple([v.string("'int' object can't be awaited")]));
+});
+
+it("retains the extra public throw warning at an await-wrapper boundary",()=>{
+  const warnings:string[]=[],state=exceptionFixture({warn(category){warnings.push(category);}});
+  state.run("class A:\n def __await__(self):return (yield 1)\nasync def child():return await A()\ninner=child()\nclass B:\n def __await__(self):return inner.__await__()\nasync def parent():return await B()\np=parent()\np.send(None)\ntry:p.throw(ValueError,'message')\nexcept ValueError:pass\np.close()\ninner.close()\n");
+  expect(warnings).toEqual(["DeprecationWarning","DeprecationWarning"]);
+});
+
+it("creates lazy native coroutines and returns results through send",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("async def f(a):\n visit('body')\n return a\nc=f(7)\ncreated=not c.cr_running and not c.cr_suspended and c.cr_await is None\n");
+  expect(state.events).toEqual([]);expect(state.globals.get("created")).toBe(v.true);
+  state.run("try:c.send(None)\nexcept StopIteration as error:result=error.value\n");
+  expect(state.events).toEqual(["body"]);expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("resumes native await expressions without reacquiring their returned iterators",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class I:\n def __iter__(self):raise AssertionError('unexpected iter')\n def __next__(self):return 1\n def send(self,value):raise StopIteration(value)\ni=I()\nclass A:\n def __await__(self):return i\nasync def f():return 10 + await A()\nc=f()\nfirst=c.send(None)\nidentity=c.cr_await is i\ntry:c.send(7)\nexcept StopIteration as error:result=error.value\nclosed=c.cr_await is None\n");
+  expect(state.globals.get("first")).toEqual(v.integer(1));expect(state.globals.get("identity")).toBe(v.true);
+  expect(state.globals.get("result")).toEqual(v.integer(17));expect(state.globals.get("closed")).toBe(v.true);
+});
+
+it("shares coroutine lifecycle across distinct self-iterating await wrappers",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 1)\nasync def f():return await A()\nc=f()\na=c.__await__()\nb=c.__await__()\ncorrect=a is not b and a.__iter__() is a\nfirst=a.__next__()\ntry:b.send(7)\nexcept StopIteration as error:result=error.value\ntry:a.__next__()\nexcept RuntimeError as error:reuse=error.args\nclosed=c.close()\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.globals.get("first")).toEqual(v.integer(1));
+  expect(state.globals.get("result")).toEqual(v.integer(7));expect(state.globals.get("reuse")).toEqual(v.tuple([v.string("cannot reuse already awaited coroutine")]));expect(state.globals.get("closed")).toBe(v.none);
+});
+
+it("awaits native child coroutines and rejects concurrent awaits",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 1)\nasync def child():return await A()\ninner=child()\nasync def parent():return await inner\np=parent()\nq=parent()\nfirst=p.send(None)\nidentity=p.cr_await is inner\ntry:q.send(None)\nexcept RuntimeError as error:concurrent=error.args\ntry:p.send(7)\nexcept StopIteration as error:result=error.value\np.close()\nq.close()\n");
+  expect(state.globals.get("identity")).toBe(v.true);expect(state.globals.get("result")).toEqual(v.integer(7));
+  expect(state.globals.get("concurrent")).toEqual(v.tuple([v.string("coroutine is being awaited already")]));
+});
+
+it.each(["c","c.__await__()"])("preserves a coroutine close return through %s",receiver=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`class A:\n def __await__(self):return (yield 1)\nasync def f():\n try:await A()\n finally:return 9\nc=f()\nc.send(None)\nresult=${receiver}.close()\n`);
+  expect(state.globals.get("result")).toEqual(v.integer(9));
+});
+
+it("forwards throw and close through native coroutine awaits",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 1)\nasync def f():\n try:return await A()\n except ValueError:return 9\n finally:visit('cleanup')\nc=f()\nc.send(None)\ntry:c.throw(ValueError())\nexcept StopIteration as error:result=error.value\nd=f()\nd.send(None)\nclosed=d.close()\n");
+  expect(state.globals.get("result")).toEqual(v.integer(9));expect(state.globals.get("closed")).toBe(v.none);expect(state.events).toEqual(["cleanup","cleanup"]);
+});
+
 it("exposes gi_yieldfrom only for a suspended delegation and keeps iterator identity",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("def child():yield 1\ninner=child()\ndef gen():\n yield from inner\n yield 2\ng=gen()\ncreated=g.gi_yieldfrom\ng.__next__()\nidentity=g.gi_yieldfrom is inner\ng.__next__()\nordinary=g.gi_yieldfrom\ng.close()\nclosed=g.gi_yieldfrom\n");

@@ -192,7 +192,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
         else if (context.exceptions) invocation.suspended = (kind, child, code) => {
-          if (kind !== "generator") throw new UnsupportedFunctionExecutionError(kind);
+          if (kind !== "generator"&&kind!=="coroutine") throw new UnsupportedFunctionExecutionError(kind);
           meter.checkpoint(0, 288);
           const origin = fn.value;
           const delegation=new RuntimeGeneratorDelegation(values,context.exceptions!,meter,context.unraisable);
@@ -206,7 +206,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
             return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : values.none;
           }
           const cursor = run();
-          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls,delegation);
+          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls,delegation,kind);
         };
         return invokeRuntimeFunction(fn, positional, keywords, invocation, meter);
       }
@@ -446,7 +446,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         }
       }
     }, meter);
-    if(suspension!==undefined){meter.checkpoint(0,64);expressions.delegate=source=>suspension.delegate(source,builtinCalls);}
+    if(suspension!==undefined){
+      meter.checkpoint(0,128);
+      expressions.delegate=source=>suspension.delegate(source,builtinCalls);
+      expressions.awaitValue=source=>suspension.delegate(source,builtinCalls,true);
+    }
     keys.bindInvocation?.(frame, builtinCalls); meter.checkpoint();
     let inplace = statementHooks.inplace?.bind(statementHooks);
     if (inplace === undefined && specialMethods !== undefined) {

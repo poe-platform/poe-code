@@ -48,9 +48,9 @@ export class RuntimeExceptionExecution {
     return new RuntimeRaisedException(this.native("StopIteration",value.kind==="none"?[]:[value]),this.meter);
   }
 
-  /** Assemble an unstarted native generator around a trusted resumable body.
+  /** Assemble an unstarted generator/coroutine around a trusted resumable body.
    * Only the running body owns a call-stack entry and saved exception activation. */
-  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>):InstanceValue {
+  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>,kind:"generator"|"coroutine"="generator"):InstanceValue {
     const {values,meter}=this;
     meter.checkpoint(0,512);
     const handled=this.#handled.createFrame(meter);
@@ -64,7 +64,7 @@ export class RuntimeExceptionExecution {
       }
       catch(error){throw this.prepare(error);}
     },{
-      none:values.none,delegation,enterDelegated:calls.enter.bind(calls,frame),
+      none:values.none,kind,delegation,enterDelegated:calls.enter.bind(calls,frame),
       enter:()=>{
         meter.checkpoint(0,64);
         const leave=calls.enter(frame);
@@ -79,12 +79,12 @@ export class RuntimeExceptionExecution {
       wrapStopIteration:error=>{
         const original=this.prepare(error);
         if(!(original instanceof RuntimeRaisedException))throw Error("generator conversion requires native StopIteration");
-        const replacement=this.native("RuntimeError",[values.string("generator raised StopIteration")]),storage=runtimeExceptionPayload(replacement)!;
+        const replacement=this.native("RuntimeError",[values.string(`${kind} raised StopIteration`)]),storage=runtimeExceptionPayload(replacement)!;
         storage.assignCause(original.value,meter);storage.assignContext(original.value,meter);
         return new RuntimeRaisedException(replacement,meter);
       }
     },meter);
-    return values.instance(this.registry.generatorType(),undefined,Object.freeze({kind:"generator",execution,exceptions:this}));
+    return values.instance(kind==="generator"?this.registry.generatorType():this.registry.coroutineType(),undefined,Object.freeze({kind,execution,exceptions:this}));
   }
 
   private exceptionClass(value:RuntimeValue) {

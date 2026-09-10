@@ -7,6 +7,7 @@ import { RuntimeGeneratorThrowRequest,throwRuntimeGenerator } from "./runtime-ge
 import { acquireRuntimeIterator } from "./runtime-iterator-acquisition.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { YieldDelegation, type YieldDelegationResult } from "./yield-delegation.js";
+import { acquireAwaitableIterator } from "./awaitable-iterator.js";
 
 /** Bridge suspended expression cursors to caller-side delegation handling.
  * Rejected requests never enter the host cursor; accepted returns/errors do.
@@ -28,7 +29,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
     return bodyActive||this.#run===undefined?prepared():this.#run(prepared,this.#throwing);
   }
 
-  *delegate(source:RuntimeValue,invocation:BuiltinInvocationContext):Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
+  *delegate(source:RuntimeValue,invocation:BuiltinInvocationContext,awaiting=false):Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
     const {values,exceptions,meter}=this;
     meter.checkpoint(0,768);
     // Initial iteration already executes inside the body. A reentrant lookup
@@ -36,8 +37,32 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
     let starting=true;
     const current=new YieldDelegation(source,{
       none:values.none,
-      acquire:value=>acquireRuntimeIterator(value,values,meter,invocation.iteration),
+      acquire:value=>{
+        if(!awaiting) {
+          if(value.kind==="instance"&&value.native?.kind==="coroutine")throw new PythonRuntimeError("TypeError","cannot 'yield from' a coroutine object in a non-coroutine generator");
+          return acquireRuntimeIterator(value,values,meter,invocation.iteration);
+        }
+        meter.checkpoint(0,160);
+        const iterator=acquireAwaitableIterator(value,{
+          nativeKind:value=>value.kind==="instance"&&value.native?.kind==="coroutine"?"coroutine":undefined,
+          lookupAwait:value=>{
+            const method=invocation.lookupSpecial!(value,"__await__");
+            if(method===undefined)return undefined;
+            meter.checkpoint(0,64);return ()=>invocation.call(method,[]);
+          },
+          hasNext:value=>invocation.iteration!.hasNext(value),
+          typeName:value=>invocation.typeName!(value)
+        },meter);
+        if(iterator.kind==="instance"&&iterator.native?.kind==="coroutine"&&iterator.native.execution.delegating)
+          throw new PythonRuntimeError("RuntimeError","coroutine is being awaited already");
+        return iterator;
+      },
       next:iterator=>this.#owned(()=>{
+        if(iterator.kind==="instance"&&iterator.native?.kind==="coroutine") {
+          const state=iterator.native,step=state.execution.resume({kind:"send",value:values.none});
+          if(step.done)throw state.exceptions.completion(step.value);
+          return step.value;
+        }
         if(iterator.kind!=="iterator")return invocation.iteration!.next(iterator);
         const step=iterator.value.next();meter.checkpoint();
         if(!step.done)return step.value;
@@ -51,7 +76,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
       },
       call:(method,args)=>this.#owned(()=>{
         const binding=method.kind==="builtin_function_or_method"?method.binding:undefined,target=binding?.instance;
-        if(target?.kind==="instance"&&target.native?.kind==="generator"&&binding!.implementation.value.owner===target.type&&binding!.implementation.value.name==="throw")
+        if(target?.kind==="instance"&&(target.native?.kind==="generator"||target.native?.kind==="coroutine")&&binding!.implementation.value.owner===target.type&&binding!.implementation.value.name==="throw")
           return throwRuntimeGenerator(target.native,args,invocation,values,meter);
         return invocation.call(method,args);
       },starting),

@@ -15,7 +15,7 @@ for (const [name, script] of portableByteScripts) {
   test(`${name} preserves raw bytes when fatal decoding throws a standard uncoded TypeError`, async context => {
     const decode = TextDecoder.prototype.decode;
     let rejected = 0;
-    context.mock.method(TextDecoder.prototype, "decode", function (this: TextDecoder, ...args: Parameters<typeof decode>) {
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
       try { return decode.apply(this, args); }
       catch (error) {
         if (!this.fatal || !(error instanceof TypeError)) throw error;
@@ -39,7 +39,7 @@ for (const [name, script] of portableByteScripts) {
   for (const failure of [new Error("decoder infrastructure failed"), Object.assign(new TypeError("different decoder failure"), { code: "OTHER_FAILURE" })]) {
     test(`${name} preserves unrelated decoder failure ${failure.message}`, async context => {
       const decode = TextDecoder.prototype.decode;
-      context.mock.method(TextDecoder.prototype, "decode", function (this: TextDecoder, ...args: Parameters<typeof decode>) {
+      context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
         if (this.fatal) throw failure;
         return decode.apply(this, args);
       });
@@ -59,7 +59,7 @@ for (const [name, script] of portableByteScripts) {
   for (const reason of [false, 0, null, ""]) test(`${name} decoder cancellation preserves ${String(reason)}`, async context => {
     const decode = TextDecoder.prototype.decode;
     const controller = new AbortController();
-    context.mock.method(TextDecoder.prototype, "decode", function (this: TextDecoder, ...args: Parameters<typeof decode>) {
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
       if (this.fatal) { controller.abort(reason); throw new TypeError("Failed to decode input."); }
       return decode.apply(this, args);
     });

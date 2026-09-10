@@ -15,7 +15,9 @@ const profiles = [
 for (const streaming of [true, false]) for (const profile of profiles) {
   test(`tar publication honors ${profile.name} through ${streaming ? "streaming" : "buffered"} writes`, async () => {
     const base = createMemoryFileSystem();
-    const capabilities: FileSystemCapabilities = { ...base.capabilities, permissions: profile.global, streamingWrite: streaming };
+    const capabilities: { -readonly [Key in keyof FileSystemCapabilities]: FileSystemCapabilities[Key] } = { ...base.capabilities, streamingWrite: streaming };
+    if (profile.global === undefined) delete capabilities.permissions;
+    else capabilities.permissions = profile.global;
     const writes: WriteFileOptions[] = [];
     const admission = (options: WriteFileOptions | undefined) => {
       assert.ok(options);
@@ -24,10 +26,17 @@ for (const streaming of [true, false]) for (const profile of profiles) {
     };
     const overrides: Partial<FileSystem> = {
       capabilities,
-      capabilitiesFor: profile.scoped ? async () => ({ ...capabilities, permissions: profile.path }) : undefined,
       writeFile: async (path, bytes, options) => { admission(options); await base.writeFile(path, bytes, options); },
-      writeStream: streaming ? async (path, bytes, options) => { admission(options); await base.writeStream(path, bytes, options); } : undefined,
     };
+    if (streaming) overrides.writeStream = async (path, bytes, options) => { admission(options); await base.writeStream(path, bytes, options); };
+    else Object.defineProperty(overrides, "writeStream", { value: undefined });
+    if (profile.scoped) overrides.capabilitiesFor = async () => {
+      const scoped = { ...capabilities };
+      if (profile.path === undefined) delete scoped.permissions;
+      else scoped.permissions = profile.path;
+      return scoped;
+    };
+    else Object.defineProperty(overrides, "capabilitiesFor", { value: undefined });
     const { shell } = await fixture({}, wrapped(base, overrides));
     try {
       await base.writeFile("/work/image.bin", binary);

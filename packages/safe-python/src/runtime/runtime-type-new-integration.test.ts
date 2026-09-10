@@ -56,6 +56,27 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("publishes retained mapping proxy read-method descriptors", () => {
+  const state = fixture(); state.globals.set("Proxy", state.registry.mappingProxyType());
+  state.run("d={'a':1}\np=Proxy(d)\nget=p.get\nd['a']=2\ncorrect=get.__self__ is p and Proxy.get.__objclass__ is Proxy and get('a')==2 and Proxy.get(p,'missing',3)==3 and Proxy.copy(p)==d and Proxy.keys(p).mapping==p\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("publishes mapping proxy protocol wrappers over live mappings", () => {
+  const state = fixture(); state.globals.set("Proxy", state.registry.mappingProxyType());
+  state.run("d={'a':1}\np=Proxy(d)\ncorrect=Proxy.__len__(p)==1 and Proxy.__getitem__(p,'a')==1 and Proxy.__contains__(p,'a') and Proxy.__eq__(p,d) and Proxy.__or__(p,{'b':2})=={'a':1,'b':2} and Proxy.__ror__(p,{'a':2})=={'a':1} and Proxy.__str__(p)==f'{d}' and Proxy.__repr__(p)==f'mappingproxy({d!r})'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(() => state.run("Proxy.__ior__(p,{})\n")).toThrow("'|=' is not supported by mappingproxy; use '|' instead");
+  expect(() => state.run("p.__hash__()\n")).toThrow("unhashable type: 'dict'");
+});
+
+it("delegates explicit mapping proxy slots to guest mapping protocols", () => {
+  const state = fixture(); state.globals.set("Proxy", state.registry.mappingProxyType());
+  state.run("class Mapping:\n def __getitem__(self,key):\n  visit('item')\n  return key\n def __len__(self):\n  visit('len')\n  return 4\n def __contains__(self,key):\n  visit('contains')\n  return True\n def __eq__(self,other):\n  visit('eq')\n  return 7\n def __hash__(self):\n  visit('hash')\n  return 9\np=Proxy(Mapping())\ncorrect=Proxy.__getitem__(p,'x')=='x' and Proxy.__len__(p)==4 and Proxy.__contains__(p,3) and Proxy.__eq__(p,3)==7 and Proxy.__hash__(p)==9\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(["item","len","contains","eq","hash"]);
+});
+
 it("constructs canonical slices without coercing components", () => {
   const state = fixture(); state.globals.set("Slice", state.registry.sliceType());
   state.run("class Component:\n def __index__(self):\n  visit('index')\n  return 1\npart=Component()\na=Slice(part)\nb=Slice(part,2)\nc=Slice(part,2,0)\ncorrect=type(a) is Slice and a.start is None and a.stop is part and a.step is None and b.start is part and b.stop==2 and c.step==0 and Slice.__new__.__self__ is Slice\n");

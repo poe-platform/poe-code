@@ -1,5 +1,5 @@
 import type { ExecutionMeter } from "./execution-budget.js";
-import { createRuntimeDictionaryMethod } from "./runtime-dictionary-method.js";
+import { callRuntimeDictionaryMethod } from "./runtime-dictionary-method.js";
 import { createRuntimeDictionaryMutationMethod } from "./runtime-dictionary-mutation-method.js";
 import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
@@ -20,8 +20,7 @@ export function installRuntimeDictionaryMethodDescriptors(owner: TypeValue, valu
       invoke(receiver, positional, keywords, meter, invocation, bound) {
         const payload = runtimeDictionaryPayload(receiver);
         if (payload === undefined) throw Error("dictionary method requires dictionary storage");
-        const method = createRuntimeDictionaryMethod(payload, name, values, meter, receiver, bound === true);
-        return method.value.invoke(positional, keywords, meter, invocation);
+        return callRuntimeDictionaryMethod(payload, name, positional, keywords, values, meter, invocation, receiver, bound === true);
       }
     }));
   }

@@ -9229,6 +9229,20 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, focused lint and all 6,928 package tests in 493 files pass. The
   broader native catalog, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Mapping proxy protocol and read descriptors (2026-09-10): three failing
+  integration tests reproduced missing bound-method ownership and absent native
+  protocol descriptors. Published length, iteration, item access, containment,
+  repr/str, hash, comparison and union wrappers plus six read-method descriptors.
+  Wrappers delegate complete operations to the retained mapping; in-place union
+  remains forbidden. Shared dictionary reads now serve both native capabilities
+  and descriptors without allocating a temporary callable on descriptor calls.
+  All 1,232 descriptor cases, 144 general-mapping cases, 90 owner cases, 258 proxy
+  edge cases and 330 dictionary-subclass read cases match CPython (2,054 total).
+  Hash checks compare against the underlying mapping, not another process's
+  randomized string hash. Workspace build, typecheck, focused lint and all 6,931
+  package tests in 493 files pass. Generic aliases/class subscription, remaining
+  native types, full interpreter and safe-fs execution remain unfinished. No push
+  or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

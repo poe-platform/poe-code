@@ -33,6 +33,7 @@ import { installRuntimeDictionaryViewSlots } from "./runtime-dictionary-view-slo
 import { createMappingProxyNewBuiltin } from "./builtin-mapping-proxy-new.js";
 import { createSliceNewBuiltin } from "./builtin-slice-new.js";
 import { installRuntimeSliceSlots } from "./runtime-slice-slots.js";
+import { installRuntimeMappingProxySlots } from "./runtime-mapping-proxy-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
@@ -285,6 +286,7 @@ export class RuntimeTypeRegistry {
     const type = this.values.type(layout, this.type, { immutable: true, keywordValidation: "callee" });
     namespace.items.set(this.values.string("__new__"), createMappingProxyNewBuiltin(type, this.values, this.meter));
     namespace.items.set(this.values.string("__doc__"), this.values.string("Read-only proxy of a mapping."));
+    installRuntimeMappingProxySlots(type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#mappingProxyType = type;
     return type;

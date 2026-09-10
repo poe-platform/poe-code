@@ -1018,6 +1018,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
     writeFileSync(join(directory, "exports.test.mjs"), launcher);
     assert.deepEqual(readFileSync(join(directory, "exports.test.mjs")), launcher);
     writeFileSync(join(directory, "archive-controls.test.mjs"), "export {};\n");
+    writeFileSync(join(directory, "archive-parser.test.mjs"), "export {};\n");
     writeFileSync(join(directory, "committed-archive.mjs"), `export { cleanEnvironment } from ${JSON.stringify(new URL("./committed-archive.mjs", import.meta.url).href)};\n`);
     const startupMarker = join(directory, "startup-ran");
     const verifierMarker = join(directory, "synthetic-verifier-ran");

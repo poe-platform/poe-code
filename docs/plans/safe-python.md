@@ -9403,6 +9403,19 @@ extension, integration, or validation requirement is missing or unverified.
   all 6,989 package tests in 496 files pass. Remaining scalar types, general type
   checks, full interpreter and safe-fs execution remain unfinished. No push or
   release was requested.
+- Float text parsing (2026-09-10): added a metered float constructor grammar
+  after failing tests established the missing parser. Decimal syntax, exponent
+  signs, underscores, infinities and NaNs are validated before host binary64
+  conversion; Unicode decimal digits/whitespace normalize only for strings,
+  not bytes. Signed zero, overflow/underflow and arbitrarily long decimal text
+  are supported without integer-string limits. Exact-bit comparisons exposed
+  the transpiler folding literal -NaN into positive NaN; a failing sign-bit
+  regression drove explicit binary64 NaN construction. All 5,616 syntax/decimal/
+  byte cases and 3,945 Unicode cases match CPython, including exact result bits
+  and error diagnostics. Workspace build, typecheck, focused lint and all 7,014
+  package tests in 497 files pass. Float protocol construction and canonical
+  float type integration remain next; full interpreter and safe-fs execution
+  remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

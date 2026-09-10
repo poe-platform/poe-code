@@ -42,10 +42,22 @@ and two test timeouts. The Promise policy remains unresolved: arbitrary host
 symbol imports can expose private async-hook state. Do not broaden that boundary
 merely to satisfy the tests. Recheck every new failure against this worktree.
 
-Separate upstream difference baseline session 63958 is still running since after
-until completed with 196 passes and two missing-PlainMonthDay failures across 99
-fixtures (37f386). That baseline loaded code before the equal-epoch zone fix;
-it cannot qualify the current source wholesale.
+## Completed upstream difference baseline
+
+Session 63958 terminated successfully as a runner (2b0707), with test failures:
+
+- until: 99 fixtures, 196 passed, two failed, no exclusions (37f386).
+- since: 101 fixtures, 200 passed, two failed, no exclusions (2b0707).
+
+Both modes ran at revision 419d3e0a2273ba01a3bfcbec423f2801425b8e93. In each
+directory the two failures were calendar-temporal-object.js encountering the
+absent PlainMonthDay constructor. A fresh source read of both fixtures (8f457f)
+confirms that they call checkToTemporalCalendarFastPath to exercise owned
+calendar-bearing Temporal values. Implement and qualify the missing date types,
+then rerun these fixtures without editing their helper or counting them as skips.
+
+This baseline loaded code before the equal-epoch zone fix; it cannot qualify
+the current source wholesale. No upstream process remains live for this run.
 
 This is local verification only. No push, release or issue closure is authorized
 by starting or completing the gate. The release hold remains in effect.

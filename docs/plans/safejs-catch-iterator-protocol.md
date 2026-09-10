@@ -94,8 +94,12 @@ Candidate snapshot run 19063 completed successfully: 2,186 passes, zero failures
 or skips, 160 files (0ee270). The parameter-only scope refinement occurred while
 that run was active, so this is broad candidate evidence, not a clean immutable
 final-source gate. The 52-case focused check covers that refinement separately.
-Final candidate lint/TypeScript command is session 52420; confirm its terminal
-result. Main integration session 69114 remains live and main sources unchanged.
+Final candidate lint/TypeScript command 52420 passed (c6c51f).
+The checkpoint suite was then expanded to repeated JSON recapture/restoration:
+two defaults, transition into the body, and closures over earlier initialized
+bindings. All 27 cases pass (a4e056), including sync/async execution. The runtime
+did not change for that expansion. Main integration session 69114 remains live
+and main sources unchanged; PID 60496 was using 192.7% CPU after 10:49 (33e526).
 
 ## Repair requirements
 

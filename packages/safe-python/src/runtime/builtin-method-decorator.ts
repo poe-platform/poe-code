@@ -16,6 +16,23 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
     for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
     return false;
   };
+  owner.value.namespace.items.set(values.string("__isabstractmethod__"), values.getsetDescriptor({ owner, name: "__isabstractmethod__", accepts,
+    get(instance, meter, invocation) {
+      if (instance.kind !== kind) throw Error("invalid method-wrapper abstractness receiver");
+      if (instance.value.kind === "none") return values.false;
+      if (invocation?.attribute === undefined) throw Error("method-wrapper abstractness requires an attribute policy");
+      let flag: RuntimeValue;
+      try { flag = invocation.attribute(instance.value, "__isabstractmethod__"); }
+      catch (error) {
+        meter.checkpoint();
+        if (error instanceof PythonRuntimeError && error.name === "AttributeError") return values.false;
+        throw error;
+      }
+      meter.checkpoint();
+      if (invocation.truth === undefined) throw Error("method-wrapper abstractness requires a truth policy");
+      const result = invocation.truth(flag); meter.checkpoint(); return values.boolean(result);
+    }
+  }));
   owner.value.namespace.items.set(values.string("__dict__"), values.getsetDescriptor({ owner, name: "__dict__", accepts,
     get(instance) {
       if (instance.kind !== kind) throw Error("invalid method-wrapper dictionary receiver");

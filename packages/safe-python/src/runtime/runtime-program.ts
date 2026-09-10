@@ -85,7 +85,12 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     meter.checkpoint(1, 512);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
-    const specialMethods = hooks.specialMethods?.(frame); meter.checkpoint();
+    const suppliedSpecialMethods = hooks.specialMethods?.(frame); meter.checkpoint(1, suppliedSpecialMethods === undefined ? 0 : 96);
+    const specialMethods = suppliedSpecialMethods === undefined ? undefined : Object.freeze({
+      typeOf: suppliedSpecialMethods.typeOf.bind(suppliedSpecialMethods),
+      slots: suppliedSpecialMethods.slots.bind(suppliedSpecialMethods),
+      get invocation(): BuiltinInvocationContext { return builtinCalls; }
+    });
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
       get iteration() { return getIteration(); },
       values, keys, name(value) {

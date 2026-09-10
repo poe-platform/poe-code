@@ -71,6 +71,8 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "__qualname__") return receiver.value.qualifiedName;
     if (name === "__module__") return receiver.value.module;
     if (name === "__doc__") return receiver.value.doc;
+    const attribute = receiver.value.attributes.get(name);
+    if (attribute !== undefined) return attribute;
   }
   if (receiver.kind === "staticmethod" || receiver.kind === "classmethod") {
     if (name === "__func__" || name === "__wrapped__") return receiver.value;

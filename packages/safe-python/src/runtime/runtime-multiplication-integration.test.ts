@@ -2008,6 +2008,32 @@ it.each(["staticmethod", "classmethod"] as const)("updates the replacement %s di
   expect(state.globals.get("name")).toBe(fn.value.name); expect(state.globals.get("custom")).toBe(state.v.true); expect(state.globals.get("original")).toBe(fn);
 });
 
+it.each(["staticmethod", "classmethod"] as const)("reads live readonly %s abstractness with data-descriptor precedence", kind => {
+  const state = fixture(); state.instance("payload", state.type("Payload")); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  state.run("wrapped=factory(payload)\nmissing=wrapped.__isabstractmethod__\npayload.__isabstractmethod__=True\nfirst=wrapped.__isabstractmethod__\npayload.__isabstractmethod__=False\nsecond=wrapped.__isabstractmethod__\ndel payload.__isabstractmethod__\nwrapped.__dict__['__isabstractmethod__']=True\nshadowed=wrapped.__isabstractmethod__\n");
+  expect(state.globals.get("first")).toBe(state.v.true);
+  for (const name of ["missing", "second", "shadowed"]) expect(state.globals.get(name)).toBe(state.v.false);
+  expect(() => state.run("wrapped.__isabstractmethod__=True\n")).toThrow(`attribute '__isabstractmethod__' of '${kind}' objects is not writable`);
+});
+
+it.each(["staticmethod", "classmethod"] as const)("uses guest truth for %s abstractness without swallowing truth errors", kind => {
+  const state = fixture(), flagType = state.type("Flag"); state.instance("payload", state.type("Payload")); state.instance("flag", flagType);
+  state.method(flagType, "__bool__", "def truth(self):\n visit('bool')\n return False\n"); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  state.run("payload.__isabstractmethod__=flag\nwrapped=factory(payload)\nresult=wrapped.__isabstractmethod__\n");
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["bool"]);
+  state.globals.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw new PythonRuntimeError("AttributeError", "truth failure"); } }));
+  state.method(flagType, "__bool__", "def truth(self): return fail()\n");
+  expect(() => state.run("wrapped.__isabstractmethod__\n")).toThrow("truth failure");
+});
+
+it.each(["staticmethod", "classmethod"] as const)("reads %s abstractness from function attributes", kind => {
+  const state = fixture(), fn = state.method(state.type("Owner"), "f", "def f(): pass\n");
+  fn.value.attributes.set("__isabstractmethod__", state.v.true); state.globals.set("f", fn); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  state.run("wrapped=factory(f)\nfirst=wrapped.__isabstractmethod__\n"); expect(state.globals.get("first")).toBe(state.v.true);
+  fn.value.attributes.delete("__isabstractmethod__");
+  state.run("second=wrapped.__isabstractmethod__\n"); expect(state.globals.get("second")).toBe(state.v.false);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

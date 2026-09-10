@@ -170,9 +170,9 @@ export interface GetsetDescriptorCapability {
   readonly owner: TypeValue;
   readonly name: string;
   accepts(instance: RuntimeValue, meter: ExecutionMeter): boolean;
-  get(instance: RuntimeValue, meter: ExecutionMeter): RuntimeValue;
-  set?(instance: RuntimeValue, value: RuntimeValue, meter: ExecutionMeter): void;
-  delete?(instance: RuntimeValue, meter: ExecutionMeter): void;
+  get(instance: RuntimeValue, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): RuntimeValue;
+  set?(instance: RuntimeValue, value: RuntimeValue, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): void;
+  delete?(instance: RuntimeValue, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): void;
 }
 
 export interface GetsetDescriptorValue {

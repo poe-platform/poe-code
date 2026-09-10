@@ -8025,6 +8025,20 @@ extension, integration, or validation requirement is missing or unverified.
   compiled-constructor cases still match CPython. General instance/function dictionaries,
   __class__, lazy annotation/abstractness protocols, full native metadata and
   subclass call/descriptor-slot overrides remain unfinished.
+- Added dynamic readonly method-wrapper __isabstractmethod__ getsets. They read
+  the wrapped object's current attribute and apply guest truth, treating only
+  missing-attribute lookup errors as false while preserving truth errors and
+  host termination. Native data-descriptor callbacks now receive the frame's
+  invocation capabilities, separate from ordinary attribute override selection.
+  Exact function reads now include their existing custom attribute storage.
+  Six compiled regressions failed before implementation; five focused tests
+  cover host error provenance, missing flags, None payloads, cancellation and
+  requiring a truth policy only after a flag is actually found.
+  All 60 compiled abstractness cases, 96 ordinary constructors, 96 wrapper
+  constructors and 20 dictionary mutation/identity traces match CPython.
+  All 6,248 tests in 476 files, selected build, typecheck and scoped lint pass.
+  General instance/function dictionaries, __class__, lazy annotations, full
+  native metadata and subclass call/descriptor-slot overrides remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -6,6 +6,7 @@ import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 import { createObjectNewBuiltin } from "./builtin-object-new.js";
 import { createObjectInitWrapper } from "./builtin-object-init.js";
+import { createObjectFormatDescriptor } from "./builtin-object-format.js";
 import { createObjectHashWrapper } from "./builtin-object-hash.js";
 import { createObjectNeWrapper } from "./builtin-object-ne.js";
 import { createObjectEqWrapper } from "./builtin-object-eq.js";
@@ -29,6 +30,7 @@ import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription
 import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
 import { createListInitWrapper } from "./builtin-list-init.js";
 import { createListNewBuiltin } from "./builtin-list-new.js";
+import { createListReprWrapper } from "./builtin-list-repr.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 
 interface TypeEntry {
@@ -67,6 +69,7 @@ export class RuntimeTypeRegistry {
     typeLayout.namespace.items.set(values.string("__prepare__"), createTypePrepareDescriptor(values, meter, keys, this.type));
     typeLayout.namespace.items.set(values.string("__repr__"), createTypeReprWrapper(values, meter, this.type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
+    objectLayout.namespace.items.set(values.string("__format__"), createObjectFormatDescriptor(this.object, values, meter));
     objectLayout.namespace.items.set(values.string("__hash__"), createObjectHashWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__ne__"), createObjectNeWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__eq__"), createObjectEqWrapper(values, meter, this.object));
@@ -187,6 +190,7 @@ export class RuntimeTypeRegistry {
     installRuntimeListSubscriptionSlots(type, this.values, this.meter);
     installRuntimeListArithmeticSlots(type, this.values, this.meter);
     namespace.items.set(this.values.string("__init__"), createListInitWrapper(type, this.values, this.meter));
+    namespace.items.set(this.values.string("__repr__"), createListReprWrapper(type, this.values, this.meter));
     namespace.items.set(this.values.string("__new__"), createListNewBuiltin(type, this.values, this.meter, requested => this.#entries.get(requested.value)?.type === requested));
     installRuntimeComparisonMethods("list", type, this.values, this.meter);
     namespace.items.set(this.values.string("__hash__"), this.values.none);

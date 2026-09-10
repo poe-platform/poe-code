@@ -48,6 +48,74 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["exact", "subclass"])("represents %s list contents using live guest repr slots", kind => {
+  const state = fixture();
+  state.run(`class Member:\n def __repr__(self):\n  visit('repr')\n  return 'member'\nclass Child(type([])):\n pass\nitems=${kind === "exact" ? "[Member()]" : "Child([Member()])"}\nresult=items.__repr__()\nbase=type([]).__repr__(items)\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string("[member]")); expect(state.globals.get("base")).toEqual(state.v.string("[member]")); expect(state.events).toEqual(["repr", "repr"]);
+});
+
+it.each(["exact", "subclass"])("shares recursion guards for explicit %s list repr", kind => {
+  const state = fixture();
+  state.run(`class Child(type([])):\n pass\nitems=${kind === "exact" ? "[]" : "Child()"}\nitems.append(items)\nresult=items.__repr__()\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string("[[...]]"));
+});
+
+it("keeps list subclass repr overrides separate from explicit native repr", () => {
+  const state = fixture();
+  state.run("class Child(type([])):\n def __repr__(self):\n  return 'custom'\nitems=Child([1,2])\nresult=items.__repr__()\nbase=type([]).__repr__(items)\nnested=[items].__repr__()\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("custom")); expect(state.globals.get("base")).toEqual(state.v.string("[1, 2]")); expect(state.globals.get("nested")).toEqual(state.v.string("[custom]"));
+});
+
+it("shares list recursion state between implicit formatting and explicit repr reentry", () => {
+  const state = fixture();
+  state.run("class Child(type([])):\n pass\nclass Member:\n def __repr__(self):\n  return type([]).__repr__(items)\nitems=Child([Member()])\nresult=f'{items!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("[[...]]"));
+});
+
+it("inherits base object formatting for list subclasses", () => {
+  const state = fixture(); state.run("class Child(type([])):\n pass\nitems=Child([1,2])\nresult=f'{items}'\nbase=object.__format__(items,'')\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("[1, 2]")); expect(state.globals.get("base")).toEqual(state.v.string("[1, 2]"));
+  expect(() => state.run("object.__format__(items,'x')\n")).toThrow("unsupported format string passed to Child.__format__");
+});
+
+it("base object formatting bypasses overridden format and preserves str result identity", () => {
+  const state = fixture();
+  state.run("text='value'\nclass Value:\n def __str__(self):\n  visit('str')\n  return text\n def __format__(self,spec):\n  visit('format')\n  return 'override'\nitem=Value()\nresult=object.__format__(item,'')\nsame=result is text\n");
+  expect(state.globals.get("same")).toBe(state.v.true); expect(state.events).toEqual(["str"]);
+  expect(() => state.run("object.__format__(item,'x')\n")).toThrow("unsupported format string passed to Value.__format__"); expect(state.events).toEqual(["str"]);
+});
+
+it.each([["", "object.__format__() takes exactly one argument (0 given)"], ["1", "__format__() argument must be str, not int"], ["'',1", "object.__format__() takes exactly one argument (2 given)"], ["x=1", "object.__format__() takes no keyword arguments"]])("validates base object format arguments: %s", (args, message) => {
+  expect(() => fixture().run(`object.__format__([]${args ? "," + args : ""})\n`)).toThrow(message);
+});
+
+it("reads live list storage while guest element repr mutates it", () => {
+  const state = fixture();
+  state.run("class Member:\n def __repr__(self):\n  items.append(2)\n  return 'member'\nclass Child(type([])):\n pass\nitems=Child([Member()])\nresult=items.__repr__()\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("[member, 2]"));
+});
+
+it("restores shared list repr guards after original guest errors", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.builtins.set("recover", state.v.builtinFunction({ name: "recover", invoke(args, _keywords, _meter, invocation) {
+    if (invocation === undefined) throw Error("expected invocation");
+    let thrown: unknown;
+    try { invocation.call(args[0], []); } catch (error) { thrown = error; }
+    expect(thrown).toBe(failure);
+    return invocation.call(args[0], []);
+  } }));
+  state.run("class Member:\n def __init__(self):\n  self.first=True\n def __repr__(self):\n  if self.first:\n   self.first=False\n   fail()\n  return 'ok'\nclass Child(type([])):\n pass\nitems=Child([Member()])\nresult=recover(items.__repr__)\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("[ok]")); expect(state.calls.depth).toBe(0);
+});
+
+it("exposes canonical list repr metadata and argument errors", () => {
+  const state = fixture(); state.run("items=[]\nmethod=items.__repr__\nreceiver=method.__self__ is items\n");
+  expect(state.globals.get("receiver")).toBe(state.v.true);
+  expect(() => state.run("method(1)\n")).toThrow("expected 0 arguments, got 1");
+  expect(() => state.run("method(x=1)\n")).toThrow("wrapper __repr__() takes no keyword arguments");
+});
+
 it("allocates list subclasses with native contents and independent instance dictionaries", () => {
   const state = fixture();
   state.run("list_type=type([])\nclass Child(list_type):\n pass\nitems=Child([1,2])\nitems.label=7\nitems.append(3)\ncorrect=type(items) is Child\nlabel=items.label\nresult=0\nfor item in items:\n result=result*10+item\n");

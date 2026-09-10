@@ -82,6 +82,8 @@ export interface BuiltinInvocationContext {
   identityHash?(value: RuntimeValue): bigint;
   /** Native outer hash slot with normal guest hashing for nested members. */
   nativeHash?(value: RuntimeValue): bigint;
+  /** Native list repr with active guest elements and shared recursion state. */
+  nativeListRepr?(value: RuntimeValue): RuntimeValue;
   formatting?: FormatContext<RuntimeValue>;
   /** Type-MRO presence only, without binding a descriptor. */
   hasSpecial?(object: RuntimeValue, name: string): boolean;

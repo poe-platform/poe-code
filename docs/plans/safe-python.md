@@ -8701,6 +8701,25 @@ extension, integration, or validation requirement is missing or unverified.
   Prior 195 exact-list arithmetic, 560 guest comparison and 2,028 native
   comparison cases still pass. Final selected build, typecheck, scoped lint and
   all 6,689 tests in 493 files pass with two workers.
+- Published canonical list __repr__ with active guest element representation and
+  execution-owned recursion guards keyed by the guest receiver, not its hidden
+  native payload. Initial regressions reproduced missing subclass representation,
+  incorrect type-level lookup and bypassed guest elements. Explicit base calls
+  bypass only the outer override; nested overrides, live mutation, recursive
+  reentry and original exceptions share the existing list representation kernel.
+  Ordinary formatting differentials then exposed missing object.__format__;
+  installed its canonical method descriptor with native argument validation,
+  empty-spec str delegation, result identity and nonempty-spec errors. Fifteen
+  added tests cover these paths, including guard restoration within one execution.
+  All 80 list representation/formatting and 56 base-format descriptor cases match
+  CPython. Object str/repr publication, remaining native members, lifecycle and
+  other subclass audits, full catalogs and public execution remain unfinished.
+  Updated one older MRO-format assertion from absent-slot behavior to the
+  inherited object-format error, verified directly against CPython. Earlier 48
+  guest representation, 32 repr/ascii builtin, 96 format invocation/native-method
+  and 114 subclass slot differential cases still pass.
+  Verification: workspace build, typecheck and focused lint pass; all 6,704 unit
+  tests in 493 files pass with two workers. All 426 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

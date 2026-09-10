@@ -180,7 +180,7 @@ it.each(["method", "omitted", "f-string", "missing", "disabled", "invalid-result
     values: v, globals, builtins: new Map([["format", createFormatBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
     hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
   }, meter);
-  if (mode === "missing") expect(run).toThrow("Type Derived doesn't define __format__");
+  if (mode === "missing") expect(run).toThrow("unsupported format string passed to Derived.__format__");
   else if (mode === "disabled") expect(run).toThrow("'NoneType' object is not callable");
   else if (mode === "invalid-result") expect(run).toThrow("__format__ must return a str, not Derived");
   else { run(); expect(globals.get("result")).toEqual(v.string(mode === "omitted" ? "" : "guest")); }

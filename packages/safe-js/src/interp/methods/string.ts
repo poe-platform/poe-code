@@ -368,10 +368,6 @@ function callStringMethodBody(
       ]);
     }
 
-    if (args.some(isSandboxClosure)) {
-      throw new TypeError(`String#${methodName} does not support function arguments.`);
-    }
-
     switch (methodName) {
       case "concat":
         return budget.allocateString(value.concat(...args.map(String)));

@@ -39,6 +39,17 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["[member]<[needle]", "(member,)>(needle,)", "[[member]]<=[[needle]]", "(member,)>=(needle,)"])("preserves guest ordering results in %s", expression => {
+    const state = fixture(`result=${expression}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), ordered = v.cell({}), trace: string[] = [];
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(operator, left, right) {
+      if (left !== member || right !== needle) return undefined;
+      trace.push(operator);
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward: () => operator === "==" ? v.false : ordered, reflected: () => v.notImplemented } };
+    }, truth(value) { expect(value).toBe(v.false); return false; } });
+    state.run(); expect(state.globals.get("result")).toBe(ordered);
+    expect(trace[0]).toBe("=="); expect(trace.at(-1)).not.toBe("==");
+  });
   it.each(["[member]==[needle]", "(member,)==(needle,)", "{'k':member}=={'k':needle}", "[[member]]==[[needle]]"])("uses guest member equality in %s", expression => {
     const state = fixture(`result=${expression}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), truth = v.cell({}), trace: string[] = [];
     state.globals.set("member", member); state.globals.set("needle", needle);

@@ -122,11 +122,15 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     truth: context.truth.bind(context), integerIndex: bindings.integerIndex, bytes: bindings.bytes,
     translation: bindings.translation, buffers: bindings.buffers
   };
-  meter.checkpoint(0, 96);
+  meter.checkpoint(0, 160);
   const members = {
     equality(left: RuntimeValue, right: RuntimeValue) {
       const comparison = bindings.richComparison?.("==", left, right); meter.checkpoint();
       return comparison === undefined ? undefined : runtimeRichComparison("==", left, right, values, meter, comparison);
+    },
+    ordering(operator: string, left: RuntimeValue, right: RuntimeValue) {
+      const comparison = bindings.richComparison?.(operator, left, right); meter.checkpoint();
+      return comparison === undefined ? undefined : runtimeRichComparison(operator, left, right, values, meter, comparison);
     },
     truth: methods.truth
   };

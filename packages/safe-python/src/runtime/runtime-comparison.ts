@@ -11,6 +11,8 @@ export interface RuntimeComparisonContext {
   /** Undefined delegates to the native comparison stack, not recursive dispatch.
    * A supplied result comes from prepared guest equality slots. */
   equality?(left: RuntimeValue, right: RuntimeValue): RuntimeValue | undefined;
+  /** Lexicographic ordering returns the guest result without truth conversion. */
+  ordering?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue | undefined;
   truth?(value: RuntimeValue): boolean;
 }
 
@@ -45,7 +47,9 @@ function orderedResult(operator: string, order: number): boolean {
  * Logical task/continuation allocations are charged, but full heap and bigint
  * CPU accounting remain incomplete. Membership uses separate containment logic.
  */
-export function runtimeComparison(operator: string, left: RuntimeValue, right: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, maxDepth = 1000, context?: RuntimeComparisonContext): Extract<PrimitiveConstant, { kind: "bool" }> {
+export function runtimeComparison(operator: string, left: RuntimeValue, right: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, maxDepth?: number): Extract<PrimitiveConstant, { kind: "bool" }>;
+export function runtimeComparison(operator: string, left: RuntimeValue, right: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, maxDepth: number, context: RuntimeComparisonContext | undefined): RuntimeValue;
+export function runtimeComparison(operator: string, left: RuntimeValue, right: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, maxDepth = 1000, context?: RuntimeComparisonContext): RuntimeValue {
   meter.checkpoint();
   if (!Number.isSafeInteger(maxDepth) || maxDepth < 1) throw new RangeError("maximum comparison depth must be a positive safe integer");
   if (operator === "is" || operator === "is not") return values.boolean(operator === "is" ? left === right : left !== right);
@@ -59,6 +63,13 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
     const { operator: op, left: a, right: b, depth } = task;
+    if (depth > 0 && op !== "==" && op !== "!=" && context?.ordering !== undefined) {
+      if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
+      const guest = context.ordering(op, a, b); meter.checkpoint();
+      // Ordering tasks are terminal decisions: native containers return the
+      // first unequal pair's requested comparison directly, through all nesting.
+      if (guest !== undefined) return guest;
+    }
     if (depth > 0 && op === "==" && context?.equality !== undefined) {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       const guest = context.equality(a, b); meter.checkpoint();

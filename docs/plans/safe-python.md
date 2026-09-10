@@ -6925,6 +6925,16 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Uncoerced guest ordering results, remaining
   comparison protocols, automatic object assembly and broader interpreter/SDK/
   safe-fs integration remain unfinished.
+- Connected nested lexicographic ordering to prepared guest ordering slots.
+  First-unequal-pair ordering decisions return guest objects unchanged through
+  native nesting; equality probes still truth-convert. Native comparisons keep
+  boolean overloads, while guest-enabled comparisons expose RuntimeValue results.
+  Native traversal remains stack-based with depth and callback checkpoints.
+- Four failing compiled regressions now pass. All 5,250 tests in 441 files pass;
+  48 CPython comparisons match values/result identity, errors and operator traces
+  for list, tuple and nested-list ordering. Typecheck, scoped lint and selected
+  workspace build pass. Remaining comparison/object protocols, automatic object
+  assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

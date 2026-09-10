@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
 import { analyzeModule } from "../analysis.js";
+import { PythonSyntaxError } from "../source.js";
+import { PythonIndentationError, PythonTabError } from "../indentation.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { RuntimeValues, type RuntimeValue, type TypeValue } from "./runtime-values.js";
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
@@ -79,6 +81,47 @@ function exceptionFixture() {
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("converts structured parser diagnostics into native syntax exceptions",()=>{
+  const position={offset:20,line:3,column:4};
+  for(const error of [new PythonSyntaxError("bad","input.py",position),new PythonIndentationError("indent","input.py",position),new PythonTabError("input.py",position)]) {
+    const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));state.globals.set("Expected",state.registry.exceptionType(error instanceof PythonTabError?"TabError":error instanceof PythonIndentationError?"IndentationError":"SyntaxError"));state.globals.set("message",state.v.string(error.message));
+    state.builtins.set("parse",state.v.builtinFunction({name:"parse",invoke(){throw error;}}));
+    state.run("try:\n parse()\nexcept SyntaxError as error:\n correct=type(error) is Expected and error.args==(message,('input.py',3,5,None)) and error.msg==message and error.filename=='input.py' and error.lineno==3 and error.offset==5 and error.text is None and error.end_lineno is None and error.end_offset is None\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("catches actual parser failures during a nested runtime operation",()=>{
+  const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));
+  state.builtins.set("parse",state.v.builtinFunction({name:"parse",invoke(){analyzeModule("x = )",{filename:"nested.py"});return state.v.none;}}));
+  state.run("outer=ValueError('outer')\ntry:\n raise outer\nexcept ValueError:\n try:\n  parse()\n except SyntaxError as error:\n  correct=error.filename=='nested.py' and error.lineno==1 and error.offset==5 and error.__context__ is outer\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("preserves parser code-point columns across Unicode and physical newlines",()=>{
+  for(const source of ["x=1\n𝒙 = )","x=1\r\n𝒙 = )","x=1\r𝒙 = )"]) {
+    const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));
+    state.builtins.set("parse",state.v.builtinFunction({name:"parse",invoke(){analyzeModule(source,{filename:"unicode.py"});return state.v.none;}}));
+    state.run("try:\n parse()\nexcept SyntaxError as error:\n correct=error.lineno==2 and error.offset==5 and error.msg==\"unmatched ')'\"\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("classifies parser errors by their constructors rather than mutable names",()=>{
+  const state=exceptionFixture(),failure=new PythonTabError("tab.py",{offset:0,line:1,column:0});failure.name="ValueError";
+  expect(state.exceptions!.matches(failure,"TabError")).toBe(true);expect(state.exceptions!.matches(failure,"IndentationError")).toBe(true);expect(state.exceptions!.matches(failure,"SyntaxError")).toBe(true);expect(state.exceptions!.matches(failure,"Exception")).toBe(true);expect(state.exceptions!.matches(failure,"ValueError")).toBe(false);
+  state.globals.set("TabError",state.registry.exceptionType("TabError"));state.builtins.set("parse",state.v.builtinFunction({name:"parse",invoke(){throw failure;}}));
+  state.run("try:\n parse()\nexcept TabError:\n correct=True\n");expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("does not convert ordinary host syntax errors or termination signals",()=>{
+  for(const failure of [new SyntaxError("host"),Object.assign(Error("spoof"),{name:"SyntaxError",filename:"x.py",position:{offset:0,line:1,column:0}}),Object.assign(new ExecutionLimitError("cancelled"),{name:"SyntaxError"})]) {
+    const state=exceptionFixture();state.builtins.set("parse",state.v.builtinFunction({name:"parse",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("try:\n parse()\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
 
 it("constructs native syntax exception families with location fields",()=>{
   for(const name of ["SyntaxError","IndentationError","TabError"] as const) {

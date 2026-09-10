@@ -10040,6 +10040,21 @@ extension, integration, or validation requirement is missing or unverified.
   traceback display, other specialized exceptions, suspension and public
   interpreter/standard-library/safe-fs assembly remain unfinished.
   No push or release requested.
+- Parser diagnostic conversion (2026-09-10): failing regressions drove native
+  conversion of PythonSyntaxError/PythonIndentationError/PythonTabError during
+  runtime operations. Constructor identity, not mutable error names, determines
+  the native family. Filename, message, line and zero-based code-point column
+  become native fields and one-based offsets, and active exception chaining is
+  preserved. Ordinary host SyntaxError objects, spoofed structures and execution
+  limits remain fatal. Five focused regressions, 18 limited CPython position
+  comparisons and 167 prior syntax-exception comparisons pass. The selected
+  workspace build, typecheck, focused lint and all 7,236 tests in 503 files pass
+  in the uncached one-worker run (177.36s; bodies 9.74s). Parser
+  diagnostics currently lack source text/end spans, which remain None instead
+  of being invented. Full source-span enrichment, parser diagnostic parity,
+  public compile/exec assembly and traceback rendering remain unfinished, as do
+  the broader standard library, safe-fs and suspension work.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

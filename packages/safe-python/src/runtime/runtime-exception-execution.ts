@@ -1,5 +1,7 @@
 import type { Expression } from "../ast.js";
 import type { Statement } from "../statement-ast.js";
+import { PythonSyntaxError } from "../source.js";
+import { PythonIndentationError, PythonTabError } from "../indentation.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { HandledExceptionState } from "./exception-state.js";
@@ -57,7 +59,20 @@ export class RuntimeExceptionExecution {
     meter.checkpoint(0,32);
     return values.instance(type,()=>values.dictionary(type.value.namespace.items.emptyCopy()),storage);
   }
+  private parserType(error:PythonSyntaxError):"SyntaxError"|"IndentationError"|"TabError" {
+    return error instanceof PythonTabError?"TabError":error instanceof PythonIndentationError?"IndentationError":"SyntaxError";
+  }
   prepare(error:unknown):unknown {
+    if(error instanceof PythonSyntaxError) {
+      const {values,meter}=this;
+      meter.checkpoint(0,64);
+      const message=values.string(error.message),filename=values.string(error.filename),line=values.integer(error.position.line),offset=values.integer(error.position.column+1);
+      const details=values.tuple([filename,line,offset,values.none]);
+      const value=this.native(this.parserType(error),[message,details]),storage=runtimeExceptionPayload(value)!;
+      storage.assignMember("msg",message,meter);storage.assignMember("filename",filename,meter);
+      storage.assignMember("lineno",line,meter);storage.assignMember("offset",offset,meter);
+      return this.chain(value);
+    }
     if(!(error instanceof PythonRuntimeError)||!Object.hasOwn(standardExceptionCatalog,error.name))return error;
     const args=error instanceof PythonKeyError?error.args:[this.values.string(error.message)];
     const value=this.native(error.name as StandardExceptionName,args);
@@ -71,7 +86,7 @@ export class RuntimeExceptionExecution {
   }
   matches(error:unknown,name:string):boolean {
     if(name!=="BaseException"&&!Object.hasOwn(standardExceptionCatalog,name))return false;
-    const type=error instanceof RuntimeRaisedException?error.value.type:
+    const type=error instanceof RuntimeRaisedException?error.value.type:error instanceof PythonSyntaxError?this.registry.exceptionType(this.parserType(error)):
       error instanceof PythonRuntimeError&&Object.hasOwn(standardExceptionCatalog,error.name)?this.registry.exceptionType(error.name as StandardExceptionName):undefined;
     if(type===undefined)return false;
     const target=this.registry.exceptionType(name as StandardExceptionName|"BaseException").value;

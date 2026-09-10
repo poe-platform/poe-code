@@ -260,12 +260,16 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter)) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
+        else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, (object, name, change) => {
+          if (change.kind === "set") statementHooks.setAttribute(object, name, change.value);
+        });
         else statementHooks.setAttribute(object, name, value);
       },
       deleteAttribute(object, name) {
         if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "delete" }, values, meter)) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
+        else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, (object, name) => statementHooks.deleteAttribute(object, name));
         else statementHooks.deleteAttribute(object, name);
       },
       attribute: (object, name) => expressions.attribute(object, name),

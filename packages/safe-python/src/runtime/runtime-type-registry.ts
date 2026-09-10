@@ -31,6 +31,8 @@ import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from ".
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 import { installRuntimeDictionaryViewSlots } from "./runtime-dictionary-view-slots.js";
 import { createMappingProxyNewBuiltin } from "./builtin-mapping-proxy-new.js";
+import { createSliceNewBuiltin } from "./builtin-slice-new.js";
+import { installRuntimeSliceSlots } from "./runtime-slice-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
@@ -77,6 +79,7 @@ export class RuntimeTypeRegistry {
   #dictionaryType: TypeValue | undefined;
   readonly #dictionaryViews = new Map<"dict_keys" | "dict_values" | "dict_items", TypeValue>();
   #mappingProxyType: TypeValue | undefined;
+  #sliceType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -257,6 +260,20 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods("dict", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#dictionaryType = type;
+    return type;
+  }
+
+  sliceType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#sliceType !== undefined) return this.#sliceType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("slice", [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false });
+    const type = this.values.type(layout, this.type, { immutable: true, keywordValidation: "callee" });
+    namespace.items.set(this.values.string("__new__"), createSliceNewBuiltin(type, this.values, this.meter));
+    namespace.items.set(this.values.string("__doc__"), this.values.string("slice(stop)\nslice(start, stop[, step])\n\nCreate a slice object.\n\nThis is used for extended slicing (e.g. a[0:10:2])."));
+    installRuntimeSliceSlots(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#sliceType = type;
     return type;
   }
 

@@ -41,6 +41,7 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
       if (value.kind === "dict") return registry.dictionaryType();
       if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return registry.dictionaryViewType(value.kind);
       if (value.kind === "mappingproxy") return registry.mappingProxyType();
+      if (value.kind === "slice") return registry.sliceType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -54,6 +55,27 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("constructs canonical slices without coercing components", () => {
+  const state = fixture(); state.globals.set("Slice", state.registry.sliceType());
+  state.run("class Component:\n def __index__(self):\n  visit('index')\n  return 1\npart=Component()\na=Slice(part)\nb=Slice(part,2)\nc=Slice(part,2,0)\ncorrect=type(a) is Slice and a.start is None and a.stop is part and a.step is None and b.start is part and b.stop==2 and c.step==0 and Slice.__new__.__self__ is Slice\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual([]);
+  expect(() => state.run("Slice()\n")).toThrow("slice expected at least 1 argument, got 0");
+  expect(() => state.run("Slice(1,2,3,4)\n")).toThrow("slice expected at most 3 arguments, got 4");
+  expect(() => state.run("Slice(**{1:2})\n")).toThrow("slice() takes no keyword arguments");
+  expect(() => state.run("class Child(Slice):\n pass\n")).toThrow("type 'slice' is not an acceptable base type");
+});
+
+it("publishes read-only slice component members", () => {
+  const state = fixture(); state.globals.set("Slice", state.registry.sliceType());
+  state.run("s=Slice(1,2,3)\ncorrect=Slice.start.__get__(s)==1 and Slice.stop.__get__(s)==2 and Slice.step.__get__(s)==3 and Slice.start.__objclass__ is Slice\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(() => state.run("s.start=4\n")).toThrow("readonly attribute");
+  expect(() => state.run("del s.stop\n")).toThrow("readonly attribute");
+  expect(() => state.run("Slice.step.__set__(s,4)\n")).toThrow("readonly attribute");
+  expect(() => state.run("object.__setattr__(s,'start',4)\n")).toThrow("readonly attribute");
+  expect(() => state.run("object.__delattr__(s,'stop')\n")).toThrow("readonly attribute");
+});
 
 it("represents slices using guest repr slots in component order", () => {
   const state = fixture();

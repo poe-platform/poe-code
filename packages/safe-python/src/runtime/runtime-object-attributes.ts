@@ -5,7 +5,9 @@ import { readInstanceAttribute } from "./instance-attributes.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
 import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
 import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
-import type { RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { lookupMroAttribute } from "./class-attributes.js";
+import { mutateRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
 import { hasRuntimeInstanceAttributes, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Default object lookup bypasses getattribute/getattr. A class is treated as a
@@ -29,5 +31,11 @@ export function runtimeMutateObjectAttribute(object: RuntimeValue, name: string,
   if (hasRuntimeInstanceAttributes(object)) { runtimeMutateInstanceAttribute(object, name, change, values, meter, special); return; }
   if (object.kind === "type") throw new PythonRuntimeError("TypeError", `can't apply this __${change.kind === "set" ? "setattr" : "delattr"}__ to ${object.metaclass.value.name} object`);
   if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, change, values, meter)) return;
+  const type = runtimeActualType(object, special, meter);
+  const descriptor = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
+  if (descriptor?.kind === "member_descriptor" || descriptor?.kind === "getset_descriptor") {
+    mutateRuntimeGetsetDescriptor(descriptor, object, change, meter, special.invocation);
+    return;
+  }
   native(object, name, change); meter.checkpoint();
 }

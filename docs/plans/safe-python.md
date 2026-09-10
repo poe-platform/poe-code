@@ -9205,6 +9205,18 @@ extension, integration, or validation requirement is missing or unverified.
   files pass. Canonical slice allocation, descriptors and the broader interpreter,
   native catalog and safe-fs execution work remain unfinished. No push or release
   was requested.
+- Canonical slice allocation and members (2026-09-10): two integration tests
+  reproduced the missing type and host-fallback mutation of immutable components.
+  Added a lazy immutable, non-subclassable slice type, its fixed-owner allocator,
+  native repr wrapper, and start/stop/step member descriptors. Allocation retains
+  arbitrary components and zero steps without index coercion. Native default
+  mutation now checks intrinsic data descriptors before host hooks, including
+  explicit object setattr/delattr calls. All 192 constructor/member cases and
+  3,072 representation cases match CPython. Workspace build, typecheck, focused
+  lint and all 6,926 package tests in 493 files pass. Slice indices, comparison,
+  hash and reduce descriptors, the remaining native catalog, full interpreter
+  execution and safe-fs integration remain unfinished. No push or release was
+  requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

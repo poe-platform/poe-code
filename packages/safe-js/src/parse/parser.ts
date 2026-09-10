@@ -4920,37 +4920,21 @@ function createTemplateLiteral(
   const raw = token.value;
   const expressions: Expression[] = [];
   const quasis: TemplateElement[] = [];
-  let cursor = 1;
   let quasiStart = 1;
 
-  while (cursor < raw.length - 1) {
-    const char = raw[cursor];
-
-    if (char === "\\") {
-      cursor = skipEscapedCharacter(raw, cursor);
-      continue;
-    }
-
-    if (char === "$" && raw[cursor + 1] === "{") {
-      quasis.push(createTemplateElement(token.start, raw, quasiStart, cursor, false, options));
-      const expressionStart = cursor + 2;
-      const expressionEnd = findTemplateExpressionEnd(raw, expressionStart);
-      expressions.push(
-        parseEmbeddedExpression(
-          raw.slice(expressionStart, expressionEnd),
-          positionWithinRaw(token.start, raw, expressionStart),
-          options.functionContext,
-          options.lexicalContext,
-          options.source,
-          compilation
-        )
-      );
-      quasiStart = expressionEnd + 1;
-      cursor = expressionEnd + 1;
-      continue;
-    }
-
-    cursor += 1;
+  for (const { start: expressionStart, end: expressionEnd } of token.templateExpressions ?? []) {
+    quasis.push(createTemplateElement(token.start, raw, quasiStart, expressionStart - 2, false, options));
+    expressions.push(
+      parseEmbeddedExpression(
+        raw.slice(expressionStart, expressionEnd),
+        positionWithinRaw(token.start, raw, expressionStart),
+        options.functionContext,
+        options.lexicalContext,
+        options.source,
+        compilation
+      )
+    );
+    quasiStart = expressionEnd + 1;
   }
 
   quasis.push(createTemplateElement(token.start, raw, quasiStart, raw.length - 1, true, options));
@@ -5160,129 +5144,6 @@ function isValidUnicodeEscape(value: string, start: number): boolean {
 
   const hex = value.slice(index, index + 4);
   return hex.length === 4 && [...hex].every(isHexDigit);
-}
-
-function findTemplateExpressionEnd(raw: string, start: number): number {
-  let depth = 1;
-  let index = start;
-
-  while (index < raw.length - 1) {
-    const char = raw[index];
-
-    if (char === "'" || char === '"') {
-      index = skipQuotedString(raw, index, char);
-      continue;
-    }
-
-    if (char === "`") {
-      index = skipNestedTemplate(raw, index);
-      continue;
-    }
-
-    if (char === "/" && raw[index + 1] === "/") {
-      index = skipLineComment(raw, index);
-      continue;
-    }
-
-    if (char === "/" && raw[index + 1] === "*") {
-      index = skipBlockComment(raw, index);
-      continue;
-    }
-
-    if (char === "{") {
-      depth += 1;
-      index += 1;
-      continue;
-    }
-
-    if (char === "}") {
-      depth -= 1;
-      if (depth === 0) {
-        return index;
-      }
-      index += 1;
-      continue;
-    }
-
-    index += 1;
-  }
-
-  throw new Error(`Unterminated template literal at line ${1}, column ${raw.length}.`);
-}
-
-function skipQuotedString(raw: string, start: number, quote: string): number {
-  let index = start + 1;
-
-  while (index < raw.length) {
-    const char = raw[index];
-    if (char === "\\") {
-      index = skipEscapedCharacter(raw, index);
-      continue;
-    }
-    if (char === quote) {
-      return index + 1;
-    }
-    index += 1;
-  }
-
-  return index;
-}
-
-function skipNestedTemplate(raw: string, start: number): number {
-  let index = start + 1;
-
-  while (index < raw.length) {
-    const char = raw[index];
-    if (char === "\\") {
-      index = skipEscapedCharacter(raw, index);
-      continue;
-    }
-    if (char === "`") {
-      return index + 1;
-    }
-    if (char === "$" && raw[index + 1] === "{") {
-      index = findTemplateExpressionEnd(raw, index + 2) + 1;
-      continue;
-    }
-    index += 1;
-  }
-
-  return index;
-}
-
-function skipLineComment(raw: string, start: number): number {
-  let index = start + 2;
-  while (index < raw.length && raw[index] !== "\n" && raw[index] !== "\r") {
-    index += 1;
-  }
-  return index;
-}
-
-function skipBlockComment(raw: string, start: number): number {
-  let index = start + 2;
-  while (index < raw.length - 1) {
-    if (raw[index] === "*" && raw[index + 1] === "/") {
-      return index + 2;
-    }
-    index += 1;
-  }
-  return raw.length;
-}
-
-function skipEscapedCharacter(raw: string, start: number): number {
-  const next = raw[start + 1];
-  if (next === "\r") {
-    if (raw[start + 2] === "\n") {
-      return start + 3;
-    }
-    return start + 2;
-  }
-
-  if (next === "\n") {
-    return start + 2;
-  }
-
-  return Math.min(start + 2, raw.length);
 }
 
 function decodeEscapedText(value: string, allowLegacy = false): string {

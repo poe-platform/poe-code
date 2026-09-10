@@ -22,6 +22,7 @@ export type Token = {
   type: TokenType;
   value: string;
   legacyEscape?: boolean;
+  templateExpressions?: ReadonlyArray<{ start: number; end: number }>;
   start: Position;
   end: Position;
 };
@@ -353,6 +354,7 @@ class Lexer {
   }
 
   private readTemplate(start: Position): void {
+    const expressions: Array<{ start: number; end: number }> = [];
     this.advance();
 
     while (!this.isAtEnd()) {
@@ -361,6 +363,7 @@ class Lexer {
       if (char === "`") {
         this.advance();
         this.pushToken("template", start, this.source.slice(start.offset, this.index));
+        this.tokens[this.tokens.length - 1]!.templateExpressions = expressions;
         return;
       }
 
@@ -374,6 +377,10 @@ class Lexer {
         this.advance();
         this.advance();
         this.skipTemplateExpression(expressionStart);
+        expressions.push({
+          start: expressionStart.offset + 2 - start.offset,
+          end: this.index - 1 - start.offset
+        });
         continue;
       }
 

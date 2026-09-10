@@ -1,5 +1,5 @@
 import type { ContainmentContext } from "./containment-protocol.js";
-import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import { runtimeTruth } from "./runtime-truth.js";
@@ -20,7 +20,13 @@ export function createRuntimeContainmentPolicy(values: RuntimeValues, meter: Exe
     meter.checkpoint(0, 832);
     context = {
       lookupContains(value) {
-        const method = invocation.lookupSpecial?.(value, "__contains__"); meter.checkpoint();
+        let method: RuntimeValue | undefined;
+        try { method = invocation.lookupSpecial?.(value, "__contains__"); }
+        catch (error) {
+          if (!runtimeExceptionMatches(error, "AttributeError", invocation)) throw error;
+          return undefined;
+        }
+        meter.checkpoint();
         if (method === undefined) return undefined;
         if (method === values.none) return null;
         meter.checkpoint(0, 64);
@@ -39,7 +45,7 @@ export function createRuntimeContainmentPolicy(values: RuntimeValues, meter: Exe
         const result = invocation.compare("==", member, needle); meter.checkpoint(); return result;
       },
       truth: invocation.truth?.bind(invocation) ?? (value => runtimeTruth(value, meter)),
-      isTypeError: error => error instanceof PythonRuntimeError && error.name === "TypeError"
+      isTypeError: error => runtimeExceptionMatches(error, "TypeError", invocation)
     };
     return context;
   };

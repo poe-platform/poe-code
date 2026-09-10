@@ -9962,6 +9962,21 @@ extension, integration, or validation requirement is missing or unverified.
   four cases are not passing comparisons. Broader runtime assembly, safe-fs,
   suspension and remaining exception families/metadata remain unfinished.
   No push or release requested.
+- Hash/containment exception integration (2026-09-10): failing regressions drove
+  guest-aware missing hash descriptors, missing containment descriptor fallback
+  and TypeError normalization during containment iterator acquisition. Optional
+  descriptor lookup is distinct from method invocation: hash/contains method
+  errors and later next/index/equality/truth failures still propagate unchanged.
+  Host exceptions, spoofed names and execution limits remain fatal. All 48
+  targeted CPython comparisons and 98 prior class-namespace comparisons pass.
+  The selected workspace build, typecheck, focused lint and all 7,211 tests in
+  503 files pass in the uncached one-worker package run (160.87s; bodies 10.70s).
+  A separate 24-case read-only sequence-consumer audit confirms eight remaining
+  TypeError diagnostic mismatches during iterator binding/calling for string and
+  bytes join and ordinary/extended list slice assignment; later iteration errors
+  match. Those eight cases are next work, not passing comparisons. The broader
+  unfinished runtime/standard-library/safe-fs assembly remains under audit.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

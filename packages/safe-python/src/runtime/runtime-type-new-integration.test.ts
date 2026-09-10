@@ -79,6 +79,50 @@ function exceptionFixture() {
   return state;
 }
 
+it("reports missing guest hash descriptors as unhashable",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));state.builtins.set("hash",createHashBuiltin(state.v,state.meter,state.hash));
+  state.run("class Missing(AttributeError):\n pass\nclass Hook:\n def __get__(self,instance,owner):\n  raise Missing('hash')\nclass Item:\n __hash__=Hook()\ntry:\n hash(Item())\nexcept BaseException as error:\n correct=type(error) is TypeError and error.args==(\"unhashable type: 'Item'\",)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("falls back to iteration for missing guest containment descriptors",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Missing(AttributeError):\n pass\nclass Hook:\n def __get__(self,instance,owner):\n  raise Missing('contains')\nclass Item:\n __contains__=Hook()\n def __getitem__(self,index):\n  return (1,2)[index]\ncorrect=2 in Item() and 3 not in Item()\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("normalizes guest TypeError during containment iterator acquisition",()=>{
+  for(const hook of ["class Item:\n def __iter__(self):\n  raise Failure('iter')\n","class Hook:\n def __get__(self,instance,owner):\n  raise Failure('iter')\nclass Item:\n __iter__=Hook()\n"]) {
+    const state=exceptionFixture();
+    state.run("class Failure(TypeError):\n pass\n"+hook+"try:\n result=1 in Item()\nexcept BaseException as error:\n correct=type(error) is TypeError and error.args==(\"argument of type 'Item' is not a container or iterable\",)\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("preserves guest failures after hash and containment slot binding",()=>{
+  const cases=[
+    ["AttributeError","class Item:\n def __hash__(self):\n  raise original\n","hash(Item())"],
+    ["AttributeError","class Item:\n def __contains__(self,value):\n  raise original\n","1 in Item()"],
+    ["TypeError","class Item:\n def __iter__(self):\n  return self\n def __next__(self):\n  raise original\n","1 in Item()"],
+    ["TypeError","class Item:\n def __getitem__(self,index):\n  raise original\n","1 in Item()"],
+    ["TypeError","class Result:\n def __bool__(self):\n  raise original\nclass Item:\n def __contains__(self,value):\n  return Result()\n","1 in Item()"]
+  ];
+  for(const [name,body,expression] of cases) {
+    const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));state.builtins.set("hash",createHashBuiltin(state.v,state.meter,state.hash));
+    state.run(`original=${name}('original')\n`+body+`try:\n result=${expression}\nexcept BaseException as error:\n correct=error is original\n`);
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("preserves host failures while binding hash and containment protocols",()=>{
+  for(const slot of ["hash","contains","iter"])for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:slot==="iter"?"TypeError":"AttributeError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.builtins.set("hash",createHashBuiltin(state.v,state.meter,state.hash));state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;
+    try{state.run(`class Hook:\n def __get__(self,instance,owner):\n  fail()\nclass Item:\n __${slot}__=Hook()\ntry:\n result=${slot==="hash"?"hash(Item())":"1 in Item()"}\nexcept BaseException:\n visit('caught')\n`);}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
 it("treats guest AttributeError from nonclass base lookup as missing MRO entries",()=>{
   const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
   state.run("class Missing(AttributeError):\n pass\nclass Base:\n def __getattribute__(self,name):\n  raise Missing(name)\ntry:\n type('C',(Base(),),{})\nexcept BaseException as error:\n correct=type(error) is TypeError and error.args==('metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases',)\n");

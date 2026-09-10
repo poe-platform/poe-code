@@ -1,6 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeHashContext } from "./runtime-hash.js";
-import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext } from "./runtime-values.js";
 import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 
@@ -28,7 +28,7 @@ export function createRuntimeHashContext(base: RuntimeHashContext, meter: Execut
           try { method = invocation.lookupSpecial!(value, "__hash__"); }
           catch (error) {
             meter.checkpoint();
-            if (error instanceof PythonRuntimeError && error.name === "AttributeError") return null;
+            if (runtimeExceptionMatches(error, "AttributeError", invocation)) return null;
             throw error;
           }
           meter.checkpoint();

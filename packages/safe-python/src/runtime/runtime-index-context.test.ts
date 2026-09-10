@@ -15,3 +15,16 @@ it.each(["lookup", "call", "warning"])("checks cancellation after index %s callb
   const context = createRuntimeIndexContext(invocation, meter);
   expect(() => integerIndex(receiver, context, meter)).toThrow(ExecutionLimitError);
 });
+
+it("rejects exact native non-index operands without querying the guest type policy", () => {
+  const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }), v = new RuntimeValues(meter);
+  const context = createRuntimeIndexContext({
+    lookupSpecial(): never { throw Error("must not query native slots"); },
+    typeName(): never { throw Error("must not query native type names"); },
+    call: () => v.none, isStopIteration: () => false
+  }, meter);
+  for (const value of [v.float(1.5), v.string("1"), v.none, v.list([]), v.tuple([])]) {
+    const name = value.kind === "none" ? "NoneType" : value.kind;
+    expect(() => integerIndex(value, context, meter)).toThrow(`'${name}' object cannot be interpreted as an integer`);
+  }
+});

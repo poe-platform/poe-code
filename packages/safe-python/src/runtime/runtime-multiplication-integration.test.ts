@@ -12,6 +12,8 @@ import { createRepresentationBuiltin } from "./builtin-representation.js";
 import { createSumBuiltin } from "./builtin-sum.js";
 import { createPowBuiltin } from "./builtin-pow.js";
 import { createDivmodBuiltin } from "./builtin-divmod.js";
+import { createIterBuiltin, createNextBuiltin } from "./builtin-iteration.js";
+import { PythonRuntimeError } from "./error.js";
 import { CallStack } from "./call-stack.js";
 
 function fixture(signal?: AbortSignal) {
@@ -1009,4 +1011,151 @@ it("rejects cancelled compiled comparisons without assigning results", () => {
   state.method(owner, "__eq__", "def equal(self, other):\n stop()\n return False\n");
   state.guest("guest", owner);
   expect(() => state.run("result=guest==7\n")).toThrow("execution cancelled"); expect(state.globals.has("result")).toBe(false);
+});
+
+it("iterates inherited compiled methods in a nested frame", () => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("Derived", base), cursorType = state.type("Cursor"), v = state.v;
+  state.method(base, "__iter__", "def iterate(self):\n visit('iter')\n return cursor\n");
+  state.method(cursorType, "__next__", "def advance(self):\n visit('next')\n return pull()\n");
+  let index = 0;
+  state.globals.set("pull", v.builtinFunction({ name: "pull", invoke() { if (index === 2) throw new PythonRuntimeError("StopIteration", "done"); return v.integer(++index); } }));
+  state.guest("source", owner); state.guest("cursor", cursorType);
+  state.run("def collect():\n result=[]\n for item in source:\n  result += [item]\n return result\nresult=collect()\n");
+  const result = state.globals.get("result"); expect(result?.kind).toBe("list");
+  if (result?.kind === "list") expect(result.items.snapshot()).toEqual([v.integer(1), v.integer(2)]);
+  expect(state.events).toEqual(["iter", "next", "next", "next"]);
+});
+
+it("shares guest iterator identity with iter and next builtins", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("iter", createIterBuiltin(v, state.meter)); state.globals.set("next", createNextBuiltin(v, state.meter));
+  state.method(owner, "__iter__", "def iterate(self):\n return self\n");
+  state.method(owner, "__next__", "def advance(self):\n return False\n");
+  const guest = state.guest("guest", owner); state.run("cursor=iter(guest)\nresult=next(cursor)\n");
+  expect(state.globals.get("cursor")).toBe(guest); expect(state.globals.get("result")).toBe(v.false);
+});
+
+it("uses compiled indexed fallback when __iter__ is absent", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.method(owner, "__getitem__", "def item(self, index):\n visit('item')\n return fetch(index)\n");
+  state.globals.set("fetch", v.builtinFunction({ name: "fetch", invoke(args) { if (args[0].kind !== "int") throw Error("expected index"); if (args[0].value === 2n) throw new PythonRuntimeError("IndexError", "end"); return args[0]; } }));
+  state.guest("guest", owner); state.run("result=[]\nfor item in guest:\n result += [item]\n");
+  const result = state.globals.get("result"); expect(result?.kind).toBe("list");
+  if (result?.kind === "list") expect(result.items.snapshot()).toEqual([v.integer(0), v.integer(1)]);
+  expect(state.events).toEqual(["item", "item", "item"]);
+});
+
+it("rejects disabled iteration before indexed fallback", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("iter", createIterBuiltin(v, state.meter));
+  owner.value.namespace.items.set(v.string("__iter__"), v.none);
+  state.method(owner, "__getitem__", "def item(self, index):\n visit('item')\n return False\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=iter(guest)\n")).toThrow("'Guest' object is not iterable"); expect(state.events).toEqual([]);
+});
+
+it("rejects a guest __iter__ returning a non-iterator", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("iter", createIterBuiltin(v, state.meter));
+  state.method(owner, "__iter__", "def iterate(self):\n return []\n"); state.guest("guest", owner);
+  expect(() => state.run("result=iter(guest)\n")).toThrow("iter() returned non-iterator of type 'list'");
+});
+
+it("accepts native cursors returned by guest iterators and preserves exhaustion metadata", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v, stop = new PythonRuntimeError("StopIteration", "payload");
+  state.globals.set("iter", createIterBuiltin(v, state.meter)); state.globals.set("next", createNextBuiltin(v, state.meter));
+  const cursor = v.iterator({ next: () => ({ done: true, value: undefined, exception: { value: stop } }) });
+  state.globals.set("native", cursor); state.method(owner, "__iter__", "def iterate(self):\n return native\n"); state.guest("guest", owner);
+  state.run("cursor=iter(guest)\n"); expect(state.globals.get("cursor")).toBe(cursor);
+  expect(() => state.run("next(cursor)\n")).toThrow(stop);
+  state.run("result=next(cursor, False)\n"); expect(state.globals.get("result")).toBe(v.false);
+});
+
+it("unpacks guest iterables into function arguments", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("native", v.iterator([v.integer(2), v.integer(3)].values()));
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return native\n"); state.guest("guest", owner);
+  state.run("def add(a,b):\n return a+b\nresult=add(*guest)\n"); expect(state.globals.get("result")).toEqual(v.integer(5)); expect(state.events).toEqual(["iter"]);
+});
+
+it("requests source hints for list extension only after acquiring its iterator", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("native", v.iterator([v.false].values()));
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return native\n");
+  state.method(owner, "__length_hint__", "def hint(self):\n visit('hint')\n return 2\n"); state.guest("guest", owner);
+  state.run("result=[]\nresult+=guest\n");
+  const result = state.globals.get("result"); if (result?.kind !== "list") throw Error("expected list");
+  expect(result.items.snapshot()).toEqual([v.false]); expect(state.events).toEqual(["iter", "hint"]);
+});
+
+it("does not request hints or close an iterator when a for loop breaks", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return self\n");
+  state.method(owner, "__next__", "def advance(self):\n visit('next')\n return False\n");
+  state.method(owner, "__len__", "def length(self):\n visit('length')\n return 1\n");
+  state.method(owner, "__length_hint__", "def hint(self):\n visit('hint')\n return 1\n");
+  state.method(owner, "close", "def close(self):\n visit('close')\n"); state.guest("guest", owner);
+  state.run("for result in guest:\n break\n"); expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["iter", "next"]);
+});
+
+it("accepts next-slot presence but fails when a disabled next method is called", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("iter", createIterBuiltin(v, state.meter)); state.globals.set("next", createNextBuiltin(v, state.meter));
+  state.method(owner, "__iter__", "def iterate(self):\n return self\n"); owner.value.namespace.items.set(v.string("__next__"), v.none);
+  const guest = state.guest("guest", owner); state.run("cursor=iter(guest)\n"); expect(state.globals.get("cursor")).toBe(guest);
+  expect(() => state.run("next(cursor)\n")).toThrow("'NoneType' object is not callable");
+});
+
+it("does not latch exhaustion for custom guest next methods", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("next", createNextBuiltin(v, state.meter));
+  state.globals.set("stop", v.builtinFunction({ name: "stop", invoke() { throw new PythonRuntimeError("StopIteration", "done"); } }));
+  state.method(owner, "__next__", "def advance(self):\n visit('next')\n return stop()\n"); state.guest("guest", owner);
+  state.run("first=next(guest, False)\nsecond=next(guest, None)\n");
+  expect(state.globals.get("first")).toBe(v.false); expect(state.globals.get("second")).toBe(v.none); expect(state.events).toEqual(["next", "next"]);
+});
+
+it("requires sequence-table eligibility for legacy indexed iteration", () => {
+  const state = fixture(), owner = state.type("NativeLike", undefined, { sequenceTable: false }), v = state.v;
+  state.globals.set("iter", createIterBuiltin(v, state.meter));
+  state.method(owner, "__getitem__", "def item(self,index):\n visit('item')\n return False\n"); state.guest("guest", owner);
+  expect(() => state.run("iter(guest)\n")).toThrow("'NativeLike' object is not iterable"); expect(state.events).toEqual([]);
+});
+
+it("retains native invalid-iteration diagnostics without guest type lookup", () => {
+  const state = fixture(), v = state.v;
+  state.globals.set("iter", createIterBuiltin(v, state.meter)); state.globals.set("next", createNextBuiltin(v, state.meter));
+  expect(() => state.run("iter(7)\n")).toThrow("'int' object is not iterable");
+  expect(() => state.run("next(None)\n")).toThrow("'NoneType' object is not an iterator");
+});
+
+it("rejects cancellation after guest iterator acquisition before advancing", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest"), v = state.v;
+  state.globals.set("stop", v.builtinFunction({ name: "stop", invoke() { controller.abort(); return v.none; } }));
+  state.globals.set("native", v.iterator({ next(): never { throw Error("must not advance"); } }));
+  state.method(owner, "__iter__", "def iterate(self):\n stop()\n return native\n"); state.guest("guest", owner);
+  expect(() => state.run("for result in guest:\n pass\n")).toThrow("execution cancelled"); expect(state.globals.has("result")).toBe(false);
+});
+
+it("ignores a native non-index length result before trying an advisory hint", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("native", v.iterator([v.false].values()));
+  state.method(owner, "__iter__", "def iterate(self):\n visit('iter')\n return native\n");
+  state.method(owner, "__len__", "def length(self):\n visit('length')\n return 1.5\n");
+  state.method(owner, "__length_hint__", "def hint(self):\n visit('hint')\n return 2\n"); state.guest("guest", owner);
+  state.run("result=[]\nresult+=guest\n");
+  const result = state.globals.get("result"); if (result?.kind !== "list") throw Error("expected list");
+  expect(result.items.snapshot()).toEqual([v.false]); expect(state.events).toEqual(["iter", "length", "hint"]);
+});
+
+it.each(["for", "next"])("reports live removal of __next__ during %s consumption", consumer => {
+  const state = fixture(), owner = state.type("Cursor"), v = state.v;
+  state.globals.set("next", createNextBuiltin(v, state.meter));
+  state.globals.set("remove", v.builtinFunction({ name: "remove", invoke() { owner.value.namespace.items.delete(v.string("__next__")); return v.none; } }));
+  state.method(owner, "__iter__", "def iterate(self):\n return self\n");
+  state.method(owner, "__next__", "def advance(self):\n remove()\n return False\n"); state.guest("guest", owner);
+  expect(() => state.run(consumer === "for" ? "for result in guest:\n pass\n" : "result=next(guest)\nnext(guest)\n")).toThrow(
+    consumer === "for" ? "'Cursor' object is not iterable" : "'Cursor' object is not an iterator"
+  );
+  expect(state.globals.get("result")).toBe(v.false);
 });

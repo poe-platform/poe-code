@@ -7587,6 +7587,22 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and scoped lint pass. Complete native/guest class construction and
   storage ownership, native-subclass adapters, metaclass overrides, automatic
   iteration assembly and suspended safe-fs effects remain unfinished.
+- Added lazily cached frame iteration shared by loops, builtins and argument
+  expansion. Inherited __iter__/__next__ methods bind through the normal call
+  path; indexed fallback checks sequence-table eligibility. Native cursors keep
+  identity, custom next calls do not latch exhaustion, and advisory length/hint
+  lookup occurs only when requested. Seven regressions failed before their fixes,
+  including native non-index __len__ results and live next-slot removal. Exact
+  native non-index values now decline index conversion without guest type lookup;
+  this lets length-hint TypeError fallback run normally. Eighteen added tests cover
+  identity, disabled slots, indexed fallback, unpacking, hints, early exit,
+  exhaustion, native diagnostics, mutation and cancellation. All 120 compiled
+  iterator/sequence/consumer/hint cases match CPython; direct CPython probes also
+  verify lone-star hint omission and distinct loop/next deletion diagnostics.
+  All 5,817 tests in 451 files, selected build, typecheck and scoped lint pass.
+  Containment composition, native cursor hint/exhaustion audits, custom guest
+  exception-subclass matching, full class/storage ownership and suspended safe-fs
+  effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

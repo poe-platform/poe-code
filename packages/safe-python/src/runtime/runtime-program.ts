@@ -7,6 +7,7 @@ import { createRuntimeInvocationFormatContext } from "./runtime-invocation-forma
 import { createRuntimeNumericContext } from "./runtime-numeric-context.js";
 import { createRuntimePowerContext } from "./runtime-power-context.js";
 import { createRuntimeRichComparisonContext } from "./runtime-rich-comparison-context.js";
+import { createRuntimeIterationContext } from "./runtime-iteration-context.js";
 import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
 import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { executeFunctionDefinition } from "./function-definition.js";
@@ -80,7 +81,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const statementHooks = hooks.statements(frame); meter.checkpoint();
     const specialMethods = hooks.specialMethods?.(frame); meter.checkpoint();
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
-      iteration: expressionHooks.iteration,
+      get iteration() { return getIteration(); },
       values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
       callable: value => runtimeCallable(value, meter, hooks),
       invoke(value, positional, keywords) {
@@ -139,7 +140,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       isCallable: value => runtimeCallable(value, meter, hooks),
       binary: (operator, left, right) => expressions.binary(operator, left, right),
       get integerIndex() { return getIntegerIndex(); },
-      iteration: expressionHooks.iteration,
+      get iteration() { return getIteration(); },
       truth: value => expressions.truth(value),
       compare: (operator, left, right) => expressions.compare(operator, left, right),
       compareTruth(operator, left, right) {
@@ -159,6 +160,12 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       }
     };
     const power = expressionHooks.power ?? (specialMethods === undefined ? undefined : createRuntimePowerContext(values, meter, specialMethods, builtinCalls));
+    let iteration = expressionHooks.iteration;
+    const getIteration = () => {
+      meter.checkpoint();
+      iteration ??= specialMethods === undefined ? undefined : createRuntimeIterationContext(values, meter, specialMethods, builtinCalls);
+      return iteration;
+    };
     let integerIndex: IntegerIndexContext<RuntimeValue> | undefined, indexResolved = false;
     const getIntegerIndex = () => {
       meter.checkpoint();
@@ -207,7 +214,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeRichComparisonContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
       containment: expressionHooks.containment?.bind(expressionHooks),
-      iteration: expressionHooks.iteration,
+      get iteration() { return getIteration(); },
       get formatting() { return getFormatting(); },
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)

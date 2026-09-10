@@ -297,6 +297,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         return call.invoke();
       },
       isException: context.exceptions?.matches.bind(context.exceptions),
+      exceptionArguments: context.exceptions?.arguments.bind(context.exceptions),
       isStopIteration(error) {
         if (error instanceof ExecutionLimitError) return false;
         if (error instanceof PythonRuntimeError && error.name === "StopIteration") return true;

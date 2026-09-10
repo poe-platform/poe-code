@@ -9879,6 +9879,24 @@ extension, integration, or validation requirement is missing or unverified.
   exception-argument access and diagnostic formatting, not only classification;
   these cases are next work and are not counted as passing comparisons.
   No push or release requested.
+- Keyword exception arguments and diagnostics (2026-09-10): failing regressions
+  drove read-only native exception-argument access through the invocation policy.
+  One-argument guest KeyError becomes the duplicate-keyword TypeError; zero- and
+  multi-argument instances retain identity, including mixed KeyError/AttributeError
+  subclasses. Native args bypass overridable attributes and are read after frame
+  cleanup. Diagnostic keys use the shared str protocol, preserving guest failures
+  and avoiding repr when str exists. A further failing test exposed formatting
+  inside the mapping catch boundary; duplicate detection now transports its raw
+  key out of that boundary before formatting, so KeyError/AttributeError raised
+  by str cannot be reclassified as another mapping failure. Host failures and
+  execution limits remain uncatchable. All 65 focused CPython comparisons match,
+  including bare reraises during diagnostic formatting with and without an active
+  outer handler. The prior 144 protocol comparisons also match. The selected
+  workspace build, typecheck, focused lint and all 7,184 tests in 503 files pass
+  in the uncached one-worker package run.
+  Other native protocol catch sites, metadata, tracebacks, exception groups,
+  suspension and interpreter/safe-fs integration remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

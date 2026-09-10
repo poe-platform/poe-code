@@ -79,6 +79,46 @@ function exceptionFixture() {
   return state;
 }
 
+it("uses native KeyError arguments during keyword expansion despite attribute overrides",()=>{
+  const state=exceptionFixture();
+  state.run("class Args:\n def __get__(self,obj,owner):\n  visit('wrong')\n  raise ValueError('virtual args')\nclass Missing(KeyError):\n args=Args()\nclass Mapping:\n def keys(self):\n  return ['key']\n def __getitem__(self,key):\n  raise Missing('native')\ndef call(**kw):\n visit('body')\ntry:\n call(**Mapping())\nexcept TypeError as error:\n correct=error.args==(\"guest() got multiple values for keyword argument 'native'\",)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+});
+
+it("preserves zero and multiple KeyError arguments before other exception matches",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Mixed(KeyError,AttributeError):\n pass\nclass Mapping:\n def keys(self):\n  raise original\ndef call(**kw):\n visit('body')\nresults=[]\nfor args in [(),('a','b')]:\n original=Mixed(*args)\n try:\n  call(**Mapping())\n except Mixed as error:\n  results.append(error is original)\ncorrect=results==[True,True]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+});
+
+it("formats the original keyword-error argument through str without repr",()=>{
+  const state=exceptionFixture();
+  state.run("class Key:\n def __str__(self):\n  visit('str')\n  return 'display'\n def __repr__(self):\n  visit('repr')\n  raise ValueError\nclass Mapping:\n def keys(self):\n  raise KeyError(Key())\ndef call(**kw):\n visit('body')\ntry:\n call(**Mapping())\nexcept TypeError as error:\n correct=error.args==(\"guest() got multiple values for keyword argument 'display'\",)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["str"]);
+});
+
+it("preserves failures while formatting keyword-error arguments",()=>{
+  const state=exceptionFixture();
+  state.run("failure=ValueError('render')\nclass Key:\n def __str__(self):\n  raise failure\nclass Mapping:\n def keys(self):\n  raise KeyError(Key())\ndef call(**kw):\n visit('body')\ntry:\n call(**Mapping())\nexcept ValueError as error:\n correct=error is failure and error.__context__ is None\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+});
+
+it("does not reclassify guest rendering failures from real duplicate keyword keys",()=>{
+  for(const name of ["KeyError","AttributeError","ValueError"] as const) {
+    const state=exceptionFixture();state.globals.set("Failure",state.registry.exceptionType(name));
+    state.run("failure=Failure('render')\nclass Key:\n def __str__(self):\n  raise failure\nkey=Key()\ndef call(**kw):\n visit('body')\ntry:\n call(**{key:1},**{key:2})\nexcept Failure as error:\n correct=error is failure\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+  }
+});
+
+it("preserves host and execution-limit failures from keyword diagnostic formatting",()=>{
+  for(const operation of ["call(**Mapping())","call(**{key:1},**{key:2})"])for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"KeyError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("class Key:\n def __str__(self):\n  fail()\nkey=Key()\nclass Mapping:\n def keys(self):\n  raise KeyError(key)\ndef call(**kw):\n visit('body')\ntry:\n "+operation+"\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
 it("falls back to iterable pairs when mapping detection raises guest AttributeError",()=>{
   const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));state.globals.set("Dict",state.registry.dictionaryType());
   state.run("class Missing(AttributeError):\n pass\nclass Mapping:\n def __getattribute__(self,name):\n  if name=='keys':\n   raise Missing('keys')\n  return object.__getattribute__(self,name)\n def __iter__(self):\n  return [('key',42)].__iter__()\ncorrect=Dict(Mapping())=={'key':42}\n");

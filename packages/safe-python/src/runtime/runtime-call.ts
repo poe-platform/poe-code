@@ -12,6 +12,7 @@ import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js"
 import type { IterationContext } from "./protocol-iterator.js";
 import { mergeRuntimeMapping } from "./runtime-mapping-merge.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
+import { representationObject } from "./representation-protocol.js";
 
 export interface RuntimeCallContext {
   readonly values: RuntimeValues;
@@ -20,6 +21,8 @@ export interface RuntimeCallContext {
   readonly invocation?: BuiltinInvocationContext;
   /** Error-only guest formatting, including the callable's trailing (). */
   name(callee: RuntimeValue): string;
+  /** Diagnostic str fallback when no invocation formatting policy is supplied.
+   * Duplicate keys can be arbitrary objects; this is not keyword validation. */
   keywordName(key: RuntimeValue): string;
   /** Guest call-slot presence, queried only after all expansion succeeds. */
   callable(callee: RuntimeValue): boolean;
@@ -38,15 +41,24 @@ export interface RuntimeCallContext {
  * accounting and guest exception-object integration remain wider responsibilities.
  */
 export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallContext, meter: ExecutionMeter): ExpressionCall<RuntimeValue> {
-  meter.checkpoint(1, 256);
+  meter.checkpoint(1, 320);
   const positional: RuntimeValue[] = [];
   const keywords = context.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(context.keys, meter, runtimeDictionaryStorage));
   const duplicate = (key: RuntimeValue): never => {
     const name = context.name(callee); meter.checkpoint();
-    const keyword = context.keywordName(key);
+    const formatting=context.invocation?.formatting;
+    let keyword:string;
+    if(formatting===undefined)keyword=context.keywordName(key);
+    else {
+      const represented=representationObject(key,"str",formatting,meter);
+      keyword="";
+      for(const point of formatting.string(represented)!){meter.checkpoint(1,point>0xffff?4:2);keyword+=String.fromCodePoint(point);}
+    }
     meter.checkpoint();
     throw new PythonRuntimeError("TypeError", `${name} got multiple values for keyword argument '${keyword}'`);
   };
+  // Merge catches must finish before diagnostic formatting runs guest code.
+  const duplicateKey=(key:RuntimeValue):never=>{throw new PythonKeyError(key,meter);};
   return {
     positional(value) { meter.checkpoint(1, 8); positional.push(value); },
     starred(value, loneStar = false) {
@@ -69,12 +81,16 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
     mapping(value) {
       meter.checkpoint();
       try {
-        if (value.kind === "dict") keywords.items.update(value.items, duplicate);
-        else if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicate, { values: context.values, invocation: context.invocation });
-        else mergeRuntimeMapping(keywords, value, context.values, meter, context.invocation, context.iteration, duplicate);
+        if (value.kind === "dict") keywords.items.update(value.items, duplicateKey);
+        else if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicateKey, { values: context.values, invocation: context.invocation });
+        else mergeRuntimeMapping(keywords, value, context.values, meter, context.invocation, context.iteration, duplicateKey);
       } catch (error) {
         meter.checkpoint();
-        if (error instanceof PythonKeyError) duplicate(error.args[0]);
+        if (runtimeExceptionMatches(error,"KeyError",context.invocation)) {
+          const args=error instanceof PythonKeyError?error.args:context.invocation?.exceptionArguments?.(error);
+          if(args?.length===1)duplicate(args[0]);
+          throw error;
+        }
         if (!runtimeExceptionMatches(error,"AttributeError",context.invocation)) throw error;
         const type = hasRuntimeInstanceAttributes(value) ? diagnosticTypeName(value.type.value.name, meter, 200)
           : value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;

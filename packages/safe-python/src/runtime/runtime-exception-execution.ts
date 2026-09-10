@@ -78,6 +78,11 @@ export class RuntimeExceptionExecution {
     for(const base of type.value.mro){this.meter.checkpoint();if(base===target)return true;}
     return false;
   }
+  arguments(error:unknown):readonly RuntimeValue[]|undefined {
+    this.meter.checkpoint();
+    if(error instanceof RuntimeRaisedException)return runtimeExceptionPayload(error.value)?.args.items;
+    return error instanceof PythonKeyError?error.args:undefined;
+  }
   statements(frame:RuntimeFrame):NonNullable<StatementContext<RuntimeValue>["exceptions"]> {
     this.meter.checkpoint(0,160);
     return {

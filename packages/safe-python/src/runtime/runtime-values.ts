@@ -90,6 +90,9 @@ export interface BuiltinInvocationContext {
    * Ordinary host failures must remain false. Native operation faults may also
    * match a parent exception class through the execution's builtin catalogue. */
   isException?(error: unknown, name: string): boolean;
+  /** Borrow native exception args without virtual attribute lookup or copying.
+   * Undefined means this execution does not expose arguments for this carrier. */
+  exceptionArguments?(error: unknown): readonly RuntimeValue[] | undefined;
   /** Account for recursive native operations that do not enter a guest body.
    * Always invoke the returned unmetered restoration in a finally block. */
   enterRecursiveCall?(): () => void;

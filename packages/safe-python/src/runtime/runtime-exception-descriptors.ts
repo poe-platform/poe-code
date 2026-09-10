@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { createExceptionReduceDescriptor } from "./builtin-exception-reduce.js";
+import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.js";
 import { createInstanceDictionaryDescriptor } from "./runtime-instance-dictionary-descriptor.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
@@ -16,6 +17,7 @@ import type { RuntimeValues,TypeValue } from "./runtime-values.js";
  * mutations through guest attributes cannot substitute for native args. */
 export function installRuntimeExceptionDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
   installRuntimeExceptionLinkDescriptors(owner,values,meter);
+  owner.value.namespace.items.set(values.string("__setstate__"),createExceptionSetstateDescriptor(owner,values,meter));
   owner.value.namespace.items.set(values.string("__reduce__"),createExceptionReduceDescriptor(owner,values,meter));
   owner.value.namespace.items.set(values.string("__dict__"),createInstanceDictionaryDescriptor(owner,values,meter,{deleteError:"cannot delete __dict__"}));
   owner.value.namespace.items.set(values.string("add_note"),createExceptionAddNoteDescriptor(owner,values,meter));

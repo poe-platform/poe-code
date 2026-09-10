@@ -9717,6 +9717,20 @@ extension, integration, or validation requirement is missing or unverified.
   the uncached one-worker package run. State restoration, traceback support,
   the exception hierarchy, raise/try wiring and interpreter/safe-fs assembly
   remain unfinished. No push or release was requested.
+- Exception state restoration (2026-09-10): two failing integration tests drove
+  BaseException.__setstate__. None and empty dictionaries leave lazy storage
+  untouched. Nonempty state is scanned through native dictionary positions,
+  bypassing mapping overrides while invoking the current attribute setter for
+  each original key/value pair. Setter-driven additions, deletions, clearing,
+  updates and setter replacement affect subsequent processing. Invalid keys or
+  setter failures retain earlier changes. A direct capability test verifies key
+  identity and unchanged host/guest/fatal failure propagation without processing
+  later entries. All 84 argument/state comparisons and 21 live-mutation
+  comparisons match CPython. Focused tests, typecheck, lint, the selected
+  workspace build and all 7,132 tests in 502 files pass in the uncached
+  one-worker package run. Traceback objects, exception
+  hierarchy, raise/try wiring and interpreter/safe-fs assembly remain unfinished.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -27,6 +27,7 @@ import { createRoundBuiltin } from "./builtin-round.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { NumericLocale } from "./numeric-locale.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
+import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -68,6 +69,34 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("restores exception attributes through setters and scans dictionary mutations live",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class D(Dict):\n def items(self):\n  return 1/0\nclass E(BaseException):\n def __setattr__(self,name,value):\n  visit(name)\n  if name=='x':\n   data['z']=3\n  object.__setattr__(self,name,value)\ne=E(1)\ndata=D(x=1,y=2)\nresult=e.__setstate__(data)\ncorrect=result is None and e.__dict__=={'x':1,'y':2,'z':3} and e.args==(1,)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["x","y","z"]);
+});
+
+it("restores exception state incrementally and leaves empty state unmaterialized",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("e=BaseException()\na=e.__setstate__(None)\nb=e.__setstate__({})\nuntouched=a is None and b is None and e.__reduce__()==(BaseException,())\n");
+  expect(state.globals.get("untouched")).toBe(state.v.true);
+  expect(()=>state.run("e.__setstate__({'first':1,2:3,'last':4})\n")).toThrow("attribute name must be string, not 'int'");
+  state.run("partial=e.__dict__=={'first':1}\n");expect(state.globals.get("partial")).toBe(state.v.true);
+  expect(()=>state.run("e.__setstate__([])\n")).toThrow("state is not a dictionary");
+});
+
+it("preserves original restoration keys and propagates setter faults without processing later entries",()=>{
+  const state=fixture(),owner=state.registry.baseExceptionType();state.globals.set("BaseException",owner);state.run("e=BaseException()\ndata={'first':1,'second':2}\n");
+  const descriptor=createExceptionSetstateDescriptor(owner,state.v,state.meter),receiver=state.globals.get("e")!,data=state.globals.get("data")!;
+  if(data.kind!=="dict")throw Error("expected dictionary");
+  const first=data.items.nextDictionaryEntry(0)!,keywords=state.v.dictionary(data.items.emptyCopy()),setter=state.v.none;
+  for(const failure of [Error("host fault"),new ExecutionLimitError("cancelled"),new PythonRuntimeError("ValueError","guest fault")]) {
+    let seen=0,caught:unknown;
+    try {descriptor.value.invoke(receiver,[data],keywords,state.meter,{lookupSpecial(object,name){expect(object).toBe(receiver);expect(name).toBe("__setattr__");return setter;},call(callable,args){expect(callable).toBe(setter);expect(args).toEqual([first.key,first.value]);expect(args[0]).toBe(first.key);seen++;throw failure;},isStopIteration(){return false;}});}
+    catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(seen).toBe(1);
+  }
+});
 
 it("reduces exceptions without materializing untouched dictionaries",()=>{
   const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());

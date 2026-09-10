@@ -492,3 +492,37 @@ calendar, despite a throwing public year getter:
 `screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-locale.ajs.png`.
 No push or release. All checks for this method are terminal; direct Intl
 admission is the next validated gap, and broader integration is still unfinished.
+
+## Direct Intl PlainDate admission
+
+Five new regressions reproduced the direct formatting gap (49d755): PlainDate
+was coerced numerically and either called a public getter or threw its valueOf
+error. The shared Intl input predicate and conversion adapter now recognize
+owned dates, use private ISO/calendar slots and enforce matching range types.
+Backend formatting retains the requested-options snapshot behavior already
+used by the other Temporal kinds.
+
+Twenty-five focused date/date-time/time/Instant Intl and date locale tests
+passed (17b156), covering format, parts, source-labelled range parts, calendar
+compatibility, time-only format rejection, mixed-type conversion order and replay.
+The full pinned date locale directory is being rerun, alongside broader Intl,
+minimum-Node, lint and maintained build checks.
+
+All five new cases passed on Node 18.18.2 (5cd455). The entire unchanged
+intl402 PlainDate/toLocaleString directory at revision
+419d3e0a2273ba01a3bfcbec423f2801425b8e93 now passes 28/28 normal/strict runs,
+zero exclusions (d00c31), using parsed frontmatter and original sta/assert and
+declared helpers. This resolves all eight previously recorded failures in that
+directory, not all Temporal/Intl conformance gaps.
+
+The broader Intl and requested-options snapshot selection passed 78 tests in
+five files (b89fbc). The adapter's existing Temporal-kind and requested-option
+handling was still uncommitted; recording this adapter also captures that prior
+work. Public Intl calls and snapshot wiring still include uncommitted integration.
+
+Scoped lint passed (0fa039), and the maintained build passed 23 tasks and five
+fresh ESM import checks (ceb3c6). The built CLI screenshot (0a2607) was inspected:
+single-date and date-range output succeeds despite a throwing valueOf getter,
+and source-labelled parts reconstruct the range string:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-intl.ajs.png`.
+No push or release. All checks for this adapter change are terminal.

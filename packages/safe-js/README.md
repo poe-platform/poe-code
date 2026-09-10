@@ -914,7 +914,7 @@ remains unfinished. Expanded-year parsing preserves option-read order before
 representable-range validation.
 PlainDate currently has construction, calendar/date getters, `from`, `compare`, `equals`, `add`, `subtract`, `until`, `since`, `with`, `withCalendar`, `toPlainDateTime`, `toString`, `toJSON`, `toLocaleString`,
 and `valueOf`, with private data copying, host bindings, and heap/replay support.
-Its direct Intl formatting and year-month/month-day/zoned conversions
+Its year-month/month-day/zoned conversions
 remain unfinished, as do private-date fast paths in related Temporal APIs.
 `PlainDate.from` accepts ISO strings, calendar-based date bags and owned date/date-time
 values, with ordered field/options reads and private-slot copies. Zoned input
@@ -930,7 +930,7 @@ and leap-second clock values remain supported.
 Instant formatting and Duration relative-input bags accept zone-bearing time,
 year-month and month-day strings, with date and annotation validation.
 Direct `Intl.DateTimeFormat` formatting, parts and ranges now accept owned
-PlainTime, PlainDateTime and Instant values, with requested options preserved in new snapshots.
+PlainDate, PlainTime, PlainDateTime and Instant values, with requested options preserved in new snapshots.
 Legacy formatter snapshots lack original requested options and use their saved
 resolved options as a fallback.
 `PlainTime.toLocaleString`, `PlainDateTime.toLocaleString` and `PlainDate.toLocaleString` accept valid fixed-offset

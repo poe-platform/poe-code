@@ -6935,6 +6935,17 @@ extension, integration, or validation requirement is missing or unverified.
   for list, tuple and nested-list ordering. Typecheck, scoped lint and selected
   workspace build pass. Remaining comparison/object protocols, automatic object
   assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Fixed list comparison mutation handling after guest equality/truth callbacks:
+  recheck current lengths before the unequal-pair decision, and reread current
+  elements for ordering. Replacements now affect ordering, and clearing lists
+  can resolve equality/ordering by their current sizes, matching CPython.
+- Ten failing compiled regressions now pass. All 5,260 tests in 441 files pass;
+  336 CPython comparisons match results and callback traces across six operators,
+  replacement/clear/append mutations, equality/truth callback phases, and nonzero
+  comparison positions. The previous 48 guest ordering comparisons still match.
+  Typecheck, scoped lint and selected workspace build pass. Remaining comparison/
+  object protocols, automatic object assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

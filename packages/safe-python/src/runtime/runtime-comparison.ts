@@ -168,9 +168,15 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
           meter.checkpoint(0, 96);
           work.push(() => {
             if (result) { work.push(next); return; }
+            // Equality callbacks may replace elements or shrink either list.
+            // CPython checks the current sizes before using the unequal pair.
+            const comparedIndex = index - 1;
+            if (comparedIndex >= length(a) || comparedIndex >= length(b)) {
+              result = orderedResult(op, length(a) - length(b)); return;
+            }
             if (op === "==" || op === "!=") { result = op === "!="; return; }
             meter.checkpoint(0, 64);
-            work.push({ operator: op, left: x, right: y, depth: depth + 1 });
+            work.push({ operator: op, left: item(a, comparedIndex), right: item(b, comparedIndex), depth: depth + 1 });
           }, { operator: "==", left: x, right: y, depth: depth + 1 });
           return;
         }

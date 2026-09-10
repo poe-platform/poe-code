@@ -39,6 +39,42 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["<", "<=", ">", ">="])("rereads list elements after equality before %s", operator => {
+    const state = fixture(`left=[member]\nright=[needle]\nresult=left${operator}right\n`), v = state.values;
+    const member = v.cell({}), needle = v.cell({}), replacement = v.cell({}), ordered = v.cell({}), trace: string[] = [];
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(op, left, right) {
+      if (left.kind === "list") return undefined;
+      expect(right).toBe(needle);
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented, forward() {
+        trace.push(op);
+        if (op === "==") {
+          const source = state.globals.get("left"); if (source?.kind !== "list") throw Error("expected list");
+          source.items.set(0n, replacement); return v.false;
+        }
+        expect(left).toBe(replacement); return ordered;
+      } } };
+    } });
+    state.run(); expect(state.globals.get("result")).toBe(ordered); expect(trace).toEqual(["==", operator]);
+  });
+  it.each(["==", "!=", "<", "<=", ">", ">="])("uses current list lengths after an unequal probe clears both lists for %s", operator => {
+    const state = fixture(`left=[member]\nright=[needle]\nresult=left${operator}right\n`), v = state.values;
+    const member = v.cell({}), needle = v.cell({}); let probes = 0;
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(op, left) {
+      if (left.kind === "list") return undefined;
+      expect(op).toBe("==");
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented, forward() {
+        probes++;
+        for (const name of ["left", "right"]) {
+          const source = state.globals.get(name); if (source?.kind !== "list") throw Error("expected list");
+          source.items.clear();
+        }
+        return v.false;
+      } } };
+    } });
+    state.run(); expect(state.globals.get("result")).toBe(v.boolean(["==", "<=", ">="].includes(operator))); expect(probes).toBe(1);
+  });
   it.each(["[member]<[needle]", "(member,)>(needle,)", "[[member]]<=[[needle]]", "(member,)>=(needle,)"])("preserves guest ordering results in %s", expression => {
     const state = fixture(`result=${expression}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), ordered = v.cell({}), trace: string[] = [];
     state.globals.set("member", member); state.globals.set("needle", needle);

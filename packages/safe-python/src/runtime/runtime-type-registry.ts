@@ -27,6 +27,7 @@ import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descr
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
 import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
+import { createListInitWrapper } from "./builtin-list-init.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 
 interface TypeEntry {
@@ -184,6 +185,7 @@ export class RuntimeTypeRegistry {
     installRuntimeListSequenceSlots(type, this.values, this.meter);
     installRuntimeListSubscriptionSlots(type, this.values, this.meter);
     installRuntimeListArithmeticSlots(type, this.values, this.meter);
+    namespace.items.set(this.values.string("__init__"), createListInitWrapper(type, this.values, this.meter));
     installRuntimeComparisonMethods("list", type, this.values, this.meter);
     namespace.items.set(this.values.string("__hash__"), this.values.none);
     this.meter.checkpoint(1, 64);

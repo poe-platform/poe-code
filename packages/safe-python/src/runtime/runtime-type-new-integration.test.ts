@@ -48,6 +48,47 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["", "items", "[3,4]"])("reinitializes list storage through direct and bound slots: %s", args => {
+  for (const direct of [false, true]) {
+    const state = fixture(), call = direct ? `type(items).__init__(items${args ? "," + args : ""})` : `items.__init__(${args})`;
+    state.run(`items=[1,2]\nanswer=${call}\nresult=0\nfor value in items:\n result=result*10+value\n`);
+    expect(state.globals.get("answer")).toBe(state.v.none); expect(state.globals.get("result")).toEqual(state.v.integer(args === "[3,4]" ? 34 : 0));
+  }
+});
+
+it("clears list storage before acquiring a guest initialization iterator", () => {
+  const state = fixture();
+  state.run("class Source:\n def __iter__(self):\n  if items==[]:\n   visit('empty')\n  return [3,4].__iter__()\nitems=[1,2]\nitems.__init__(Source())\nresult=items[0]*10+items[1]\n");
+  expect(state.events).toEqual(["empty"]); expect(state.globals.get("result")).toEqual(state.v.integer(34));
+});
+
+it.each([["1,2", "list expected at most 1 argument, got 2"], ["x=1", "list() takes no keyword arguments"]])("validates list initializer arguments before clearing: %s", (args, message) => {
+  const state = fixture(); state.run("items=[1,2]\n");
+  expect(() => state.run(`items.__init__(${args})\n`)).toThrow(message);
+  state.run("result=items[0]*10+items[1]\n"); expect(state.globals.get("result")).toEqual(state.v.integer(12));
+});
+
+it("leaves list storage empty when initialization receives a noniterable", () => {
+  const state = fixture(); state.run("items=[1,2]\n");
+  expect(() => state.run("type(items).__init__(items,1)\n")).toThrow("'int' object is not iterable");
+  state.run("length=items.__len__()\n"); expect(state.globals.get("length")).toEqual(state.v.integer(0));
+});
+
+it.each(["iterate", "hint", "next"])("preserves original %s errors and initialization progress", phase => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run(`class Source:\n def __init__(self):\n  self.first=True\n def __iter__(self):\n  ${phase === "iterate" ? "fail()" : "return self"}\n def __len__(self):\n  ${phase === "hint" ? "fail()" : "return 2"}\n def __next__(self):\n  if self.first:\n   self.first=False\n   return 3\n  fail()\nitems=[1,2]\n`);
+  let thrown: unknown;
+  try { state.run("items.__init__(Source())\n"); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+  state.run("result=0\nfor value in items:\n result=result*10+value\n"); expect(state.globals.get("result")).toEqual(state.v.integer(phase === "next" ? 3 : 0));
+});
+
+it("exposes canonical list initialization wrapper metadata", () => {
+  const state = fixture(); state.run("items=[]\nmethod=items.__init__\nreceiver=method.__self__ is items\nname=method.__name__\n");
+  expect(state.globals.get("receiver")).toBe(state.v.true); expect(state.globals.get("name")).toEqual(state.v.string("__init__"));
+});
+
 it.each(["__add__", "__iadd__", "__mul__", "__rmul__", "__imul__"])("exposes list %s with native result identity and guest conversion", name => {
   for (const direct of [false, true]) {
     const state = fixture(), argument = name === "__add__" ? "[3]" : name === "__iadd__" ? "Extra()" : "Count()";

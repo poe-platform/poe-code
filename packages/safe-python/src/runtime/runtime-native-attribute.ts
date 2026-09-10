@@ -116,7 +116,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (metadata !== undefined) return metadata;
   if ((name === "__eq__" || name === "__ne__" || name === "__lt__" || name === "__le__" || name === "__gt__" || name === "__ge__" || name === "__hash__"
       || (receiver.kind === "list" && (name === "__len__" || name === "__iter__" || name === "__contains__" || name === "__getitem__" || name === "__setitem__" || name === "__delitem__"
-        || name === "__add__" || name === "__iadd__" || name === "__mul__" || name === "__rmul__" || name === "__imul__")))
+        || name === "__add__" || name === "__iadd__" || name === "__mul__" || name === "__rmul__" || name === "__imul__" || name === "__init__")))
     && (receiver.kind === "list" || receiver.kind === "method" || receiver.kind === "method-wrapper" || receiver.kind === "builtin_function_or_method")
     && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();

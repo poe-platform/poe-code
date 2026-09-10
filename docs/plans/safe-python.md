@@ -8651,6 +8651,19 @@ extension, integration, or validation requirement is missing or unverified.
   Prior 108 subscription and 96 sequence-slot differential cases still pass.
   Final selected build, typecheck, scoped lint and all 6,648 tests in 493 files
   pass with two workers.
+- Installed a canonical list __init__ wrapper. Seven initial regressions showed
+  missing ordinary initialization and inherited object initialization at the
+  type level. Argument validation precedes clearing; source acquisition and
+  length hints observe cleared storage, self-initialization empties the list,
+  and iterator failures retain partial progress without replacing guest errors.
+  Eleven added tests cover direct/bound initialization, self-source behavior,
+  metadata, invalid arguments, noniterables and all three callback failure phases.
+  All 58 initialization differential cases match CPython, including source
+  mutation and invalid hints. The prior 195 arithmetic, 108 subscription and 72
+  canonical list-method cases still pass. Native list allocation/construction,
+  subclass storage, remaining catalogs and full public execution remain open.
+  Selected build, typecheck, scoped lint and all 6,659 tests in 493 files pass
+  with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -248,3 +248,21 @@ remain. Eight focused tests and strict TypeScript passed; this small reduction
 does not by itself establish that the full-run timeout is resolved. Evidence:
 `/tmp/poe-688-completed-replay-green.log` and
 `/tmp/poe-688-completed-replay-types.log`.
+
+The maintained SafeJS workspace run after those changes passed both previously
+failing files. It finished with 21,658 passes, 37 skips, and one different
+five-second timeout: the PPR2 `co` scenario covering native trace, public/signal/
+completed checkpoints, and recapture. Evidence:
+`/tmp/poe-688-safejs-replay-workspace.log` (901.21 seconds). This remains a
+failed workspace gate; inspect the confirmed case while retaining all scenarios
+and sequential native/replay operations.
+
+The PPR2 fixture now checks each original/resumed result's success flag once
+and retains its existing exact return-value comparison, removing the preceding
+duplicate subset comparison. Final recapture uses exact equality as well.
+All seven sequential executions, native oracle checks, capture forms, replay
+immutability checks, host-call assertions, and deadlines remain. All 19 focused
+tests and strict TypeScript passed (`/tmp/poe-688-ppr2-green.log` and
+`/tmp/poe-688-ppr2-types.log`). The `co` case measured 2.63 seconds versus 4.78
+seconds in the preceding isolated run, but import timing also changed; this is
+not an isolated causal timing comparison or a completed broad gate.

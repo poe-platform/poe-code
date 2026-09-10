@@ -313,3 +313,25 @@ different calendar, ISO string equality returns true and chronological order is
 negative, despite a throwing public year getter:
 `screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-comparison.ajs.png`.
 No push or release, and no full-package conformance claim.
+
+## PlainDate add/subtract
+
+Seven regressions failed against missing arithmetic methods (a66a52). The
+implementation brands the receiver, converts the duration to primitive fields,
+reads and validates overflow, then performs backend calendar arithmetic from
+private ISO/calendar fields and returns a fresh owned intrinsic date. The
+result is checkpointed and methods registered for replay.
+Specification: https://tc39.es/proposal-temporal/#sec-temporal-adddurationtodate
+
+Nineteen focused arithmetic/comparison/from tests passed (159b59), covering
+month-end constrain/reject, truncation of sub-day time remainders, negative
+durations, input-before-options order, private duration/date slots, non-ISO
+calendar preservation, range errors, intrinsic identity and replay.
+Minimum-Node, lint, maintained build and upstream fixtures are running.
+
+All seven arithmetic tests passed on Node 18.18.2 (71db31). Scoped lint passed
+(e8326a), and the maintained build passed 23 tasks and five fresh ESM import
+checks (f63e67). The built CLI screenshot (17c247) was inspected and confirms
+month clamping, subtraction and whole-day time-duration behavior:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-arithmetic.ajs.png`.
+Upstream add/subtract fixture execution is still active; no result claimed yet.

@@ -7,10 +7,12 @@ import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { createIntrinsicObject, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
-import { createSandboxTemporalPlainDate, temporalPlainDateFields, temporalPlainDateNumericFields, type TemporalPlainDateFields } from "../temporal-plain-date.js";
+import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields, temporalPlainDateFields, temporalPlainDateNumericFields, type TemporalPlainDateFields } from "../temporal-plain-date.js";
 import { createSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
 import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
 import { readTemporalPlainDate } from "./temporal-plain-date-input.js";
+import { readTemporalDuration } from "./temporal-duration-input.js";
+import { temporalDurationFieldNames } from "../temporal-duration.js";
 
 export function createTemporalPlainDateConstructor(budget: Budget): SandboxClosure {
   const prototype = createIntrinsicObject();
@@ -86,6 +88,33 @@ export function createTemporalPlainDateConstructor(budget: Budget): SandboxClosu
   Object.defineProperty(materializeFunctionProperties(constructor), "compare", { value: compare, writable: true, configurable: true });
   Object.defineProperty(prototype, "equals", { value: equals, writable: true, configurable: true });
   methods.push(compare, equals);
+  for (const name of ["add", "subtract"] as const) {
+    const method = createSandboxClosure({ guest: true, sandbox: true, name, length: 1,
+      call: async ([input, options], context) => {
+        const fields = temporalPlainDateFields(context?.thisValue);
+        let durationFields: Record<string, number> | undefined;
+        let current: SandboxValue;
+        let result: SandboxValue;
+        const release = retainValues(budget, () => [fields, input, options, durationFields, current, result]);
+        try {
+          const duration = await readTemporalDuration(input, budget, context);
+          durationFields = Object.fromEntries(temporalDurationFieldNames.map(field => [field, duration[field]]));
+          if (options !== undefined && (options === null || typeof options !== "object"))
+            throw new TypeError("PlainDate arithmetic options must be an object.");
+          current = options === undefined ? undefined : await sandboxGetProperty(options, "overflow", options, budget, context);
+          const overflow = current === undefined ? "constrain" : await sandboxString(current, budget, context);
+          if (overflow !== "constrain" && overflow !== "reject") throw new RangeError("Invalid Temporal overflow option.");
+          const value = new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay, fields.calendar);
+          result = createSandboxTemporalPlainDate(hostTemporalPlainDateFields(value[name](durationFields, { overflow }))!);
+          setSandboxPrototype(result, prototype, budget);
+          createDataCheckpoint(budget, context)(result, 0, true);
+          return result;
+        } finally { release(); }
+      }
+    });
+    Object.defineProperty(prototype, name, { value: method, writable: true, configurable: true });
+    methods.push(method);
+  }
   for (const name of ["calendarId", "era", "eraYear", "year", "month", "monthCode", "day", "dayOfWeek", "dayOfYear", "weekOfYear", "yearOfWeek", "daysInWeek", "daysInMonth", "daysInYear", "monthsInYear", "inLeapYear"] as const) {
     const getter = createSandboxClosure({ guest: true, sandbox: true, name: `get ${name}`, length: 0,
       call: (_args, context) => {

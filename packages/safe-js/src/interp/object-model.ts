@@ -278,6 +278,8 @@ function registerIntrinsicPrototype(
   constructor: SandboxClosure
 ): void {
   if (constructor.name === undefined) throw new TypeError("Intrinsic constructors require an installation name.");
+  const parent = intrinsicPrototypes.get(budget);
+  if (parent !== undefined && !hasExplicitSandboxPrototype(prototype)) storePrototype(prototype, parent);
   registerBuiltinIdentities(budget, { [constructor.name]: constructor });
   const methods = [prototype, materializeFunctionProperties(constructor)]
     .flatMap(owner => Reflect.ownKeys(owner).flatMap(key => {

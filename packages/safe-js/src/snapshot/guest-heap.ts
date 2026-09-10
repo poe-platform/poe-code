@@ -406,7 +406,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
     const { options, compare } = collatorState(value);
     return { kind: "guest-collator", options: { ...options }, ...(compare === undefined ? {} : { compare: encode(compare) }), state: captureObjectState(value, encode)! };
   }
-  if (hasGuestObjectState(value) || privateElements.has(value)) {
+  if (getIntrinsicIdentity(value) === undefined && (hasGuestObjectState(value) || privateElements.has(value))) {
     if (isSandboxRegex(value)) return { kind: "guest-regex", source: value.source, flags: value.flags, state: captureObjectState(value, encode)! };
     if (isSandboxBox(value)) return { kind: "guest-boxed", value: encode(boxedValue(value)), state: captureObjectState(value, encode)! };
     if (isSandboxDate(value)) return { kind: "guest-date", value: encode(dateTime(value)), state: captureObjectState(value, encode)! };

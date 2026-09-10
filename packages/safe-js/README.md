@@ -78,6 +78,10 @@ const result = await run(`
 - Intrinsic methods are non-enumerable. Guest constructor prototypes inherit the ordinary Object prototype; explicit null/custom prototypes work with `Object.create`, `Object.setPrototypeOf` and literal `__proto__`. A computed `['__proto__']` remains an own data property.
 - Prototype mutations stay inside the current run or persistent realm and consume its retained-data budget. They never change native prototypes or another realm.
 
+Builtin prototypes retain their originating Object prototype when inspected
+from another realm, including when a budget is reused. Checkpoints preserve
+constructor/prototype identity and their supported property mutations.
+
 Guest symbols, supported prototype links, and mutated guest intrinsics can be
 represented in checkpoints. Plain data-copy helpers have narrower contracts:
 for example, copying an array with a custom prototype can be rejected rather

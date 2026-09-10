@@ -73,17 +73,37 @@ describe("interpreter retained-root accounting", () => {
     "function value(){return 7}return value()",
     "async function value(){return 7}return await value()"
   ])("counts registered roots once when a guest closure completes: %s", async (source) => {
-    const budget = new Budget({ dataSize: 500 });
-    const realm = createRealm({ budget });
+    const baseline = new Budget();
+    const baselineRealm = createRealm({ budget: baseline });
     const owner = {};
-    budget.setRetainedValues(owner, () => ["x".repeat(300)]);
+    baseline.setRetainedValues(owner, () => ["x".repeat(300)]);
+    try {
+      expect(await baselineRealm.evaluate(source)).toMatchObject({ ok: true, returnValue: 7 });
+    } finally {
+      baseline.setRetainedValues(owner, undefined);
+      await baselineRealm.close();
+    }
+    const limit = baseline.peakDataSize + 300;
+    const budget = new Budget({ dataSize: limit });
+    const realm = createRealm({ budget });
+    budget.setRetainedValues(owner, () => ["x".repeat(600)]);
     try {
       expect(await realm.evaluate(source)).toMatchObject({ ok: true, returnValue: 7 });
-      expect(budget.peakDataSize).toBeGreaterThanOrEqual(300);
-      expect(budget.peakDataSize).toBeLessThanOrEqual(500);
+      expect(budget.peakDataSize).toBe(limit);
     } finally {
       budget.setRetainedValues(owner, undefined);
       await realm.close();
+    }
+    const insufficient = new Budget({ dataSize: limit - 1 });
+    const insufficientRealm = createRealm({ budget: insufficient });
+    insufficient.setRetainedValues(owner, () => ["x".repeat(600)]);
+    try {
+      await expect(insufficientRealm.evaluate(source)).rejects.toMatchObject({
+        code: "budgetExceeded", budget: "dataSize", current: limit, limit: limit - 1
+      });
+    } finally {
+      insufficient.setRetainedValues(owner, undefined);
+      await insufficientRealm.close();
     }
   });
 

@@ -7803,6 +7803,18 @@ extension, integration, or validation requirement is missing or unverified.
   lint pass. Native type
   allocation/calling, remaining object methods and metadata, complete class
   bootstrap and suspended safe-fs effects remain unfinished.
+- Added the canonical one-argument type inspection path. Eight initial tests
+  failed because inspection attempted allocation. The registry's self-metaclass
+  root returns intrinsic instance/type ownership or the supplied native/opaque
+  actual-type policy, without running new/init or reading guest __class__.
+  Inspection rejects keywords and validates canonical arity; ordinary user
+  classes (including one named type) and three-argument construction retain
+  their allocation path. Twelve tests cover identity, custom metaclasses,
+  shadow attributes, diagnostics, cancellation and compiled calls. All 28
+  inspection and 96 compiled type-call cases match CPython. All 6,063 tests in
+  464 files, selected build, typecheck and scoped lint pass. Native type.__new__/__call__,
+  complete three-argument class creation, remaining object methods/metadata and
+  suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

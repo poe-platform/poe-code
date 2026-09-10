@@ -1636,3 +1636,23 @@ it("permits a custom metaclass initializer to override type initialization rules
   state.method(meta, "__init__", "def initialize(cls):\n visit('init')\n");
   state.run("result=Meta()\n"); expect(state.globals.get("result")).toBe(cls); expect(state.events).toEqual(["init"]);
 });
+
+it("inspects actual types in compiled calls without running allocation or initialization", () => {
+  const state = fixture(), owner = state.type("C"), native = state.type("int"), integer = state.v.integer(7);
+  state.instance("instance", owner); state.types.set(integer, native); state.globals.set("integer", integer); state.globals.set("type", state.registry.type); state.globals.set("C", owner);
+  state.run("instance.__class__=None\ninstance_type=type(instance)\nclass_type=type(C)\nnative_type=type(integer)\nroot_type=type(type)\n");
+  expect(state.globals.get("instance_type")).toBe(owner); expect(state.globals.get("class_type")).toBe(state.registry.type);
+  expect(state.globals.get("native_type")).toBe(native); expect(state.globals.get("root_type")).toBe(state.registry.type);
+});
+
+it("does not confuse a user class named type with canonical type inspection", () => {
+  const state = fixture(), owner = state.type("type"), allocated = state.instance("allocated", owner); state.globals.set("type", owner);
+  state.method(owner, "__new__", "def allocate(cls, value):\n return allocated\n");
+  state.run("result=type(None)\n"); expect(state.globals.get("result")).toBe(allocated);
+});
+
+it("retains the three-argument type construction path", () => {
+  const state = fixture(), created = state.type("Created"); state.globals.set("Created", created); state.globals.set("type", state.registry.type);
+  state.method(state.registry.type, "__new__", "def allocate(cls, name, bases, namespace):\n visit(name)\n return Created\n");
+  state.run("result=type('Created',(),{})\n"); expect(state.globals.get("result")).toBe(created); expect(state.events).toEqual(["Created"]);
+});

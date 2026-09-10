@@ -8,7 +8,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Runtime type calls use actual metaclass MRO dispatch, then the default
- * allocation/init lifecycle. Native allocation, one-argument type(), heap layout
+ * allocation/init lifecycle. Native allocation, heap layout
  * validation and default object methods remain bootstrap responsibilities. */
 export function callRuntimeType(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, special: RuntimeSpecialMethodContext, values: RuntimeValues, meter: ExecutionMeter, beginCall: (callee: RuntimeValue) => ExpressionCall<RuntimeValue>, attribute?: (receiver: RuntimeValue, name: string) => RuntimeValue): RuntimeValue {
   meter.checkpoint(1, 512);
@@ -22,6 +22,15 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
   const override = lookupRuntimeSpecialMethod(type, type.metaclass, values.string("__call__"), special, values, meter);
   meter.checkpoint();
   if (override !== undefined) return invoke(override, positional, keywords);
+  // The registry's canonical type is its own metaclass. Subclasses of type
+  // retain ordinary construction, even if they are also named "type".
+  if (type.metaclass === type) {
+    if (positional.length === 1) {
+      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "type() takes no keyword arguments");
+      return runtimeActualType(positional[0], special, meter);
+    }
+    if (positional.length !== 3) throw new PythonRuntimeError("TypeError", "type() takes 1 or 3 arguments");
+  }
   return instantiateType<RuntimeValue, DictionaryValue>(type, positional, keywords, {
     lookupNew(requested) {
       if (requested.kind !== "type") throw Error("allocator requires an actual type");

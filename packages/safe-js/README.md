@@ -891,10 +891,11 @@ Experimental work remains uncommitted. Pushes and releases are paused; local
 implementation, remote delivery, and successful publication are separate
 milestones.
 
-WeakMap/WeakSet work remains experimental. It was included in the historical
-integrated main run described above, not the isolated dynamic/eval candidate.
-Portable weak-symbol lifetime support on Node.js 18 remains unresolved. Do not
-treat that work as complete weak-collection support.
+The WeakMap/WeakSet public API, symbol-registry validation and linter support
+are committed locally but unreleased. Snapshot integration remains partly
+uncommitted, and portable weak-symbol lifetime support on Node.js 18 remains
+unresolved. This is not complete weak-collection support. See the
+[public integration record](../../docs/plans/safejs-weak-collection-public-reconciliation.md).
 
 Experimental, uncommitted `WeakRef` and `FinalizationRegistry` implementations now
 have focused coverage for job-scoped target retention, held-value budgets,
@@ -1046,8 +1047,8 @@ The unreleased runtime also provides `Map.prototype.getOrInsert(key, value)`
 and `getOrInsertComputed(key, callback)`. These newer compatibility methods
 preserve existing values and use collection budgets for insertions; computed
 defaults run only for missing keys. See the [Map validation record](../../docs/plans/safejs-map-upsert.md).
-The corresponding WeakMap methods now have an experimental, uncommitted
-implementation; they retain the older-Node weak-symbol limitations above.
+The corresponding WeakMap methods are committed locally but unreleased;
+they retain the older-Node weak-symbol limitations above.
 See the [WeakMap integration record](../../docs/plans/safejs-weakmap-upsert.md).
 
 The unreleased runtime supports `Atomics` integer operations on ordinary

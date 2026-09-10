@@ -1,19 +1,17 @@
 import type { Budget } from "../budget.js";
 import { sandboxString } from "../string-coercion.js";
-import { createSandboxClosure, createSandboxMap, type SandboxMap } from "../values.js";
+import { createSandboxClosure, createSandboxMap } from "../values.js";
 import { wellKnownSymbols } from "../symbols.js";
 import { primitiveReceiver } from "../boxed.js";
 import { installBoxedPrototype, materializeFunctionProperties } from "../object-model.js";
 import { accessorAdapter } from "../accessors.js";
-import { symbolRegistryOrigins } from "../symbol-registry.js";
-
-const registries = new WeakMap<Budget, SandboxMap>();
+import { symbolRegistries, symbolRegistryOrigins } from "../symbol-registry.js";
 
 export function createSymbolGlobal(budget: Budget) {
-  let registry = registries.get(budget);
+  let registry = symbolRegistries.get(budget);
   if (registry === undefined) {
     registry = createSandboxMap();
-    registries.set(budget, registry);
+    symbolRegistries.set(budget, registry);
   }
   const entries = registry.entries as Map<string, symbol>;
   const prototype = Object.create(null);

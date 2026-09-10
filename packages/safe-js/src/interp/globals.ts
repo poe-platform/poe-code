@@ -1,5 +1,6 @@
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createCollectionGlobals } from "./globals/collections.js";
+import { createWeakCollectionGlobals } from "./globals/weak-collections.js";
 import { installCollectionIteratorPrototypes } from "./globals/collection-prototypes.js";
 import { createNumericTypedArrayGlobal, createNumericTypedArrayPrototypes } from "./globals/numeric-typed-array.js";
 import { numericTypedArrayConstructors } from "./typed-array.js";
@@ -38,11 +39,13 @@ export function createBuiltinBindings(
 ) {
   activeFunctionRealmPrototypes.delete(options.budget);
   const numericParsers = createNumericParsers(options.budget);
+  const objectArrayGlobals = createObjectArrayGlobals({ ...options, numericParsers });
   const date = createDateGlobal(options);
   const baseBindings = {
     eval: createEvalGlobal(options.budget),
     ...createConsoleJsonGlobals(options),
     ...createCollectionGlobals(options),
+    ...createWeakCollectionGlobals(options.budget),
     ...Object.fromEntries(Object.entries(numericTypedArrayConstructors).map(([name, Native]) =>
       [name, createNumericTypedArrayGlobal(options.budget, options.typedArrayPrototypes !== false, Native)])) as Record<keyof typeof numericTypedArrayConstructors, SandboxClosure>,
     Date: date,
@@ -50,7 +53,7 @@ export function createBuiltinBindings(
     BigInt: createBigIntGlobal(options.budget),
     ...createErrorGlobals({ ...options, errorPrototypes: options.errorPrototypes !== false }),
     ...createMathGlobals({ random: options.random, budget: options.budget }),
-    ...createObjectArrayGlobals({ ...options, numericParsers }),
+    ...objectArrayGlobals,
     Iterator: createIteratorGlobal(options.budget),
     DisposableStack: createDisposableStackGlobal(options.budget),
     AsyncDisposableStack: createAsyncDisposableStackGlobal(options.budget),

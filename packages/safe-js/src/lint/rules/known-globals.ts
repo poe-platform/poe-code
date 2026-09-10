@@ -52,5 +52,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "URIError",
   "undefined",
   "unescape",
+  "WeakMap",
+  "WeakSet",
   "console"
 ] as const;

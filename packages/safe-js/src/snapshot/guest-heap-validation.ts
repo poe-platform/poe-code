@@ -17,6 +17,14 @@ import { releaseObjectPrototype } from "../interp/object-model.js";
 import { isSandboxClosure } from "../interp/values.js";
 import { assertSnapshotDataDepth } from "../graph-depth.js";
 import { validateStringIteratorState } from "../interp/string-iterator.js";
+import { createSandboxTemporalInstant } from "../interp/temporal-instant.js";
+import { createSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "../interp/temporal-zoned-date-time.js";
+import { createSandboxTemporalDuration, temporalDurationFieldNames, type TemporalDurationFields } from "../interp/temporal-duration.js";
+import { createSandboxTemporalPlainTime, temporalPlainTimeFieldNames, type TemporalPlainTimeFields } from "../interp/temporal-plain-time.js";
+import { createSandboxTemporalPlainDateTime, temporalPlainDateTimeFields, temporalPlainDateTimeNumericFields, type TemporalPlainDateTimeFields } from "../interp/temporal-plain-date-time.js";
+import { createSandboxTemporalPlainDate, temporalPlainDateFields, temporalPlainDateNumericFields, type TemporalPlainDateFields } from "../interp/temporal-plain-date.js";
+import { createSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields, type TemporalPlainMonthDayFields } from "../interp/temporal-plain-month-day.js";
+import { createSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields, type TemporalPlainYearMonthFields } from "../interp/temporal-plain-year-month.js";
 
 let intrinsicKinds: Map<string, boolean> | undefined;
 
@@ -137,7 +145,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     createRawJson(node.text);
     return true;
   }
-  if (node.kind !== "guest-proxy" && node.kind !== "guest-proxy-revoker" && !["guest-durationformat", "guest-segmenter", "guest-segments", "module-function", "async-generator-driver", "async-generator-handler", "async-function-driver", "async-function-handler", "thenable-state", "thenable-resolver", "construction-environment", "capability-executor", "promise-aggregate", "aggregate-entry", "aggregate-handler", "intrinsic", "bound-function", "promise-resolver", "pending-promise", "promise-reaction", "promise-adoption", "adoption-resolver", "guest-function", "guest-class", "guest-generator", "scope-frame", "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules", "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator", "guest-regex", "guest-promise", "array-iterator", "string-iterator", "async-disposable-stack", "async-cleanup", "async-cleanup-handler", "disposable-stack", "iterator-wrapper", "iterator-helper", "guest-collection-iterator", "guest-regexp-iterator", "map", "set"].includes(String(node.kind))) return false;
+  if (node.kind !== "guest-temporal-plain-year-month" && node.kind !== "guest-temporal-plain-month-day" && node.kind !== "guest-temporal-zoned-date-time" && node.kind !== "guest-temporal-plain-date" && node.kind !== "guest-temporal-plain-date-time" && node.kind !== "guest-temporal-plain-time" && node.kind !== "guest-temporal-duration" && node.kind !== "guest-temporal-instant" && node.kind !== "guest-proxy" && node.kind !== "guest-proxy-revoker" && !["guest-durationformat", "guest-segmenter", "guest-segments", "module-function", "async-generator-driver", "async-generator-handler", "async-function-driver", "async-function-handler", "thenable-state", "thenable-resolver", "construction-environment", "capability-executor", "promise-aggregate", "aggregate-entry", "aggregate-handler", "intrinsic", "bound-function", "promise-resolver", "pending-promise", "promise-reaction", "promise-adoption", "adoption-resolver", "guest-function", "guest-class", "guest-generator", "scope-frame", "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules", "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator", "guest-regex", "guest-promise", "array-iterator", "string-iterator", "async-disposable-stack", "async-cleanup", "async-cleanup-handler", "disposable-stack", "iterator-wrapper", "iterator-helper", "guest-collection-iterator", "guest-regexp-iterator", "map", "set"].includes(String(node.kind))) return false;
   const reference = (value: unknown, kinds?: string[]) => {
     const ref = record(value);
     fields(ref, ["kind", "id"]);
@@ -241,6 +249,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver",
       "aggregate-handler", "adoption-resolver", "capability-executor", "intrinsic", "bound-function", "promise-resolver",
       "pending-promise", "promise-reaction", "guest-function", "guest-class", "guest-generator", "mapped-arguments",
+      "guest-temporal-instant", "guest-temporal-zoned-date-time", "guest-temporal-duration", "guest-temporal-plain-time", "guest-temporal-plain-date-time", "guest-temporal-plain-date", "guest-temporal-plain-month-day", "guest-temporal-plain-year-month",
       "guest-object", "guest-array", "guest-boxed", "guest-date", "guest-locale", "guest-listformat", "guest-pluralrules",
       "guest-displaynames", "guest-relativetimeformat", "guest-datetimeformat", "guest-numberformat", "guest-collator",
       "guest-durationformat", "guest-segmenter", "guest-segments", "guest-regex", "guest-promise", "guest-weakcollection",
@@ -616,6 +625,96 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     fields(node, ["kind", "tag", "state"]);
     if (typeof node.tag !== "string" || localeTag(createSandboxLocale(node.tag)) !== node.tag)
       throw new TypeError("Invalid canonical Locale tag.");
+    state(node.state);
+  } else if (node.kind === "guest-temporal-plain-date") {
+    fields(node, ["kind", "slots", "state"]);
+    const slots = record(node.slots);
+    fields(slots, [...temporalPlainDateNumericFields, "calendar"]);
+    for (const name of temporalPlainDateNumericFields) {
+      if (typeof slots[name] !== "number" || Object.is(slots[name], -0))
+        throw new TypeError("Invalid canonical PlainDate field.");
+    }
+    const value = createSandboxTemporalPlainDate(slots as TemporalPlainDateFields);
+    if (temporalPlainDateFields(value).calendar !== slots.calendar)
+      throw new TypeError("Invalid canonical PlainDate calendar.");
+    state(node.state);
+  } else if (node.kind === "guest-temporal-plain-year-month") {
+    fields(node, ["kind", "slots", "state"]);
+    const slots = record(node.slots);
+    fields(slots, [...temporalPlainDateNumericFields, "calendar"]);
+    for (const name of temporalPlainDateNumericFields) {
+      if (typeof slots[name] !== "number" || Object.is(slots[name], -0))
+        throw new TypeError("Invalid canonical PlainYearMonth field.");
+    }
+    const value = createSandboxTemporalPlainYearMonth(slots as TemporalPlainYearMonthFields);
+    if (temporalPlainYearMonthFields(value).calendar !== slots.calendar)
+      throw new TypeError("Invalid canonical PlainYearMonth calendar.");
+    state(node.state);
+  } else if (node.kind === "guest-temporal-plain-month-day") {
+    fields(node, ["kind", "slots", "state"]);
+    const slots = record(node.slots);
+    fields(slots, [...temporalPlainDateNumericFields, "calendar"]);
+    for (const name of temporalPlainDateNumericFields) {
+      if (typeof slots[name] !== "number" || Object.is(slots[name], -0))
+        throw new TypeError("Invalid canonical PlainMonthDay field.");
+    }
+    const value = createSandboxTemporalPlainMonthDay(slots as TemporalPlainMonthDayFields);
+    if (temporalPlainMonthDayFields(value).calendar !== slots.calendar)
+      throw new TypeError("Invalid canonical PlainMonthDay calendar.");
+    state(node.state);
+  } else if (node.kind === "guest-temporal-plain-date-time") {
+    fields(node, ["kind", "slots", "state"]);
+    const slots = record(node.slots);
+    fields(slots, [...temporalPlainDateTimeNumericFields, "calendar"]);
+    for (const name of temporalPlainDateTimeNumericFields) {
+      if (typeof slots[name] !== "number" || Object.is(slots[name], -0))
+        throw new TypeError("Invalid canonical PlainDateTime field.");
+    }
+    const value = createSandboxTemporalPlainDateTime(slots as TemporalPlainDateTimeFields);
+    if (temporalPlainDateTimeFields(value).calendar !== slots.calendar)
+      throw new TypeError("Invalid canonical PlainDateTime calendar.");
+    state(node.state);
+  } else if (node.kind === "guest-temporal-plain-time") {
+    fields(node, ["kind", "slots", "state"]);
+    const slots = record(node.slots);
+    fields(slots, [...temporalPlainTimeFieldNames]);
+    for (const name of temporalPlainTimeFieldNames) {
+      if (typeof slots[name] !== "number" || Object.is(slots[name], -0))
+        throw new TypeError("Invalid canonical PlainTime field.");
+    }
+    createSandboxTemporalPlainTime(slots as TemporalPlainTimeFields);
+    state(node.state);
+  } else if (node.kind === "guest-temporal-duration") {
+    fields(node, ["kind", "slots", "state"]);
+    const slots = record(node.slots);
+    fields(slots, [...temporalDurationFieldNames]);
+    for (const name of temporalDurationFieldNames) {
+      if (typeof slots[name] !== "number" || Object.is(slots[name], -0))
+        throw new TypeError("Invalid canonical Duration field.");
+    }
+    createSandboxTemporalDuration(slots as TemporalDurationFields);
+    state(node.state);
+  } else if (node.kind === "guest-temporal-zoned-date-time") {
+    fields(node, ["kind", "slots", "state"]);
+    const slots = record(node.slots);
+    fields(slots, ["epochNanoseconds", "timeZone", "calendar"]);
+    if (typeof slots.epochNanoseconds !== "string" || slots.epochNanoseconds.length === 0 || slots.epochNanoseconds.length > 23 ||
+        typeof slots.timeZone !== "string" || typeof slots.calendar !== "string")
+      throw new TypeError("Invalid ZonedDateTime slot types.");
+    const epochNanoseconds = BigInt(slots.epochNanoseconds);
+    if (epochNanoseconds.toString() !== slots.epochNanoseconds) throw new TypeError("Noncanonical ZonedDateTime epoch.");
+    const value = createSandboxTemporalZonedDateTime({ epochNanoseconds, timeZone: slots.timeZone, calendar: slots.calendar });
+    const canonical = temporalZonedDateTimeFields(value);
+    if (canonical.timeZone !== slots.timeZone || canonical.calendar !== slots.calendar)
+      throw new TypeError("Noncanonical ZonedDateTime identifiers.");
+    state(node.state);
+  } else if (node.kind === "guest-temporal-instant") {
+    fields(node, ["kind", "epochNanoseconds", "state"]);
+    if (typeof node.epochNanoseconds !== "string" || node.epochNanoseconds.length > 23 ||
+        node.epochNanoseconds.length === 0) throw new TypeError("Invalid Instant epoch encoding.");
+    const epoch = BigInt(node.epochNanoseconds);
+    if (epoch.toString() !== node.epochNanoseconds) throw new TypeError("Non-canonical Instant epoch encoding.");
+    createSandboxTemporalInstant(epoch);
     state(node.state);
   } else if (node.kind === "guest-boxed" || node.kind === "guest-date") {
     fields(node, ["kind", "value", "state"]);

@@ -16,6 +16,14 @@ import { templateOrigins, templateCookedArrays } from "../interp/template-object
 import { isSandboxBox, boxedValue } from "../interp/boxed.js";
 import { isRawJson } from "../interp/raw-json.js";
 import { isSandboxDate, dateTime } from "../interp/date.js";
+import { isSandboxTemporalInstant, temporalInstantEpoch } from "../interp/temporal-instant.js";
+import { isSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "../interp/temporal-zoned-date-time.js";
+import { isSandboxTemporalDuration, temporalDurationFields, type TemporalDurationFields } from "../interp/temporal-duration.js";
+import { isSandboxTemporalPlainTime, temporalPlainTimeFields, type TemporalPlainTimeFields } from "../interp/temporal-plain-time.js";
+import { isSandboxTemporalPlainDateTime, temporalPlainDateTimeFields, type TemporalPlainDateTimeFields } from "../interp/temporal-plain-date-time.js";
+import { isSandboxTemporalPlainDate, temporalPlainDateFields, type TemporalPlainDateFields } from "../interp/temporal-plain-date.js";
+import { isSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields, type TemporalPlainMonthDayFields } from "../interp/temporal-plain-month-day.js";
+import { isSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields, type TemporalPlainYearMonthFields } from "../interp/temporal-plain-year-month.js";
 import { isSandboxLocale, localeTag } from "../interp/intl-locale.js";
 import { isSandboxCollator, collatorState, type ResolvedCollatorOptions } from "../interp/intl-collator.js";
 import { isSandboxListFormat, listFormatState, type ResolvedListFormatOptions } from "../interp/intl-listformat.js";
@@ -109,6 +117,14 @@ export type GuestHeapNode<T> =
       capability?: {promise: T; resolve: T; reject: T}; state: GuestObjectState<T> }
   | { kind: "guest-boxed"; value: T; state: GuestObjectState<T> }
   | { kind: "guest-date"; value: T; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-instant"; epochNanoseconds: string; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-zoned-date-time"; slots: { epochNanoseconds: string; timeZone: string; calendar: string }; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-duration"; slots: TemporalDurationFields; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-plain-time"; slots: TemporalPlainTimeFields; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-plain-date-time"; slots: TemporalPlainDateTimeFields; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-plain-date"; slots: TemporalPlainDateFields; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-plain-month-day"; slots: TemporalPlainMonthDayFields; state: GuestObjectState<T> }
+  | { kind: "guest-temporal-plain-year-month"; slots: TemporalPlainYearMonthFields; state: GuestObjectState<T> }
   | { kind: "guest-locale"; tag: string; state: GuestObjectState<T> }
   | { kind: "guest-collator"; options: ResolvedCollatorOptions; compare?: T; state: GuestObjectState<T> }
   | { kind: "guest-numberformat"; options: NumberFormatOptions; format?: T; state: GuestObjectState<T> }
@@ -356,6 +372,31 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
   if (isSandboxDateTimeFormat(value)) {
     const { options, requestedOptions, format } = dateTimeFormatState(value);
     return { kind: "guest-datetimeformat", options: { ...options }, ...(requestedOptions === undefined ? {} : { requestedOptions: { ...requestedOptions } }), ...(format === undefined ? {} : { format: encode(format) }), state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalInstant(value)) {
+    return { kind: "guest-temporal-instant", epochNanoseconds: temporalInstantEpoch(value).toString(), state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalZonedDateTime(value)) {
+    const fields = temporalZonedDateTimeFields(value);
+    return { kind: "guest-temporal-zoned-date-time", slots: { ...fields, epochNanoseconds: fields.epochNanoseconds.toString() }, state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalDuration(value)) {
+    return { kind: "guest-temporal-duration", slots: { ...temporalDurationFields(value) }, state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalPlainDateTime(value)) {
+    return { kind: "guest-temporal-plain-date-time", slots: { ...temporalPlainDateTimeFields(value) }, state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalPlainDate(value)) {
+    return { kind: "guest-temporal-plain-date", slots: { ...temporalPlainDateFields(value) }, state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalPlainMonthDay(value)) {
+    return { kind: "guest-temporal-plain-month-day", slots: { ...temporalPlainMonthDayFields(value) }, state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalPlainYearMonth(value)) {
+    return { kind: "guest-temporal-plain-year-month", slots: { ...temporalPlainYearMonthFields(value) }, state: captureObjectState(value, encode)! };
+  }
+  if (isSandboxTemporalPlainTime(value)) {
+    return { kind: "guest-temporal-plain-time", slots: { ...temporalPlainTimeFields(value) }, state: captureObjectState(value, encode)! };
   }
   if (isSandboxNumberFormat(value)) {
     const { options, format } = numberFormatState(value);

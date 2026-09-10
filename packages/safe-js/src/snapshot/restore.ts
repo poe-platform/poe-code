@@ -39,6 +39,14 @@ import { restoreDateTime } from "../interp/date.js";
 import { createRawJson } from "../interp/raw-json.js";
 import { createModuleNamespace } from "../interp/module-namespace.js";
 import { createSandboxBox } from "../interp/boxed.js";
+import { createSandboxTemporalInstant } from "../interp/temporal-instant.js";
+import { createSandboxTemporalZonedDateTime } from "../interp/temporal-zoned-date-time.js";
+import { createSandboxTemporalDuration } from "../interp/temporal-duration.js";
+import { createSandboxTemporalPlainTime } from "../interp/temporal-plain-time.js";
+import { createSandboxTemporalPlainDateTime } from "../interp/temporal-plain-date-time.js";
+import { createSandboxTemporalPlainDate } from "../interp/temporal-plain-date.js";
+import { createSandboxTemporalPlainMonthDay } from "../interp/temporal-plain-month-day.js";
+import { createSandboxTemporalPlainYearMonth } from "../interp/temporal-plain-year-month.js";
 import { createSandboxDate } from "../interp/date.js";
 import { createSandboxLocale } from "../interp/intl-locale.js";
 import { createSandboxCollator, collatorState } from "../interp/intl-collator.js";
@@ -1256,7 +1264,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     state.heapValueById.set(id, resolver);
     return resolver;
   }
-  if (serialized.kind === "guest-durationformat" || serialized.kind === "guest-segmenter" || serialized.kind === "guest-segments" || serialized.kind === "module-function" || serialized.kind === "thenable-resolver" || serialized.kind === "capability-executor" || serialized.kind === "intrinsic" || serialized.kind === "bound-function" || serialized.kind === "promise-resolver" || serialized.kind === "pending-promise" || serialized.kind === "promise-reaction" || serialized.kind === "guest-function" || serialized.kind === "guest-class" || serialized.kind === "guest-object" || serialized.kind === "guest-array" || serialized.kind === "guest-boxed" || serialized.kind === "guest-pluralrules" || serialized.kind === "guest-displaynames" || serialized.kind === "guest-relativetimeformat" || serialized.kind === "guest-listformat" || serialized.kind === "guest-datetimeformat" || serialized.kind === "guest-numberformat" || serialized.kind === "guest-collator" || serialized.kind === "guest-locale" || serialized.kind === "guest-date" || serialized.kind === "guest-regex" || serialized.kind === "guest-promise" || serialized.kind === "array-iterator" || serialized.kind === "string-iterator" || serialized.kind === "async-disposable-stack" || serialized.kind === "disposable-stack" || serialized.kind === "iterator-wrapper" || serialized.kind === "iterator-helper") {
+  if (serialized.kind === "guest-temporal-plain-year-month" || serialized.kind === "guest-temporal-plain-month-day" || serialized.kind === "guest-temporal-zoned-date-time" || serialized.kind === "guest-temporal-plain-date" || serialized.kind === "guest-temporal-plain-date-time" || serialized.kind === "guest-temporal-plain-time" || serialized.kind === "guest-temporal-duration" || serialized.kind === "guest-temporal-instant" || serialized.kind === "guest-durationformat" || serialized.kind === "guest-segmenter" || serialized.kind === "guest-segments" || serialized.kind === "module-function" || serialized.kind === "thenable-resolver" || serialized.kind === "capability-executor" || serialized.kind === "intrinsic" || serialized.kind === "bound-function" || serialized.kind === "promise-resolver" || serialized.kind === "pending-promise" || serialized.kind === "promise-reaction" || serialized.kind === "guest-function" || serialized.kind === "guest-class" || serialized.kind === "guest-object" || serialized.kind === "guest-array" || serialized.kind === "guest-boxed" || serialized.kind === "guest-pluralrules" || serialized.kind === "guest-displaynames" || serialized.kind === "guest-relativetimeformat" || serialized.kind === "guest-listformat" || serialized.kind === "guest-datetimeformat" || serialized.kind === "guest-numberformat" || serialized.kind === "guest-collator" || serialized.kind === "guest-locale" || serialized.kind === "guest-date" || serialized.kind === "guest-regex" || serialized.kind === "guest-promise" || serialized.kind === "array-iterator" || serialized.kind === "string-iterator" || serialized.kind === "async-disposable-stack" || serialized.kind === "disposable-stack" || serialized.kind === "iterator-wrapper" || serialized.kind === "iterator-helper") {
     let value: RuntimeSnapshotValue;
     if (serialized.kind === "thenable-resolver") {
       const bridge = restoreThenableBridge(serialized.continuation, state);
@@ -1360,6 +1368,22 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       value = createSandboxRegex(serialized.source, serialized.flags, 0, state.compilation);
     } else if (serialized.kind === "guest-boxed") {
       value = createSandboxBox(deserializeValue(serialized.value, state));
+    } else if (serialized.kind === "guest-temporal-instant") {
+      value = createSandboxTemporalInstant(BigInt(serialized.epochNanoseconds));
+    } else if (serialized.kind === "guest-temporal-zoned-date-time") {
+      value = createSandboxTemporalZonedDateTime({ ...serialized.slots, epochNanoseconds: BigInt(serialized.slots.epochNanoseconds) });
+    } else if (serialized.kind === "guest-temporal-duration") {
+      value = createSandboxTemporalDuration(serialized.slots);
+    } else if (serialized.kind === "guest-temporal-plain-date-time") {
+      value = createSandboxTemporalPlainDateTime(serialized.slots);
+    } else if (serialized.kind === "guest-temporal-plain-date") {
+      value = createSandboxTemporalPlainDate(serialized.slots);
+    } else if (serialized.kind === "guest-temporal-plain-year-month") {
+      value = createSandboxTemporalPlainYearMonth(serialized.slots);
+    } else if (serialized.kind === "guest-temporal-plain-month-day") {
+      value = createSandboxTemporalPlainMonthDay(serialized.slots);
+    } else if (serialized.kind === "guest-temporal-plain-time") {
+      value = createSandboxTemporalPlainTime(serialized.slots);
     } else if (serialized.kind === "guest-datetimeformat") {
       value = createSandboxDateTimeFormat(serialized.options.locale as string, serialized.options, true, serialized.requestedOptions);
       if (serialized.format !== undefined) state.initializeIterators.push(() => {

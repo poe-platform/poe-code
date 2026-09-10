@@ -46,3 +46,17 @@ terminal report, verify the main parser is unchanged from the candidate base,
 then transfer only this parser change and its test and verify in main.
 No screenshot is needed for this nonvisual language-semantics change. No push
 or release is authorized under the current hold.
+
+## Broader isolated qualification
+
+The candidate now also includes the independent diagnostic-position correction
+documented in safejs-template-escape-positions.md. Together they pass all 30
+pinned String/raw fixtures, with no exclusions or native-unqualified cases
+(f0aa46). This supersedes the earlier single-fixture-only qualification.
+
+The full parser selection found one existing tokenizer assertion expecting the
+incorrect raw CRLF value. Its expected value was corrected to LF without
+changing the cooked expectation. The resulting isolated parser selection passes
+1,495 tests with one skipped test across 60 files (233f75). Transfer that
+tokenizer assertion with the raw-value fix, not the diagnostic-position fix.
+Main runtime/test files remain unchanged while session 82564 is active.

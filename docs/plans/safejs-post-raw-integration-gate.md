@@ -23,3 +23,12 @@ this gate. No candidate Math fix was transferred to main.
 Until a terminal result exists, the latest completed full package run remains
 28,025 passed, 14 failed and 47 skipped; see safejs-post-string-integration-gate.md.
 No push, release or issue closure was performed.
+
+## Terminal result
+
+Session 82564 terminated with exit code 1 (78c0f0). Report inspection (dce64d)
+finds 28,077 passed, 14 failed and 47 skipped across 1,237 files. Failures remain
+the twelve ISO/Temporal month-formatting cases and two native Promise-property
+admission cases; no timeout failures are reported. This is not a green gate.
+The run includes direct String.raw, direct collation and Proxy locale-list fixes.
+It does not include the subsequently transferred template parser candidates.

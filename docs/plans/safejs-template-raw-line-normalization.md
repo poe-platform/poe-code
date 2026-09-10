@@ -60,3 +60,13 @@ changing the cooked expectation. The resulting isolated parser selection passes
 1,495 tests with one skipped test across 60 files (233f75). Transfer that
 tokenizer assertion with the raw-value fix, not the diagnostic-position fix.
 Main runtime/test files remain unchanged while session 82564 is active.
+
+## Main integration
+
+Session 82564 is now terminal; its 28,077/14/47 result is recorded separately.
+The main parser and tokenizer test matched the isolated base (6919e1) before
+transferring only raw normalization, its 20-case regression and the corrected
+tokenizer expectation. The diagnostic-position candidate was not transferred
+with this change. Main focused verification passes 185 tests in 11 files
+(ad8ccd), package TypeScript no-emit passes (36cfee), and scoped ESLint passes
+(504d50). README updated.

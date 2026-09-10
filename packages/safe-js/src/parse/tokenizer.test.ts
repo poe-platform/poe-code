@@ -685,7 +685,7 @@ describe("tokenize", () => {
 
     const crlfTemplate = parseTemplateValue("`a\r\nb`");
     expect(crlfTemplate.quasis[0]?.value).toEqual({
-      raw: "a\r\nb",
+      raw: "a\nb",
       cooked: "a\nb"
     });
 

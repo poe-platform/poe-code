@@ -5044,7 +5044,7 @@ function createTemplateElement(
     type: "TemplateElement",
     tail,
     value: {
-      raw: rawValue,
+      raw: normalizeTemplateLineTerminators(rawValue),
       cooked: cooked.invalid === undefined ? cooked.value : undefined
     },
     span: createSpan(

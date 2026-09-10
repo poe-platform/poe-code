@@ -17,6 +17,28 @@ function fixture() {
 }
 
 describe("runtime type inheritance layouts", () => {
+  it("shares native storage through heap diamonds and selects more-specific native payloads", () => {
+    const { namespace, meter, type } = fixture(), plain = type("Plain");
+    const native = new RuntimeTypeLayout("Native", [], namespace(), meter, { objectLayout: false });
+    const left = type("Left", [native]), right = type("Right", [native]);
+    const diamond = type("Diamond", [left, right]);
+    expect(native.nativeStorage).toBe(native); expect(diamond.nativeStorage).toBe(native);
+    expect(type("Mix", [plain, native]).nativeStorage).toBe(native);
+    const larger = new RuntimeTypeLayout("Larger", [native], namespace(), meter, { objectLayout: false });
+    expect(type("Combined", [larger, left]).nativeStorage).toBe(larger);
+    expect(type("Reversed", [left, larger]).nativeStorage).toBe(larger);
+  });
+
+  it("checks incompatible native bases and base eligibility in left-to-right order", () => {
+    const { namespace, meter } = fixture();
+    const left = new RuntimeTypeLayout("Left", [], namespace(), meter, { objectLayout: false });
+    const right = new RuntimeTypeLayout("Right", [], namespace(), meter, { objectLayout: false });
+    const final = new RuntimeTypeLayout("Final", [], namespace(), meter, { subclassable: false });
+    let published = false;
+    for (const bases of [[left, right], [left, right, final], [left, left, right]]) expect(() => new RuntimeTypeLayout("C", bases, namespace(), meter, { beforeMro() { published = true; } })).toThrow("multiple bases have instance lay-out conflict");
+    expect(() => new RuntimeTypeLayout("C", [left, final, right], namespace(), meter)).toThrow("type 'Final' is not an acceptable base type");
+    expect(published).toBe(false);
+  });
   it("rejects non-subclassable bases before publishing any layout", () => {
     const { namespace, meter, type } = fixture(), base = new RuntimeTypeLayout("Final", [], namespace(), meter, { subclassable: false }), other = type("Other");
     let published = false;

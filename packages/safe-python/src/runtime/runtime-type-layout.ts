@@ -42,15 +42,19 @@ export class RuntimeTypeLayout {
   readonly hasInstanceDictionary: boolean;
   readonly hasObjectLayout: boolean;
   readonly isSubclassable: boolean;
+  /** Defining native payload layout. Heap subclasses share it; introducing a
+   * new native payload establishes a distinct layout even above a native base. */
+  readonly nativeStorage: RuntimeTypeLayout | undefined;
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
-    meter.checkpoint(1, 144 + 8 * bases.length);
-    validateRuntimeBaseLayouts(bases, meter);
+    meter.checkpoint(1, 160 + 8 * bases.length);
+    const nativeStorage = selectRuntimeNativeLayout(bases, meter);
     this.names = new RuntimeTypeNames(name, options.qualifiedName ?? name, meter);
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
     this.hasSequenceTable = options.sequenceTable ?? true;
     this.isSubclassable = options.subclassable ?? true;
+    this.nativeStorage = options.objectLayout === false ? this : nativeStorage;
     let dictionary = options.instanceDictionary ?? true, objectLayout = options.objectLayout ?? true;
     for (const base of bases) { meter.checkpoint(); dictionary ||= base.hasInstanceDictionary; objectLayout &&= base.hasObjectLayout; }
     this.hasInstanceDictionary = dictionary;
@@ -64,16 +68,27 @@ export class RuntimeTypeLayout {
   get mro(): readonly RuntimeTypeLayout[] { return this.#mro; }
 }
 
-/** Base-type eligibility precedes namespace processing and class publication.
- * Layout construction repeats the guard so internal callers cannot bypass it. */
-export function validateRuntimeBaseLayouts(bases: readonly RuntimeTypeLayout[], meter: ExecutionMeter): void {
+/** Select compatible native payload ancestry while validating bases in order.
+ * Eligibility/layout conflicts precede namespace processing and publication;
+ * dictionary/slot signatures belong to the full heap storage layout layer. */
+export function selectRuntimeNativeLayout(bases: readonly RuntimeTypeLayout[], meter: ExecutionMeter): RuntimeTypeLayout | undefined {
+  let selected: RuntimeTypeLayout | undefined;
   for (const base of bases) {
     meter.checkpoint();
     if (!base.isSubclassable) {
       meter.checkpoint(0, 128 + 2 * base.name.length);
       throw new PythonRuntimeError("TypeError", `type '${base.name}' is not an acceptable base type`);
     }
+    const candidate = base.nativeStorage;
+    if (candidate === undefined || candidate === selected) continue;
+    if (selected === undefined) { selected = candidate; continue; }
+    let moreSpecific = false, lessSpecific = false;
+    for (const ancestor of candidate.mro) { meter.checkpoint(); if (ancestor === selected) { moreSpecific = true; break; } }
+    if (moreSpecific) { selected = candidate; continue; }
+    for (const ancestor of selected.mro) { meter.checkpoint(); if (ancestor === candidate) { lessSpecific = true; break; } }
+    if (!lessSpecific) throw new PythonRuntimeError("TypeError", "multiple bases have instance lay-out conflict");
   }
+  return selected;
 }
 
 /** Resolve only the winning MRO value's descriptor slots. No namespace cache is

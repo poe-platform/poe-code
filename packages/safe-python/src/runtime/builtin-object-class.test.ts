@@ -38,6 +38,16 @@ it("distinguishes native payload ancestry even when dictionary flags match", () 
   expect(instance.type).toBe(first);
 });
 
+it("rejects reassignment across an additional native payload layer", () => {
+  const { v, meter, registry, type, storage, descriptor } = fixture(), root = type("Native", false);
+  const larger = registry.publish(new RuntimeTypeLayout("Larger", [root.value], storage, meter, { objectLayout: false }), registry.type);
+  const first = registry.publish(new RuntimeTypeLayout("D", [root.value], storage, meter), registry.type);
+  const second = registry.publish(new RuntimeTypeLayout("T", [larger.value], storage, meter), registry.type);
+  const instance = v.instance(first);
+  expect(() => mutateRuntimeGetsetDescriptor(descriptor, instance, { kind: "set", value: second }, meter)).toThrow("__class__ assignment: 'T' object layout differs from 'D'");
+  expect(instance.type).toBe(first);
+});
+
 it("passes validated opaque storage changes to the explicit execution policy", () => {
   const { v, meter, cls, next, descriptor } = fixture(), opaque = v.cell({}); let actual = cls, calls = 0;
   const invocation = { call: () => v.none, isStopIteration: () => false, actualType: () => actual,

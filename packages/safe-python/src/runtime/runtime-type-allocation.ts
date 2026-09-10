@@ -1,6 +1,6 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { RuntimeTypeLayout, validateRuntimeBaseLayouts, type RuntimeTypeLayoutOptions } from "./runtime-type-layout.js";
+import { RuntimeTypeLayout, selectRuntimeNativeLayout, type RuntimeTypeLayoutOptions } from "./runtime-type-layout.js";
 import { RuntimeTypeNames } from "./runtime-type-names.js";
 import type { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
@@ -25,7 +25,7 @@ export function allocateRuntimeType(name: Extract<RuntimeValue, { kind: "str" }>
   const baseLayouts: RuntimeTypeLayout[] = [];
   for (const base of bases) { meter.checkpoint(); baseLayouts.push(base.value); }
   if (baseLayouts.length === 0) { meter.checkpoint(0, 8); baseLayouts.push(registry.object.value); }
-  validateRuntimeBaseLayouts(baseLayouts, meter);
+  selectRuntimeNativeLayout(baseLayouts, meter);
   const names = new RuntimeTypeNames("", "", meter);
   names.set("__name__", name, meter);
   const namespace = values.dictionary(source.items.copy());

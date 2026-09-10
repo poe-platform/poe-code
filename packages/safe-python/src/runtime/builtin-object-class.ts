@@ -1,6 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type GetsetDescriptorValue, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 
@@ -10,14 +9,6 @@ function actualClass(value: RuntimeValue, meter: ExecutionMeter, invocation?: Bu
   if (value.kind === "type") return value.metaclass;
   if (invocation?.actualType === undefined) throw Error("class reflection requires an actual type policy");
   const type = invocation.actualType(value); meter.checkpoint(); return type;
-}
-
-/** Native payload ancestry is part of layout identity, not just dictionary
- * availability. Slot-bearing layouts will additionally need slot signatures. */
-function nativeLayout(type: TypeValue, meter: ExecutionMeter): RuntimeTypeLayout | undefined {
-  let layout: RuntimeTypeLayout | undefined;
-  for (const ancestor of type.value.mro) { meter.checkpoint(); if (!ancestor.hasObjectLayout) layout = ancestor; }
-  return layout;
 }
 
 /** Data descriptor for actual type reflection and compatible heap reassignment.
@@ -35,7 +26,7 @@ export function createObjectClassDescriptor(values: RuntimeValues, meter: Execut
       const current = actualClass(receiver, meter, invocation);
       if (registry.resolve(current.value) !== current || registry.resolve(next.value) !== next) throw Error("class assignment requires types owned by this registry");
       if (current.immutable || next.immutable) throw new PythonRuntimeError("TypeError", "__class__ assignment only supported for mutable types or ModuleType subclasses");
-      if (current.value.hasInstanceDictionary !== next.value.hasInstanceDictionary || nativeLayout(current, meter) !== nativeLayout(next, meter)) {
+      if (current.value.hasInstanceDictionary !== next.value.hasInstanceDictionary || current.value.nativeStorage !== next.value.nativeStorage) {
         meter.checkpoint(0, 128 + 2 * (current.value.name.length + next.value.name.length));
         throw new PythonRuntimeError("TypeError", `__class__ assignment: '${next.value.name}' object layout differs from '${current.value.name}'`);
       }

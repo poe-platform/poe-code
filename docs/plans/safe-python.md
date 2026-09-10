@@ -8198,6 +8198,20 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Complete native constructors,
   slots/layout conflict checks, mutable bases and public execution wiring remain
   unfinished.
+- Added shared native storage identity and multiple-base layout validation.
+  Heap subclasses/diamonds inherit their native storage root; explicitly extended
+  native payloads establish a more-specific identity. Base eligibility and storage
+  conflicts are checked in source order before namespace validation/publication.
+  Incompatible staticmethod/classmethod/type layouts are rejected, while compatible
+  native ancestry and plain mixins remain valid. __class__ compatibility uses the
+  same identity, fixing reassignment across an additional native payload layer
+  (validated with date/datetime subclass behavior). Two regressions initially
+  failed; focused cases cover diamonds, native extensions and error precedence.
+  All 432 layout-conflict cases, 238 reassignment cases, 640 allocation cases and
+  192 base-eligibility cases match CPython. All 6,361 tests in 484 files, selected
+  build, typecheck and scoped lint pass. Heap slot signatures, full solid-base
+  sizing/alignment, native constructors and mutable-base invalidation remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

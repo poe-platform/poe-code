@@ -39,6 +39,16 @@ it.each(["staticmethod", "classmethod"] as const)("keeps immutable %s native pay
   expect(child.value.isSubclassable).toBe(true); expect(child.value.hasObjectLayout).toBe(false);
 });
 
+it("rejects incompatible native payload bases before namespace validation and class-cell publication", () => {
+  const { v, meter, registry, namespace } = fixture(), left = registry.methodDecoratorType("staticmethod"), right = registry.methodDecoratorType("classmethod"), cell = v.cell({});
+  namespace.items.set(v.string("__classcell__"), cell);
+  for (const invalidName of [false, true]) {
+    if (invalidName) namespace.items.set(v.string("__qualname__"), v.none);
+    expect(() => allocateRuntimeType(v.string("C"), [left, right], namespace, registry.type, registry, v, meter)).toThrow("multiple bases have instance lay-out conflict");
+    expect(cell.value.content).toBeUndefined();
+  }
+});
+
 it("allocates fresh owned classes with default object bases and copied namespace storage", () => {
   const { v, registry, namespace, create } = fixture(), member = v.list([]);
   namespace.items.set(v.string("member"), member);

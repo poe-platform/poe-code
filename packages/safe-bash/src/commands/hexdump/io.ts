@@ -148,7 +148,7 @@ export class Reader {
         this.lifecycle.assertOpen();
         if (readStream && streamingRead) {
           source = Reflect.apply(readStream, fs, [path, { signal: budget.signal, chunkSize: 16_384 }]);
-          needsAcquisitionCleanup = budget.signal.aborted;
+          needsAcquisitionCleanup = budget.signal.aborted || budget.admission.closed;
         } else {
           const maximum = Math.min(budget.limits.maxInputBytes, Math.floor(budget.limits.maxBufferedBytes / 2));
           const size = stat.size;

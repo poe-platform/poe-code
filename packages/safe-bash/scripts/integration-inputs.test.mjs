@@ -1907,6 +1907,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/hexdump-independent/snapshot.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump-independent/lifecycle.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump-independent/synchronous-close.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/acquisition-close.test.ts"));
   assert.ok(files.includes("tests/commands/getopt/native.test.ts"));
   assert.ok(files.includes("tests/commands/getopt/safety.test.ts"));
   assert.ok(files.includes("tests/commands/getopt-independent/native.test.ts"));

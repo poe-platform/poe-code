@@ -172,6 +172,22 @@ the source-only scratch qualification; focused types pass. Preserve that
 365-case result separately from the earlier full gate. Admit the new test into
 the maintained discovery witness, commit the correction, and rerun final gates.
 
+The synchronous-admission candidate `a1490e185305a6385e016757ea7cdab5a4d7e111`
+passes lint and 465 source/discovery checks. A four-case independent acquisition
+holdout then exposes two regressions: an already-started `readStream` call can
+invoke registered cleanup and return its cooperative source, but the strengthened
+normal-admission guard prevents that source's cleanup-only iterator acquisition.
+The previous candidate passes all four unchanged holdouts. Preserve both receipts
+in `/tmp/issue684-acquisition-review-3Kd8Od`; interrupt full test v3 before editing
+and do not count it as a completed gate.
+
+Extend only the existing post-`readStream` cleanup predicate to include the
+captured synchronous closed flag alongside signal cancellation. Keep normal
+admission closed, never advance the returned iterator, and drain its exactly-once
+return, including held returns. All 365 previous cases plus these four pass;
+focused types pass. Review adjacent acquisition paths, preserve the original
+holdout assertions, add the discovery witness, commit, and restart final gates.
+
 Run focused command/public/discovery/adjacent-byte and browser-source checks,
 then refresh the normal workspace build for the new public inventory. Commit
 the coherent candidate before the exact committed-archive gate. Run the full

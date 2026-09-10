@@ -13,6 +13,7 @@ import { createRuntimeLengthContext } from "./runtime-length-context.js";
 export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): boolean {
   meter.checkpoint();
   switch (value.kind) {
+    case "staticmethod": case "classmethod": return true;
     case "list": return value.items.length !== 0;
     case "dict": case "set": case "frozenset": return value.items.size !== 0;
     case "mappingproxy": case "dict_keys": case "dict_values": case "dict_items": return value.value.items.size !== 0;

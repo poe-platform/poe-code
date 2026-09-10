@@ -7926,6 +7926,21 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Public MethodType validation,
   native classmethod/staticmethod wrappers, automatic class-body wrapping, full
   type.__new__ integration and suspended safe-fs effects remain unfinished.
+- Added raw staticmethod/classmethod values with intrinsic non-data descriptor
+  binding. Static access returns the payload unchanged; class access binds the
+  effective owner without chaining the wrapped descriptor, using actual receiver
+  ownership only when the owner is omitted. Static calls share iterative method
+  unwrapping; classmethod objects remain noncallable. Added wrapped payload reads,
+  native truth/hash/numeric classification and automatic wrapping of exact
+  function-valued __new__, __init_subclass__ and __class_getitem__ in copied class
+  namespaces. The initial allocation regression showed these remained functions.
+  Eighteen tests cover binding markers, intrinsic ownership, explicit owners,
+  non-data slots, wrapper preservation and compiled inherited/automatic methods.
+  All 160 binding cases, 20 wrapping cases and 96 compiled constructor cases match
+  CPython. All 6,187 tests in 470 files, selected build, typecheck and scoped lint
+  pass. Public wrapper constructors, metadata copying, mutable attributes and
+  reinitialization, native object subclass hooks, full type.__new__ integration
+  and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

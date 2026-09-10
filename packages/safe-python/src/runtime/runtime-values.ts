@@ -131,6 +131,10 @@ export interface BoundMethodValue {
   readonly value: { readonly function: RuntimeValue; readonly instance: RuntimeValue };
 }
 
+export type MethodDecoratorValue =
+  | { readonly kind: "staticmethod"; readonly value: RuntimeValue }
+  | { readonly kind: "classmethod"; readonly value: RuntimeValue };
+
 export interface CellValue {
   readonly kind: "cell";
   readonly value: CellStorage<RuntimeValue>;
@@ -212,6 +216,7 @@ export type RuntimeValue =
   | FunctionValue
   | BuiltinFunctionValue
   | BoundMethodValue
+  | MethodDecoratorValue
   | CellValue
   | InstanceValue
   | TypeValue
@@ -292,6 +297,13 @@ export class RuntimeValues extends ConstantValues {
     if (instance.kind === "none") throw new PythonRuntimeError("TypeError", "instance must not be None");
     this.runtimeMeter.checkpoint(0, 64);
     return Object.freeze({ kind: "method", value: Object.freeze({ function: fn, instance }) });
+  }
+
+  /** Raw initialized wrapper. Public constructors additionally copy callable
+   * metadata and support reinitialization; those policies are separate. */
+  methodDecorator(kind: "staticmethod" | "classmethod", value: RuntimeValue): MethodDecoratorValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind, value });
   }
 
   /** Adopt prepared ordered storage sharing this execution's key policy/meter.

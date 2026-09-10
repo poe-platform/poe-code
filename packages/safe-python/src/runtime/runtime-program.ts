@@ -89,7 +89,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
       get iteration() { return getIteration(); },
       values, keys, name(value) {
-        while (value.kind === "method") { meter.checkpoint(); value = value.value.function; }
+        while (value.kind === "method" || value.kind === "staticmethod") { meter.checkpoint(); value = value.kind === "method" ? value.value.function : value.value; }
         if (value.kind === "builtin_function_or_method") return `${value.value.name}()`;
         if (value.kind === "method_descriptor" || value.kind === "wrapper_descriptor") return `${value.value.owner.value.name}.${value.value.name}()`;
         if (value.kind === "method-wrapper") return `${value.value.descriptor.value.owner.value.name}.${value.value.descriptor.value.name}()`;
@@ -97,10 +97,14 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       }, keywordName: hooks.keywordName.bind(hooks),
       callable: value => runtimeCallable(value, meter, hooks),
       invoke(value, positional, keywords) {
-        if (value.kind === "method") {
+        if (value.kind === "method" || value.kind === "staticmethod") {
           const receivers: RuntimeValue[] = [];
           let callable: RuntimeValue = value;
-          while (callable.kind === "method") { meter.checkpoint(1, 8); receivers.push(callable.value.instance); callable = callable.value.function; }
+          while (callable.kind === "method" || callable.kind === "staticmethod") {
+            meter.checkpoint();
+            if (callable.kind === "method") { meter.checkpoint(0, 8); receivers.push(callable.value.instance); callable = callable.value.function; }
+            else callable = callable.value;
+          }
           meter.checkpoint(0, 32 + 8 * (receivers.length + positional.length));
           const args: RuntimeValue[] = [];
           for (let index = receivers.length - 1; index >= 0; index--) { meter.checkpoint(); args.push(receivers[index]); }

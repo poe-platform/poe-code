@@ -6,6 +6,9 @@ import { ExecutionBudget } from "./execution-budget.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeTypeAttribute } from "./runtime-type-attributes.js";
+import { compileProgram } from "./program-compilation.js";
+import { analyzeModule } from "../analysis.js";
+import { createFunctionState } from "./function-state.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -84,4 +87,20 @@ it("retains class-cell publication when a later checkpoint terminates allocation
   expect(() => allocateRuntimeType(v.string("C"), [], namespace, registry.type, registry, v, aborting)).toThrow("stop after publication");
   const cls = cell.value.content?.value; if (cls?.kind !== "type") throw Error("expected retained class");
   expect(cls.value.mro).toEqual([]); expect(registry.resolve(cls.value)).toBe(cls);
+});
+
+it("automatically wraps only function-valued reserved class methods in the owned namespace", () => {
+  const { v, meter, namespace, create } = fixture(), program = compileProgram(analyzeModule("def f(): pass\n"), { stripDocstring: false }, v, meter);
+  const fn = v.function(createFunctionState(program.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter));
+  for (const name of ["__new__", "__init_subclass__", "__class_getitem__", "ordinary"]) namespace.items.set(v.string(name), fn);
+  const cls = create();
+  for (const [name, kind] of [["__new__", "staticmethod"], ["__init_subclass__", "classmethod"], ["__class_getitem__", "classmethod"], ["ordinary", "function"]]) {
+    expect(cls.value.namespace.items.lookup(v.string(name))?.value.kind).toBe(kind); expect(namespace.items.lookup(v.string(name))?.value).toBe(fn);
+  }
+});
+
+it("does not rewrap explicit method decorators or non-function reserved values", () => {
+  const { v, namespace, create } = fixture(), wrapper = v.methodDecorator("staticmethod", v.none), native = v.builtinFunction({ name: "native", invoke: () => v.none });
+  namespace.items.set(v.string("__new__"), wrapper); namespace.items.set(v.string("__init_subclass__"), native); namespace.items.set(v.string("__class_getitem__"), v.true);
+  const cls = create(); expect(cls.value.namespace.items.lookup(v.string("__new__"))?.value).toBe(wrapper); expect(cls.value.namespace.items.lookup(v.string("__init_subclass__"))?.value).toBe(native); expect(cls.value.namespace.items.lookup(v.string("__class_getitem__"))?.value).toBe(v.true);
 });

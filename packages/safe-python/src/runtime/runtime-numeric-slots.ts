@@ -16,7 +16,7 @@ export const runtimeNumericMethods: ReadonlyMap<string, { readonly forward: stri
  * retain native slots; native-subclass storage needs a separate adapter. */
 export function usesRuntimeGuestNumericSlots(value: RuntimeValue): boolean {
   switch (value.kind) {
-    case "instance": case "cell": case "type": case "function": case "method":
+    case "instance": case "cell": case "type": case "function": case "method": case "staticmethod": case "classmethod":
     case "builtin_function_or_method": case "getset_descriptor": case "method_descriptor": case "wrapper_descriptor": case "method-wrapper": case "iterator": return true;
     default: return false;
   }

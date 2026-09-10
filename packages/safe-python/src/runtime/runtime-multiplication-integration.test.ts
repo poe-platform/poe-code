@@ -1870,6 +1870,45 @@ it("uses the underlying native function name for duplicate bound-call keywords",
   expect(() => state.run("method(x=1,**{'x':2})\n")).toThrow("capture() got multiple values for keyword argument 'x'");
 });
 
+it("inherits static methods without binding either classes or instances", () => {
+  const state = fixture(), base = state.type("Base"), child = state.type("Child", base);
+  state.method(base, "f", "def f(value):\n return value\n"); const fn = base.value.namespace.items.lookup(state.v.string("f"))!.value;
+  base.value.namespace.items.set(state.v.string("f"), state.v.methodDecorator("staticmethod", fn)); state.globals.set("Child", child); state.instance("obj", child);
+  state.run("a=Child.f(7)\nb=obj.f(9)\n"); expect(state.globals.get("a")).toEqual(state.v.integer(7)); expect(state.globals.get("b")).toEqual(state.v.integer(9));
+});
+
+it("binds inherited class methods to the effective class for class and instance reads", () => {
+  const state = fixture(), base = state.type("Base"), child = state.type("Child", base);
+  state.method(base, "f", "def f(cls):\n return cls\n"); const fn = base.value.namespace.items.lookup(state.v.string("f"))!.value;
+  base.value.namespace.items.set(state.v.string("f"), state.v.methodDecorator("classmethod", fn)); state.globals.set("Child", child); state.instance("obj", child);
+  state.run("a=Child.f()\nb=obj.f()\n"); expect(state.globals.get("a")).toBe(child); expect(state.globals.get("b")).toBe(child);
+});
+
+it("calls static wrappers directly and preserves mixed nested binding order", () => {
+  const state = fixture(), fn = state.v.builtinFunction({ name: "capture", invoke(args) { expect(args).toEqual([state.v.true, state.v.integer(7)]); return state.v.none; } });
+  state.globals.set("wrapped", state.v.methodDecorator("staticmethod", state.v.boundMethod(state.v.methodDecorator("staticmethod", fn), state.v.true)));
+  state.run("result=wrapped(7)\n"); expect(state.globals.get("result")).toBe(state.v.none);
+});
+
+it("exposes decorator payload identities but does not make classmethod objects callable", () => {
+  const state = fixture(), wrapper = state.v.methodDecorator("classmethod", state.v.none); state.globals.set("wrapped", wrapper);
+  state.run("function=wrapped.__func__\noriginal=wrapped.__wrapped__\n"); expect(state.globals.get("function")).toBe(state.v.none); expect(state.globals.get("original")).toBe(state.v.none);
+  expect(() => state.run("wrapped()\n")).toThrow("'classmethod' object is not callable");
+});
+
+it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
+  const state = fixture(), source = state.type("Source");
+  state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");
+  const base = allocateRuntimeType(state.v.string("Base"), [], source.value.namespace, state.registry.type, state.registry, state.v, state.meter), empty = state.type("Empty").value.namespace;
+  const cls = allocateRuntimeType(state.v.string("C"), [base], empty, state.registry.type, state.registry, state.v, state.meter), keywords = state.type("Keywords").value.namespace;
+  keywords.items.set(state.v.string("flag"), state.v.integer(7)); state.globals.set("C", cls);
+  state.globals.set("finish", state.v.builtinFunction({ name: "finish", invoke(_args, _keywords, _meter, invocation) {
+    if (!invocation) throw Error("expected invocation");
+    finalizeRuntimeType(cls, keywords, { typeOf: value => state.types.get(value) ?? state.registry.object, slots: () => undefined }, state.v, state.meter, { call: invocation.call, repr() { throw Error("unexpected repr"); } }); return state.v.none;
+  } }));
+  state.run("finish()\nresult=C.received\n"); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+});
+
 it("assigns and deletes class attributes without mutating inherited namespaces", () => {
   const state = fixture(), base = state.type("Base"), owner = state.type("C", base); state.globals.set("C", owner); state.globals.set("Base", base);
   base.value.namespace.items.set(state.v.string("value"), state.v.integer(1));

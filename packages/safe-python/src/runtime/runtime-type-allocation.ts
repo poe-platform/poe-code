@@ -14,8 +14,9 @@ export interface RuntimeTypeAllocationOptions {
 
 /** Allocate one canonical class from a selected metaclass and validated bases.
  * This owns namespace copying, intrinsic metadata and class-cell propagation.
- * Metaclass selection/delegation, slot layout validation, automatic method
- * wrapping, __set_name__ and __init_subclass__ belong to the enclosing type-new
+ * Exact function-valued reserved methods receive their automatic wrappers.
+ * Metaclass selection/delegation, slot layout validation, __set_name__ and
+ * __init_subclass__ belong to the enclosing type-new
  * lifecycle. Do not expose this stage as a standalone guest type.__new__.
  */
 export function allocateRuntimeType(name: Extract<RuntimeValue, { kind: "str" }>, bases: readonly TypeValue[], source: DictionaryValue, metaclass: TypeValue, registry: RuntimeTypeRegistry, values: RuntimeValues, meter: ExecutionMeter, options: RuntimeTypeAllocationOptions = {}): TypeValue {
@@ -40,6 +41,10 @@ export function allocateRuntimeType(name: Extract<RuntimeValue, { kind: "str" }>
   namespace.items.delete(cellKey);
   const moduleKey = values.string("__module__"), docKey = values.string("__doc__");
   if (options.module !== undefined && namespace.items.lookup(moduleKey) === undefined) namespace.items.set(moduleKey, options.module);
+  for (const methodName of ["__new__", "__init_subclass__", "__class_getitem__"] as const) {
+    const key = values.string(methodName), method = namespace.items.lookup(key)?.value;
+    if (method?.kind === "function") namespace.items.set(key, values.methodDecorator(methodName === "__new__" ? "staticmethod" : "classmethod", method));
+  }
   const baseLayouts: RuntimeTypeLayout[] = [];
   for (const base of bases) { meter.checkpoint(); baseLayouts.push(base.value); }
   if (baseLayouts.length === 0) { meter.checkpoint(0, 8); baseLayouts.push(registry.object.value); }

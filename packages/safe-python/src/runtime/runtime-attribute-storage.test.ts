@@ -36,6 +36,16 @@ it("retains unreflected attributes when dictionary construction fails", () => {
   expect(storage.dictionary(keys).items.size).toBe(2);
 });
 
+it("enumerates only string attribute names without dropping other dictionary keys", () => {
+  const { v, keys, storage } = fixture(); storage.set("a", v.true);
+  expect([...storage]).toEqual([["a", v.true]]); expect(storage.has("a")).toBe(true);
+  const dictionary = storage.dictionary(keys);
+  dictionary.items.set(v.none, v.false); dictionary.items.set(v.string("😀\u0000"), v.none);
+  expect([...storage]).toEqual([["a", v.true], ["😀\u0000", v.none]]);
+  expect(storage.size).toBe(2); expect(dictionary.items.size).toBe(3);
+  expect(storage.has("missing")).toBe(false); expect(storage.has("😀\u0000")).toBe(true);
+});
+
 it("writes remaining wrapper metadata into a dictionary replaced during lookup", () => {
   const { v, meter, keys } = fixture(), wrapper = v.methodDecorator("staticmethod", v.true), old = wrapper.state.attributes.dictionary(keys), replacement = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
   wrapper.state.initialize(v.false, (_value, name) => {

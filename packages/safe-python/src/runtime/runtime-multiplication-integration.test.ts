@@ -2095,6 +2095,30 @@ it("replaces and resets function annotation dictionaries without evaluating sour
   expect(() => state.run("f.__annotations__=7\n")).toThrow("__annotations__ must be set to a dict object");
 });
 
+it("shares live function dictionaries with ordinary attributes while preserving native metadata", () => {
+  const state = fixture();
+  state.run("def f(): pass\nf.custom=True\nold=f.__dict__\nsame=f.__dict__ is old\nold['custom']=False\nchanged=f.custom\nreplacement={7:True,'__name__':'shadow','__annotations__':False}\nf.__dict__=replacement\nreplaced=f.__dict__ is replacement\nf.extra=True\nextra=replacement['extra']\nname=f.__name__\nannotations=f.__annotations__\nnumber=f.__dict__[7]\n");
+  for (const name of ["same", "replaced", "extra", "number"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(state.globals.get("changed")).toBe(state.v.false); expect(state.globals.get("name")).toEqual(state.v.string("f"));
+  const annotations = state.globals.get("annotations")!; if (annotations.kind !== "dict") throw Error("expected intrinsic annotations"); expect(annotations.items.size).toBe(0);
+  expect(() => state.run("f.custom\n")).toThrow("'function' object has no attribute 'custom'");
+  expect(() => state.run("f.__dict__=None\n")).toThrow("__dict__ must be set to a dictionary, not a 'NoneType'");
+  expect(() => state.run("del f.__dict__\n")).toThrow("cannot delete __dict__");
+  const fn = state.globals.get("f")!; if (fn.kind !== "function") throw Error("expected function");
+  fn.value.attributes.set("host", state.v.true);
+  state.run("host=f.__dict__['host']\ndel f.extra\nold['custom']=True\ndetached=old['custom']\nstill=f.__dict__ is replacement\n");
+  for (const name of ["host", "detached", "still"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(fn.value.attributes.has("extra")).toBe(false);
+  expect(() => state.run("f.custom\n")).toThrow("'function' object has no attribute 'custom'");
+});
+
+it("adopts a supplied function dictionary before any reflection", () => {
+  const state = fixture();
+  state.run("def f(): pass\nf.previous=True\nreplacement={'current':False}\nf.__dict__=replacement\nsame=f.__dict__ is replacement\ncurrent=f.current\n");
+  expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("current")).toBe(state.v.false);
+  expect(() => state.run("f.previous\n")).toThrow("'function' object has no attribute 'previous'");
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

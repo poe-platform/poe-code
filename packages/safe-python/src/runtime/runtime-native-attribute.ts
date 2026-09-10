@@ -59,6 +59,7 @@ import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
+import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
  * exposed; host payload fields and JavaScript prototypes are never inspected.
@@ -69,6 +70,16 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "function") {
+    if (name === "__dict__") {
+      if (methods?.dictionaryKeys === undefined) throw Error("function attribute dictionaries require a key policy");
+      const attributes = receiver.value.attributes;
+      if (attributes instanceof RuntimeAttributeStorage) return attributes.dictionary(methods.dictionaryKeys);
+      const storage = new RuntimeAttributeStorage(values, meter);
+      for (const [key, value] of attributes) storage.set(key, value);
+      const dictionary = storage.dictionary(methods.dictionaryKeys);
+      meter.checkpoint(); receiver.value.attributes = storage;
+      return dictionary;
+    }
     if (name === "__annotate__") return values.none;
     if (name === "__annotations__") {
       if (receiver.value.annotations !== undefined) return receiver.value.annotations;

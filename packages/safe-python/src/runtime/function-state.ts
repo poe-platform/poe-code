@@ -13,16 +13,23 @@ export interface FunctionCreationContext<Value> extends LexicalNamespaces<Value>
   resolveBuiltins?(value: Value): NameNamespace<Value>;
 }
 
+/** String-name view, independent of the concrete guest dictionary machinery. */
+export interface FunctionAttributes<Value> extends Iterable<readonly [string, Value]> {
+  readonly size: number;
+  get(name: string): Value | undefined;
+  has(name: string): boolean;
+  set(name: string, value: Value): void;
+  delete(name: string): boolean;
+}
+
 /** Internal function payload, not a guest-accessible JavaScript object. Guest
- * descriptors must validate writes to special metadata, translate defaults to
- * tuple/dictionary objects and expose ordinary attributes through guest storage.
- * Those protocols and __code__ replacement are not implemented by this record.
- */
+ * descriptors validate special metadata and expose ordinary guest storage.
+ * Code replacement and default/closure introspection remain runtime concerns. */
 export interface FunctionState<Value> extends LexicalNamespaces<Value> {
   readonly code: CompiledFunction<Value>;
   readonly closure: ReadonlyMap<string, LexicalCell<Value>>;
   readonly defaults: ReadonlyMap<string, Value>;
-  readonly attributes: Map<string, Value>;
+  attributes: FunctionAttributes<Value>;
   name: Value;
   qualifiedName: Value;
   module: Value;

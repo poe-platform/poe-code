@@ -16,7 +16,30 @@ export class RuntimeAttributeStorage {
   }
 
   get size(): number {
-    return this.#dictionary === undefined ? this.#attributes.size : this.#dictionary.items.size;
+    if (this.#dictionary === undefined) return this.#attributes.size;
+    let count = 0;
+    for (const [key] of this.#dictionary.items.snapshot()) { this.meter.checkpoint(); if (key.kind === "str") count++; }
+    return count;
+  }
+
+  /** Attribute-name view; non-string guest dictionary keys remain untouched. */
+  *[Symbol.iterator](): IterableIterator<readonly [string, RuntimeValue]> {
+    if (this.#dictionary === undefined) {
+      for (const entry of this.#attributes) { this.meter.checkpoint(); yield entry; }
+      return;
+    }
+    for (const [key, value] of this.#dictionary.items.snapshot()) {
+      this.meter.checkpoint();
+      if (key.kind !== "str") continue;
+      let name = "";
+      for (const point of key.value) { this.meter.checkpoint(1, point > 0xffff ? 4 : 2); name += String.fromCodePoint(point); }
+      yield [name, value];
+    }
+  }
+
+  has(name: string): boolean {
+    this.meter.checkpoint();
+    return this.#dictionary === undefined ? this.#attributes.has(name) : this.#dictionary.items.lookup(this.values.string(name)) !== undefined;
   }
 
   get(name: string): RuntimeValue | undefined {

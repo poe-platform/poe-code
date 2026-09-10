@@ -8068,6 +8068,20 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and scoped lint pass. General instance/function dictionary replacement,
   __class__, remaining function intrinsic fields and subclass call/descriptor-slot
   overrides remain unfinished.
+- Added live function __dict__ reflection and identity-preserving replacement.
+  Generic function state now accepts a string-name storage interface; reflection
+  promotes the existing attributes into shared guest storage, and subsequent
+  host/guest writes use that same storage. Native function metadata cannot be
+  shadowed by dictionary entries. Non-string keys remain in guest dictionaries;
+  the host attribute iterator/size expose only string names. Invalid replacement
+  and deletion preserve the live dictionary; replaced dictionaries stay detached.
+  The compiled regression initially failed with missing __dict__. Two compiled
+  regressions and a storage-view test now pass, along with all 6,271 tests in
+  478 files. Ten function dictionary traces, 224 function metadata operations
+  and 20 wrapper dictionary traces match CPython. Selected build, typecheck and scoped lint
+  pass. General instance dictionaries, __class__, other
+  function intrinsic fields and subclass call/descriptor-slot overrides remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

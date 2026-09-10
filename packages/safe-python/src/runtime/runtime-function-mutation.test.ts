@@ -14,7 +14,7 @@ function fixture(signal?: AbortSignal) {
 
 it("preserves the extension boundary for unfinished intrinsic function fields", () => {
   const { meter, v, fn } = fixture(); fn.value.attributes.set("existing", v.true);
-  for (const name of ["__class__", "__dict__", "__code__", "__defaults__", "__kwdefaults__", "__globals__", "__closure__", "__builtins__", "__annotate__", "__type_params__"]) {
+  for (const name of ["__class__", "__code__", "__defaults__", "__kwdefaults__", "__globals__", "__closure__", "__builtins__", "__annotate__", "__type_params__"]) {
     expect(runtimeMutateFunctionAttribute(fn, name, { kind: "set", value: v.false }, v, meter)).toBe(false);
     expect(runtimeMutateFunctionAttribute(fn, name, { kind: "delete" }, v, meter)).toBe(false);
   }

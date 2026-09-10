@@ -654,6 +654,8 @@ Classic `for` initializers reject unparenthesized `in` expressions, including
 yield operands, assignment right sides and concise arrow bodies. Parentheses,
 destructuring defaults and other grammar-permitted nested expressions retain
 `in` support; loop conditions, updates and bodies are unaffected.
+Generators allow an omitted `yield` operand before a conditional arm's `:`,
+including nested conditionals and async generators.
 Non-strict statement-only bodies distinguish a `let` identifier followed by a
 newline from a lexical declaration; strict-mode and declaration restrictions
 still apply.

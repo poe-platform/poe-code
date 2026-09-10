@@ -86,6 +86,12 @@ failure count. Legacy substr is also repaired; see
 
 ## Remaining verified gaps and verification work
 
+Omitted yield operands before a conditional colon are repaired locally after
+the pinned rhs-omitted.js fixture failed. Native-equivalent sync/async execution
+and repeated checkpoint restoration pass; invalid yield-star and punctuation
+controls remain rejected. See [the repair record](safejs-yield-conditional-operand.md).
+This source repair postdates the latest workspace build and full-package gate.
+
 Classic for initializer In grammar is repaired locally after a pinned
 yield-star parse-negative fixture exposed the gap. The 32 regressions preserve
 permitted nested expressions while rejecting forbidden initializer forms;

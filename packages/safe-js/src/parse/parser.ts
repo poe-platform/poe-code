@@ -4828,7 +4828,7 @@ function isAssignmentOperator(value: string): value is AssignmentOperator {
 }
 
 function isYieldArgumentTerminator(value: string): boolean {
-  return value === ";" || value === "}" || value === ")" || value === "]" || value === ",";
+  return value === ";" || value === "}" || value === ")" || value === "]" || value === "," || value === ":";
 }
 
 function createNumericLiteral(token: Token): NumericLiteral | BigIntLiteral {

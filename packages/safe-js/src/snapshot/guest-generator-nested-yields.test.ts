@@ -7,6 +7,9 @@ import { restore } from "./restore.js";
 import { serialize } from "./serialize.js";
 
 const bodies = [
+  "return (yield) ? yield : yield",
+  "return false ? yield : yield",
+  "return true ? (false ? yield : yield) : yield",
   "yield (yield 1);return 9",
   "yield* (yield 1,[2,3]);return 9",
   "yield (yield (yield 1));return 9",

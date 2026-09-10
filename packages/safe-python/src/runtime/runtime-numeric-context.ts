@@ -5,6 +5,7 @@ import type { MultiplicationContext } from "./runtime-multiplication.js";
 import { runtimeNumericMethods, usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimePowerSlot } from "./runtime-power.js";
+import { runtimeDivmod } from "./runtime-divmod.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Prepare one pair, keeping method lookup live until dispatch. Native pairs
@@ -31,6 +32,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   meter.checkpoint(0, 512);
   const call = (receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined, name: string): RuntimeValue => {
     if (type === undefined) {
+      if (operator === "divmod()") return runtimeDivmod(left, right, values, meter);
       if (operator === "**") return runtimePowerSlot(receiver, left, right, modulus, values, meter);
       if (operator === "+" || operator === "*") return values.notImplemented;
       if (operator === "|" && receiver.kind === "mappingproxy") {

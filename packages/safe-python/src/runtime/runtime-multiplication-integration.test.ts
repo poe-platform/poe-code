@@ -11,6 +11,7 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { createRepresentationBuiltin } from "./builtin-representation.js";
 import { createSumBuiltin } from "./builtin-sum.js";
 import { createPowBuiltin } from "./builtin-pow.js";
+import { createDivmodBuiltin } from "./builtin-divmod.js";
 import { CallStack } from "./call-stack.js";
 
 function fixture(signal?: AbortSignal) {
@@ -793,4 +794,105 @@ it("rejects cancelled compiled unary methods before assigning results", () => {
   state.guest("guest", owner);
   expect(() => state.run("result=~guest\n")).toThrow("execution cancelled");
   expect(state.globals.has("result")).toBe(false);
+});
+
+it.each([false, true])("dispatches inherited compiled divmod methods (reflected=%s)", reflected => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("Derived", base), v = state.v;
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  state.method(base, reflected ? "__rdivmod__" : "__divmod__", "def operation(self, other):\n visit('divmod')\n return other\n");
+  state.guest("guest", owner);
+  state.run(`def calculate():\n return divmod(${reflected ? "7, guest" : "guest, 7"})\nresult=calculate()\n`);
+  expect(state.globals.get("result")).toEqual(v.integer(7)); expect(state.events).toEqual(["divmod"]);
+});
+
+it.each(["__divmod__", "__rdivmod__"])("rejects disabled %s methods", name => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  owner.value.namespace.items.set(v.string(name), v.none); state.guest("guest", owner);
+  expect(() => state.run(`result=divmod(${name === "__divmod__" ? "guest, 7" : "7, guest"})\n`)).toThrow("'NoneType' object is not callable");
+});
+
+it("reports guest divmod types without falling back to floor division or modulo", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  for (const name of ["__floordiv__", "__mod__", "__index__"]) state.method(owner, name, "def operation(self, other=None):\n visit('wrong')\n return 2\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=divmod(guest, 7)\n")).toThrow("unsupported operand type(s) for divmod(): 'Guest' and 'int'");
+  expect(state.events).toEqual([]);
+});
+
+it.each([false, true])("orders subtype divmod reflection by override status (%s)", overridden => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base), v = state.v;
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  state.method(base, "__divmod__", "def operation(self, other):\n visit('forward')\n return 1\n");
+  state.method(base, "__rdivmod__", "def operation(self, other):\n visit('inherited')\n return 2\n");
+  if (overridden) state.method(derived, "__rdivmod__", "def operation(self, other):\n visit('override')\n return 3\n");
+  state.guest("left", base); state.guest("right", derived); state.run("result=divmod(left, right)\n");
+  expect(state.globals.get("result")).toEqual(v.integer(overridden ? 3 : 1)); expect(state.events).toEqual([overridden ? "override" : "forward"]);
+});
+
+it.each(["None", "False"])("reflects declined divmod and accepts %s", result => {
+  const state = fixture(), left = state.type("Left"), right = state.type("Right"), v = state.v;
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  state.method(left, "__divmod__", "def operation(self, other):\n visit('forward')\n return NotImplemented\n");
+  state.method(right, "__rdivmod__", `def operation(self, other):\n visit('reflected')\n return ${result}\n`);
+  state.guest("left", left); state.guest("right", right); state.run("result=divmod(left, right)\n");
+  expect(state.globals.get("result")).toBe(result === "None" ? v.none : v.false); expect(state.events).toEqual(["forward", "reflected"]);
+});
+
+it("does not reflect same-type declined divmod", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  state.method(owner, "__divmod__", "def operation(self, other):\n visit('forward')\n return NotImplemented\n");
+  state.method(owner, "__rdivmod__", "def operation(self, other):\n visit('reflected')\n return False\n");
+  state.guest("left", owner); state.guest("right", owner);
+  expect(() => state.run("result=divmod(left, right)\n")).toThrow("unsupported operand type(s) for divmod(): 'Guest' and 'Guest'");
+  expect(state.events).toEqual(["forward"]);
+});
+
+it("uses explicit frame numeric policy with its original receiver for divmod", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner), v = state.v;
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  state.hooks.specialMethods = () => ({ typeOf(): never { throw Error("explicit numeric policy must win"); }, slots: () => undefined });
+  const bindings = { warn() {}, numeric(operator: string, left: RuntimeValue, right: RuntimeValue) {
+    expect(this).toBe(bindings); expect(operator).toBe("divmod()"); expect(left).toBe(guest); expect(right).toEqual(v.integer(7));
+    return { numeric: { relation: "other" as const, notImplemented: v.notImplemented, reflectedIsOverridden: () => false, forward: () => v.none, reflected: () => v.notImplemented } };
+  } };
+  state.hooks.expressions = () => bindings; state.run("result=divmod(guest, 7)\n"); expect(state.globals.get("result")).toBe(v.none);
+});
+
+it("retains explicit builtin divmod policies including an intentionally empty policy", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.guest("guest", owner);
+  state.hooks.expressions = () => ({ warn() {}, numeric(): never { throw Error("builtin policy must win"); } });
+  const policy = { numeric() {
+    expect(this).toBe(policy);
+    return { relation: "other" as const, notImplemented: v.notImplemented, reflectedIsOverridden: () => false, forward: () => v.false, reflected: () => v.notImplemented };
+  } };
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter, policy)); state.run("result=divmod(guest, 7)\n");
+  expect(state.globals.get("result")).toBe(v.false);
+  state.globals.set("divmod", createDivmodBuiltin(v, state.meter, {}));
+  expect(() => state.run("result=divmod(guest, 7)\n")).toThrow("unsupported operand type(s) for divmod(): 'cell' and 'int'");
+});
+
+it("validates divmod arguments before preparing numeric slots", () => {
+  const state = fixture(); state.globals.set("divmod", createDivmodBuiltin(state.v, state.meter));
+  state.hooks.expressions = () => ({ warn() {}, numeric(): never { throw Error("invalid arguments must not dispatch"); } });
+  expect(() => state.run("result=divmod(1)\n")).toThrow("divmod expected 2 arguments, got 1");
+  expect(() => state.run("result=divmod(a=1, b=2)\n")).toThrow("divmod() takes no keyword arguments");
+});
+
+it("rejects cancelled compiled divmod before assigning its result", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest");
+  state.globals.set("divmod", createDivmodBuiltin(state.v, state.meter));
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { controller.abort(); return state.v.none; } }));
+  state.method(owner, "__divmod__", "def operation(self, other):\n stop()\n return False\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=divmod(guest, 7)\n")).toThrow("execution cancelled");
+  expect(state.globals.has("result")).toBe(false);
+});
+
+it("keeps native divmod off the guest type policy", () => {
+  const state = fixture(), v = state.v; state.globals.set("divmod", createDivmodBuiltin(v, state.meter));
+  state.run("result=divmod(-7, 3)\n"); expect(state.globals.get("result")).toEqual(v.tuple([v.integer(-3), v.integer(2)]));
 });

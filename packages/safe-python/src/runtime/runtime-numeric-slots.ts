@@ -7,10 +7,10 @@ export interface RuntimeNumericContext {
   typeName?(value: RuntimeValue): string;
 }
 
-export const runtimeNumericMethods: ReadonlyMap<string, { readonly forward: string; readonly reflected: string; readonly inplace: string }> = new Map([
+export const runtimeNumericMethods: ReadonlyMap<string, { readonly forward: string; readonly reflected: string; readonly inplace?: string }> = new Map<string, { forward: string; reflected: string; inplace?: string }>([
   ["+", "add"], ["-", "sub"], ["*", "mul"], ["@", "matmul"], ["/", "truediv"], ["//", "floordiv"],
   ["%", "mod"], ["**", "pow"], ["<<", "lshift"], [">>", "rshift"], ["&", "and"], ["^", "xor"], ["|", "or"]
-].map(([operator, name]) => [operator, { forward: `__${name}__`, reflected: `__r${name}__`, inplace: `__i${name}__` }] as const));
+].map(([operator, name]) => [operator, { forward: `__${name}__`, reflected: `__r${name}__`, inplace: `__i${name}__` }] as const)).set("divmod()", { forward: "__divmod__", reflected: "__rdivmod__" });
 
 /** Opaque values use the supplied guest type policy. Exact native payloads
  * retain native slots; native-subclass storage needs a separate adapter. */

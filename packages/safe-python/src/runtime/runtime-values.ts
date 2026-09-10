@@ -11,6 +11,7 @@ import type { CompletionIterator } from "./iterator-completion.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import type { RuntimePowerContext } from "./runtime-power-operation.js";
+import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 import type { FormatContext } from "./format-protocol.js";
 
 export interface ListValue {
@@ -85,6 +86,8 @@ export interface BuiltinInvocationContext {
   deleteAttribute?(object: RuntimeValue, name: string): void;
   attribute?(object: RuntimeValue, name: string): RuntimeValue;
   readonly power?: RuntimePowerContext;
+  /** Prepared numeric slots shared by operators and numeric builtins. */
+  numeric?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeNumericContext | undefined;
   isCallable?(value: RuntimeValue): boolean;
   /** Ordinary binary expression dispatch, never augmented assignment. */
   binary?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;

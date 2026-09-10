@@ -7548,6 +7548,18 @@ extension, integration, or validation requirement is missing or unverified.
   comparisons match CPython. All 5,745 tests in 450 files, selected workspace build,
   typecheck and scoped lint pass. Divmod frame assembly, native-subclass storage,
   metaclass overrides and suspended safe-fs effects remain unfinished.
+- Integrated divmod with the frame's shared numeric-method preparation policy.
+  Its distinct __divmod__/__rdivmod__ registry entry has no fictitious in-place
+  method; the native real arithmetic kernel is separately reusable by mixed
+  native/guest negotiation. Explicit builtin policies, including an empty policy,
+  retain priority over frame defaults. Five regressions failed first. Fifteen
+  added tests cover nested inherited methods, disabled/missing methods, subtype
+  priority, unrestricted results, same-type suppression, policy receiver binding,
+  argument validation before dispatch, native handling and cancellation. All
+  80 compiled guest and 288 native divmod comparisons match CPython. All 5,760
+  tests in 450 files, selected workspace build, typecheck and scoped lint pass. Automatic rich
+  comparison/iteration assembly, native-subclass storage, metaclass overrides and
+  suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

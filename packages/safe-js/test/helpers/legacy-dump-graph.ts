@@ -102,6 +102,28 @@ export function expectLegacyDumpGraph(actual: RecordValue, legacy: RecordValue, 
     }
     expect(current).not.toBeNull();
     expect(typeof current).toBe("object");
+    if (current?.kind === "guest-regex" && old.kind === "object" &&
+        (old.entries as RecordValue | undefined)?.kind === "regex") {
+      const entries = old.entries as RecordValue;
+      expect(Object.keys(old).sort()).toEqual(["entries", "kind"]);
+      expect(Object.keys(entries).sort()).toEqual(["flags", "kind", "lastIndex", "source"]);
+      const state = current.state as {
+        prototype: { kind: string; id: number };
+        properties: { properties: Array<[string, RecordValue]> };
+      };
+      const lastIndex = state.properties.properties[0]?.[1].value;
+      expect(current).toEqual({ kind: "guest-regex", source: entries.source, flags: entries.flags,
+        state: {
+          prototype: { kind: "ref", id: expect.any(Number) },
+          properties: { extensible: true, properties: [["lastIndex", {
+            kind: "data", value: lastIndex, writable: true, enumerable: false, configurable: false
+          }]] }
+        }
+      });
+      expect(actualHeap[state.prototype.id]).toMatchObject({ kind: "intrinsic", id: '["RegExp","prototype"]' });
+      compare(lastIndex, entries.lastIndex, [...path, "lastIndex"]);
+      return;
+    }
     expect(Object.keys(current!)).toEqual(Object.keys(old));
     for (const [key, entry] of Object.entries(old)) compare(current![key], entry, [...path, key]);
   }

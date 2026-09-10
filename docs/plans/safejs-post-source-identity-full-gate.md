@@ -41,3 +41,10 @@ and the six known ISO month-name failures. Terminal output was truncated by the
 tool, so this is not a complete failure-by-failure diagnosis. Recover or re-run
 the failed selections before deciding which are implementation bugs versus
 outdated assertions. Do not dismiss either category or claim a green package.
+
+After the template-cache import repair, the two regex policy files pass their
+budget enforcement cases unchanged. Their remaining legacy graph assertion and
+the corresponding f16round comparison are reconciled by a narrowly checked
+guest-regex format transition in the test helper. The four-file selection has
+89 passes and one skip; see safejs-legacy-regex-graph-reconciliation.md. These
+focused results do not replace the recorded full-package result.

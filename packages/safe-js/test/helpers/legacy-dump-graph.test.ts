@@ -1,6 +1,46 @@
 import { expect, it } from "vitest";
 import { expectLegacyDumpGraph } from "./legacy-dump-graph.js";
 
+const legacyRegex = {
+  bindings: { regex: { kind: "ref", id: 1 }, alias: { kind: "ref", id: 1 } },
+  heap: { 1: { kind: "object", entries: { kind: "regex", source: "a", flags: "g", lastIndex: 1 } } }
+};
+const descriptorRegex = () => ({
+  bindings: { regex: { kind: "ref", id: 2 }, alias: { kind: "ref", id: 2 } },
+  heap: {
+    2: { kind: "guest-regex", source: "a", flags: "g", state: {
+      prototype: { kind: "ref", id: 3 },
+      properties: { extensible: true, properties: [
+        ["lastIndex", { kind: "data", value: 1, writable: true, enumerable: false, configurable: false }]
+      ] as Array<[string, {kind: string; value: number; writable: boolean; enumerable: boolean; configurable: boolean}]> }
+    } },
+    3: { kind: "intrinsic", id: '["RegExp","prototype"]' }
+  }
+});
+
+it("compares descriptor-backed regex values with legacy regex records", () => {
+  expectLegacyDumpGraph(descriptorRegex(), legacyRegex);
+});
+
+it.each(["source", "flags", "lastIndex", "prototype", "writable", "enumerable", "configurable", "extensible", "extra", "alias"])(
+  "rejects corrupted descriptor-backed regex %s", corruption => {
+    const snapshot = descriptorRegex();
+    const node = snapshot.heap[2];
+    const descriptor = node.state.properties.properties[0][1];
+    if (corruption === "source") node.source = "b";
+    if (corruption === "flags") node.flags = "i";
+    if (corruption === "lastIndex") descriptor.value = 2;
+    if (corruption === "prototype") snapshot.heap[3].id = '["Object","prototype"]';
+    if (corruption === "writable") descriptor.writable = false;
+    if (corruption === "enumerable") descriptor.enumerable = true;
+    if (corruption === "configurable") descriptor.configurable = true;
+    if (corruption === "extensible") node.state.properties.extensible = false;
+    if (corruption === "extra") node.state.properties.properties.push(["extra", { ...descriptor }]);
+    if (corruption === "alias") snapshot.bindings.alias.id = 3;
+    expect(() => expectLegacyDumpGraph(snapshot, legacyRegex)).toThrow();
+  }
+);
+
 const legacy = { bindings: { Number: { kind: "fn", name: "Number" }, pair: [{ kind: "ref", id: 1 }, { kind: "ref", id: 1 }] },
   heap: { 1: { kind: "object", entries: { count: 7 } } } };
 const current = () => ({ bindings: { Number: { kind: "ref", id: 1 }, pair: [{ kind: "ref", id: 2 }, { kind: "ref", id: 2 }] },

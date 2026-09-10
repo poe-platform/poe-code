@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { parseExpression } from "./expression.js";
 
+it("validates deep flat-source expression trees without host recursion",()=>{
+  expect(parseExpression("x+".repeat(5000)+"x").kind).toBe("binary");
+});
+
 describe("comprehension assignment-expression validation", () => {
   it.each([
     "[(y := 1) for obj[y] in xs if (y := 2)]",

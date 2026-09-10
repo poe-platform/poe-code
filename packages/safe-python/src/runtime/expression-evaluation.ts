@@ -99,14 +99,37 @@ export interface SubscriptReference<Value> {
  * value mode (the default) returns the guest value without final coercion.
  * Subscript-reference mode captures only the outer receiver/key without getitem;
  * nested subscriptions and key expressions still execute in normal value mode.
- * Stack/closure heap accounting and suspending expression families remain pending.
+ * Complete stack/closure heap accounting and delegated/async suspension remain pending.
  */
 export function evaluateExpression<Value>(expression: Extract<Expression, { kind: "subscript" }>, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "subscript-reference"): SubscriptReference<Value>;
 export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "branch"): boolean;
 export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode?: "value"): Value;
 export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "value" | "branch" | "subscript-reference" = "value"): Value | boolean | SubscriptReference<Value> {
+  meter.checkpoint(1,192);
+  const execution=expressionContinuation(expression,context,meter,mode);
+  const result=execution.next();
+  if(!result.done)throw Error("synchronous expression execution unexpectedly suspended");
+  return result.value;
+}
+
+/** Unstarted expression continuation. Each yielded guest value is a Python
+ * yield; the value sent back becomes that yield expression's result. Throwing
+ * into the cursor propagates at the suspended expression without replaying any
+ * operands. The caller owns generator lifecycle, frame/exception activation and
+ * routing an escaping exception into the enclosing statement continuation.
+ * Pass the execution's actual None value on each bare send; host undefined is
+ * not interpreted as guest None. Await and yield-from remain separate work. */
+export function createExpressionContinuation<Value>(expression:Extract<Expression,{kind:"subscript"}>,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode:"subscript-reference"):Generator<Value,SubscriptReference<Value>,Value>;
+export function createExpressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode:"branch"):Generator<Value,boolean,Value>;
+export function createExpressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode?:"value"):Generator<Value,Value,Value>;
+export function createExpressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,none:Value,mode:"value"|"branch"|"subscript-reference"="value"):Generator<Value,Value|boolean|SubscriptReference<Value>,Value> {
+  meter.checkpoint(1,224);
+  return expressionContinuation(expression,context,meter,mode,{none});
+}
+
+function* expressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,mode:"value"|"branch"|"subscript-reference",suspension?:{readonly none:Value}):Generator<Value,Value|boolean|SubscriptReference<Value>,Value> {
   if (mode === "subscript-reference" && expression.kind !== "subscript") throw new Error("subscript reference mode requires a subscript expression");
-  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | (() => void);
+  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | {kind:"yield"} | (() => void);
   const work: Task[] = [{ node: expression, test: mode === "branch" ? "branch" : "value" }];
   let reference: SubscriptReference<Value> | undefined;
   let value!: Value;
@@ -115,10 +138,24 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
     meter.checkpoint();
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
+    if("kind" in task) {
+      meter.checkpoint(0);
+      value=yield value;
+      meter.checkpoint();
+      knownTruth=undefined;
+      continue;
+    }
     const { node, test } = task;
     knownTruth = undefined;
     if (context.constants?.has(node)) { value = context.constants.get(node)!; continue; }
     switch (node.kind) {
+      case "yield":
+        if(suspension===undefined)throw new UnsupportedExpressionError(node.kind);
+        meter.checkpoint(0,node.value===null?32:64);
+        work.push({kind:"yield"});
+        if(node.value===null)value=suspension.none;
+        else work.push({node:node.value,test:"value"});
+        break;
       case "comprehension": case "dictionary-comprehension":
         if(context.comprehension===undefined)throw new UnsupportedExpressionError(node.kind);
         value=context.comprehension(node);break;

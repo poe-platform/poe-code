@@ -82,7 +82,8 @@ describe("tuple and list display execution", () => {
     let node: Expression = leaf;
     for (let depth = 0; depth < 5000; depth++) node = { ...leaf, kind: "list", items: [node] };
     // Allow the temporary array and retained slot at every nesting level.
-    const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 5000 * 40 });
+    // Reserve the expression frame as well as each singleton display buffer.
+    const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 192 + 5000 * 40 });
     let result = evaluateExpression(node, environment().context, meter);
     for (let depth = 0; depth < 5000; depth++) result = (result as unknown[])[0];
     expect(result).toBe(1n);

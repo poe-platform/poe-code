@@ -10210,6 +10210,31 @@ extension, integration, or validation requirement is missing or unverified.
   objects and attachment, generator name/repr/frame/code metadata, general
   resumable function bodies, yield delegation, async execution and finalization
   remain unfinished. No push or release requested.
+- Resumable expression continuations (2026-09-10): four failing regressions
+  drove an unstarted yield/send/throw continuation sharing the existing explicit
+  expression task stack with synchronous evaluation. It retains earlier operands,
+  call collectors, dictionary keys, f-string conversion state, subscript references
+  and branch-mode truth decisions across suspension without replaying effects.
+  Bare yield uses the supplied guest None value; injected exceptions propagate at
+  the paused expression. Synchronous evaluation still rejects yield before its
+  operand executes. Continuation frames are charged before creation; collection
+  budget regressions now reserve that frame cost before testing their own buffers.
+  Cancellation is checked before publication and resumed callbacks. A separate
+  reproduced validator stack overflow on 5,000-operator flat source drove iterative
+  validation/binding collection while retaining left-to-right scope checks.
+  Twelve expression regressions and one parser regression cover this slice.
+  All 756 paired expression send traces and 355 prior native generator/throw
+  CPython comparisons pass. Expression traces use parsed Python ASTs and a
+  primitive protocol fixture, not complete native generator-function execution.
+  Selected workspace build, typecheck and focused lint pass. The full run exposed
+  one more exact-budget fixture: the 5,000-level display test also needed its
+  expression frame reserved in addition to the existing per-display buffers.
+  After reproducing and correcting that fixture, all 7,353 tests in 506 files
+  pass in the uncached one-worker run (219.45s; bodies 15.30s).
+  The enclosing statement/leaf-operation suspension
+  backend, native generator-function integration, yield delegation, async execution
+  and complete continuation heap accounting remain unfinished. No push or release
+  requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

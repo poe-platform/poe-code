@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseExpression } from "../expression.js";
 import type { Expression } from "../ast.js";
-import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
+import { createExpressionContinuation,evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { ExecutionBudget } from "./execution-budget.js";
 import { integerDivmod } from "./integer-arithmetic.js";
 import { parseModule } from "../module.js";
@@ -44,6 +44,124 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
+describe("resumable expression execution",()=>{
+  it("suspends binary operands without repeating earlier loads or operations",()=>{
+    const {context,names,events}=environment(new Map<string,Value>([["a",10n],["b",20n],["c",30n]]));
+    const cursor=createExpressionContinuation(parseExpression("a + (yield b) * c"),context,budget(),null);
+    expect(events).toEqual([]);
+    expect(cursor.next()).toEqual({done:false,value:20n});
+    expect(events).toEqual(["load:a","load:b"]);
+    names.set("a",100n);names.set("c",3n);
+    expect(cursor.next(7n)).toEqual({done:true,value:31n});
+    expect(events).toEqual(["load:a","load:b","load:c","binary:*","binary:+"]);
+  });
+
+  it("preserves nested yields and uses guest None for bare yield",()=>{
+    const {context}=environment();
+    const cursor=createExpressionContinuation(parseExpression("(yield (yield))"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:null});
+    expect(cursor.next(2n)).toEqual({done:false,value:2n});
+    expect(cursor.next(3n)).toEqual({done:true,value:3n});
+  });
+
+  it("retains direct branch-mode short-circuiting across a yield",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",5n],["b",7n]]));
+    const cursor=createExpressionContinuation(parseExpression("(yield a) and b"),context,budget(),null,"branch");
+    expect(cursor.next()).toEqual({done:false,value:5n});
+    expect(cursor.next(0n)).toEqual({done:true,value:false});
+    expect(events).toEqual(["load:a","truth"]);
+  });
+
+  it("delivers injected exceptions at the yield without evaluating later operands",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",5n],["b",7n]])),failure=Error("injected");
+    const cursor=createExpressionContinuation(parseExpression("(yield a) + b"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:5n});
+    expect(()=>cursor.throw(failure)).toThrow(failure);
+    expect(cursor.next(null)).toEqual({done:true,value:undefined});
+    expect(events).toEqual(["load:a"]);
+  });
+
+  it("retains call collectors and evaluates later arguments only after resume",()=>{
+    const {context,names,events}=environment(new Map<string,Value>([["fn","function"],["a",1n],["b",2n],["c",3n]]));
+    context.beginCall=callee=>({
+      positional:value=>{events.push(`arg:${value}`);},starred(){throw Error("unexpected star");},keywords(){throw Error("unexpected keywords");},mapping(){throw Error("unexpected mapping");},
+      invoke(){events.push(`invoke:${callee}`);return 99n;}
+    });
+    const cursor=createExpressionContinuation(parseExpression("fn(a,(yield b),c)"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:2n});
+    expect(events).toEqual(["load:fn","load:a","arg:1","load:b"]);
+    names.set("fn","replacement");names.set("c",30n);
+    expect(cursor.next(7n)).toEqual({done:true,value:99n});
+    expect(events).toEqual(["load:fn","load:a","arg:1","load:b","arg:7","load:c","arg:30","invoke:function"]);
+  });
+
+  it("retains dictionary keys across suspension before their values",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",1n],["b",2n],["c",3n],["d",4n]]));
+    let entries:readonly (readonly [Value,Value])[]=[];
+    context.beginDictionary=initial=>{entries=initial;return {set(){throw Error("unexpected incremental insertion");},update(){throw Error("unexpected update");},finish:()=>null};};
+    const cursor=createExpressionContinuation(parseExpression("{a:(yield b),c:d}"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:2n});expect(entries).toEqual([]);
+    expect(cursor.next(7n)).toEqual({done:true,value:null});
+    expect(entries).toEqual([[1n,7n],[3n,4n]]);expect(events).toEqual(["load:a","load:b","load:c","load:d"]);
+  });
+
+  it("suspends f-string values and format specs without repeating conversion",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",1n],["b",2n]]));
+    context.formattedString={
+      text:points=>typeof points==="string"?points:String.fromCodePoint(...points),
+      convert(value,code){events.push(`convert:${code}:${value}`);return `${code}(${value})`;},
+      format(value,spec){events.push(`format:${value}:${spec}`);return spec===undefined?value:`${value}:${spec}`;},join:parts=>parts.join("")
+    };
+    const cursor=createExpressionContinuation(parseExpression("f'{(yield a)!r:{(yield b)}}'"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:1n});
+    expect(cursor.next("x")).toEqual({done:false,value:2n});
+    expect(events).toEqual(["load:a","convert:r:x","load:b"]);
+    expect(cursor.next("3")).toEqual({done:true,value:"r(x):3"});
+    expect(events.filter(event=>event.startsWith("convert:"))).toHaveLength(1);
+  });
+
+  it("captures subscript references across suspension without reading the item",()=>{
+    const {context,names}=environment(new Map<string,Value>([["obj","original"],["key",1n]]));
+    const expression=parseExpression("obj[(yield key)]");
+    if(expression.kind!=="subscript")throw Error("expected subscript");
+    const cursor=createExpressionContinuation(expression,context,budget(),null,"subscript-reference");
+    expect(cursor.next()).toEqual({done:false,value:1n});names.set("obj","replacement");
+    expect(cursor.next(7n)).toEqual({done:true,value:{object:"original",key:7n}});
+  });
+
+  it("retains deep continuation stacks without recursive host resumption",()=>{
+    const {context}=environment(new Map([["a",1n]]));
+    const cursor=createExpressionContinuation(parseExpression("(yield a)"+"+a".repeat(5000)),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:1n});
+    expect(cursor.next(1n)).toEqual({done:true,value:5001n});
+  });
+
+  it("checks cancellation before yield publication and before resumed callbacks",()=>{
+    for(const stage of ["yield","resume"]) {
+      const controller=new AbortController(),{context,events}=environment(new Map<string,Value>([["a",1n],["b",2n]]));
+      const load=context.load;
+      context.load=name=>{const value=load(name);if(stage==="yield")controller.abort();return value;};
+      const meter=new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:10000,signal:controller.signal});
+      const cursor=createExpressionContinuation(parseExpression("(yield a)+b"),context,meter,null);
+      if(stage==="resume"){expect(cursor.next()).toEqual({done:false,value:1n});controller.abort();}
+      expect(()=>cursor.next(7n)).toThrow("execution cancelled");expect(events).toEqual(["load:a"]);
+    }
+  });
+
+  it("keeps synchronous yield rejection ahead of operand effects",()=>{
+    const {context,events}=environment(new Map([["a",1n]]));
+    expect(()=>evaluateExpression(parseExpression("(yield a)"),context,budget())).toThrow("expression execution is not implemented for yield");
+    expect(events).toEqual([]);
+  });
+
+  it("reserves continuation storage before allocation or operand execution",()=>{
+    const {context,events}=environment(new Map([["a",1n]]));
+    const meter=new ExecutionBudget({maxSteps:100,maxAllocatedBytes:223});
+    expect(()=>createExpressionContinuation(parseExpression("(yield a)"),context,meter,null)).toThrow("execution allocation limit exceeded");
+    expect(events).toEqual([]);
+  });
+});
+
 describe("expression execution order", () => {
   it.each([["{}", 0], ["{**x}", 0], ["x[1:2]", 32]] as const)("charges empty dictionary and slice temporaries before callbacks: %s", (source, maxAllocatedBytes) => {
     const { context } = environment(new Map([["x", 1n]]));
@@ -51,7 +169,7 @@ describe("expression execution order", () => {
     context.beginDictionary = () => { callbacks++; return { set() {}, update() {}, finish: () => null }; };
     context.slice = () => { callbacks++; return null; };
     context.getItem = () => null;
-    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes });
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes:192+maxAllocatedBytes });
     expect(() => evaluateExpression(parseExpression(source), context, meter)).toThrow("execution allocation limit exceeded");
     expect(callbacks).toBe(0);
   });
@@ -72,7 +190,7 @@ describe("expression execution order", () => {
     context.list = context.tuple = context.getItem = () => null;
     context.beginSet = () => ({ add() {}, update() {}, finish: () => null });
     context.beginDictionary = () => ({ set() {}, update() {}, finish: () => null });
-    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 32 });
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 192+32 });
     expect(() => evaluateExpression(parseExpression(source), context, meter)).toThrow("execution allocation limit exceeded");
   });
   it.each(["[*x]", "(*x,)", "x[*x]"])("bounds guest-controlled starred buffers: %s", source => {
@@ -80,7 +198,8 @@ describe("expression execution order", () => {
     let pulls = 0, finished = false;
     context.iterate = () => ({ next: () => { pulls++; return { done: false, value: 1n }; } });
     context.list = context.tuple = context.getItem = () => { finished = true; return null; };
-    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 40 });
+    // Reserve the evaluator frame, then leave exactly 40 bytes for this buffer.
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 192+40 });
     expect(() => evaluateExpression(parseExpression(source), context, meter)).toThrow("execution allocation limit exceeded");
     expect(pulls).toBe(2); expect(finished).toBe(false);
   });

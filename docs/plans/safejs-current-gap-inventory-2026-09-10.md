@@ -6,6 +6,47 @@ focused test success, local commits, remote delivery and publication are separat
 
 ## Current local evidence
 
+### Latest integration refresh (supersedes historical status below)
+
+The latest completed full package report is
+`/tmp/safejs-pending-integrated-full-results.json`: 28,792 passed, sixteen
+failed, 47 skipped across 1,289 files; all 100 filesystem contracts passed.
+Failures are twelve locale cases, two Promise-property cases, and two slow
+cases (completed replay and string split). All eleven camera cases passed
+that run, but earlier camera deadlines remain a reliability concern.
+
+Pending imported Promise reconciliation is local commit e305ee50c. Ordinary
+replay input allocation limits are fixed in local commit d9bb0730d, qualified
+by 2,291 snapshot/allocation passes, scoped lint, 23 builds and five imports.
+The full package result predates the latter repair.
+
+Own-string Promise data and input capability property graphs are committed
+locally as 61fe74f35. Main TDD had seventeen failures and four controls;
+the subsequent seven-file selection passed 52 tests, lint passed, and all 23
+builds plus five imports passed. The broader snapshot run passed all 2,380
+tests across 176 files, report `/tmp/safejs-promise-properties-main-snapshot.json`.
+Accessor metadata is omitted without invocation, not rejected. Native
+constructor/species hooks are not suppressed; earlier proposed hook rejection
+was not established as an ECMAScript defect. User-symbol admission remains open.
+
+Two new isolated regressions show that newly returned host Promises with own
+data work initially but fail replay dumping. This is separate from input
+capability properties; see `safejs-new-host-promise-data-properties.md`.
+The isolated repair now also preserves original data after guest mutation,
+non-enumerable self references, pending proof replacement, and known callable
+capabilities. Tests caught and corrected retained-data undercounting (298
+charged versus 561 retained); allocation rejection and malformed-graph rollback
+controls pass. Runtime lint/TypeScript and latest test lint pass. Its broader
+snapshot run remains session 22226; none of this repair is integrated on main.
+
+The latest unchanged main camera file passes eleven tests, but its slowest
+batch takes 4.29 seconds against the five-second deadline. A fresh six-fixture
+profile with full assertions still identifies retained-data traversal as the
+dominant cost. This does not prove timeout reliability or justify removing
+descriptor checks. See `safejs-camera-ci-performance.md`.
+Full language completeness and performance reliability remain unproven.
+All delivery remains local under the release hold; no push or release occurred.
+
 ### September 10, 20:00 UTC refresh
 
 This section supersedes the earlier status paragraphs below. Main's latest

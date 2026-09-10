@@ -11,18 +11,19 @@ export function createExceptionNewBuiltin(owner:TypeValue,values:RuntimeValues,m
   return values.builtinFunction({name:"__new__",owner,keywordValidation:"callee",doc:"Create and return a new object.  See help(type) for accurate signature.",
     invoke(positional,_keywords,meter,invocation) {
       meter.checkpoint();
-      if(positional.length===0)throw new PythonRuntimeError("TypeError","BaseException.__new__(): not enough arguments");
+      const ownerName=owner.value.name;
+      if(positional.length===0)throw new PythonRuntimeError("TypeError",`${ownerName}.__new__(): not enough arguments`);
       const type=positional[0];
       if(type.kind!=="type") {
         const name=invocation?.typeName?.(type)??(type.kind==="none"?"NoneType":type.kind==="not-implemented"?"NotImplementedType":type.kind);
-        throw new PythonRuntimeError("TypeError",`BaseException.__new__(X): X is not a type object (${diagnosticTypeName(name,meter)})`);
+        throw new PythonRuntimeError("TypeError",`${ownerName}.__new__(X): X is not a type object (${diagnosticTypeName(name,meter)})`);
       }
       if(!owns(type))throw Error("type is not owned by this exception allocator");
       let subtype=false;
       for(const ancestor of type.value.mro){meter.checkpoint();if(ancestor===owner.value){subtype=true;break;}}
       const name=diagnosticTypeName(type.value.name,meter);
-      if(!subtype)throw new PythonRuntimeError("TypeError",`BaseException.__new__(${name}): ${name} is not a subtype of BaseException`);
-      if(type.value.nativeStorage!==owner.value)throw new PythonRuntimeError("TypeError",`BaseException.__new__(${name}) is not safe, use ${name}.__new__()`);
+      if(!subtype)throw new PythonRuntimeError("TypeError",`${ownerName}.__new__(${name}): ${name} is not a subtype of ${ownerName}`);
+      if(type.value.nativeStorage!==owner.value.nativeStorage)throw new PythonRuntimeError("TypeError",`${ownerName}.__new__(${name}) is not safe, use ${name}.__new__()`);
       const args=values.tuple(positional.length-1,index=>positional[index+1]);
       meter.checkpoint(0,32);
       const dictionary=()=>values.dictionary(owner.value.namespace.items.emptyCopy());

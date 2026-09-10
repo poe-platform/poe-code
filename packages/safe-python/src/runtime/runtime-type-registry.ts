@@ -25,6 +25,7 @@ import { createObjectAttributeWrapper } from "./builtin-object-attribute.js";
 import { createObjectInitSubclassDescriptor } from "./builtin-object-init-subclass.js";
 import { createObjectClassDescriptor } from "./builtin-object-class.js";
 import { PythonRuntimeError } from "./error.js";
+import { standardExceptionCatalog, type StandardExceptionName } from "./standard-exception-catalog.js";
 import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from "./runtime-descriptor-method.js";
 import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
@@ -102,6 +103,7 @@ export class RuntimeTypeRegistry {
   #floatType: TypeValue | undefined;
   #complexType: TypeValue | undefined;
   #baseExceptionType:TypeValue|undefined;
+  readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
@@ -317,6 +319,21 @@ export class RuntimeTypeRegistry {
     namespace.items.set(this.values.string("__doc__"),this.values.string("Common base class for all exceptions"));
     installRuntimeExceptionDescriptors(type,this.values,this.meter);
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#baseExceptionType=type;
+    return type;
+  }
+
+  exceptionType(name:StandardExceptionName|"BaseException"):TypeValue {
+    this.meter.checkpoint();
+    if(name==="BaseException")return this.baseExceptionType();
+    const existing=this.#exceptions.get(name);if(existing!==undefined)return existing;
+    if(!Object.hasOwn(standardExceptionCatalog,name))throw Error("unknown standard exception type");
+    const spec=standardExceptionCatalog[name],base=this.exceptionType(spec.base);
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout(name,[base.value],namespace,this.meter,{sequenceTable:false,weakReferences:false});
+    const type=this.values.type(layout,this.type,{immutable:true});
+    namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value)));
+    namespace.items.set(this.values.string("__doc__"),this.values.string(spec.doc));
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#exceptions.set(name,type);
     return type;
   }
 

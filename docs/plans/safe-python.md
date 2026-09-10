@@ -9731,6 +9731,20 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker package run. Traceback objects, exception
   hierarchy, raise/try wiring and interpreter/safe-fs assembly remain unfinished.
   No push or release was requested.
+- Standard exception hierarchy (2026-09-10): failing integration tests drove
+  canonical lazy registration of 34 CPython builtin exceptions sharing the
+  BaseException allocation/state protocol. A declarative catalog defines their
+  bases and docstrings; registry construction supplies immutable types and owned
+  allocators with inherited native storage. Allocation errors identify the
+  defining type and enforce its subtype boundary. An independent CPython
+  inventory exposed StopAsyncIteration, SystemError and PythonFinalizationError;
+  a third failing regression drove their inclusion. All 1,394 metadata,
+  construction and cross-type allocator comparisons match CPython. Focused tests,
+  typecheck, lint, the selected workspace build and all 7,135 tests in 502 files
+  pass in the uncached one-worker package run.
+  Specialized exceptions (including MemoryError's distinct allocator), traceback
+  objects, fault translation, raise/try wiring and interpreter/safe-fs assembly
+  remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

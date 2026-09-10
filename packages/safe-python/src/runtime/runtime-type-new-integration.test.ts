@@ -70,6 +70,32 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("publishes canonical standard exception classes with inherited native storage",()=>{
+  const state=fixture();
+  for(const name of ["Exception","ArithmeticError","ZeroDivisionError","ValueError","Warning","RuntimeWarning"] as const)state.globals.set(name,state.registry.exceptionType(name));
+  state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("e=ZeroDivisionError('zero')\ncorrect=type(e) is ZeroDivisionError and ZeroDivisionError.__bases__==(ArithmeticError,) and ZeroDivisionError.__mro__==(ZeroDivisionError,ArithmeticError,Exception,BaseException,object) and e.args==('zero',) and f'{e!r}'==\"ZeroDivisionError('zero')\" and RuntimeWarning.__bases__==(Warning,)\nclass Custom(ValueError):\n pass\nx=Custom(1)\nsubclass=x.args==(1,) and x.__reduce__()==(Custom,(1,))\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.globals.get("subclass")).toBe(state.v.true);
+  expect(state.registry.exceptionType("ValueError")).toBe(state.globals.get("ValueError"));
+  expect(()=>state.run("ValueError.tag=1\n")).toThrow("immutable type");
+});
+
+it("includes async termination, finalization and system errors in the standard hierarchy",()=>{
+  const state=fixture();
+  for(const name of ["StopAsyncIteration","PythonFinalizationError","SystemError"] as const) {
+    const type=state.registry.exceptionType(name);state.globals.set("ErrorType",type);
+    state.run("e=ErrorType('detail')\ncorrect=e.args==('detail',) and type(e) is ErrorType\n");expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("uses the defining exception allocator's ownership and diagnostics",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("ValueError",state.registry.exceptionType("ValueError"));
+  expect(()=>state.run("ValueError.__new__()\n")).toThrow("ValueError.__new__(): not enough arguments");
+  expect(()=>state.run("ValueError.__new__(None)\n")).toThrow("ValueError.__new__(X): X is not a type object (NoneType)");
+  expect(()=>state.run("ValueError.__new__(BaseException)\n")).toThrow("BaseException is not a subtype of ValueError");
+  state.run("e=BaseException.__new__(ValueError,1)\ncorrect=type(e) is ValueError and e.args==(1,)\n");expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("restores exception attributes through setters and scans dictionary mutations live",()=>{
   const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("Dict",state.registry.dictionaryType());
   state.run("class D(Dict):\n def items(self):\n  return 1/0\nclass E(BaseException):\n def __setattr__(self,name,value):\n  visit(name)\n  if name=='x':\n   data['z']=3\n  object.__setattr__(self,name,value)\ne=E(1)\ndata=D(x=1,y=2)\nresult=e.__setstate__(data)\ncorrect=result is None and e.__dict__=={'x':1,'y':2,'z':3} and e.args==(1,)\n");

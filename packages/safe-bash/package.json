@@ -225,6 +225,12 @@
       "worker": null,
       "browser": null,
       "import": "./dist/commands/node/worker-provider.js"
+    },
+    "./commands/line-endings": {
+      "types": "./dist/commands/line-endings/index.d.ts",
+      "workerd": "./dist/commands/line-endings/index.browser.js",
+      "browser": "./dist/commands/line-endings/index.browser.js",
+      "import": "./dist/commands/line-endings/index.js"
     }
   },
   "files": [

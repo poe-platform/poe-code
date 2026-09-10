@@ -1913,6 +1913,15 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/getopt-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/hexdump-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/iconv-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/line-ending-commands.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/native.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/extra-native.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/snapshot.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/acquisition-close.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/boundaries.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/extent-diagnostics.test.ts"));
   assert.ok(files.includes("tests/commands/iconv-independent/synchronous-close.test.ts"));

@@ -198,6 +198,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/hexdump",
       "./safe-bash/commands/html-to-markdown",
       "./safe-bash/commands/iconv",
+      "./safe-bash/commands/line-endings",
       "./safe-bash/commands/metadata",
       "./safe-bash/commands/network",
       "./safe-bash/commands/node",

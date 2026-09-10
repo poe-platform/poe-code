@@ -217,3 +217,7 @@ console.log("Scoped SafeJS, shell, canonical filesystem, copy options and input 
 import { verifyIconvCommands } from "./safe-packages-iconv.mjs";
 await verifyIconvCommands(defaultEntry);
 await verifyIconvCommands(nodeEntry);
+
+import { verifyLineEndingCommands } from "./safe-packages-line-endings.mjs";
+await verifyLineEndingCommands(defaultEntry);
+await verifyLineEndingCommands(nodeEntry);

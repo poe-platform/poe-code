@@ -20,7 +20,7 @@ async function direct(definition: CommandDefinition, args: string[], overrides: 
 test("public108 inventory retains frozen expr76 plus which, timeout, apply_patch, three SHA-2 commands, cmp, fmt, shuf, numfmt, truncate, XML queries, nine native compression commands, zip, unzip, csplit, pr, tsort, factor, getopt, hexdump, hd and iconv", async () => {
   assert.equal(expected.names76.length, 76); assert.equal(new Set(expected.names76).size, 76);
   const names107 = [...expected.names76, "which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "cmp", "fmt", "shuf", "numfmt", "truncate", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv"].sort();
-  assert.equal(names107.length, 108); assert.equal(new Set(names107).size, 108);
+  assert.equal(names107.length, 110); assert.equal(new Set(names107).size, 110);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), names107);
   const target = host(); await agentCommands().setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name).sort(), names107);
@@ -35,7 +35,7 @@ test("expr aggregate collision preflight and top-level replacement preserve cust
   assert.throws(() => agentCommands(nested).setup(target), /already registered: expr/u);
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ ...nested, replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 109); assert.equal(target.commands.get("custom"), registeredCustom); assert.notEqual(target.commands.get("expr"), registeredExpr);
+  assert.equal(target.commands.list().length, 111); assert.equal(target.commands.get("custom"), registeredCustom); assert.notEqual(target.commands.get("expr"), registeredExpr);
 });
 
 test("unknown nested expr regex is ignored with and without global regex", () => {

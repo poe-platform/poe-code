@@ -37,6 +37,7 @@ import { createFactorCommands, type FactorCommandsOptions } from "../commands/fa
 import { createGetoptCommands, type GetoptCommandsOptions } from "../commands/getopt/index.js";
 import { createHexdumpCommands, type HexdumpCommandsOptions } from "../commands/hexdump/index.js";
 import { createIconvCommands, type IconvCommandsOptions } from "../commands/iconv/index.js";
+import { createLineEndingCommands, type LineEndingCommandsOptions } from "../commands/line-endings/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
@@ -55,6 +56,7 @@ export interface AgentCommandsOptions {
   readonly getopt?: Omit<GetoptCommandsOptions, "replace">;
   readonly hexdump?: Omit<HexdumpCommandsOptions, "replace">;
   readonly iconv?: Omit<IconvCommandsOptions, "replace">;
+  readonly lineEndings?: Omit<LineEndingCommandsOptions, "replace">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -110,6 +112,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
   const getoptLimits = options.getopt?.limits;
   const hexdumpLimits = options.hexdump?.limits;
   const iconvLimits = options.iconv?.limits;
+  const lineEndingLimits = options.lineEndings?.limits;
   const whichLimits = options.which?.limits;
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
@@ -150,6 +153,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
     ...createGetoptCommands(getoptLimits === undefined ? {} : { limits: getoptLimits }),
     ...createHexdumpCommands(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }),
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
+    ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
   );
   return new CommandRegistry(commands).list();
 }

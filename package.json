@@ -341,6 +341,12 @@
       "workerd": "./packages/safe-js/dist/workerd.js",
       "browser": null,
       "import": "./packages/safe-js/dist/workerd.js"
+    },
+    "./safe-bash/commands/line-endings": {
+      "types": "./packages/safe-bash/dist/commands/line-endings/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/line-endings/index.js"
     }
   },
   "workspaces": [

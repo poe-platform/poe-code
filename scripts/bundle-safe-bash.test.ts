@@ -35,7 +35,7 @@ async function bundlePublicConsumer(contents: string) {
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|csplit|pr|tsort|factor|getopt|hexdump|iconv))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -51,7 +51,7 @@ async function bundlePublicConsumer(contents: string) {
   return consumer.outputFiles![0]!.text;
 }
 
-it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"]])("shares the public %s command factory across portable root and subpath entries", async (command, factory) => {
+it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]])("shares the public %s command factory across portable root and subpath entries", async (command, factory) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
   expect(manifest.exports[`./commands/${command}`]?.browser).toBe(`./dist/commands/${command}/index.browser.js`);
   expect(manifest.exports[`./commands/${command}`]?.workerd).toBe(`./dist/commands/${command}/index.browser.js`);
@@ -146,6 +146,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/getopt/index.browser": path.join(root, "packages/safe-bash/src/commands/getopt/index.ts"),
     "commands/hexdump/index.browser": path.join(root, "packages/safe-bash/src/commands/hexdump/index.ts"),
     "commands/iconv/index.browser": path.join(root, "packages/safe-bash/src/commands/iconv/index.ts"),
+    "commands/line-endings/index.browser": path.join(root, "packages/safe-bash/src/commands/line-endings/index.ts"),
   });
   const result = portableBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
@@ -165,7 +166,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   expect(portable.posixPath).toBe(filesystem.posixPath);
   expect(portable.posixPath.join("/a", "..", "b")).toBe("/b");
   const names = portable.createAgentCommands().map(command => command.name).sort();
-  expect(names).toHaveLength(108);
+  expect(names).toHaveLength(110);
   expect(names).toEqual([
     "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
@@ -173,7 +174,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
     "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv",
+    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
   ].sort());
   const commands = new portable.CommandRegistry();
   const plugin = portable.agentCommands({ regexExecutor: portable.createBoundedRegexProvider() });
@@ -236,6 +237,43 @@ beforeAll(async () => {
   sandbox.canonical = filesystem;
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
+});
+
+it("executes the maintained browser fixture with all top-level workflows in a Node VM", async () => {
+  const directory = path.join(root, "packages/safe-bash");
+  const manifest = JSON.parse(await readFile(path.join(directory, "package.json"), "utf8"));
+  const result = await build({
+    entryPoints: [path.join(root, "scripts/fixtures/safe-packages-browser.mjs")],
+    bundle: true, write: false, metafile: true, platform: "browser",
+    conditions: ["workerd", "worker", "browser"], format: "esm", target: "es2022",
+    plugins: [{
+      name: "maintained-browser-fixture-entries",
+      setup(builder) {
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => ({
+          path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
+          namespace: "built-shell",
+        }));
+        builder.onResolve({ filter: /^@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)$/ }, () => ({
+          path: path.join(root, "packages/safe-fs/src/core.ts"),
+        }));
+        builder.onResolve({ filter: /^\./, namespace: "built-shell" }, args => ({
+          path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
+        }));
+        builder.onLoad({ filter: /.*/, namespace: "built-shell" }, args => ({
+          contents: artifacts.readFileSync(args.path, "utf8").toString(), loader: "js",
+        }));
+      },
+    }],
+  });
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.exports)).toEqual([]);
+  const sandbox = createContext({
+    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, URL, TypeError,
+    crypto: globalThis.crypto, performance, console,
+  });
+  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined");
+  await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);
 });
 
 it("runs filesystem pipelines with canonical identity and injected mounts", async () => {

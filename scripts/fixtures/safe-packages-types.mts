@@ -200,3 +200,5 @@ void hexdumpPluginFactory;
 void createAgentCommands(hexdumpAgentOptions);
 
 import "./safe-packages-iconv-types.mjs";
+
+import "./safe-packages-line-endings-types.mjs";

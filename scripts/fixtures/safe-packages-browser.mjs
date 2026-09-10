@@ -97,3 +97,6 @@ for (const result of nested.results) {
 
 import { verifyIconvCommands } from "./safe-packages-iconv.mjs";
 await verifyIconvCommands();
+
+import { verifyLineEndingCommands } from "./safe-packages-line-endings.mjs";
+await verifyLineEndingCommands();

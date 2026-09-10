@@ -1,0 +1,949 @@
+{
+  "binaries": [
+    {
+      "command": "dos2unix",
+      "sha256": "9a37c087deb5aed316466d2d78d9331123d4f8c2148dfdbcdf8e141f924ab73c"
+    },
+    {
+      "command": "unix2dos",
+      "sha256": "4f1eb6e3b23863eda1e9882ceeb2aebefbe100c3c5928ce4d0762d393b867d7d"
+    }
+  ],
+  "profiles": 40,
+  "records": [
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "posix-old-utf16",
+        "locale": "POSIX",
+        "args": [
+          "in"
+        ],
+        "files": {
+          "in": "fffe41000d000a00"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20636f6e76657274696e67205554462d31364c452066696c6520696e20746f20414e53495f58332e342d3139363820556e697820666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410a",
+          "mtimeMs": 1789035311598.0542
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "posix-new-utf16",
+        "locale": "POSIX",
+        "args": [
+          "-n",
+          "in",
+          "out"
+        ],
+        "files": {
+          "in": "fffe41000d000a00"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20636f6e76657274696e67205554462d31364c452066696c6520696e20746f20414e53495f58332e342d313936382066696c65206f757420696e20556e697820666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "fffe41000d000a00",
+          "mtimeMs": 1700000000000
+        },
+        "out": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410a",
+          "mtimeMs": 1789035311598.0542
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "C-old-utf16",
+        "locale": "C",
+        "args": [
+          "in"
+        ],
+        "files": {
+          "in": "fffe41000d000a00"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20636f6e76657274696e67205554462d31364c452066696c6520696e20746f20414e53495f58332e342d3139363820556e697820666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410a",
+          "mtimeMs": 1789035311598.0542
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "inplace-hardlink-mode-date",
+        "args": [
+          "-k",
+          "in"
+        ],
+        "files": {
+          "in": "410d0a420a"
+        },
+        "hardlinks": {
+          "alias": "in"
+        },
+        "mode": 489
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20636f6e76657274696e672066696c6520696e20746f20556e697820666f726d61742e2e2e0a",
+      "after": {
+        "alias": {
+          "type": "file",
+          "mode": 489,
+          "hex": "410d0a420a",
+          "mtimeMs": 1700000000000
+        },
+        "in": {
+          "type": "file",
+          "mode": 489,
+          "hex": "410a420a",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "new-replace-mode",
+        "args": [
+          "-n",
+          "in",
+          "out"
+        ],
+        "files": {
+          "in": "410d0a",
+          "out": "73656e74696e656c"
+        },
+        "mode": 511
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20636f6e76657274696e672066696c6520696e20746f2066696c65206f757420696e20556e697820666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 511,
+          "hex": "410d0a",
+          "mtimeMs": 1700000000000
+        },
+        "out": {
+          "type": "file",
+          "mode": 493,
+          "hex": "410a",
+          "mtimeMs": 1789035311602.0542
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "binary-new-keeps-target",
+        "args": [
+          "-n",
+          "in",
+          "out"
+        ],
+        "files": {
+          "in": "410d0a0042",
+          "out": "73656e74696e656c"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a2042696e6172792073796d626f6c203078303020666f756e64206174206c696e6520320a646f7332756e69783a20536b697070696e672062696e6172792066696c6520696e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a0042",
+          "mtimeMs": 1700000000000
+        },
+        "out": {
+          "type": "file",
+          "mode": 420,
+          "hex": "73656e74696e656c",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "binary-stdio-prefix",
+        "args": [],
+        "input": "efbbbf410d0a0042"
+      },
+      "status": 1,
+      "stdout": "410a",
+      "stderr": "646f7332756e69783a2042696e6172792073796d626f6c203078303020666f756e64206174206c696e6520320a646f7332756e69783a20536b697070696e672062696e6172792066696c6520737464696e0a",
+      "after": {}
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "quiet-binary-stdio-prefix",
+        "args": [
+          "-q"
+        ],
+        "input": "410d0a0042"
+      },
+      "status": 0,
+      "stdout": "410a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "force-lookahead",
+        "args": [
+          "-f"
+        ],
+        "input": "410d000d0d0a80ff"
+      },
+      "status": 0,
+      "stdout": "410d000d0a80ff",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "newline-lookahead",
+        "args": [
+          "-l"
+        ],
+        "input": "410d0d0a420a"
+      },
+      "status": 0,
+      "stdout": "410d0a0a420a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "bom-keep",
+        "args": [
+          "-b"
+        ],
+        "input": "efbbbf410d0a"
+      },
+      "status": 0,
+      "stdout": "efbbbf410a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "bom-remove-overrides-add",
+        "args": [
+          "-m",
+          "-r"
+        ],
+        "input": ""
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "gb-bom-keep",
+        "args": [
+          "-b"
+        ],
+        "input": "84319533410d0a"
+      },
+      "status": 0,
+      "stdout": "84319533410a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "short-bom-file",
+        "args": [
+          "in"
+        ],
+        "files": {
+          "in": "efbb"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a2063616e206e6f7420726561642066726f6d20696e7075742066696c653a20537563636573730a646f7332756e69783a2070726f626c656d7320636f6e76657274696e672066696c6520696e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "efbb",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "earlier-publication-survives-pair-error",
+        "args": [
+          "first",
+          "-n",
+          "in"
+        ],
+        "files": {
+          "first": "410d0a",
+          "in": "420d0a"
+        }
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20636f6e76657274696e672066696c6520666972737420746f20556e697820666f726d61742e2e2e0a646f7332756e69783a20746172676574206f662066696c6520696e206e6f742073706563696669656420696e206e65772d66696c65206d6f64650a",
+      "after": {
+        "first": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410a",
+          "mtimeMs": 1789035311610.0544
+        },
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "420d0a",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "missing-then-valid",
+        "args": [
+          "missing",
+          "in"
+        ],
+        "files": {
+          "in": "410d0a"
+        }
+      },
+      "status": 2,
+      "stdout": "",
+      "stderr": "646f7332756e69783a206d697373696e673a204e6f20737563682066696c65206f72206469726563746f72790a646f7332756e69783a20536b697070696e67206d697373696e672c206e6f74206120726567756c61722066696c652e0a646f7332756e69783a20636f6e76657274696e672066696c6520696e20746f20556e697820666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410a",
+          "mtimeMs": 1789035311610.0544
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "input-symlink-new",
+        "args": [
+          "-n",
+          "link",
+          "out"
+        ],
+        "files": {
+          "in": "410d0a"
+        },
+        "symlinks": {
+          "link": "in"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20636f6e76657274696e672066696c65206c696e6b20746f2066696c65206f757420696e20556e697820666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a",
+          "mtimeMs": 1700000000000
+        },
+        "link": {
+          "type": "symlink",
+          "mode": 511
+        },
+        "out": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410a",
+          "mtimeMs": 1789035311610.0544
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "output-symlink-skip",
+        "args": [
+          "-n",
+          "in",
+          "link"
+        ],
+        "files": {
+          "in": "410d0a",
+          "target": "54"
+        },
+        "symlinks": {
+          "link": "target"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20536b697070696e6720696e2c206f75747075742066696c65206c696e6b20697320612073796d626f6c6963206c696e6b2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a",
+          "mtimeMs": 1700000000000
+        },
+        "link": {
+          "type": "symlink",
+          "mode": 511
+        },
+        "target": {
+          "type": "file",
+          "mode": 420,
+          "hex": "54",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "directory-input-skip",
+        "args": [
+          "dir"
+        ],
+        "directories": [
+          "dir"
+        ]
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "646f7332756e69783a20536b697070696e67206469722c206e6f74206120726567756c61722066696c652e0a",
+      "after": {
+        "dir": {
+          "type": "directory",
+          "mode": 493
+        }
+      }
+    },
+    {
+      "command": "dos2unix",
+      "fixture": {
+        "name": "stdin-n-no-operands",
+        "args": [
+          "-n"
+        ],
+        "input": "410d0a"
+      },
+      "status": 0,
+      "stdout": "410a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "posix-old-utf16",
+        "locale": "POSIX",
+        "args": [
+          "in"
+        ],
+        "files": {
+          "in": "fffe41000d000a00"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20636f6e76657274696e67205554462d31364c452066696c6520696e20746f20414e53495f58332e342d3139363820444f5320666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "efbbbf410d0a",
+          "mtimeMs": 1789035311614.0544
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "posix-new-utf16",
+        "locale": "POSIX",
+        "args": [
+          "-n",
+          "in",
+          "out"
+        ],
+        "files": {
+          "in": "fffe41000d000a00"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20636f6e76657274696e67205554462d31364c452066696c6520696e20746f20414e53495f58332e342d313936382066696c65206f757420696e20444f5320666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "fffe41000d000a00",
+          "mtimeMs": 1700000000000
+        },
+        "out": {
+          "type": "file",
+          "mode": 420,
+          "hex": "efbbbf410d0a",
+          "mtimeMs": 1789035311614.0544
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "C-old-utf16",
+        "locale": "C",
+        "args": [
+          "in"
+        ],
+        "files": {
+          "in": "fffe41000d000a00"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20636f6e76657274696e67205554462d31364c452066696c6520696e20746f20414e53495f58332e342d3139363820444f5320666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "efbbbf410d0a",
+          "mtimeMs": 1789035311614.0544
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "inplace-hardlink-mode-date",
+        "args": [
+          "-k",
+          "in"
+        ],
+        "files": {
+          "in": "410d0a420a"
+        },
+        "hardlinks": {
+          "alias": "in"
+        },
+        "mode": 489
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20636f6e76657274696e672066696c6520696e20746f20444f5320666f726d61742e2e2e0a",
+      "after": {
+        "alias": {
+          "type": "file",
+          "mode": 489,
+          "hex": "410d0a420a",
+          "mtimeMs": 1700000000000
+        },
+        "in": {
+          "type": "file",
+          "mode": 489,
+          "hex": "410d0a420d0a",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "new-replace-mode",
+        "args": [
+          "-n",
+          "in",
+          "out"
+        ],
+        "files": {
+          "in": "410d0a",
+          "out": "73656e74696e656c"
+        },
+        "mode": 511
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20636f6e76657274696e672066696c6520696e20746f2066696c65206f757420696e20444f5320666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 511,
+          "hex": "410d0a",
+          "mtimeMs": 1700000000000
+        },
+        "out": {
+          "type": "file",
+          "mode": 493,
+          "hex": "410d0a",
+          "mtimeMs": 1789035311618.0544
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "binary-new-keeps-target",
+        "args": [
+          "-n",
+          "in",
+          "out"
+        ],
+        "files": {
+          "in": "410d0a0042",
+          "out": "73656e74696e656c"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a2042696e6172792073796d626f6c203078303020666f756e64206174206c696e6520320a756e697832646f733a20536b697070696e672062696e6172792066696c6520696e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a0042",
+          "mtimeMs": 1700000000000
+        },
+        "out": {
+          "type": "file",
+          "mode": 420,
+          "hex": "73656e74696e656c",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "binary-stdio-prefix",
+        "args": [],
+        "input": "efbbbf410d0a0042"
+      },
+      "status": 1,
+      "stdout": "efbbbf410d0a",
+      "stderr": "756e697832646f733a2042696e6172792073796d626f6c203078303020666f756e64206174206c696e6520320a756e697832646f733a20536b697070696e672062696e6172792066696c6520737464696e0a",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "quiet-binary-stdio-prefix",
+        "args": [
+          "-q"
+        ],
+        "input": "410d0a0042"
+      },
+      "status": 0,
+      "stdout": "410d0a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "force-lookahead",
+        "args": [
+          "-f"
+        ],
+        "input": "410d000d0d0a80ff"
+      },
+      "status": 0,
+      "stdout": "410d000d0d0d0a80ff",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "newline-lookahead",
+        "args": [
+          "-l"
+        ],
+        "input": "410d0d0a420a"
+      },
+      "status": 0,
+      "stdout": "410d0d0d0a420d0a0d0a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "bom-keep",
+        "args": [
+          "-b"
+        ],
+        "input": "efbbbf410d0a"
+      },
+      "status": 0,
+      "stdout": "efbbbf410d0a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "bom-remove-overrides-add",
+        "args": [
+          "-m",
+          "-r"
+        ],
+        "input": ""
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "gb-bom-keep",
+        "args": [
+          "-b"
+        ],
+        "input": "84319533410d0a"
+      },
+      "status": 0,
+      "stdout": "84319533410d0a",
+      "stderr": "",
+      "after": {}
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "short-bom-file",
+        "args": [
+          "in"
+        ],
+        "files": {
+          "in": "efbb"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a2063616e206e6f7420726561642066726f6d20696e7075742066696c653a20537563636573730a756e697832646f733a2070726f626c656d7320636f6e76657274696e672066696c6520696e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "efbb",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "earlier-publication-survives-pair-error",
+        "args": [
+          "first",
+          "-n",
+          "in"
+        ],
+        "files": {
+          "first": "410d0a",
+          "in": "420d0a"
+        }
+      },
+      "status": 1,
+      "stdout": "",
+      "stderr": "756e697832646f733a20636f6e76657274696e672066696c6520666972737420746f20444f5320666f726d61742e2e2e0a756e697832646f733a20746172676574206f662066696c6520696e206e6f742073706563696669656420696e206e65772d66696c65206d6f64650a",
+      "after": {
+        "first": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a",
+          "mtimeMs": 1789035311626.0544
+        },
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "420d0a",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "missing-then-valid",
+        "args": [
+          "missing",
+          "in"
+        ],
+        "files": {
+          "in": "410d0a"
+        }
+      },
+      "status": 2,
+      "stdout": "",
+      "stderr": "756e697832646f733a206d697373696e673a204e6f20737563682066696c65206f72206469726563746f72790a756e697832646f733a20536b697070696e67206d697373696e672c206e6f74206120726567756c61722066696c652e0a756e697832646f733a20636f6e76657274696e672066696c6520696e20746f20444f5320666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a",
+          "mtimeMs": 1789035311626.0544
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "input-symlink-new",
+        "args": [
+          "-n",
+          "link",
+          "out"
+        ],
+        "files": {
+          "in": "410d0a"
+        },
+        "symlinks": {
+          "link": "in"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20636f6e76657274696e672066696c65206c696e6b20746f2066696c65206f757420696e20444f5320666f726d61742e2e2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a",
+          "mtimeMs": 1700000000000
+        },
+        "link": {
+          "type": "symlink",
+          "mode": 511
+        },
+        "out": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a",
+          "mtimeMs": 1789035311626.0544
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "output-symlink-skip",
+        "args": [
+          "-n",
+          "in",
+          "link"
+        ],
+        "files": {
+          "in": "410d0a",
+          "target": "54"
+        },
+        "symlinks": {
+          "link": "target"
+        }
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20536b697070696e6720696e2c206f75747075742066696c65206c696e6b20697320612073796d626f6c6963206c696e6b2e0a",
+      "after": {
+        "in": {
+          "type": "file",
+          "mode": 420,
+          "hex": "410d0a",
+          "mtimeMs": 1700000000000
+        },
+        "link": {
+          "type": "symlink",
+          "mode": 511
+        },
+        "target": {
+          "type": "file",
+          "mode": 420,
+          "hex": "54",
+          "mtimeMs": 1700000000000
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "directory-input-skip",
+        "args": [
+          "dir"
+        ],
+        "directories": [
+          "dir"
+        ]
+      },
+      "status": 0,
+      "stdout": "",
+      "stderr": "756e697832646f733a20536b697070696e67206469722c206e6f74206120726567756c61722066696c652e0a",
+      "after": {
+        "dir": {
+          "type": "directory",
+          "mode": 493
+        }
+      }
+    },
+    {
+      "command": "unix2dos",
+      "fixture": {
+        "name": "stdin-n-no-operands",
+        "args": [
+          "-n"
+        ],
+        "input": "410d0a"
+      },
+      "status": 0,
+      "stdout": "410d0a",
+      "stderr": "",
+      "after": {}
+    }
+  ]
+}

@@ -39,6 +39,30 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["==", "!=", "<", ">", "<=", ">="])("preserves mapping-proxy guest results and reflected operators for %s", operator => {
+    for (const side of ["left", "right", "both"]) {
+      const state = fixture(`result=left${operator}right\n`), v = state.values, source = v.dictionary(new OrderedKeyMap(state.keys, state.meter)), answer = v.cell({});
+      const proxy = v.mappingProxy(source), other = side === "both" ? v.mappingProxy(v.dictionary(new OrderedKeyMap(state.keys, state.meter))) : v.cell({});
+      state.globals.set("left", side === "right" ? other : proxy); state.globals.set("right", side === "right" ? proxy : other);
+      const reflected: Record<string, string> = { "==": "==", "!=": "!=", "<": ">", ">": "<", "<=": ">=", ">=": "<=" }; let calls = 0;
+      state.hooks.expressions = () => ({ warn() {}, richComparison(op, left, right) {
+        if (left !== source) return undefined;
+        calls++; expect(right).toBe(other); expect(op).toBe(side === "right" ? reflected[operator] : operator);
+        return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented, forward: () => answer } };
+      }, truth() { throw Error("direct proxy result must not be truth-converted"); } });
+      state.run(); expect(state.globals.get("result")).toBe(answer); expect(calls).toBe(1);
+    }
+  });
+  it.each(["==", "!="])("truth-converts nested mapping-proxy equality for %s", operator => {
+    const state = fixture(`result=[left]${operator}[right]\n`), v = state.values, source = v.dictionary(new OrderedKeyMap(state.keys, state.meter)), answer = v.cell({}), other = v.cell({}); let conversions = 0;
+    state.globals.set("left", v.mappingProxy(source)); state.globals.set("right", other);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(op, left, right) {
+      if (left !== source) return undefined;
+      expect(op).toBe("=="); expect(right).toBe(other);
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented, forward: () => answer } };
+    }, truth(value) { expect(value).toBe(answer); conversions++; return true; } });
+    state.run(); expect(state.globals.get("result")).toBe(v.boolean(operator === "==")); expect(conversions).toBe(1);
+  });
   it.each(["==", "!="])("preserves raw guest cell comparison results for %s", operator => {
     const state = fixture(`result=left${operator}right\n`), v = state.values, member = v.cell({}), needle = v.cell({}), answer = v.cell({});
     state.globals.set("left", v.cell({ content: { value: member } })); state.globals.set("right", v.cell({ content: { value: needle } }));

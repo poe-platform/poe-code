@@ -6970,6 +6970,16 @@ extension, integration, or validation requirement is missing or unverified.
   80 earlier container cases and 336 list-mutation cases. Selected workspace
   build, typecheck and scoped lint pass. Remaining object protocols, automatic
   object assembly and broader interpreter/SDK/safe-fs integration remain open.
+- Audited mapping-proxy delegated guest comparisons against CPython. No runtime
+  mismatch was found: delegation retains the other proxy, reflects operators
+  when the proxy is on the right, returns direct guest results unchanged, and
+  truth-converts nested equality probes. Added eight compiled regression cases
+  covering these paths (including all six operators and three operand layouts).
+- All 308 compiled-program tests and 72 CPython proxy comparisons pass, together
+  with typecheck and scoped lint. This increment changes tests only; it does not
+  claim generalized non-dictionary proxy payloads or automatic guest object
+  protocol assembly. Those and broader interpreter/SDK/safe-fs integration
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

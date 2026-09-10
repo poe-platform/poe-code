@@ -3,11 +3,19 @@ import { guestProxyStates } from "./guest-proxy.js";
 import { getGeneratorProperties } from "./generator-properties.js";
 import { asyncFunctionPrototypes } from "./generator-prototypes.js";
 import { getClosureOrigin } from "./closure-origin.js";
-import { getFunctionRealmPrototype } from "./function-realm.js";
+import { activeFunctionRealmPrototypes, getFunctionRealmPrototype } from "./function-realm.js";
 import { runResources } from "./resources.js";
 import { getIntrinsicIdentity, registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
 import { releaseTemplateObjects } from "./template-objects.js";
 import { isSandboxDate } from "./date.js";
+import { isSandboxTemporalInstant } from "./temporal-instant.js";
+import { isSandboxTemporalDuration } from "./temporal-duration.js";
+import { isSandboxTemporalPlainTime } from "./temporal-plain-time.js";
+import { isSandboxTemporalPlainDateTime } from "./temporal-plain-date-time.js";
+import { isSandboxTemporalPlainDate } from "./temporal-plain-date.js";
+import { isSandboxTemporalPlainMonthDay } from "./temporal-plain-month-day.js";
+import { isSandboxTemporalPlainYearMonth } from "./temporal-plain-year-month.js";
+import { isSandboxTemporalZonedDateTime } from "./temporal-zoned-date-time.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
@@ -442,6 +450,14 @@ export function getSandboxPrototype(value: object, budget?: Budget): object | nu
   const explicit = prototypes.get(value);
   if (explicit !== undefined) return explicit;
   if (budget === undefined) return null;
+  if (isSandboxTemporalInstant(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.Instant") ?? null;
+  if (isSandboxTemporalDuration(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.Duration") ?? null;
+  if (isSandboxTemporalPlainTime(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.PlainTime") ?? null;
+  if (isSandboxTemporalPlainDateTime(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.PlainDateTime") ?? null;
+  if (isSandboxTemporalPlainDate(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.PlainDate") ?? null;
+  if (isSandboxTemporalPlainMonthDay(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.PlainMonthDay") ?? null;
+  if (isSandboxTemporalPlainYearMonth(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.PlainYearMonth") ?? null;
+  if (isSandboxTemporalZonedDateTime(value)) return activeFunctionRealmPrototypes.get(budget)?.get("Temporal.ZonedDateTime") ?? null;
   if (isSandboxSharedArrayBuffer(value)) return sharedArrayBufferPrototypes.get(budget) ?? null;
   if (isSandboxArrayBuffer(value)) return budget === undefined ? null : arrayBufferPrototypes.get(budget) ?? null;
   if (isSandboxDataView(value)) return dataViewPrototypes.get(budget) ?? null;
@@ -654,7 +670,7 @@ export function hasGuestObjectState(value: object): boolean {
       if (intrinsicConstructors.get(owner)?.() !== true) return true;
     }
   }
-  if (isSandboxBox(value) || isSandboxDate(value)) return false;
+  if (isSandboxBox(value) || isSandboxDate(value) || isSandboxTemporalInstant(value) || isSandboxTemporalDuration(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainMonthDay(value) || isSandboxTemporalPlainYearMonth(value) || isSandboxTemporalZonedDateTime(value)) return false;
   if (Array.isArray(value) && descriptorObjects.has(value)) {
     return Object.getOwnPropertyNames(value).some(key => {
       const descriptor = Object.getOwnPropertyDescriptor(value,key)!;

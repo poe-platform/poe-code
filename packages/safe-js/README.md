@@ -927,6 +927,9 @@ the full snapshot system. Heap capture and restoration now also have typed recor
 for all eight Temporal types, preserving private slots alongside object state.
 Focused heap tests cover aliases, cycles, custom prototypes and invalid records;
 weak-reference serialization and broader realm integration remain separate work.
+Raw owned Temporal values now resolve their default prototype from the receiving
+realm's registered Temporal constructors. Explicit custom or null prototypes
+take precedence; this does not add support for arbitrary foreign host subclasses.
 PlainMonthDay's current checks pass on Node 18.20.8 and 26.8.1, but three ISO
 month-name locale checks still fail on Node 22.23.2; local integration is not a
 claim of complete locale support or a green package gate.

@@ -77,8 +77,16 @@ Repository-wide unit and lint gates and release verification remain outstanding.
 The repository-wide unit run exposed three stale root/playground command
 inventories. Updating the exact names and counts, with three actual playground
 codec pipelines, passed all 82 focused checks. Two native Git cache tests and
-one TypeScript header contract also failed in the shared run but passed focused
-reproduction; their full-run diagnostics must establish the cause before repair.
+one TypeScript header contract also failed in the shared run. Final diagnostics
+confirmed five-second timeouts. The Git checks now prepare their independent
+cache fixtures separately from the tested transitions, retaining five-second
+bounds and every native operation and assertion. All four focused checks pass.
+The header contract reuses TypeScript syntax trees through DocumentRegistry,
+while independently checking all four compiler profiles with full library
+checking and the same positive and negative cases. All four checks pass. The
+previously failing profile measured 967 ms versus 2133 ms in a baseline run;
+host contention limits the timing comparison. Independent review approved both
+repairs; the repository-wide unit rerun remains required.
 
 The maintained type route also exposed exact-optional-property and TextDecoder
 receiver type errors in two existing test files. Narrow corrections preserve

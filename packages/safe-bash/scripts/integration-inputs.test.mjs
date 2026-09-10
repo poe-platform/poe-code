@@ -1896,6 +1896,16 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/tsort-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/factor-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/getopt-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/hexdump-commands.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/fresh.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/native.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/path.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/admission.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/native-errors.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/extent.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/snapshot.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/lifecycle.test.ts"));
   assert.ok(files.includes("tests/commands/getopt/native.test.ts"));
   assert.ok(files.includes("tests/commands/getopt/safety.test.ts"));
   assert.ok(files.includes("tests/commands/getopt-independent/native.test.ts"));

@@ -4,6 +4,7 @@ import { createPrCommand as createSubpathPrCommand, createPrCommands as createSu
 import { createTsortCommand as createSubpathTsortCommand, createTsortCommands as createSubpathTsortCommands, tsortCommands as subpathTsortCommands } from "@poe-platform/safe-bash/commands/tsort";
 import { createFactorCommand as createSubpathFactorCommand, createFactorCommands as createSubpathFactorCommands, factorCommands as subpathFactorCommands } from "@poe-platform/safe-bash/commands/factor";
 import { createGetoptCommand as createSubpathGetoptCommand, createGetoptCommands as createSubpathGetoptCommands, getoptCommands as subpathGetoptCommands } from "@poe-platform/safe-bash/commands/getopt";
+import { createHexdumpCommand as createSubpathHexdumpCommand, createHdCommand as createSubpathHdCommand, createHexdumpCommands as createSubpathHexdumpCommands, hexdumpCommands as subpathHexdumpCommands } from "@poe-platform/safe-bash/commands/hexdump";
 import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs/core";
 
 export const expectedAgentCommandNames = Object.freeze([
@@ -13,7 +14,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd",
 ].sort());
 
 export const checksumWorkflows = Object.freeze([
@@ -613,3 +614,25 @@ export async function runNestedCommands(entry = defaultEntry, options = {}) {
 }
 
 export { defaultEntry };
+
+export async function verifyHexdumpCommands(entry = defaultEntry) {
+  if (entry.createHexdumpCommand !== createSubpathHexdumpCommand || entry.createHdCommand !== createSubpathHdCommand || entry.createHexdumpCommands !== createSubpathHexdumpCommands || entry.hexdumpCommands !== subpathHexdumpCommands) throw new Error("Hexdump subpath factory identity differs");
+  if (entry.createHexdumpCommand().name !== "hexdump" || entry.createHdCommand().name !== "hd" || JSON.stringify(entry.createHexdumpCommands().map(command => command.name)) !== '["hexdump","hd"]') throw new Error("Public hexdump factories differ");
+  const filesystem = new entry.MemoryFileSystem();
+  const encoder = new TextEncoder();
+  const input = Uint8Array.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+  const source = encoder.encode('hexdump -C "$1" > canonical.txt || exit "$?"\nhd "$1" > alias.txt\n');
+  const expected = encoder.encode("00000000  00 01 02 03 04 05 06 07  08 09 0a 0b 0c 0d 0e 0f  |................|\n00000010\n");
+  await filesystem.mkdir("/hexdump-work");
+  await filesystem.writeFile("/hexdump-work/saved.sh", source);
+  await filesystem.writeFile("/hexdump-work/input.bin", input);
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/hexdump-work", env: { LC_ALL: "C" } }).use(entry.agentCommands());
+  try {
+    const result = await shell.exec("sh saved.sh input.bin");
+    if (result.exitCode !== 0 || result.stdoutBytes.length !== 0 || result.stderrBytes.length !== 0) throw new Error(`Public hexdump saved workflow failed: ${JSON.stringify(result)}`);
+    for (const [name, bytes] of [["canonical.txt", expected], ["alias.txt", expected], ["input.bin", input], ["saved.sh", source]]) {
+      const actual = await filesystem.readFile(`/hexdump-work/${name}`);
+      if (actual.length !== bytes.length || actual.some((value, index) => value !== bytes[index])) throw new Error(`Public hexdump ${name} bytes differ`);
+    }
+  } finally { await shell.dispose(); }
+}

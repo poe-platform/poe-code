@@ -165,6 +165,12 @@
       "browser": "./packages/safe-bash/dist/commands/getopt/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/getopt/index.js"
     },
+    "./safe-bash/commands/hexdump": {
+      "types": "./packages/safe-bash/dist/commands/hexdump/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/hexdump/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/hexdump/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/hexdump/index.js"
+    },
     "./safe-bash/commands/time-env": {
       "types": "./packages/safe-bash/dist/commands/time-env/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/time-env/index.js"

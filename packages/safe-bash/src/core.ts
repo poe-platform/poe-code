@@ -41,6 +41,7 @@ export * from "./commands/pr/index.js";
 export * from "./commands/tsort/index.js";
 export * from "./commands/factor/index.js";
 export * from "./commands/getopt/index.js";
+export * from "./commands/hexdump/index.js";
 export * from "./commands/yq/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/webdav/index.js";

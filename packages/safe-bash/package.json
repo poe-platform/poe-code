@@ -117,6 +117,12 @@
       "browser": "./dist/commands/getopt/index.browser.js",
       "import": "./dist/commands/getopt/index.js"
     },
+    "./commands/hexdump": {
+      "types": "./dist/commands/hexdump/index.d.ts",
+      "workerd": "./dist/commands/hexdump/index.browser.js",
+      "browser": "./dist/commands/hexdump/index.browser.js",
+      "import": "./dist/commands/hexdump/index.js"
+    },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
       "import": "./dist/commands/time-env/index.js"

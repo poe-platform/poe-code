@@ -6,9 +6,11 @@ import { createPrCommand as createSubpathPrCommand, createPrCommands as createSu
 import { createTsortCommand, createTsortCommands, tsortCommands, type TsortCommandsOptions, type TsortLimits } from "@poe-platform/safe-bash";
 import { createFactorCommand, createFactorCommands, factorCommands, type FactorCommandsOptions, type FactorLimits } from "@poe-platform/safe-bash";
 import { createGetoptCommand, createGetoptCommands, getoptCommands, type GetoptCommandsOptions, type GetoptLimits } from "@poe-platform/safe-bash";
+import { createHexdumpCommand, createHdCommand, createHexdumpCommands, hexdumpCommands, type HexdumpCommandsOptions, type HexdumpLimits } from "@poe-platform/safe-bash";
 import { createTsortCommand as createSubpathTsortCommand, createTsortCommands as createSubpathTsortCommands, tsortCommands as subpathTsortCommands, type TsortCommandsOptions as SubpathTsortCommandsOptions, type TsortLimits as SubpathTsortLimits } from "@poe-platform/safe-bash/commands/tsort";
 import { createFactorCommand as createSubpathFactorCommand, createFactorCommands as createSubpathFactorCommands, factorCommands as subpathFactorCommands, type FactorCommandsOptions as SubpathFactorCommandsOptions, type FactorLimits as SubpathFactorLimits } from "@poe-platform/safe-bash/commands/factor";
 import { createGetoptCommand as createSubpathGetoptCommand, createGetoptCommands as createSubpathGetoptCommands, getoptCommands as subpathGetoptCommands, type GetoptCommandsOptions as SubpathGetoptCommandsOptions, type GetoptLimits as SubpathGetoptLimits } from "@poe-platform/safe-bash/commands/getopt";
+import { createHexdumpCommand as createSubpathHexdumpCommand, createHdCommand as createSubpathHdCommand, createHexdumpCommands as createSubpathHexdumpCommands, hexdumpCommands as subpathHexdumpCommands, type HexdumpCommandsOptions as SubpathHexdumpCommandsOptions, type HexdumpLimits as SubpathHexdumpLimits } from "@poe-platform/safe-bash/commands/hexdump";
 import { createNodeRegexProvider } from "@poe-platform/safe-bash/node";
 import { posix } from "node:path";
 import { posixPath as contractPath, type CommandDefinition, type CommandInput } from "@poe-platform/safe-bash/contracts";
@@ -171,3 +173,28 @@ const consoleRealm = createRealm(consoleOptions);
 await consoleRealm.evaluate('console.log("typed");');
 await consoleRealm.close();
 await run('console.log("typed one-shot");', consoleOptions);
+
+const hexdumpLimits: HexdumpLimits & SubpathHexdumpLimits = {
+  maxArguments: 4096, maxArgumentBytes: 65536, maxInputBytes: 33554432,
+  maxBufferedBytes: 8388608, maxOutputBytes: 134217728, maxDiagnosticBytes: 65536,
+  maxFormats: 64, maxWork: 536870912, maxEmptyChunks: 4096,
+};
+const hexdumpOptions: HexdumpCommandsOptions & SubpathHexdumpCommandsOptions = { limits: hexdumpLimits, replace: true };
+const hexdumpCommand: CommandDefinition = createHexdumpCommand(hexdumpOptions);
+const hdCommand: CommandDefinition = createHdCommand(hexdumpOptions);
+const hexdumpDefinitions: readonly CommandDefinition[] = createHexdumpCommands(hexdumpOptions);
+const hexdumpPlugin: ReturnType<typeof hexdumpCommands> = hexdumpCommands(hexdumpOptions);
+const hexdumpFactory: typeof createHexdumpCommand = createSubpathHexdumpCommand;
+const hdFactory: typeof createHdCommand = createSubpathHdCommand;
+const hexdumpFactories: typeof createHexdumpCommands = createSubpathHexdumpCommands;
+const hexdumpPluginFactory: typeof hexdumpCommands = subpathHexdumpCommands;
+const hexdumpAgentOptions: AgentCommandsOptions = { hexdump: { limits: hexdumpLimits } };
+void hexdumpCommand;
+void hdCommand;
+void hexdumpDefinitions;
+void hexdumpPlugin;
+void hexdumpFactory;
+void hdFactory;
+void hexdumpFactories;
+void hexdumpPluginFactory;
+void createAgentCommands(hexdumpAgentOptions);

@@ -22,16 +22,16 @@ function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
 }
 
-test("root family exports preserve four inspection definitions in the 96-command aggregate", async () => {
+test("root family exports preserve four inspection definitions in the 98-command aggregate", async () => {
   const limits: Partial<StreamInspectionLimits> = { maxInputBytes: 1024 };
   const options: StreamInspectionCommandsOptions = { limits };
   const aggregate: AgentCommandsOptions = { streamInspection: options };
   assert.deepEqual(createStreamInspectionCommands(options).map(command => command.name), names);
   const definitions = createAgentCommands(aggregate).map(command => command.name);
-  assert.equal(definitions.length, 96);
-  assert.equal(new Set(definitions).size, 96);
+  assert.equal(definitions.length, 98);
+  assert.equal(new Set(definitions).size, 98);
   assert.deepEqual(definitions.slice(66, 70), names);
-  assert.deepEqual(definitions.slice(70), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt"]);
+  assert.deepEqual(definitions.slice(70), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd"]);
   const target = host();
   await agentCommands(aggregate).setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name), definitions);
@@ -76,14 +76,14 @@ test("standalone and aggregate share one explicit replacement boundary", async (
   assert.throws(() => agentCommands().setup(target), /already registered: tac/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 97);
+  assert.equal(target.commands.list().length, 99);
   assert.equal(target.commands.get("custom"), original.find(command => command.name === "custom"));
   for (const name of names) assert.notEqual(target.commands.get(name), original.find(command => command.name === name));
   const aggregate = target.commands.list();
   assert.throws(() => streamInspectionCommands().setup(target), /already registered: tac/u);
   assert.deepEqual(target.commands.list(), aggregate);
   await streamInspectionCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 97);
+  assert.equal(target.commands.list().length, 99);
   assert.equal(target.commands.get("printf"), aggregate.find(command => command.name === "printf"));
 });
 

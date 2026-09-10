@@ -6,6 +6,7 @@ import { runtimeSequenceIterator } from "./runtime-sequence-iterator.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { ListStorage } from "./list-storage.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Consume generic iterables before member validation; an iterator failure
@@ -19,21 +20,23 @@ export function createRuntimeBytesJoinMethod(receiver: Extract<RuntimeValue, { k
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "bytes.join() takes no keyword arguments");
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `bytes.join() takes exactly one argument (${positional.length} given)`);
       const source = positional[0];
-      let items: readonly RuntimeValue[];
+      let items: readonly RuntimeValue[] | ListStorage<RuntimeValue>;
       if (source.kind === "tuple") items = source.items;
-      else if (source.kind === "list") items = source.items.snapshot();
+      else if (source.kind === "list") items = source.items;
       else {
         const iterator = runtimeSequenceIterator(source, values, meter, "can only join an iterable", iterate);
         items = collectIterator(iterator, meter);
       }
-      if (items.length === 0) return values.bytes(new Uint8Array());
-      if (items.length === 1 && items[0].kind === "bytes") return items[0];
-      meter.checkpoint(1, 64 + 16 * items.length);
-      const parts: ImmutableBytes[] = new Array(items.length);
-      const leases: (RuntimeBufferLease | undefined)[] = new Array(items.length);
+      const length = items.length;
+      if (length === 0) return values.bytes(new Uint8Array());
+      const first = items instanceof ListStorage ? items.get(0n) : items[0];
+      if (length === 1 && first.kind === "bytes") return first;
+      meter.checkpoint(1, 64 + 16 * length);
+      const parts: ImmutableBytes[] = new Array(length);
+      const leases: (RuntimeBufferLease | undefined)[] = new Array(length);
       try {
-        for (let index = 0; index < items.length; index++) {
-          meter.checkpoint(); const item = items[index];
+        for (let index = 0; index < length; index++) {
+          meter.checkpoint(); const item = items instanceof ListStorage ? items.get(BigInt(index)) : items[index];
           if (item.kind === "bytes") { parts[index] = item.value; continue; }
           try { leases[index] = buffers?.acquireSimple(item); }
           catch (error) {
@@ -46,6 +49,7 @@ export function createRuntimeBytesJoinMethod(receiver: Extract<RuntimeValue, { k
             const type = buffers?.typeName === undefined ? nativeType : diagnosticTypeName(buffers.typeName(item), meter);
             throw new PythonRuntimeError("TypeError", `sequence item ${index}: expected a bytes-like object, ${type} found`);
           }
+          if (items.length !== length) throw new PythonRuntimeError("RuntimeError", "sequence changed size during iteration");
         }
         // Later acquisitions can mutate earlier exports. Copy only after all
         // member validation and acquisition succeeds; copies run no guest code.

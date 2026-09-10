@@ -39,6 +39,32 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("observes same-size source-list replacements during buffer acquisition", () => {
+    const state = fixture("source=[first,b'b']\nresult=b'-'.join(source)\n"), v = state.values;
+    state.globals.set("first", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() {
+        const source = state.globals.get("source"); if (source?.kind !== "list") throw Error("expected list");
+        source.items.set(1n, v.bytes(Uint8Array.of(122)));
+        return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() {} };
+      }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(Uint8Array.of(97,45,122)));
+  });
+  it.each(["append", "clear", "pop"] as const)("rejects source-list %s during join buffer acquisition", mode => {
+    const state = fixture("source=[first,b'b']\nresult=b'-'.join(source)\n"), v = state.values; let released = false;
+    state.globals.set("first", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() {
+        const source = state.globals.get("source"); if (source?.kind !== "list") throw Error("expected list");
+        if (mode === "append") source.items.append(v.none);
+        else if (mode === "clear") source.items.clear();
+        else source.items.pop();
+        return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { released = true; } };
+      }
+    } });
+    expect(() => state.run()).toThrow("sequence changed size during iteration"); expect(released).toBe(true);
+  });
   it("rewrites guest join export failures with sequence position and type", () => {
     const state = fixture("result=b''.join([source])\n"), v = state.values;
     state.globals.set("source", v.cell({}));

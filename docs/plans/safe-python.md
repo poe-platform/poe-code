@@ -6845,6 +6845,17 @@ extension, integration, or validation requirement is missing or unverified.
   build pass. Mutable source-list callback audits, remaining buffer consumers,
   concrete exporters, automatic object assembly and broader interpreter/SDK/
   safe-fs integration remain unfinished.
+- Corrected bytes.join source-list handling: snapshots hid guest buffer-callback
+  mutations. Native lists now use live indexed reads with a captured expected
+  length. Same-size replacements affect later members; size changes after a
+  successful acquisition raise RuntimeError and release all acquired exports.
+  Acquisition failure retains precedence over size-change detection.
+- Four failing compiled regressions now pass. All 5,218 tests in 441 files pass;
+  60 CPython comparisons match output/errors and lease traces for replacement,
+  append, clear and pop callbacks. Typecheck, scoped lint and selected workspace
+  build pass. Remaining native buffer consumers, concrete exporters, automatic
+  object assembly and broader interpreter/SDK/safe-fs integration remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

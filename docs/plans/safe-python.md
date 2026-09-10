@@ -10146,6 +10146,23 @@ extension, integration, or validation requirement is missing or unverified.
   drivers still need to consume these pieces; full generator/async/traceback
   support, public interpreter/stdlib/safe-fs and other runtime work remain
   unfinished. No push or release requested.
+- Resumable comprehension traversal (2026-09-10): three failing cursor
+  regressions drove pull-based traversal with no element prefetch, retained
+  nested iterator positions and state release on exhaustion or failure. Eager
+  comprehensions now consume that same cursor, preserving the nonrecursive
+  clause stack and not closing ordinary iterators. Additional checks cover
+  errors at every callback boundary, cancellation, reentry and upfront clause
+  validation/allocation. Two failing cancellation regressions exposed element
+  evaluation after assignment/filter cancellation; a checkpoint now prevents
+  those effects. Fourteen new tests cover this slice. The 98 existing native
+  comprehension/unpacking CPython comparisons pass, as do 125 paired cursor
+  pull traces with rebinding, live inner-list mutation and changed filters and
+  element variables. Those cursor traces use trusted callback evaluation, not
+  native guest generator execution. Selected workspace build, typecheck and
+  focused lint pass. All 7,308 tests in 505 files pass in the final uncached
+  one-worker run (177.57s; bodies 9.72s). Native
+  generator descriptors, resumable Python bodies and generator-expression
+  integration remain unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

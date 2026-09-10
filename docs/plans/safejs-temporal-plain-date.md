@@ -368,3 +368,45 @@ The upstream until/since runner remains active, so no final result is claimed.
 The namespace prototype-wiring edit remains part of uncommitted public Temporal
 integration; local method commits alone are not a fully delivered integration.
 No push or release.
+
+## PlainDate.with
+
+The new replacement suite failed five cases against the absent method (745020).
+Ten invalid-input controls already produced TypeError due to the absence and
+are not independent evidence of correct rejection. The positive and explicit
+method-existence controls establish that the operation was missing.
+
+The shared date input reader now accepts private base fields for partial
+replacement. It rejects owned PlainDate/PlainDateTime/PlainTime inputs before
+public reads, rejects calendar/timeZone properties, reads ordered date fields,
+requires at least one supplied field, then applies overflow through backend
+calendar-aware merging. Instant/Duration objects with relevant fields remain
+eligible. The method returns a fresh intrinsic date and is registered for replay.
+Specification: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.with
+
+The date with/from, date-time with and time with selection passed 55 tests
+(1788c7). This includes month/monthCode merging, Buddhist years, clamping versus
+rejection, input/options ordering, private slots and replay. Minimum-Node, lint,
+build and upstream with fixtures are running; the earlier difference runner
+also remains active.
+
+All 15 replacement cases passed on Node 18.18.2 (f0459d). Scoped lint passed
+(7f31cb). The entire unchanged pinned Test262 with directory at revision
+419d3e0a2273ba01a3bfcbec423f2801425b8e93 ran with parsed YAML frontmatter,
+sta/assert and declared helpers in normal/strict modes: 48 passed, two failed,
+zero exclusions (45eca4). Inspection (892a68) shows the failing
+plaindatelike-invalid.js constructs its full test table using missing
+PlainMonthDay.from, PlainYearMonth.from and ZonedDateTime.from before executing
+the rejection loop. It remains a failed fixture, not an excluded pass.
+
+The maintained build passed 23 tasks and five fresh ESM import checks (0b4daa).
+The built CLI screenshot (0b519c) was inspected: changing Buddhist year 2543 to
+2544 clamps leap day to 2001-02-28, preserves private fields and returns a fresh
+intrinsic date:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-with.ajs.png`.
+
+The earlier difference runner completed until: 168 passed, four failed, zero
+exclusions (72e6c8). Inspection (dcbe8a) confirms its two failing fixtures require
+the missing ZonedDateTime or the calendar helper's other missing classes.
+Since has loaded all 87 fixtures and remains active on the same runner.
+No push or release; broader public integration remains uncommitted.

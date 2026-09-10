@@ -61,6 +61,17 @@ export function createTemporalPlainDateConstructor(budget: Budget, durationProto
   });
   Object.defineProperty(materializeFunctionProperties(constructor), "from", { value: from, writable: true, configurable: true });
   methods.push(from);
+  const withFields = createSandboxClosure({ guest: true, sandbox: true, name: "with", length: 1,
+    call: async ([input, options], context) => {
+      const fields = temporalPlainDateFields(context?.thisValue);
+      const result = await readTemporalPlainDate(input, options, budget, context, fields);
+      setSandboxPrototype(result, prototype, budget);
+      createDataCheckpoint(budget, context)(result, 0, true);
+      return result;
+    }
+  });
+  Object.defineProperty(prototype, "with", { value: withFields, writable: true, configurable: true });
+  methods.push(withFields);
   const compare = createSandboxClosure({ guest: true, sandbox: true, name: "compare", length: 2,
     call: async ([one, two], context) => {
       let first: TemporalPlainDateFields | undefined;

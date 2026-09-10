@@ -6,15 +6,26 @@ import { objectToPrimitive, sandboxNumber, sandboxString } from "../string-coerc
 import { validateTemporalStringOffsets } from "../temporal-offset-validation.js";
 import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields, isSandboxTemporalPlainDate, temporalPlainDateFields, type SandboxTemporalPlainDate, type TemporalPlainDateFields } from "../temporal-plain-date.js";
 import { isSandboxTemporalPlainDateTime, temporalPlainDateTimeFields } from "../temporal-plain-date-time.js";
+import { isSandboxTemporalPlainTime } from "../temporal-plain-time.js";
 import type { SandboxCallContext, SandboxValue } from "../values.js";
 import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
 
-export async function readTemporalPlainDate(input: SandboxValue, options: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<SandboxTemporalPlainDate> {
+export async function readTemporalPlainDate(input: SandboxValue, options: SandboxValue, budget: Budget, context?: SandboxCallContext, baseFields?: TemporalPlainDateFields): Promise<SandboxTemporalPlainDate> {
   const normalized: Record<string, string | number> = Object.create(null);
   let fields: TemporalPlainDateFields | undefined;
   let current: SandboxValue;
-  const release = retainValues(budget, () => [input, options, normalized, fields, current]);
+  const release = retainValues(budget, () => [input, options, normalized, fields, current, baseFields]);
   try {
+    if (baseFields !== undefined) {
+      if (input === null || typeof input !== "object" || isSandboxTemporalPlainDate(input) || isSandboxTemporalPlainDateTime(input) || isSandboxTemporalPlainTime(input))
+        throw new TypeError("PlainDate with requires a partial date object.");
+      // Add remaining calendar-bearing brands when their owned classes exist.
+      // Instant and Duration are valid partial objects with relevant fields.
+      for (const name of ["calendar", "timeZone"]) {
+        current = await sandboxGetProperty(input, name, input, budget, context);
+        if (current !== undefined) throw new TypeError("Partial date objects cannot specify calendar or timeZone.");
+      }
+    }
     if (isSandboxTemporalPlainDate(input)) fields = temporalPlainDateFields(input);
     else if (isSandboxTemporalPlainDateTime(input)) fields = temporalPlainDateTimeFields(input);
     else if (typeof input === "string") {
@@ -35,10 +46,10 @@ export async function readTemporalPlainDate(input: SandboxValue, options: Sandbo
       fields = originalYear === undefined ? parsed : { ...parsed, isoYear: originalYear };
     } else {
       if (input === null || typeof input !== "object") throw new TypeError("PlainDate input must be a string or object.");
-      current = await sandboxGetProperty(input, "calendar", input, budget, context);
-      const calendarId = readTemporalCalendarIdentifier(current === undefined ? "iso8601" : current, budget);
+      current = baseFields === undefined ? await sandboxGetProperty(input, "calendar", input, budget, context) : undefined;
+      const calendarId = baseFields?.calendar ?? readTemporalCalendarIdentifier(current === undefined ? "iso8601" : current, budget);
       const calendar = new Backend.PlainDate(2000, 1, 1, calendarId);
-      normalized.calendar = calendar.calendarId;
+      if (baseFields === undefined) normalized.calendar = calendar.calendarId;
       const keys = ["day", ...(calendar.era === undefined ? [] : ["era", "eraYear"]), "month", "monthCode", "year"];
       for (const key of keys) {
         current = await sandboxGetProperty(input, key, input, budget, context);
@@ -60,12 +71,19 @@ export async function readTemporalPlainDate(input: SandboxValue, options: Sandbo
           normalized[key] = number === 0 ? 0 : number;
         }
       }
+      if (baseFields !== undefined && Object.keys(normalized).length === 0)
+        throw new TypeError("PlainDate with requires at least one date field.");
     }
     if (options !== undefined && (options === null || typeof options !== "object")) throw new TypeError("PlainDate options must be an object.");
     current = options === undefined ? undefined : await sandboxGetProperty(options, "overflow", options, budget, context);
     const overflow = current === undefined ? "constrain" : await sandboxString(current, budget, context);
     if (overflow !== "constrain" && overflow !== "reject") throw new RangeError("Invalid Temporal overflow option.");
-    if (fields === undefined) fields = hostTemporalPlainDateFields(Backend.PlainDate.from(normalized as Backend.DateLikeObject & Record<string, string | number>, { overflow }))!;
+    if (fields === undefined) {
+      const result = baseFields === undefined
+        ? Backend.PlainDate.from(normalized as Backend.DateLikeObject & Record<string, string | number>, { overflow })
+        : new Backend.PlainDate(baseFields.isoYear, baseFields.isoMonth, baseFields.isoDay, baseFields.calendar).with(normalized, { overflow });
+      fields = hostTemporalPlainDateFields(result)!;
+    }
     return createSandboxTemporalPlainDate(fields);
   } finally { release(); }
 }

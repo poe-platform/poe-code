@@ -916,11 +916,13 @@ Duration `total`, `compare`, and `round` also accept that zone form inside a
 `relativeTo` date bag, preserving the bag's date and calendar for DST arithmetic.
 Blank Duration totals return positive zero at both PlainDate range boundaries
 without constructing an out-of-range calendar interval.
-The Duration, PlainTime, PlainDateTime, PlainMonthDay, and ZonedDateTime constructors and method adapters are committed locally but unreleased;
+The Duration, PlainTime, PlainDateTime, PlainMonthDay, PlainYearMonth, and ZonedDateTime constructors and method adapters are committed locally but unreleased;
 public Temporal namespace and snapshot integration remain unfinished.
 PlainMonthDay's current checks pass on Node 18.20.8 and 26.8.1, but three ISO
 month-name locale checks still fail on Node 22.23.2; local integration is not a
 claim of complete locale support or a green package gate.
+PlainYearMonth likewise passes its 102 current checks on Node 18.20.8 and
+26.8.1; three ISO month-name locale checks remain failing on Node 22.23.2.
 PlainDate conversions to MonthDay, YearMonth, and ZonedDateTime are also committed
 locally, preserving private calendar fields and destination-realm prototypes.
 MonthDay input conversion preserves an owned YearMonth's private calendar while

@@ -4,6 +4,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimePowerOperation, type RuntimePowerContext } from "./runtime-power-operation.js";
 import { runtimeAddition, type AdditionContext } from "./runtime-addition.js";
+import { runtimeMultiplication, type MultiplicationContext } from "./runtime-multiplication.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeRichComparison, type RuntimeRichComparisonContext } from "./runtime-rich-comparison.js";
 import { runtimeIndex } from "./runtime-index.js";
@@ -49,6 +50,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
     addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext;
+    /** Numeric negotiation must precede the supplied index repetition policy. */
+    multiplication?(left: RuntimeValue, right: RuntimeValue): MultiplicationContext;
     richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext;
     /** Return undefined to retain native container handling. */
     containment?(container: RuntimeValue): ContainmentContext<RuntimeValue> | undefined;
@@ -106,6 +109,11 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
         const addition = bindings.addition?.(left, right);
         meter.checkpoint();
         return runtimeAddition(left, right, values, meter, addition, augmented, bindings.buffers);
+      }
+      if (operator === "*") {
+        const multiplication = bindings.multiplication?.(left, right);
+        meter.checkpoint();
+        return runtimeMultiplication(left, right, values, meter, multiplication, augmented);
       }
       const result = runtimeBinary(operator, left, right, values, meter);
       if (result === values.notImplemented) throw new UnsupportedExpressionError("binary");

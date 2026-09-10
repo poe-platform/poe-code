@@ -7425,6 +7425,19 @@ extension, integration, or validation requirement is missing or unverified.
   and scoped lint pass. In-place dispatch remains a reusable kernel rather than complete
   augmented-operation MRO assembly; broader numeric dispatch, native classification
   and suspended safe-fs effects remain unfinished.
+- Added multiplication negotiation with exact native sequence fallback and an
+  explicit index policy. Four sequence regressions first returned NotImplemented;
+  two expression regressions exposed missing dispatch/diagnostics. Sixteen added
+  cases cover list/tuple/string/bytes repetition in both operand orders, numeric
+  precedence, native fast paths, empty-sequence conversion, invalid/overflow/bool
+  results, negative counts and module/nested-frame policy ownership. Index policy
+  acquisition is deferred until numeric methods decline and conversion is needed.
+  All 96 result/error comparisons match CPython. All 5,601 tests in 449 files pass;
+  selected build, typecheck and scoped lint pass. The multiplication hook is wired
+  through expressions/program frames; automatic MRO numeric-slot assembly and
+  guest in-place repetition remain unfinished, as do native classification and
+  suspended safe-fs effects. Numeric/reflected protocol reference:
+  https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

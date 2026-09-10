@@ -143,6 +143,23 @@ describe("concrete runtime expression context", () => {
     expect(run("left + right")).toBe(answer);
     expect(events).toEqual(["load:left", "load:right", "slots"]);
   });
+  it("reports native repetition errors through multiplication", () => {
+    const { run } = fixture();
+    expect(() => run("[] * None")).toThrow("can't multiply sequence by non-int of type 'NoneType'");
+    expect(() => run("None * 2")).toThrow("unsupported operand type(s) for *: 'NoneType' and 'int'");
+  });
+  it("prepares multiplication slots after both operands and preserves the hook receiver", () => {
+    const { v, bindings, run, events, names } = fixture(), guest = v.cell({});
+    names.set("left", v.list([])); names.set("right", guest);
+    bindings.multiplication = function(left, right) {
+      expect(this).toBe(bindings); expect(left.kind).toBe("list"); expect(right).toBe(guest);
+      events.push("slots");
+      return { numeric: { relation: "other", notImplemented: v.notImplemented,
+        forward: () => v.notImplemented, reflected: () => v.false, reflectedIsOverridden: () => false } };
+    };
+    expect(run("left * right")).toBe(v.false);
+    expect(events).toEqual(["load:left", "load:right", "slots"]);
+  });
   it("uses the same guest truth hook for not and Boolean short-circuiting", () => {
     const { v, bindings, run, names } = fixture(), guest = v.cell({}); let truth = false, calls = 0;
     names.set("guest", guest);

@@ -41,6 +41,31 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([false, true])("shares multiplication policies with nested frames (numeric handled=%s)", handled => {
+    const state = fixture("def repeat():\n return 'x' * guest\nfirst='x' * guest\nsecond=repeat()\n"), v = state.values, guest = v.cell({});
+    state.globals.set("guest", guest);
+    let prepared = 0, indexed = 0;
+    state.hooks.expressions = () => {
+      const owner = { warn() {}, multiplication(left: RuntimeValue, right: RuntimeValue) {
+        expect(this).toBe(owner); expect(left.kind).toBe("str"); expect(right).toBe(guest); prepared++;
+        return {
+          numeric: { relation: "other" as const, notImplemented: v.notImplemented,
+            forward: () => v.notImplemented, reflected: () => handled ? v.false : v.notImplemented, reflectedIsOverridden: () => false },
+          integerIndex: {
+            integer: (value: RuntimeValue) => value.kind === "int" ? value.value : undefined,
+            isExactInteger: (value: RuntimeValue) => value.kind === "int",
+            lookupIndex(value: RuntimeValue) { expect(value).toBe(guest); indexed++; return () => v.integer(2); },
+            typeName: () => "Index", warn() { throw Error("unexpected warning"); }
+          }
+        };
+      } };
+      return owner;
+    };
+    state.run();
+    expect(state.globals.get("first")).toEqual(handled ? v.false : v.string("xx"));
+    expect(state.globals.get("second")).toEqual(handled ? v.false : v.string("xx"));
+    expect(prepared).toBe(2); expect(indexed).toBe(handled ? 0 : 2);
+  });
   it.each([['items=[]\nitems.append(3)\nresult=items.count(3)\n', 1], ['result="ab".upper()\n', "AB"], ['result=(3).real\n', 3]] as const)("does not acquire formatting for native members: %s", (source, expected) => {
     const state = fixture(source);
     state.hooks.expressions = () => ({ warn() {} });

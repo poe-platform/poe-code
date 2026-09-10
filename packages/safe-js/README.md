@@ -415,6 +415,9 @@ There are no runtime environment variables to set. `makeEnvModule({ allow, value
 Diagnostic module parsing retains missing-`async` forms so lint can report and
 autofix them. Executable parsing and restored-source compilation reject `await`
 inside non-async functions, including nested functions and template substitutions.
+Compiling stored module source enforces the owning budget's string-length
+limit and charges one step per UTF-16 source unit before parsing. Regex
+compilation retains its additional work charges.
 
 `deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible.
 

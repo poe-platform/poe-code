@@ -1,10 +1,14 @@
-import type { CompileOwner } from "../interp/budget.js";
+import { SandboxError, type CompileOwner } from "../interp/budget.js";
 import { parseExecutableModule, parseDynamicFunction, parseEvalScript, type EvalParseContext, type DynamicFunctionKind, type ParseResult } from "./parser.js";
 
 import { dynamicNodeSources, dynamicSourceRecords, type DynamicSource } from "./function-source.js";
 export type { DynamicSource, EvalSourceContext } from "./function-source.js";
 
 export function createModuleSource(body: string, owner?: CompileOwner) {
+  const limit = owner?.budget.limits.stringLength;
+  if (limit !== undefined && body.length > limit)
+    throw new SandboxError({ budget: "stringLength", current: body.length, limit });
+  if (owner !== undefined) for (let index = 0; index < body.length; index++) owner.budget.visitNode();
   const node = parseExecutableModule(body, "<snapshot module>", owner);
   const source: DynamicSource = { kind: "module", parameters: "", body, nodes: new Map() };
   registerDynamicSource(node, source);

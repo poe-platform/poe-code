@@ -29,6 +29,27 @@ before stage acquisition. Stdout operation does not require file-publication
 capabilities. Capability and identity checks do not make a provider's promises
 stronger than its actual implementation.
 
+## S3 automatic named-output restriction
+
+This is a breaking restriction for `S3FileSystem`: automatic named-file output,
+including `gzip -k /input` and `gzip -d /input.gz`, now returns `ENOTSUP` before
+stage acquisition or publication. Its declared contract lacks scoped stat
+identities and atomic rename, and its directory removal is snapshot-marker-only.
+Conditional object copy does not satisfy the stronger file-output contract.
+Keeping the source with `-k` does not remove the publication/cleanup requirements.
+
+Named reads and explicit stdout/redirection remain supported:
+
+```sh
+gzip -c /input > /input.gz
+gzip -dc /input.gz > /restored
+```
+
+These commands retain their inputs and use ordinary VFS redirection, not the
+automatic named-output transaction. Redirection does not acquire an atomic
+publication or rollback guarantee from this command; failures can leave
+destination effects. This is not unchanged S3 automatic named-file compatibility.
+
 ## Ownership and cancellation
 
 Planning and named-file work register cooperative invocation cleanup before

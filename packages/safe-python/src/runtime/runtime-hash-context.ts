@@ -2,6 +2,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeHashContext } from "./runtime-hash.js";
 import { PythonRuntimeError } from "./error.js";
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext } from "./runtime-values.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 
 /** Compose execution-owned hash slots with a trusted identity/payload policy.
  * Explicit guest policies take precedence. Absent owned slots retain the native
@@ -35,7 +36,10 @@ export function createRuntimeHashContext(base: RuntimeHashContext, meter: Execut
           meter.checkpoint(0, 32);
           return () => invocation.call(method, []);
         },
-        integer(result) { return result.kind === "int" ? result.value : result.kind === "bool" ? result.value ? 1n : 0n : undefined; },
+        integer(result) {
+          const payload = runtimeIntegerPayload(result);
+          return payload?.kind === "int" ? payload.value : payload?.kind === "bool" ? payload.value ? 1n : 0n : undefined;
+        },
         typeName: () => type.value.name
       };
     }

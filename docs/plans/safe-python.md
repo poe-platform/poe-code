@@ -9315,6 +9315,16 @@ extension, integration, or validation requirement is missing or unverified.
   Remaining integer methods/data descriptors, bool hierarchy, owned-integer
   protocol-consumer audits, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Owned integer protocol results (2026-09-10): two failing integration tests
+  reproduced rejection of valid integer subclasses returned by hash and length
+  hint methods. Both adapters now inspect native integer payloads directly,
+  preserving the prohibition on invoking result conversion overrides. All 96
+  CPython protocol cases match, including negative/overflowing length values,
+  arbitrary-precision hashes, bool results and index-only objects that remain
+  invalid hint/hash results. Workspace build, typecheck, focused lint and all
+  6,965 package tests in 495 files pass. Integer method/data descriptors, bool
+  hierarchy, remaining scalar consumers, full interpreter and safe-fs execution
+  remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

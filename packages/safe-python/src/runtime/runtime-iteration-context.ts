@@ -1,5 +1,6 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import type { LengthHintContext } from "./length-hint.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
@@ -76,7 +77,10 @@ export function createRuntimeIterationContext(values: RuntimeValues, meter: Exec
             meter.checkpoint(0, 64);
             return () => { meter.checkpoint(0, 8); const result = invocation.call(method, []); meter.checkpoint(); return result; };
           },
-          integer: value => value.kind === "int" ? value.value : value.kind === "bool" ? value.value ? 1n : 0n : undefined,
+          integer(value) {
+            const payload = runtimeIntegerPayload(value);
+            return payload?.kind === "int" ? payload.value : payload?.kind === "bool" ? payload.value ? 1n : 0n : undefined;
+          },
           isNotImplemented: value => value === values.notImplemented,
           isTypeError: error => error instanceof PythonRuntimeError && error.name === "TypeError",
           typeName

@@ -59,6 +59,21 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("accepts owned integer hash results without invoking conversion overrides", () => {
+  const state = fixture(); state.globals.set("Int",state.registry.integerType());
+  state.builtins.set("hash",createHashBuiltin(state.v,state.meter,state.hash));
+  state.run("class Child(Int):\n def __index__(self):\n  visit('wrong')\n  return 0\n def __int__(self):\n  visit('wrong')\n  return 0\nclass Key:\n def __hash__(self):\n  visit('hash')\n  return Child(7)\nk=Key()\nresult=hash(k)\nd={k:9}\ncorrect=result==7 and d[k]==9\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(["hash","hash","hash"]);
+});
+
+it("accepts owned integer length hints without invoking conversion overrides", () => {
+  const state = fixture(); state.globals.set("Int",state.registry.integerType());
+  state.run("class Child(Int):\n def __index__(self):\n  visit('wrong')\n  return 0\n def __int__(self):\n  visit('wrong')\n  return 0\nclass Source:\n def __iter__(self):\n  visit('iter')\n  return [1,2].__iter__()\n def __length_hint__(self):\n  visit('hint')\n  return Child(2)\nresult=type([])(Source())\n");
+  expect(state.globals.get("result")).toEqual(state.v.list([state.v.integer(1),state.v.integer(2)]));
+  expect(state.events).toEqual(["iter","hint"]);
+});
+
 it("allocates canonical integers and subclass-owned integer storage", () => {
   const state = fixture(); state.globals.set("Int",state.registry.integerType());
   state.run("x=10**30\nclass Child(Int):\n def __init__(self,value):\n  self.tag='child'\ny=Child(x)\ncorrect=Int(x) is x and type(y) is Child and y.tag=='child' and Int(y)==x and Int(y) is not y and Int.__new__.__self__ is Int\n");

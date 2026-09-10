@@ -9760,6 +9760,21 @@ extension, integration, or validation requirement is missing or unverified.
   for NameError/AttributeError/ImportError/StopIteration/SystemExit, but not
   MemoryError. These types, tracebacks, fault translation, raise/try wiring and
   interpreter/safe-fs assembly remain unfinished. No push or release requested.
+- Argument-bearing exceptions (2026-09-10): three failing integration tests drove
+  StopIteration.value, SystemExit.code and distinct native layouts that retain
+  BaseException allocator compatibility. Type layouts now track allocation family
+  separately from storage identity. Declarative argument-member policies initialize
+  first/all arguments; StopIteration clears its value on empty initialization,
+  whereas SystemExit retains its prior code. Multiple SystemExit arguments share
+  the args tuple, direct field writes remain independent, and deletion resets to
+  None. Raw base allocation leaves fields unset; incompatible native layouts still
+  reject multiple inheritance. A native state test verifies metered field writes
+  preserve prior values on failure. All 98 focused CPython comparisons and 1,394
+  hierarchy regression comparisons match. Focused tests, typecheck, lint, the
+  selected workspace build and all 7,142 tests in 502 files pass in the uncached
+  one-worker package run. Remaining specialized exceptions,
+  tracebacks, fault translation, raise/try wiring and interpreter/safe-fs assembly
+  are unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

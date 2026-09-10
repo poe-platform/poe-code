@@ -8,6 +8,9 @@ import { RuntimeTypeNames } from "./runtime-type-names.js";
 import { PythonRuntimeError } from "./error.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Native allocation family can remain compatible while added native fields
+   * establish a distinct storage layout for multiple inheritance. */
+  readonly nativeAllocator?: RuntimeTypeLayout;
   /** Static native types such as dictionary views cannot be allocated directly. */
   readonly instantiable?: boolean;
   /** Prepared, sorted/mangled own slot names; duplicates occupy separate cells. */
@@ -53,6 +56,7 @@ export class RuntimeTypeLayout {
   /** Defining native payload layout. Heap subclasses share it; introducing a
    * new native payload establishes a distinct layout even above a native base. */
   readonly nativeStorage: RuntimeTypeLayout | undefined;
+  readonly nativeAllocator: RuntimeTypeLayout | undefined;
   readonly layoutBase: RuntimeTypeLayout | undefined;
   readonly solidLayout: RuntimeTypeLayout | undefined;
   readonly slotNames: readonly string[];
@@ -61,7 +65,7 @@ export class RuntimeTypeLayout {
   readonly variableSized: boolean;
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
-    meter.checkpoint(1, 208 + 8 * bases.length + 8 * (options.slots?.length ?? 0));
+    meter.checkpoint(1, 216 + 8 * bases.length + 8 * (options.slots?.length ?? 0));
     const layoutBase = selectRuntimeLayoutBase(bases, meter);
     this.names = new RuntimeTypeNames(name, options.qualifiedName ?? name, meter);
     this.bases = Object.freeze([...bases]);
@@ -73,6 +77,7 @@ export class RuntimeTypeLayout {
     this.slotNames = Object.freeze([...(options.slots ?? [])]);
     this.slotCount = (layoutBase?.slotCount ?? 0) + this.slotNames.length;
     this.nativeStorage = options.objectLayout === false ? this : layoutBase?.nativeStorage;
+    this.nativeAllocator = options.nativeAllocator ?? (options.objectLayout === false ? this : layoutBase?.nativeAllocator);
     this.solidLayout = options.objectLayout === false || this.slotNames.length !== 0 ? this : layoutBase?.solidLayout;
     this.variableSized = options.variableSized ?? layoutBase?.variableSized ?? false;
     let dictionary = options.instanceDictionary ?? true, objectLayout = options.objectLayout ?? true;

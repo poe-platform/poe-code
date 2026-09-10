@@ -24,3 +24,12 @@ it("does not partially assign cause or suppression when the execution meter reje
   expect(()=>state.assignCause(null,new ExecutionBudget({maxSteps:0,maxAllocatedBytes:100}))).toThrow(ExecutionLimitError);
   expect(state.cause).toBe(null);expect(state.suppressContext).toBe(false);
 });
+
+it("preserves native exception members when allocation or cancellation rejects a write",()=>{
+  const meter=new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:10000}),v=new RuntimeValues(meter),state=new RuntimeExceptionState(v.tuple([]),meter);
+  expect(()=>state.assignMember("value",v.true,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:0}))).toThrow(ExecutionLimitError);
+  expect(state.member("value",meter)).toBeUndefined();
+  state.assignMember("value",v.true,meter);
+  expect(()=>state.assignMember("value",v.false,new ExecutionBudget({maxSteps:0,maxAllocatedBytes:100}))).toThrow(ExecutionLimitError);
+  expect(state.member("value",meter)).toBe(v.true);
+});

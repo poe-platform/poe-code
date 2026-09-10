@@ -70,6 +70,24 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("stores StopIteration values independently of args and clears them on empty reinitialization",()=>{
+  const state=fixture();state.globals.set("StopIteration",state.registry.exceptionType("StopIteration"));state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("e=StopIteration(1,2)\ninitial=e.value==1 and e.args==(1,2)\ne.args=(3,)\nindependent=e.value==1\ne.__init__()\ncleared=e.value is None and e.args==()\ne.value=4\ndel e.value\ndeleted=e.value is None\nraw=BaseException.__new__(StopIteration,5)\nuninitialized=raw.args==(5,) and raw.value is None\n");
+  for(const key of ["initial","independent","cleared","deleted","uninitialized"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("retains SystemExit codes on empty initialization and shares multi-argument tuples",()=>{
+  const state=fixture();state.globals.set("SystemExit",state.registry.exceptionType("SystemExit"));
+  state.run("e=SystemExit(1,2)\ncode=e.code\nshared=code is e.args\ne.__init__()\nretained=e.code is code and e.args==()\ne.__init__('stop')\nsingle=e.code=='stop'\ndel e.code\ndeleted=e.code is None\n");
+  for(const key of ["shared","retained","single","deleted"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("keeps member-bearing exception layouts distinct while allowing shared base allocation",()=>{
+  const state=fixture();for(const name of ["StopIteration","SystemExit","Exception","BaseException"] as const)state.globals.set(name,state.registry.exceptionType(name));
+  expect(()=>state.run("class Bad(StopIteration,SystemExit):\n pass\n")).toThrow("multiple bases have instance lay-out conflict");
+  state.run("class E(StopIteration,Exception):\n pass\ne=BaseException.__new__(E,1)\ncorrect=e.value is None and e.args==(1,)\n");expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("formats a single KeyError argument with repr and inherits the lookup allocator",()=>{
   const state=fixture();state.globals.set("KeyError",state.registry.exceptionType("KeyError"));state.globals.set("LookupError",state.registry.exceptionType("LookupError"));
   state.run("empty=KeyError()\none=KeyError('missing')\nmany=KeyError('a','b')\ncorrect=f'{empty}'=='' and f'{one}'==\"'missing'\" and f'{many}'==\"('a', 'b')\" and one.__repr__()==\"KeyError('missing')\" and KeyError.__new__ is LookupError.__new__ and KeyError.__dict__.keys()=={'__str__','__doc__'}\n");

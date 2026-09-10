@@ -1,10 +1,12 @@
-/** Builtin exceptions using BaseException's allocation and state protocol.
- * Optional representation policy does not introduce a new storage layout.
- * Types with specialized constructors or members are installed separately. */
+/** Builtin exceptions using BaseException's allocation family. Representation
+ * policies share storage; argument-derived members introduce native layouts.
+ * Keyword-aware and specialized allocation protocols are still separate work. */
 export const standardExceptionCatalog = {
   Exception: {base:"BaseException",doc:"Common base class for all non-exit exceptions."},
   GeneratorExit: {base:"BaseException",doc:"Request that a generator exit."},
   KeyboardInterrupt: {base:"BaseException",doc:"Program interrupted by user."},
+  SystemExit: {base:"BaseException",doc:"Request to exit from the interpreter.",ownAllocator:false,member:{name:"code",doc:"exception code",arguments:"all"}},
+  StopIteration: {base:"Exception",doc:"Signal the end from iterator.__next__().",ownAllocator:false,member:{name:"value",doc:"generator return value",arguments:"first"}},
   ArithmeticError: {base:"Exception",doc:"Base class for arithmetic errors."},
   FloatingPointError: {base:"ArithmeticError",doc:"Floating-point operation failed."},
   OverflowError: {base:"ArithmeticError",doc:"Result too large to be represented."},

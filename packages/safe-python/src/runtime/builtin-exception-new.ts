@@ -23,7 +23,7 @@ export function createExceptionNewBuiltin(owner:TypeValue,values:RuntimeValues,m
       for(const ancestor of type.value.mro){meter.checkpoint();if(ancestor===owner.value){subtype=true;break;}}
       const name=diagnosticTypeName(type.value.name,meter);
       if(!subtype)throw new PythonRuntimeError("TypeError",`${ownerName}.__new__(${name}): ${name} is not a subtype of ${ownerName}`);
-      if(type.value.nativeStorage!==owner.value.nativeStorage)throw new PythonRuntimeError("TypeError",`${ownerName}.__new__(${name}) is not safe, use ${name}.__new__()`);
+      if(type.value.nativeAllocator!==owner.value.nativeAllocator)throw new PythonRuntimeError("TypeError",`${ownerName}.__new__(${name}) is not safe, use ${name}.__new__()`);
       const args=values.tuple(positional.length-1,index=>positional[index+1]);
       meter.checkpoint(0,32);
       const dictionary=()=>values.dictionary(owner.value.namespace.items.emptyCopy());

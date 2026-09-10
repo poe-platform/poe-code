@@ -9,13 +9,23 @@ export class RuntimeExceptionState {
   #cause:InstanceValue|null=null;
   #context:InstanceValue|null=null;
   #suppressContext=false;
+  #members:Map<string,RuntimeValue>|undefined;
   constructor(args:TupleConstant<RuntimeValue>,meter:ExecutionMeter) {
-    meter.checkpoint(1,56);this.#args=args;Object.freeze(this);
+    meter.checkpoint(1,64);this.#args=args;Object.freeze(this);
   }
   get args():TupleConstant<RuntimeValue>{return this.#args;}
   get cause():InstanceValue|null{return this.#cause;}
   get context():InstanceValue|null{return this.#context;}
   get suppressContext():boolean{return this.#suppressContext;}
+  member(name:string,meter:ExecutionMeter):RuntimeValue|undefined {
+    meter.checkpoint();return this.#members?.get(name);
+  }
+  assignMember(name:string,value:RuntimeValue|undefined,meter:ExecutionMeter):void {
+    meter.checkpoint();
+    if(value===undefined){this.#members?.delete(name);return;}
+    meter.checkpoint(0,(this.#members===undefined?48:0)+(this.#members?.has(name)?0:32+name.length*2));
+    this.#members??=new Map();this.#members.set(name,value);
+  }
   assignArgs(args:TupleConstant<RuntimeValue>,meter:ExecutionMeter):void {
     meter.checkpoint();this.#args=args;
   }

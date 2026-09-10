@@ -67,6 +67,18 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("constructs float subclasses through inherited fromhex after parsing", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __new__(cls,value):\n  visit('new')\n  return Float.__new__(cls,value)\n def __init__(self,value):\n  visit('init')\nx=Child.fromhex('0x1.8p1')\ncorrect=type(x) is Child and x==3.0 and Child.fromhex.__self__ is Child and x.fromhex.__self__ is Child and Float.fromhex('0x1p0')==1.0\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["new","init"]);
+  expect(()=>state.run("Child.fromhex('invalid')\n")).toThrow("invalid hexadecimal floating-point string");
+  expect(state.events).toEqual(["new","init"]);
+  state.run("class Other(Float):\n def __new__(cls,value):\n  return 'other'\nresult=Other.fromhex('0x1p0')\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("other"));
+  expect(()=>state.run("Child.fromhex()\n")).toThrow("Child.fromhex() takes exactly one argument (0 given)");
+  expect(()=>state.run("Child.fromhex(string='0x1p0')\n")).toThrow("Child.fromhex() takes no keyword arguments");
+});
+
 it("formats float subclass storage while preserving empty-spec string overrides", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Child(Float):\n def __str__(self):\n  visit('str')\n  return 'custom'\n def __float__(self):\n  visit('wrong')\n  return 9.0\nx=Child(1.25)\ncorrect=Float.__format__(x,'')=='custom' and x.__format__('.1f')=='1.2' and f'{x:.2f}'=='1.25' and x.__format__('n')=='1.25' and Float.__format__.__objclass__ is Float\n");

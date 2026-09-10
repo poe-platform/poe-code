@@ -9480,6 +9480,19 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 498 files pass in the uncached one-worker package run. Subclass-aware
   float.fromhex remains next; full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Canonical float hexadecimal construction (2026-09-10): a failing integration
+  test drove fromhex class-method descriptor publication and bound subclass
+  allocation after parsing. Custom __new__/__init__ callbacks and unrelated
+  allocation results are preserved; invalid text never reaches construction.
+  The differential audit exposed subclass-named argument errors, reproduced by
+  a failing regression before correction. Shared argument parsing serves both
+  the legacy native entry point and canonical descriptor. All 111 CPython
+  binding/construction/error cases match; a separate bit-level check confirms
+  signed NaN parsing. Workspace build, typecheck, focused lint and all 7,032
+  tests in 498 files pass in the uncached one-worker package run. Namespace
+  comparison identifies __getformat__ and from_number as still missing float
+  class methods. Remaining scalar consumers, full interpreter and safe-fs
+  execution are unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -19,6 +19,7 @@ import { promiseCapabilityExecutors, type PromiseCapabilityExecutorState } from 
 import { thenableContinuations, thenableResolvers, thenableStates, type ThenableContinuation } from "./promise-continuations.js";
 import { trackPromiseContinuation, promiseAdoptions, promiseAdoptionBridges, promiseAdoptionResolvers, promiseAggregateHandlers, promiseAggregateStates, promiseAggregateEntries, type PromiseAggregateState, type PromiseAggregateEntry, type PromiseAdoptionBridge, type PromiseContinuation } from "./promise-continuations.js";
 import {
+  allocateProducedSandboxValue,
   createSandboxClosure,
   createSandboxPromise,
   isSandboxClosure,
@@ -83,7 +84,7 @@ export function createPendingPromiseCapability(budget: Budget, context?: Sandbox
         continuation.resolution = {status, value};
         let prefix: Promise<undefined> | undefined;
         try {
-          if (status === "rejected") reject(budgetSandboxValue(value, budget));
+          if (status === "rejected") reject(allocateProducedSandboxValue(value, budget));
           else if (value === promise)
             reject(createSubsetErrorValue("TypeError", "Promise cannot resolve to itself.", context?.stack ?? [], budget));
           else fulfill(resolveSandboxValue(value, {budget, self: promise, context,
@@ -796,9 +797,9 @@ async function completePromiseAggregate(aggregate: PromiseAggregateState, budget
   if (method === "any") {
     const error = createSubsetErrorValue("AggregateError", "All promises were rejected", [], budget);
     Object.defineProperty(error, "errors", {value: values, writable: true, configurable: true});
-    await callPromiseClosure(capability.reject, [budgetSandboxValue(error, budget)], undefined, budget, context);
+    await callPromiseClosure(capability.reject, [allocateProducedSandboxValue(error, budget)], undefined, budget, context);
   } else {
-    await callPromiseClosure(capability.resolve, [budgetSandboxValue(values, budget)], undefined, budget, context);
+    await callPromiseClosure(capability.resolve, [allocateProducedSandboxValue(values, budget)], undefined, budget, context);
   }
 }
 
@@ -831,7 +832,7 @@ function schedulePromise(promise: Promise<SandboxValue>, budget: Budget): Promis
   return Promise.resolve().then(() =>
     promise.then(
       (value) => resolveSandboxValue(value, { budget }),
-      (reason: SandboxValue) => Promise.reject(budgetSandboxValue(reason, budget))
+      (reason: SandboxValue) => Promise.reject(allocateProducedSandboxValue(reason, budget))
     )
   );
 }
@@ -849,11 +850,6 @@ function createRejectedSandboxPromise(
   const prototype = getSandboxPrototype(result, budget);
   if (prototype !== null) setSandboxPrototype(result, prototype, budget);
   return result;
-}
-
-function budgetSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
-  allocateSandboxValue(value, budget, new WeakSet());
-  return value;
 }
 
 export function prepareAwaitedPromise(
@@ -1105,7 +1101,7 @@ function runPromiseReaction(
       } else if (requiresPromiseResolution(result, budget)) {
         resolve(resolvePromiseResult(result, budget, self, context));
       } else {
-        resolve(budgetSandboxValue(result, budget));
+        resolve(allocateProducedSandboxValue(result, budget));
       }
     };
     if (isSandboxClosure(handler)) {
@@ -1115,7 +1111,7 @@ function runPromiseReaction(
     } else {
       runPromiseJob(() => {
         if (state === "fulfilled") fulfilled(value);
-        else rejected(budgetSandboxValue(argument, budget));
+        else rejected(allocateProducedSandboxValue(argument, budget));
       }).catch(rejected);
     }
   });
@@ -1168,10 +1164,10 @@ export function createPromiseAdoptionBridge(
     if (bridge.settled) return;
     bridge.settled = true;
     try {
-      if (status === "rejected") rejectNative(budgetSandboxValue(value, budget));
+      if (status === "rejected") rejectNative(allocateProducedSandboxValue(value, budget));
       else if (requiresPromiseResolution(value, budget)) {
         fulfill(resolvePromiseResult(value, budget, owner, context));
-      } else fulfill(budgetSandboxValue(value, budget));
+      } else fulfill(allocateProducedSandboxValue(value, budget));
     } catch (error) {
       rejectNative(error);
     }
@@ -1306,47 +1302,7 @@ function getThenable(
 }
 
 function budgetIfNeeded(value: SandboxValue, budget: Budget | undefined): SandboxValue {
-  return budget === undefined ? value : budgetSandboxValue(value, budget);
-}
-
-function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
-  if (typeof value === "string") {
-    budget.allocateString(value);
-    return;
-  }
-
-  if (Array.isArray(value)) {
-    budget.allocateArrayLength(value.length);
-
-    if (seen.has(value)) {
-      return;
-    }
-
-    seen.add(value);
-    for (const entry of value) {
-      allocateSandboxValue(entry, budget, seen);
-    }
-
-    return;
-  }
-
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    isSandboxClosure(value) ||
-    isSandboxPromise(value)
-  ) {
-    return;
-  }
-
-  if (seen.has(value)) {
-    return;
-  }
-
-  seen.add(value);
-  for (const entry of Object.values(value)) {
-    allocateSandboxValue(entry, budget, seen);
-  }
+  return budget === undefined ? value : allocateProducedSandboxValue(value, budget);
 }
 
 function isPromiseLike(

@@ -6980,6 +6980,20 @@ extension, integration, or validation requirement is missing or unverified.
   claim generalized non-dictionary proxy payloads or automatic guest object
   protocol assembly. Those and broader interpreter/SDK/safe-fs integration
   remain unfinished.
+- Added the missing internal print builtin with explicit stdout/write/flush
+  capabilities and shared representation/truth policies. Keyword-only sep/end/
+  file/flush binding preserves None defaults, disabled stdout, incremental
+  writes, write lookup before str conversion, subclass separator behavior,
+  partial output on errors and flush only after successful writes. No implicit
+  host console or filesystem access is introduced; callbacks are checkpointed.
+- Added 13 focused tests and a compiled-program registration test. The initial
+  missing-module test failed before implementation; CPython validation also
+  caught two keyword-diagnostic regressions, reproduced before correction.
+  All 5,289 tests in 442 files pass; 216 CPython cases match write traces and
+  errors across argument counts, separators, terminators, disabled stdout,
+  flush values and write failures. Selected workspace build, typecheck and
+  scoped lint pass. Automatic builtin registration, concrete safe-fs streams,
+  input, guest object assembly and the complete public interpreter remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

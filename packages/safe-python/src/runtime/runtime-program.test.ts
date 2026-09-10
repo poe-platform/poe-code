@@ -11,6 +11,8 @@ import { UnsupportedStatementError } from "./statement-execution.js";
 import { ModuleFrame, type LocalNamespace } from "./module-frame.js";
 import { createLenBuiltin } from "./builtin-len.js";
 import { createPowBuiltin } from "./builtin-pow.js";
+import { createPrintBuiltin } from "./builtin-print.js";
+import { createRuntimeRepresentationContext } from "./runtime-representation.js";
 import { resolveRuntimeClassAttribute } from "./runtime-descriptor.js";
 import { readInstanceAttribute } from "./instance-attributes.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
@@ -39,6 +41,16 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("runs print through explicit builtin and stream capabilities", () => {
+    const state = fixture("result=print(12, 'hello', sep='|', end='!', flush=True)\n"), v = state.values, stream = v.cell({}), chunks: string[] = []; let flushed = false;
+    state.builtins.set("print", createPrintBuiltin(v, state.meter, {
+      representation: createRuntimeRepresentationContext(v, state.meter, { defaultRepr() { throw Error("unexpected representation"); } }),
+      stdout: () => stream,
+      lookupWrite(file) { expect(file).toBe(stream); return value => { if (value.kind !== "str") throw Error("expected string"); chunks.push(String.fromCodePoint(...value.value)); }; },
+      flush(file) { expect(file).toBe(stream); flushed = true; }
+    }));
+    state.run(); expect(state.globals.get("result")).toBe(v.none); expect(chunks).toEqual(["12", "|", "hello", "!"]); expect(flushed).toBe(true);
+  });
   it.each(["==", "!=", "<", ">", "<=", ">="])("preserves mapping-proxy guest results and reflected operators for %s", operator => {
     for (const side of ["left", "right", "both"]) {
       const state = fixture(`result=left${operator}right\n`), v = state.values, source = v.dictionary(new OrderedKeyMap(state.keys, state.meter)), answer = v.cell({});

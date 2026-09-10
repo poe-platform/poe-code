@@ -73,6 +73,7 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  isCallable?(value: RuntimeValue): boolean;
   /** Ordinary binary expression dispatch, never augmented assignment. */
   binary?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
   readonly integerIndex?: IntegerIndexContext<RuntimeValue>;

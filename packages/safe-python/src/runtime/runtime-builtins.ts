@@ -45,7 +45,7 @@ export interface RuntimeBuiltinContexts {
   format: Parameters<typeof createFormatBuiltin>[2];
   hash: Parameters<typeof createHashBuiltin>[2];
   identity: Parameters<typeof createIdBuiltin>[2];
-  iter: Parameters<typeof createIterBuiltin>[2];
+  iter?: Parameters<typeof createIterBuiltin>[2];
   iteration?: Parameters<typeof createIterBuiltin>[3];
   len?: Parameters<typeof createLenBuiltin>[2];
   map?: Parameters<typeof createMapBuiltin>[2];

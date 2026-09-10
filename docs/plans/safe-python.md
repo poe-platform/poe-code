@@ -7157,6 +7157,16 @@ extension, integration, or validation requirement is missing or unverified.
   pass. Guest string-subclass start classification still requires its explicit
   policy; native type assembly, remaining builtin integrations, suspended effects
   and full safe-fs execution remain unfinished.
+- Sentinel iter now inherits frame callability, normal callback invocation,
+  sentinel-first rich equality/truth and exhaustion classification when explicit
+  callbacks are absent. Iter callback configuration is optional and partial;
+  individual supplied policies retain priority and receivers. Two compiled
+  regressions failed first and now cover retained closures, permanent exhaustion,
+  unconsumed source tail and guest comparison results. Two further tests cover
+  eager callability, lazy calls/comparison and explicit overrides. All 5,367 tests
+  in 444 files pass; selected build, typecheck and scoped lint pass. Concrete
+  native type/exception assembly, remaining builtin frame integration and
+  suspended safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

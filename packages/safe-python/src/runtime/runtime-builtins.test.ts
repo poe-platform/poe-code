@@ -254,6 +254,29 @@ it.each(["iteration", "addition"])("routes sum %s through the execution frame", 
   expect(globals.get("result")).toBe(mode === "iteration" ? v.integer(3) : answer);
   expect(events).toEqual(mode === "iteration" ? ["iter", "next", "next", "next"] : ["add", "add"]);
 });
+it("lets sentinel iter invoke compiled closures after their creating frame returns", () => {
+  const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
+  delete context.iter;
+  const program = compileProgram<RuntimeValue>(analyzeModule("def create(source): return iter(lambda:next(source),3)\nsource=iter([1,2,3,4])\nitems=create(source)\nfirst=next(items)\nsecond=next(items)\nlast=next(items,99)\nagain=next(items,99)\nremaining=next(source)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {} }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  for (const [name, value] of [["first",1],["second",2],["last",99],["again",99],["remaining",4]] as const) expect(globals.get(name)).toEqual(v.integer(value));
+});
+it("routes sentinel-first equality and truth through the frame", () => {
+  const { meter, v, context } = fixture(), sentinel = v.cell({}), member = v.cell({}), decision = v.cell({}), globals = new Map<string, RuntimeValue>([["sentinel",sentinel],["member",member]]), unused = (): never => { throw Error("unexpected guest callback"); }; let comparisons = 0;
+  delete context.iter;
+  const program = compileProgram<RuntimeValue>(analyzeModule("items=iter(lambda:member,sentinel)\nresult=next(items,99)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, richComparison(operator, left, right) {
+      expect(operator).toBe("=="); expect(left).toBe(sentinel); expect(right).toBe(member); comparisons++;
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward: () => decision, reflected: () => v.notImplemented } };
+    }, truth(value) { expect(value).toBe(decision); return true; } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toEqual(v.integer(99)); expect(comparisons).toBe(1);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

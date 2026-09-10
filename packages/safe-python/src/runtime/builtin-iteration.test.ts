@@ -111,3 +111,24 @@ it("preserves guest next exception identity and only classifies exhaustion with 
   failure = fault;
   expect(() => builtin.value.invoke([cursor, fallback], keywords, meter, invocation)).toThrow(fault); expect(classifications).toBe(2);
 });
+it("checks invocation callability eagerly but calls and compares lazily", () => {
+  const { v, meter, keywords } = fixture(), callable = v.cell({}), sentinel = v.cell({}), member = v.cell({}), events: string[] = [];
+  const invocation = {
+    isCallable(value: RuntimeValue) { expect(value).toBe(callable); events.push("callable"); return true; },
+    call(value: RuntimeValue, args: readonly RuntimeValue[]) { expect(value).toBe(callable); expect(args).toEqual([]); events.push("call"); return member; },
+    compareTruth(operator: string, left: RuntimeValue, right: RuntimeValue) { expect(operator).toBe("=="); expect(left).toBe(sentinel); expect(right).toBe(member); events.push("equal"); return true; }, isStopIteration: () => false
+  };
+  const cursor = createIterBuiltin(v, meter).value.invoke([callable, sentinel], keywords, meter, invocation);
+  expect(events).toEqual(["callable"]); if (cursor.kind !== "iterator") throw Error("expected iterator");
+  expect(cursor.value.next().done).toBe(true); expect(cursor.value.next().done).toBe(true);
+  expect(events).toEqual(["callable", "call", "equal"]);
+  invocation.isCallable = () => false;
+  expect(() => createIterBuiltin(v, meter).value.invoke([callable, sentinel], keywords, meter, invocation)).toThrow("iter(v, w): v must be callable");
+});
+it("retains explicit sentinel policies over invocation defaults", () => {
+  const { v, meter, keywords, context } = fixture(), member = v.cell({}), sentinel = v.cell({}), unused = (): never => { throw Error("explicit policy must win"); };
+  context.equal = function() { expect(this).toBe(context); return false; };
+  const fn = v.builtinFunction({ name: "read", invoke: () => member });
+  const cursor = createIterBuiltin(v, meter, context).value.invoke([fn, sentinel], keywords, meter, { isCallable: unused, call: unused, compareTruth: unused, isStopIteration: unused });
+  if (cursor.kind !== "iterator") throw Error("expected iterator"); expect(cursor.value.next().value).toBe(member);
+});

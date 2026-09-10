@@ -1273,7 +1273,7 @@ calendar conformance qualification remains open. Host Temporal subclasses and ar
 instances are not generally supported. This is not complete Temporal support
 or a claim about the released package.
 
-The [September 9 gap inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-09.md)
+The [September 10 gap inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-10.md)
 separates current API presence from behavioral, recovery and validation gaps.
 It includes newer native APIs that are still proposals; matching a native
 property list is not proof of JavaScript conformance.

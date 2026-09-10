@@ -9553,6 +9553,20 @@ extension, integration, or validation requirement is missing or unverified.
   package run. General bytearray/bytes canonical types, remaining scalar
   consumers, full guest exceptions, interpreter assembly and safe-fs execution
   remain unfinished. No push or release was requested.
+- Canonical numeric buffer construction (2026-09-10): failing integration
+  tests drove execution buffer leases and bytearray payload capabilities into
+  float/int allocators, including subclass allocation. Explicit integer bases
+  accept bytearray storage but never acquire arbitrary buffers. A failing host
+  fault regression narrowed integer acquisition-error rewriting to guest errors.
+  CPython probing exposed invalid float buffer diagnostics: a further failing
+  test drove lazy original-object repr before release, including cleanup when
+  repr itself fails. Native string/bytes parsing retains its existing fast path.
+  All 168 CPython buffer/bytearray constructor comparisons match, including
+  error text and acquire/repr/release ordering. Workspace build, typecheck,
+  focused lint and all 7,048 tests in 499 files pass in the uncached one-worker
+  package run. Full interpreter assembly, guest exception rendering, remaining
+  scalar types and safe-fs file execution remain unfinished. No push or release
+  was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

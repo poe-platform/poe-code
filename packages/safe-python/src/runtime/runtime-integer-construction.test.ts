@@ -38,3 +38,8 @@ it("releases acquired buffers when copying is cancelled", () => {
   expect(()=>call([v.list([])],{buffers:{acquireSimple:()=>({byteLength:2,copy:()=>{throw fatal;},release:()=>{releases++;}})}})).toThrow(fatal);
   expect(releases).toBe(1);
 });
+
+it("does not rewrite host buffer acquisition faults as guest type errors", () => {
+  const {v,call}=fixture(),fault=Error("host failure");
+  try{call([v.list([])],{buffers:{acquireSimple(){throw fault;}}});expect.unreachable();}catch(error){expect(error).toBe(fault);}
+});

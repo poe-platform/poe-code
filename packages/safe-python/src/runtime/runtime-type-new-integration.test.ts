@@ -29,7 +29,7 @@ import { NumericLocale } from "./numeric-locale.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
-function fixture(identity?: IdentityContext, maxSteps = 1000000) {
+function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Partial<ReturnType<RuntimeProgramHooks["expressions"]>> = {}) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
   const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
   const calls = new CallStack<object>(50, meter), keys = new RuntimeExecutionKeys(v, hash, meter, calls);
@@ -40,7 +40,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   builtins.set("callable", createCallableBuiltin(v, meter));
   const unused = (): never => { throw Error("unexpected extension operation"); };
   const hooks: RuntimeProgramHooks = {
-    expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
+    expressions: () => ({ ...extensions, warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "list") return registry.listType();
@@ -66,6 +66,38 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("renders invalid float buffer inputs before releasing their leases", () => {
+  const events:string[]=[];
+  const state=fixture(undefined,undefined,{buffers:{acquireSimple(){events.push("acquire");return {byteLength:3,copy(){events.push("copy");return state.v.bytes(Uint8Array.of(98,97,100)).value;},release(){events.push("release");}};}}});
+  state.globals.set("Float",state.registry.floatType());
+  state.run("class Buffer:\n def __repr__(self):\n  visit('repr')\n  return 'custom'\n");
+  state.builtins.set("visit",state.v.builtinFunction({name:"visit",invoke(){events.push("repr");return state.v.none;}}));
+  expect(()=>state.run("Float(Buffer())\n")).toThrow("could not convert string to float: custom");
+  expect(events).toEqual(["acquire","copy","repr","release"]);
+  events.length=0;
+  state.run("class Broken:\n def __repr__(self):\n  visit('repr')\n  return 1/0\n");
+  expect(()=>state.run("Float(Broken())\n")).toThrow("division by zero");
+  expect(events).toEqual(["acquire","copy","repr","release"]);
+});
+
+it("passes execution buffer leases to canonical numeric constructors", () => {
+  const events:string[]=[];
+  const state=fixture(undefined,undefined,{buffers:{acquireSimple(){events.push("acquire");return {byteLength:2,copy(){events.push("copy");return state.v.bytes(Uint8Array.of(49,50)).value;},release(){events.push("release");}};}}});
+  state.globals.set("Float",state.registry.floatType());state.globals.set("Int",state.registry.integerType());state.globals.set("source",state.v.cell({}));
+  state.run("class F(Float):\n pass\nclass I(Int):\n pass\ncorrect=Float(source)==12.0 and Int(source)==12 and F(source)==12.0 and I(source)==12\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(events).toEqual(Array(4).fill(["acquire","copy","release"]).flat());
+  expect(()=>state.run("Int(source,2)\n")).toThrow("int() can't convert non-string with explicit base");
+  expect(events).toHaveLength(12);
+});
+
+it("uses execution bytearray storage for numeric constructor parsing", () => {
+  const bytes={byteString(){return undefined;},lookupBytes(){return undefined;},typeName(){return "bytearray";},byteArray(){expect(this).toBe(bytes);return state.v.bytes(Uint8Array.of(49,48)).value;}};
+  const state=fixture(undefined,undefined,{bytes,buffers:{acquireSimple():never{throw Error("bytearray must not acquire a general buffer");}}});
+  state.globals.set("Float",state.registry.floatType());state.globals.set("Int",state.registry.integerType());state.globals.set("source",state.v.cell({}));
+  state.run("correct=Float(source)==10.0 and Int(source)==10 and Int(source,2)==2\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
 
 it("invokes guest bytes conversion for bytes percent fields", () => {
   const state=fixture();

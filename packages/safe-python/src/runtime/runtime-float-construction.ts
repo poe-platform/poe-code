@@ -7,6 +7,7 @@ import { integerToFloat } from "./numeric-conversion.js";
 import { parseFloatText } from "./float-text.js";
 import { runtimeFloatPayload } from "./runtime-float-payload.js";
 import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
+import { representationObject } from "./representation-protocol.js";
 import type { ImmutableBytes } from "./immutable-bytes.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
@@ -30,13 +31,19 @@ export function constructRuntimeFloat(positional: readonly RuntimeValue[], keywo
   if (source === undefined) return values.float(0);
   const numeric = convertRuntimeFloatNumber(source,values,meter,context.invocation);
   if(numeric!==undefined)return numeric;
+  const formatting=source.kind==="str"||source.kind==="bytes"?undefined:context.invocation?.formatting;
+  if(formatting!==undefined)meter.checkpoint(0,64);
+  const invalidRepresentation=formatting===undefined?undefined:()=>{
+    const result=representationObject(source,"repr",formatting,meter);
+    const text=formatting.string(result);meter.checkpoint();return text!;
+  };
   const input = source.kind === "str" || source.kind === "bytes" ? source.value : context.byteArray?.(source); meter.checkpoint();
-  if (input !== undefined) return values.float(parseFloatText(input,meter));
+  if (input !== undefined) return values.float(parseFloatText(input,meter,source.kind==="str"||source.kind==="bytes"?undefined:invalidRepresentation));
   let lease: RuntimeBufferLease | undefined;
   try { lease = context.buffers?.acquireSimple(source); }
   catch (error) { if (error instanceof ExecutionLimitError || (!(error instanceof PythonRuntimeError) && context.isPythonException?.(error) !== true)) throw error; }
   if (lease !== undefined) {
-    try { meter.checkpoint();return values.float(parseFloatText(lease.copy(),meter)); }
+    try { meter.checkpoint();return values.float(parseFloatText(lease.copy(),meter,invalidRepresentation)); }
     finally { lease.release(); }
   }
   meter.checkpoint();

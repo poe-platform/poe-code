@@ -32,7 +32,7 @@ export function createFloatNewBuiltin(owner: TypeValue, values: RuntimeValues, m
         const defaultInitializer = lookupMroAttribute(owner.value.mro, initName, (base, key) => base.namespace.items.lookup(key), meter)?.value;
         if (initializer !== defaultInitializer) conversionKeywords = values.dictionary(owner.value.namespace.items.emptyCopy());
       }
-      const result = constructRuntimeFloat(positional.slice(1), conversionKeywords, values, meter, { invocation });
+      const result = constructRuntimeFloat(positional.slice(1), conversionKeywords, values, meter, { invocation, buffers: invocation?.buffers, byteArray: invocation?.bytes?.byteArray?.bind(invocation.bytes) });
       if (type === owner) return result;
       const dictionary = type.value.hasInstanceDictionary ? values.dictionary(owner.value.namespace.items.emptyCopy()) : undefined;
       return values.instance(type, dictionary, values.float(result.value));

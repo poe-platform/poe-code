@@ -76,7 +76,7 @@ export function constructRuntimeInteger(positional: readonly RuntimeValue[], key
   if (input !== undefined) return values.integer(parseIntegerText(input, 10, meter, context.maxDigits));
   let lease: RuntimeBufferLease | undefined;
   try { lease = context.buffers?.acquireSimple(source); }
-  catch (error) { if (error instanceof ExecutionLimitError) throw error; }
+  catch (error) { if (error instanceof ExecutionLimitError || !(error instanceof PythonRuntimeError)) throw error; }
   if (lease !== undefined) {
     try { meter.checkpoint(); return values.integer(parseIntegerText(lease.copy(), 10, meter, context.maxDigits)); }
     finally { lease.release(); }

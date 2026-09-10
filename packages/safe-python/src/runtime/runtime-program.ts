@@ -193,6 +193,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       nativeHash: keys.nativeHash?.bind(keys),
       get formatting() { return getFormatting(); },
       bytes: expressionHooks.bytes,
+      buffers: expressionHooks.buffers,
       hasSpecial(value, name) {
         if (specialMethods === undefined) return false;
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint();

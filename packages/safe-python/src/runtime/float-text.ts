@@ -7,8 +7,9 @@ import { unicodeDecimal } from "./unicode-decimal.js";
 import { isUnicodeWhitespace } from "./unicode-whitespace.js";
 
 /** Python float text grammar, separate from source literals and numeric protocol
- * conversion. Only validated decimal ASCII reaches the host binary64 parser. */
-export function parseFloatText(input: CodePointString | ImmutableBytes, meter: ExecutionMeter): number {
+ * conversion. Only validated decimal ASCII reaches the host binary64 parser.
+ * Buffer owners may supply lazy original-object repr for syntax errors. */
+export function parseFloatText(input: CodePointString | ImmutableBytes, meter: ExecutionMeter, invalidRepresentation?: () => CodePointString): number {
   meter.checkpoint(1, input.length * 4);
   const text = input instanceof CodePointString, points = new Uint32Array(input.length);
   let offset = 0;
@@ -22,7 +23,7 @@ export function parseFloatText(input: CodePointString | ImmutableBytes, meter: E
     points[offset++] = point;
   }
   const invalid = (): never => {
-    const quoted = renderQuotedPoints(input,text ? "repr" : "bytes",meter);
+    const quoted = invalidRepresentation===undefined?renderQuotedPoints(input,text ? "repr" : "bytes",meter):invalidRepresentation();
     let representation = "";
     for (const point of quoted) { meter.checkpoint(1,point > 0xffff ? 4 : 2); representation += String.fromCodePoint(point); }
     throw new PythonRuntimeError("ValueError", `could not convert string to float: ${representation}`);

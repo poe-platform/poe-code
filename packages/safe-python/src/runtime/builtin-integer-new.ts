@@ -24,7 +24,7 @@ export function createIntegerNewBuiltin(owner: TypeValue, values: RuntimeValues,
       if (!subtype) throw new PythonRuntimeError("TypeError", `int.__new__(${name}): ${name} is not a subtype of int`);
       if (type.value.nativeStorage !== owner.value) throw new PythonRuntimeError("TypeError", `int.__new__(${name}) is not safe, use ${name}.__new__()`);
       meter.checkpoint(0, positional.length * 8);
-      const result = constructRuntimeInteger(positional.slice(1), keywords, values, meter, { invocation });
+      const result = constructRuntimeInteger(positional.slice(1), keywords, values, meter, { invocation, buffers: invocation?.buffers, byteArray: invocation?.bytes?.byteArray?.bind(invocation.bytes) });
       if (type === owner) return result;
       const dictionary = type.value.hasInstanceDictionary ? values.dictionary(owner.value.namespace.items.emptyCopy()) : undefined;
       return values.instance(type, dictionary, values.integer(result.value));

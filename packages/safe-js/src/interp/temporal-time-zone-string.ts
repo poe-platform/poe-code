@@ -70,6 +70,21 @@ export function parseTemporalTimeZoneString(input: string): string {
     if (offset !== undefined) return offset;
   } catch (error) { if (!(error instanceof RangeError)) throw error; }
 
+  const parsed = parseTemporalIsoString(input);
+  if (parsed.zone !== undefined) return parsed.zone;
+  if (parsed.z) return "UTC";
+  if (parsed.offset !== undefined) return canonicalizeIntlOffsetZone(parsed.offset)!;
+  throw new RangeError("Temporal string has no time zone.");
+}
+
+export function parseTemporalCalendarString(input: string): string {
+  try { return parseTemporalIsoString(input).calendar ?? "iso8601"; }
+  catch (error) { if (!(error instanceof RangeError)) throw error; }
+  if (input.split("-").every(part => part.length > 0 && [...part].every(char => alpha(char) || digits(char)))) return input;
+  throw new RangeError("Invalid Temporal calendar string.");
+}
+
+function parseTemporalIsoString(input: string): { zone?: string; calendar?: string; offset?: string; z?: boolean } {
   const firstBracket = input.indexOf("[");
   const body = firstBracket < 0 ? input : input.slice(0, firstBracket);
   let zone: string | undefined;
@@ -119,8 +134,5 @@ export function parseTemporalTimeZoneString(input: string): string {
   }
   if (parsed === undefined || partialDate && calendar !== undefined && calendar.toLowerCase() !== "iso8601")
     throw new RangeError("Invalid Temporal time zone string.");
-  if (zone !== undefined) return zone;
-  if (parsed.z) return "UTC";
-  if (parsed.offset !== undefined) return canonicalizeIntlOffsetZone(parsed.offset)!;
-  throw new RangeError("Temporal string has no time zone.");
+  return { ...parsed, zone, calendar };
 }

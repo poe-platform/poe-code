@@ -24,14 +24,25 @@ It does not establish all generator, async, recovery or resource semantics.
 
 Runtime dfa158292 includes the Error cause reflection, classic-for In grammar
 and omitted conditional-yield operand repairs. A new maintained package run
-is active in session 5721:
+completed in session 5721 (terminal 5ae853):
 
 `npm test --workspace=@poe-code/safe-js -- --reporter=json --outputFile=/tmp/safejs-post-generator-grammar-integration-results.json`
 
-It is a new integration run after terminal session 52427, not a restart of a
-quiet process. Keep runtime/test sources fixed for its duration and poll the
-same handle until terminal. Only documentation may change meanwhile; new
-implementation experiments belong in isolated copies. No success is claimed.
+It was a new integration run after terminal session 52427, not a restart of a
+quiet process. Runtime/test sources remained fixed for its duration.
+The JSON report records 28,448 passed, 15 failed, 47 skipped across 1,255 actual
+test files (`testResults.length`; suite counts include nested suites).
+The 100 filesystem contracts passed before unit execution.
+
+Fourteen failures remain in the previously documented Promise-import and
+ISO/Temporal formatting cases. One additional failure appears in
+`collections-iteration-validation.test.ts`, raw cursor restoration for
+`Set update next` at the second visit. Its recorded duration is 5,930 ms and
+the JSON reporter supplies only STACK_TRACE_ERROR. Do not infer a runtime fix
+from this report alone. Focused reproduction passed all 112 tests in the file
+(8a07d0, session 88791 terminal). The extra full-run failure remains unresolved;
+a passing rerun is not proof that the integration failure is fixed.
+The main source freeze has ended; pending repairs remain separate atomic work.
 
 The previous completed full run remains 28,379 passed, 14 failed, 47 skipped
 across 1,252 files, before these three runtime fixes. No push or release is

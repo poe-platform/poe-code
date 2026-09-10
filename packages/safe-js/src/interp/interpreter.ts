@@ -255,6 +255,7 @@ export type InterpreterResult =
     };
 
 export type InterpretOptions = {
+  script?: { strict: boolean };
   assertActive?: () => void;
   onSuspend?: () => void;
   jobs?: SandboxJobQueue;
@@ -454,8 +455,30 @@ export async function interpret(
     });
     const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
     const jobs = options.jobs ?? new SandboxJobQueue();
+    if (options.script !== undefined) {
+      if (node.type !== "BlockStatement") throw new TypeError("Script execution requires a Script statement list.");
+      const lexical = new Set<string>();
+      const names = new Set<string>();
+      const functions = new Set<string>();
+      for (const declaration of hoistedVarDeclarations(node.body))
+        for (const name of getDeclarationBindingNames(declaration)) names.add(name);
+      for (const statement of node.body) {
+        if (statement.type === "FunctionDeclaration" && statement.id !== undefined) {
+          names.add(statement.id.name);
+          functions.add(statement.id.name);
+        } else if (statement.type === "ClassDeclaration") lexical.add(statement.id.name);
+        else if (statement.type === "VariableDeclaration" && statement.kind !== "var")
+          for (const name of getDeclarationBindingNames(statement)) lexical.add(name);
+      }
+      scope.validateScriptDeclarations(lexical, names, functions);
+    }
     hoistVarDeclarations(node, scope);
+    if (options.script?.strict === false && node.type === "BlockStatement")
+      prepareLegacyEvalFunctions(node.body, scope, { deletable: false });
     const context = {
+      strict: options.script?.strict,
+      evalCompletion: options.script !== undefined,
+      scriptScope: options.script === undefined ? undefined : scope,
       assertActive: options.assertActive,
       compilation,
       budget,
@@ -1813,7 +1836,7 @@ function predeclareStatementListBindings(
       const name = statement.id?.name ?? "default";
       const closure = createInterpretedClosure(statement, exportedFunction ? { ...context, inferredName: name } : context, evaluateNode);
       if (functionBody && context.evalCompletion && !exportedFunction) {
-        scope.declareVar(name, {functionValue: closure, deletable: true});
+        scope.declareVar(name, {functionValue: closure, ...(context.scriptScope === scope ? {} : {deletable: true as const})});
         names.add(name);
         continue;
       }

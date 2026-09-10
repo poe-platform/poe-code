@@ -324,7 +324,7 @@ export class Scope {
       if (!definesFunction && descriptor !== undefined) return;
       const attributes = definesFunction && descriptor?.configurable === false
         ? {value: options.functionValue}
-        : {value: options?.functionValue, writable: true, enumerable: true, configurable: true};
+        : {value: options?.functionValue, writable: true, enumerable: true, configurable: options?.deletable === true};
       if (!Reflect.defineProperty(object, name, attributes)) throw new TypeError(`Cannot declare global '${name}'.`);
       return;
     }
@@ -356,6 +356,27 @@ export class Scope {
     });
     if (options !== undefined && isChargedBindingValue(options.functionValue)) this.#bindingDataRoots = undefined;
     if (options !== undefined) this.trackReplacement(name, this.#bindings.get(name)!);
+  }
+
+  canDeclareGlobalVar(name: string): boolean {
+    const object = this.parent?.objectEnvironment;
+    if (this.options.globalEnvironment !== true || object === undefined)
+      throw new TypeError("Script execution requires a global environment.");
+    return Object.hasOwn(object, name) || Object.isExtensible(object);
+  }
+
+  validateScriptDeclarations(lexical: ReadonlySet<string>, names: ReadonlySet<string>, functions: ReadonlySet<string>): void {
+    if (this.options.globalEnvironment !== true || this.parent?.objectEnvironment === undefined)
+      throw new TypeError("Script execution requires a global environment.");
+    const object = this.parent.objectEnvironment;
+    for (const name of lexical) {
+      if (this.#bindings.has(name) || Object.getOwnPropertyDescriptor(object, name)?.configurable === false)
+        throw new SyntaxError(`Cannot redeclare global '${name}'.`);
+    }
+    for (const name of names) {
+      if (this.#bindings.has(name)) throw new SyntaxError(`Cannot redeclare global '${name}'.`);
+    }
+    this.validateEvalGlobalDeclarations(names, functions);
   }
 
   validateEvalGlobalDeclarations(names: ReadonlySet<string>, functions: ReadonlySet<string>): void {

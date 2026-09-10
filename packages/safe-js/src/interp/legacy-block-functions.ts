@@ -22,13 +22,14 @@ export function prepareLegacyBlockFunctions(node: FunctionNode, scope: Scope): v
   }
 }
 
-export function prepareLegacyEvalFunctions(statements: readonly Statement[], scope: Scope): void {
+export function prepareLegacyEvalFunctions(statements: readonly Statement[], scope: Scope, options = { deletable: true }): void {
   const functions = new Set<FunctionDeclaration>();
   collectStatementList(statements, new Set(), functions, true);
   for (const declaration of functions) {
     const name = declaration.id!.name;
     if (scope.findEvalVarConflict(new Set([name])) !== undefined) continue;
-    scope.declareVar(name, {deletable: true});
+    if (!options.deletable && !scope.canDeclareGlobalVar(name)) continue;
+    scope.declareVar(name, options.deletable ? {deletable: true} : undefined);
     legacyBlockFunctions.add(declaration);
   }
 }

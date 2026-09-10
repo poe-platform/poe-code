@@ -77,6 +77,7 @@ export type AsyncInterpreterError = InterpreterError;
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
+  scriptScope?: Scope;
   evalCompletion?: boolean;
   callee?: SandboxClosure;
   strict?: boolean;

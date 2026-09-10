@@ -26,6 +26,7 @@ import { createObjectInitSubclassDescriptor } from "./builtin-object-init-subcla
 import { createObjectClassDescriptor } from "./builtin-object-class.js";
 import { PythonRuntimeError } from "./error.js";
 import { standardExceptionCatalog, type StandardExceptionName } from "./standard-exception-catalog.js";
+import { createExceptionRepresentationDescriptor } from "./builtin-exception-representation.js";
 import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from "./runtime-descriptor-method.js";
 import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
@@ -331,7 +332,8 @@ export class RuntimeTypeRegistry {
     const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
     const layout=new RuntimeTypeLayout(name,[base.value],namespace,this.meter,{sequenceTable:false,weakReferences:false});
     const type=this.values.type(layout,this.type,{immutable:true});
-    namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value)));
+    if(!("ownAllocator" in spec)||spec.ownAllocator)namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value)));
+    if("stringArgument" in spec)namespace.items.set(this.values.string("__str__"),createExceptionRepresentationDescriptor("__str__",type,this.values,this.meter,spec.stringArgument));
     namespace.items.set(this.values.string("__doc__"),this.values.string(spec.doc));
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#exceptions.set(name,type);
     return type;

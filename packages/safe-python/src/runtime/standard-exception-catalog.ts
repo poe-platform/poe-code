@@ -1,4 +1,5 @@
 /** Builtin exceptions using BaseException's allocation and state protocol.
+ * Optional representation policy does not introduce a new storage layout.
  * Types with specialized constructors or members are installed separately. */
 export const standardExceptionCatalog = {
   Exception: {base:"BaseException",doc:"Common base class for all non-exit exceptions."},
@@ -13,6 +14,7 @@ export const standardExceptionCatalog = {
   EOFError: {base:"Exception",doc:"Read beyond end of file."},
   LookupError: {base:"Exception",doc:"Base class for lookup errors."},
   IndexError: {base:"LookupError",doc:"Sequence index out of range."},
+  KeyError: {base:"LookupError",doc:"Mapping key not found.",ownAllocator:false,stringArgument:"repr"},
   ReferenceError: {base:"Exception",doc:"Weak ref proxy used after referent went away."},
   RuntimeError: {base:"Exception",doc:"Unspecified run-time error."},
   StopAsyncIteration: {base:"Exception",doc:"Signal the end from iterator.__anext__()."},

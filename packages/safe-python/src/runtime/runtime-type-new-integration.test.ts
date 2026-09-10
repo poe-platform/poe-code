@@ -70,6 +70,23 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("formats a single KeyError argument with repr and inherits the lookup allocator",()=>{
+  const state=fixture();state.globals.set("KeyError",state.registry.exceptionType("KeyError"));state.globals.set("LookupError",state.registry.exceptionType("LookupError"));
+  state.run("empty=KeyError()\none=KeyError('missing')\nmany=KeyError('a','b')\ncorrect=f'{empty}'=='' and f'{one}'==\"'missing'\" and f'{many}'==\"('a', 'b')\" and one.__repr__()==\"KeyError('missing')\" and KeyError.__new__ is LookupError.__new__ and KeyError.__dict__.keys()=={'__str__','__doc__'}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("uses captured native KeyError args across repr callbacks and subclass shadows",()=>{
+  const state=fixture();state.globals.set("KeyError",state.registry.exceptionType("KeyError"));
+  state.run("class Key:\n def __str__(self):\n  return 1/0\n def __repr__(self):\n  e.args=('changed',)\n  return 'key-repr'\nclass E(KeyError):\n def __getattribute__(self,name):\n  if name=='args':\n   return 1/0\n  return object.__getattribute__(self,name)\ne=E(Key())\ntext=f'{e}'\ncorrect=text=='key-repr' and f'{e}'==\"'changed'\"\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("restricts KeyError's string descriptor to its own subtype hierarchy",()=>{
+  const state=fixture();state.globals.set("KeyError",state.registry.exceptionType("KeyError"));state.globals.set("BaseException",state.registry.baseExceptionType());
+  expect(()=>state.run("KeyError.__str__(BaseException('x'))\n")).toThrow("descriptor '__str__' requires a 'KeyError' object but received a 'BaseException'");
+});
+
 it("publishes canonical standard exception classes with inherited native storage",()=>{
   const state=fixture();
   for(const name of ["Exception","ArithmeticError","ZeroDivisionError","ValueError","Warning","RuntimeWarning"] as const)state.globals.set(name,state.registry.exceptionType(name));

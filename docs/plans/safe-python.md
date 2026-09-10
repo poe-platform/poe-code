@@ -9745,6 +9745,21 @@ extension, integration, or validation requirement is missing or unverified.
   Specialized exceptions (including MemoryError's distinct allocator), traceback
   objects, fault translation, raise/try wiring and interpreter/safe-fs assembly
   remain unfinished. No push or release was requested.
+- KeyError representation (2026-09-10): failing integration tests drove the
+  KeyError type, its inherited LookupError allocator, and repr-based formatting
+  for one argument. Shared exception formatting was extracted with a declarative
+  single-argument policy; zero/multiple args and reduction retain their normal
+  behavior. Native args are captured before repr callbacks mutate them, and
+  guest attribute shadows do not replace storage. A third failing regression
+  tightened descriptor receiver validation to the defining type's MRO. All 49
+  KeyError comparisons and the prior 1,394 standard hierarchy comparisons match
+  CPython. Focused tests, typecheck, lint, the selected workspace build and all
+  7,138 tests in 502 files pass in the uncached one-worker package run.
+  Specialized member-bearing exceptions require separate native
+  layout and allocator-family handling: CPython permits BaseException.__new__
+  for NameError/AttributeError/ImportError/StopIteration/SystemExit, but not
+  MemoryError. These types, tracebacks, fault translation, raise/try wiring and
+  interpreter/safe-fs assembly remain unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

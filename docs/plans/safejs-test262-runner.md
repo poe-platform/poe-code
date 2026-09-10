@@ -195,3 +195,40 @@ completed (88195, terminal b9cd28): 53,876 JavaScript files, 53,582 tests,
 50,022 strict, 32 raw, 841 module). This accounts for discovery and metadata,
 not execution success. The discovery implementation's seven tests, scoped lint
 and actual complete corpus walk now qualify its separate local commit.
+
+## Corpus accounting
+
+Discovery is local commit daf02a16d. Corpus-report tests first failed because
+the module was absent (76773, terminal 543496). The first implementation passed
+five checks covering clean pinned revision admission, per-file accounting,
+harness loading, streamed results and include-path containment (20689,
+terminal 55568c). Reports include runtime versions and source/harness hashes;
+the checkout is checked again after execution.
+
+Three additional checks exposed duplicate reporting if output failed for a
+metadata-error entry (48445, terminal 1d07f2; seven controls passed). Output is
+now performed only after classification, outside its exception handler, so
+reporting failure aborts without retrying or changing a test's classification.
+Combined infrastructure tests and scoped corpus lint are running. The command
+entrypoint and durable corpus execution report are not yet delivered.
+
+The combined infrastructure selection passed all 69 tests (70365); its lint
+is still live. A real bounded corpus report completed through the new layer:
+all 16 files and 32 variants under `built-ins/Array/of` passed, with zero
+fixtures, metadata errors, execution errors or unsupported variants (70838).
+The report is preserved at `/tmp/safejs-test262-array-of-report.json`, including
+source/harness hashes and the verified pinned revision. Corpus cleanliness
+was checked before and after execution. This bounded pass does not establish
+complete JavaScript or whole-corpus conformance.
+
+The earlier 69-test selection's lint passed (70365, terminal 46c2b5). Review
+of the preserved report found its timeout/budget configuration was missing;
+a regression reproduced that omission with seven controls passing (21074,
+terminal cd9848). Reports now include execution configuration alongside their
+runtime and source provenance. Scoped report tests and lint are being rechecked;
+the preserved first report predates that added field.
+
+The updated report's eight focused tests and scoped lint passed (99587,
+terminal 06114b). A fresh bounded `Array.of` report with execution configuration
+is running under 63903. The report layer is qualified for its local commit;
+the maintained command entrypoint remains the next delivery step.

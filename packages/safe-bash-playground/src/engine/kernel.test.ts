@@ -27,6 +27,7 @@ describe("real safe-bash browser kernel", () => {
           this.worker = source.text().then((code) => {
             const worker = new NodeWorker(
               `
+            const navigator = { language: 'en-US' };
             const { parentPort } = require('node:worker_threads');
             globalThis.addEventListener = (event, handler) => parentPort.on(event, data => handler({ data }));
             globalThis.postMessage = (value, transfer) => parentPort.postMessage(value, transfer);
@@ -63,7 +64,7 @@ describe("real safe-bash browser kernel", () => {
     engine = built;
     inputs = built.inputs;
     kernel = await import(
-      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`${built.code}\n//# sourceURL=safe-bash-browser-kernel.mjs`).toString("base64")}`
+      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-kernel.mjs`).toString("base64")}`
     );
   });
   afterAll(() => vi.unstubAllGlobals());

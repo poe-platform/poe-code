@@ -12,7 +12,7 @@ vi.mock("./engine/index.js", async () => {
   const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
   const built = await buildBrowserEngine();
   return import(
-    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(built.code).toString("base64")}`
+    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-session.mjs`).toString("base64")}`
   );
 });
 

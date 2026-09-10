@@ -11,10 +11,13 @@ import { createFunctionState } from "./function-state.js";
 import { analyzeModule } from "../analysis.js";
 import { executeRuntimeProgram } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
+import { createAbsBuiltin } from "./builtin-abs.js";
+import { createRoundBuiltin } from "./builtin-round.js";
+import { runtimeComparison } from "./runtime-comparison.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
-  const keys = { hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => a === b };
+  const keys = { hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, v, meter).value };
   const registry = new RuntimeTypeRegistry(v, keys, meter);
   const base = registry.publish(new RuntimeTypeLayout("Base", [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter), registry.type);
   const derived = registry.publish(new RuntimeTypeLayout("Derived", [base.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter), registry.type);
@@ -78,4 +81,35 @@ it.each(["slots", "get"])("observes cancellation after special-method %s resolut
     if (phase === "slots") cancelled = true;
     return { get() { if (phase === "slots") throw Error("must stop before binding"); cancelled = true; return v.true; } };
   } }, v, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } })).toThrow(ExecutionLimitError);
+});
+
+it.each(["abs", "round", "round-digits"])("executes %s using frame-owned MRO special methods", operation => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), digits = v.cell({}), unused = (): never => { throw Error("unexpected ordinary attribute lookup or call"); };
+  const withDigits = operation === "round-digits", name = operation === "abs" ? "abs" : "round";
+  const methods = compileProgram<RuntimeValue>(analyzeModule(`def special(self${withDigits ? ",digits" : ""}): return ${withDigits ? "digits" : "self"}\n`), { stripDocstring: false }, v, meter);
+  const fn = v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter));
+  base.value.namespace.items.set(v.string(name === "abs" ? "__abs__" : "__round__"), fn);
+  const globals = new Map<string, RuntimeValue>([["receiver", receiver], ["digits", digits]]);
+  const program = compileProgram<RuntimeValue>(analyzeModule(`def calculate(): return ${name}(receiver${withDigits ? ",digits" : ""})\nresult=calculate()\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map([[name, name === "abs" ? createAbsBuiltin(v, meter) : createRoundBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: {
+      specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: unused }),
+      expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused
+    }
+  }, meter);
+  expect(globals.get("result")).toBe(withDigits ? digits : receiver);
+});
+
+it.each([["abs", "missing"], ["abs", "disabled"], ["abs", "result"], ["round", "missing"], ["round", "disabled"], ["round", "result"]] as const)("distinguishes %s special-method state %s", (name, state) => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), globals = new Map<string, RuntimeValue>([["receiver", receiver]]), unused = (): never => { throw Error("unexpected attribute access"); };
+  if (state !== "missing") base.value.namespace.items.set(v.string(name === "abs" ? "__abs__" : "__round__"), state === "disabled" ? v.none : v.builtinFunction({ name: "special", invoke: () => v.notImplemented }));
+  const program = compileProgram<RuntimeValue>(analyzeModule(`result=${name}(receiver)\n`), { stripDocstring: false }, v, meter);
+  const run = () => executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map([[name, name === "abs" ? createAbsBuiltin(v, meter) : createRoundBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf: () => derived, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  if (state === "missing") expect(run).toThrow(name === "abs" ? "bad operand type for abs(): 'Derived'" : "type Derived doesn't define __round__ method");
+  else if (state === "disabled") expect(run).toThrow("'NoneType' object is not callable");
+  else { run(); expect(globals.get("result")).toBe(v.notImplemented); }
 });

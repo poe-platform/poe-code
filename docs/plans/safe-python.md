@@ -7224,6 +7224,18 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint pass. Callers still supply the actual type and descriptor policy;
   automatic object classification and broad builtin/protocol assembly remain
   unfinished, as do suspended safe-fs effects and full public execution.
+- Added optional per-frame specialMethods classification/descriptor policy and
+  invocation lookupSpecial/typeName capabilities backed by concrete MRO lookup.
+  Abs and guest round use these when their explicit lookup hooks are absent,
+  invoking bound results through normal compiled-call dispatch. Three compiled
+  regressions failed first, then passed with inherited methods and unconverted
+  round digits. The type fixture now uses Python string equality rather than
+  identity-only namespace keys. Six additional cases distinguish missing slots,
+  disabled None slots and unrestricted NotImplemented results. All 5,411 tests
+  in 445 files pass; selected build, typecheck and scoped lint pass. Sixteen
+  existing compiled guest-round comparisons still match CPython. Actual type
+  classification remains explicitly supplied; automatic instance/native type
+  assembly, other protocols and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

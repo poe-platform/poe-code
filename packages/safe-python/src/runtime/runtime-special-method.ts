@@ -3,6 +3,11 @@ import type { RuntimeDescriptorContext } from "./runtime-descriptor.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
+export interface RuntimeSpecialMethodContext extends RuntimeDescriptorContext {
+  /** Classify the actual guest type without ordinary instance attribute access. */
+  typeOf(value: RuntimeValue): TypeValue;
+}
+
 /** Look up an implicit special method on the receiver's actual type MRO, then
  * bind its descriptor to the receiver. Never inspect instance dictionaries,
  * ordinary attribute overrides or the type's metaclass. The object dispatcher

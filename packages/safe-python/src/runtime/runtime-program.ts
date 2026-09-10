@@ -23,6 +23,7 @@ import { ClassFrame } from "./class-frame.js";
 import { executeClassBody } from "./class-body.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
 import { executeClassDefinition } from "./class-definition.js";
+import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -35,6 +36,7 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
   expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
+  specialMethods?(frame: RuntimeFrame): RuntimeSpecialMethodContext;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
 }
 
@@ -63,6 +65,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     meter.checkpoint(1, 384);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
+    const specialMethods = hooks.specialMethods?.(frame); meter.checkpoint();
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
       iteration: expressionHooks.iteration,
       values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
@@ -100,6 +103,14 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      lookupSpecial(value, name) {
+        if (specialMethods === undefined) return undefined;
+        const type = specialMethods.typeOf(value); meter.checkpoint();
+        return lookupRuntimeSpecialMethod(value, type, values.string(name), specialMethods, values, meter);
+      },
+      typeName: specialMethods === undefined ? undefined : value => {
+        const type = specialMethods.typeOf(value); meter.checkpoint(); return type.value.name;
+      },
       setAttribute: statementHooks.setAttribute.bind(statementHooks),
       deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),
       attribute: (object, name) => expressions.attribute(object, name),

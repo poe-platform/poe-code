@@ -17,7 +17,7 @@ export interface AbsHooks {
  * Integer size inspection inherits integerBitMetric's host-conversion limits. */
 export function createAbsBuiltin(values: RuntimeValues, meter: ExecutionMeter, hooks: AbsHooks = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name: "abs", invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name: "abs", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "abs() takes no keyword arguments");
     if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `abs() takes exactly one argument (${positional.length} given)`);
@@ -40,7 +40,14 @@ export function createAbsBuiltin(values: RuntimeValues, meter: ExecutionMeter, h
       meter.checkpoint();
       return result;
     }
-    const name = hooks.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind);
+    if (hooks.lookupAbs === undefined) {
+      const method = invocation?.lookupSpecial?.(value, "__abs__"); meter.checkpoint();
+      if (method !== undefined) {
+        meter.checkpoint(0, 8);
+        const result = invocation!.call(method, []); meter.checkpoint(); return result;
+      }
+    }
+    const name = hooks.typeName?.(value) ?? invocation?.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind);
     throw new PythonRuntimeError("TypeError", `bad operand type for abs(): '${diagnosticTypeName(name, meter)}'`);
   } });
 }

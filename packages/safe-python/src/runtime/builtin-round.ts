@@ -44,7 +44,14 @@ export function createRoundBuiltin(values: RuntimeValues, meter: ExecutionMeter,
         meter.checkpoint();
         return result;
       }
-      const name = context.typeName?.(number) ?? (number.kind === "none" ? "NoneType" : number.kind === "not-implemented" ? "NotImplementedType" : number.kind);
+      if (context.lookupRound === undefined) {
+        const method = invocation?.lookupSpecial?.(number, "__round__"); meter.checkpoint();
+        if (method !== undefined) {
+          meter.checkpoint(0, 8);
+          const result = invocation!.call(method, digits === undefined ? [] : [digits]); meter.checkpoint(); return result;
+        }
+      }
+      const name = context.typeName?.(number) ?? invocation?.typeName?.(number) ?? (number.kind === "none" ? "NoneType" : number.kind === "not-implemented" ? "NotImplementedType" : number.kind);
       throw new PythonRuntimeError("TypeError", `type ${diagnosticTypeName(name, meter, 100)} doesn't define __round__ method`);
     }
     const index = context.index ?? invocation?.integerIndex;

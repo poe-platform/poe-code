@@ -54,6 +54,15 @@ The earlier namespace replay timeout did not fail this run; that does not prove
 its performance issue repaired. This result is not a green package gate and
 does not establish full JavaScript conformance or remote delivery.
 
+## Null-prototype expectation reconciliation
+
+The older misc globals test now compares the clone prototype with native
+structuredClone of the same input. It still checks shared-reference identity
+and deep-copy separation. No runtime behavior changed. The two-file focused
+selection (misc globals and structured-clone-null-prototype) passes all eleven
+tests (ae8f06). The original full-run assertion supplies the failing baseline;
+the native oracle and existing ordinary-copy control justify the correction.
+
 ## Delivery
 
 The earlier full gate remains failing until a new terminal result is inspected.

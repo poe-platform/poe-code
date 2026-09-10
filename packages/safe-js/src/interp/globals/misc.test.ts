@@ -89,7 +89,7 @@ describe("createMiscGlobals", () => {
     expect(clonedLeaf[0]).toBe(clone);
   });
 
-  it("preserves shared references and null prototypes", () => {
+  it("preserves shared references and normalizes null prototypes like native structuredClone", () => {
     const globals = createMiscGlobals({ budget: new Budget() });
     const shared = ["value"];
     const source = Object.assign(Object.create(null) as Record<string, SandboxValue>, {
@@ -99,7 +99,7 @@ describe("createMiscGlobals", () => {
 
     const clone = call(globals.structuredClone, source) as Record<string, SandboxValue>;
 
-    expect(Object.getPrototypeOf(clone)).toBeNull();
+    expect(Object.getPrototypeOf(clone)).toBe(Object.getPrototypeOf(structuredClone(source)));
     expect(clone.first).toBe(clone.second);
     expect(clone.first).not.toBe(shared);
   });

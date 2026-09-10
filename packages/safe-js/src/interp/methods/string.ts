@@ -29,6 +29,7 @@ import { changeStringLocaleCase, compareStringLocale } from "./string-locale.js"
 import { createStringHtml, stringHtmlMethods } from "./string-html.js";
 import { callStringSearch } from "./string-search.js";
 import { callStringRange } from "./string-range.js";
+import { callStringPadding } from "./string-padding.js";
 
 const stringMethodLengths = {
   ...Object.fromEntries(Object.entries(stringHtmlMethods).map(([name, [, attribute]]) => [name, attribute === "" ? 0 : 1])) as Record<keyof typeof stringHtmlMethods, number>,
@@ -238,6 +239,11 @@ function callStringMethodBody(
     const release = retainValues(budget, () => [value, ...args]);
     return converted.then(text => budget.allocateString(value.normalize(text))).finally(release);
   }
+  if (methodName === "padStart" || methodName === "padEnd") {
+    if (args.slice(0, 2).every(argument => argument === null || (typeof argument !== "object" && typeof argument !== "function")))
+      return budget.allocateString(value[methodName](args[0] as number, args[1] as string | undefined));
+    return callStringPadding(value, methodName, args, budget, context);
+  }
   if (methodName === "repeat" || methodName === "at" || methodName === "charAt" || methodName === "charCodeAt" || methodName === "codePointAt") {
     const apply = (number: number) => {
       const result = value[methodName](number);
@@ -369,12 +375,6 @@ function callStringMethodBody(
     switch (methodName) {
       case "concat":
         return budget.allocateString(value.concat(...args.map(String)));
-      case "padEnd":
-        return budget.allocateString(value.padEnd(asNumber(args[0]), asStringOrUndefined(args[1])));
-      case "padStart":
-        return budget.allocateString(
-          value.padStart(asNumber(args[0]), asStringOrUndefined(args[1]))
-        );
       case "toLowerCase":
         return budget.allocateString(value.toLowerCase());
       case "toUpperCase":
@@ -1043,12 +1043,4 @@ function splitString(
   ) => string[];
 
   return split.call(value, separator, limit);
-}
-
-function asNumber(value: SandboxValue | undefined): number {
-  return +(value as number);
-}
-
-function asStringOrUndefined(value: SandboxValue | undefined): string | undefined {
-  return value === undefined ? undefined : String(value);
 }

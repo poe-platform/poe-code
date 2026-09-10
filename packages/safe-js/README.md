@@ -861,6 +861,9 @@ Legacy `substr` also converts guest start/length arguments in order, retaining
 its length-based semantics, including conversion for empty-result ranges.
 String `normalize` honors guest form-conversion hooks after receiver conversion,
 preserving the default form, native Unicode normalization and validation errors.
+String `padStart` and `padEnd` convert guest target lengths before fillers,
+skip filler conversion when no padding is needed, and preserve default spacing,
+empty-fill behavior and output budgets.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the
 originating guest String prototype. Getter and Proxy-ancestor reads preserve
 the primitive receiver, including later guest iterator overrides.

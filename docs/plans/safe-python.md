@@ -7512,6 +7512,18 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint pass. Other binary families, native-subclass storage, metaclass
   overrides, complete automatic iteration assembly and suspended safe-fs effects
   remain unfinished.
+- Extended frame-owned numeric MRO dispatch to subtraction, division, floor
+  division, modulo, shifts, bitwise operators and matrix multiplication. Ordinary
+  and in-place slot names share one declarative table. Native slots retain their
+  turn in dispatch; mapping-proxy union delegates through the frame binary policy.
+  Fourteen regressions failed first. Twenty-three added tests cover inherited
+  forward/reflected calls, subtype ordering, same-type suppression, disabled
+  methods, in-place fallback, native percent precedence, proxy delegation,
+  explicit hook ownership, cancellation and the native fast path. All thirty-one
+  Python-semantic scenarios and 232 native addition/repetition comparisons match
+  CPython. All 5,708 tests in 450 files and scoped lint pass. Automatic power MRO,
+  native-subclass storage, metaclass overrides, full native formatting/iteration
+  policies and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -2,20 +2,21 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
 import type { MultiplicationContext } from "./runtime-multiplication.js";
-import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
+import { runtimeNumericMethods, usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
+import { runtimeBinary } from "./runtime-binary.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
-const methods = { "+": ["__add__", "__radd__"], "*": ["__mul__", "__rmul__"] } as const;
-
 /** Prepare one pair, keeping method lookup live until dispatch. Native pairs
- * retain kernel fast paths. Mixed native/opaque pairs decline native numeric
- * slots before sequence fallback. Native-subclass payload adaptation and
+ * retain kernel fast paths. Native numeric slots run before guest reflection;
+ * sequence concat/repeat remain caller-owned fallbacks. Native-subclass storage and
  * metaclass attribute overrides remain separate object-layer responsibilities. */
-export function createRuntimeSequenceNumericContext(operator: "+" | "*", left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext): MultiplicationContext | undefined {
+export function createRuntimeNumericContext(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext): MultiplicationContext | undefined {
   meter.checkpoint();
   const leftGuest = usesRuntimeGuestNumericSlots(left), rightGuest = usesRuntimeGuestNumericSlots(right);
   if (!leftGuest && !rightGuest) return undefined;
-  const [forwardName, reflectedName] = methods[operator];
+  const names = runtimeNumericMethods.get(operator);
+  if (names === undefined) throw Error(`unsupported numeric operator: ${operator}`);
+  const { forward: forwardName, reflected: reflectedName } = names;
   const leftType = leftGuest ? special.typeOf(left) : undefined; meter.checkpoint();
   const rightType = rightGuest ? special.typeOf(right) : undefined; meter.checkpoint();
   let relation: "same" | "right-subtype" | "other" = "other";
@@ -28,7 +29,14 @@ export function createRuntimeSequenceNumericContext(operator: "+" | "*", left: R
   }
   meter.checkpoint(0, 512);
   const call = (receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined, name: string): RuntimeValue => {
-    if (type === undefined) return values.notImplemented;
+    if (type === undefined) {
+      if (operator === "+" || operator === "*") return values.notImplemented;
+      if (operator === "|" && receiver.kind === "mappingproxy") {
+        if (invocation.binary === undefined) throw Error("mapping proxy union requires a binary policy");
+        return name === forwardName ? invocation.binary(operator, receiver.value, other) : invocation.binary(operator, other, receiver.value);
+      }
+      return runtimeBinary(operator, left, right, values, meter);
+    }
     const method = lookupRuntimeSpecialMethod(receiver, type, values.string(name), special, values, meter);
     meter.checkpoint();
     if (method === undefined) return values.notImplemented;

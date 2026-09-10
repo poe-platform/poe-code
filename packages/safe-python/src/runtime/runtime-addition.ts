@@ -1,4 +1,4 @@
-import { dispatchBinaryOperation, type BinaryDispatch } from "./binary-dispatch.js";
+import { dispatchBinaryOperation } from "./binary-dispatch.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
@@ -7,13 +7,9 @@ import { runtimeBinary } from "./runtime-binary.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 
-export interface AdditionContext {
-  /** Numeric slots prepared for this operand pair, excluding sequence concat.
-   * The sentinel must be this execution's NotImplemented singleton. */
-  numeric?: BinaryDispatch<RuntimeValue>;
-  typeName?(value: RuntimeValue): string;
-}
+export type AdditionContext = RuntimeNumericContext;
 
 /** Complete ordinary addition for exact native values, or supplied numeric
  * negotiation followed by native sequence fallback. Sequence failures must not

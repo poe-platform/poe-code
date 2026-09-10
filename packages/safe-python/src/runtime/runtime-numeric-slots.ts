@@ -1,4 +1,16 @@
 import type { RuntimeValue } from "./runtime-values.js";
+import type { BinaryDispatch } from "./binary-dispatch.js";
+
+export interface RuntimeNumericContext {
+  /** Prepared numeric slots, excluding sequence concat/repeat fallbacks. */
+  numeric?: BinaryDispatch<RuntimeValue>;
+  typeName?(value: RuntimeValue): string;
+}
+
+export const runtimeNumericMethods: ReadonlyMap<string, { readonly forward: string; readonly reflected: string; readonly inplace: string }> = new Map([
+  ["+", "add"], ["-", "sub"], ["*", "mul"], ["@", "matmul"], ["/", "truediv"], ["//", "floordiv"],
+  ["%", "mod"], ["**", "pow"], ["<<", "lshift"], [">>", "rshift"], ["&", "and"], ["^", "xor"], ["|", "or"]
+].map(([operator, name]) => [operator, { forward: `__${name}__`, reflected: `__r${name}__`, inplace: `__i${name}__` }] as const));
 
 /** Opaque values use the supplied guest type policy. Exact native payloads
  * retain native slots; native-subclass storage needs a separate adapter. */

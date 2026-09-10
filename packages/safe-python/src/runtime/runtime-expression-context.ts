@@ -1,7 +1,8 @@
 import { UnsupportedExpressionError, type ExpressionContext } from "./expression-evaluation.js";
 import type { ConstantUnaryContext } from "./constant-unary.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeBinary } from "./runtime-binary.js";
+import { runtimeNumericOperation } from "./runtime-numeric-operation.js";
+import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 import { runtimePowerOperation, type RuntimePowerContext } from "./runtime-power-operation.js";
 import { runtimeAddition, type AdditionContext } from "./runtime-addition.js";
 import { runtimeMultiplication, type MultiplicationContext } from "./runtime-multiplication.js";
@@ -52,6 +53,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext | undefined;
     /** Numeric negotiation must precede the supplied index repetition policy. */
     multiplication?(left: RuntimeValue, right: RuntimeValue): MultiplicationContext | undefined;
+    /** Other ordinary numeric operators; specialized +, * and ** hooks win. */
+    numeric?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeNumericContext | undefined;
     richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext;
     /** Return undefined to retain native container handling. */
     containment?(container: RuntimeValue): ContainmentContext<RuntimeValue> | undefined;
@@ -115,9 +118,9 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
         meter.checkpoint();
         return runtimeMultiplication(left, right, values, meter, multiplication, augmented);
       }
-      const result = runtimeBinary(operator, left, right, values, meter);
-      if (result === values.notImplemented) throw new UnsupportedExpressionError("binary");
-      return result;
+      const numeric = bindings.numeric?.(operator, left, right);
+      meter.checkpoint();
+      return runtimeNumericOperation(operator, left, right, values, meter, numeric, augmented);
     },
     compare(operator, left, right) {
       if (operator === "in" || operator === "not in") {

@@ -4,7 +4,7 @@ import { evaluateExpression, UnsupportedExpressionError } from "./expression-eva
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
-import { createRuntimeSequenceNumericContext } from "./runtime-sequence-numeric-context.js";
+import { createRuntimeNumericContext } from "./runtime-numeric-context.js";
 import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
 import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { executeFunctionDefinition } from "./function-definition.js";
@@ -42,7 +42,7 @@ export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
-  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers">;
+  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
   specialMethods?(frame: RuntimeFrame): RuntimeSpecialMethodContext;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
@@ -194,8 +194,9 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
       get formattedString() { return expressionHooks.formattedString; },
-      addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeSequenceNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
-      multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeSequenceNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),
+      addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
+      multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),
+      numeric: expressionHooks.numeric?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeNumericContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
       power: expressionHooks.power,
       truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks),

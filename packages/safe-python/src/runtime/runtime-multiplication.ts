@@ -1,19 +1,17 @@
-import { dispatchBinaryOperation, type BinaryDispatch } from "./binary-dispatch.js";
+import { dispatchBinaryOperation } from "./binary-dispatch.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { validateIndexResult, type IntegerIndexContext } from "./index-protocol.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 
-export interface MultiplicationContext {
-  /** Prepared numeric slots, excluding sequence repetition. */
-  readonly numeric?: BinaryDispatch<RuntimeValue>;
+export interface MultiplicationContext extends RuntimeNumericContext {
   readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
   /** A present left sequence table blocks right-sequence *= fallback even
    * when the table has no repeat slot. Omitted uses exact native metadata. */
   readonly leftHasSequenceTable?: boolean;
-  typeName?(value: RuntimeValue): string;
 }
 
 /** Numeric negotiation precedes exact native sequence repetition, including

@@ -497,3 +497,111 @@ it("keeps extended slots when augmented addition target write-back fails", () =>
   expect(() => state.run("container[0] += [False]\n")).toThrow("does not support item assignment");
   expect(items.items.snapshot()).toEqual([state.v.true, state.v.false]);
 });
+
+it.each([
+  ["-", "__sub__", "__rsub__"], ["/", "__truediv__", "__rtruediv__"], ["//", "__floordiv__", "__rfloordiv__"],
+  ["%", "__mod__", "__rmod__"], ["<<", "__lshift__", "__rlshift__"], [">>", "__rshift__", "__rrshift__"],
+  ["&", "__and__", "__rand__"], ["|", "__or__", "__ror__"], ["^", "__xor__", "__rxor__"], ["@", "__matmul__", "__rmatmul__"]
+])("dispatches inherited %s methods in both operand orders", (operator, forward, reflected) => {
+  for (const reverse of [false, true]) {
+    const state = fixture(), base = state.type("Base"), owner = state.type("Derived", base), name = reverse ? reflected : forward;
+    state.method(base, name, `def operation(self, other):\n visit('${name}')\n return other\n`);
+    state.guest("guest", owner);
+    state.run(`def calculate():\n return ${reverse ? `7 ${operator} guest` : `guest ${operator} 7`}\nresult=calculate()\n`);
+    expect(state.globals.get("result")).toEqual(state.v.integer(7)); expect(state.events).toEqual([name]);
+  }
+});
+
+it("uses MRO subtraction after a declined in-place method", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__isub__", "def inplace(self, other):\n visit('inplace')\n return NotImplemented\n");
+  state.method(owner, "__sub__", "def subtract(self, other):\n visit('ordinary')\n return 42\n");
+  state.guest("guest", owner); state.run("guest -= 7\n");
+  expect(state.globals.get("guest")).toEqual(state.v.integer(42)); expect(state.events).toEqual(["inplace", "ordinary"]);
+});
+
+it.each([false, true])("permits guest reflected union from native dictionaries (proxy=%s)", proxy => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.method(owner, "__ror__", "def union(self, other):\n visit('reflected')\n return False\n");
+  state.guest("guest", owner);
+  const dictionary = v.dictionary(new OrderedKeyMap({ hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => a === b }, state.meter));
+  state.globals.set("left", proxy ? v.mappingProxy(dictionary) : dictionary);
+  state.run("result=left | guest\n");
+  expect(state.globals.get("result")).toBe(v.false); expect(state.events).toEqual(["reflected"]);
+});
+
+it("reports Python errors when native binary slots decline", () => {
+  const state = fixture();
+  expect(() => state.run("result=None-1\n")).toThrow("unsupported operand type(s) for -: 'NoneType' and 'int'");
+});
+
+it.each([false, true])("orders subtype reflected subtraction by override status (%s)", overridden => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base);
+  state.method(base, "__sub__", "def subtract(self, other):\n visit('forward')\n return 1\n");
+  state.method(base, "__rsub__", "def reflected(self, other):\n visit('inherited')\n return 2\n");
+  if (overridden) state.method(derived, "__rsub__", "def reflected(self, other):\n visit('override')\n return 3\n");
+  state.guest("left", base); state.guest("right", derived); state.run("result=left-right\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(overridden ? 3 : 1));
+  expect(state.events).toEqual([overridden ? "override" : "forward"]);
+});
+
+it("does not reflect declined same-type subtraction", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__sub__", "def subtract(self, other):\n visit('forward')\n return NotImplemented\n");
+  state.method(owner, "__rsub__", "def reflected(self, other):\n visit('reflected')\n return 2\n");
+  state.guest("left", owner); state.guest("right", owner);
+  expect(() => state.run("result=left-right\n")).toThrow("unsupported operand type(s) for -: 'Guest' and 'Guest'");
+  expect(state.events).toEqual(["forward"]);
+});
+
+it("does not ignore disabled ordinary numeric methods", () => {
+  const state = fixture(), owner = state.type("Guest");
+  owner.value.namespace.items.set(state.v.string("__sub__"), state.v.none);
+  state.guest("guest", owner);
+  expect(() => state.run("result=guest-1\n")).toThrow("'NoneType' object is not callable");
+});
+
+it("runs native percent formatting before guest reflected modulo", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__rmod__", "def modulo(self, other):\n visit('reflected')\n return False\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result='literal' % guest\n")).toThrow("not all arguments converted during string formatting");
+  expect(state.events).toEqual([]);
+});
+
+it("delegates right-hand mapping proxy union to the underlying dictionary", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.method(owner, "__or__", "def union(self, other):\n visit('forward')\n if other is target:\n  return False\n return NotImplemented\n");
+  state.guest("guest", owner);
+  const target = v.dictionary(new OrderedKeyMap({ hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => a === b }, state.meter));
+  state.globals.set("target", target); state.globals.set("proxy", v.mappingProxy(target));
+  state.run("result=guest | proxy\n");
+  expect(state.globals.get("result")).toBe(v.false); expect(state.events).toEqual(["forward", "forward"]);
+});
+
+it("preserves explicit numeric policies and their receiver ahead of MRO lookup", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner), v = state.v;
+  state.hooks.specialMethods = () => ({ typeOf(): never { throw Error("explicit numeric hook must win"); }, slots: () => undefined });
+  state.hooks.expressions = () => {
+    const bindings = { warn() {}, numeric(operator: string, left: RuntimeValue, right: RuntimeValue) {
+      expect(this).toBe(bindings); expect(operator).toBe("-"); expect(left).toBe(guest); expect(right).toEqual(v.integer(1));
+      return { numeric: { relation: "other" as const, notImplemented: v.notImplemented, forward: () => v.false, reflected: () => v.notImplemented, reflectedIsOverridden: () => false } };
+    } };
+    return bindings;
+  };
+  state.run("result=guest-1\n"); expect(state.globals.get("result")).toBe(v.false);
+});
+
+it("stops numeric calls after cancellation without assigning their result", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest");
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { controller.abort(); return state.v.none; } }));
+  state.method(owner, "__sub__", "def subtract(self, other):\n stop()\n return False\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=guest-1\n")).toThrow("execution cancelled");
+  expect(state.globals.has("result")).toBe(false);
+});
+
+it("keeps ordinary native numeric expressions off the guest type policy", () => {
+  const state = fixture(); state.run("result=(9-3)//2\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(3));
+});

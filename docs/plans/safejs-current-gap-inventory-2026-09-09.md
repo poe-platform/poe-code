@@ -7,6 +7,19 @@ does not describe the published package or only committed sources.
 
 ## Latest verification update
 
+A fresh source-runtime own-name audit against temporal-polyfill 1.0.4
+(61688c, Node 22.23.2) finds no missing static/prototype names for Instant,
+PlainDateTime, PlainTime, Duration or ZonedDateTime. PlainDate still lacks
+toPlainYearMonth/toPlainMonthDay. PlainYearMonth and
+PlainMonthDay remain absent. This checks names only against the backend, not
+descriptors, semantics, native engines or full standards conformance; it does
+not supersede the unresolved full-suite failures below.
+
+A new maintained package gate is running in session 63746, including the latest
+ZonedDateTime locale and Duration owned-relativeTo changes. See
+[the current gate record](safejs-post-zoned-integration-gate.md). No result is
+claimed until that process finishes and its source fingerprint is rechecked.
+
 A fresh full package gate after PlainDate/Intl integration finished; see
 [the source fingerprint and live-run record](safejs-post-plain-date-full-gate.md).
 Its 100 filesystem type contracts passed. Final results: 26,777 passed, four
@@ -17,8 +30,15 @@ This is a failing gate, not completed integration or JavaScript conformance.
 
 After that gate, ZonedDateTime private storage and captured host-slot readers
 were implemented and passed 19 focused tests on each of Node 18.18.2, 22.23.2
-and 26.4.0. The public constructor is still absent; copy/budget and snapshot
-integration remain outstanding. See the [implementation record](safejs-temporal-zoned-date-time.md).
+and 26.4.0. Subsequent working-tree integration adds copying, budgets, host
+bindings, heap/replay codecs, public construction, 28 getters, from(), and
+conversions to Instant/PlainDate/PlainTime/PlainDateTime, compare(), equals(),
+withTimeZone(), withCalendar(), withPlainTime(), startOfDay(), getTimeZoneTransition(),
+add(), subtract(), with(), round(), until(), since(), toString(), toJSON(), and
+toLocaleString(). Calendar-taking methods also admit owned ZonedDateTime calendar
+slots, and Duration compare/round/total accept owned zoned relativeTo values.
+Broader semantic qualification remains incomplete. See the
+[implementation record](safejs-temporal-zoned-date-time.md).
 
 A source-runtime reflection check against Node 26.4.0 (153cde) now finds only
 three missing PlainDate conversion names, the zoned conversions on Instant and
@@ -69,13 +89,14 @@ It does not compare inherited typed-array methods or anonymous intrinsics.
 | --- | --- | --- |
 | Proxy, WeakMap, WeakSet, WeakRef, FinalizationRegistry | Constructor bindings exist | Older absence claims are stale; semantic and lifetime gaps remain |
 | SharedArrayBuffer and Atomics | Constructor/object bindings exist | Presence does not prove concurrent behavior or recovery |
-| Temporal.Instant | until/since and toLocaleString now present; toZonedDateTimeISO absent | Partial, uncommitted implementation |
+| Temporal.Instant | until/since, toLocaleString and toZonedDateTimeISO present; input operations admit private zoned epochs | Partial, uncommitted implementation; full conformance remains unproven |
 | Temporal.Duration | total, compare and round now present | Uncommitted implementation; broader calendar conformance remains open |
 | Temporal.PlainTime | Constructor, six field getters and all named prototype methods now present, including toLocaleString, with owned data copying and heap/replay codecs | Uncommitted public integration; direct Intl format/parts/ranges now accept PlainTime and Instant, with requested-options snapshot preservation; legacy snapshots use resolved fallback |
 | Intl fixed-offset zones on Node 18 | Strict offset validation and PlainTime.toLocaleString now pass focused Node 18 regressions | Numeric Date/Instant and direct Intl offset formatting remain incomplete; backend also fails all nine offset/type controls on Node 18 (d83fb6); see [offset-zone investigation](safejs-intl-offset-zone-portability.md) |
-| Temporal.PlainDateTime | Present with getters, from/compare/equals, with/withCalendar/withPlainTime, add/subtract, until/since, round, toPlainDate, locale/ISO formatting and private copy/replay integration | Public integration remains uncommitted; toZonedDateTime is still absent; direct Intl format/parts/ranges now accept owned PlainDateTime values |
-| Temporal.PlainDate | Constructor, calendar/date getters, from/compare/equals, add/subtract, until/since, with/withCalendar, toPlainDateTime, locale/ISO and direct Intl formatting, private copies, host bindings and heap/replay now exist in the working tree | Zoned input and year-month/month-day/zoned conversions remain unfinished; see [PlainDate integration](safejs-temporal-plain-date.md) |
-| Temporal.PlainYearMonth, PlainMonthDay, ZonedDateTime, Now | Absent | Remaining Temporal implementation work |
+| Temporal.PlainDateTime | Present with getters, from/compare/equals, with/withCalendar/withPlainTime, add/subtract, until/since, round, toPlainDate, toZonedDateTime, locale/ISO formatting and private copy/replay integration | Public integration remains uncommitted; direct Intl format/parts/ranges now accept owned PlainDateTime values; broader conformance remains unproven |
+| Temporal.PlainDate | Constructor, calendar/date getters, from/compare/equals, add/subtract, until/since, with/withCalendar, toPlainDateTime, toZonedDateTime, locale/ISO and direct Intl formatting, private copies, host bindings and heap/replay now exist in the working tree; input readers accept private zoned slots | Year-month/month-day conversions remain unfinished; see [PlainDate integration](safejs-temporal-plain-date.md) |
+| Temporal.PlainYearMonth, PlainMonthDay, Now | Absent | Remaining Temporal implementation work |
+| Temporal.ZonedDateTime | Constructor/getters, from/compare/equals, zone/calendar/time replacement, startOfDay, transition lookup, add/subtract, with, round, until/since, plain/instant conversions and ISO/JSON/locale formatting exist with owned copying and snapshots | No missing own static/prototype names in audit 61688c; broader conformance remains unfinished |
 | Map.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; subsequently implemented locally | See [focused qualification](safejs-map-upsert.md); newer compatibility work, not a full conformance claim |
 | WeakMap.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; experimental implementation now exists | [WeakMap integration](safejs-weakmap-upsert.md) remains uncommitted and inherits older-Node weak-symbol limitations |
 | RegExp constructor | Native legacy capture/context properties absent | Compatibility difference requiring standards classification before a fix |

@@ -7310,6 +7310,19 @@ extension, integration, or validation requirement is missing or unverified.
   Cross-frame representation guard sharing still needs an integration audit;
   automatic type/storage classification, generic object defaults, allocation
   optimization and suspended safe-fs effects remain unfinished.
+- The cross-frame representation audit reproduced RecursionError in three
+  compiled list/guest cycles that CPython renders as [[...]]. Added explicit
+  execution-owned RuntimeRepresentationState, shared by default and frame-owned
+  formatting contexts while retaining separate method policies. The native
+  container stack remains lazy and is not shared across independent executions.
+  Three compiled regressions and two state-isolation/exception-cleanup cases
+  pass. All 5,476 tests in 446 files pass; selected build, typecheck and scoped
+  lint pass.
+  CPython confirms all three recursive results, and 32 existing compiled guest
+  representation comparisons still match. Explicit external policies own their
+  own state; broader native-container recursion audits, automatic type/storage
+  classification, allocation optimization and suspended safe-fs effects remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

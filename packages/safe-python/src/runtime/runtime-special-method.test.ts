@@ -207,3 +207,17 @@ it.each([
   if (mode.startsWith("invalid") || mode.startsWith("disabled")) expect(run).toThrow(expected);
   else { run(); expect(globals.get("result")).toEqual(v.string(expected)); }
 });
+it.each(["repr", "ascii", "f-string"])("shares active representation containers across compiled %s calls", operation => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), items = v.list([receiver]), globals = new Map<string, RuntimeValue>([["items", items]]), unused = (): never => { throw Error("unexpected ordinary lookup or call"); };
+  const builtins = new Map([ ["repr", createRepresentationBuiltin("repr", v, meter)], ["ascii", createRepresentationBuiltin("ascii", v, meter)] ]);
+  const methods = compileProgram<RuntimeValue>(analyzeModule('def special(self): return ascii(items)\n'), { stripDocstring: false }, v, meter);
+  base.value.namespace.items.set(v.string("__repr__"), v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals, builtins, none: v.none }, meter)));
+  const expression = operation === "f-string" ? 'f"{items!r}"' : `${operation}(items)`;
+  const program = compileProgram<RuntimeValue>(analyzeModule(`result=${expression}\nagain=${expression}\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins, keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toEqual(v.string("[[...]]"));
+  expect(globals.get("again")).toEqual(v.string("[[...]]"));
+});

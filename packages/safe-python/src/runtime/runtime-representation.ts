@@ -21,13 +21,21 @@ export interface RuntimeRepresentationHooks {
   defaultRepr(value: RuntimeValue): RuntimeValue;
 }
 
+/** Execution-owned recursion state shared by frame-specific representation
+ * policies. The stack is allocated only when a container is represented.
+ * Never share this state between independently metered executions. */
+export interface RuntimeRepresentationState {
+  stack?: RepresentationStack<RuntimeValue>;
+}
+
 /** Implemented native slots plus explicit guest representation capabilities.
  * Does not invent generic strings for unfinished native/container types. */
-export function createRuntimeRepresentationContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeRepresentationHooks): RepresentationContext<RuntimeValue> {
+export function createRuntimeRepresentationContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeRepresentationHooks, state?: RuntimeRepresentationState): RepresentationContext<RuntimeValue> {
   meter.checkpoint(1, 384);
   // Conservative host-callback depth policy until execution is trampolined.
   // Lazily allocate the path guard so scalar-only formatting pays no stack cost.
-  let stack: RepresentationStack<RuntimeValue> | undefined;
+  meter.checkpoint(0, state === undefined ? 16 : 0);
+  const guards = state ?? {};
   const context: RepresentationContext<RuntimeValue> = {
     isExactString(value) { meter.checkpoint(); return value.kind === "str"; },
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
@@ -50,7 +58,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
       if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") {
         meter.checkpoint(0, 64);
         return () => {
-          stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+          const stack = guards.stack ??= new RepresentationStack<RuntimeValue>(100, meter);
           return values.stringPoints(runtimeDictionaryViewRepresentation(value, values, context, stack, meter));
         };
       }
@@ -61,7 +69,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
       if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict") {
         meter.checkpoint(0, 64);
         return () => {
-          stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+          const stack = guards.stack ??= new RepresentationStack<RuntimeValue>(100, meter);
           if (value.kind === "dict") {
             meter.checkpoint(1, 64);
             const text = dictionaryRepresentation(value, () => {

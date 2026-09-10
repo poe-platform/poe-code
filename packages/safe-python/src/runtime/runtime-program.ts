@@ -4,6 +4,7 @@ import { evaluateExpression, UnsupportedExpressionError } from "./expression-eva
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
+import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { executeFunctionDefinition } from "./function-definition.js";
 import type { FunctionCreationContext } from "./function-state.js";
 import type { FunctionInvocationContext } from "./function-invocation.js";
@@ -62,7 +63,9 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, R
 export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
   meter.checkpoint(1, 192);
   const { values, keys, hooks, calls } = context;
-  const defaultFormatting = context.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } });
+  meter.checkpoint(0, 16);
+  const representationState: RuntimeRepresentationState = {};
+  const defaultFormatting = context.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
   const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null) => {
     meter.checkpoint(1, 384);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
@@ -146,7 +149,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       }
     };
     const formatting = context.formatting === undefined && specialMethods !== undefined
-      ? createRuntimeInvocationFormatContext(values, meter, builtinCalls, defaultFormatting)
+      ? createRuntimeInvocationFormatContext(values, meter, builtinCalls, defaultFormatting, representationState)
       : defaultFormatting;
     builtinCalls.formatting = formatting;
     const definitionBindings: RuntimeFunctionDefinitionBindings = {

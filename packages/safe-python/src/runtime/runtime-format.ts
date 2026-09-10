@@ -1,6 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { FormatContext } from "./format-protocol.js";
-import { createRuntimeRepresentationContext, type RuntimeRepresentationHooks } from "./runtime-representation.js";
+import { createRuntimeRepresentationContext, type RuntimeRepresentationHooks, type RuntimeRepresentationState } from "./runtime-representation.js";
 import { objectFormat } from "./object-format.js";
 import { stringFormat } from "./string-format.js";
 import { integerFormat } from "./integer-format.js";
@@ -27,12 +27,12 @@ export function hasNativeObjectFormat(value: RuntimeValue): boolean {
 /** Shared native formatting/representation capabilities. Remaining numeric
  * presentations stay explicit gaps rather than pretending their slots are absent.
  * Guest lookup owns inherited methods and descriptor behavior for guest types. */
-export function createRuntimeFormatContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeFormatHooks): FormatContext<RuntimeValue> {
+export function createRuntimeFormatContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeFormatHooks, state?: RuntimeRepresentationState): FormatContext<RuntimeValue> {
   meter.checkpoint(1, 512);
   let portableLocale: NumericLocale | undefined;
   const numericLocale = () => hooks.numericLocale ? hooks.numericLocale() : (portableLocale ??= NumericLocale.portable(meter));
   const context: FormatContext<RuntimeValue> = {
-    ...createRuntimeRepresentationContext(values, meter, hooks),
+    ...createRuntimeRepresentationContext(values, meter, hooks, state),
     isExactInteger(value) { meter.checkpoint(); return value.kind === "int"; },
     lookupFormat(value) {
       meter.checkpoint();

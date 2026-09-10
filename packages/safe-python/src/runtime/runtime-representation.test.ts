@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { createRuntimeRepresentationContext } from "./runtime-representation.js";
+import { createRuntimeRepresentationContext, type RuntimeRepresentationState } from "./runtime-representation.js";
 import { representationObject } from "./representation-protocol.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
@@ -10,6 +10,22 @@ function fixture() {
   return { meter, v, context };
 }
 const points = (value: RuntimeValue) => { if (value.kind !== "str") throw Error("expected str"); return String.fromCodePoint(...value.value); };
+it.each([false, true])("keeps representation policies separate with shared guards=%s and restores failures", shared => {
+  const { meter, v } = fixture(), firstState: RuntimeRepresentationState = {}, secondState: RuntimeRepresentationState = shared ? firstState : {}, guest = v.cell({}), items = v.list([guest]), failure = Error("guest repr failed"); let fail = true;
+  const second = createRuntimeRepresentationContext(v, meter, { lookupRepr: () => () => v.string("leaf"), defaultRepr: () => v.none }, secondState);
+  const first = createRuntimeRepresentationContext(v, meter, {
+    lookupRepr: () => () => { if (fail) throw failure; return representationObject(items, "repr", second, meter); }, defaultRepr: () => v.none
+  }, firstState);
+  expect(firstState.stack).toBeUndefined(); expect(secondState.stack).toBeUndefined();
+  expect(points(representationObject(v.integer(1), "repr", first, meter))).toBe("1");
+  expect(firstState.stack).toBeUndefined();
+  expect(() => representationObject(items, "repr", first, meter)).toThrow(failure);
+  expect(points(representationObject(items, "repr", second, meter))).toBe("[leaf]");
+  fail = false;
+  expect(points(representationObject(items, "repr", first, meter))).toBe(shared ? "[[...]]" : "[[leaf]]");
+  expect(points(representationObject(items, "repr", second, meter))).toBe("[leaf]");
+  expect(firstState.stack === secondState.stack).toBe(shared);
+});
 it("reuses exact native strings and renders repr/ascii from their storage", () => {
   const { meter, v, context } = fixture(), source = v.string("é😀");
   expect(representationObject(source, "str", context, meter)).toBe(source);

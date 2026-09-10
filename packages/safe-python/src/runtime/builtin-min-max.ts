@@ -9,7 +9,7 @@ import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtim
 export interface MinMaxContext {
   iteration?: IterationContext<RuntimeValue>;
   /** Execution-owned invocation, including callability checks and call limits. */
-  call(key: RuntimeValue, value: RuntimeValue): RuntimeValue;
+  call?(key: RuntimeValue, value: RuntimeValue): RuntimeValue;
   /** Rich comparison followed by truth conversion, including reflected slots. */
   compare?(operator: "<" | ">", candidate: RuntimeValue, best: RuntimeValue): boolean;
 }
@@ -17,10 +17,10 @@ export interface MinMaxContext {
 /** Streaming selection retains only the best member/key and current candidate.
  * Ties retain the first member. Key/default validation does not invoke a key on
  * empty input; failures never request closing the caller's iterator. */
-export function createMinMaxBuiltin(name: "min" | "max", values: RuntimeValues, meter: ExecutionMeter, context: MinMaxContext): BuiltinFunctionValue {
+export function createMinMaxBuiltin(name: "min" | "max", values: RuntimeValues, meter: ExecutionMeter, context: MinMaxContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   const operator = name === "min" ? "<" : ">";
-  return values.builtinFunction({ name, invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name, invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (positional.length === 0) throw new PythonRuntimeError("TypeError", `${name} expected at least 1 argument, got 0`);
     if (keywords.items.size > 2) throw new PythonRuntimeError("TypeError", `${name}() takes at most 2 keyword arguments (${keywords.items.size} given)`);
@@ -51,10 +51,17 @@ export function createMinMaxBuiltin(name: "min" | "max", values: RuntimeValues, 
         if (index === positional.length) break;
         candidate = positional[index++];
       }
-      const candidateKey = key === undefined || key.kind === "none" ? candidate : context.call(key, candidate);
+      let candidateKey = candidate;
+      if (key !== undefined && key.kind !== "none") {
+        if (context.call !== undefined) candidateKey = context.call(key, candidate);
+        else if (invocation !== undefined) { meter.checkpoint(0, 8); candidateKey = invocation.call(key, [candidate]); }
+        else throw new Error(`${name} requires an execution call capability`);
+      }
       meter.checkpoint();
       if (best === undefined) { best = candidate; bestKey = candidateKey; continue; }
-      const better = context.compare === undefined ? runtimeComparison(operator, candidateKey, bestKey!, values, meter).value : context.compare(operator, candidateKey, bestKey!);
+      const better = context.compare !== undefined ? context.compare(operator, candidateKey, bestKey!)
+        : invocation?.compareTruth !== undefined ? invocation.compareTruth(operator, candidateKey, bestKey!)
+        : runtimeComparison(operator, candidateKey, bestKey!, values, meter).value;
       meter.checkpoint();
       if (better) { best = candidate; bestKey = candidateKey; }
     }

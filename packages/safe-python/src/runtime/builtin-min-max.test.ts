@@ -25,6 +25,14 @@ it.each(["min", "max"] as const)("selects %s in iterable and positional forms, k
   const nan = v.float(NaN); expect(call(nan, low, high)).toBe(nan);
   expect(call(v.list([v.none]))).toBe(v.none);
 });
+it.each(["min", "max"] as const)("preserves explicit %s key and comparison policies over invocation defaults", name => {
+  const { v, meter, context, keywords, builtin } = fixture(name), first = v.integer(1), last = v.integer(2);
+  context.call = (_key, value) => value; context.compare = () => true;
+  keywords.items.set(v.string("key"), v.cell({}));
+  expect(builtin.value.invoke([first, last], keywords, meter, {
+    call() { throw Error("explicit call must win"); }, compareTruth() { throw Error("explicit comparison must win"); }, isStopIteration: () => false
+  })).toBe(last);
+});
 it.each(["min", "max"] as const)("validates %s options in order and defers key callability", name => {
   const { v, call, keywords } = fixture(name);
   keywords.items.set(v.string("bad"), v.none);

@@ -75,6 +75,8 @@ export interface BuiltinInvocationContext {
   call(callee: RuntimeValue, positional: readonly RuntimeValue[]): RuntimeValue;
   isStopIteration(error: unknown): boolean;
   truth?(value: RuntimeValue): boolean;
+  /** Rich comparison followed by the execution's guest truth conversion. */
+  compareTruth?(operator: string, left: RuntimeValue, right: RuntimeValue): boolean;
 }
 
 export interface BuiltinFunctionCapability {

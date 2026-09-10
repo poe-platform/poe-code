@@ -101,6 +101,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
       truth: value => expressions.truth(value),
+      compareTruth(operator, left, right) {
+        const result = expressions.compare(operator, left, right); meter.checkpoint();
+        return expressions.truth(result);
+      },
       call(callee, positional) {
         const call = beginCall(callee);
         for (const value of positional) { meter.checkpoint(); call.positional(value); }

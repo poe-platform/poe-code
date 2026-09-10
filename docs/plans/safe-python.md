@@ -7060,6 +7060,17 @@ extension, integration, or validation requirement is missing or unverified.
   Build, typecheck and scoped lint pass. Remaining callback builtins, native
   type/exception assembly, resumable filesystem effects and the public interpreter
   remain unfinished.
+- Min/max now use runtime invocation capabilities for compiled key functions
+  and frame-owned rich comparison/truth when explicit policies are absent.
+  Added compareTruth to the invocation contract; explicit key/comparison policies
+  retain precedence and native direct-call fallbacks remain. Shared namespace
+  registration no longer requires a separate min/max callback context.
+- Four failing compiled regressions now pass, plus two explicit-override guards.
+  All 5,326 tests in 444 files pass; 96 compiled CPython cases match results,
+  errors and key-call traces across both builtins, iterable/positional forms,
+  empty inputs, defaults, ties and invalid keys. Build, typecheck and scoped lint
+  pass. Other callback/iteration integrations, native type/exception assembly,
+  resumable filesystem effects and the complete public interpreter remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

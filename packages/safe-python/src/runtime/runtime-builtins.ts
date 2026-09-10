@@ -49,7 +49,7 @@ export interface RuntimeBuiltinContexts {
   iteration?: Parameters<typeof createIterBuiltin>[3];
   len?: Parameters<typeof createLenBuiltin>[2];
   map?: Parameters<typeof createMapBuiltin>[2];
-  minMax: Parameters<typeof createMinMaxBuiltin>[3];
+  minMax?: Parameters<typeof createMinMaxBuiltin>[3];
   ord?: Parameters<typeof createOrdBuiltin>[2];
   power?: Parameters<typeof createPowBuiltin>[2];
   print: Parameters<typeof createPrintBuiltin>[2];

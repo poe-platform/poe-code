@@ -19,18 +19,31 @@ export function runtimePower(base: RuntimeValue, exponent: RuntimeValue, modulus
     meter.checkpoint();
     const kind = operands[index].kind;
     if (index > 0 && operands[0].kind === kind || index > 1 && operands[1].kind === kind) continue;
-    if (kind === "float") throw new PythonRuntimeError("TypeError", "pow() 3rd argument not allowed unless all arguments are integers");
-    if (kind === "complex") {
-      let supported = true;
-      for (let position = 0; position < 2; position++) {
-        const value = operands[position];
-        if (value.kind === "int") {
-          integerBitMetric(value.value, "bit_length", meter);
-          integerToFloat(value.value);
-        } else if (value.kind !== "bool" && value.kind !== "float" && value.kind !== "complex") { supported = false; break; }
-      }
-      if (supported) throw new PythonRuntimeError("ValueError", "complex modulo");
+    const result = runtimePowerSlot(operands[index], base, exponent, modulus, values, meter);
+    if (result !== values.notImplemented) return result;
+  }
+  return values.notImplemented;
+}
+
+/** Invoke only the selected native slot, so a later modulus slot cannot preempt
+ * a guest forward/reflected method. The original operand order is preserved. */
+export function runtimePowerSlot(receiver: RuntimeValue, base: RuntimeValue, exponent: RuntimeValue, modulus: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
+  meter.checkpoint();
+  if (modulus.kind === "none") return runtimeBinary("**", base, exponent, values, meter);
+  if (receiver.kind === "int" || receiver.kind === "bool") {
+    if ((base.kind === "int" || base.kind === "bool") && (exponent.kind === "int" || exponent.kind === "bool") && (modulus.kind === "int" || modulus.kind === "bool")) return constantModularPower(base, exponent, modulus, values, meter);
+  }
+  if (receiver.kind === "float") throw new PythonRuntimeError("TypeError", "pow() 3rd argument not allowed unless all arguments are integers");
+  if (receiver.kind === "complex") {
+    let supported = true;
+    for (let position = 0; position < 2; position++) {
+      const value = position === 0 ? base : exponent;
+      if (value.kind === "int") {
+        integerBitMetric(value.value, "bit_length", meter);
+        integerToFloat(value.value);
+      } else if (value.kind !== "bool" && value.kind !== "float" && value.kind !== "complex") { supported = false; break; }
     }
+    if (supported) throw new PythonRuntimeError("ValueError", "complex modulo");
   }
   return values.notImplemented;
 }

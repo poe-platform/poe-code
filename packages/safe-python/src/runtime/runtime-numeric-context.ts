@@ -4,13 +4,14 @@ import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
 import type { MultiplicationContext } from "./runtime-multiplication.js";
 import { runtimeNumericMethods, usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import { runtimeBinary } from "./runtime-binary.js";
+import { runtimePowerSlot } from "./runtime-power.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Prepare one pair, keeping method lookup live until dispatch. Native pairs
  * retain kernel fast paths. Native numeric slots run before guest reflection;
  * sequence concat/repeat remain caller-owned fallbacks. Native-subclass storage and
  * metaclass attribute overrides remain separate object-layer responsibilities. */
-export function createRuntimeNumericContext(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext): MultiplicationContext | undefined {
+export function createRuntimeNumericContext(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext, modulus: RuntimeValue = values.none): MultiplicationContext | undefined {
   meter.checkpoint();
   const leftGuest = usesRuntimeGuestNumericSlots(left), rightGuest = usesRuntimeGuestNumericSlots(right);
   if (!leftGuest && !rightGuest) return undefined;
@@ -30,6 +31,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   meter.checkpoint(0, 512);
   const call = (receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined, name: string): RuntimeValue => {
     if (type === undefined) {
+      if (operator === "**") return runtimePowerSlot(receiver, left, right, modulus, values, meter);
       if (operator === "+" || operator === "*") return values.notImplemented;
       if (operator === "|" && receiver.kind === "mappingproxy") {
         if (invocation.binary === undefined) throw Error("mapping proxy union requires a binary policy");
@@ -40,8 +42,9 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     const method = lookupRuntimeSpecialMethod(receiver, type, values.string(name), special, values, meter);
     meter.checkpoint();
     if (method === undefined) return values.notImplemented;
-    meter.checkpoint(0, 16);
-    const result = invocation.call(method, [other]); meter.checkpoint(); return result;
+    const ternary = operator === "**" && modulus.kind !== "none";
+    meter.checkpoint(0, ternary ? 24 : 16);
+    const result = invocation.call(method, ternary ? [other, modulus] : [other]); meter.checkpoint(); return result;
   };
   const classMethod = (type: TypeValue): RuntimeValue | undefined => {
     const found = resolveRuntimeTypeAttribute(type.value, values.string(reflectedName), special, values, meter);

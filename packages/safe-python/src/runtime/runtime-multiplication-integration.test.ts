@@ -1,7 +1,6 @@
 import { expect, it } from "vitest";
 import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
-import { createFunctionState } from "./function-state.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
 import { RuntimeValues, type RuntimeValue, type TypeValue } from "./runtime-values.js";
 import { ExecutionBudget } from "./execution-budget.js";
@@ -11,6 +10,7 @@ import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { createRepresentationBuiltin } from "./builtin-representation.js";
 import { createSumBuiltin } from "./builtin-sum.js";
+import { createPowBuiltin } from "./builtin-pow.js";
 import { CallStack } from "./call-stack.js";
 
 function fixture(signal?: AbortSignal) {
@@ -33,7 +33,10 @@ function fixture(signal?: AbortSignal) {
   }
   function method(owner: TypeValue, name: string, source: string) {
     const code = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter);
-    const value = v.function(createFunctionState(code.functions.values().next().value!, new Map(), { globals, builtins, none: v.none }, meter));
+    executeRuntimeProgram(code, { values: v, globals, builtins, keys, hooks, calls: new CallStack<object>(50, meter) }, meter);
+    const functionName = code.functions.values().next().value!.name;
+    if (functionName.kind !== "str") throw Error("expected function name");
+    const value = globals.get(String.fromCodePoint(...functionName.value))!;
     owner.value.namespace.items.set(v.string(name), value); return value;
   }
   function guest(name: string, owner: TypeValue) { const value = v.cell({}); types.set(value, owner); globals.set(name, value); return value; }
@@ -604,4 +607,110 @@ it("stops numeric calls after cancellation without assigning their result", () =
 it("keeps ordinary native numeric expressions off the guest type policy", () => {
   const state = fixture(); state.run("result=(9-3)//2\n");
   expect(state.globals.get("result")).toEqual(state.v.integer(3));
+});
+
+it.each([
+  ["guest ** 7", "__pow__", false], ["7 ** guest", "__rpow__", false],
+  ["pow(guest, 7)", "__pow__", false], ["pow(7, guest, None)", "__rpow__", false],
+  ["pow(guest, 7, 5)", "__pow__", true], ["pow(7, guest, 5)", "__rpow__", true]
+] as const)("dispatches compiled power for %s", (expression, name, ternary) => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("Derived", base);
+  state.globals.set("pow", createPowBuiltin(state.v, state.meter));
+  state.method(base, name, `def power(self, other${ternary ? ", modulus" : ""}):\n visit('power')\n return ${ternary ? "modulus" : "other"}\n`);
+  state.guest("guest", owner); state.run(`def calculate():\n return ${expression}\nresult=calculate()\n`);
+  expect(state.globals.get("result")).toEqual(state.v.integer(ternary ? 5 : 7)); expect(state.events).toEqual(["power"]);
+});
+
+it("falls back from declined in-place power to compiled ordinary power", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__ipow__", "def inplace(self, other):\n visit('inplace')\n return NotImplemented\n");
+  state.method(owner, "__pow__", "def power(self, other):\n visit('ordinary')\n return False\n");
+  state.guest("guest", owner); state.run("guest **= 3\n");
+  expect(state.globals.get("guest")).toBe(state.v.false); expect(state.events).toEqual(["inplace", "ordinary"]);
+});
+
+it("lets guest power accept a float modulus before its native slot", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.globals.set("pow", createPowBuiltin(state.v, state.meter));
+  state.method(owner, "__pow__", "def power(self, other, modulus):\n return False\n");
+  state.guest("guest", owner); state.run("result=pow(guest, 7, 2.5)\n");
+  expect(state.globals.get("result")).toBe(state.v.false);
+});
+
+it.each([false, true])("orders power subtype overrides with ternary=%s", ternary => {
+  for (const overridden of [false, true]) {
+    const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base);
+    state.globals.set("pow", createPowBuiltin(state.v, state.meter));
+    state.method(base, "__pow__", "def power(self, other, modulus=None):\n visit('forward')\n return 1\n");
+    state.method(base, "__rpow__", "def power(self, other, modulus=None):\n visit('inherited')\n return 2\n");
+    if (overridden) state.method(derived, "__rpow__", "def power(self, other, modulus=None):\n visit('override')\n return 3\n");
+    state.guest("left", base); state.guest("right", derived);
+    state.run(`result=${ternary ? "pow(left, right, 5)" : "left ** right"}\n`);
+    expect(state.globals.get("result")).toEqual(state.v.integer(overridden ? 3 : 1));
+    expect(state.events).toEqual([overridden ? "override" : "forward"]);
+  }
+});
+
+it.each([false, true])("does not reflect same-type power with ternary=%s", ternary => {
+  const state = fixture(), owner = state.type("Guest");
+  state.globals.set("pow", createPowBuiltin(state.v, state.meter));
+  state.method(owner, "__pow__", "def power(self, other, modulus=None):\n visit('forward')\n return NotImplemented\n");
+  state.method(owner, "__rpow__", "def power(self, other, modulus=None):\n visit('reflected')\n return False\n");
+  state.guest("left", owner); state.guest("right", owner);
+  expect(() => state.run(`result=${ternary ? "pow(left, right, 5)" : "left ** right"}\n`)).toThrow(ternary
+    ? "unsupported operand type(s) for ** or pow(): 'Guest', 'Guest', 'int'"
+    : "unsupported operand type(s) for ** or pow(): 'Guest' and 'Guest'");
+  expect(state.events).toEqual(["forward"]);
+});
+
+it.each(["__pow__", "__rpow__"])("does not ignore disabled power method %s", name => {
+  const state = fixture(), owner = state.type("Guest");
+  owner.value.namespace.items.set(state.v.string(name), state.v.none);
+  state.guest("guest", owner);
+  expect(() => state.run(`result=${name === "__pow__" ? "guest ** 2" : "2 ** guest"}\n`)).toThrow("'NoneType' object is not callable");
+});
+
+it.each([
+  ["pow(guest, 7, 2.5)", ["forward"]],
+  ["pow(7, guest, 2.5)", ["reflected"]],
+  ["pow(2.5, guest, 7)", []]
+])("orders native float power slots for %s", (expression, events) => {
+  const state = fixture(), owner = state.type("Guest");
+  state.globals.set("pow", createPowBuiltin(state.v, state.meter));
+  state.method(owner, "__pow__", "def power(self, other, modulus):\n visit('forward')\n return NotImplemented\n");
+  state.method(owner, "__rpow__", "def power(self, other, modulus):\n visit('reflected')\n return NotImplemented\n");
+  state.guest("guest", owner);
+  expect(() => state.run(`result=${expression}\n`)).toThrow("pow() 3rd argument not allowed unless all arguments are integers");
+  expect(state.events).toEqual(events);
+});
+
+it("does not call the modulus object's power methods", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.globals.set("pow", createPowBuiltin(state.v, state.meter));
+  state.method(owner, "__pow__", "def power(self, other, modulus):\n visit('forward')\n return False\n");
+  state.method(owner, "__rpow__", "def power(self, other, modulus):\n visit('reflected')\n return False\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=pow(7, 2, guest)\n")).toThrow("unsupported operand type(s) for ** or pow(): 'int', 'int', 'Guest'");
+  expect(state.events).toEqual([]);
+});
+
+it("shares explicit power policies with operators and builtins without losing their receiver", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner), v = state.v;
+  state.globals.set("pow", createPowBuiltin(v, state.meter));
+  state.hooks.specialMethods = () => ({ typeOf(): never { throw Error("explicit power policy must win"); }, slots: () => undefined });
+  const policy = { power(base: RuntimeValue, exponent: RuntimeValue, modulus: RuntimeValue) {
+    expect(this).toBe(policy); expect(base).toBe(guest); expect(exponent).toEqual(v.integer(2)); return modulus;
+  } };
+  state.hooks.expressions = () => ({ warn() {}, power: policy });
+  state.run("binary=guest ** 2\nternary=pow(guest, 2, 5)\n");
+  expect(state.globals.get("binary")).toBe(v.none); expect(state.globals.get("ternary")).toEqual(v.integer(5));
+});
+
+it("rejects cancelled compiled power before result write-back", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest");
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { controller.abort(); return state.v.none; } }));
+  state.method(owner, "__pow__", "def power(self, other):\n stop()\n return False\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=guest ** 2\n")).toThrow("execution cancelled");
+  expect(state.globals.has("result")).toBe(false);
 });

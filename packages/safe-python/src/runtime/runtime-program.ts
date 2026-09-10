@@ -5,6 +5,7 @@ import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
 import { createRuntimeNumericContext } from "./runtime-numeric-context.js";
+import { createRuntimePowerContext } from "./runtime-power-context.js";
 import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
 import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { executeFunctionDefinition } from "./function-definition.js";
@@ -132,7 +133,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       setAttribute: statementHooks.setAttribute.bind(statementHooks),
       deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),
       attribute: (object, name) => expressions.attribute(object, name),
-      power: expressionHooks.power,
+      get power() { return power; },
       isCallable: value => runtimeCallable(value, meter, hooks),
       binary: (operator, left, right) => expressions.binary(operator, left, right),
       get integerIndex() { return getIntegerIndex(); },
@@ -154,6 +155,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         meter.checkpoint(); return result;
       }
     };
+    const power = expressionHooks.power ?? (specialMethods === undefined ? undefined : createRuntimePowerContext(values, meter, specialMethods, builtinCalls));
     let integerIndex: IntegerIndexContext<RuntimeValue> | undefined, indexResolved = false;
     const getIntegerIndex = () => {
       meter.checkpoint();
@@ -197,7 +199,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
       multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),
       numeric: expressionHooks.numeric?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeNumericContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
-      power: expressionHooks.power,
+      power,
       truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks),
       containment: expressionHooks.containment?.bind(expressionHooks),

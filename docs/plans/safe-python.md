@@ -7524,6 +7524,19 @@ extension, integration, or validation requirement is missing or unverified.
   CPython. All 5,708 tests in 450 files and scoped lint pass. Automatic power MRO,
   native-subclass storage, metaclass overrides, full native formatting/iteration
   policies and suspended safe-fs effects remain unfinished.
+- Added frame-owned binary and ternary power MRO dispatch, shared by ** and pow
+  while preserving explicit power policies. Real moduli reach guest methods;
+  omitted/None moduli retain binary call arity. Individual native power slots
+  prevent a later modulus from preempting guest methods, and the modulus object
+  never becomes a Python method receiver. Eight regressions failed first. Twenty
+  added tests cover nested inherited calls, in-place fallback, subtype ordering,
+  same-type suppression, disabled methods, native slot order, policy receivers
+  and cancellation. The numeric fixture now executes definitions normally so
+  default arguments are captured. All 144 compiled guest power comparisons and
+  988 native pow comparisons match CPython; 232 addition/repetition comparisons
+  remain unchanged. All 5,728 tests in 450 files pass, as do the selected workspace
+  build, typecheck and scoped lint. Unary/divmod frame assembly, native-subclass storage,
+  metaclass overrides and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

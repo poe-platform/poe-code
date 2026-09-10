@@ -17,6 +17,7 @@ import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.j
 import { constructRuntimeSet } from "./runtime-set.js";
 import { constructRuntimeFrozenSet } from "./runtime-frozenset.js";
 import { createHashBuiltin } from "./builtin-hash.js";
+import { createRuntimeStringTranslateMethod } from "./runtime-string-translate-method.js";
 import { createRuntimeKeyOperations } from "./runtime-key-operations.js";
 import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
@@ -78,6 +79,47 @@ function exceptionFixture() {
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("dispatches string translation through guest mapping subscriptions",()=>{
+  const state=exceptionFixture();
+  state.run("class Table:\n def __getitem__(self,key):\n  return key+1\ncorrect='abc'.translate(Table())=='bcd'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves characters for guest translation LookupError subclasses",()=>{
+  for(const name of ["KeyError","IndexError","LookupError"] as const) {
+    const state=exceptionFixture();state.globals.set(name,state.registry.exceptionType(name));
+    state.run(`class Missing(${name}):\n pass\nclass Table:\n def __getitem__(self,key):\n  raise Missing(key)\ncorrect='abé😀'.translate(Table())=='abé😀'\n`);
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("accepts native integer subclass payloads in string translation without coercion",()=>{
+  const state=exceptionFixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Code(Int):\n def __index__(self):\n  visit('index')\n  return 0\n def __int__(self):\n  visit('int')\n  return 0\ncorrect='abc'.translate({97:Code(98),98:Code(99),99:Code(100)})=='bcd'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+});
+
+it("does not let an explicit translation exception policy swallow termination",()=>{
+  const state=exceptionFixture(),failure=new ExecutionLimitError("cancelled");
+  state.builtins.set("translate",createRuntimeStringTranslateMethod(state.v.string("abc"),state.v,state.meter,{lookup(){throw failure;},isLookupError(){return true;}}));
+  let caught:unknown;try{state.run("translate(None)\n");}catch(error){caught=error;}
+  expect(caught).toBe(failure);
+});
+
+it("preserves nonmatching guest errors during string translation",()=>{
+  const state=exceptionFixture();
+  state.run("original=ValueError('mapping')\nclass Table:\n def __getitem__(self,key):\n  raise original\ntry:\n result='abc'.translate(Table())\nexcept ValueError as error:\n correct=error is original\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves host failures during guest string translation",()=>{
+  for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"LookupError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("class Table:\n def __getitem__(self,key):\n  fail()\ntry:\n result='abc'.translate(Table())\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
 
 it("uses frozen contents for set subclass probes after guest hash TypeError",()=>{
   for(const action of ["result=probe in target","target.discard(probe)\nresult=target==set()","target.remove(probe)\nresult=target==set()"]) {

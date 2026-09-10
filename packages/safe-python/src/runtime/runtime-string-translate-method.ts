@@ -1,7 +1,9 @@
 import type { CodePointString } from "./code-point-string.js";
 import { PythonRuntimeError } from "./error.js";
-import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeIndex } from "./runtime-index.js";
+import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
+import { runtimeGetItem } from "./runtime-subscription.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 import { translateString, type CharacterTranslation } from "./string-translation.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -20,7 +22,7 @@ export function createRuntimeStringTranslateMethod(receiver: Extract<RuntimeValu
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "translate",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "str.translate() takes no keyword arguments");
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `str.translate() takes exactly one argument (${positional.length} given)`);
@@ -28,17 +30,19 @@ export function createRuntimeStringTranslateMethod(receiver: Extract<RuntimeValu
       meter.checkpoint(0, 64);
       const mapping = (point: number): CharacterTranslation => {
         const key = values.integer(point); let result: RuntimeValue;
-        try { result = context.lookup === undefined ? runtimeIndex(positional[0], key, values, meter) : context.lookup(positional[0], key); }
+        try { result = context.lookup === undefined ? runtimeGetItem(positional[0], key, values, meter, invocation, invocation?.integerIndex) : context.lookup(positional[0], key); }
         catch (error) {
+          if (error instanceof ExecutionLimitError) throw error;
           meter.checkpoint();
-          const missing = error instanceof PythonRuntimeError && (error.name === "KeyError" || error.name === "IndexError" || error.name === "LookupError") || context.isLookupError?.(error) === true;
+          const missing = error instanceof PythonRuntimeError && (error.name === "KeyError" || error.name === "IndexError") || runtimeExceptionMatches(error, "LookupError", invocation) || context.isLookupError?.(error) === true;
           meter.checkpoint();
           if (missing) return undefined;
           throw error;
         }
         meter.checkpoint();
         if (result.kind === "none") return null;
-        const integer = result.kind === "int" ? result.value : result.kind === "bool" ? (result.value ? 1n : 0n) : context.integer?.(result);
+        const payload = runtimeIntegerPayload(result);
+        const integer = result.kind === "int" ? result.value : result.kind === "bool" ? (result.value ? 1n : 0n) : context.integer?.(result) ?? (payload?.kind === "int" ? payload.value : undefined);
         meter.checkpoint();
         if (integer !== undefined) {
           if (integer < 0n || integer > 0x10ffffn) throw new PythonRuntimeError("ValueError", "character mapping must be in range(0x110000)");

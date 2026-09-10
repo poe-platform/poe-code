@@ -10011,6 +10011,19 @@ extension, integration, or validation requirement is missing or unverified.
   passing comparisons. The full public interpreter, standard library,
   specialized exceptions, suspension and safe-fs assembly remain unfinished.
   No push or release requested.
+- Guest string translation (2026-09-10): failing regressions drove default
+  runtime subscription dispatch for str.translate tables, guest LookupError
+  identity fallback and native integer-subclass result inspection without
+  coercion. Explicit lookup/payload policies retain their priority. A separate
+  failing safety regression prevents an explicit translation exception policy
+  from swallowing execution limits; nonmatching guest and host failures still
+  propagate. All 690 focused translation/integration tests, 100 CPython
+  comparisons, selected workspace build, typecheck and focused lint pass.
+  Comparisons cover observable lookup caching/retries, Unicode, deletion,
+  expansion, missing/overridden dictionary lookup, descriptors and class tables.
+  Full string subclass storage, broader public runtime/standard-library/safe-fs
+  assembly, suspension and specialized exception families remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

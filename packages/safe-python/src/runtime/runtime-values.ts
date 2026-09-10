@@ -214,6 +214,7 @@ export interface ClassMethodDescriptorValue {
 }
 
 export type NativeMethodDescriptorValue = MethodDescriptorValue | ClassMethodDescriptorValue;
+export type NativeDescriptorValue = NativeMethodDescriptorValue | WrapperDescriptorValue | GetsetDescriptorValue | MemberDescriptorValue;
 
 export interface WrapperDescriptorValue {
   readonly kind: "wrapper_descriptor";
@@ -277,6 +278,7 @@ export type RuntimeValue =
  * separate concerns; this is not yet the complete Python object model.
  */
 export class RuntimeValues extends ConstantValues {
+  #descriptorQualifiedNames?: WeakMap<NativeDescriptorValue, Extract<PrimitiveConstant, { kind: "str" }>>;
   #nativeImplementations?: WeakMap<MethodDescriptorCapability["invoke"], NativeMethodDescriptorValue>;
   constructor(private readonly runtimeMeter: ExecutionMeter) {
     super(runtimeMeter);
@@ -382,6 +384,24 @@ export class RuntimeValues extends ConstantValues {
   methodDescriptor(value: MethodDescriptorCapability): MethodDescriptorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "method_descriptor", value });
+  }
+
+  /** Outer initialization replaces nested entries on success and clears them
+   * on failure, matching native descriptor qualified-name caching. */
+  descriptorQualifiedName(descriptor: NativeDescriptorValue, create: () => Extract<PrimitiveConstant, { kind: "str" }>): Extract<PrimitiveConstant, { kind: "str" }> {
+    this.runtimeMeter.checkpoint();
+    const cached = this.#descriptorQualifiedNames?.get(descriptor);
+    if (cached !== undefined) return cached;
+    try {
+      const value = create();
+      this.runtimeMeter.checkpoint(1, this.#descriptorQualifiedNames === undefined ? 112 : 48);
+      this.#descriptorQualifiedNames ??= new WeakMap();
+      this.#descriptorQualifiedNames.set(descriptor, value);
+      return value;
+    } catch (error) {
+      this.#descriptorQualifiedNames?.delete(descriptor);
+      throw error;
+    }
   }
 
   classMethodDescriptor(value: MethodDescriptorCapability): ClassMethodDescriptorValue {

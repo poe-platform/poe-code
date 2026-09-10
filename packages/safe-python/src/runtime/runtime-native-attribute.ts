@@ -60,6 +60,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
+import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } from "./runtime-native-method-metadata.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
  * exposed; host payload fields and JavaScript prototypes are never inspected.
@@ -67,7 +68,7 @@ import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. A formatting
  * supplier is acquired only for members that actually require that policy. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & NativeMethodMetadataContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "function") {
     if (name === "__dict__") {
@@ -103,19 +104,8 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "__func__") return receiver.value.function;
     if (name === "__self__") return receiver.value.instance;
   }
-  if ((receiver.kind === "method_descriptor" || receiver.kind === "classmethod_descriptor") || receiver.kind === "wrapper_descriptor" || receiver.kind === "getset_descriptor" || receiver.kind === "member_descriptor") {
-    if (name === "__name__") return values.string(receiver.value.name);
-    if (name === "__objclass__") return receiver.value.owner;
-  }
-  if (receiver.kind === "method-wrapper") {
-    if (name === "__name__") return values.string(receiver.value.descriptor.value.name);
-    if (name === "__objclass__") return receiver.value.descriptor.value.owner;
-    if (name === "__self__") return receiver.value.instance;
-  }
-  if (receiver.kind === "builtin_function_or_method" && receiver.binding !== undefined) {
-    if (name === "__name__") return values.string(receiver.binding.descriptor.value.name);
-    if (name === "__self__") return receiver.binding.instance;
-  }
+  const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
+  if (metadata !== undefined) return metadata;
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
     const supplied = typeof formatting === "function" ? formatting() : formatting; meter.checkpoint();
     const context = supplied ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });

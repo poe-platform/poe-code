@@ -266,6 +266,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
       instanceAttribute: specialMethods === undefined ? undefined : (instance, name) => runtimeInstanceAttribute(instance, name, values, meter, specialMethods, builtinCalls),
       typeAttribute: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods, builtinCalls),
+      actualType: builtinCalls.actualType,
       get formattedString() { return expressionHooks.formattedString; },
       addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
       multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),

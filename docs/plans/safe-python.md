@@ -8146,6 +8146,19 @@ extension, integration, or validation requirement is missing or unverified.
   files, selected build, typecheck and scoped lint pass. Full slot signatures,
   the ModuleType reassignment exception, canonical native type coverage and the
   complete class-construction pipeline remain unfinished.
+- Added native __qualname__ metadata for descriptors, method wrappers and bound
+  built-ins. Descriptor names cache their defining owner's ordinary qualified-name
+  lookup; bound native methods recompute from the current receiver class. Shared
+  descriptor/wrapper caches publish successful outer reads and clear nested
+  entries when outer initialization fails, matching a reproduced reentrancy case.
+  Joining preserves Python code points, including separate surrogate code points.
+  Two compiled regressions and one cache-failure regression initially failed;
+  six focused tests cover descriptor families, cache sharing, live type identity,
+  code points, reentrancy and cancellation. All 105 metadata reads, 30 existing
+  metadata cases and 180 native class-method binding/invocation cases match
+  CPython. All 6,324 tests in 483 files, selected build, typecheck and scoped lint
+  pass. Complete native member/type publication, slot layouts, ModuleType class
+  reassignment and full class construction remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -13,7 +13,7 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import { runtimeUnary, type RuntimeUnaryProtocol } from "./runtime-unary.js";
-import { hasRuntimeInstanceAttributes, type AttributeInstanceValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type AttributeInstanceValue, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
 import type { KeyOperations } from "./ordered-key-map.js";
 import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
@@ -50,6 +50,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     /** Type-level numeric unary methods; logical not remains truth-owned. */
     readonly unary?: RuntimeUnaryProtocol;
     readonly iteration?: IterationContext<RuntimeValue>;
+    /** Actual type for native method metadata, independent of __class__ shadows. */
+    actualType?(value: RuntimeValue): TypeValue;
     /** Default owned-instance lookup; an explicit attribute hook still wins. */
     instanceAttribute?(instance: AttributeInstanceValue, name: string): RuntimeValue;
     /** Default class lookup; an explicit attribute hook still wins. */
@@ -152,6 +154,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
   };
   meter.checkpoint(0, 384);
   const methods = {
+    actualType: bindings.actualType?.bind(bindings),
     attribute: context.attribute.bind(context),
     dictionaryKeys: "dictionaryKeys" in bindings ? bindings.dictionaryKeys : undefined,
     iterate: context.iterate.bind(context), compare: context.compare.bind(context),

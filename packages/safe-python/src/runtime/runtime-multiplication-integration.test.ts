@@ -2230,6 +2230,27 @@ it("changes compatible mutable metaclasses and wrapper classes while preserving 
   expect(cls.metaclass).toBe(nextMeta); expect(wrapper.type).toBe(second);
 });
 
+it("caches descriptor qualified names while keeping bound native method names live", () => {
+  const state = fixture(), cls = allocateRuntimeType(state.v.string("C"), [], state.type("Source").value.namespace, state.registry.type, state.registry, state.v, state.meter);
+  state.globals.set("C", cls); state.globals.set("descriptor", cls.value.namespace.items.lookup(state.v.string("__dict__"))!.value); state.globals.set("object", state.registry.object);
+  state.run("first=descriptor.__qualname__\nmethod=C.__init_subclass__\nbefore=method.__qualname__\nC.__qualname__='Outer.C'\nafter=method.__qualname__\ncached=descriptor.__qualname__\nsame=first is cached\nwrapper=object.__init__.__qualname__\n");
+  expect(state.globals.get("first")).toEqual(state.v.string("C.__dict__")); expect(state.globals.get("before")).toEqual(state.v.string("C.__init_subclass__"));
+  expect(state.globals.get("after")).toEqual(state.v.string("Outer.C.__init_subclass__")); expect(state.globals.get("same")).toBe(state.v.true);
+  expect(state.globals.get("wrapper")).toEqual(state.v.string("object.__init__"));
+});
+
+it("uses metaclass lookup for native qualified names and retries failed descriptor reads", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type); state.globals.set("type", state.registry.type); state.globals.set("label", state.v.integer(7));
+  state.method(meta, "__getattribute__", "def get(self,name):\n if name=='__qualname__':\n  visit('qualname')\n  return label\n return type.__getattribute__(self,name)\n");
+  const cls = allocateRuntimeType(state.v.string("C"), [], state.type("Source").value.namespace, meta, state.registry, state.v, state.meter);
+  state.globals.set("C", cls); state.globals.set("descriptor", cls.value.namespace.items.lookup(state.v.string("__dict__"))!.value);
+  expect(() => state.run("descriptor.__qualname__\n")).toThrow("<descriptor>.__objclass__.__qualname__ is not a unicode object");
+  expect(() => state.run("C.__init_subclass__.__qualname__\n")).toThrow("<method>.__class__.__qualname__ is not a unicode object");
+  state.run("label='Q'\nfirst=descriptor.__qualname__\nlabel='R'\ncached=descriptor.__qualname__\nlive=C.__init_subclass__.__qualname__\n");
+  expect(state.globals.get("first")).toEqual(state.v.string("Q.__dict__")); expect(state.globals.get("cached")).toBe(state.globals.get("first"));
+  expect(state.globals.get("live")).toEqual(state.v.string("R.__init_subclass__")); expect(state.events).toEqual(["qualname", "qualname", "qualname", "qualname"]);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

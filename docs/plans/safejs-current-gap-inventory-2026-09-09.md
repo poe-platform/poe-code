@@ -15,12 +15,15 @@ PlainMonthDay remain absent. This checks names only against the backend, not
 descriptors, semantics, native engines or full standards conformance; it does
 not supersede the unresolved full-suite failures below.
 
-A new maintained package gate is running in session 63746, including the latest
-ZonedDateTime locale and Duration owned-relativeTo changes. See
-[the current gate record](safejs-post-zoned-integration-gate.md). No result is
-claimed until that process finishes and its source fingerprint is rechecked.
+A new maintained package gate finished in session 63746, including the latest
+ZonedDateTime locale and Duration owned-relativeTo changes: 26,915 passed,
+15 failed and 41 skipped, plus 100 passing filesystem type contracts. Its
+1,528-file source fingerprint matched before/after. Failures comprise two native
+Promise import expectations, ten timeouts and three dependent setup assertions.
+See [the current gate record](safejs-post-zoned-integration-gate.md). Integration
+is not complete; an unchanged focused rerun is pending.
 
-A fresh full package gate after PlainDate/Intl integration finished; see
+The earlier full package gate after PlainDate/Intl integration finished; see
 [the source fingerprint and live-run record](safejs-post-plain-date-full-gate.md).
 Its 100 filesystem type contracts passed. Final results: 26,777 passed, four
 failed and 41 skipped; the source fingerprint matched before/after. Two

@@ -3,11 +3,37 @@
 The maintained command `npm test --workspace=@poe-code/safe-js` started in
 session 63746 (7d33be). This gate includes public ZonedDateTime integration,
 locale formatting, and Duration private ZonedDateTime relativeTo admission.
-The process is live; there are no final test counts yet.
+The process terminated with exit code 1 (ba9a26). Final results:
 
-Pretest completed all 100 filesystem type contracts (b1dadf). Unit execution
-is live and has emitted failure markers (d84c78, f05914); wait for the named
-terminal report before diagnosing their cause. Do not call this a green run.
+- 26,915 passed, 15 failed, 41 skipped; 26,971 tests total.
+- 1,129 files passed, five failed, two skipped; 1,136 files total.
+- Duration: 1,730.39 seconds; all 100 filesystem type contracts passed.
+- The post-run fingerprint (e6cfb7) matches the early-run fingerprint below.
+
+This is a failing gate, not completed integration or JavaScript conformance.
+No Temporal-named test failed in this run; that does not prove full Temporal
+behavior, upstream coverage or Node 18 portability.
+
+## Failure disposition
+
+The terminal report lists two native Promise own-property import failures,
+ten 5-second timeouts, and three dependent assertions seeing undefined instead
+of an expected completed setup result. No timeout has been repaired yet.
+
+- cli-entrypoint.test.ts: first direct source entrypoint help import timed out.
+- run.completed-replay.test.ts: 128-draw replay timed out again.
+- input-error-projection.test.ts: four proof cases, one completed replay, and
+  raw public-input qualification timed out. Three subsequent completed-replay
+  cases failed because completedProof.status was unavailable.
+- promise-import-properties.test.ts: missing own string descriptor and user
+  symbol value; the isolation-policy question remains unresolved.
+- regex-cursor.independent.test.ts: the empty-pattern multiline match and
+  multiline ^a. replacement cases timed out.
+
+The previous PPR2 co timeout did not recur; this is not proof of a repair.
+An unchanged focused rerun of all five failing files is live in session 68744
+(fdb34c). Its result must not replace the full-gate failures or justify raising
+timeouts/removing coverage. Validate causes before applying fixes.
 
 ## Independent locale corpus
 
@@ -32,8 +58,8 @@ Early-run fingerprint (313f8b), collected during pretest before unit execution:
 - Sort paths lexicographically; feed each path, NUL, file bytes, NUL into SHA-256.
 - SHA-256: `2fdd79d4a7c49d345ad3a977df2e34e51b266904d2df7d904e7dbef50532472b`.
 
-Keep implementation/test sources unchanged during this run; documentation-only
-updates do not enter this fingerprint. Recompute it after termination. A match
+Implementation/test sources stayed unchanged during this run; documentation-only
+updates do not enter this fingerprint. The terminal recheck matched. A match
 does not turn a failing gate into a pass or cover dependencies outside its scope.
 Output is captured through the live process tool, not a separately saved log.
 

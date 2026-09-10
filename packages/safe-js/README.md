@@ -936,7 +936,7 @@ resolved options as a fallback.
 `PlainTime.toLocaleString`, `PlainDateTime.toLocaleString` and `PlainDate.toLocaleString` accept valid fixed-offset
 time zones on Node 18 and preserve their wall-clock fields. Fixed-offset numeric Date/Instant and direct
 Intl formatting on older hosts remain incomplete.
-The latest completed full SafeJS run includes the working-tree PlainDateTime, PlainDate
+The earlier full SafeJS run includes the working-tree PlainDateTime, PlainDate
 and direct-Intl integration: 26,777 tests passed, four failed and 41 were skipped.
 Two failures concern native Promise property-import expectations; two exceeded
 the 5-second timeout in completed replay and PPR2 continuation tests.
@@ -944,9 +944,11 @@ All 100 filesystem type contracts passed, and the source fingerprint matched
 before and after the run. No Temporal/Intl tests failed, but this is not a green
 package gate or complete JavaScript conformance; see the
 [full-run record](../../docs/plans/safejs-post-plain-date-full-gate.md).
-A newer [ZonedDateTime integration gate](../../docs/plans/safejs-post-zoned-integration-gate.md)
-is running against the current source. Its pending result does not supersede
-the completed failing gate above.
+The newer [ZonedDateTime integration gate](../../docs/plans/safejs-post-zoned-integration-gate.md)
+completed with 26,915 passed, 15 failed and 41 skipped, plus 100 passing filesystem
+type contracts. Its source fingerprint matched before and after. The failures
+were two Promise import expectations, ten timeouts and three dependent setup
+assertions. No Temporal-named tests failed, but the integration gate is not green.
 Instant differences (`until`/`since`) return
 Durations, and Instant `toLocaleString` supports locale-aware formatting.
 `Temporal.ZonedDateTime` now has a constructor, field getters, owned copying,

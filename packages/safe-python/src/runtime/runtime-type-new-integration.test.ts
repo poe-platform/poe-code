@@ -19,6 +19,7 @@ import { runtimeHash } from "./runtime-hash.js";
 import { constructRuntimeSet } from "./runtime-set.js";
 import { constructRuntimeFrozenSet } from "./runtime-frozenset.js";
 import { createHashBuiltin } from "./builtin-hash.js";
+import { createRuntimeKeyOperations } from "./runtime-key-operations.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -46,6 +47,19 @@ function fixture() {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it.each(["dict", "set"])("uses guest hash, reflected equality and truth for %s keys", kind => {
+  const state = fixture(), { v, meter } = state;
+  state.builtins.set("make", v.builtinFunction({ name: "make", invoke(_args, _keywords, _meter, invocation) {
+    const items = new OrderedKeyMap<RuntimeValue, RuntimeValue>(createRuntimeKeyOperations(v, state.hash, meter, invocation), meter);
+    return kind === "dict" ? v.dictionary(items) : v.set(items);
+  } }));
+  state.run(`class Truth:\n def __bool__(self):\n  visit('truth')\n  return True\nclass Key:\n def __hash__(self):\n  visit('hash')\n  return 7\n def __eq__(self,other):\n  visit('base')\n  return False\nclass Child(Key):\n __hash__=Key.__hash__\n def __eq__(self,other):\n  visit('child')\n  return Truth()\nleft=Key()\nright=Child()\nresult=make()\n${kind === "dict" ? "result[left]=1\nresult[right]=2" : "result.add(left)\nresult.add(right)"}\nfound=right in result\n`);
+  const result = state.globals.get("result")!;
+  if (result.kind !== "dict" && result.kind !== "set") throw Error("expected collection");
+  expect(result.items.size).toBe(1); expect(state.globals.get("found")).toBe(v.true);
+  expect(state.events).toEqual(["hash", "hash", "child", "truth", "hash", "child", "truth"]);
+});
 
 it("calls instance type slots and reflects callability without binding the descriptor", () => {
   const state = fixture(), { v } = state;

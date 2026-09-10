@@ -8478,6 +8478,18 @@ extension, integration, or validation requirement is missing or unverified.
   The prior 240 guest-hash differential cases also still match CPython.
   Collection key integration and
   canonical native object hash exposure remain unfinished.
+- Added a reusable execution-owned collection key-policy factory composing the
+  trusted hash domain, live guest hash slots, rich equality and truth conversion.
+  Storage retains identity shortcuts, mutation retries and cached-hash ownership;
+  the adapter preserves hash-error provenance for container diagnostics. Initial
+  tests failed because the factory was absent. Compiled dictionary/set cases now
+  exercise subclass-reflected equality and guest truth with callback traces
+  matching CPython. Additional cases cover native fallback, explicit hash
+  extensions and comparison/truth exception identity. This is an explicit
+  assembly capability, not automatic runtime-program wiring: one shared policy
+  and a suitable invocation lifetime still need public execution integration.
+  Selected workspace build, typecheck, scoped lint and all 6,534 tests in 492
+  files pass (two workers).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

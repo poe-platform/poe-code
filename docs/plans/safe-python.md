@@ -10071,6 +10071,25 @@ extension, integration, or validation requirement is missing or unverified.
   controls, public compile/exec and traceback rendering remain unfinished,
   alongside specialized exception families, suspension, standard-library and
   safe-fs assembly. No push or release requested.
+- Native Unicode exception family (2026-09-10): failing regressions drove shared
+  UnicodeEncodeError/UnicodeDecodeError/UnicodeTranslateError native layouts,
+  initialization, mutable object fields, signed-size numeric members and native
+  formatting. Initialization uses index slots; member writes require integer
+  payloads without conversion. Failed initialization replaces args but preserves
+  native fields and callback effects. Formatting converts reason/encoding before
+  rereading mutable object/position fields. Decode buffers are copied after
+  argument validation and released even on fatal copy failures. Structured
+  internal encode/decode faults now retain native arguments and all five fields
+  when converted into guest exceptions. Seven focused regressions and all 696
+  integration tests pass, as do 201 Unicode and 167 prior syntax-exception
+  CPython comparisons, selected workspace build, typecheck and focused lint.
+  All 7,253 tests in 503 files pass in the full uncached one-worker run
+  (161.95s; bodies 8.88s). The comparison audit also
+  reconfirmed missing comprehension execution (UnsupportedExpressionError);
+  exception MRO comparisons use ordinary loops and do not count comprehensions
+  as supported. Full string/bytes subclass storage, OS exceptions, traceback,
+  suspension, public interpreter/stdlib and safe-fs assembly remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

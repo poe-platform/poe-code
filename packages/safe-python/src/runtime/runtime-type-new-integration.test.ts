@@ -11,6 +11,8 @@ import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
 import { PythonRuntimeError } from "./error.js";
+import { PythonEncodeError } from "./encode-error.js";
+import { PythonDecodeError } from "./decode-error.js";
 import { createBuildClassBuiltin } from "./builtin-build-class.js";
 import { createCallableBuiltin } from "./builtin-callable.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
@@ -81,6 +83,67 @@ function exceptionFixture() {
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("constructs and renders native Unicode exception families",()=>{
+  for(const [name,args,text] of [
+    ["UnicodeEncodeError","'ascii','🙂',0,1,'bad'","'ascii' codec can't encode character '\\U0001f642' in position 0: bad"],
+    ["UnicodeDecodeError","'ascii',b'\\xff',0,1,'bad'","'ascii' codec can't decode byte 0xff in position 0: bad"],
+    ["UnicodeTranslateError","'é',0,1,'bad'","can't translate character '\\xe9' in position 0: bad"]
+  ] as const) {
+    const state=exceptionFixture();state.globals.set("Error",state.registry.exceptionType(name));state.globals.set("expected",state.v.string(text));
+    state.run(`error=Error(${args})\ncorrect=error.start==0 and error.end==1 and error.reason=='bad' and f'{error}'==expected and error.__reduce__()==(Error,error.args)\n`);
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("keeps Unicode native fields on failed initialization while replacing args",()=>{
+  const state=exceptionFixture();state.globals.set("Error",state.registry.exceptionType("UnicodeTranslateError"));
+  state.run("error=Error('old',0,1,'old reason')\ntry:\n error.__init__('new',2,3,None)\nexcept TypeError:\n correct=error.args==('new',2,3,None) and error.object=='old' and error.start==0 and error.end==1 and error.reason=='old reason'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("converts structured codec faults with native Unicode fields and args",()=>{
+  for(const mode of ["encode","decode"] as const) {
+    const state=exceptionFixture(),name=mode==="encode"?"UnicodeEncodeError":"UnicodeDecodeError";
+    const source=mode==="encode"?state.v.string("\ud800"):state.v.bytes(Uint8Array.of(255));
+    const failure=mode==="encode"?new PythonEncodeError("utf-8",state.v.string("\ud800").value,0,1,"bad"):new PythonDecodeError("utf-8",Uint8Array.of(255),0,1,"bad");
+    state.globals.set("Error",state.registry.exceptionType(name));state.globals.set("source",source);state.globals.set("message",state.v.string(failure.message));
+    state.builtins.set("codec",state.v.builtinFunction({name:"codec",invoke(){throw failure;}}));
+    state.run("try:\n codec()\nexcept Error as error:\n correct=error.args==('utf-8',source,0,1,'bad') and error.encoding=='utf-8' and error.object==source and error.start==0 and error.end==1 and error.reason=='bad' and f'{error}'==message\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("copies Unicode decode buffers after argument conversion and releases on fatal copy failure",()=>{
+  for(const failure of [undefined,new ExecutionLimitError("cancelled"),Error("host copy")]) {
+    const events:string[]=[];
+    const state=fixture(undefined,undefined,{buffers:{acquireSimple(){events.push("acquire");return {byteLength:1,copy(){events.push("copy");if(failure)throw failure;return state.v.bytes(Uint8Array.of(255)).value;},release(){events.push("release");}};}}},true);
+    state.globals.set("Error",state.registry.exceptionType("UnicodeDecodeError"));state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("source",state.v.cell({}));
+    state.run("class Index:\n def __index__(self):\n  visit('index')\n  return 0\n");
+    state.builtins.set("visit",state.v.builtinFunction({name:"visit",invoke(){events.push("index");return state.v.none;}}));
+    let caught:unknown;try{state.run("try:\n error=Error('ascii',source,Index(),1,'bad')\n correct=error.object==b'\\xff' and error.args[1] is source\nexcept BaseException:\n correct=False\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(events).toEqual(["index","acquire","copy","release"]);
+    if(failure===undefined)expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("uses index slots only during Unicode exception initialization",()=>{
+  const state=exceptionFixture();state.globals.set("Error",state.registry.exceptionType("UnicodeTranslateError"));
+  state.run("class Index:\n def __index__(self):\n  visit('index')\n  return 2\nerror=Error('abc',Index(),3,'bad')\ntry:\n error.start=Index()\nexcept TypeError:\n correct=error.start==2\ntry:\n del error.end\nexcept TypeError:\n correct=correct and error.end==3\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["index"]);
+});
+
+it("reads Unicode error locations after formatting callbacks",()=>{
+  const state=exceptionFixture();state.globals.set("Error",state.registry.exceptionType("UnicodeTranslateError"));
+  state.run("error=Error('abc',0,1,'bad')\nclass Reason:\n def __str__(self):\n  error.object='🙂'\n  error.start=0\n  error.end=1\n  return 'changed'\nerror.reason=Reason()\ntext=f'{error}'\n");
+  expect(state.globals.get("text")).toEqual(state.v.string("can't translate character '\\U0001f642' in position 0: changed"));
+});
+
+it("keeps uninitialized Unicode exception state separate from the guest dictionary",()=>{
+  const state=exceptionFixture();state.globals.set("Error",state.registry.exceptionType("UnicodeTranslateError"));
+  state.run("error=Error.__new__(Error,'unused')\nerror.__dict__['object']='shadow'\ncorrect=error.args==('unused',) and error.object is None and error.start==0 and error.end==0 and f'{error}'==''\nerror.__init__('abc',0,1,'bad')\ndel error.object\ncorrect=correct and error.object is None and f'{error}'==''\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
 
 it("preserves parser source text and available token end positions in guest errors",()=>{
   const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));

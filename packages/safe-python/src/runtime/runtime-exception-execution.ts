@@ -3,6 +3,8 @@ import type { Statement } from "../statement-ast.js";
 import { PythonSyntaxError } from "../source.js";
 import { PythonIndentationError, PythonTabError } from "../indentation.js";
 import { PythonRuntimeError } from "./error.js";
+import { PythonEncodeError } from "./encode-error.js";
+import { PythonDecodeError } from "./decode-error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { HandledExceptionState } from "./exception-state.js";
 import { matchExceptionType } from "./exception-matching.js";
@@ -77,8 +79,15 @@ export class RuntimeExceptionExecution {
       return this.chain(value);
     }
     if(!(error instanceof PythonRuntimeError)||!Object.hasOwn(standardExceptionCatalog,error.name))return error;
-    const args=error instanceof PythonKeyError?error.args:[this.values.string(error.message)];
+    const codec=error instanceof PythonEncodeError||error instanceof PythonDecodeError;
+    this.meter.checkpoint(0,codec?80:0);
+    const args=codec?[this.values.string(error.encoding),error instanceof PythonEncodeError?this.values.stringPoints(error.object):this.values.bytes(error.object),this.values.integer(error.start),this.values.integer(error.end),this.values.string(error.reason)]:error instanceof PythonKeyError?error.args:[this.values.string(error.message)];
     const value=this.native(error.name as StandardExceptionName,args);
+    if(codec) {
+      const storage=runtimeExceptionPayload(value)!;
+      const fields=["encoding","object","start","end","reason"];
+      for(let index=0;index<fields.length;index++){this.meter.checkpoint();storage.assignMember(fields[index],args[index],this.meter);}
+    }
     if(error.notes!==undefined) {
       const notes=this.values.list([]);
       for(const note of error.notes){this.meter.checkpoint();notes.items.append(this.values.string(note));}

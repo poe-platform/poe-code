@@ -6,7 +6,7 @@ import { suggestName } from "./name-suggestion.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 export interface ExceptionArgumentMember {
-  readonly members:readonly {readonly name:string;readonly doc:string}[];
+  readonly members:readonly {readonly name:string;readonly doc:string;readonly source?:"single-argument"}[];
   /** First-argument fields clear on empty initialization; all-argument fields
    * retain their prior value when called without arguments. Keyword fields use
    * their member name and validate after replacing args, before changing state. */
@@ -19,8 +19,8 @@ export function installExceptionArgumentMember(owner:TypeValue,spec:ExceptionArg
     for(const base of value.type.value.mro){meter.checkpoint();if(base===owner.value)return true;}
     return false;
   };
-  meter.checkpoint(0,32+8*spec.members.length);
-  const names=spec.members.map(member=>member.name);
+  meter.checkpoint(0,64+16*spec.members.length);
+  const names=spec.members.filter(member=>member.source===undefined).map(member=>member.name);
   for(const member of spec.members) {
     meter.checkpoint(0,96);
     owner.value.namespace.items.set(values.string(member.name),values.memberDescriptor({owner,name:member.name,doc:member.doc,accepts,
@@ -55,6 +55,7 @@ export function installExceptionArgumentMember(owner:TypeValue,spec:ExceptionArg
           inputs[index]=value;
         }
         for(let index=0;index<names.length;index++)storage.assignMember(names[index],inputs[index],meter);
+        for(const member of spec.members)if(member.source==="single-argument")storage.assignMember(member.name,args.items.length===1?args.items[0]:undefined,meter);
         return values.none;
       }
       if(args.items.length!==0||spec.arguments==="first")storage.assignMember(names[0],args.items.length===0?undefined:spec.arguments==="all"&&args.items.length>1?args:args.items[0],meter);

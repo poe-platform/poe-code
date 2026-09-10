@@ -9804,6 +9804,20 @@ extension, integration, or validation requirement is missing or unverified.
   Import, OS, Unicode and other specialized exceptions, tracebacks,
   fault translation, raise/try wiring and interpreter/safe-fs assembly remain
   unfinished. No push or release was requested.
+- Import exception state (2026-09-10): failing integration tests drove ImportError
+  and ModuleNotFoundError with msg/name/path/name_from native fields. A message
+  field derives from exactly one positional argument only after keyword validation;
+  invalid keywords replace args but retain prior native fields. String messages
+  override args-based display, nonstrings fall back, and subclass attribute shadows
+  do not replace native storage. Reduction preserves an existing dictionary alias
+  when metadata is absent and copies only when overlaying native import metadata.
+  Native msg is omitted. A callback-order regression verifies later metadata/args
+  mutations remain observable during reduction. All 100 focused CPython comparisons
+  match, along with 323 prior member-type comparisons. Focused tests, typecheck,
+  lint, the selected workspace build and all 7,151 tests in 502 files pass in the
+  uncached one-worker package run. OS, Unicode and other
+  specialized exceptions, tracebacks, fault translation, raise/try wiring and
+  interpreter/safe-fs assembly remain unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

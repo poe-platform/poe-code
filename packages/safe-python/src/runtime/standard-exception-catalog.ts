@@ -1,4 +1,5 @@
 import { installAttributeErrorStateDescriptors } from "./runtime-attribute-error-state.js";
+import { installImportErrorStateDescriptor } from "./runtime-import-error-state.js";
 
 /** Builtin exceptions using BaseException's allocation family. Representation
  * policies share storage; argument-derived members introduce native layouts.
@@ -23,6 +24,8 @@ export const standardExceptionCatalog = {
   NameError: {base:"Exception",doc:"Name not found globally.",ownAllocator:false,member:{members:[{name:"name",doc:"name"}],arguments:"keyword"}},
   AttributeError: {base:"Exception",doc:"Attribute not found.",ownAllocator:false,member:{members:[{name:"name",doc:"attribute name"},{name:"obj",doc:"object"}],arguments:"keyword"},install:installAttributeErrorStateDescriptors},
   UnboundLocalError: {base:"NameError",doc:"Local name referenced but not bound to a value.",ownAllocator:false},
+  ImportError: {base:"Exception",doc:"Import can't find module, or can't find name in module.",ownAllocator:false,stringMember:"msg",member:{members:[{name:"msg",doc:"exception message",source:"single-argument"},{name:"name",doc:"module name"},{name:"path",doc:"module path"},{name:"name_from",doc:"name imported from module"}],arguments:"keyword"},install:installImportErrorStateDescriptor},
+  ModuleNotFoundError: {base:"ImportError",doc:"Module not found.",ownAllocator:false},
   RuntimeError: {base:"Exception",doc:"Unspecified run-time error."},
   StopAsyncIteration: {base:"Exception",doc:"Signal the end from iterator.__anext__()."},
   SystemError: {base:"Exception",doc:"Internal error in the Python interpreter.\n\nPlease report this to the Python maintainer, along with the traceback,\nthe Python version, and the hardware/OS platform and version."},

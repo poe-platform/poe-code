@@ -70,6 +70,27 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("initializes ImportError message and metadata while preserving old fields on keyword failure",()=>{
+  const state=fixture();for(const name of ["ImportError","ModuleNotFoundError"] as const)state.globals.set(name,state.registry.exceptionType(name));
+  state.run("e=ModuleNotFoundError('old',name='n',path='p',name_from='f')\ninitial=e.msg=='old' and e.name=='n' and e.path=='p' and e.name_from=='f'\n");
+  expect(state.globals.get("initial")).toBe(state.v.true);
+  expect(()=>state.run("e.__init__('new',bad=1)\n")).toThrow("ImportError() got an unexpected keyword argument 'bad'");
+  state.run("retained=e.args==('new',) and e.msg=='old' and e.name=='n'\ne.msg='override'\ntext=f'{e}'\ne.msg=42\nfallback=f'{e}'\ne.__init__(1,2)\ncleared=e.msg is None and e.name is None and e.path is None and e.name_from is None\ncorrect=text=='override' and fallback=='new'\n");
+  for(const key of ["retained","cleared","correct"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("reduces ImportError with copy-on-metadata state and preserves empty dictionary aliases",()=>{
+  const state=fixture();state.globals.set("ImportError",state.registry.exceptionType("ImportError"));
+  state.run("e=ImportError('message')\ninitial=e.__reduce__()==(ImportError,('message',))\nd=e.__dict__\nplain=e.__reduce__()[2] is d\ne.name=None\nr=e.__reduce__()\ncopied=r[2]=={'name':None} and r[2] is not d and d=={}\ne.path='path'\ne.name_from='source'\ne.msg='not serialized'\ns=e.__reduce__()[2]\nmetadata=s=={'name':None,'path':'path','name_from':'source'}\ndel e.name\ndel e.path\ndel e.name_from\nrestored=e.__reduce__()[2] is d\n");
+  for(const key of ["initial","plain","copied","metadata","restored"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("uses native ImportError messages and observes metadata changes during reduction callbacks",()=>{
+  const state=fixture();state.globals.set("ImportError",state.registry.exceptionType("ImportError"));
+  state.run("class E(ImportError):\n msg='shadow'\nclass K:\n def __hash__(self):\n  return 23\n def __eq__(self,other):\n  if other=='name':\n   e.path='changed'\n   e.args=('changed',)\n   return True\n  return False\ne=E('message',name='n',path='old')\ne.__dict__[K()]='shadow'\nr=e.__reduce__()\ncorrect=f'{e}'=='message' and e.msg=='shadow' and r[1]==('changed',) and r[2]['path']=='changed'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("initializes AttributeError fields together and retains them when keyword validation fails",()=>{
   const state=fixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
   state.run("token=object()\ne=AttributeError('old',name='old',obj=token)\ninitial=e.name=='old' and e.obj is token\n");

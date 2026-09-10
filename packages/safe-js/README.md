@@ -434,8 +434,13 @@ Newly encountered imported Promises that have settled also support completed
 replay, including aliases across separate host outcomes and cyclic fulfillment
 data. Replay uses the original settlement data, not later guest mutations.
 Cross-outcome reconstruction enforces the combined nesting limit without
-recursively expanding the host stack. Newly encountered Promises that are still
-pending cannot yet be checkpointed without an explicit resume capability.
+recursively expanding the host stack. Newly encountered imported Promises that
+are still pending can be checkpointed for replay. Restoring them requires a
+matching proof from `hostCallResumeProvider`; the original input or host operation
+is not repeated. Aliases share one reconciliation request. Proofs may introduce
+further pending Promises, and subsequent checkpoints preserve those separately.
+Completed replay uses recorded settlements without requesting the proof again.
+Allocation limits and cancellation also apply to reconciled settlements.
 
 Native RegExp values can be imported through bindings, host returns, Promise
 settlements, entry-point arguments, and `import.meta`. Matching uses the bounded

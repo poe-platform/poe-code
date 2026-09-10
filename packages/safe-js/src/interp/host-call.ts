@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { activePromiseTracker, observeSandboxPromise } from "./promise-tracker.js";
 import { promiseReplayContext } from "./promise-replay.js";
+import { importedPromiseSnapshots } from "./promise-state.js";
 import { activeCancellation } from "./cancel.js";
 import { runResources } from "./resources.js";
 import { typedArrayDataProperties, typedArrayStorage, typedArrayViewLayouts, isNumericTypedArray } from "./typed-array.js";
@@ -24,7 +25,7 @@ import {
 } from "./values.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { CompileScope } from "./regex/compile-guard.js";
-import { decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
+import { createReplayEncodingContext, decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
 import { validateSnapshotData } from "../snapshot/validation.js";
 import {
   pendingHostCallResumeIdentityMatches,
@@ -182,6 +183,7 @@ export class HostCallJournal {
   private readonly inputPromises = new Map<string, SandboxPromise>();
   private readonly inputPromiseIds = new WeakMap<SandboxPromise, string>();
   private readonly importedPromiseMemo = new Map<string, Map<number, SandboxPromise>>();
+  private readonly proofImportedPromises = new WeakSet<SandboxPromise>();
   private readonly requiredHostCapabilities = new Set<string>();
   private readonly capabilityIds = new WeakMap<SandboxClosure, string>();
   readonly nativeClosures = new WeakMap<object, SandboxClosure>();
@@ -256,7 +258,7 @@ export class HostCallJournal {
         this.promiseReplay?.validateImportedPromises(reachableSchedulingIds);
         for (const outcome of this.encodedOutcomes.values()) {
           for (const node of outcome.data.nodes) {
-            if (node.kind === "settled-imported-promise" && node.scheduleId !== undefined) {
+            if ((node.kind === "settled-imported-promise" || node.kind === "pending-imported-promise") && node.scheduleId !== undefined) {
               if (!reachableSchedulingIds.has(node.scheduleId))
                 throw new TypeError("Unreachable imported Promise scheduling identity.");
               this.promiseReplay?.reserveImportedPromise(node.scheduleId);
@@ -767,6 +769,7 @@ export class HostCallJournal {
           encoded.data,
           { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, memo,
             graphId: record.id, importedPromiseMemo: this.importedPromiseMemo,
+            resumePendingImportedPromise: (id, node) => this.reconcileImportedPromise(id, node),
             restoreScheduledPromise: this.promiseReplay === undefined ? undefined
               : (id, promise, value) => this.promiseReplay!.restoreImportedPromise(id, promise, value),
             resolvePromiseGraph: id => this.encodedOutcomes.get(id)?.data },
@@ -835,7 +838,70 @@ export class HostCallJournal {
     return outcome === undefined ? undefined : copyOutcome(outcome);
   }
 
+  private async reconcileImportedPromise(callId: string, node: number): Promise<SandboxValue> {
+    const parent = this.records.find(record => record.id === callId);
+    const encoded = this.encodedOutcomes.get(callId);
+    if (parent === undefined || encoded?.data.nodes[node]?.kind !== "pending-imported-promise")
+      throw new TypeError("Missing pending imported Promise declaration.");
+    const record: HostCallRecord = {
+      id: `${callId}/promise/${node}`, runId: parent.runId, sourceHash: parent.sourceHash,
+      moduleId: parent.moduleId, operation: `${parent.operation}/promise/${node}`,
+      argumentDigest: digestHostCallArguments([parent.argumentDigest, node]),
+      policy: "read-side-effect", lifecycle: "running", asynchronous: true
+    };
+    const outcome = await this.reconcile(record);
+    const value = outcome.status === "fulfilled" ? outcome.value : outcome.reason;
+    this.recordImportedPromiseOutcome(callId, node, outcome);
+    if (outcome.status === "rejected") throw value;
+    return value;
+  }
+
+  private recordImportedPromiseOutcome(callId: string, node: number, outcome: HostCallOutcome): void {
+    const encoded = this.encodedOutcomes.get(callId);
+    if (encoded?.data.nodes[node]?.kind !== "pending-imported-promise")
+      throw new TypeError("Missing pending imported Promise declaration.");
+    const scheduleId = encoded.data.nodes[node].scheduleId;
+    const value = outcome.status === "fulfilled" ? outcome.value : outcome.reason;
+    const context = createReplayEncodingContext();
+    context.nodes = [...encoded.data.nodes];
+    const added = new Map<number, SandboxPromise>();
+    const data = encodeReplayData(value, {
+      context, identifyCapability: this.identifyCapability, identifyPromise: this.identifyPromise,
+      captureSettledImportedPromises: true, capturePendingImportedPromises: true,
+      identifyScheduledPromise: promise => this.promiseReplay?.identifyPromise(promise),
+      onValueEncoded: (index, value) => { if (isSandboxPromise(value)) added.set(index, value); },
+      identifyImportedPromise: promise => {
+        for (const [id, entries] of this.importedPromiseMemo)
+          for (const [index, existing] of entries)
+            if (existing === promise) return { callId: id, node: index };
+        return undefined;
+      }
+    });
+    data.nodes[node] = { kind: "settled-imported-promise", status: outcome.status, outcome: data.root,
+      ...(scheduleId === undefined ? {} : { scheduleId }) };
+    encoded.data = { ...encoded.data, nodes: data.nodes };
+    if (added.size > 0) {
+      let entries = this.importedPromiseMemo.get(callId);
+      if (entries === undefined) this.importedPromiseMemo.set(callId, entries = new Map());
+      for (const [index, promise] of added) {
+        entries.set(index, promise);
+        this.proofImportedPromises.add(promise);
+      }
+    }
+  }
+
   snapshotReplay(): HostCallReplay {
+    for (const [callId, entries] of this.importedPromiseMemo) {
+      for (const [node, promise] of entries) {
+        if (!this.proofImportedPromises.has(promise)) continue;
+        if (this.encodedOutcomes.get(callId)?.data.nodes[node]?.kind !== "pending-imported-promise") continue;
+        const snapshot = importedPromiseSnapshots.get(promise);
+        if (snapshot?.ok === false) throw snapshot.error;
+        if (snapshot?.ok === true) this.recordImportedPromiseOutcome(callId, node,
+          snapshot.state.status === "fulfilled" ? { status: "fulfilled", value: snapshot.state.value }
+            : { status: "rejected", reason: snapshot.state.value });
+      }
+    }
     const importedIdentities = new WeakMap<SandboxPromise, { callId: string; node: number }>();
     for (const [callId, entries] of this.importedPromiseMemo)
       for (const [node, promise] of entries) importedIdentities.set(promise, { callId, node });
@@ -853,6 +919,7 @@ export class HostCallJournal {
         const data=outcome===undefined?undefined:encoded?.data??encodeReplayData(
           effects.length===0?outcomeValue:[outcomeValue,...effects],
           {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,captureSettledImportedPromises:true,
+            capturePendingImportedPromises:true,
             identifyScheduledPromise: value => this.promiseReplay?.identifyPromise(value),
             identifyImportedPromise: value => importedIdentities.get(value),onValueEncoded:(id,value)=>{
             if (isSandboxPromise(value)) importedIdentities.set(value, { callId: record.id, node: id });
@@ -883,7 +950,7 @@ export class HostCallJournal {
     const schedulingIds: number[] = [];
     for (const call of replay.calls) {
       for (const node of call.outcome?.data.nodes ?? []) {
-        if (node.kind === "settled-imported-promise" && node.scheduleId !== undefined)
+        if ((node.kind === "settled-imported-promise" || node.kind === "pending-imported-promise") && node.scheduleId !== undefined)
           schedulingIds.push(node.scheduleId);
       }
     }
@@ -1079,6 +1146,7 @@ function restoreReplayCalls(
         resolveCapability, resolvePromise: id => inputPromises.get(id), memo,
         graphId: entry.id, importedPromiseMemo,
         resolvePromiseGraph: id => replayCalls.find(call => call?.id === id)?.outcome?.data,
+        resumePendingImportedPromise: () => new Promise(() => undefined),
         onImportedPromiseRestored: (promise, scheduleId) => {
           observeSandboxPromise(promise, true);
           if (scheduleId !== undefined) reachableSchedulingIds.add(scheduleId);

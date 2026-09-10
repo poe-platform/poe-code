@@ -78,6 +78,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "pending-imported-promise"; scheduleId?: number }
   | { kind: "settled-imported-promise"; status: "fulfilled" | "rejected"; outcome: Atom; scheduleId?: number }
   | { kind: "module-namespace"; entries: Array<[string, Atom]> }
   | { kind: "raw-json"; text: string }
@@ -134,6 +135,7 @@ export function encodeReplayData(
     identifyCapability?: (value: SandboxClosure, path: readonly ReplayPathSegment[]) => string | undefined;
     captureCapabilityProperties?: boolean;
     captureSettledImportedPromises?: boolean;
+    capturePendingImportedPromises?: boolean;
     identifyScheduledPromise?: (value: SandboxPromise) => number | undefined;
     identifyImportedPromise?: (value: SandboxPromise) => { callId: string; node: number } | undefined;
     identifyPromise?: (value: SandboxPromise, path: readonly ReplayPathSegment[]) => string | undefined;
@@ -175,8 +177,9 @@ export function encodeReplayData(
       const snapshot = importedPromiseSnapshots.get(entry);
       if (options.captureSettledImportedPromises && snapshot?.ok === false) throw snapshot.error;
       const state = snapshot?.ok ? snapshot.state : undefined;
+      const pending = options.capturePendingImportedPromises === true && promiseStates.get(entry)?.status === "pending";
       if (options.captureSettledImportedPromises && importedPromises.has(entry) &&
-          state !== undefined &&
+          (state !== undefined || pending) &&
           !hasGuestObjectState(entry) && Reflect.ownKeys(getPromiseProperties(entry)).length === 0) {
         const existing = seen.get(entry);
         if (existing !== undefined) return { tag: "ref", id: existing };
@@ -187,7 +190,8 @@ export function encodeReplayData(
         nodes.push(undefined as unknown as DataNode);
         options.onValueEncoded?.(index, entry);
         const scheduleId = options.identifyScheduledPromise?.(entry);
-        nodes[index] = { kind: "settled-imported-promise", status: state.status,
+        nodes[index] = state === undefined ? { kind: "pending-imported-promise",
+          ...(scheduleId === undefined ? {} : { scheduleId }) } : { kind: "settled-imported-promise", status: state.status,
           ...(scheduleId === undefined ? {} : { scheduleId }),
           outcome: encode(state.value, depth + 1, [...path, "<settlement>"]) };
         return { tag: "ref", id: index };
@@ -414,6 +418,7 @@ export function decodeReplayData(
     graphId?: string;
     importedPromiseMemo?: Map<string, Map<number, SandboxPromise>>;
     resolvePromiseGraph?: (id: string) => unknown;
+    resumePendingImportedPromise?: (id: string, node: number) => Promise<SandboxValue>;
     memo?: { nodes: ReplayData["nodes"]; values: Map<number, SandboxValue> };
   } = {},
   parent?: CompileScope,
@@ -451,7 +456,7 @@ export function decodeReplayData(
           throw new TypeError("Missing imported Promise declaration.");
         validateSnapshotData(target);
         const targetNodes = list(own(record(target), "nodes"));
-        if (nodeId >= targetNodes.length || own(record(targetNodes[nodeId]), "kind") !== "settled-imported-promise")
+        if (nodeId >= targetNodes.length || !["settled-imported-promise", "pending-imported-promise"].includes(String(own(record(targetNodes[nodeId]), "kind"))))
           throw new TypeError("Invalid imported Promise declaration.");
         const existing = options.importedPromiseMemo.get(callId)?.get(nodeId);
         if (existing !== undefined) return existing;
@@ -515,13 +520,17 @@ export function decodeReplayData(
         throw new TypeError("Invalid replay error metadata.");
       }
       const child = (value: unknown) => decode(value, depth + 1);
-      if (kind === "settled-imported-promise") {
+      if (kind === "settled-imported-promise" || kind === "pending-imported-promise") {
+        const pending = kind === "pending-imported-promise";
         const scheduleId = Object.hasOwn(node, "scheduleId") ? own(node, "scheduleId") : undefined;
         if (scheduleId !== undefined && (typeof scheduleId !== "number" || !Number.isSafeInteger(scheduleId) || scheduleId < 1))
           throw new TypeError("Invalid imported Promise scheduling identity.");
-        const status = own(node, "status");
-        if (status !== "fulfilled" && status !== "rejected")
+        const status = pending ? "pending" : own(node, "status");
+        if (!pending && status !== "fulfilled" && status !== "rejected")
           throw new TypeError("Invalid imported Promise settlement.");
+        if (pending && (Object.hasOwn(node, "status") || Object.hasOwn(node, "outcome") ||
+            options.graphId === undefined || options.resumePendingImportedPromise === undefined))
+          throw new TypeError("Missing pending imported Promise reconciliation.");
         const globalMemo = options.importedPromiseMemo;
         const graphId = options.graphId;
         const existing = graphId === undefined ? undefined : globalMemo?.get(graphId)?.get(id);
@@ -530,10 +539,10 @@ export function decodeReplayData(
           return existing;
         }
         let resolve!: (value: SandboxValue) => void;
-        let reject!: (value: SandboxValue) => void;
+        let reject!: (value: unknown) => void;
         const native = new Promise<SandboxValue>((yes, no) => { resolve = yes; reject = no; });
         void native.catch(() => undefined);
-        const promise = createSandboxPromise(native, { trackReplay: false });
+        const promise = createSandboxPromise(native, { trackReplay: false, importCompileOwner: compilation.owner });
         importedPromises.add(promise);
         restored.set(id, promise);
         if (globalMemo !== undefined && graphId !== undefined) {
@@ -547,13 +556,24 @@ export function decodeReplayData(
           });
         }
         options.onImportedPromiseRestored?.(promise, scheduleId as number | undefined);
+        if (pending) {
+          work.settle.push(() => {
+            try {
+              const resumed = Promise.resolve().then(() => options.resumePendingImportedPromise!(graphId!, id));
+              const tracked = scheduleId !== undefined && options.restoreScheduledPromise !== undefined
+                ? options.restoreScheduledPromise(scheduleId as number, resumed, promise) : resumed;
+              void tracked.then(resolve, reject);
+            } catch (error) { reject(error); }
+          });
+          return promise;
+        }
         initializeValues.push(() => {
           const value = child(own(node, "outcome"));
           if (status === "fulfilled" && isSandboxPromise(value))
             throw new TypeError("A fulfilled Promise cannot directly contain a Promise.");
           captureImportedSettlements.push(() => {
             importedPromiseSnapshots.set(promise, { ok: true,
-              state: { status, value: cloneSandboxValue(value, { compilation, sharedBufferSnapshots: new WeakMap() }) }
+              state: { status: status as "fulfilled" | "rejected", value: cloneSandboxValue(value, { compilation, sharedBufferSnapshots: new WeakMap() }) }
             });
           });
           work.settle.push(() => {
@@ -561,7 +581,7 @@ export function decodeReplayData(
               const settled = status === "fulfilled" ? Promise.resolve(value) : Promise.reject(value);
               options.restoreScheduledPromise(scheduleId as number, settled, promise).then(resolve, reject);
             } else {
-              promiseStates.set(promise, { status, value });
+              promiseStates.set(promise, { status: status as "fulfilled" | "rejected", value });
               if (status === "fulfilled") resolve(value); else reject(value);
             }
           });

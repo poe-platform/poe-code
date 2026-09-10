@@ -158,3 +158,35 @@ or generic-object fallback is introduced.
 Focused ESLint (ab6f4e) and package TypeScript checking (b15971) pass for the
 origin-identity foundation. Keep its local commit separate from the still-open
 snapshot format and restoration changes.
+
+## Shared accounting for separate realm tables
+
+Realm lookup tables use Budget identity, while compilation owners, retained
+roots and all execution limits also belonged directly to that identity. A
+second independent Budget would provide an incorrect fresh allowance. The
+pending Budget change separates its shared accounting state from realm-view
+identity. Views have distinct intrinsic/template lookup keys but share limits,
+steps, depth, data charges, retained roots, suspension state, compilation
+tickets/owners and reset generation. Reset also clears template caches for
+all still-live views, tracked through weak references.
+
+The first five new contracts failed on the absent forkRealm operation
+(ba0b63). After implementation, 69 budget tests passed (3ff928). A broader
+eight-file selection passed 45 checks, including the unchanged camera file,
+but one new assertion incorrectly expected primitive Number conversion to
+visit a node (bb94c3). That assertion was replaced with a real Array constructor
+allocation-limit check; the cumulative step test remains intact. The corrected
+five-file selection passes 68 tests (f975ec). Node 18.20.8 passes 55 tests across
+the four selected budget files (e23715), before the additional template-reset
+case. Earlier TypeScript and lint checks pass; final checks are pending.
+
+This does not implement the mixed-realm snapshot format yet. The three
+mixed-realm regression cases remain unresolved. No new full-package pass,
+remote delivery or release is claimed.
+
+The final Node 22 realm-view/template selection passes 20 tests across two
+files, followed by successful package TypeScript checking (a59a3a). Final
+focused ESLint also passes (20bda0). The template regression confirms that a
+reset through a child view clears all three views' cached source-site objects
+and shared retained roots, rather than only clearing the caller's cache.
+The same final 20-test selection passes on Node 18.20.8 (e4f9e9).

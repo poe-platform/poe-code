@@ -90,7 +90,7 @@ export type CompileTicket = {
   readonly owner: CompileOwner;
 };
 
-export class Budget {
+class BudgetAccounting {
   readonly deadline?: number;
   readonly limits: Readonly<BudgetLimits>;
   stepsUsed = 0;
@@ -99,19 +99,21 @@ export class Budget {
   peakDataSize = 0;
 
   currentCallDepth = 0;
-  private allChecksSuspended = 0;
-  private deadlineChecksSuspended = 0;
-  private visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
-  private retainedDataSize = 0;
-  private readonly retainedData = new Map<object, number>();
-  private readonly retainedValueSources = new Map<object, () => Iterable<unknown> | undefined>();
-  private compileGeneration = 0;
-  private activeCompileOwner?: CompileOwner;
-  private defaultCompileOwner?: CompileOwner;
-  private compileUses = 0;
-  private provisionalScopes = 0;
-  private readonly compileTickets = new Map<CompileTicket, number>();
-  private readonly completedCompileTickets = new Set<CompileTicket>();
+  allChecksSuspended = 0;
+  deadlineChecksSuspended = 0;
+  visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
+  retainedDataSize = 0;
+  readonly retainedData = new Map<object, number>();
+  readonly retainedValueSources = new Map<object, () => Iterable<unknown> | undefined>();
+  compileGeneration = 0;
+  activeCompileOwner?: CompileOwner;
+  defaultCompileOwner?: CompileOwner;
+  compileUses = 0;
+  provisionalScopes = 0;
+  readonly compileTickets = new Map<CompileTicket, number>();
+  readonly completedCompileTickets = new Set<CompileTicket>();
+
+  realmViews?: Set<WeakRef<Budget>>;
 
   constructor(options: BudgetOptions = {}) {
     this.deadline = normalizeDeadline(options.deadline);
@@ -123,6 +125,36 @@ export class Budget {
       dataSize: normalizeLimit("dataSize", options.dataSize)
     });
   }
+}
+
+export class Budget {
+  private accounting: BudgetAccounting;
+
+  constructor(options: BudgetOptions = {}) {
+    this.accounting = new BudgetAccounting(options);
+  }
+
+  get deadline(): number | undefined { return this.accounting.deadline; }
+  get limits(): Readonly<BudgetLimits> { return this.accounting.limits; }
+  get stepsUsed(): number { return this.accounting.stepsUsed; }
+  set stepsUsed(value: number) { this.accounting.stepsUsed = value; }
+  get peakCallDepth(): number { return this.accounting.peakCallDepth; }
+  set peakCallDepth(value: number) { this.accounting.peakCallDepth = value; }
+  get currentDataSize(): number { return this.accounting.currentDataSize; }
+  set currentDataSize(value: number) { this.accounting.currentDataSize = value; }
+  get peakDataSize(): number { return this.accounting.peakDataSize; }
+  set peakDataSize(value: number) { this.accounting.peakDataSize = value; }
+  get currentCallDepth(): number { return this.accounting.currentCallDepth; }
+  set currentCallDepth(value: number) { this.accounting.currentCallDepth = value; }
+
+  forkRealm(): Budget {
+    // Realm-indexed caches use the view identity; all limits and usage stay shared.
+    const view = new Budget();
+    view.accounting = this.accounting;
+    const views = this.accounting.realmViews ??= new Set([new WeakRef(this)]);
+    views.add(new WeakRef(view));
+    return view;
+  }
 
   visitNode(units = 1): void {
     if (!Number.isSafeInteger(units) || units < 0) {
@@ -130,32 +162,32 @@ export class Budget {
     }
     if (units === 0) return;
 
-    this.stepsUsed += units;
+    this.accounting.stepsUsed += units;
     this.checkSampledDeadline(units);
 
     if (
-      this.allChecksSuspended === 0 &&
-      this.limits.maxSteps !== undefined &&
-      this.stepsUsed > this.limits.maxSteps
+      this.accounting.allChecksSuspended === 0 &&
+      this.accounting.limits.maxSteps !== undefined &&
+      this.accounting.stepsUsed > this.accounting.limits.maxSteps
     ) {
       throw new SandboxError({
         budget: "steps",
-        current: this.stepsUsed,
-        limit: this.limits.maxSteps
+        current: this.accounting.stepsUsed,
+        limit: this.accounting.limits.maxSteps
       });
     }
   }
 
   allocateString(value: string): string {
     if (
-      this.allChecksSuspended === 0 &&
-      this.limits.stringLength !== undefined &&
-      value.length > this.limits.stringLength
+      this.accounting.allChecksSuspended === 0 &&
+      this.accounting.limits.stringLength !== undefined &&
+      value.length > this.accounting.limits.stringLength
     ) {
       throw new SandboxError({
         budget: "stringLength",
         current: value.length,
-        limit: this.limits.stringLength
+        limit: this.accounting.limits.stringLength
       });
     }
 
@@ -164,14 +196,14 @@ export class Budget {
 
   allocateArrayLength(length: number): void {
     if (
-      this.allChecksSuspended === 0 &&
-      this.limits.arrayLength !== undefined &&
-      length > this.limits.arrayLength
+      this.accounting.allChecksSuspended === 0 &&
+      this.accounting.limits.arrayLength !== undefined &&
+      length > this.accounting.limits.arrayLength
     ) {
       throw new SandboxError({
         budget: "arrayLength",
         current: length,
-        limit: this.limits.arrayLength
+        limit: this.accounting.limits.arrayLength
       });
     }
   }
@@ -181,33 +213,33 @@ export class Budget {
   }
 
   reconcileDataUsage(usage: number): void {
-    const total = usage + this.retainedDataSize;
+    const total = usage + this.accounting.retainedDataSize;
     this.checkDataUsage(total);
-    this.currentDataSize = total;
-    this.peakDataSize = Math.max(this.peakDataSize, total);
+    this.accounting.currentDataSize = total;
+    this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, total);
   }
 
   setRetainedDataUsage(owner: object, usage: number): void {
     if (!Number.isSafeInteger(usage) || usage < 0) {
       throw new TypeError("Retained data usage must be a non-negative safe integer.");
     }
-    const delta = usage - (this.retainedData.get(owner) ?? 0);
-    const total = this.currentDataSize + delta;
+    const delta = usage - (this.accounting.retainedData.get(owner) ?? 0);
+    const total = this.accounting.currentDataSize + delta;
     this.checkDataUsage(total);
-    if (usage === 0) this.retainedData.delete(owner);
-    else this.retainedData.set(owner, usage);
-    this.retainedDataSize += delta;
-    this.currentDataSize = total;
-    this.peakDataSize = Math.max(this.peakDataSize, total);
+    if (usage === 0) this.accounting.retainedData.delete(owner);
+    else this.accounting.retainedData.set(owner, usage);
+    this.accounting.retainedDataSize += delta;
+    this.accounting.currentDataSize = total;
+    this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, total);
   }
 
   setRetainedValues(owner: object, values: (() => Iterable<unknown> | undefined) | undefined): void {
-    if (values === undefined) this.retainedValueSources.delete(owner);
-    else this.retainedValueSources.set(owner, values);
+    if (values === undefined) this.accounting.retainedValueSources.delete(owner);
+    else this.accounting.retainedValueSources.set(owner, values);
   }
 
   *retainedValues(): Iterable<unknown> {
-    for (const values of this.retainedValueSources.values()) {
+    for (const values of this.accounting.retainedValueSources.values()) {
       const retained = values();
       if (retained !== undefined) yield* retained;
     }
@@ -222,64 +254,64 @@ export class Budget {
   } {
     if (
       (owner !== undefined &&
-        (owner.budget !== this || owner.generation !== this.compileGeneration)) ||
-      (this.activeCompileOwner !== undefined && this.activeCompileOwner !== owner) ||
-      (reset && (this.compileUses !== 0 || owner !== undefined))
+        (owner.budget.accounting !== this.accounting || owner.generation !== this.accounting.compileGeneration)) ||
+      (this.accounting.activeCompileOwner !== undefined && this.accounting.activeCompileOwner !== owner) ||
+      (reset && (this.accounting.compileUses !== 0 || owner !== undefined))
     ) {
       throw new SandboxError("reentry");
     }
     if (reset) this.reset();
-    const selected = owner ?? (this.defaultCompileOwner ??= Object.freeze({ budget: this, generation: this.compileGeneration }));
-    this.activeCompileOwner = selected;
-    this.compileUses += 1;
+    const selected = owner ?? (this.accounting.defaultCompileOwner ??= Object.freeze({ budget: this, generation: this.accounting.compileGeneration }));
+    this.accounting.activeCompileOwner = selected;
+    this.accounting.compileUses += 1;
     let released = false;
     return {
       owner: selected,
       release: () => {
         if (released) return;
         released = true;
-        this.compileUses -= 1;
-        if (this.compileUses === 0) this.activeCompileOwner = undefined;
+        this.accounting.compileUses -= 1;
+        if (this.accounting.compileUses === 0) this.accounting.activeCompileOwner = undefined;
       }
     };
   }
 
   createCompileTicket(owner: CompileOwner): CompileTicket {
     if (
-      owner.budget !== this ||
-      owner.generation !== this.compileGeneration ||
-      this.activeCompileOwner !== owner
+      owner.budget.accounting !== this.accounting ||
+      owner.generation !== this.accounting.compileGeneration ||
+      this.accounting.activeCompileOwner !== owner
     ) {
       throw new SandboxError("reentry");
     }
     const ticket = Object.freeze({ owner });
-    this.compileTickets.set(ticket, 0);
+    this.accounting.compileTickets.set(ticket, 0);
     return ticket;
   }
 
   compileTicketUsage(ticket: CompileTicket): number {
-    return ticket.owner.generation === this.compileGeneration
-      ? (this.compileTickets.get(ticket) ?? 0)
+    return ticket.owner.generation === this.accounting.compileGeneration
+      ? (this.accounting.compileTickets.get(ticket) ?? 0)
       : 0;
   }
 
   resizeCompileTicket(ticket: CompileTicket, usage: number): void {
-    if (ticket.owner.generation !== this.compileGeneration || !this.compileTickets.has(ticket)) {
+    if (ticket.owner.generation !== this.accounting.compileGeneration || !this.accounting.compileTickets.has(ticket)) {
       throw new SandboxError("reentry");
     }
     this.setRetainedDataUsage(ticket, usage);
-    this.compileTickets.set(ticket, usage);
+    this.accounting.compileTickets.set(ticket, usage);
   }
 
   discardCompileTicket(ticket: CompileTicket): void {
-    if (ticket.owner.generation !== this.compileGeneration) return;
-    const usage = this.compileTickets.get(ticket);
+    if (ticket.owner.generation !== this.accounting.compileGeneration) return;
+    const usage = this.accounting.compileTickets.get(ticket);
     if (usage === undefined) return;
-    this.compileTickets.delete(ticket);
-    this.completedCompileTickets.delete(ticket);
-    this.retainedData.delete(ticket);
-    this.retainedDataSize -= usage;
-    this.currentDataSize -= usage;
+    this.accounting.compileTickets.delete(ticket);
+    this.accounting.completedCompileTickets.delete(ticket);
+    this.accounting.retainedData.delete(ticket);
+    this.accounting.retainedDataSize -= usage;
+    this.accounting.currentDataSize -= usage;
   }
 
   reconcileCompileData(
@@ -300,7 +332,7 @@ export class Budget {
       if (
         charge > 0 &&
         transferred.has(ticket) &&
-        (this.provisionalScopes === 0 || retainedOwner !== undefined)
+        (this.accounting.provisionalScopes === 0 || retainedOwner !== undefined)
       ) {
         releasing.push(ticket);
         transferredUsage += charge;
@@ -309,65 +341,65 @@ export class Budget {
       }
     }
     if (retainedOwner === undefined) {
-      for (const ticket of this.completedCompileTickets) {
+      for (const ticket of this.accounting.completedCompileTickets) {
         if (included.has(ticket)) continue;
         releasing.push(ticket);
         discardedUsage += this.compileTicketUsage(ticket);
       }
     }
     const oldOwnerUsage =
-      retainedOwner === undefined ? 0 : (this.retainedData.get(retainedOwner) ?? 0);
+      retainedOwner === undefined ? 0 : (this.accounting.retainedData.get(retainedOwner) ?? 0);
     const nextRetained =
-      this.retainedDataSize -
+      this.accounting.retainedDataSize -
       transferredUsage -
       discardedUsage +
       (retainedOwner === undefined ? 0 : usage - oldOwnerUsage);
     const measured =
       retainedOwner === undefined
         ? usage - includedUsage + transferredUsage
-        : this.currentDataSize - this.retainedDataSize;
+        : this.accounting.currentDataSize - this.accounting.retainedDataSize;
     const total = measured + nextRetained;
     this.checkDataUsage(total);
     for (const ticket of releasing) {
-      this.compileTickets.delete(ticket);
-      this.completedCompileTickets.delete(ticket);
-      this.retainedData.delete(ticket);
+      this.accounting.compileTickets.delete(ticket);
+      this.accounting.completedCompileTickets.delete(ticket);
+      this.accounting.retainedData.delete(ticket);
     }
     if (retainedOwner !== undefined) {
-      if (usage === 0) this.retainedData.delete(retainedOwner);
-      else this.retainedData.set(retainedOwner, usage);
+      if (usage === 0) this.accounting.retainedData.delete(retainedOwner);
+      else this.accounting.retainedData.set(retainedOwner, usage);
     }
-    this.retainedDataSize = nextRetained;
-    this.currentDataSize = total;
-    this.peakDataSize = Math.max(this.peakDataSize, total);
-    for (const ticket of retained) this.completedCompileTickets.add(ticket);
+    this.accounting.retainedDataSize = nextRetained;
+    this.accounting.currentDataSize = total;
+    this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, total);
+    for (const ticket of retained) this.accounting.completedCompileTickets.add(ticket);
     return retained;
   }
 
   chargeDataUsage(usage: number): void {
-    const total = this.currentDataSize + usage;
+    const total = this.accounting.currentDataSize + usage;
     this.checkDataUsage(total);
-    this.currentDataSize = total;
-    this.peakDataSize = Math.max(this.peakDataSize, total);
+    this.accounting.currentDataSize = total;
+    this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, total);
   }
 
   provisionDataUsage(usage: number): () => void {
-    const previous = this.currentDataSize;
-    const previousRetained = this.retainedDataSize;
+    const previous = this.accounting.currentDataSize;
+    const previousRetained = this.accounting.retainedDataSize;
     const next = previous + usage;
     this.checkDataUsage(next);
-    this.currentDataSize = next;
-    this.peakDataSize = Math.max(this.peakDataSize, next);
-    const generation = this.compileGeneration;
-    this.provisionalScopes += 1;
+    this.accounting.currentDataSize = next;
+    this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, next);
+    const generation = this.accounting.compileGeneration;
+    this.accounting.provisionalScopes += 1;
 
     let released = false;
     return () => {
       if (released) return;
       released = true;
-      if (generation !== this.compileGeneration) return;
-      this.provisionalScopes -= 1;
-      this.currentDataSize = previous + this.retainedDataSize - previousRetained;
+      if (generation !== this.accounting.compileGeneration) return;
+      this.accounting.provisionalScopes -= 1;
+      this.accounting.currentDataSize = previous + this.accounting.retainedDataSize - previousRetained;
     };
   }
 
@@ -380,28 +412,33 @@ export class Budget {
   }
 
   reset(): void {
-    if (this.compileUses !== 0) throw new SandboxError("reentry");
+    if (this.accounting.compileUses !== 0) throw new SandboxError("reentry");
     releaseTemplateObjects(this);
-    this.compileGeneration += 1;
-    this.defaultCompileOwner = undefined;
-    this.provisionalScopes = 0;
-    this.compileTickets.clear();
-    this.completedCompileTickets.clear();
-    this.stepsUsed = 0;
-    this.peakCallDepth = 0;
-    this.currentCallDepth = 0;
-    this.currentDataSize = 0;
-    this.peakDataSize = 0;
-    this.retainedDataSize = 0;
-    this.retainedData.clear();
-    this.retainedValueSources.clear();
-    this.allChecksSuspended = 0;
-    this.deadlineChecksSuspended = 0;
-    this.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
+    for (const reference of this.accounting.realmViews ?? []) {
+      const view = reference.deref();
+      if (view === undefined) this.accounting.realmViews!.delete(reference);
+      else if (view !== this) releaseTemplateObjects(view);
+    }
+    this.accounting.compileGeneration += 1;
+    this.accounting.defaultCompileOwner = undefined;
+    this.accounting.provisionalScopes = 0;
+    this.accounting.compileTickets.clear();
+    this.accounting.completedCompileTickets.clear();
+    this.accounting.stepsUsed = 0;
+    this.accounting.peakCallDepth = 0;
+    this.accounting.currentCallDepth = 0;
+    this.accounting.currentDataSize = 0;
+    this.accounting.peakDataSize = 0;
+    this.accounting.retainedDataSize = 0;
+    this.accounting.retainedData.clear();
+    this.accounting.retainedValueSources.clear();
+    this.accounting.allChecksSuspended = 0;
+    this.accounting.deadlineChecksSuspended = 0;
+    this.accounting.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
   }
 
   suspendChecks(): () => void {
-    this.allChecksSuspended += 1;
+    this.accounting.allChecksSuspended += 1;
 
     let resumed = false;
     return () => {
@@ -410,12 +447,12 @@ export class Budget {
       }
 
       resumed = true;
-      this.allChecksSuspended -= 1;
+      this.accounting.allChecksSuspended -= 1;
     };
   }
 
   suspendDeadlineChecks(): () => void {
-    this.deadlineChecksSuspended += 1;
+    this.accounting.deadlineChecksSuspended += 1;
 
     let resumed = false;
     return () => {
@@ -424,82 +461,82 @@ export class Budget {
       }
 
       resumed = true;
-      this.deadlineChecksSuspended -= 1;
+      this.accounting.deadlineChecksSuspended -= 1;
     };
   }
 
   private checkDeadline(): void {
     if (
-      this.allChecksSuspended > 0 ||
-      this.deadlineChecksSuspended > 0 ||
-      this.deadline === undefined
+      this.accounting.allChecksSuspended > 0 ||
+      this.accounting.deadlineChecksSuspended > 0 ||
+      this.accounting.deadline === undefined
     ) {
       return;
     }
 
     const now = Date.now();
-    if (now <= this.deadline) {
+    if (now <= this.accounting.deadline) {
       return;
     }
 
     throw new SandboxError({
       budget: "deadline",
       current: now,
-      limit: this.deadline
+      limit: this.accounting.deadline
     });
   }
 
   private checkDataUsage(usage: number): void {
     if (
-      this.allChecksSuspended === 0 &&
-      this.limits.dataSize !== undefined &&
-      usage > this.limits.dataSize
+      this.accounting.allChecksSuspended === 0 &&
+      this.accounting.limits.dataSize !== undefined &&
+      usage > this.accounting.limits.dataSize
     ) {
       throw new SandboxError({
         budget: "dataSize",
         current: usage,
-        limit: this.limits.dataSize
+        limit: this.accounting.limits.dataSize
       });
     }
   }
 
   private checkSampledDeadline(units: number): void {
     if (
-      this.allChecksSuspended > 0 ||
-      this.deadlineChecksSuspended > 0 ||
-      this.deadline === undefined
+      this.accounting.allChecksSuspended > 0 ||
+      this.accounting.deadlineChecksSuspended > 0 ||
+      this.accounting.deadline === undefined
     ) {
       return;
     }
 
-    this.visitsUntilDeadlineCheck -= units;
-    if (this.visitsUntilDeadlineCheck > 0) {
+    this.accounting.visitsUntilDeadlineCheck -= units;
+    if (this.accounting.visitsUntilDeadlineCheck > 0) {
       return;
     }
 
-    this.visitsUntilDeadlineCheck =
-      DEADLINE_CHECK_INTERVAL - (-this.visitsUntilDeadlineCheck % DEADLINE_CHECK_INTERVAL);
+    this.accounting.visitsUntilDeadlineCheck =
+      DEADLINE_CHECK_INTERVAL - (-this.accounting.visitsUntilDeadlineCheck % DEADLINE_CHECK_INTERVAL);
     this.checkDeadline();
   }
 
   private enterDepth(): () => void {
-    const nextDepth = this.currentCallDepth + 1;
+    const nextDepth = this.accounting.currentCallDepth + 1;
 
     if (
-      this.allChecksSuspended === 0 &&
-      this.limits.maxCallDepth !== undefined &&
-      nextDepth > this.limits.maxCallDepth
+      this.accounting.allChecksSuspended === 0 &&
+      this.accounting.limits.maxCallDepth !== undefined &&
+      nextDepth > this.accounting.limits.maxCallDepth
     ) {
       throw new SandboxError({
         budget: "callDepth",
         current: nextDepth,
-        limit: this.limits.maxCallDepth
+        limit: this.accounting.limits.maxCallDepth
       });
     }
 
-    this.currentCallDepth = nextDepth;
-    if (nextDepth > this.peakCallDepth) {
-      this.peakCallDepth = nextDepth;
+    this.accounting.currentCallDepth = nextDepth;
+    if (nextDepth > this.accounting.peakCallDepth) {
+      this.accounting.peakCallDepth = nextDepth;
     }
 
     let left = false;
@@ -509,7 +546,7 @@ export class Budget {
       }
 
       left = true;
-      this.currentCallDepth -= 1;
+      this.accounting.currentCallDepth -= 1;
     };
   }
 }

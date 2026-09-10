@@ -50,3 +50,22 @@ capabilities, module execution and async result classification are still open.
 The corrected host and metadata selection passed all 20 tests and scoped lint
 (3821, terminal faf31f); whitespace checks passed. The host is ready for its
 own local commit, without implying the still-missing `$262` API is implemented.
+
+The owned host is local commit 8a8b7ae6a. Four additional host API tests then
+failed on the missing `$262`/`print` bindings (46242, terminal 3aeaeb). The
+candidate installs non-enumerable global bindings, an ordinary `$262` object,
+same-realm `evalScript`, independently owned child realms, and guest string
+conversion for `print`. Nested Scripts use the existing nested interpreter
+route so they do not deadlock by enqueueing behind their own running job.
+Disposal includes child realms. All eight host tests pass (51508, terminal
+a59574); combined conformance/Script tests and lint are now running.
+Detachment, GC/agent capabilities, module loading and result classification
+remain incomplete; the partial API is not advertised as complete Test262 support.
+
+The combined selection passed 63 tests and lint (98309, terminal 9892c8).
+An additional child-cancellation regression then passed with all nine realm
+tests and test lint (61557, terminal 8b0764). The host API addition is ready
+for a scoped local commit. Review also identified a candidate classification
+gap: an uncaught unbound identifier reaches the host as an interpreter
+diagnostic, unlike an explicit throw. Validate that separately before changing
+the interpreter or result classification.

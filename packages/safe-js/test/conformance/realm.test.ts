@@ -43,3 +43,53 @@ it("cancels pending work and refuses evaluation after disposal", async () => {
   await realm.dispose();
   expect(await realm.evaluate("1")).toMatchObject({ status: "host-error" });
 });
+
+it("provides ordinary non-enumerable host bindings and same-realm evalScript", async () => {
+  const realm = createTest262Realm();
+  try {
+    expect(await realm.evaluate(`let retained=7;
+      [$262.global===globalThis,Object.getPrototypeOf($262)===Object.prototype,
+       $262.evalScript("retained++"),retained,
+       Object.getOwnPropertyDescriptor(globalThis,"$262").enumerable,
+       Object.getOwnPropertyDescriptor(globalThis,"$262").writable,
+       Object.getOwnPropertyDescriptor(globalThis,"print").configurable]`))
+      .toMatchObject({ status: "normal", value: [true, true, 7, 8, false, true, true] });
+  } finally { await realm.dispose(); }
+});
+
+it("creates independent child realms with their own host API", async () => {
+  const realm = createTest262Realm();
+  try {
+    expect(await realm.evaluate(`let retained=7;const child=$262.createRealm();
+      [child.global!==globalThis,child.evalScript("typeof retained"),
+       child.evalScript("$262.global===globalThis"),child.evalScript("Object")!==Object]`))
+      .toMatchObject({ status: "normal", value: [true, "undefined", true, true] });
+  } finally { await realm.dispose(); }
+});
+
+it("propagates primitive evalScript throws to the guest caller", async () => {
+  const realm = createTest262Realm();
+  try {
+    expect(await realm.evaluate('try{$262.evalScript("throw 42")}catch(error){error}'))
+      .toMatchObject({ status: "normal", value: 42 });
+  } finally { await realm.dispose(); }
+});
+
+it("converts printed arguments using guest semantics", async () => {
+  const messages: string[] = [];
+  const realm = createTest262Realm({}, message => { messages.push(message); });
+  try {
+    expect(await realm.evaluate('print({toString(){return "converted"}});print("done",42)'))
+      .toMatchObject({ status: "normal" });
+    expect(messages).toEqual(["converted", "done"]);
+  } finally { await realm.dispose(); }
+});
+
+it("cancels work in child realms when their owning test realm is disposed", async () => {
+  const realm = createTest262Realm();
+  const result = await realm.evaluate('$262.createRealm().evalScript("async function pending(){await new Promise(()=>{})} pending()")');
+  if (result.status !== "normal" || !isSandboxPromise(result.value)) throw new Error("Missing child Promise");
+  const outcome = result.value.promise.then(() => "fulfilled", () => "rejected");
+  await realm.dispose();
+  expect(await outcome).toBe("rejected");
+});

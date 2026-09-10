@@ -7114,6 +7114,16 @@ extension, integration, or validation requirement is missing or unverified.
   materialization policy; automatic hint dispatch, iter/next/enumerate/zip
   invocation integrations, native type assembly and resumable safe-fs effects
   remain unfinished.
+- One-argument iter and next now inherit frame-owned iteration when no explicit
+  protocol was supplied. Compiled regressions first reproduced guest rejection,
+  then verified guest iterator identity, legacy indexed fallback, member identity
+  and exhaustion defaults. Additional tests preserve explicit-policy priority,
+  original guest exceptions and default-only exhaustion classification. All
+  5,349 tests in 444 files pass; selected build, typecheck and scoped lint pass.
+  Sentinel iter callback dispatch, enumerate/zip integration, native type and
+  exception assembly, resumable safe-fs effects and public execution remain open.
+  The existing IterationContext.hints capability can support the pending sorted
+  advisory-hint dispatch; it is not yet consumed by sorted's invocation fallback.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

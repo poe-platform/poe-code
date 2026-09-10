@@ -5,6 +5,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
+import type { IterationContext } from "./protocol-iterator.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }), v = new RuntimeValues(meter);
@@ -83,4 +84,30 @@ it("honors post-callback cancellation instead of delivering a result", () => {
   const fn = createIterBuiltin(v, meter, context);
   const cursor = fn.value.invoke([v.builtinFunction({ name: "read", invoke() { cancelled = true; return v.true; } }), v.none], keywords, meter);
   expect(() => createNextBuiltin(v, meter).value.invoke([cursor], keywords, meter)).toThrow(ExecutionLimitError);
+});
+it("retains explicit iter and next protocols over invocation defaults", () => {
+  const { v, meter, keywords, context } = fixture(), source = v.cell({}), cursor = v.cell({}), member = v.cell({});
+  const unused = (): never => { throw Error("explicit protocol must win"); };
+  const protocol: IterationContext<RuntimeValue> = {
+    lookupIter(value) { expect(value).toBe(source); return () => cursor; }, hasNext: value => value === cursor,
+    next(value) { expect(value).toBe(cursor); return member; }, hasSequenceItem: () => false, getItem: unused,
+    isStopIteration: () => false, isIndexError: () => false, typeName: () => "Guest"
+  };
+  const invocation = { call: unused, isStopIteration: unused, iteration: { ...protocol, lookupIter: unused, hasNext: unused, next: unused } };
+  expect(createIterBuiltin(v, meter, context, protocol).value.invoke([source], keywords, meter, invocation)).toBe(cursor);
+  expect(createNextBuiltin(v, meter, protocol).value.invoke([cursor], keywords, meter, invocation)).toBe(member);
+});
+it("preserves guest next exception identity and only classifies exhaustion with a default", () => {
+  const { v, meter, keywords } = fixture(), cursor = v.cell({}), fallback = v.cell({}), stop = Error("guest StopIteration"), fault = Error("guest failure");
+  let failure = stop, classifications = 0;
+  const unused = (): never => { throw Error("unexpected callback"); };
+  const protocol: IterationContext<RuntimeValue> = {
+    lookupIter: unused, hasNext: value => value === cursor, next() { throw failure; }, hasSequenceItem: () => false, getItem: unused,
+    isStopIteration(error) { classifications++; return error === stop; }, isIndexError: () => false, typeName: () => "Guest"
+  };
+  const invocation = { call: unused, isStopIteration: unused, iteration: protocol }, builtin = createNextBuiltin(v, meter);
+  expect(() => builtin.value.invoke([cursor], keywords, meter, invocation)).toThrow(stop); expect(classifications).toBe(0);
+  expect(builtin.value.invoke([cursor, fallback], keywords, meter, invocation)).toBe(fallback); expect(classifications).toBe(1);
+  failure = fault;
+  expect(() => builtin.value.invoke([cursor, fallback], keywords, meter, invocation)).toThrow(fault); expect(classifications).toBe(2);
 });

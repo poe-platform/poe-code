@@ -10,17 +10,18 @@ import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtim
 /** Register explicitly in the execution's builtin namespace. One-argument iter
  * uses exact runtime adapters or the supplied type-level guest protocol.
  * The sentinel form delegates guest call/equality through an explicit capability. */
-export function createIterBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: CallableIterationContext<RuntimeValue>, protocol?: IterationContext<RuntimeValue>): BuiltinFunctionValue {
+export function createIterBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: CallableIterationContext<RuntimeValue>, explicitProtocol?: IterationContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "iter",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "iter() takes no keyword arguments");
       if (positional.length < 1) throw new PythonRuntimeError("TypeError", "iter expected at least 1 argument, got 0");
       if (positional.length > 2) throw new PythonRuntimeError("TypeError", `iter expected at most 2 arguments, got ${positional.length}`);
       const source = positional[0];
       if (positional.length === 1) {
+        const protocol = explicitProtocol ?? invocation?.iteration;
         switch (source.kind) {
           case "iterator": return source;
           case "list": case "tuple": case "str": case "bytes": case "range":
@@ -40,16 +41,17 @@ export function createIterBuiltin(values: RuntimeValues, meter: ExecutionMeter, 
 /** Prepared iterators preserve raised exception payloads; a supplied default
  * handles StopIteration only. Optional guest slots preserve returned identity
  * and exception objects without converting through a host done record. */
-export function createNextBuiltin(values: RuntimeValues, meter: ExecutionMeter, protocol?: Pick<IterationContext<RuntimeValue>, "hasNext" | "next" | "typeName" | "isStopIteration">): BuiltinFunctionValue {
+export function createNextBuiltin(values: RuntimeValues, meter: ExecutionMeter, explicitProtocol?: Pick<IterationContext<RuntimeValue>, "hasNext" | "next" | "typeName" | "isStopIteration">): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "next",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "next() takes no keyword arguments");
       if (positional.length < 1) throw new PythonRuntimeError("TypeError", "next expected at least 1 argument, got 0");
       if (positional.length > 2) throw new PythonRuntimeError("TypeError", `next expected at most 2 arguments, got ${positional.length}`);
       const source = positional[0];
+      const protocol = explicitProtocol ?? invocation?.iteration;
       if (source.kind !== "iterator") {
         const valid = protocol?.hasNext(source) ?? false; meter.checkpoint();
         if (!valid) {

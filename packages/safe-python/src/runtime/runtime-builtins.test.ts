@@ -196,6 +196,24 @@ it.each(["min", "max", "sorted"])("lets %s consume guest iteration through the f
   else expect(result).toBe(members[name === "min" ? 0 : 1]);
   expect(events).toEqual(["iter", "next", "next", "next", "next"]);
 });
+it.each([false, true])("routes iter/next through frame protocols with sequence fallback=%s", sequence => {
+  const { meter, v, context } = fixture(), source = v.cell({}), cursor = v.cell({}), member = v.cell({}), fallback = v.cell({}), globals = new Map<string, RuntimeValue>([["source", source], ["fallback", fallback]]), events: string[] = [], unused = (): never => { throw Error("unexpected guest callback"); };
+  const stop = Error("guest exhaustion"); let pulls = 0;
+  const program = compileProgram<RuntimeValue>(analyzeModule("items=iter(source)\nfirst=next(items)\nlast=next(items,fallback)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, iteration: {
+      lookupIter(value) { expect(value).toBe(source); events.push("iter"); return sequence ? undefined : () => cursor; }, hasNext: value => value === cursor,
+      next(value) { expect(value).toBe(cursor); events.push("next"); if (pulls++ > 0) throw stop; return member; },
+      hasSequenceItem: value => sequence && value === source,
+      getItem(value, index) { expect(value).toBe(source); events.push(`get:${index}`); if (index > 0n) throw stop; return member; },
+      isStopIteration: error => !sequence && error === stop, isIndexError: error => sequence && error === stop, typeName: () => "Guest"
+    } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("first")).toBe(member); expect(globals.get("last")).toBe(fallback);
+  if (!sequence) expect(globals.get("items")).toBe(cursor);
+  expect(events).toEqual(sequence ? ["iter", "get:0", "get:1"] : ["iter", "next", "next"]);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

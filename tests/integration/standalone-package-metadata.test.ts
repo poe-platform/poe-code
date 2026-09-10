@@ -206,6 +206,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/time-env",
       "./safe-bash/commands/timeout",
       "./safe-bash/commands/tree",
+      "./safe-bash/commands/tsort",
       "./safe-bash/commands/which",
       "./safe-bash/commands/xml",
       "./safe-bash/commands/yq",

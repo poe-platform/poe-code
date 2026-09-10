@@ -147,6 +147,12 @@
       "browser": "./packages/safe-bash/dist/commands/pr/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/pr/index.js"
     },
+    "./safe-bash/commands/tsort": {
+      "types": "./packages/safe-bash/dist/commands/tsort/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/tsort/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/tsort/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/tsort/index.js"
+    },
     "./safe-bash/commands/time-env": {
       "types": "./packages/safe-bash/dist/commands/time-env/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/time-env/index.js"

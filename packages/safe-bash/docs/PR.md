@@ -153,8 +153,12 @@ and separator arguments retain their admitted raw bytes.
 
 ## Failure and resource behavior
 
-The command only reads regular VFS files and supplied stdin. It does not open
-special files as native devices. Symlink resolution stays within the supplied
+The command reads regular VFS files, provider-backed character devices and
+supplied stdin. Virtual `/dev/null` and VFS symlinks to it reach EOF without
+consuming stdin; merge mode preserves the empty device's column. Nonempty
+provider character streams use the same input, work, memory and cleanup bounds
+as regular-file streams. No native host device is opened implicitly.
+Symlink resolution stays within the supplied
 filesystem's authority. Providers need usable file metadata; non-streaming
 providers must satisfy the bounded `readFile` admission check.
 

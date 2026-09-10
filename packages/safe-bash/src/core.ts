@@ -38,6 +38,7 @@ export * from "./commands/apply-patch/index.js";
 export * from "./commands/xml/index.js";
 export * from "./commands/csplit/index.js";
 export * from "./commands/pr/index.js";
+export * from "./commands/tsort/index.js";
 export * from "./commands/yq/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/webdav/index.js";

@@ -81,7 +81,7 @@ test("defaults preserve collision preflight, replacement and custom execute fall
   try {
     await replacement.setup(host);
     assert.equal(commands.get("custom"), originalCustom);
-    assert.equal(commands.list().length, 103);
+    assert.equal(commands.list().length, 104);
     const result = await commands.get("env")!.execute({
       command: "env", args: ["custom"], stdin: toByteSource(""),
       stdout: { async write() {} }, stderr: { async write() {} },

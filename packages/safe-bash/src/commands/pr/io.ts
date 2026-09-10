@@ -75,7 +75,7 @@ export class Reader {
     const { budget } = this.lifecycle;
     this.path = resolvePath(budget.context.cwd, pathText(this.name));
     this.stat = await this.lifecycle.operation(() => budget.context.fs.stat(this.path!, { signal: budget.signal }));
-    if (this.stat.type !== "file" && this.stat.type !== "directory") throw new FsError("ENOTSUP", { path: this.path });
+    if (this.stat.type !== "file" && this.stat.type !== "directory" && this.stat.type !== "character") throw new FsError("ENOTSUP", { path: this.path });
   }
   private async acquire(): Promise<void> {
     const { budget } = this.lifecycle;

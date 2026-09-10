@@ -1,6 +1,7 @@
 import * as defaultEntry from "@poe-platform/safe-bash";
 import { createCsplitCommand as createSubpathCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";
 import { createPrCommand as createSubpathPrCommand, createPrCommands as createSubpathPrCommands, prCommands as subpathPrCommands } from "@poe-platform/safe-bash/commands/pr";
+import { createTsortCommand as createSubpathTsortCommand, createTsortCommands as createSubpathTsortCommands, tsortCommands as subpathTsortCommands } from "@poe-platform/safe-bash/commands/tsort";
 import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs/core";
 
 export const expectedAgentCommandNames = Object.freeze([
@@ -10,7 +11,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort",
 ].sort());
 
 export const checksumWorkflows = Object.freeze([
@@ -214,6 +215,7 @@ export async function verifyPrCommands(entry = defaultEntry) {
   const filesystem = new entry.MemoryFileSystem();
   const binary = new Uint8Array([0, 255, 10, 65, 10]);
   await filesystem.mkdir("/pr-work");
+  await filesystem.symlink("/dev/null", "/pr-work/null-link");
   await filesystem.writeFile("/pr-work/input", new TextEncoder().encode("alpha\nbeta\n"));
   await filesystem.writeFile("/pr-work/columns", new TextEncoder().encode("alpha\nbeta\ngamma\ndelta\n"));
   await filesystem.writeFile("/pr-work/bytes", binary);
@@ -224,6 +226,10 @@ export async function verifyPrCommands(entry = defaultEntry) {
   try {
     if (entry.createPrCommand().name !== "pr") throw new Error("Public pr factory is missing");
     if (entry.createPrCommand !== createSubpathPrCommand || entry.createPrCommands !== createSubpathPrCommands || entry.prCommands !== subpathPrCommands) throw new Error("Pr subpath factory identity differs");
+    for (const input of ["/dev/null", "/pr-work/null-link"]) {
+      const empty = await shell.exec(`pr -t ${input}`);
+      if (empty.exitCode !== 0 || empty.stdoutBytes.length !== 0 || empty.stderrBytes.length !== 0) throw new Error(`Public pr null input failed: ${input}: ${JSON.stringify(empty)}`);
+    }
     const result = await shell.exec("sh workflow.sh");
     if (result.exitCode !== 0 || result.stderr !== "" || result.stdout !== "alpha|gamma\nbeta|delta\n") throw new Error(`Public pr saved script failed: ${JSON.stringify(result)}`);
     for (const [name, expected] of [["numbered", new TextEncoder().encode(" 1:alpha\n 2:beta\n")], ["copied", binary]]) {
@@ -301,6 +307,37 @@ export async function verifyPrCommands(entry = defaultEntry) {
       await candidate.dispose();
     }
   }
+}
+
+export async function verifyTsortCommands(entry = defaultEntry) {
+  const filesystem = new entry.MemoryFileSystem();
+  const encoder = new TextEncoder();
+  await filesystem.mkdir("/tsort-work");
+  await filesystem.symlink("/dev/null", "/tsort-work/null-link");
+  await filesystem.writeFile("/tsort-work/workflow.sh", encoder.encode('tsort < "$1"\n'));
+  const cases = [
+    ["acyclic", encoder.encode("a b z z\n"), 0, encoder.encode("a\nz\nb\n"), new Uint8Array()],
+    ["cycle", encoder.encode("a b b a\n"), 1, encoder.encode("a\nb\n"), encoder.encode("tsort: -: input contains a loop:\ntsort: a\ntsort: b\n")],
+    ["raw", Uint8Array.of(255, 32, 255, 32, 254, 32, 254, 10), 0, Uint8Array.of(254, 10, 255, 10), new Uint8Array()],
+  ];
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/tsort-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+  try {
+    if (entry.createTsortCommand().name !== "tsort") throw new Error("Public tsort factory is missing");
+    if (entry.createTsortCommand !== createSubpathTsortCommand || entry.createTsortCommands !== createSubpathTsortCommands || entry.tsortCommands !== subpathTsortCommands) throw new Error("Tsort subpath factory identity differs");
+    for (const input of ["/dev/null", "/tsort-work/null-link"]) {
+      const empty = await shell.exec(`tsort ${input}`);
+      if (empty.exitCode !== 0 || empty.stdoutBytes.length !== 0 || empty.stderrBytes.length !== 0) throw new Error(`Public tsort null input failed: ${input}: ${JSON.stringify(empty)}`);
+    }
+    for (const [name, input, status, stdout, stderr] of cases) {
+      await filesystem.writeFile(`/tsort-work/${name}`, input);
+      const result = await shell.exec(`sh workflow.sh ${name}`);
+      if (result.exitCode !== status) throw new Error(`Public tsort ${name} status differs: ${result.exitCode}`);
+      for (const [stream, expected] of [["stdoutBytes", stdout], ["stderrBytes", stderr]]) {
+        const actual = result[stream];
+        if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public tsort ${name} ${stream} differs: ${JSON.stringify(Array.from(actual))}`);
+      }
+    }
+  } finally { await shell.dispose(); }
 }
 
 export async function verifyTruncateCommands(entry = defaultEntry) {

@@ -99,6 +99,12 @@
       "browser": "./dist/commands/pr/index.browser.js",
       "import": "./dist/commands/pr/index.js"
     },
+    "./commands/tsort": {
+      "types": "./dist/commands/tsort/index.d.ts",
+      "workerd": "./dist/commands/tsort/index.browser.js",
+      "browser": "./dist/commands/tsort/index.browser.js",
+      "import": "./dist/commands/tsort/index.js"
+    },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
       "import": "./dist/commands/time-env/index.js"

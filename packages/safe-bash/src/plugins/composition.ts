@@ -32,6 +32,7 @@ import { createXmlCommands, type XmlCommandsOptions } from "../commands/xml/inde
 import { createCsplitCommandWithExecutor } from "../commands/csplit/command.js";
 import type { CsplitCommandsOptions } from "../commands/csplit/internal.js";
 import { createPrCommands, type PrCommandsOptions } from "../commands/pr/index.js";
+import { createTsortCommands, type TsortCommandsOptions } from "../commands/tsort/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
@@ -45,6 +46,7 @@ export interface AgentCommandsOptions {
   readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex" | "regexExecutor">;
   readonly csplit?: Omit<CsplitCommandsOptions, "replace" | "regex" | "regexExecutor">;
   readonly pr?: Omit<PrCommandsOptions, "replace">;
+  readonly tsort?: Omit<TsortCommandsOptions, "replace">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -95,6 +97,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
   const prOptions = options.pr;
   const prLimits = prOptions?.limits;
   const prClock = prOptions?.clock;
+  const tsortLimits = options.tsort?.limits;
   const whichLimits = options.which?.limits;
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
@@ -130,6 +133,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
     ...createXmlCommands(xmlLimits === undefined ? {} : { limits: xmlLimits }),
     createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
     ...createPrCommands({ ...(prLimits === undefined ? {} : { limits: prLimits }), ...(prClock === undefined ? {} : { clock: prClock }) }),
+    ...createTsortCommands(tsortLimits === undefined ? {} : { limits: tsortLimits }),
   );
   return new CommandRegistry(commands).list();
 }

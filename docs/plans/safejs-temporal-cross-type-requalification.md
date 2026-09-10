@@ -34,6 +34,16 @@ safejs-post-year-month-integration-gate.md. No implementation/test edits were
 made during these rechecks. They ran alongside package test session 26401;
 that broader run remains pending and has emitted failure markers.
 
+## Complete PlainMonthDay directory rechecks
+
+The same pinned revision, original harnesses, completion checks and Node 26.8.1
+runtime subsequently passed all 59 top-level `PlainMonthDay/from` fixtures in
+both modes: 118 passed, zero failed, zero unsupported (c38b7f). All 21 top-level
+`PlainMonthDay/prototype/with` fixtures also passed in both modes: 42 passed,
+zero failed, zero unsupported (3f9a5c). Sources remained unchanged. These fresh
+results supersede the earlier failing baselines for these two directories only;
+they do not replace the pending default-runtime package test gate.
+
 ## Delivery boundary
 
 This is a local evidence record, not a standalone implementation commit. The

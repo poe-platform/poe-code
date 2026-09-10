@@ -5,7 +5,26 @@ historical test evidence. The full JavaScript-completeness goal is unfinished.
 The audit covers the working tree, including uncommitted implementations; it
 does not describe the published package or only committed sources.
 
-## Latest verification update
+## September 10 correction
+
+The absence claims below are historical. The local working tree now implements
+PlainMonthDay and PlainYearMonth, including their public methods, owned copying,
+host boundaries, snapshot/replay and direct Intl admission. PlainDate now has
+toPlainMonthDay and toPlainYearMonth. Temporal.Now remains absent. Substantial
+integration remains uncommitted; API presence is not full conformance.
+
+Fresh pinned Test262 rechecks pass both script modes for all 59 PlainMonthDay
+from fixtures (118 passes) and all 21 with fixtures (42 passes), with no
+exclusions. The formerly blocked ZonedDateTime until/since calendar-object
+fixtures also pass. See [cross-type qualification](safejs-temporal-cross-type-requalification.md).
+
+The maintained SafeJS build passed with five fresh ESM import checks. The newer
+default-Node package test session 26401 is still running and has emitted failure
+markers; it has not passed. See [current gate](safejs-post-year-month-integration-gate.md).
+Promise import policy, locale portability and broader semantic qualification
+remain open. No remote delivery or release is claimed.
+
+## September 9 verification (historical)
 
 A fresh source-runtime own-name audit against temporal-polyfill 1.0.4
 (61688c, Node 22.23.2) finds no missing static/prototype names for Instant,

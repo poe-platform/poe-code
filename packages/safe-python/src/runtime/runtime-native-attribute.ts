@@ -66,6 +66,12 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * supplier is acquired only for members that actually require that policy. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext }): RuntimeValue {
   meter.checkpoint();
+  if (receiver.kind === "function") {
+    if (name === "__name__") return receiver.value.name;
+    if (name === "__qualname__") return receiver.value.qualifiedName;
+    if (name === "__module__") return receiver.value.module;
+    if (name === "__doc__") return receiver.value.doc;
+  }
   if (receiver.kind === "staticmethod" || receiver.kind === "classmethod") {
     if (name === "__func__" || name === "__wrapped__") return receiver.value;
     const attribute = receiver.state.attributes.get(name);

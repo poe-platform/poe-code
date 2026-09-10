@@ -15,6 +15,7 @@ export function getRuntimeMethodDecorator(descriptor: MethodDecoratorValue, inst
     if (instance === null || instance.kind === "none") throw Error("missing classmethod receiver");
     if (instance.kind === "instance") effective = instance.type;
     else if (instance.kind === "type") effective = instance.metaclass;
+    else if ((instance.kind === "staticmethod" || instance.kind === "classmethod") && instance.type !== undefined) effective = instance.type;
     else {
       if (actualType === undefined) throw Error("classmethod binding requires an actual-type policy");
       effective = actualType(instance); meter.checkpoint();

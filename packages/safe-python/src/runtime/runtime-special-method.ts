@@ -14,6 +14,7 @@ export function runtimeActualType(value: RuntimeValue, context: RuntimeSpecialMe
   meter.checkpoint();
   if (value.kind === "instance") return value.type;
   if (value.kind === "type") return value.metaclass;
+  if ((value.kind === "staticmethod" || value.kind === "classmethod") && value.type !== undefined) return value.type;
   const type = context.typeOf(value); meter.checkpoint(); return type;
 }
 

@@ -7968,6 +7968,22 @@ extension, integration, or validation requirement is missing or unverified.
   Canonical native wrapper
   types, constructor/__init__ descriptor wiring, guest dictionaries and lazy
   annotation/abstractness protocols remain unfinished.
+- Added lazy execution-owned canonical staticmethod/classmethod types, native
+  __new__ allocators and __init__ wrapper descriptors. Direct allocation validates
+  the requested owned subtype, ignores extra arguments and produces a None-backed
+  wrapper with empty metadata; ordinary type calls then run initialization with
+  the frame's ordinary attribute policy. Allocated wrappers retain actual type
+  identity, including heap subclasses, for type calls and classmethod ownership.
+  Exact function reads expose the four existing metadata fields for copying.
+  Initial compiled-constructor tests failed without native type publication;
+  additional failures verified intrinsic ownership and foreign-receiver guards.
+  Native decorator syntax accepts unresolved annotations without evaluating them.
+  The 96 compiled wrapper-constructor cases, 96 ordinary constructors, 160 binding
+  cases and 20 automatic-wrapping cases match CPython. All 6,214 tests in 473 files,
+  selected build, typecheck and scoped lint pass. Remaining work includes
+  native wrapper __get__/__call__/getset descriptors, guest dictionaries, full
+  native metadata, subclass attribute/slot overrides, automatic canonical type
+  assignment for raw class-allocation wrappers, and the default builtin catalog.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

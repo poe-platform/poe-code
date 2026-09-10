@@ -10,6 +10,7 @@ import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
 import { PythonRuntimeError } from "./error.js";
+import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -28,8 +29,9 @@ export class RuntimeTypeRegistry {
   readonly object: TypeValue;
   readonly type: TypeValue;
   readonly #entries: WeakMap<RuntimeTypeLayout, TypeEntry>;
+  readonly #methodDecorators = new Map<"staticmethod" | "classmethod", TypeValue>();
 
-  constructor(private readonly values: RuntimeValues, keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
+  constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 192);
     this.#entries = new WeakMap();
     const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false });
@@ -93,6 +95,21 @@ export class RuntimeTypeRegistry {
       }));
     }
     Object.freeze(this);
+  }
+
+  /** Lazily publish canonical native wrapper types without charging executions
+   * that never request them. Heap subclasses retain their own type identity. */
+  methodDecoratorType(kind: "staticmethod" | "classmethod"): TypeValue {
+    this.meter.checkpoint();
+    const existing = this.#methodDecorators.get(kind);
+    if (existing !== undefined) return existing;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: true, objectLayout: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installMethodDecoratorBuiltins(kind, type, this.values, this.meter, candidate => this.#entries.get(candidate.value)?.type === candidate);
+    this.meter.checkpoint(1, 96);
+    this.#entries.set(layout, { type }); this.#methodDecorators.set(kind, type);
+    return type;
   }
 
   publish(layout: RuntimeTypeLayout, metaclass: TypeValue): TypeValue {

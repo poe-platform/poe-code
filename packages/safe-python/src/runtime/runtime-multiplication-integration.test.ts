@@ -1909,6 +1909,38 @@ it.each(["staticmethod", "classmethod"] as const)("reads copied %s metadata from
   expect(state.globals.get("function")).toBe(state.v.false);
 });
 
+it.each(["staticmethod", "classmethod"] as const)("constructs canonical %s values through native allocation and initialization", kind => {
+  const state = fixture(), owner = state.type("Owner"), fn = state.method(owner, "f", 'def f():\n "documentation"\n return 7\n'), type = state.registry.methodDecoratorType(kind);
+  state.globals.set("factory", type); state.globals.set("f", fn);
+  state.run("wrapped=factory(f)\nname=wrapped.__name__\nqualified=wrapped.__qualname__\ndoc=wrapped.__doc__\noriginal=wrapped.__func__\n");
+  const wrapped = state.globals.get("wrapped")!;
+  if (wrapped.kind !== kind) throw Error("wrong wrapper kind");
+  expect(wrapped.type).toBe(type); expect(state.globals.get("name")).toBe(fn.value.name);
+  expect(state.globals.get("qualified")).toBe(fn.value.qualifiedName); expect(state.globals.get("doc")).toBe(fn.value.doc);
+  expect(state.globals.get("original")).toBe(fn);
+  state.run("factory.__init__(wrapped, f)\n");
+  expect(() => state.run("factory()\n")).toThrow(`${kind} expected 1 argument, got 0`);
+  expect(() => state.run("factory(f, extra=True)\n")).toThrow(`${kind}() takes no keyword arguments`);
+});
+
+it.each(["staticmethod", "classmethod"] as const)("allocates %s subclasses with their actual type and inherited initializer", kind => {
+  const state = fixture(), base = state.registry.methodDecoratorType(kind), child = state.type("Child", base), fn = state.method(state.type("Owner"), "f", "def f(): return 7\n");
+  state.globals.set("Child", child); state.globals.set("base", base); state.globals.set("f", fn);
+  state.run("wrapped=Child(f)\nraw=base.__new__(Child, 1, ignored=True)\n");
+  const wrapped = state.globals.get("wrapped")!, raw = state.globals.get("raw")!;
+  if (wrapped.kind !== kind || raw.kind !== kind) throw Error("wrong wrapper kind");
+  expect(wrapped.type).toBe(child); expect(wrapped.value).toBe(fn);
+  expect(raw.type).toBe(child); expect(raw.value).toBe(state.v.none); expect(raw.state.attributes.size).toBe(0);
+});
+
+it.each(["staticmethod", "classmethod"] as const)("applies native %s decorator syntax while ignoring unresolved annotations", kind => {
+  const state = fixture(); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  state.run("@factory\ndef decorated(x: Missing) -> Absent:\n return x\nname=decorated.__name__\n");
+  const wrapped = state.globals.get("decorated")!;
+  if (wrapped.kind !== kind || wrapped.value.kind !== "function") throw Error("expected decorated function");
+  expect(state.globals.get("name")).toBe(wrapped.value.value.name);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

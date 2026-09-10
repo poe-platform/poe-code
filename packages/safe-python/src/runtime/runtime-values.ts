@@ -133,8 +133,8 @@ export interface BoundMethodValue {
 }
 
 export type MethodDecoratorValue =
-  | { readonly kind: "staticmethod"; readonly value: RuntimeValue; readonly state: RuntimeMethodDecoratorState }
-  | { readonly kind: "classmethod"; readonly value: RuntimeValue; readonly state: RuntimeMethodDecoratorState };
+  | { readonly kind: "staticmethod"; readonly value: RuntimeValue; readonly state: RuntimeMethodDecoratorState; readonly type?: TypeValue }
+  | { readonly kind: "classmethod"; readonly value: RuntimeValue; readonly state: RuntimeMethodDecoratorState; readonly type?: TypeValue };
 
 export interface CellValue {
   readonly kind: "cell";
@@ -302,10 +302,10 @@ export class RuntimeValues extends ConstantValues {
 
   /** Raw initialized wrapper. Public constructors additionally copy callable
    * metadata and support reinitialization; those policies are separate. */
-  methodDecorator(kind: "staticmethod" | "classmethod", value: RuntimeValue): MethodDecoratorValue {
+  methodDecorator(kind: "staticmethod" | "classmethod", value: RuntimeValue, type?: TypeValue): MethodDecoratorValue {
     this.runtimeMeter.checkpoint(1, 32);
     const state = new RuntimeMethodDecoratorState(value, this.runtimeMeter);
-    return Object.freeze({ kind, state, get value() { return state.value; } });
+    return Object.freeze({ kind, state, type, get value() { return state.value; } });
   }
 
   /** Adopt prepared ordered storage sharing this execution's key policy/meter.

@@ -12,6 +12,7 @@ export function resolveBrowserShellBuild(rootDir) {
       "commands/yq/index.browser": path.join(directory, "src/commands/yq/index.ts"),
       "commands/network/index.browser": path.join(directory, "src/commands/network/public.ts"),
       "commands/csplit/index.browser": path.join(directory, "src/commands/csplit/index.ts"),
+      "commands/pr/index.browser": path.join(directory, "src/commands/pr/index.ts"),
     },
     outdir: path.join(directory, "dist"),
     splitting: true,

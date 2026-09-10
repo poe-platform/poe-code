@@ -198,6 +198,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/network",
       "./safe-bash/commands/node",
       "./safe-bash/commands/node/host",
+      "./safe-bash/commands/pr",
       "./safe-bash/commands/split",
       "./safe-bash/commands/stream-format",
       "./safe-bash/commands/stream-inspection",

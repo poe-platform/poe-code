@@ -141,6 +141,12 @@
       "browser": "./packages/safe-bash/dist/commands/csplit/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/csplit/index.js"
     },
+    "./safe-bash/commands/pr": {
+      "types": "./packages/safe-bash/dist/commands/pr/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/pr/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/pr/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/pr/index.js"
+    },
     "./safe-bash/commands/time-env": {
       "types": "./packages/safe-bash/dist/commands/time-env/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/time-env/index.js"

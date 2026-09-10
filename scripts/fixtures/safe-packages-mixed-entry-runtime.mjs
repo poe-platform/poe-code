@@ -1,5 +1,6 @@
 import * as defaultEntry from "@poe-platform/safe-bash";
 import { createCsplitCommand as createSubpathCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";
+import { createPrCommand as createSubpathPrCommand, createPrCommands as createSubpathPrCommands, prCommands as subpathPrCommands } from "@poe-platform/safe-bash/commands/pr";
 import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs/core";
 
 export const expectedAgentCommandNames = Object.freeze([
@@ -9,7 +10,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr",
 ].sort());
 
 export const checksumWorkflows = Object.freeze([
@@ -207,6 +208,99 @@ export async function verifyCsplitCommands(entry = defaultEntry) {
       if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public csplit changed ${name}`);
     }
   } finally { await shell.dispose(); }
+}
+
+export async function verifyPrCommands(entry = defaultEntry) {
+  const filesystem = new entry.MemoryFileSystem();
+  const binary = new Uint8Array([0, 255, 10, 65, 10]);
+  await filesystem.mkdir("/pr-work");
+  await filesystem.writeFile("/pr-work/input", new TextEncoder().encode("alpha\nbeta\n"));
+  await filesystem.writeFile("/pr-work/columns", new TextEncoder().encode("alpha\nbeta\ngamma\ndelta\n"));
+  await filesystem.writeFile("/pr-work/bytes", binary);
+  await filesystem.writeFile("/pr-work/workflow.sh", new TextEncoder().encode(
+    "pr -t -n:2 input > numbered\npr -t bytes > copied\npr -t -2 -s'|' columns\n",
+  ));
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/pr-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+  try {
+    if (entry.createPrCommand().name !== "pr") throw new Error("Public pr factory is missing");
+    if (entry.createPrCommand !== createSubpathPrCommand || entry.createPrCommands !== createSubpathPrCommands || entry.prCommands !== subpathPrCommands) throw new Error("Pr subpath factory identity differs");
+    const result = await shell.exec("sh workflow.sh");
+    if (result.exitCode !== 0 || result.stderr !== "" || result.stdout !== "alpha|gamma\nbeta|delta\n") throw new Error(`Public pr saved script failed: ${JSON.stringify(result)}`);
+    for (const [name, expected] of [["numbered", new TextEncoder().encode(" 1:alpha\n 2:beta\n")], ["copied", binary]]) {
+      const actual = await filesystem.readFile(`/pr-work/${name}`);
+      if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public pr changed ${name}`);
+    }
+  } finally { await shell.dispose(); }
+  const deferred = () => {
+    let resolve;
+    const promise = new Promise(done => { resolve = done; });
+    return { promise, resolve };
+  };
+  for (const phase of ["owned stdout", "reader next getter"]) {
+    const backing = new entry.MemoryFileSystem();
+    await backing.writeFile("/input", Uint8Array.of(65, 10));
+    const caller = new AbortController();
+    const consumer = new AbortController();
+    const entered = deferred();
+    const gate = deferred();
+    let settled = false;
+    let completed = false;
+    let writes = 0;
+    let getters = 0;
+    let pulls = 0;
+    let returns = 0;
+    if (phase === "reader next getter") {
+      backing.readStream = () => ({ [Symbol.asyncIterator]() { return {
+        get next() {
+          getters++;
+          caller.abort(false);
+          return async () => { pulls++; throw new Error("Public DeviceFS admitted an aborted next method"); };
+        },
+        async return() {
+          returns++;
+          entered.resolve();
+          await gate.promise;
+          completed = true;
+          return { done: true, value: undefined };
+        },
+      }; } });
+    }
+    const sink = {
+      async write() { throw new Error("Public pr bypassed enrolled stdout"); },
+      ownedOutput: {
+        consumerClosed: consumer.signal,
+        async write() {
+          writes++;
+          entered.resolve();
+          try { await gate.promise; caller.signal.throwIfAborted(); }
+          finally { completed = true; }
+        },
+      },
+    };
+    const candidate = new entry.Shell({ fs: backing, env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+    const execution = candidate.exec("pr -t input", { signal: caller.signal, stdout: sink });
+    const outcome = execution.then(
+      value => { settled = true; return { ok: true, value }; },
+      error => { settled = true; return { ok: false, error }; },
+    );
+    try {
+      await Promise.race([entered.promise, outcome.then(() => { throw new Error(`Public pr ${phase} did not enter its held operation`); })]);
+      if (phase === "owned stdout") caller.abort(false);
+      for (let turn = 0; turn < 2; turn++) await new Promise(resolve => setTimeout(resolve, 0));
+      if (settled || completed || pulls !== 0 || writes !== (phase === "owned stdout" ? 1 : 0)
+        || getters !== (phase === "reader next getter" ? 1 : 0) || returns !== (phase === "reader next getter" ? 1 : 0)) {
+        throw new Error(`Public pr ${phase} failed held cleanup: ${JSON.stringify({ settled, completed, writes, getters, pulls, returns })}`);
+      }
+      gate.resolve();
+      const result = await outcome;
+      if (result.ok || result.error !== false || !completed) throw new Error(`Public pr ${phase} lost false abort or cleanup completion`);
+      if (phase === "reader next getter" && (pulls !== 0 || returns !== 1)) throw new Error("Public DeviceFS did not retain exactly one iterator cleanup");
+    } finally {
+      gate.resolve();
+      await outcome;
+      await candidate.dispose();
+    }
+  }
 }
 
 export async function verifyTruncateCommands(entry = defaultEntry) {

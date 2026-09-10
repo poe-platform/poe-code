@@ -244,8 +244,16 @@ export class Budget {
           signal.throwIfAborted();
           if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
           if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
-          this.bytes += chunk.byteLength;
-          await interruptible(sink.ownedOutput!.write(chunk), signal);
+          try {
+            const capability = sink.ownedOutput!;
+            const write = capability.write;
+            signal.throwIfAborted();
+            if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+            this.bytes += chunk.byteLength;
+            await Reflect.apply(write, capability, [chunk]);
+          }
+          catch (error) { signal.throwIfAborted(); throw error; }
+          signal.throwIfAborted();
         },
       } } : {}),
       write: async (chunk) => {
@@ -487,7 +495,17 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
     ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
     ...(sink.ownedOutput ? { ownedOutput: {
       consumerClosed: sink.ownedOutput.consumerClosed,
-      async write(chunk: Uint8Array) { signal.throwIfAborted(); await interruptible(sink.ownedOutput!.write(chunk), signal); },
+      async write(chunk: Uint8Array) {
+        signal.throwIfAborted();
+        try {
+          const capability = sink.ownedOutput!;
+          const write = capability.write;
+          signal.throwIfAborted();
+          await Reflect.apply(write, capability, [chunk]);
+        }
+        catch (error) { signal.throwIfAborted(); throw error; }
+        signal.throwIfAborted();
+      },
     } } : {}),
     async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); },
   };

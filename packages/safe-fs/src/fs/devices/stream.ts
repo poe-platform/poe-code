@@ -2,7 +2,7 @@ import type { ByteSource } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import type { FileReadHandle } from "../../contracts/filesystem.js";
 
-export function deviceReadStream(open: () => Promise<ByteSource>): ByteSource {
+export function deviceReadStream(open: () => Promise<ByteSource>, signal?: AbortSignal): ByteSource {
   return { [Symbol.asyncIterator]() {
     let opened: Promise<AsyncIterator<Uint8Array>> | undefined;
     let closing: Promise<IteratorResult<Uint8Array>> | undefined;
@@ -11,7 +11,15 @@ export function deviceReadStream(open: () => Promise<ByteSource>): ByteSource {
     return {
       async next() {
         if (closing) { await closing; return { done: true, value: undefined }; }
-        try { return await (await iterator()).next(); }
+        try {
+          const source = await iterator();
+          signal?.throwIfAborted();
+          if (closing) { await closing; return { done: true, value: undefined }; }
+          const next = source.next;
+          signal?.throwIfAborted();
+          if (closing) { await closing; return { done: true, value: undefined }; }
+          return await Reflect.apply(next, source, []);
+        }
         catch (error) { await finishCleanup(close, true); throw error; }
       },
       return: close,

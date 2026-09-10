@@ -193,7 +193,7 @@ export class DeviceFileSystem implements FileSystem {
       if (resolved === deviceDirectory) throw new FsError("EISDIR", { path });
       if (!this.#filesystem.readStream) throw new FsError("ENOTSUP", { path });
       return this.#filesystem.readStream(path, options);
-    });
+    }, options.signal);
   }
 
   async openReadFile(path: string, options: OpenReadFileOptions = {}): Promise<FileReadHandle> {

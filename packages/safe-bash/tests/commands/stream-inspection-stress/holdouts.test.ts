@@ -304,11 +304,16 @@ test("factory collision preflight and explicit replacement", async () => {
 test("VFS streamed read abort propagates supplied signal", { timeout: 3000 }, async () => {
   const entered = deferred<AbortSignal>();
   const blocked = deferred<IteratorResult<Uint8Array>>();
+  let reads = 0;
   class BlockingFs extends MemoryFileSystem {
     override readStream(_path: string, options: ReadStreamOptions = {}): ByteSource {
-      assert.ok(options.signal);
-      entered.resolve(options.signal);
-      return { [Symbol.asyncIterator]() { return { next: () => blocked.promise }; } };
+      const signal = options.signal;
+      assert.ok(signal);
+      return { [Symbol.asyncIterator]() { return { next() {
+        reads++;
+        entered.resolve(signal);
+        return blocked.promise;
+      } }; } };
     }
   }
   const fs = new BlockingFs();
@@ -320,11 +325,13 @@ test("VFS streamed read abort propagates supplied signal", { timeout: 3000 }, as
   const checked = assert.rejects(running, reason => reason === controller.signal.reason);
   try {
     const supplied = await entered.promise;
+    assert.equal(reads, 1);
     controller.abort(new FsError("EIO", { message: "VFS abort" }));
     await checked;
     assert.equal(supplied.aborted, true);
     blocked.reject(new Error("late VFS rejection"));
     await tick();
+    assert.equal(reads, 1);
   } finally { controller.abort(); blocked.resolve({ done: true, value: undefined }); await instance.dispose(); }
 });
 

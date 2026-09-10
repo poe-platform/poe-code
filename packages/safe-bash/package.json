@@ -93,6 +93,12 @@
       "browser": "./dist/commands/csplit/index.browser.js",
       "import": "./dist/commands/csplit/index.js"
     },
+    "./commands/pr": {
+      "types": "./dist/commands/pr/index.d.ts",
+      "workerd": "./dist/commands/pr/index.browser.js",
+      "browser": "./dist/commands/pr/index.browser.js",
+      "import": "./dist/commands/pr/index.js"
+    },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
       "import": "./dist/commands/time-env/index.js"

@@ -140,7 +140,8 @@ export default defineConfig({
       "scripts/**/*.lifecycle.test.ts",
       "**/*.e2e.test.ts" // E2E tests run separately
     ],
-    maxWorkers: 2,
+    // Native SafeJS replay cases compete for CPU within their fixed test deadlines.
+    maxWorkers: process.env.npm_package_name === "@poe-code/safe-js" ? 1 : 2,
     setupFiles: ["tests/setup.ts"]
   }
 });

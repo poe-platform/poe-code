@@ -31,6 +31,7 @@ import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../com
 import { createXmlCommands, type XmlCommandsOptions } from "../commands/xml/index.js";
 import { createCsplitCommandWithExecutor } from "../commands/csplit/command.js";
 import type { CsplitCommandsOptions } from "../commands/csplit/internal.js";
+import { createPrCommands, type PrCommandsOptions } from "../commands/pr/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
@@ -43,6 +44,7 @@ export interface AgentCommandsOptions {
   readonly which?: Omit<WhichCommandsOptions, "replace">;
   readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex" | "regexExecutor">;
   readonly csplit?: Omit<CsplitCommandsOptions, "replace" | "regex" | "regexExecutor">;
+  readonly pr?: Omit<PrCommandsOptions, "replace">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -90,6 +92,9 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
   const grep = createGrepCommands(executors.grep);
   const exprLimits = options.expr?.limits;
   const csplitLimits = options.csplit?.limits;
+  const prOptions = options.pr;
+  const prLimits = prOptions?.limits;
+  const prClock = prOptions?.clock;
   const whichLimits = options.which?.limits;
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
@@ -124,6 +129,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
     ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
     ...createXmlCommands(xmlLimits === undefined ? {} : { limits: xmlLimits }),
     createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
+    ...createPrCommands({ ...(prLimits === undefined ? {} : { limits: prLimits }), ...(prClock === undefined ? {} : { clock: prClock }) }),
   );
   return new CommandRegistry(commands).list();
 }

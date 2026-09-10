@@ -1,5 +1,5 @@
 import { Shell, agentCommands, createAgentCommands, createMemoryFileSystem, evaluateCommandSupport, FsError, createBoundedRegexProvider } from "@poe-platform/safe-bash";
-import { checksumWorkflows, expectedAgentCommandNames, nullDeviceWorkflows, runNestedCommands, verifyCmpCommands, verifyFmtCommands, verifyShufCommands, verifyNumfmtCommands, verifyTruncateCommands, verifyZipCommands, verifyCsplitCommands, verifyNullDeviceView } from "./safe-packages-mixed-entry-runtime.mjs";
+import { checksumWorkflows, expectedAgentCommandNames, nullDeviceWorkflows, runNestedCommands, verifyCmpCommands, verifyFmtCommands, verifyShufCommands, verifyNumfmtCommands, verifyTruncateCommands, verifyZipCommands, verifyCsplitCommands, verifyPrCommands, verifyNullDeviceView } from "./safe-packages-mixed-entry-runtime.mjs";
 import { FsError as CoreFsError, createDeviceFileSystem } from "@poe-platform/safe-fs/core";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs/core";
 
@@ -13,6 +13,7 @@ await verifyNumfmtCommands();
 await verifyTruncateCommands();
 await verifyZipCommands();
 await verifyCsplitCommands();
+await verifyPrCommands();
 const definitions = createAgentCommands();
 const commandNames = definitions.map(command => command.name).sort();
 if (JSON.stringify(commandNames) !== JSON.stringify(expectedAgentCommandNames)) {

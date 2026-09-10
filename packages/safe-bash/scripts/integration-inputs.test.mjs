@@ -1895,6 +1895,14 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/zip-safety.test.ts"));
   assert.ok(files.includes("tests/plugins/csplit-commands.test.ts"));
+  assert.ok(files.includes("tests/shell/owned-output-drain.test.ts"));
+  assert.ok(files.includes("tests/plugins/pr-commands.test.ts"));
+  assert.ok(files.includes("tests/commands/pr/native.test.ts"));
+  assert.ok(files.includes("tests/commands/pr/extra.test.ts"));
+  assert.ok(files.includes("tests/commands/pr/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/pr-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/pr-independent/limits.test.ts"));
+  assert.ok(files.includes("tests/commands/pr-independent/lifecycle.test.ts"));
   assert.ok(files.includes("tests/commands/csplit/numeric.test.ts"));
   assert.ok(files.includes("tests/commands/csplit/regex.test.ts"));
   assert.ok(files.includes("tests/commands/csplit/diagnostics.test.ts"));

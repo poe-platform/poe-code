@@ -630,6 +630,10 @@ export function* cloneStructuredGraph(
     throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
   if (typeof value === "object" && value !== null && guestProxyStates.has(value))
     throw new DOMException("Proxies cannot be structured cloned.", "DataCloneError");
+  if (typeof value === "object" && value !== null && weakReferenceStates.has(value))
+    throw new DOMException("Weak references cannot be structured cloned.", "DataCloneError");
+  if (typeof value === "object" && value !== null && finalizationRegistryStates.has(value))
+    throw new DOMException("Finalization registries cannot be structured cloned.", "DataCloneError");
   if (typeof value === "symbol" || isSandboxModuleNamespace(value) || isSandboxClosure(value) || isSandboxPromise(value) ||
       isSandboxGenerator(value) || isSandboxCollectionIterator(value) || isSandboxRegExpIterator(value) ||
       isSandboxArrayIterator(value) || isSandboxStringIterator(value) || isSandboxArguments(value) ||
@@ -638,6 +642,8 @@ export function* cloneStructuredGraph(
       isSandboxDurationFormat(value) || isSandboxListFormat(value) || isSandboxNumberFormat(value) || isSandboxPluralRules(value) || isSandboxRelativeTimeFormat(value))
     throw new DOMException("Value cannot be structured cloned.", "DataCloneError");
   if (typeof value !== "object" || value === null) return allocateProducedSandboxValue(value, budget);
+  if (weakCollectionStates.has(value))
+    throw new DOMException("Weak collections cannot be structured cloned.", "DataCloneError");
   if (iteratorHelperStates.has(value) || iteratorWrapperStates.has(value))
     throw new DOMException("Iterator objects cannot be structured cloned.", "DataCloneError");
   if (disposableStackStates.has(value) || asyncDisposableStackStates.has(value))

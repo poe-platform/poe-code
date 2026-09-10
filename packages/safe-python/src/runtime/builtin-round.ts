@@ -2,8 +2,8 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { integerIndex, type IntegerIndexContext } from "./index-protocol.js";
-import { integerBitMetric } from "./integer-bit-metric.js";
-import { floatRound, integerRound } from "./rounding.js";
+import { floatRound } from "./rounding.js";
+import { roundRuntimeInteger } from "./runtime-integer-round.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -62,12 +62,6 @@ export function createRoundBuiltin(values: RuntimeValues, meter: ExecutionMeter,
       meter.checkpoint(128, 8192);
       return places === undefined ? values.integer(floatRound(number.value)) : values.float(floatRound(number.value, places));
     }
-    if (number.kind === "int" && (places === undefined || places >= 0n)) return number;
-    const integer = number.kind === "bool" ? (number.value ? 1n : 0n) : number.value;
-    const bits = integerBitMetric(integer, "bit_length", meter);
-    // integerRound caps decimal powers by input size. Charge its decimal
-    // inspection and bigint intermediates before indivisible host arithmetic.
-    meter.checkpoint(1 + Math.ceil(bits / 64), 128 + bits * 4);
-    return values.integer(integerRound(integer, places));
+    return roundRuntimeInteger(number, places, values, meter);
   } });
 }

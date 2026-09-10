@@ -9357,6 +9357,25 @@ extension, integration, or validation requirement is missing or unverified.
   Integer rounding, format and byte-conversion descriptors, other scalar types,
   full interpreter and safe-fs execution remain unfinished. No push or release
   was requested.
+- Integer rounding and formatting (2026-09-10): failing integration tests
+  reproduced missing __round__ and inappropriate inherited object formatting
+  for integer subclasses. Added the integer rounding descriptor with index
+  conversion and shared metered ties-to-even arithmetic with round(). Explicit
+  int.__format__ bypasses format overrides, honors original-object str for empty
+  specs, and otherwise formats native payloads with accurate subtype diagnostics.
+  Formatting contexts now expose their execution-owned numeric locale to native
+  descriptors; a regression checks lazy locale acquisition and grouped output.
+  All 504 integer-only CPython comparisons match. The initial reference run was
+  interrupted after sustained CPU consumption; a one-second diagnostic probe
+  confirmed CPython stalls on int.__round__(25,-10**30). The matrix uses -1000
+  instead; the extreme runtime regression retains the existing size-based zero
+  shortcut and is not claimed as a completed CPython comparison. A broader
+  bounded matrix exposed three existing None.__format__ argument diagnostics
+  naming NoneType rather than object; these remain pending outside the integer
+  audit. Workspace build, typecheck, focused lint and all 6,973 package tests in
+  495 files pass. Integer byte-conversion descriptors, remaining scalar types,
+  full interpreter and safe-fs execution remain unfinished. No push or release
+  was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

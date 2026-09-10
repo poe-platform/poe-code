@@ -22,6 +22,9 @@ import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { constructRuntimeInteger } from "./runtime-integer-construction.js";
+import { createRoundBuiltin } from "./builtin-round.js";
+import { createRuntimeFormatContext } from "./runtime-format.js";
+import { NumericLocale } from "./numeric-locale.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -61,6 +64,37 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("shares the execution numeric locale with explicit integer formatting", () => {
+  const state = fixture(); const { v, meter } = state;
+  let reads = 0;
+  const locale = new NumericLocale({ decimalPoint: v.string(",").value, thousandsSeparator: v.string(".").value, grouping: [3,0] }, meter);
+  const formatting = createRuntimeFormatContext(v, meter, { numericLocale() { reads++; return locale; }, defaultRepr() { throw Error("unexpected representation"); } });
+  const method = state.registry.integerType().value.namespace.items.lookup(v.string("__format__"))?.value;
+  if (method?.kind !== "method_descriptor") throw Error("expected integer format descriptor");
+  const keywords = v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,meter));
+  const invocation = { formatting, call(): never { throw Error("unexpected guest call"); } };
+  expect(method.value.invoke(v.integer(1234567),[v.string("d")],keywords,meter,invocation)).toEqual(v.string("1234567"));
+  expect(reads).toBe(0);
+  expect(method.value.invoke(v.integer(1234567),[v.string("n")],keywords,meter,invocation)).toEqual(v.string("1.234.567"));
+  expect(reads).toBe(1);
+});
+
+it("formats owned integer payloads while preserving empty-spec string overrides", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Child(Int):\n def __str__(self):\n  visit('str')\n  return 'custom'\n def __int__(self):\n  visit('wrong')\n  return 0\ny=Child(255)\ncorrect=Int.__format__(y,'')=='custom' and y.__format__('#06x')=='0x00ff' and f'{y:d}'=='255' and y.__format__('n')=='255' and Int.__format__(True,'')=='True' and Int.__format__(True,'d')=='1' and Int.__format__.__objclass__ is Int\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["str"]);
+  expect(()=>state.run("y.__format__('q')\n")).toThrow("Unknown format code 'q' for object of type 'Child'");
+});
+
+it("rounds owned integers through the canonical descriptor with index conversion", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.builtins.set("round",createRoundBuiltin(state.v,state.meter));
+  state.run("class Child(Int):\n def __int__(self):\n  visit('wrong')\n  return 0\nclass Digits:\n def __index__(self):\n  visit('index')\n  return -1\nx=10**30\ny=Child(25)\ncorrect=Int.__round__(x) is x and x.__round__(None) is x and y.__round__(Digits())==20 and round(y,-1)==20 and type(y.__round__()) is Int and type(True.__round__()) is Int and (-35).__round__(-1)==-40 and y.__round__(-10**30)==0 and Int.__round__.__objclass__ is Int\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["index"]);
+  expect(()=>state.run("y.__round__(ndigits=1)\n")).toThrow("int.__round__() takes no keyword arguments");
+  expect(()=>state.run("y.__round__(1,2)\n")).toThrow("__round__ expected at most 1 argument, got 2");
+});
 
 it("publishes integer numeric data descriptors over exact and owned values", () => {
   const state = fixture();state.globals.set("Int",state.registry.integerType());

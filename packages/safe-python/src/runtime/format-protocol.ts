@@ -3,8 +3,11 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { representationObject, type RepresentationContext } from "./representation-protocol.js";
+import type { NumericLocale } from "./numeric-locale.js";
 
 export interface FormatContext<Value> extends RepresentationContext<Value> {
+  /** Execution-owned numeric locale shared by native formatting descriptors. */
+  numericLocale?(): NumericLocale;
   /** Exact int only, excluding bool and int subclasses. */
   isExactInteger(value: Value): boolean;
   /** Bound type-level __format__. Undefined is absence only; lookup and calls

@@ -2,10 +2,26 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { integerBitMetric } from "./integer-bit-metric.js";
 import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
+import { roundRuntimeInteger } from "./runtime-integer-round.js";
+import { integerIndex } from "./index-protocol.js";
+import { runtimeIntegerIndex } from "./runtime-integer-index.js";
+import { createIntegerFormatDescriptor } from "./builtin-integer-format.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Numeric members consume owned integer storage, never guest conversion slots. */
 export function installRuntimeIntegerMethodDescriptors(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+  owner.value.namespace.items.set(values.string("__format__"), createIntegerFormatDescriptor(owner, values, meter));
+  meter.checkpoint(0, 96);
+  owner.value.namespace.items.set(values.string("__round__"), values.methodDescriptor({ owner, name: "__round__", doc: "Rounding an Integral returns itself.\n\nRounding with an ndigits argument also returns an integer.", accepts: receiver => runtimeIntegerPayload(receiver) !== undefined,
+    invoke(receiver, positional, keywords, meter, invocation) {
+      meter.checkpoint();
+      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "int.__round__() takes no keyword arguments");
+      if (positional.length > 1) throw new PythonRuntimeError("TypeError", `__round__ expected at most 1 argument, got ${positional.length}`);
+      const digits = positional[0];
+      const places = digits === undefined || digits.kind === "none" ? undefined : invocation?.integerIndex === undefined ? runtimeIntegerIndex(digits, meter) : integerIndex(digits, invocation.integerIndex, meter);
+      return roundRuntimeInteger(receiver, places, values, meter);
+    }
+  }));
   for (const [name, doc] of [
     ["real", "the real part of a complex number"],
     ["imag", "the imaginary part of a complex number"],

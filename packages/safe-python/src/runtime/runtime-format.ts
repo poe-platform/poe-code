@@ -34,6 +34,7 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
   const numericLocale = () => hooks.numericLocale ? hooks.numericLocale() : (portableLocale ??= NumericLocale.portable(meter));
   const context: FormatContext<RuntimeValue> = {
     ...createRuntimeRepresentationContext(values, meter, hooks, state),
+    numericLocale,
     isExactInteger(value) { meter.checkpoint(); return value.kind === "int"; },
     lookupFormat(value) {
       meter.checkpoint();

@@ -10,6 +10,14 @@ const links: ExceptionLinks<Fault> = { get: error => error.context, set: (error,
 const budget = (maxSteps = 10000) => new ExecutionBudget({ maxSteps, maxAllocatedBytes: 10000 });
 
 describe("handled exception state", () => {
+  it("chains injected exceptions to local handlers without inheriting caller context",()=>{
+    const state=new HandledExceptionState<Fault>(),meter=budget(),frame=state.createFrame(meter),caller=fault("caller"),local=fault("local"),first=fault("first"),second=fault("second");
+    const leaveCaller=state.enter(caller),leaveFrame=state.activate(frame,meter);
+    state.chain(first,links,meter,"local");expect(first.context).toBeNull();expect(state.active).toBe(caller);
+    const leaveLocal=state.enter(local);
+    state.chain(second,links,meter,"local");expect(second.context).toBe(local);
+    leaveLocal();leaveFrame();leaveCaller();
+  });
   it("inherits the current caller exception anew on each suspended-frame activation",()=>{
     const state=new HandledExceptionState<Fault>(),frame=state.createFrame(budget()),first=fault("first"),second=fault("second");
     const leaveFirst=state.enter(first),pauseFirst=state.activate(frame,budget());

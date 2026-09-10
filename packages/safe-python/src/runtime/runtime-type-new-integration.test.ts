@@ -33,7 +33,7 @@ import { constructRuntimeFloat } from "./runtime-float-construction.js";
 import { createRoundBuiltin } from "./builtin-round.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { NumericLocale } from "./numeric-locale.js";
-import { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
+import { RuntimeExceptionExecution,RuntimeRaisedException } from "./runtime-exception-execution.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.js";
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
@@ -52,7 +52,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   builtins.set("callable", createCallableBuiltin(v, meter));
   const unused = (): never => { throw Error("unexpected extension operation"); };
   const hooks: RuntimeProgramHooks = {
-    expressions: () => ({ ...extensions, warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
+    expressions: () => ({ ...extensions, warn: extensions.warn ?? unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "list") return registry.listType();
@@ -80,11 +80,97 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions };
 }
 
-function exceptionFixture() {
-  const state=fixture(undefined,1000000,{},true);
+function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["expressions"]>>={}) {
+  const state=fixture(undefined,1000000,extensions,true);
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("injects generator throw instances and preserves their identity",()=>{
+  const state=exceptionFixture(),{v}=state;
+  let count=0;
+  state.globals.set("g",state.exceptions!.generator(input=>{
+    count++;
+    if(input.kind==="throw") {
+      expect(input.error).toBeInstanceOf(RuntimeRaisedException);
+      return {done:false,value:(input.error as RuntimeRaisedException).value};
+    }
+    return {done:false,value:v.none};
+  },{},state.calls));
+  state.run("g.__next__()\nerror=ValueError('injected')\nresult=g.throw(error)\ncorrect=result is error and g.gi_suspended\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(count).toBe(2);
+});
+
+it("keeps invalid generator throw arguments outside the suspended body",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("g=(x for x in [1,2])\ng.__next__()\ntry:\n g.throw(42)\nexcept TypeError as error:\n message=f'{error}'\ncorrect=g.gi_suspended and g.__next__()==2 and message=='exceptions must be classes or instances deriving from BaseException, not int'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("injects failures from generator exception constructors instead of raising them outside",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("g",state.exceptions!.generator(input=>input.kind==="throw"?{done:false,value:(input.error as RuntimeRaisedException).value}:{done:false,value:v.none},{},state.calls));
+  state.run("class Broken(Exception):\n def __new__(cls): raise ValueError('constructor')\ng.__next__()\nerror=g.throw(Broken)\ncorrect=type(error) is ValueError and error.args==('constructor',) and g.gi_suspended\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("chains injected exceptions only to the generator's own saved handler",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new ModuleFrame(analyzeModule("").scopes,state,state.meter);
+  const handlers=state.exceptions!.statements(frame),local=state.exceptions!.prepare(new PythonRuntimeError("ValueError","local"));
+  let count=0;
+  state.globals.set("g",state.exceptions!.generator(input=>{
+    if(input.kind==="throw")return {done:false,value:(input.error as RuntimeRaisedException).value};
+    if(count++===1)handlers.enter(local);
+    return {done:false,value:v.none};
+  },frame,state.calls));
+  state.run("g.__next__()\ntry:\n raise ValueError('caller')\nexcept ValueError:\n first=g.throw(TypeError('first'))\n g.send(None)\n second=g.throw(TypeError('second'))\ncorrect=first.__context__ is None and second.__context__.args==('local',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("warns before legacy throw validation and leaves the body untouched when warnings fail",()=>{
+  const warnings:string[]=[];
+  const state=exceptionFixture({warn(category,message){warnings.push(`${category}: ${message}`);throw new PythonRuntimeError("ValueError","warning failed");}}),{v}=state;
+  state.run("g=(x for x in [1,2])\ng.__next__()\ntry:\n g.throw(42,None,42)\nexcept ValueError as error:\n correct=error.args==('warning failed',) and g.gi_suspended and g.__next__()==2\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+  expect(warnings).toEqual(["DeprecationWarning: the (type, exc, tb) signature of throw() is deprecated, use the single-arg signature instead."]);
+});
+
+it("expands native tuple throw values without invoking overridden tuple iteration",()=>{
+  const state=exceptionFixture({warn(){}}),{v}=state;
+  state.globals.set("Tuple",state.registry.tupleType());
+  state.run("class Args(Tuple):\n def __iter__(self): raise RuntimeError('must not iterate')\ng=(x for x in [1])\ng.__next__()\ntry:\n g.throw(ValueError,Args((1,2)))\nexcept ValueError as error:\n correct=error.args==(1,2) and not g.gi_suspended\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("does final restore construction when a throw constructor returns another exception type",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Other(Exception): pass\nclass Replacement(Exception):\n def __new__(cls,*args):\n  events.append(args)\n  return Other('replacement')\ng=(x for x in [1])\ntry:\n g.throw(Replacement)\nexcept Other as error:\n correct=error.args==('replacement',) and events[0]==() and type(events[1][0]) is Other\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("keeps fatal normalization failures outside a suspended generator",()=>{
+  const state=exceptionFixture(),{v}=state,failure=new ExecutionLimitError("cancelled");
+  state.builtins.set("stop",v.builtinFunction({name:"stop",invoke(){throw failure;}}));
+  state.run("class Fatal(Exception):\n def __new__(cls): return stop()\ng=(x for x in [1,2])\ng.__next__()\n");
+  expect(()=>state.run("g.throw(Fatal)\n")).toThrow(failure);
+  const generator=state.globals.get("g");
+  expect(generator?.kind==="instance"&&generator.native?.kind==="generator"&&generator.native.execution.phase).toBe("suspended");
+  expect(state.calls.depth).toBe(0);expect(state.exceptions!.active).toBe(null);
+});
+
+it("attaches a saved local handler to internally injected GeneratorExit",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new ModuleFrame(analyzeModule("").scopes,state,state.meter);
+  const handlers=state.exceptions!.statements(frame),local=state.exceptions!.prepare(new PythonRuntimeError("ValueError","local"));
+  state.globals.set("g",state.exceptions!.generator(input=>{
+    if(input.kind==="throw"){
+      state.globals.set("seen",(input.error as RuntimeRaisedException).value);
+      return {done:true,value:v.none};
+    }
+    handlers.enter(local);return {done:false,value:v.none};
+  },frame,state.calls));
+  state.run("g.__next__()\ng.close()\ncorrect=seen.__context__.args==('local',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.exceptions!.active).toBe(null);
+});
 
 it("exposes native generator iteration and send without executing at creation",()=>{
   const state=exceptionFixture(),{v}=state;

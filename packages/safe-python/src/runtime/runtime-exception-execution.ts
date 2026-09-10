@@ -23,6 +23,7 @@ import type { BuiltinInvocationContext, InstanceValue, RuntimeValue, RuntimeValu
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { GeneratorExecution,type GeneratorInput } from "./generator-execution.js";
 import type { CallStack } from "./call-stack.js";
+import { normalizeThrownException } from "./throw-normalization.js";
 
 /** Propagation must never render guest values or expose a host stack to Python. */
 export class RuntimeRaisedException {
@@ -54,7 +55,13 @@ export class RuntimeExceptionExecution {
     meter.checkpoint(0,512);
     const handled=this.#handled.createFrame(meter);
     const execution=new GeneratorExecution<RuntimeValue>(input=>{
-      try {return driver(input);}
+      try {
+        if(input.kind==="throw"&&input.error instanceof RuntimeRaisedException) {
+          meter.checkpoint(0,32);
+          input={kind:"throw",error:this.chain(input.error.value,"local")};
+        }
+        return driver(input);
+      }
       catch(error){throw this.prepare(error);}
     },{
       none:values.none,
@@ -88,11 +95,11 @@ export class RuntimeExceptionExecution {
     }
     return undefined;
   }
-  private chain(value:InstanceValue):RuntimeRaisedException {
+  private chain(value:InstanceValue,source:"active"|"local"="active"):RuntimeRaisedException {
     this.#handled.chain(value,{
       get:error=>runtimeExceptionPayload(error)!.context,
       set:(error,context)=>runtimeExceptionPayload(error)!.assignContext(context,this.meter)
-    },this.meter);
+    },this.meter,source);
     return new RuntimeRaisedException(value,this.meter);
   }
   private native(name:StandardExceptionName,args:readonly RuntimeValue[]):InstanceValue {
@@ -188,8 +195,9 @@ export class RuntimeExceptionExecution {
     this.meter.checkpoint(0,64);
     return {enabled:true,fail:message=>{throw this.chain(this.native("AssertionError",message===null?[]:[message.value]));}};
   }
-  raise(statement:Extract<Statement,{kind:"raise"}>,evaluate:(expression:Expression)=>RuntimeValue,invocation:BuiltinInvocationContext):never {
-    const {meter,values}=this;
+  private normalization(invocation:BuiltinInvocationContext) {
+    const {meter}=this;
+    meter.checkpoint(0,384);
     const typeOf=(value:RuntimeValue)=>{
       if(!invocation.actualType)throw Error("exception execution requires an actual-type policy");
       return invocation.actualType(value);
@@ -202,6 +210,38 @@ export class RuntimeExceptionExecution {
       return text;
     };
     const isInstance=(value:RuntimeValue)=>runtimeExceptionPayload(value)!==undefined;
+    return {typeOf,repr,isInstance,typeName:(type:RuntimeValue)=>type.kind==="type"?type.value.name:type.kind,
+      isSubclass:(actual:RuntimeValue,requested:RuntimeValue)=>{
+        const method=invocation.lookupSpecial?.(requested,"__subclasscheck__");
+        if(method!==undefined){if(!invocation.truth)throw Error("exception normalization requires a truth policy");return invocation.truth(invocation.call(method,[actual]));}
+        if(actual.kind!=="type"||requested.kind!=="type")return false;
+        for(const base of actual.value.mro){meter.checkpoint();if(base===requested.value)return true;}return false;
+      }
+    };
+  }
+  /** Validation failures stay outside the generator; normalization failures
+   * become the exception injected by a subsequent lifecycle resume. */
+  throwError(requested:RuntimeValue,value:RuntimeValue,invocation:BuiltinInvocationContext):RuntimeRaisedException {
+    const context=this.normalization(invocation),{meter}=this;
+    if(this.exceptionClass(requested)===undefined) {
+      if(!context.isInstance(requested))throw new PythonRuntimeError("TypeError",`exceptions must be classes or instances deriving from BaseException, not ${context.typeOf(requested).value.name}`);
+      if(value.kind!=="none")throw new PythonRuntimeError("TypeError","instance exception may not have a separate value");
+      return new RuntimeRaisedException(requested as InstanceValue,meter);
+    }
+    meter.checkpoint(0,384);
+    const normalized=normalizeThrownException(requested,value,{
+      ...context,isNone:value=>value.kind==="none",tupleItems:value=>runtimeTuplePayload(value)?.items,
+      call:(type,args)=>invocation.call(type,args),
+      failure:error=>{
+        const prepared=this.prepare(error);
+        if(!(prepared instanceof RuntimeRaisedException))throw prepared;
+        return prepared.value;
+      }
+    },meter);
+    return new RuntimeRaisedException(normalized as InstanceValue,meter);
+  }
+  raise(statement:Extract<Statement,{kind:"raise"}>,evaluate:(expression:Expression)=>RuntimeValue,invocation:BuiltinInvocationContext):never {
+    const {meter,values}=this,normalization=this.normalization(invocation),{typeOf,repr,isInstance}=normalization;
     return executeRaise(statement,{
       evaluate,isClass:value=>this.exceptionClass(value)!==undefined,isInstance,isNone:value=>value.kind==="none",typeOf,
       call:type=>invocation.call(type,[]),repr,
@@ -210,13 +250,7 @@ export class RuntimeExceptionExecution {
       reraise:value=>{throw new RuntimeRaisedException(value as InstanceValue,meter);},
       raise:(type,value)=>{
         const normalized=normalizeRaisedException(type,value,{
-          typeOf,isInstance,repr,typeName:type=>type.kind==="type"?type.value.name:type.kind,
-          isSubclass:(actual,requested)=>{
-            const method=invocation.lookupSpecial?.(requested,"__subclasscheck__");
-            if(method!==undefined){if(!invocation.truth)throw Error("exception normalization requires a truth policy");return invocation.truth(invocation.call(method,[actual]));}
-            if(actual.kind!=="type"||requested.kind!=="type")return false;
-            for(const base of actual.value.mro){meter.checkpoint();if(base===requested.value)return true;}return false;
-          },
+          ...normalization,
           call:(type,value)=>invocation.call(type,[value]),
           isGuest:error=>error instanceof RuntimeRaisedException||(error instanceof PythonRuntimeError&&Object.hasOwn(standardExceptionCatalog,error.name)),
           addNote:(error,note)=>{

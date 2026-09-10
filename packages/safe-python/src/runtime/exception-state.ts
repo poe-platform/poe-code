@@ -70,10 +70,11 @@ export class HandledExceptionState<Exception extends object> {
    * and suppression. Remove only an edge that would create a new context cycle;
    * tolerate unrelated existing cycles. Floyd traversal uses constant extra space.
    * Fatal limits can leave an already-removed cycle edge changed: no rollback.
+   * Generator injection selects only the local saved slot, not caller fallback.
    */
-  chain(error: Exception, links: ExceptionLinks<Exception>, meter: ExecutionMeter): void {
+  chain(error: Exception, links: ExceptionLinks<Exception>, meter: ExecutionMeter, source:"active"|"local"="active"): void {
     meter.checkpoint();
-    const active = this.active;
+    const active = source==="local"?this.#current.slot.value:this.active;
     if (active === null || active === error) return;
     let current = active, slow = active, updateSlow = false;
     while (true) {

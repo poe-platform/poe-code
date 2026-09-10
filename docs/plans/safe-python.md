@@ -10189,6 +10189,27 @@ extension, integration, or validation requirement is missing or unverified.
   yield delegation and async generators remain unfinished. The public runtime,
   stdlib and safe-fs assembly remain separate unfinished work. No push or
   release requested.
+- Native generator throw (2026-09-10): four failing native regressions drove
+  throw descriptors, pre-resumption validation, normalization and injection.
+  Arity/keyword/traceback validation and warning failures leave the body alone;
+  the deprecated multi-argument form warns before traceback/type validation.
+  Exception instances retain identity; None and tuple constructor arguments use
+  native semantics without tuple iteration hooks. Constructor and subclass-query
+  failures become injected exceptions, while host/limit failures remain fatal.
+  A mismatched constructor result receives final restore construction; repeated
+  normalization failures are bounded. Ordinary raise and throw share native
+  type, subclass-query and representation policies without sharing their distinct
+  normalization semantics. Injected exceptions, including internal GeneratorExit,
+  chain only to a generator's own saved handler, not its inherited caller.
+  Twenty new tests cover this slice. All 765 focused tests, 195 throw CPython
+  comparisons and 258 prior native generator/comprehension comparisons pass.
+  Selected workspace build, typecheck and focused lint pass. All 7,340 tests
+  in 506 files pass in the uncached one-worker run (150.16s; bodies 9.63s).
+  Semantics were checked against local CPython
+  and the reference generator/error normalization implementations. Real traceback
+  objects and attachment, generator name/repr/frame/code metadata, general
+  resumable function bodies, yield delegation, async execution and finalization
+  remain unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

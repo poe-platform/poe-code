@@ -49,6 +49,57 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("represents bound guest methods through the receiver's active repr", () => {
+  const state = fixture();
+  state.run("class Value:\n def fn(self):\n  pass\n def __repr__(self):\n  visit('repr')\n  return 'guest'\nitem=Value().fn\nresult=f'{item!r}'\nexplicit=item.__repr__()\ntext=item.__str__()\nformatted=item.__format__('')\n");
+  for (const name of ["result", "explicit", "text", "formatted"]) expect(state.globals.get(name)).toEqual(state.v.string("<bound method Value.fn of guest>"));
+  expect(state.events).toEqual(["repr", "repr", "repr", "repr"]);
+});
+
+it.each([["items.append", "<built-in method append of list object at 0x"], ["items.__repr__", "<method-wrapper '__repr__' of list object at 0x"]])("represents bound native callable %s using receiver identity", (expression, prefix) => {
+  const state = fixture(); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
+  state.run(`items=[]\nitem=${expression}\nresult=f'{item!r}'\nexplicit=item.__repr__()\ntext=item.__str__()\nformatted=item.__format__('')\naddress=id(items)\nowner=item.__repr__.__objclass__ is type(item)\n`);
+  const address = state.globals.get("address"); if (address?.kind !== "int") throw Error("expected identity");
+  for (const name of ["result", "explicit", "text", "formatted"]) expect(state.globals.get(name)).toEqual(state.v.string(`${prefix}${address.value.toString(16)}>`));
+  expect(state.globals.get("owner")).toBe(state.v.true);
+});
+
+it("represents unbound builtins without an object address", () => {
+  const state = fixture(); state.run("result=f'{visit!r}'\nexplicit=visit.__repr__()\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("<built-in function visit>")); expect(state.globals.get("explicit")).toEqual(state.v.string("<built-in function visit>"));
+});
+
+it.each([["item.__name__='fallback'", "fallback"], ["item.__qualname__='qualified'", "qualified"], ["item.__qualname__=42\nitem.__name__='unused'", "?"], ["pass", "?"]])("represents general bound callables with name policy %s", (setup, name) => {
+  const state = fixture(); state.builtins.set("bind", state.v.builtinFunction({ name: "bind", invoke(args) { return state.v.boundMethod(args[0], args[1]); } }));
+  state.run(`class Callable:\n def __call__(self):\n  pass\nitem=Callable()\n${setup}\nmethod=bind(item,1)\nresult=f'{method!r}'\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string(`<bound method ${name} of 1>`));
+});
+
+it("propagates original errors from general method name lookup", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "name failed");
+  state.builtins.set("bind", state.v.builtinFunction({ name: "bind", invoke(args) { return state.v.boundMethod(args[0], args[1]); } }));
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Callable:\n def __call__(self):\n  pass\n def __getattribute__(self,name):\n  visit(name)\n  fail()\nmethod=bind(Callable(),1)\n");
+  let caught: unknown; try { state.run("result=f'{method!r}'\n"); } catch (error) { caught = error; }
+  expect(caught).toBe(failure); expect(state.events).toEqual(["__qualname__"]);
+});
+
+it("validates guest receiver repr results while representing a method", () => {
+  const state = fixture(); state.run("class Value:\n def fn(self):\n  pass\n def __repr__(self):\n  return 42\nmethod=Value().fn\n");
+  expect(() => state.run("result=f'{method!r}'\n")).toThrow("__repr__ returned non-string (type int)");
+});
+
+it("captures a method's name before receiver representation mutates it", () => {
+  const state = fixture(); state.run("class Value:\n def fn(self):\n  pass\n def __repr__(self):\n  Value.fn.__qualname__='changed'\n  return 'guest'\nmethod=Value().fn\nresult=f'{method!r}'\nagain=f'{method!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("<bound method Value.fn of guest>")); expect(state.globals.get("again")).toEqual(state.v.string("<bound method changed of guest>"));
+});
+
+it("validates bound-callable repr arguments", () => {
+  const state = fixture(); state.run("method=[].append.__repr__\n");
+  expect(() => state.run("method(1)\n")).toThrow("expected 0 arguments, got 1");
+  expect(() => state.run("method(x=1)\n")).toThrow("wrapper __repr__() takes no keyword arguments");
+});
+
 it("represents functions with live qualified names and execution identities", () => {
   const state = fixture(); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
   state.run("def fn():\n pass\nfn.__qualname__='Outer.fn'\nfn.__name__='other'\nfn.__module__='ignored'\nresult=f'{fn!r}'\nexplicit=fn.__repr__()\ntext=fn.__str__()\nformatted=fn.__format__('')\naddress=id(fn)\n");

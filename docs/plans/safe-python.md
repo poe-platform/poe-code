@@ -8765,6 +8765,20 @@ extension, integration, or validation requirement is missing or unverified.
   remaining native catalogs and full public interpreter assembly remain open.
   Workspace build, typecheck and focused lint pass; all 6,726 unit tests in 493
   files pass with two workers. All 322 differential cases above pass.
+- Published specialized repr wrappers for bound guest methods, built-in
+  functions/methods and method wrappers. Nine RED cases reproduced generic text
+  and missing explicit attributes. Guest methods resolve function names before
+  invoking active receiver repr; general callable name lookup falls back from
+  absent qualname to name, preserves non-AttributeError exceptions and displays
+  '?' for non-string metadata. Native callable text uses actual receiver types
+  and shared opaque IDs without invoking receiver repr. Twelve added tests cover
+  ordinary/explicit/format paths, metadata ownership, original lookup errors,
+  invalid repr results and name mutation order. All 105 callable-repr differential
+  cases match CPython, and 78 descriptor, 81 object and 80 list representation
+  cases remain green. Constructor binding metadata, remaining specialized native
+  objects, full catalogs and public interpreter/safe-fs assembly remain open.
+  Workspace build, typecheck and focused lint pass; all 6,738 unit tests across
+  493 files pass with two workers. All 344 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

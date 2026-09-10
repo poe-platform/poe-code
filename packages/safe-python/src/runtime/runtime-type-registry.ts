@@ -10,6 +10,7 @@ import { createObjectFormatDescriptor } from "./builtin-object-format.js";
 import { createObjectStrWrapper } from "./builtin-object-str.js";
 import { createObjectReprWrapper } from "./builtin-object-repr.js";
 import { createDescriptorReprWrapper } from "./runtime-descriptor-repr.js";
+import { createBoundCallableReprWrapper } from "./runtime-bound-callable-repr.js";
 import { createObjectHashWrapper } from "./builtin-object-hash.js";
 import { createObjectNeWrapper } from "./builtin-object-ne.js";
 import { createObjectEqWrapper } from "./builtin-object-eq.js";
@@ -179,6 +180,7 @@ export class RuntimeTypeRegistry {
     const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, subclassable: false, weakReferences: kind !== "method-wrapper" });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeComparisonMethods(kind, type, this.values, this.meter);
+    namespace.items.set(this.values.string("__repr__"), createBoundCallableReprWrapper(kind, type, this.values, this.meter));
     namespace.items.set(this.values.string("__hash__"), createBoundCallableHashWrapper(kind, type, this.values, this.meter));
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#boundCallables.set(kind, type);

@@ -72,7 +72,7 @@ export class RuntimeTypeLayout {
     this.solidLayout = options.objectLayout === false || this.slotNames.length !== 0 ? this : layoutBase?.solidLayout;
     this.variableSized = options.variableSized ?? layoutBase?.variableSized ?? false;
     let dictionary = options.instanceDictionary ?? true, objectLayout = options.objectLayout ?? true;
-    let weakReferences = options.weakReferences ?? true;
+    let weakReferences = options.weakReferences ?? !this.variableSized;
     for (const base of bases) { meter.checkpoint(); dictionary ||= base.hasInstanceDictionary; objectLayout &&= base.hasObjectLayout; weakReferences ||= base.hasWeakReferences; }
     this.hasInstanceDictionary = dictionary;
     this.hasObjectLayout = objectLayout;

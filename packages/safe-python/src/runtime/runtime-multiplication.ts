@@ -5,6 +5,8 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { validateIndexResult, type IntegerIndexContext } from "./index-protocol.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
+import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
+import { runtimeTupleRepeat } from "./runtime-tuple-arithmetic.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 
@@ -25,12 +27,15 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
     const result = dispatchBinaryOperation(context.numeric, meter);
     if (result !== values.notImplemented) return result;
   }
-  const nativeLeft = context.sequenceFallbacks?.left === false ? undefined : runtimeListPayload(left);
-  let source = nativeLeft ?? left, multiplier = right;
+  // Native in-place repetition is independent of an overridden ordinary
+  // repeat slot. Declining guest __imul__ has already taken ordinary fallback.
+  const nativeLeft = augmented || context.sequenceFallbacks?.left !== false ? runtimeListPayload(left) : undefined;
+  const tupleLeft = context.sequenceFallbacks?.left === false ? undefined : runtimeTuplePayload(left);
+  let source = nativeLeft ?? tupleLeft ?? left, sourceOwner = left, multiplier = right;
   if (source.kind !== "list" && source.kind !== "tuple" && source.kind !== "str" && source.kind !== "bytes") {
     const blocked = augmented && (context.leftHasSequenceTable ?? (left.kind === "range" || left.kind === "dict" || left.kind === "mappingproxy" || left.kind === "set" || left.kind === "frozenset" || left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values"));
     meter.checkpoint(0);
-    if (!blocked) { source = context.sequenceFallbacks?.right === false ? right : runtimeListPayload(right) ?? right; multiplier = left; }
+    if (!blocked) { source = context.sequenceFallbacks?.right === false ? right : runtimeListPayload(right) ?? runtimeTuplePayload(right) ?? right; sourceOwner = right; multiplier = left; }
   }
   if (source.kind === "list" || source.kind === "tuple" || source.kind === "str" || source.kind === "bytes") {
     let count = multiplier.kind === "int" ? multiplier.value : multiplier.kind === "bool" ? multiplier.value ? 1n : 0n : undefined;
@@ -53,6 +58,7 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
       nativeLeft.items.repeatInPlace(count);
       return left;
     }
+    if (source.kind === "tuple") return runtimeTupleRepeat(sourceOwner, count, values, meter);
     return runtimeBinary("*", source, values.integer(count), values, meter);
   }
   if (context.numeric === undefined) {

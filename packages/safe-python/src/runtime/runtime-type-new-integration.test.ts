@@ -51,6 +51,70 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("retains native list in-place repetition after a forward numeric override declines", () => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("List=type([])\nclass Child(List):\n def __mul__(self,other):\n  visit('multiply')\n  return NotImplemented\nitems=Child([1])\noriginal=items\nitems*=2\nsame=items is original\ncorrect=items==[1,1]\n");
+  expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["multiply"]);
+  expect(() => state.run("items*=1.5\n")).toThrow("can't multiply sequence by non-int of type 'float'");
+});
+
+it("allocates owned tuple subclasses with dictionaries and inherited protocols", () => {
+  const state = fixture();
+  state.run("Tuple=type(())\nclass Child(Tuple):\n pass\nitems=Child([1,2,1])\nitems.label='owned'\ncorrect=type(items) is Child\nlabel=items.label\nsize=items.__len__()\nfound=items.__contains__(2)\ncount=items.count(1)\nindex=items.index(2)\nitem=items[1]\ntext=f'{items!r}'\nequal=items==(1,2,1)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.globals.get("found")).toBe(state.v.true); expect(state.globals.get("equal")).toBe(state.v.true);
+  expect(state.globals.get("label")).toEqual(state.v.string("owned")); expect(state.globals.get("text")).toEqual(state.v.string("(1, 2, 1)"));
+  for (const [name, value] of [["size", 3], ["count", 2], ["index", 1], ["item", 2]] as const) expect(state.globals.get(name)).toEqual(state.v.integer(value));
+  expect(() => state.run("items.native\n")).toThrow("has no attribute 'native'");
+});
+
+it("keeps tuple subclass copies exact and fresh without exposing backing identity", () => {
+  const state = fixture();
+  state.run("Tuple=type(())\nclass Child(Tuple):\n pass\nitems=Child([1])\nfirst=items[:]\nsecond=items[:]\nfresh=first is not second\nexact=type(first) is Tuple\nrepeat=items*1\nfresh_repeat=repeat is not items*1\njoined=items+()\nfresh_join=joined is not items+()\nleft=()+items\nfresh_left=left is not ()+items\ncontents=first==(1,) and repeat==(1,) and joined==(1,) and left==(1,)\n");
+  for (const name of ["fresh", "exact", "fresh_repeat", "fresh_join", "fresh_left", "contents"]) expect(state.globals.get(name), name).toBe(state.v.true);
+});
+
+it("passes tuple subclass keywords to custom initialization and preserves validation", () => {
+  const state = fixture();
+  state.run("Tuple=type(())\nclass Child(Tuple):\n def __init__(self,source,flag):\n  self.flag=flag\nitems=Child([1],flag=2)\nflag=items.flag\ncorrect=items==(1,)\nclass Plain(Tuple):\n pass\n");
+  expect(state.globals.get("flag")).toEqual(state.v.integer(2)); expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(() => state.run("Plain([1],flag=2)\n")).toThrow("tuple() takes no keyword arguments");
+  expect(() => state.run("Plain([1],[2])\n")).toThrow("tuple expected at most 1 argument, got 2");
+});
+
+it("honors tuple subclass iteration for construction but bypasses it in native arithmetic", () => {
+  const state = fixture();
+  state.run("Tuple=type(())\nclass Child(Tuple):\n def __iter__(self):\n  visit('iter')\n  return [9].__iter__()\nitems=Child([1])\nconstructed=Tuple(items)==(9,)\njoined=Tuple.__add__(items,())==(1,)\nrepeated=Tuple.__mul__(items,2)==(1,1)\n");
+  expect(state.events).toEqual(["iter"]);
+  for (const name of ["constructed", "joined", "repeated"]) expect(state.globals.get(name)).toBe(state.v.true);
+});
+
+it("preserves explicit tuple subclass hashing and recursive representation", () => {
+  const state = fixture();
+  state.run("Tuple=type(())\nclass Child(Tuple):\n __hash__=None\n def __repr__(self):\n  return 'override'\nitems=Child([1])\ntext=f'{items!r}'\nbase=Tuple.__repr__(items)\nhash=Tuple.__hash__(items)\nclass Value:\n def __repr__(self):\n  return Tuple.__repr__(cycle)\ncycle=Child([Value()])\nrecursive=Tuple.__repr__(cycle)\n");
+  expect(state.globals.get("text")).toEqual(state.v.string("override")); expect(state.globals.get("base")).toEqual(state.v.string("(1,)")); expect(state.globals.get("hash")).toEqual(state.v.integer(-6644214454873602895n)); expect(state.globals.get("recursive")).toEqual(state.v.string("((...),)"));
+});
+
+it("does not add weak-reference storage to variable-size tuple subclasses", () => {
+  const state = fixture(); state.run("Tuple=type(())\nclass Child(Tuple):\n pass\nitems=Child([1])\n");
+  expect(() => state.run("Child.__weakref__\n")).toThrow("has no attribute '__weakref__'");
+  expect(() => state.run("items.__weakref__\n")).toThrow("has no attribute '__weakref__'");
+});
+
+it("enforces variable-size tuple subclass slot restrictions", () => {
+  const state = fixture(); state.run("Tuple=type(())\nclass Child(Tuple):\n __slots__=()\nitems=Child([1])\n");
+  expect(() => state.run("items.label=1\n")).toThrow("has no attribute 'label'");
+  expect(() => state.run("class Invalid(Tuple):\n __slots__=('field',)\n")).toThrow("nonempty __slots__ not supported for subtype of 'tuple'");
+  expect(() => state.run("class Invalid(Child):\n __slots__=('field',)\n")).toThrow("nonempty __slots__ not supported for subtype of 'Child'");
+});
+
+it("preserves tuple subclass sequence fallback errors and guest reflection", () => {
+  const state = fixture();
+  state.run("Tuple=type(())\nclass Child(Tuple):\n pass\nclass Other:\n def __rmul__(self,other):\n  visit('reflected')\n  return 7\nitems=Child([1])\nresult=items*Other()\nreverse=2*items==(1,1)\n");
+  expect(state.events).toEqual(["reflected"]); expect(state.globals.get("result")).toEqual(state.v.integer(7)); expect(state.globals.get("reverse")).toBe(state.v.true);
+  expect(() => state.run("items*1.5\n")).toThrow("can't multiply sequence by non-int of type 'float'");
+  expect(() => state.run("items.__mul__(1.5)\n")).toThrow("'float' object cannot be interpreted as an integer");
+});
+
 it("constructs exact tuples and preserves exact input and empty identities", () => {
   const state = fixture();
   state.run("Tuple=type(())\nitems=([1],)\nsame=Tuple(items) is items\ndirect=Tuple.__new__(Tuple,items) is items\nempty=Tuple() is ()\ncollected=Tuple([]) is ()\nmember=[]\ncopy=Tuple([member])\nretained=copy[0] is member\ncorrect=type(copy) is Tuple\n");

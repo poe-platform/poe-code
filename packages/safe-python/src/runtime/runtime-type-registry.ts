@@ -214,12 +214,12 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
-  /** Exact tuple allocation and storage protocols; subclass payloads are separate. */
+  /** Canonical tuple allocation and protocols, including owned subclass storage. */
   tupleType(): TypeValue {
     this.meter.checkpoint();
     if (this.#tupleType !== undefined) return this.#tupleType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("tuple", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const layout = new RuntimeTypeLayout("tuple", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeTupleSlots(type, this.values, this.meter);
     installRuntimeTupleArithmeticSlots(type, this.values, this.meter);

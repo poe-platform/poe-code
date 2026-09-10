@@ -184,7 +184,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue | SetValue | FrozenSetValue;
+  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue>;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute
@@ -326,7 +326,7 @@ export class RuntimeValues extends ConstantValues {
 
   /** Adopt explicitly allocated instance storage without running guest methods.
    * Missing dictionary denotes a dictionary-less layout, not lazy allocation. */
-  instance(type: TypeValue, dictionary?: DictionaryValue, native?: ListValue | SetValue | FrozenSetValue): InstanceValue {
+  instance(type: TypeValue, dictionary?: DictionaryValue, native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue>): InstanceValue {
     this.runtimeMeter.checkpoint(1, native === undefined ? 48 : 56);
     const state = new RuntimeInstanceState(type, dictionary, this.runtimeMeter);
     return Object.freeze({ kind: "instance", state, native, get type() { return state.type; }, get dictionary() { return state.dictionary; } });

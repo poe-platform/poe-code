@@ -8952,6 +8952,28 @@ extension, integration, or validation requirement is missing or unverified.
   Workspace build, typecheck and focused lint pass; all 6,836 unit tests in 493
   files pass with two workers. All 1,010 differential cases above pass. No push
   or release was requested.
+- Added owned tuple subclass storage with ordinary dictionaries, inherited
+  sequence/search/comparison/hash/representation protocols and native arithmetic.
+  Seven initial RED tests reproduced blocked subclass allocation. Native storage
+  adapters preserve guest overrides and keep backing tuples private; slicing,
+  one-copy repetition and empty concatenation produce fresh exact nonempty tuples
+  rather than publishing backing identities. Constructors honor overridden source
+  iteration and allow keywords for custom initialization. Tuple layouts now use
+  existing variable-size slot restrictions; an additional RED test corrected
+  default weak-reference storage for variable-size classes. A constructor audit
+  corrected subclass arity diagnostics to retain the native "tuple" name.
+  Broad arithmetic checks found and reproduced a related list fallback defect:
+  declining ordinary __mul__ must not disable inherited native in-place repetition.
+  That path now retains identity and native count validation, while declined guest
+  __imul__ still takes ordinary fallback. Nine added tests cover these behaviors.
+  All 768 tuple arithmetic, 768 list arithmetic, 140 tuple subclass construction,
+  496 subclass descriptor, 162 exact construction and 267 exact arithmetic cases
+  match CPython. Remaining native catalogs and lifecycle details, guest exception
+  integration, public interpreter APIs and suspended safe-fs execution remain
+  unfinished.
+  Workspace build, typecheck and focused lint pass; all 6,845 unit tests in 493
+  files pass with two workers. All 2,601 differential cases above pass. No push
+  or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

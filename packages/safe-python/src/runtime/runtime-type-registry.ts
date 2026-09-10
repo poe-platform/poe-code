@@ -7,6 +7,7 @@ import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js
 import { createObjectNewBuiltin } from "./builtin-object-new.js";
 import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createObjectFormatDescriptor } from "./builtin-object-format.js";
+import { createObjectStrWrapper } from "./builtin-object-str.js";
 import { createObjectHashWrapper } from "./builtin-object-hash.js";
 import { createObjectNeWrapper } from "./builtin-object-ne.js";
 import { createObjectEqWrapper } from "./builtin-object-eq.js";
@@ -70,6 +71,7 @@ export class RuntimeTypeRegistry {
     typeLayout.namespace.items.set(values.string("__repr__"), createTypeReprWrapper(values, meter, this.type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__format__"), createObjectFormatDescriptor(this.object, values, meter));
+    objectLayout.namespace.items.set(values.string("__str__"), createObjectStrWrapper(this.object, values, meter));
     objectLayout.namespace.items.set(values.string("__hash__"), createObjectHashWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__ne__"), createObjectNeWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__eq__"), createObjectEqWrapper(values, meter, this.object));

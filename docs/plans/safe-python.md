@@ -8720,6 +8720,19 @@ extension, integration, or validation requirement is missing or unverified.
   and 114 subclass slot differential cases still pass.
   Verification: workspace build, typecheck and focused lint pass; all 6,704 unit
   tests in 493 files pass with two workers. All 426 differential cases above pass.
+- Published canonical object.__str__ and bound exact-list attribute reads to the
+  inherited wrapper. Four RED regressions demonstrated missing subclass/base
+  lookup and native-list bypass of guest element repr. The implementation uses
+  the active representation context, preserving overrides, recursion guards and
+  raw repr-result identity; explicit base str deliberately does not validate the
+  repr return value, matching direct CPython evidence. Five added tests cover
+  exact/subclass elements, wrapper ownership, overrides, non-string returns,
+  recursive storage and argument validation. All 27 object-str, 80 list
+  representation and 56 base-format differential cases match CPython.
+  Workspace build, typecheck and focused lint pass; all 6,709 unit tests across
+  493 files pass with two workers.
+  Default object repr/identity presentation, remaining native members and public
+  execution integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

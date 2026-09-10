@@ -48,6 +48,31 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["exact", "subclass"])("inherits object str with active %s list element representations", kind => {
+  const state = fixture();
+  state.run(`class Member:\n def __repr__(self):\n  visit('repr')\n  return 'member'\nclass Child(type([])):\n pass\nitems=${kind === "exact" ? "[Member()]" : "Child([Member()])"}\nresult=items.__str__()\nbase=object.__str__(items)\nowner=items.__str__.__objclass__ is object\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string("[member]")); expect(state.globals.get("base")).toEqual(state.v.string("[member]")); expect(state.globals.get("owner")).toBe(state.v.true); expect(state.events).toEqual(["repr", "repr"]);
+});
+
+it("explicit object str bypasses str overrides and preserves raw repr results", () => {
+  const state = fixture();
+  state.run("text='value'\nclass Value:\n def __str__(self):\n  visit('str')\n  return 'override'\n def __repr__(self):\n  visit('repr')\n  return text\nitem=Value()\nresult=object.__str__(item)\nsame=result is text\ntext=42\nraw=object.__str__(item)\n");
+  expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("raw")).toEqual(state.v.integer(42n)); expect(state.events).toEqual(["repr", "repr"]);
+  expect(() => state.run("result=f'{item!r}'\n")).toThrow("__repr__ returned non-string");
+});
+
+it("inherits object str through list subclass repr overrides and recursive storage", () => {
+  const state = fixture();
+  state.run("class Child(type([])):\n def __repr__(self):\n  return 'custom'\nresult=Child().__str__()\nitems=[]\nitems.append(items)\ncycle=items.__str__()\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("custom")); expect(state.globals.get("cycle")).toEqual(state.v.string("[[...]]"));
+});
+
+it("validates explicit object str wrapper arguments", () => {
+  const state = fixture(); state.run("items=[]\nmethod=items.__str__\n");
+  expect(() => state.run("method(1)\n")).toThrow("expected 0 arguments, got 1");
+  expect(() => state.run("method(x=1)\n")).toThrow("wrapper __str__() takes no keyword arguments");
+});
+
 it.each(["exact", "subclass"])("represents %s list contents using live guest repr slots", kind => {
   const state = fixture();
   state.run(`class Member:\n def __repr__(self):\n  visit('repr')\n  return 'member'\nclass Child(type([])):\n pass\nitems=${kind === "exact" ? "[Member()]" : "Child([Member()])"}\nresult=items.__repr__()\nbase=type([]).__repr__(items)\n`);

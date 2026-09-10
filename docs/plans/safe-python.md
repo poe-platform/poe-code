@@ -9284,6 +9284,20 @@ extension, integration, or validation requirement is missing or unverified.
   6,952 package tests in 494 files pass. Runtime integer-constructor integration,
   canonical scalar types, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Runtime integer conversion (2026-09-10): added runtime argument binding and
+  conversion behind the integer text kernel. Two integration tests preceded the
+  implementation; five buffer tests cover success, parse failure, cancellation,
+  acquisition-error rewriting and explicit-base restrictions. Conversion retains
+  exact integer identities, normalizes bool, truncates finite floats, prefers
+  guest int over index, validates conversion results and warnings, and omits the
+  removed trunc fallback. Explicit bases use index conversion before source
+  validation. Optional bytearray and buffer capabilities preserve their distinct
+  acceptance rules; acquired leases release even when parsing/copying fails.
+  All 420 CPython argument/protocol/warning cases match. Workspace build,
+  typecheck, focused lint and all 6,959 package tests in 495 files pass. This is
+  the shared conversion operation, not completed canonical int/subclass
+  allocation; scalar type integration, full interpreter and safe-fs execution
+  remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

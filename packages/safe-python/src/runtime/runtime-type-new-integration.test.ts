@@ -21,6 +21,7 @@ import { createRuntimeKeyOperations } from "./runtime-key-operations.js";
 import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
+import { constructRuntimeInteger } from "./runtime-integer-construction.js";
 
 function fixture(identity?: IdentityContext, maxSteps = 100000) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -56,6 +57,24 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("constructs integers from exact values, floats and explicit-base text", () => {
+  const state = fixture();
+  state.builtins.set("Int",state.v.builtinFunction({name:"int",invoke(args,keywords,meter,invocation){return constructRuntimeInteger(args,keywords,state.v,meter,{invocation});}}));
+  state.run("x=10**30\ncorrect=Int(x) is x and Int()==0 and Int(True)==1 and Int(-2.9)==-2 and Int(' ١٢٣ ')==123 and Int('0x_ff',base=0)==255 and Int(b'11',2)==3\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(() => state.run("Int(base=1)\n")).toThrow("int() missing string argument");
+  expect(() => state.run("Int(None,1)\n")).toThrow("int() base must be >= 2 and <= 36, or 0");
+});
+
+it("prefers guest int conversion over index and ignores trunc conversion", () => {
+  const state = fixture();
+  state.builtins.set("Int",state.v.builtinFunction({name:"int",invoke(args,keywords,meter,invocation){return constructRuntimeInteger(args,keywords,state.v,meter,{invocation});}}));
+  state.run("x=10**30\nclass Both:\n def __int__(self):\n  visit('int')\n  return x\n def __index__(self):\n  visit('wrong')\n  return 2\nclass Index:\n def __index__(self):\n  visit('index')\n  return x\nclass Trunc:\n def __trunc__(self):\n  visit('wrong')\n  return 1\ncorrect=Int(Both()) is x and Int(Index()) is x\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(() => state.run("Int(Trunc())\n")).toThrow("int() argument must be a string, a bytes-like object or a real number, not 'Trunc'");
+  expect(state.events).toEqual(["int","index"]);
+});
 
 it("constructs canonical ranges through ordered index conversion", () => {
   const state = fixture(); state.globals.set("Range", state.registry.rangeType());

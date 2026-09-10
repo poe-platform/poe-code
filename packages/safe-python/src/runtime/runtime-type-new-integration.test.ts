@@ -52,6 +52,30 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("constructs exact dictionaries from positional sources and keyword overrides", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nsource={'a':1}\nd=Dict(source,a=2,b=3)\nempty=Dict()\ncorrect=d=={'a':2,'b':3} and source=={'a':1} and d is not source and empty=={} and type(d) is Dict\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("allocates empty dictionaries without consuming initialization arguments", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Source:\n def keys(self):\n  visit('keys')\n  return []\nd=Dict.__new__(Dict,Source(),1,**{1:2})\ncorrect=d=={} and type(d) is Dict\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual([]);
+});
+
+it("reinitializes dictionaries by merging rather than clearing their entries", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nd={'a':1}\nempty=Dict.__init__(d)\nresult=Dict.__init__(d,[('b',2)],a=3)\ncorrect=empty is None and result is None and d=={'a':3,'b':2}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves positional dictionary initialization before invalid keyword names", () => {
+  const state = fixture(); state.run("Dict=type({})\nd={'old':1}\n");
+  expect(() => state.run("Dict.__init__(d,{'a':2},**{1:3})\n")).toThrow("keywords must be strings");
+  state.run("correct=d=={'old':1,'a':2}\n"); expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("publishes dictionary union wrappers with native operand orientation", () => {
   const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
   state.run("Dict=type({})\nleft={'a':1,'b':2}\nright={'b':3,'c':4}\nforward=Dict.__or__(left,right)\nreverse=Dict.__ror__(left,right)\ndeclined=Dict.__or__(left,[]) is NotImplemented\nbound=left.__or__.__self__ is left\ncorrect=forward=={'a':1,'b':3,'c':4} and reverse=={'b':2,'c':4,'a':1} and forward is not left and reverse is not left and left=={'a':1,'b':2} and declined and bound\n");

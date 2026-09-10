@@ -9034,6 +9034,21 @@ extension, integration, or validation requirement is missing or unverified.
   workers. Dictionary construction, fromkeys and owned subclass lifecycle remain
   unfinished; the full interpreter objective remains active. No push or release
   was requested.
+- Exact dictionary construction (2026-09-10): four failing integration tests
+  reproduced unsafe object allocator fallback, missing native initialization
+  and premature keyword validation on explicit dict.__new__. Added a registry-
+  owned allocator that returns fresh empty dictionary storage and ignores init
+  arguments, including non-string keyword names on explicit allocator calls.
+  Native __init__ merges rather than clears, preserving positional writes before
+  invalid keyword rejection and applying valid keyword overrides afterward.
+  Normal constructor calls still reject invalid keyword names before source
+  effects. Existing mutation kernels supply active guest mapping/pair protocols.
+  All 130 allocation/construction and 103 initialization cases match CPython,
+  including callback order, arity, wrong types and partial mutation. Workspace
+  build, typecheck, focused lint, 445 integration tests and all 6,867 package unit
+  tests in 493 files pass with two workers. Owned subclass allocation remains an
+  explicit implementation gap, not a claimed Python exception; fromkeys and the
+  broader interpreter lifecycle remain unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

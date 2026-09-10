@@ -4,12 +4,13 @@ import { accessorAdapter } from "../accessors.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { wellKnownSymbols } from "../symbols.js";
 import { resolveIntrinsicIdentity } from "../intrinsics.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { completeIntrinsicObjectInitialization, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
-import { createSandboxClosure, defineOwnDataProperty, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject } from "../values.js";
-import { objectProperties } from "./object-array.js";
+import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject } from "../values.js";
+import { defineDataProperty } from "./object-array.js";
 import { installIteratorFrom } from "./iterator-from.js";
 import { installIteratorConsumers } from "./iterator-consumers.js";
 import { installLazyIteratorHelpers } from "./iterator-lazy.js";
@@ -47,9 +48,11 @@ export function createIteratorGlobal(budget: Budget): SandboxClosure {
     const receiver=context?.thisValue;
     if (receiver === prototype || receiver === null || typeof receiver !== "object")
       throw new TypeError("Iterator constructor setter requires a distinct object receiver.");
-    const properties=objectProperties(receiver,true);
-    if (Object.hasOwn(properties,"constructor")) await setSandboxProperty(receiver,"constructor",value,budget,true,context);
-    else defineOwnDataProperty(properties,"constructor",value);
+    const descriptor = await sandboxGetOwnPropertyDescriptor(receiver, "constructor", budget, context);
+    if (descriptor !== undefined) await setSandboxProperty(receiver,"constructor",value,budget,true,context);
+    else await defineDataProperty(receiver, "constructor", {
+      value, writable: true, enumerable: true, configurable: true
+    }, budget, context);
     createDataCheckpoint(budget,context)(receiver,0,true);
     return undefined;
   }});

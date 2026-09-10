@@ -539,11 +539,15 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
   const iteratorTagGetter = createSandboxClosure({ guest: true, sandbox: true,
     name: "get [Symbol.toStringTag]", length: 0, call: () => "Iterator" });
   const iteratorTagSetter = createSandboxClosure({ guest: true, sandbox: true,
-    name: "set [Symbol.toStringTag]", length: 1, call: ([value], context) => {
+    name: "set [Symbol.toStringTag]", length: 1, call: async ([value], context) => {
       const receiver = context?.thisValue;
       if (receiver === iterablePrototype || receiver === null || typeof receiver !== "object")
         throw new TypeError("Iterator tag setter requires a distinct object receiver.");
-      defineOwnDataProperty(objectProperties(receiver, true), Symbol.toStringTag, value);
+      const descriptor = await sandboxGetOwnPropertyDescriptor(receiver, Symbol.toStringTag, budget, context);
+      if (descriptor === undefined) await defineDataProperty(receiver, Symbol.toStringTag, {
+        value, writable: true, enumerable: true, configurable: true
+      }, budget, context);
+      else await setSandboxProperty(receiver, Symbol.toStringTag, value, budget, true, context);
       createDataCheckpoint(budget, context)(receiver, 0, true);
       return undefined;
     }

@@ -711,6 +711,8 @@ and the outer Object grouping result remains null-prototype.
 Array, typed-array, Map, and Set entry iterators preserve the originating
 Array prototype of each new entry pair. Keys and values inside those pairs
 retain identity; values-only iteration does not re-prototype payload arrays.
+`Iterator.prototype` constructor and tag setters honor Proxy descriptor/write
+traps and existing own setters without replacing property attributes.
 `Iterator.prototype.toArray` retains the method's originating Array prototype
 for empty and non-empty results, including SDK calls with foreign iterators.
 It checks the `arrayLength` budget before appending each collected value,

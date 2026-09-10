@@ -2,7 +2,7 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { constructRange } from "./range-construction.js";
-import type { BuiltinFunctionValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import type { BuiltinFunctionValue, RangeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Canonical range allocation converts integer indices before retaining a lazy
  * arbitrary-precision progression. It never materializes the range's members. */
@@ -22,8 +22,13 @@ export function createRangeNewBuiltin(owner: TypeValue, values: RuntimeValues, m
         throw new PythonRuntimeError("TypeError", `range.__new__(${name}): ${name} is not a subtype of range`);
       }
       if (invocation?.integerIndex === undefined) throw Error("range allocation requires an integer index policy");
-      meter.checkpoint(0, positional.length * 8);
-      return values.range(constructRange(positional.slice(1), keywords.items, invocation.integerIndex, meter));
+      meter.checkpoint(0, positional.length * 8 + 48);
+      const components: Partial<Record<"start" | "stop" | "step", RangeValue["start"]>> = {};
+      const progression = constructRange(positional.slice(1), keywords.items, invocation.integerIndex, meter, (position, value) => {
+        const name = positional.length === 2 ? "stop" : position === 0 ? "start" : position === 1 ? "stop" : "step";
+        components[name] = value.kind === "int" ? value : values.integer(invocation.integerIndex!.integer(value)!);
+      });
+      return values.range(progression, components);
     }
   });
 }

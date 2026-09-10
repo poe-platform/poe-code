@@ -68,6 +68,19 @@ it("constructs canonical ranges through ordered index conversion", () => {
   expect(() => state.run("r.start=4\n")).toThrow("readonly attribute");
 });
 
+it("retains exact range component identities through construction and reduction", () => {
+  const state = fixture(); state.globals.set("Range", state.registry.rangeType());
+  state.run("x=10**30\ny=x+9\nz=10**20\nr=Range(x,y,z)\nparts=r.__reduce__()[1]\ncorrect=r.start is x and r.stop is y and r.step is z and r.start is r.start and parts[0] is x and parts[1] is y and parts[2] is z\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("retains exact integers returned by range index conversion and normalizes booleans", () => {
+  const state = fixture(); state.globals.set("Range", state.registry.rangeType());
+  state.run("x=10**30\nclass Index:\n def __index__(self):\n  visit('index')\n  return x\nr=Range(Index())\nb=Range(False,True,True)\ns=r[::2]\ncorrect=r.stop is x and b.start is not False and b.stop is not True and b.step is not True and (b.start,b.stop,b.step)==(0,1,1) and s.stop is s.stop and s.__reduce__()[1][1] is s.stop\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(["index"]);
+});
+
 it("publishes range protocol descriptors without materializing large ranges", () => {
   const state = fixture(); state.globals.set("Range", state.registry.rangeType());
   state.run("r=Range(0,10**30,2)\ncorrect=Range.__bool__(r) and Range.__getitem__(r,-1)==10**30-2 and Range.__contains__(r,10**29) and r.count(10**29)==1 and r.index(10**29)==5*10**28 and Range.__eq__(Range(0),Range(1,1)) and r.__reduce__()[0] is Range and r.__reduce__()[1]==(0,10**30,2)\n");

@@ -19,7 +19,7 @@ export function installRuntimeRangeSlots(owner: TypeValue, values: RuntimeValues
       get(receiver, meter) {
         meter.checkpoint();
         if (receiver.kind !== "range") throw Error("range member requires range storage");
-        return values.integer(receiver.value[name]);
+        return receiver[name];
       }
     }));
   }
@@ -59,7 +59,7 @@ export function installRuntimeRangeSlots(owner: TypeValue, values: RuntimeValues
         if (name !== "__reduce__") return callRuntimeRangeMethod(receiver, name, positional, keywords, values, meter, invocation);
         if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "range.__reduce__() takes no keyword arguments");
         if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `range.__reduce__() takes no arguments (${positional.length} given)`);
-        return values.tuple([owner, values.tuple([values.integer(receiver.value.start), values.integer(receiver.value.stop), values.integer(receiver.value.step)])]);
+        return values.tuple([owner, values.tuple([receiver.start, receiver.stop, receiver.step])]);
       }
     }));
   }

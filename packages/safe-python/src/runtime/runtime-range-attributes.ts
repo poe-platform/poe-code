@@ -8,7 +8,7 @@ import type { BuiltinInvocationContext, DictionaryValue, RangeValue, RuntimeValu
 /** Exact range members retain arbitrary-precision progression bounds. */
 export function readRuntimeRangeAttribute(receiver: RangeValue, name: string, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue | undefined {
   meter.checkpoint();
-  if (name === "start" || name === "stop" || name === "step") return values.integer(receiver.value[name]);
+  if (name === "start" || name === "stop" || name === "step") return receiver[name];
   if (name !== "count" && name !== "index" && name !== "__reversed__") return undefined;
   meter.checkpoint(1, 64);
   return values.builtinFunction({ name,

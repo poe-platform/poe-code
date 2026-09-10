@@ -26,6 +26,9 @@ export interface ListValue {
 export interface RangeValue {
   readonly kind: "range";
   readonly value: IntegerProgression;
+  readonly start: Extract<RuntimeValue, { kind: "int" }>;
+  readonly stop: Extract<RuntimeValue, { kind: "int" }>;
+  readonly step: Extract<RuntimeValue, { kind: "int" }>;
 }
 
 export interface IteratorValue {
@@ -348,9 +351,11 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "list", items: items instanceof ListStorage ? items : new ListStorage(items, this.runtimeMeter) });
   }
 
-  range(value: IntegerProgression): RangeValue {
-    this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind: "range", value });
+  range(value: IntegerProgression, components?: Partial<Pick<RangeValue, "start" | "stop" | "step">>): RangeValue {
+    this.runtimeMeter.checkpoint(1, 56);
+    return Object.freeze({ kind: "range", value,
+      start: components?.start ?? this.integer(value.start), stop: components?.stop ?? this.integer(value.stop), step: components?.step ?? this.integer(value.step)
+    });
   }
 
   iterator(value: CompletionIterator<RuntimeValue>): IteratorValue {

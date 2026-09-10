@@ -9258,6 +9258,18 @@ extension, integration, or validation requirement is missing or unverified.
   and all 6,934 package tests in 493 files pass. Native object identity/lifecycle
   audits, remaining scalar types, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Range component identity (2026-09-10): two failing integration tests and
+  CPython probes showed that component reads and reduction must retain exact
+  integer identities, including integers returned by guest index conversion.
+  Range values now own metered component references alongside their arithmetic
+  progression. Construction captures validated index objects before extracting
+  bigint payloads; booleans and non-exact integers normalize to exact integers.
+  Component access and reduction reuse retained objects; sliced ranges also
+  retain stable component objects. All 270 identity cases, 1,152 range protocol
+  cases and 840 slicing cases match CPython (2,262 total). Workspace build,
+  typecheck, focused lint and all 6,936 package tests in 493 files pass. Remaining
+  native lifecycle/scalar audits, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -53,6 +53,36 @@ it("expands custom keyword mappings through keys and live item lookup", () => {
   expect(state.globals.get("result")).toEqual(v.integer(14)); expect(state.events).toEqual(["keys", "left", "right"]);
 });
 
+it("unpacks custom mappings into dictionary displays with overwrite semantics", () => {
+  const state = fixture();
+  state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nresult={'left':1,**Mapping(),'right':9}\nleft=result['left']\nright=result['right']\n");
+  expect(state.globals.get("left")).toEqual(state.v.integer(7)); expect(state.globals.get("right")).toEqual(state.v.integer(9)); expect(state.events).toEqual(["keys", "left", "right"]);
+});
+
+it("uses one keys lookup and live non-string keys for display unpacking", () => {
+  const state = fixture();
+  state.run("names=[1,2,1]\ndef keys():\n visit('keys')\n return names\nclass Descriptor:\n def __get__(self,instance,owner):\n  visit('bind')\n  return keys\nclass Mapping:\n keys=Descriptor()\n def __init__(self):\n  self.count=0\n def __getitem__(self,key):\n  visit('get')\n  names[1]=3\n  self.count+=1\n  return self.count\nresult={**Mapping()}\nfirst=result[1]\nsecond=result[3]\n");
+  expect(state.events).toEqual(["bind", "keys", "get", "get", "get"]); expect(state.globals.get("first")).toEqual(state.v.integer(3)); expect(state.globals.get("second")).toEqual(state.v.integer(2));
+});
+
+it.each(["lookup", "keys", "get"])("preserves display unpacking error boundaries during %s", stage => {
+  for (const name of ["AttributeError", "KeyError", "TypeError", "host"]) {
+    const state = fixture();
+    const failure = name === "KeyError" ? new PythonKeyError(state.v.string("sentinel"), state.meter) : name === "host" ? new Error("host failure") : new PythonRuntimeError(name, "sentinel");
+    state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+    const lookup = stage === "lookup" ? "class Descriptor:\n def __get__(self,instance,owner):\n  fail()\n" : "";
+    const keys = stage === "lookup" ? " keys=Descriptor()\n" : ` def keys(self):\n  ${stage === "keys" ? "fail()" : "return ['left']"}\n`;
+    expect(() => state.run(`${lookup}class Mapping:\n${keys} def __getitem__(self,key):\n  fail()\nresult={**Mapping(),'later':visit('later')}\n`)).toThrow(name === "AttributeError" ? "'Mapping' object is not a mapping" : failure);
+    expect(state.events).toEqual([]); expect(state.globals.has("result")).toBe(false);
+  }
+});
+
+it("does not accept iterable pairs as display mappings", () => {
+  const state = fixture();
+  expect(() => state.run("class Pairs:\n def __getitem__(self,index):\n  visit('get')\n  return ('left',7)\nresult={**Pairs()}\n")).toThrow("'Pairs' object is not a mapping");
+  expect(state.events).toEqual([]);
+});
+
 it("updates dictionaries in place from guest mappings and retains identity", () => {
   const state = fixture();
   state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nresult={'left':1}\nalias=result\nresult|=Mapping()\nleft=result['left']\nright=result['right']\n");

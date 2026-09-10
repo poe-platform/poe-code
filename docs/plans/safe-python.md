@@ -8369,6 +8369,19 @@ extension, integration, or validation requirement is missing or unverified.
   and all 96 previous call-keyword cases. Native dict constructor/method catalog
   registration, dictionary display unpacking and guest exception rendering remain
   unfinished.
+- Connected dictionary display unpacking to shared guest mapping merges through
+  an explicit expression mapping capability. Displays perform one keys lookup,
+  retain live key lists, accept non-string keys and overwrite repeated entries.
+  AttributeError from any merge stage becomes the owned-type mapping diagnostic;
+  KeyError and other guest/host failures propagate, without evaluating later
+  display entries. The initial compiled regression rejected the mapping instance.
+  Six added cases cover overwrite order, live numeric keys, descriptor lookup,
+  error stages and rejection of iterable pairs. All 32 mapping and 48 sequence/
+  hint differential cases match CPython (KeyError comparison uses payloads rather
+  than unfinished exception rendering). All 6,465 tests in 491 files, build and
+  typecheck and scoped lint pass. Native dict
+  update-method invocation still needs its active capability forwarded; full
+  constructor catalog and guest exception rendering remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

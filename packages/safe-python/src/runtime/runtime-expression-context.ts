@@ -42,6 +42,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
+    readonly mapping?: BuiltinInvocationContext;
     readonly subscription?: BuiltinInvocationContext;
     readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
     readonly bytes?: RuntimeBytesInputProtocol;
@@ -115,7 +116,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       : bindings.beginSet.bind(bindings),
     beginDictionary: "beginDictionary" in bindings
       ? bindings.beginDictionary.bind(bindings)
-      : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),
+      : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter, bindings.mapping),
     unary: (operator, value) => operator === "not" ? values.boolean(!context.truth(value)) : runtimeUnary(operator, value, unary, meter, bindings.unary),
     binary(operator, left, right, augmented = false) {
       if (operator === "**") return runtimePowerOperation(left, right, values.none, values, meter, bindings.power, augmented);

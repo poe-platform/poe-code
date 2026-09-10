@@ -5,14 +5,16 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { mergeRuntimeMapping } from "./runtime-mapping-merge.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 
 /** Literal builder, not dict(iterable): ** accepts mappings only. Exact maps
  * reuse cached hashes within a shared key-policy domain and share member values.
- * Future guest mapping slots belong in the extensible expression hook; no host
- * object property lookup or iterable-pair fallback is performed implicitly.
+ * Active invocation capabilities enable guest mapping slots, without host
+ * property lookup or iterable-pair fallback. Only AttributeError is translated.
  */
-export function beginRuntimeDictionary(initial: readonly (readonly [RuntimeValue, RuntimeValue])[], values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter): ExpressionDictionary<RuntimeValue> {
+export function beginRuntimeDictionary(initial: readonly (readonly [RuntimeValue, RuntimeValue])[], values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): ExpressionDictionary<RuntimeValue> {
   meter.checkpoint(1, 128);
   let storage = runtimeDictionaryStorage;
   if (initial.length > 5) {
@@ -29,12 +31,17 @@ export function beginRuntimeDictionary(initial: readonly (readonly [RuntimeValue
     },
     update(mapping) {
       meter.checkpoint();
-      if (mapping.kind !== "dict" && mapping.kind !== "mappingproxy") {
-        const name = mapping.kind === "none" ? "NoneType" : mapping.kind === "not-implemented" ? "NotImplementedType" : mapping.kind;
+      try {
+        if (mapping.kind === "dict") result.items.update(mapping.items);
+        else if (mapping.kind === "mappingproxy") mergeRuntimeMappingProxy(result, mapping, meter);
+        else mergeRuntimeMapping(result, mapping, values, meter, invocation, invocation?.iteration);
+      } catch (error) {
+        meter.checkpoint();
+        if (!(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+        const name = hasRuntimeInstanceAttributes(mapping) ? diagnosticTypeName(mapping.type.value.name, meter, 200)
+          : mapping.kind === "none" ? "NoneType" : mapping.kind === "not-implemented" ? "NotImplementedType" : mapping.kind;
         throw new PythonRuntimeError("TypeError", `'${name}' object is not a mapping`);
       }
-      if (mapping.kind === "mappingproxy") mergeRuntimeMappingProxy(result, mapping, meter);
-      else result.items.update(mapping.items);
     },
     finish() { meter.checkpoint(); return result; }
   };

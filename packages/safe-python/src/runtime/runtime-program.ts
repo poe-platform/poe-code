@@ -59,7 +59,7 @@ export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
-  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "unary" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers" | "subscription">;
+  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "unary" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers" | "subscription" | "mapping">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
   specialMethods?(frame: RuntimeFrame): RuntimeSpecialMethodContext;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
@@ -299,6 +299,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
     const expressions = createRuntimeExpressionContext(values, {
+      mapping: expressionHooks.mapping ?? builtinCalls,
       subscription: expressionHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
       bytes: expressionHooks.bytes,
       translation: expressionHooks.translation,

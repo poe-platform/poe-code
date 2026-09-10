@@ -1,5 +1,6 @@
 import { validateAttributeName, type AttributeNameContext } from "./attribute-name.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -38,7 +39,7 @@ export function createAttributeLookupBuiltin(name: "getattr" | "hasattr", values
       meter.checkpoint();
       if (error instanceof ExecutionLimitError || (name === "getattr" && count === 2)) throw error;
       const missing = context?.isAttributeError === undefined
-        ? error instanceof PythonRuntimeError && error.name === "AttributeError"
+        ? runtimeExceptionMatches(error,"AttributeError",invocation)
         : context.isAttributeError(error);
       meter.checkpoint();
       if (!missing) throw error;

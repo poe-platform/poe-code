@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { readInstanceAttribute, writeInstanceAttribute, deleteInstanceAttribute } from "./instance-attributes.js";
@@ -38,7 +39,7 @@ export function runtimeInstanceAttribute(instance: AttributeInstanceValue, name:
     throw missingAttribute(instance, name, meter);
   } catch (error) {
     meter.checkpoint();
-    if (invocation === undefined || !(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+    if (invocation === undefined || !runtimeExceptionMatches(error,"AttributeError",invocation)) throw error;
     const fallback = lookupRuntimeSpecialMethod(instance, instance.type, values.string("__getattr__"), special, values, meter); meter.checkpoint();
     if (fallback === undefined) throw error;
     meter.checkpoint(0, 16);

@@ -69,10 +69,13 @@ export class RuntimeExceptionExecution {
     }
     return this.chain(value);
   }
-  isStopIteration(error:unknown):boolean {
-    if(!(error instanceof RuntimeRaisedException))return false;
-    const target=this.registry.exceptionType("StopIteration").value;
-    for(const base of error.value.type.value.mro){this.meter.checkpoint();if(base===target)return true;}
+  matches(error:unknown,name:string):boolean {
+    if(name!=="BaseException"&&!Object.hasOwn(standardExceptionCatalog,name))return false;
+    const type=error instanceof RuntimeRaisedException?error.value.type:
+      error instanceof PythonRuntimeError&&Object.hasOwn(standardExceptionCatalog,error.name)?this.registry.exceptionType(error.name as StandardExceptionName):undefined;
+    if(type===undefined)return false;
+    const target=this.registry.exceptionType(name as StandardExceptionName|"BaseException").value;
+    for(const base of type.value.mro){this.meter.checkpoint();if(base===target)return true;}
     return false;
   }
   statements(frame:RuntimeFrame):NonNullable<StatementContext<RuntimeValue>["exceptions"]> {

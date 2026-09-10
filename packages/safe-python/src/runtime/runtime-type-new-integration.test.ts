@@ -29,6 +29,7 @@ import { NumericLocale } from "./numeric-locale.js";
 import { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.js";
+import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -77,6 +78,53 @@ function exceptionFixture() {
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("uses guest AttributeError subclasses for instance and metaclass fallback",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Missing(AttributeError):\n pass\nclass Item:\n def __getattribute__(self,name):\n  raise Missing(name)\n def __getattr__(self,name):\n  return ('instance',name)\nclass Meta(type):\n def __getattribute__(cls,name):\n  if name=='missing':\n   raise Missing(name)\n  return type.__getattribute__(cls,name)\n def __getattr__(cls,name):\n  return ('class',name)\nclass C(metaclass=Meta):\n pass\ncorrect=Item().missing==('instance','missing') and C.missing==('class','missing')\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("ends native sequence iteration on guest IndexError subclasses",()=>{
+  const state=exceptionFixture();state.globals.set("IndexError",state.registry.exceptionType("IndexError"));
+  state.run("class End(IndexError):\n pass\nclass Sequence:\n def __getitem__(self,index):\n  if index<2:\n   return index\n  raise End(index)\nresult=[*Sequence()]\ncorrect=result==[0,1]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("ignores guest TypeError subclasses from advisory iteration length hints",()=>{
+  const state=exceptionFixture();state.globals.set("List",state.registry.listType());
+  state.run("events=[]\nclass Unknown(TypeError):\n pass\nclass Iterator:\n def __iter__(self):\n  return self\n def __next__(self):\n  raise StopIteration\n def __len__(self):\n  events.append('length')\n  raise Unknown\n def __length_hint__(self):\n  events.append('hint')\n  raise Unknown\nresult=List(Iterator())\ncorrect=result==[] and events==['length','hint']\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("classifies native parents without accepting host spoofing or unknown names",()=>{
+  const state=exceptionFixture(),error=new PythonRuntimeError("UnboundLocalError","missing");
+  expect(state.exceptions!.matches(error,"NameError")).toBe(true);
+  expect(state.exceptions!.matches(error,"Exception")).toBe(true);
+  expect(state.exceptions!.matches(error,"BaseException")).toBe(true);
+  expect(state.exceptions!.matches(error,"AttributeError")).toBe(false);
+  for(const name of ["constructor","__proto__","Unknown"])expect(state.exceptions!.matches(error,name)).toBe(false);
+  expect(state.exceptions!.matches(Object.assign(Error("host"),{name:"UnboundLocalError"}),"NameError")).toBe(false);
+});
+
+it("preserves nonmatching failures from attribute and sequence protocols",()=>{
+  const state=exceptionFixture();
+  state.run("failure=ValueError('failure')\nclass Item:\n def __getattribute__(self,name):\n  raise failure\n def __getattr__(self,name):\n  visit('wrong')\nclass Sequence:\n def __getitem__(self,index):\n  raise failure\ntry:\n Item().missing\nexcept ValueError as error:\n attribute=error is failure\ntry:\n result=[*Sequence()]\nexcept ValueError as error:\n sequence=error is failure\n");
+  expect(state.events).toEqual([]);expect(state.globals.get("attribute")).toBe(state.v.true);expect(state.globals.get("sequence")).toBe(state.v.true);
+});
+
+it("uses guest AttributeError subclasses for getattr defaults and hasattr",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  for(const name of ["getattr","hasattr"] as const)state.builtins.set(name,createAttributeLookupBuiltin(name,state.v,state.meter));
+  state.run("class Missing(AttributeError):\n pass\nclass Item:\n def __getattribute__(self,name):\n  raise Missing(name)\nitem=Item()\ncorrect=getattr(item,'field',42)==42 and hasattr(item,'field') is False\ntry:\n getattr(item,'field')\nexcept Missing as error:\n original=error.args==('field',)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.globals.get("original")).toBe(state.v.true);
+});
+
+it("creates native notes when guest lookup raises an AttributeError subclass",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Missing(AttributeError):\n pass\nclass E(Exception):\n def __getattribute__(self,name):\n  if name=='__notes__':\n   raise Missing\n  return object.__getattribute__(self,name)\ne=E()\ne.add_note('note')\ncorrect=e.__dict__['__notes__']==['note']\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
 
 it("raises and reraises guest exceptions across function frames with alias cleanup",()=>{
   const state=exceptionFixture();

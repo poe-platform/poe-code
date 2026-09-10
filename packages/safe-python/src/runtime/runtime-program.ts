@@ -296,10 +296,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (keywords !== undefined) { meter.checkpoint(); call.mapping(keywords); }
         return call.invoke();
       },
+      isException: context.exceptions?.matches.bind(context.exceptions),
       isStopIteration(error) {
         if (error instanceof ExecutionLimitError) return false;
         if (error instanceof PythonRuntimeError && error.name === "StopIteration") return true;
-        if (context.exceptions?.isStopIteration(error)) return true;
+        if (context.exceptions?.matches(error,"StopIteration")) return true;
         const result = expressionHooks.iteration?.isStopIteration(error) ?? false;
         meter.checkpoint(); return result;
       }

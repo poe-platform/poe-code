@@ -9837,6 +9837,26 @@ extension, integration, or validation requirement is missing or unverified.
   unsupported native families still need translation. Tracebacks, exception
   groups, suspension and public interpreter/safe-fs assembly remain unfinished.
   No push or release requested.
+- Native protocol exception matching (2026-09-10): five failing reproductions
+  drove shared matching for native faults and guest exception subclasses through
+  an explicit invocation capability. Instance/metaclass attribute fallback,
+  getattr defaults, hasattr, exception-note initialization, sequence termination
+  and advisory length hints now recognize the appropriate guest subclasses.
+  Classification uses actual inheritance and canonical builtin classes, never
+  virtual subclass checks or guest rendering. Unknown names and spoofed host
+  errors remain false, and execution limits never reach extension classifiers.
+  The policy also recognizes canonical parent classes of supported native faults.
+  All 84 focused CPython comparisons and 627 focused tests pass. The selected
+  workspace build, typecheck, focused lint and all 7,172 tests in 503 files pass
+  in the uncached one-worker package run. Remaining native catch sites (class preparation,
+  mappings, decorators, conversions and related protocols) still need individual
+  reproduction and guest-aware integration. A separate 24-case read-only audit
+  confirms eight remaining mismatches: dict's iterable fallback, dictionary
+  unpacking, keyword unpacking and class subscription each fail to recognize
+  explicitly raised AttributeError and its subclasses. These are next work,
+  not counted as passing comparisons. Broader interpreter, tracebacks,
+  exception groups, suspension and safe-fs work remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

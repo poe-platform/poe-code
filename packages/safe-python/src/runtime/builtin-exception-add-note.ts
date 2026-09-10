@@ -1,5 +1,6 @@
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeExceptionPayload } from "./runtime-exception-state.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
@@ -24,7 +25,7 @@ export function createExceptionAddNoteDescriptor(owner:TypeValue,values:RuntimeV
       let notes:RuntimeValue;
       try {notes=invocation.attribute(receiver,"__notes__");}
       catch(error) {
-        if(!(error instanceof PythonRuntimeError)||error.name!=="AttributeError")throw error;
+        if(!runtimeExceptionMatches(error,"AttributeError",invocation))throw error;
         if(!invocation.setAttribute)throw Error("exception notes require an attribute mutation policy");
         notes=values.list([]);
         invocation.setAttribute(receiver,"__notes__",notes);

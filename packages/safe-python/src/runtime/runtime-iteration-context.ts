@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 import type { IterationContext } from "./protocol-iterator.js";
@@ -63,7 +64,7 @@ export function createRuntimeIterationContext(values: RuntimeValues, meter: Exec
       const result = invocation.call(method, [values.integer(index)]); meter.checkpoint(); return result;
     },
     isStopIteration: invocation.isStopIteration.bind(invocation),
-    isIndexError: error => error instanceof PythonRuntimeError && error.name === "IndexError",
+    isIndexError: error => runtimeExceptionMatches(error,"IndexError",invocation),
     typeName,
     get hints() {
       meter.checkpoint();
@@ -82,7 +83,7 @@ export function createRuntimeIterationContext(values: RuntimeValues, meter: Exec
             return payload?.kind === "int" ? payload.value : payload?.kind === "bool" ? payload.value ? 1n : 0n : undefined;
           },
           isNotImplemented: value => value === values.notImplemented,
-          isTypeError: error => error instanceof PythonRuntimeError && error.name === "TypeError",
+          isTypeError: error => runtimeExceptionMatches(error,"TypeError",invocation),
           typeName
         };
       }

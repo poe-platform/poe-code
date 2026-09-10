@@ -1,5 +1,6 @@
 import { readClassAttribute } from "./class-attributes.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { deleteInstanceAttribute, writeInstanceAttribute, type AttributeValue } from "./instance-attributes.js";
 import type { RuntimeDescriptorContext } from "./runtime-descriptor.js";
@@ -17,7 +18,7 @@ function missingTypeAttribute(cls: TypeValue, name: string, meter: ExecutionMete
 /** Ordinary class reads apply metaclass overrides and AttributeError fallback.
  * Omit invocation to expose default type lookup without recursively reapplying
  * overrides, as required by an explicit type.__getattribute__ adapter. */
-export function runtimeTypeAttribute(cls: TypeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation?: Pick<BuiltinInvocationContext, "call">): RuntimeValue {
+export function runtimeTypeAttribute(cls: TypeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation?: Pick<BuiltinInvocationContext, "call" | "isException">): RuntimeValue {
   meter.checkpoint(1, 64);
   const key = values.string(name);
   try {
@@ -32,7 +33,7 @@ export function runtimeTypeAttribute(cls: TypeValue, name: string, values: Runti
     throw missingTypeAttribute(cls, name, meter);
   } catch (error) {
     meter.checkpoint();
-    if (invocation === undefined || !(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+    if (invocation === undefined || !runtimeExceptionMatches(error,"AttributeError",invocation)) throw error;
     const fallback = lookupRuntimeSpecialMethod(cls, cls.metaclass, values.string("__getattr__"), special, values, meter); meter.checkpoint();
     if (fallback === undefined) throw error;
     meter.checkpoint(0, 16);

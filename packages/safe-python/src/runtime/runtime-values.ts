@@ -86,6 +86,10 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Internal exception inheritance, never guest instance/subclass hooks.
+   * Ordinary host failures must remain false. Native operation faults may also
+   * match a parent exception class through the execution's builtin catalogue. */
+  isException?(error: unknown, name: string): boolean;
   /** Account for recursive native operations that do not enter a guest body.
    * Always invoke the returned unmetered restoration in a finally block. */
   enterRecursiveCall?(): () => void;

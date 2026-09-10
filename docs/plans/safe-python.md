@@ -9789,6 +9789,21 @@ extension, integration, or validation requirement is missing or unverified.
   import, OS, Unicode and other specialized exceptions, traceback objects, fault
   translation, raise/try wiring and interpreter/safe-fs assembly remain unfinished.
   No push or release was requested.
+- AttributeError state (2026-09-10): failing integration tests drove coordinated
+  native name/obj keyword initialization and AttributeError-specific serialization.
+  The shared member initializer now validates all keywords before replacing any
+  field, while preserving the established args-before-validation ordering.
+  Serialization copies ordinary dictionary state without exposing lazy storage,
+  overlays native name when set (including explicit None), always includes args,
+  and omits the native object reference. Native reduction bypasses subclass
+  __getstate__ hooks and observes args mutations from key-equality callbacks in
+  CPython order. All 116 focused comparisons match after aligning fixture module
+  names; prior 109 NameError and 98 argument-member comparisons also match.
+  Focused tests, typecheck, lint, the selected workspace build and all 7,148 tests
+  in 502 files pass in the uncached one-worker package run.
+  Import, OS, Unicode and other specialized exceptions, tracebacks,
+  fault translation, raise/try wiring and interpreter/safe-fs assembly remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

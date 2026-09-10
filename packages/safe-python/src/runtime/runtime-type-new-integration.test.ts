@@ -70,6 +70,27 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("initializes AttributeError fields together and retains them when keyword validation fails",()=>{
+  const state=fixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("token=object()\ne=AttributeError('old',name='old',obj=token)\ninitial=e.name=='old' and e.obj is token\n");
+  expect(state.globals.get("initial")).toBe(state.v.true);
+  expect(()=>state.run("e.__init__('changed',name='new',bad=1)\n")).toThrow("AttributeError() got an unexpected keyword argument 'bad'");
+  state.run("retained=e.args==('changed',) and e.name=='old' and e.obj is token\ne.__init__('again',name='new')\ncleared=e.name=='new' and e.obj is None\n");
+  for(const key of ["retained","cleared"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("serializes AttributeError native name and args without exposing obj or mutating its dictionary",()=>{
+  const state=fixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("e=AttributeError('message',name='actual',obj=object())\nd=e.__dict__\nd['name']='shadow'\nd['args']='shadow'\nd['extra']=1\ns=e.__getstate__()\nr=e.__reduce__()\ncorrect=s=={'name':'actual','args':('message',),'extra':1} and s is not d and d['name']=='shadow' and r==(AttributeError,('message',),s)\nx=AttributeError()\na=x.__getstate__()\nlazy=a=={'args':()} and BaseException.__reduce__(x)==(AttributeError,())\nx.name=None\nexplicit=x.__getstate__()=={'name':None,'args':()}\ndel x.name\ndeleted=x.__getstate__()=={'args':()}\n");
+  for(const key of ["correct","lazy","explicit","deleted"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("reduces AttributeError through native state despite subclass hooks and collision callbacks",()=>{
+  const state=fixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class E(AttributeError):\n def __getstate__(self):\n  return 1/0\nclass K:\n def __hash__(self):\n  return 23\n def __eq__(self,other):\n  if other=='name':\n   e.args=('changed',)\n   return True\n  return False\ne=E('old',name='actual',obj=object())\ne.__dict__[K()]='shadow'\ne.__dict__['obj']='ordinary'\nr=e.__reduce__()\ncorrect=r[0] is E and r[1]==('changed',) and r[2]['args']==('changed',) and r[2]['obj']=='ordinary'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("initializes native NameError names without adding dictionary state",()=>{
   const state=fixture();for(const name of ["NameError","UnboundLocalError","BaseException"] as const)state.globals.set(name,state.registry.exceptionType(name));
   state.run("e=NameError('missing',name='variable')\ninitial=e.name=='variable' and e.args==('missing',) and e.__reduce__()==(NameError,('missing',))\ne.__init__('again')\ncleared=e.name is None\ne.name=123\ndel e.name\ndeleted=e.name is None\nu=UnboundLocalError('local',name='x')\nsubclass=u.name=='x' and UnboundLocalError.__dict__.keys()=={'__doc__'}\nraw=BaseException.__new__(NameError,1)\nuninitialized=raw.args==(1,) and raw.name is None\n");

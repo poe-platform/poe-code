@@ -1,12 +1,14 @@
+import { installAttributeErrorStateDescriptors } from "./runtime-attribute-error-state.js";
+
 /** Builtin exceptions using BaseException's allocation family. Representation
  * policies share storage; argument-derived members introduce native layouts.
- * Multi-field initializers and specialized allocators are still separate work. */
+ * Specialized allocator families are still separate work. */
 export const standardExceptionCatalog = {
   Exception: {base:"BaseException",doc:"Common base class for all non-exit exceptions."},
   GeneratorExit: {base:"BaseException",doc:"Request that a generator exit."},
   KeyboardInterrupt: {base:"BaseException",doc:"Program interrupted by user."},
-  SystemExit: {base:"BaseException",doc:"Request to exit from the interpreter.",ownAllocator:false,member:{name:"code",doc:"exception code",arguments:"all"}},
-  StopIteration: {base:"Exception",doc:"Signal the end from iterator.__next__().",ownAllocator:false,member:{name:"value",doc:"generator return value",arguments:"first"}},
+  SystemExit: {base:"BaseException",doc:"Request to exit from the interpreter.",ownAllocator:false,member:{members:[{name:"code",doc:"exception code"}],arguments:"all"}},
+  StopIteration: {base:"Exception",doc:"Signal the end from iterator.__next__().",ownAllocator:false,member:{members:[{name:"value",doc:"generator return value"}],arguments:"first"}},
   ArithmeticError: {base:"Exception",doc:"Base class for arithmetic errors."},
   FloatingPointError: {base:"ArithmeticError",doc:"Floating-point operation failed."},
   OverflowError: {base:"ArithmeticError",doc:"Result too large to be represented."},
@@ -18,7 +20,8 @@ export const standardExceptionCatalog = {
   IndexError: {base:"LookupError",doc:"Sequence index out of range."},
   KeyError: {base:"LookupError",doc:"Mapping key not found.",ownAllocator:false,stringArgument:"repr"},
   ReferenceError: {base:"Exception",doc:"Weak ref proxy used after referent went away."},
-  NameError: {base:"Exception",doc:"Name not found globally.",ownAllocator:false,member:{name:"name",doc:"name",arguments:"keyword"}},
+  NameError: {base:"Exception",doc:"Name not found globally.",ownAllocator:false,member:{members:[{name:"name",doc:"name"}],arguments:"keyword"}},
+  AttributeError: {base:"Exception",doc:"Attribute not found.",ownAllocator:false,member:{members:[{name:"name",doc:"attribute name"},{name:"obj",doc:"object"}],arguments:"keyword"},install:installAttributeErrorStateDescriptors},
   UnboundLocalError: {base:"NameError",doc:"Local name referenced but not bound to a value.",ownAllocator:false},
   RuntimeError: {base:"Exception",doc:"Unspecified run-time error."},
   StopAsyncIteration: {base:"Exception",doc:"Signal the end from iterator.__anext__()."},

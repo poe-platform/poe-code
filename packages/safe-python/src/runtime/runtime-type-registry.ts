@@ -336,6 +336,7 @@ export class RuntimeTypeRegistry {
     if(!("ownAllocator" in spec)||spec.ownAllocator)namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value)));
     if("stringArgument" in spec)namespace.items.set(this.values.string("__str__"),createExceptionRepresentationDescriptor("__str__",type,this.values,this.meter,spec.stringArgument));
     if("member" in spec)installExceptionArgumentMember(type,spec.member,this.values,this.meter);
+    if("install" in spec)spec.install(type,this.values,this.meter);
     namespace.items.set(this.values.string("__doc__"),this.values.string(spec.doc));
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#exceptions.set(name,type);
     return type;

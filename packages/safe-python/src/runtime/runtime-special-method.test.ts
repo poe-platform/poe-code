@@ -18,6 +18,7 @@ import { createLenBuiltin } from "./builtin-len.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { createNextBuiltin } from "./builtin-iteration.js";
 import { createFormatBuiltin } from "./builtin-format.js";
+import { createRepresentationBuiltin } from "./builtin-representation.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -185,6 +186,8 @@ it.each([
   ["ascii", 'f"{receiver!a}"', "__repr__", "\\xe9"],
   ["str-fallback", 'f"{receiver!s}"', "__repr__", "é"],
   ["nested", 'f"{[receiver]!r}"', "__repr__", "[é]"],
+  ["builtin-repr", "repr(receiver)", "__repr__", "é"],
+  ["builtin-ascii", "ascii(receiver)", "__repr__", "\\xe9"],
   ["invalid-str", 'f"{receiver!s}"', "__str__", "__str__ returned non-string (type Derived)"],
   ["invalid-repr", 'f"{receiver!r}"', "__repr__", "__repr__ returned non-string (type Derived)"],
   ["disabled-str", 'f"{receiver!s}"', "__str__", "'NoneType' object is not callable"],
@@ -198,7 +201,7 @@ it.each([
   base.value.namespace.items.set(v.string("__format__"), v.none);
   const program = compileProgram<RuntimeValue>(analyzeModule(`def render(): return ${expression}\nresult=render()\n`), { stripDocstring: false }, v, meter);
   const run = () => executeRuntimeProgram(program, {
-    values: v, globals, builtins: new Map(), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    values: v, globals, builtins: new Map([ ["repr", createRepresentationBuiltin("repr", v, meter)], ["ascii", createRepresentationBuiltin("ascii", v, meter)] ]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
     hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
   }, meter);
   if (mode.startsWith("invalid") || mode.startsWith("disabled")) expect(run).toThrow(expected);

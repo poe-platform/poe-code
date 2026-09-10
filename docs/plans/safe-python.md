@@ -7299,6 +7299,17 @@ extension, integration, or validation requirement is missing or unverified.
   nested containers. Standalone representation builtin integration, automatic
   type/storage classification, generic object defaults, per-frame allocation
   optimization and suspended safe-fs effects remain unfinished.
+- Repr/ascii now use invocation formatting when no explicit representation
+  policy is supplied; standalone calls retain native representation support.
+  Namespace registration no longer requires a separate representation context.
+  Two compiled MRO regressions failed first; nine added cases cover guest calls,
+  standalone defaults, explicit priority, argument order, acquisition cancellation
+  and recursive callbacks sharing one invocation context. All 5,471 tests in
+  446 files pass; selected build, typecheck and scoped lint pass. Thirty-two
+  compiled repr/ascii guest cases match CPython across Unicode and nested lists.
+  Cross-frame representation guard sharing still needs an integration audit;
+  automatic type/storage classification, generic object defaults, allocation
+  optimization and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

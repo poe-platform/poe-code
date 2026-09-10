@@ -35,15 +35,35 @@ it("retains guest repr result identity and rejects non-string results", () => {
   const invalid = createRepresentationBuiltin("ascii", v, meter, { ...context, lookupRepr: () => () => v.integer(3) });
   expect(() => invalid.value.invoke([guest], keywords, meter)).toThrow("__repr__ returned non-string (type int)");
 });
-it("shares guards across repr/ascii calls made by a guest representation", () => {
+it.each([false, true])("shares guards across repr/ascii calls with explicit policy=%s", explicit => {
   const { v, meter, keywords } = fixture(), guest = v.cell({}), list = v.list([guest]);
   const context = createRuntimeRepresentationContext(v, meter, {
-    lookupRepr: item => item === guest ? () => ascii.value.invoke([list], keywords, meter) : undefined,
+    lookupRepr: item => item === guest ? () => ascii.value.invoke([list], keywords, meter, invocation) : undefined,
     defaultRepr() { throw Error("unexpected default"); }
   });
-  const repr = createRepresentationBuiltin("repr", v, meter, context), ascii = createRepresentationBuiltin("ascii", v, meter, context);
-  expect(text(repr.value.invoke([list], keywords, meter))).toBe("[[...]]");
-  expect(text(ascii.value.invoke([list], keywords, meter))).toBe("[[...]]");
+  const invocation = { formatting: { ...context, isExactInteger: () => false, lookupFormat: () => undefined }, call: () => v.none, isStopIteration: () => false };
+  const repr = createRepresentationBuiltin("repr", v, meter, explicit ? context : undefined), ascii = createRepresentationBuiltin("ascii", v, meter, explicit ? context : undefined);
+  expect(text(repr.value.invoke([list], keywords, meter, invocation))).toBe("[[...]]");
+  expect(text(ascii.value.invoke([list], keywords, meter, invocation))).toBe("[[...]]");
+});
+it.each(["repr", "ascii"] as const)("provides native %s without a representation policy", name => {
+  const { v, meter, keywords } = fixture(), builtin = createRepresentationBuiltin(name, v, meter), value = v.list([v.string("é"), v.none]);
+  expect(text(builtin.value.invoke([value], keywords, meter))).toBe(name === "repr" ? "['é', None]" : "['\\xe9', None]");
+});
+it.each(["repr", "ascii"] as const)("validates %s arguments before policy acquisition and honors explicit priority", name => {
+  const { v, meter, keywords, context } = fixture(), builtin = createRepresentationBuiltin(name, v, meter);
+  const invocation = { get formatting(): never { throw Error("must not read policy"); }, call: () => v.none, isStopIteration: () => false };
+  expect(() => builtin.value.invoke([], keywords, meter, invocation)).toThrow(`${name}() takes exactly one argument (0 given)`);
+  keywords.items.set(v.string("object"), v.none);
+  expect(() => builtin.value.invoke([], keywords, meter, invocation)).toThrow(`${name}() takes no keyword arguments`);
+  keywords.items.clear();
+  expect(text(createRepresentationBuiltin(name, v, meter, context).value.invoke([v.none], keywords, meter, invocation))).toBe("None");
+});
+it.each(["repr", "ascii"] as const)("checks %s cancellation after invocation policy acquisition", name => {
+  const { v, meter, keywords, context } = fixture(), builtin = createRepresentationBuiltin(name, v, meter); let cancelled = false;
+  const formatting = { ...context, isExactInteger: () => false, lookupFormat: () => undefined, lookupRepr(): never { throw Error("must stop before representation lookup"); } };
+  const invocation = { get formatting() { cancelled = true; return formatting; }, call: () => v.none, isStopIteration: () => false };
+  expect(() => builtin.value.invoke([v.none], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, invocation)).toThrow(ExecutionLimitError);
 });
 it("preserves guest failures and checks cancellation at invocation", () => {
   const { v, meter, keywords, context, repr } = fixture(), error = Error("guest");

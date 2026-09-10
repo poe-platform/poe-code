@@ -2,6 +2,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import type { IterationContext } from "./protocol-iterator.js";
 import { runtimeMembership } from "./runtime-membership.js";
 import { runtimeSetAccess, subtractRuntimeSet, symmetricDifferenceUpdateRuntimeSet, updateRuntimeSet } from "./runtime-set.js";
 import { isRuntimeSetView, type RuntimeValue, type RuntimeValues, type SetValue } from "./runtime-values.js";
@@ -9,7 +10,7 @@ import { isRuntimeSetView, type RuntimeValue, type RuntimeValues, type SetValue 
 /** Exact dict-key/item view numeric slots, including reflected iterable inputs.
  * The caller resolves mapping-proxy forwarding and guarantees one set-like
  * view. Values views can be iterable operands but do not own these slots. */
-export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): SetValue {
+export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): SetValue {
   meter.checkpoint();
   const view = isRuntimeSetView(left) ? left : isRuntimeSetView(right) ? right : undefined;
   if (view === undefined) throw new Error("dictionary-view algebra requires a set-like view");
@@ -32,7 +33,7 @@ export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", lef
       return values.set(right.items.intersectKeysFrom(() => runtimeIterate(left, values, meter), values.none));
     }
     if (isRuntimeSetView(right) && right.value.items.size > size) { const original = left; left = right; right = original; }
-    const result = values.set(view.value.items.emptyCopy()), iterator = runtimeIterate(right, values, meter);
+    const result = values.set(view.value.items.emptyCopy()), iterator = runtimeIterate(right, values, meter, iteration);
     while (true) {
       meter.checkpoint();
       const item = iterator.next();
@@ -43,9 +44,9 @@ export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", lef
   }
   const result = values.set(view.value.items.emptyCopy());
   // Only conversion of the left keys view gets the exact-dictionary fast path.
-  updateRuntimeSet(result, left.kind === "dict_keys" ? left.value : left, values, meter);
-  if (operator === "|") updateRuntimeSet(result, right, values, meter);
-  else if (operator === "-") subtractRuntimeSet(result, right, values, meter);
-  else symmetricDifferenceUpdateRuntimeSet(result, right, values, meter);
+  updateRuntimeSet(result, left.kind === "dict_keys" ? left.value : left, values, meter, iteration);
+  if (operator === "|") updateRuntimeSet(result, right, values, meter, iteration);
+  else if (operator === "-") subtractRuntimeSet(result, right, values, meter, iteration);
+  else symmetricDifferenceUpdateRuntimeSet(result, right, values, meter, iteration);
   return result;
 }

@@ -8424,6 +8424,15 @@ extension, integration, or validation requirement is missing or unverified.
   arguments. All 6,501 tests in 491 files, build, typecheck and scoped lint pass. Canonical native constructor/type catalogs,
   subclass storage, guest exception rendering and public execution assembly
   remain unfinished.
+- Connected dictionary keys/items view isdisjoint and set-like binary operations
+  to guest iteration, including the native side of reflected numeric dispatch.
+  Four initial compiled regressions rejected guest iterable instances. Seven
+  added cases cover disjointness short circuiting, all four operators in both
+  directions, live backing-dictionary mutation and guest numeric precedence.
+  All 864 compiled dictionary-view differential cases match CPython, including
+  backing contents, result members and iteration effects. Build, typecheck and
+  scoped lint and all 6,508 tests in 491 files pass. Canonical native type catalogs, full guest comparison/hash
+  assembly, exception rendering and public execution assembly remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

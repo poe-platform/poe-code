@@ -17,7 +17,7 @@ export function readRuntimeDictionaryViewAttribute(view: DictionaryViewValue, na
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${view.kind}.${name}() takes no keyword arguments`);
       if (name === "__reversed__") {
@@ -31,7 +31,7 @@ export function readRuntimeDictionaryViewAttribute(view: DictionaryViewValue, na
       if ((other.kind === "dict_keys" || other.kind === "dict_items" || isRuntimeSet(other)) && view.value.items.size < (isRuntimeSet(other) ? other : other.value).items.size) {
         source = view; target = other;
       }
-      const iterator = runtimeIterate(source, values, meter);
+      const iterator = runtimeIterate(source, values, meter, invocation?.iteration);
       while (true) {
         meter.checkpoint();
         const item = iterator.next();

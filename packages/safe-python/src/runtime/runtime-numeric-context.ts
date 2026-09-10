@@ -39,7 +39,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
         if (invocation.binary === undefined) throw Error("mapping proxy union requires a binary policy");
         return name === forwardName ? invocation.binary(operator, receiver.value, other) : invocation.binary(operator, other, receiver.value);
       }
-      return runtimeBinary(operator, left, right, values, meter);
+      return runtimeBinary(operator, left, right, values, meter, invocation.iteration);
     }
     const method = lookupRuntimeSpecialMethod(receiver, type, values.string(name), special, values, meter);
     meter.checkpoint();

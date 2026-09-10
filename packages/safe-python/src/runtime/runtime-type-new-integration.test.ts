@@ -133,6 +133,33 @@ it("expands guest iterables in starred set displays", () => {
   expect(result.items.size).toBe(4); expect(state.events).toEqual(["get", "get", "get", "get"]);
 });
 
+it.each(["keys", "items"])("checks dictionary %s view disjointness against guest iterables", kind => {
+  const state = fixture(), entries = kind === "keys" ? "(2,3)" : "((2,20),(3,30))";
+  state.run(`class Source:\n def __getitem__(self,index):\n  visit('get')\n  return ${entries}[index]\nresult={1:10,2:20}.${kind}().isdisjoint(Source())\n`);
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["get"]);
+});
+
+it.each(["keys", "items"])("combines dictionary %s views with forward and reflected guest iterables", kind => {
+  for (const [operator, size] of [["|", 3], ["&", 1], ["-", 1], ["^", 2]] as const) for (const reflected of [false, true]) {
+    const state = fixture(), entries = kind === "keys" ? "(2,3)" : "((2,20),(3,30))";
+    state.run(`class Source:\n def __getitem__(self,index):\n  visit('get')\n  return ${entries}[index]\nview={1:10,2:20}.${kind}()\nresult=${reflected ? `Source()${operator}view` : `view${operator}Source()`}\n`);
+    const result = state.globals.get("result")!; if (result.kind !== "set") throw Error("expected set"); expect(result.items.size).toBe(size); expect(state.events).toEqual(["get", "get", "get"]);
+  }
+});
+
+it.each(["keys", "items"])("observes backing dictionary mutations during %s view iteration", kind => {
+  const state = fixture(), key = kind === "keys" ? "3" : "(3,30)";
+  state.run(`mapping={1:10}\nview=mapping.${kind}()\nclass Source:\n def __getitem__(self,index):\n  visit('get')\n  mapping[3]=30\n  return (${key},)[index]\ndisjoint=view.isdisjoint(Source())\nresult=view&Source()\n`);
+  expect(state.globals.get("disjoint")).toBe(state.v.false);
+  const result = state.globals.get("result")!; if (result.kind !== "set") throw Error("expected set"); expect(result.items.size).toBe(1); expect(state.events).toEqual(["get", "get", "get"]);
+});
+
+it("retains guest numeric precedence around dictionary view union", () => {
+  const state = fixture();
+  state.run("class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,)[index]\n def __or__(self,other):\n  visit('forward')\n  return 77\n def __ror__(self,other):\n  visit('reflected')\n  return 88\nview={1:10}.keys()\nleft=view|Source()\nright=Source()|view\n");
+  expect(state.globals.get("left")?.kind).toBe("set"); expect(state.globals.get("right")).toEqual(state.v.integer(77)); expect(state.events).toEqual(["get", "get", "forward"]);
+});
+
 it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("constructs %s through active guest iteration", (name, construct) => {
   const state = fixture();
   state.builtins.set(name, state.v.builtinFunction({ name, invoke(args, keywords, meter, context) { return construct(args, keywords, state.v, state.keys, meter, context?.iteration); } }));

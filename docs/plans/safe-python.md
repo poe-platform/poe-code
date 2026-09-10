@@ -10553,6 +10553,25 @@ extension, integration, or validation requirement is missing or unverified.
   11.16s).
   Async generator expressions, metadata/hooks/finalization, context managers,
   public runtime, library/import and safe-fs integration remain unfinished.
+- Native async generator expressions (2026-09-10): three failing native tests
+  exposed rejected async clauses, synchronous objects for awaited elements, and
+  incorrect nested-generator classification. Added a metered iterative classifier
+  that excludes the outer source and nested lazy bodies while including executed
+  defaults and materialized comprehensions. Async generator expressions acquire
+  the outer iterator immediately, then lazily execute the existing resumable
+  clause traversal in their own frame and delegation controller. They work in
+  synchronous code and coroutine bodies, including mixed clauses, awaited filters,
+  nested comprehensions, and independent outer-source/element awaits.
+  The classification follows the
+  [expression reference](https://docs.python.org/3/reference/expressions.html#generator-expressions).
+  All 1,728 mixed send/throw/close comparisons match CPython, as do 52 nested-scope
+  classification checks, 98 synchronous comprehension regressions, 512 outer-await
+  regressions, 512 materialized async comprehension regressions and eight complete
+  consumption cases (2,910 total).
+  Build, typecheck and focused lint pass. The final uncached one-worker package
+  run passes all 7,567 tests in 512 files (134.55s; test bodies 9.99s).
+  Metadata/hooks/finalization, context managers, public
+  runtime, library/import and safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

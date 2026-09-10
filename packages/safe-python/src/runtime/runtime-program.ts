@@ -60,6 +60,7 @@ import { ComprehensionCursor,executeComprehensionClauses,createComprehensionCont
 import { createStatementContinuation } from "./statement-execution.js";
 import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
 import { createRuntimeAsyncIterator } from "./runtime-async-iteration.js";
+import { comprehensionIsAsynchronous } from "./comprehension-asynchronous.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -366,8 +367,23 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     };
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
-    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,outer:Iterator<RuntimeValue>,child:LexicalFrame<RuntimeValue>)=>{
+    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,source:RuntimeValue,child:LexicalFrame<RuntimeValue>)=>{
       if(context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
+      if(comprehensionIsAsynchronous(node,meter)) {
+        meter.checkpoint(0,288);
+        const delegation=new RuntimeGeneratorDelegation(values,context.exceptions,meter,context.unraisable);
+        const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
+          ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>delegation.delegate(value,builtinCalls,"anext"),values,meter)}
+          :{kind:"sync",value:expressions.iterate(source)};
+        function* run():Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
+          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,delegation).suspend();
+          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){yield yield* inner.evaluate(node.element);},meter);
+          return values.none;
+        }
+        const cursor=run();
+        return context.exceptions.generator(input=>input.kind==="throw"?cursor.throw(input.error):cursor.next(input.value),child,calls,delegation,"async-generator");
+      }
+      const outer=expressions.iterate(source);
       const leave=calls.enter(child);
       try {
         const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
@@ -422,16 +438,17 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       comprehension(node) {
         meter.checkpoint();
         if(node.kind==="comprehension"&&node.collection==="generator"&&context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
-        for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
+        if(node.kind!=="comprehension"||node.collection!=="generator")for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
         const scope=comprehensions?.get(node);
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
         let leave=calls.enter(frame);
         try {
-          const outer=expressions.iterate(evaluateExpression(node.clauses[0].iterable,expressions,meter));
+          const source=evaluateExpression(node.clauses[0].iterable,expressions,meter);
           meter.checkpoint(0,192);
           const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
           const child=new LexicalFrame(scope,{...namespaces,closure},meter);
-          if(node.kind==="comprehension"&&node.collection==="generator"){leave();return generatorComprehension(node,outer,child);}
+          if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
+          const outer=expressions.iterate(source);
           leave();leave=calls.enter(child);
           const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
           if(node.kind==="dictionary-comprehension") {
@@ -461,15 +478,12 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
         const source=yield* createExpressionContinuation(node.clauses[0].iterable,expressions,meter,values.none);
         meter.checkpoint(0,256);
+        const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
+        const child=new LexicalFrame(scope,{...namespaces,closure},meter);
+        if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
         const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
           ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>suspension.delegate(value,builtinCalls,"anext"),values,meter)}
           :{kind:"sync",value:expressions.iterate(source)};
-        const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
-        const child=new LexicalFrame(scope,{...namespaces,closure},meter);
-        if(node.kind==="comprehension"&&node.collection==="generator") {
-          if(outer.kind!=="sync")throw new UnsupportedExpressionError(node.kind);
-          return generatorComprehension(node,outer.value,child);
-        }
         // Comprehension locals are isolated, but their awaits belong to the
         // enclosing coroutine's active frame and handled-exception state.
         const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,suspension).suspend();

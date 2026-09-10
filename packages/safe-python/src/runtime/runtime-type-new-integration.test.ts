@@ -311,6 +311,36 @@ it("warns about legacy athrow arguments when creating the operation, not when aw
   expect(warnings).toEqual([message]);expect(state.globals.get("caught")).toBe(v.true);
 });
 
+it("creates lazy async generator expressions in synchronous code",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Source:\n def __aiter__(self):\n  events.append('iter')\n  return self\n async def __anext__(self):\n  events.append('next')\n  return 3\ng=(x+1 async for x in Source())\ncreated=events==['iter'] and type(g).__name__=='async_generator'\ntry:g.__anext__().send(None)\nexcept StopIteration as error:item=error.value\nconsumed=events==['iter','next']\ntry:g.aclose().send(None)\nexcept StopIteration:pass\n");
+  expect(state.globals.get("created")).toBe(v.true);expect(state.globals.get("consumed")).toBe(v.true);expect(state.globals.get("item")).toEqual(v.integer(4));
+});
+
+it("gives an awaited generator-expression element its own suspension controller",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):\n  yield 9\n  return 4\nasync def make():return (await A() for x in [1,2])\nc=make()\ntry:c.send(None)\nexcept StopIteration as error:g=error.value\na=g.__anext__()\nwaiting=a.send(None)\nactive=g.ag_running and g.ag_await is not None and c.cr_await is None\ntry:a.send(None)\nexcept StopIteration as error:item=error.value\ntry:g.aclose().send(None)\nexcept StopIteration:pass\n");
+  expect(state.globals.get("waiting")).toEqual(v.integer(9));expect(state.globals.get("active")).toBe(v.true);expect(state.globals.get("item")).toEqual(v.integer(4));
+});
+
+it("fully consumes mixed async generator clauses and awaited filters without leaking locals",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __init__(self,value):self.value=value\n def __await__(self):\n  yield 9\n  return self.value\nasync def source():\n yield 1\n yield 2\nx=100\ny=200\ng=(x+y for x in [10,20] async for y in source() if await A(y==2))\nasync def consume():return [item async for item in g]\nc=consume()\nwaits=[]\nwhile True:\n try:waits.append(c.send(None))\n except StopIteration as error:\n  items=error.value\n  break\ncorrect=items==[12,22] and waits==[9,9,9,9] and x==100 and y==200\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.calls.depth).toBe(0);
+});
+
+it("separates an awaited async generator outer source from its lazy element awaits",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __init__(self,value):self.value=value\n def __await__(self):\n  yield 9\n  return self.value\nasync def source():yield 3\nasync def make():return (await A(x) async for x in await A(source()))\nc=make()\nouter=c.send(None)\ntry:c.send(None)\nexcept StopIteration as error:g=error.value\na=g.__anext__()\ninner=a.send(None)\ntry:a.send(None)\nexcept StopIteration as error:item=error.value\ncorrect=outer==9 and inner==9 and item==3 and c.cr_await is None\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.calls.depth).toBe(0);
+});
+
+it("does not promote an outer generator for a nested async generator body",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 9)\ng=((await A() for y in [1]) for x in [1])\nnormal=type(g).__name__=='generator'\ninner=g.__next__()\nasync_inner=type(inner).__name__=='async_generator'\n");
+  expect(state.globals.get("normal")).toBe(v.true);expect(state.globals.get("async_inner")).toBe(v.true);
+});
+
 it("awaits a generator expression's outer source before creating a lazy normal generator",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("iter",createIterBuiltin(v,state.meter));

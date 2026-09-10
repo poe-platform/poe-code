@@ -28,8 +28,10 @@ incorrect regex semantics or a diagnosed timeout cause.
 The unchanged regex file filtered with `-t "gims.*from 10"` passes all 12 selected
 cases, including the failed case, in 388 ms of test execution (b1f412).
 The other 1,015 cases are skipped by that diagnostic filter, not counted as
-passes. The full regex file is being rechecked separately. A passing focused
-rerun does not turn the failed integration gate green.
+passes. The full unchanged regex file subsequently passed all 1,027 cases in
+21.25 seconds of test execution (57cacd). The integration-only failure is not
+reproduced by either rerun; its cause remains unproven. These passing reruns do
+not turn the failed integration gate green.
 
 ## Next actions
 

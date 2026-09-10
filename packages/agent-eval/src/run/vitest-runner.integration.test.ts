@@ -21,6 +21,11 @@ describe("runVitest integration", () => {
     await mkdir(testsDir, { recursive: true });
     await mkdir(cloneDir, { recursive: true });
     await writeFile(
+      path.join(testsDir, "vitest.config.mjs"),
+      "export default { test: { include: ['**/*.test.ts'] } };\n",
+      "utf8"
+    );
+    await writeFile(
       path.join(testsDir, "sample.test.ts"),
       [
         "import { describe, expect, it } from 'vitest';",

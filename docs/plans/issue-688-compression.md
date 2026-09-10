@@ -124,6 +124,13 @@ archive controls pass. The completed broader run's 40 failures belong to the
 repaired lifecycle, inventory, census, and build-verifier groups; a clean
 maintained rerun is still required.
 
+Integrated remote main's fixture repairs from `df24f8222`. The archive-permission
+fixture retains the incoming immutable capability construction and explicit
+absent-method overrides. New assertions reproduced six fallback failures before
+restoring those overrides; all 12 cases then passed. The incoming isolated
+Vitest fixture check passed, as did focused strict typechecking of the merged
+permission fixture and new census helper/tests.
+
 The maintained type route also exposed exact-optional-property and TextDecoder
 receiver type errors in two existing test files. Narrow corrections preserve
 the fixture behavior and passed focused strict typechecking and runtime tests;

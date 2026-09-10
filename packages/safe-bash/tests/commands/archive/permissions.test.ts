@@ -15,9 +15,8 @@ const profiles = [
 for (const streaming of [true, false]) for (const profile of profiles) {
   test(`tar publication honors ${profile.name} through ${streaming ? "streaming" : "buffered"} writes`, async () => {
     const base = createMemoryFileSystem();
-    const capabilities: { -readonly [Key in keyof FileSystemCapabilities]: FileSystemCapabilities[Key] } = { ...base.capabilities, streamingWrite: streaming };
-    if (profile.global === undefined) delete capabilities.permissions;
-    else capabilities.permissions = profile.global;
+    const { permissions: ignoredPermissions, ...baseCapabilities } = base.capabilities;
+    const capabilities: FileSystemCapabilities = { ...baseCapabilities, ...(profile.global === undefined ? {} : { permissions: profile.global }), streamingWrite: streaming };
     const writes: WriteFileOptions[] = [];
     const admission = (options: WriteFileOptions | undefined) => {
       assert.ok(options);
@@ -26,18 +25,16 @@ for (const streaming of [true, false]) for (const profile of profiles) {
     };
     const overrides: Partial<FileSystem> = {
       capabilities,
+      ...(profile.scoped ? { capabilitiesFor: async () => ({ ...baseCapabilities, ...(profile.path === undefined ? {} : { permissions: profile.path }), streamingWrite: streaming }) } : {}),
       writeFile: async (path, bytes, options) => { admission(options); await base.writeFile(path, bytes, options); },
+      ...(streaming ? { writeStream: async (path, bytes, options) => { admission(options); await base.writeStream(path, bytes, options); } } : {}),
     };
-    if (streaming) overrides.writeStream = async (path, bytes, options) => { admission(options); await base.writeStream(path, bytes, options); };
-    else Object.defineProperty(overrides, "writeStream", { value: undefined });
-    if (profile.scoped) overrides.capabilitiesFor = async () => {
-      const scoped = { ...capabilities };
-      if (profile.path === undefined) delete scoped.permissions;
-      else scoped.permissions = profile.path;
-      return scoped;
-    };
-    else Object.defineProperty(overrides, "capabilitiesFor", { value: undefined });
-    const { shell } = await fixture({}, wrapped(base, overrides));
+    if (!streaming) Object.defineProperty(overrides, "writeStream", { value: undefined });
+    if (!profile.scoped) Object.defineProperty(overrides, "capabilitiesFor", { value: undefined });
+    const filesystem = wrapped(base, overrides);
+    if (!streaming) assert.equal(filesystem.writeStream, undefined);
+    if (!profile.scoped) assert.equal(filesystem.capabilitiesFor, undefined);
+    const { shell } = await fixture({}, filesystem);
     try {
       await base.writeFile("/work/image.bin", binary);
       const result = await shell.exec("tar -cf /photos.tar image.bin");

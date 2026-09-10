@@ -45,6 +45,12 @@ it("allows explicit extensions and replacement without mutating another namespac
   const second = createRuntimeBuiltins(v, meter, context, [["len", replacement], ["application", v.true]]);
   expect(second.get("len")).toBe(replacement); expect(first.get("len")).not.toBe(replacement); expect(second.get("application")).toBe(v.true); expect(first.has("application")).toBe(false);
 });
+it("registers native format without a separate formatting policy", () => {
+  const { meter, v, context, keywords } = fixture(); delete context.format;
+  const builtin = createRuntimeBuiltins(v, meter, context).get("format");
+  if (builtin?.kind !== "builtin_function_or_method") throw Error("expected format");
+  expect(builtin.value.invoke([v.integer(12), v.string("04")], keywords, meter)).toEqual(v.string("0012"));
+});
 it("passes configured guest protocols to the registered factory", () => {
   const { meter, v, context, keywords } = fixture(), guest = v.cell({}); let calls = 0;
   context.callable = { callable(value) { expect(value).toBe(guest); calls++; return true; } };

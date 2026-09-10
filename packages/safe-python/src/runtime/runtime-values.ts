@@ -11,6 +11,7 @@ import type { CompletionIterator } from "./iterator-completion.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import type { RuntimePowerContext } from "./runtime-power-operation.js";
+import type { FormatContext } from "./format-protocol.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -74,6 +75,7 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  formatting?: FormatContext<RuntimeValue>;
   /** Type-MRO presence only, without binding a descriptor. */
   hasSpecial?(object: RuntimeValue, name: string): boolean;
   warn?(category: "DeprecationWarning", message: string): void;

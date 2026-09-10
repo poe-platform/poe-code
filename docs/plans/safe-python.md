@@ -7263,6 +7263,18 @@ extension, integration, or validation requirement is missing or unverified.
   confirms descriptor timing and disabled reversal behavior. All 5,429 tests
   in 445 files pass; selected build, typecheck and scoped lint pass. Automatic type assembly,
   remaining protocols and suspended safe-fs effects remain unfinished.
+- Format now shares the execution formatting context used by f-strings when no
+  explicit builtin policy is supplied; standalone calls use existing native
+  formatting kernels. Namespace registration no longer requires a duplicate
+  format policy. Two compiled regressions failed first; eleven new cases cover
+  native/guest f-string parity, namespace defaults, explicit priority, argument
+  ordering, subclass storage/results, callback receivers and cancellation.
+  A policy-acquisition cancellation regression also failed before its checkpoint
+  fix. All 5,440 tests in 445 files pass; selected build, typecheck and scoped
+  lint pass.
+  Forty-eight compiled format cases match CPython, including errors. Guest
+  formatting still requires supplied capabilities: automatic MRO formatting,
+  generic object representation and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

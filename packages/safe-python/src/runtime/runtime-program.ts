@@ -104,6 +104,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      formatting,
       hasSpecial(value, name) {
         if (specialMethods === undefined) return false;
         const type = specialMethods.typeOf(value); meter.checkpoint();

@@ -550,6 +550,10 @@ npm run test:conformance --workspace=@poe-code/safe-js -- \
 Repeat `--include` to select files or directories relative to the corpus's
 `test/` directory; omit it to select all JavaScript test sources.
 `--timeout-ms` sets the per-variant timeout (default: 3000).
+Optional positive-integer resource caps are `--max-steps`, `--max-call-depth`,
+`--string-length`, `--array-length`, and `--data-size`. They use the same budget
+fields as the programmatic runner and are recorded in the report. Set explicit
+caps for large or untrusted selections; resource failures are failures, not passes.
 
 The JSONL report streams individual results and ends with a summary containing
 revision, runtime, execution limits and source/harness hashes. A missing final

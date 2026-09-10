@@ -57,3 +57,17 @@ it("leaves no successful summary when corpus execution aborts", async () => {
   const records = fs.readFileSync("/reports/result.jsonl", "utf8").trim().split("\n").map(line => JSON.parse(line));
   expect(records.map(record => record.type)).toEqual(["header"]);
 });
+
+it("passes explicit resource budgets through to corpus execution", async () => {
+  await runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl",
+    "--max-steps", "100000", "--max-call-depth", "128", "--string-length", "65536",
+    "--array-length", "8192", "--data-size", "8388608"]);
+  expect(runTest262Corpus).toHaveBeenCalledWith(expect.objectContaining({ budget: {
+    maxSteps: 100000, maxCallDepth: 128, stringLength: 65536, arrayLength: 8192, dataSize: 8388608
+  } }));
+});
+
+it.each(["0", "-1", "Infinity", "1.5"])("rejects invalid resource limits: %s", async value => {
+  await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl", "--data-size", value])).rejects.toThrow();
+  expect(runTest262Corpus).not.toHaveBeenCalled();
+});

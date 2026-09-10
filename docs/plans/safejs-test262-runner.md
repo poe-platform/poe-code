@@ -267,3 +267,25 @@ one as required (94047, terminal b19594), with its result preserved in
 `/tmp/safejs-test262-command-regex-limit.jsonl`. This verifies failure delivery;
 it does not repair or excuse the underlying regex limitation. The command,
 package wiring and README are ready for their scoped local commit.
+
+The maintained command is local commit e5f8430c7. Before a larger corpus run,
+explicit resource flags are being added to expose the programmatic runner's
+existing Budget fields. A new test failed on the missing `--max-steps` flag
+with fourteen controls passing (72781, terminal 91b3fb). The candidate passes
+positive finite integer step, call-depth, string, array and data limits to
+execution and records them in the header. Defaults are not silently changed.
+Scoped command checks are running; a broad run will use explicit bounded
+resources and continue to count budget failures as failures.
+
+All fifteen command tests and scoped lint passed (71871, terminal 4ee9b4).
+A real bounded `Array.of` invocation is running with explicit work, depth,
+string, array and data limits. Review identified a separate pre-full-run
+question: child host realms currently construct independent Budget accounts.
+Aggregate per-test accounting must be validated before treating those limits
+as an allowance shared by the entire test and its child realms.
+
+The bounded command exited zero (33658, terminal 2c2259), preserving the
+32/32 `Array.of` result in `/tmp/safejs-test262-command-budgeted-array-of.jsonl`.
+Its header and summary record the explicit limits. The command budget flags
+are qualified for their own local commit; child-account sharing remains a
+separate pending host correction, not a reason to claim aggregate safety yet.

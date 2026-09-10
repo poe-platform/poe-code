@@ -16,6 +16,8 @@ import { PythonKeyError } from "./runtime-dictionary-access.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.js";
 import { runtimeHash } from "./runtime-hash.js";
+import { constructRuntimeSet } from "./runtime-set.js";
+import { constructRuntimeFrozenSet } from "./runtime-frozenset.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -122,6 +124,34 @@ it.each(["isdisjoint", "issubset", "issuperset"])("runs set %s with guest iterab
   const state = fixture();
   state.run(`class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,3)[index]\nresult={1,2}.${method}(Source())\n`);
   expect(state.globals.get("result")).toBe(state.v.false);
+});
+
+it("expands guest iterables in starred set displays", () => {
+  const state = fixture();
+  state.run("class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,3,2)[index]\n def __len__(self):\n  visit('length')\n  return 3\nresult={1,*Source(),4}\n");
+  const result = state.globals.get("result")!; if (result.kind !== "set") throw Error("expected set");
+  expect(result.items.size).toBe(4); expect(state.events).toEqual(["get", "get", "get", "get"]);
+});
+
+it.each([["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const)("constructs %s through active guest iteration", (name, construct) => {
+  const state = fixture();
+  state.builtins.set(name, state.v.builtinFunction({ name, invoke(args, keywords, meter, context) { return construct(args, keywords, state.v, state.keys, meter, context?.iteration); } }));
+  state.run(`class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,3,2)[index]\n def __len__(self):\n  visit('length')\n  return None\nresult=${name}(Source())\n`);
+  const result = state.globals.get("result")!; if (result.kind !== "set" && result.kind !== "frozenset") throw Error("expected set storage");
+  expect(result.kind).toBe(name); expect(result.items.size).toBe(2); expect(state.events).toEqual(["get", "get", "get", "get"]);
+  state.events.length = 0;
+  expect(() => state.run(`${name}(Source(),None)\n`)).toThrow(`${name} expected at most 1 argument, got 2`);
+  expect(() => state.run(`${name}(Source(),extra=1)\n`)).toThrow(`${name}() takes no keyword arguments`); expect(state.events).toEqual([]);
+});
+
+it.each(["{1,*Source(),visit('later')}", "set(Source())", "frozenset(Source())"])("does not publish failed set construction through %s", expression => {
+  const state = fixture();
+  for (const [name, construct] of [["set", constructRuntimeSet], ["frozenset", constructRuntimeFrozenSet]] as const) {
+    state.builtins.set(name, state.v.builtinFunction({ name, invoke(args, keywords, meter, context) { return construct(args, keywords, state.v, state.keys, meter, context?.iteration); } }));
+  }
+  state.run("class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,[],3)[index]\nresult=99\n");
+  expect(() => state.run(`result=${expression}\n`)).toThrow("unhashable type: 'list'");
+  expect(state.globals.get("result")).toEqual(state.v.integer(99)); expect(state.events).toEqual(["get", "get"]);
 });
 
 it.each([

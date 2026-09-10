@@ -8415,6 +8415,15 @@ extension, integration, or validation requirement is missing or unverified.
   CPython, including receiver contents, results and iteration effects. All 6,495
   tests in 491 files, build, typecheck and scoped lint pass. Set display/constructor guest-iteration wiring, native type
   catalogs, guest exception rendering and public execution assembly remain open.
+- Connected starred set displays and exact set/frozenset construction kernels
+  to active guest iteration. Three initial compiled regressions rejected guest
+  sequence instances. Six added cases cover deduplication, result kinds, ignored
+  length hints, validation before iteration, and failure before later display
+  entries or assignment publication. All 216 compiled display/construction
+  differential cases match CPython, including disabled __iter__ and invalid
+  arguments. All 6,501 tests in 491 files, build, typecheck and scoped lint pass. Canonical native constructor/type catalogs,
+  subclass storage, guest exception rendering and public execution assembly
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -88,12 +88,12 @@ export function symmetricDifferenceUpdateRuntimeSet(target: SetValue, source: Ru
   meter.checkpoint();
 }
 
-export function beginRuntimeSet(initial: readonly RuntimeValue[], values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter): ExpressionSet<RuntimeValue> {
+export function beginRuntimeSet(initial: readonly RuntimeValue[], values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): ExpressionSet<RuntimeValue> {
   meter.checkpoint(1, 128);
   const result = values.set(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
   const builder: ExpressionSet<RuntimeValue> = {
     add: key => runtimeSetAccess(result, key, "add", values, meter),
-    update: source => updateRuntimeSet(result, source, values, meter),
+    update: source => updateRuntimeSet(result, source, values, meter, iteration),
     finish() { meter.checkpoint(); return result; }
   };
   for (const key of initial) builder.add(key);
@@ -101,12 +101,12 @@ export function beginRuntimeSet(initial: readonly RuntimeValue[], values: Runtim
 }
 
 /** Exact set construction after class-call binding; subclass hooks are separate. */
-export function constructRuntimeSet(positional: readonly RuntimeValue[], keywords: DictionaryValue, values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter): SetValue {
+export function constructRuntimeSet(positional: readonly RuntimeValue[], keywords: DictionaryValue, values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): SetValue {
   meter.checkpoint();
   if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "set() takes no keyword arguments");
   if (positional.length > 1) throw new PythonRuntimeError("TypeError", `set expected at most 1 argument, got ${positional.length}`);
   const result = values.set(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
-  if (positional.length === 1) updateRuntimeSet(result, positional[0], values, meter);
+  if (positional.length === 1) updateRuntimeSet(result, positional[0], values, meter, iteration);
   meter.checkpoint();
   return result;
 }

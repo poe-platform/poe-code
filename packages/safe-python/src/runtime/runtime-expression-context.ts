@@ -112,7 +112,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
         ? bindings.typeAttribute(receiver, name) : runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, getFormatting, methods)),
     beginCall: bindings.beginCall.bind(bindings),
     beginSet: "dictionaryKeys" in bindings
-      ? bindings.beginSet?.bind(bindings) ?? (initial => beginRuntimeSet(initial, values, bindings.dictionaryKeys, meter))
+      ? bindings.beginSet?.bind(bindings) ?? (initial => beginRuntimeSet(initial, values, bindings.dictionaryKeys, meter, bindings.iteration))
       : bindings.beginSet.bind(bindings),
     beginDictionary: "beginDictionary" in bindings
       ? bindings.beginDictionary.bind(bindings)

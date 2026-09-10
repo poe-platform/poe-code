@@ -81,7 +81,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "__func__") return receiver.value.function;
     if (name === "__self__") return receiver.value.instance;
   }
-  if (receiver.kind === "method_descriptor" || receiver.kind === "wrapper_descriptor" || receiver.kind === "getset_descriptor") {
+  if (receiver.kind === "method_descriptor" || receiver.kind === "wrapper_descriptor" || receiver.kind === "getset_descriptor" || receiver.kind === "member_descriptor") {
     if (name === "__name__") return values.string(receiver.value.name);
     if (name === "__objclass__") return receiver.value.owner;
   }

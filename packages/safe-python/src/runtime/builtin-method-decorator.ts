@@ -15,6 +15,15 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
     for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
     return false;
   };
+  for (const name of ["__func__", "__wrapped__"]) {
+    meter.checkpoint(1, 64);
+    owner.value.namespace.items.set(values.string(name), values.memberDescriptor({ owner, name, accepts,
+      get(instance) {
+        if (instance.kind !== kind) throw Error("invalid method-wrapper member receiver");
+        return instance.value;
+      }
+    }));
+  }
   owner.value.namespace.items.set(values.string("__new__"), values.builtinFunction({ name: `${kind}.__new__`, invoke(positional, _keywords, meter, invocation) {
     meter.checkpoint();
     if (positional.length === 0) throw new PythonRuntimeError("TypeError", `${kind}.__new__(): not enough arguments`);

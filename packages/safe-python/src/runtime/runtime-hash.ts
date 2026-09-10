@@ -120,7 +120,7 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
             const descriptor = context.identity(current.value.descriptor); meter.checkpoint();
             result = normalized(instance ^ descriptor); break;
           }
-          case "instance": case "function": case "iterator": case "method_descriptor": case "wrapper_descriptor": case "type": case "getset_descriptor": case "dict_values": case "staticmethod": case "classmethod":
+          case "instance": case "function": case "iterator": case "method_descriptor": case "wrapper_descriptor": case "type": case "getset_descriptor": case "member_descriptor": case "dict_values": case "staticmethod": case "classmethod":
             if (!("none" in context)) throw new Error("runtime hash context is required for identity-based runtime values");
             result = normalized(context.identity(current)); break;
           case "bool": result = current.value ? 1n : 0n; break;

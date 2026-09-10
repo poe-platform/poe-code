@@ -7997,6 +7997,20 @@ extension, integration, or validation requirement is missing or unverified.
   match CPython. All 6,220 tests in 473 files, selected build, typecheck and scoped
   lint pass. Ordinary wrapper-instance attribute dispatch, native getsets, guest
   dictionaries, full native metadata and subclass slot overrides remain pending.
+- Added native member_descriptor values and readonly __func__/__wrapped__ members
+  on canonical method-wrapper types. Member access shares data-descriptor binding
+  and applicability, with member-specific readonly diagnostics, live payload reads,
+  native metadata, identity hashing and numeric classification. A failing wrong-
+  receiver regression corrected data-descriptor diagnostics to use owned class
+  names instead of internal instance storage kinds. Typed method wrappers now use
+  the shared instance-attribute protocol for compiled reads/writes/deletes, native
+  bound methods, subclass shadowing and attribute overrides/fallbacks. Nine new
+  tests first failed without these capabilities. All 144 member operations,
+  160 wrapper descriptor-precedence operations, 120 ordinary instance operations,
+  96 wrapper constructors and 96 ordinary compiled constructors match CPython.
+  All 6,229 tests in 474 files, selected build, typecheck and scoped lint pass. Guest __dict__,
+  __class__, lazy annotation/abstractness getsets, full native metadata and
+  subclass call/descriptor-slot overrides remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

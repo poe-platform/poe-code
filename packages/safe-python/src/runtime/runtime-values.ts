@@ -149,6 +149,14 @@ export interface InstanceValue {
   readonly dictionary?: DictionaryValue;
 }
 
+/** Native wrappers with published ownership use the same ordinary attribute
+ * protocol as heap instances, retaining their separate payload and storage. */
+export type AttributeInstanceValue = InstanceValue | (MethodDecoratorValue & { readonly type: TypeValue });
+
+export function hasRuntimeInstanceAttributes(value: RuntimeValue): value is AttributeInstanceValue {
+  return value.kind === "instance" || ((value.kind === "staticmethod" || value.kind === "classmethod") && value.type !== undefined);
+}
+
 export interface TypeValue {
   readonly kind: "type";
   readonly value: RuntimeTypeLayout;
@@ -169,6 +177,11 @@ export interface GetsetDescriptorCapability {
 
 export interface GetsetDescriptorValue {
   readonly kind: "getset_descriptor";
+  readonly value: GetsetDescriptorCapability;
+}
+
+export interface MemberDescriptorValue {
+  readonly kind: "member_descriptor";
   readonly value: GetsetDescriptorCapability;
 }
 
@@ -222,6 +235,7 @@ export type RuntimeValue =
   | InstanceValue
   | TypeValue
   | GetsetDescriptorValue
+  | MemberDescriptorValue
   | MethodDescriptorValue
   | WrapperDescriptorValue
   | MethodWrapperValue
@@ -334,6 +348,11 @@ export class RuntimeValues extends ConstantValues {
   getsetDescriptor(value: GetsetDescriptorCapability): GetsetDescriptorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "getset_descriptor", value });
+  }
+
+  memberDescriptor(value: GetsetDescriptorCapability): MemberDescriptorValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "member_descriptor", value });
   }
 
   methodDescriptor(value: MethodDescriptorCapability): MethodDescriptorValue {

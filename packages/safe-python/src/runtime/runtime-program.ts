@@ -29,7 +29,7 @@ import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "
 import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
 import { createRuntimeStatementContext, type RuntimeStatementBindings } from "./runtime-statement-context.js";
-import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { ClassFrame } from "./class-frame.js";
 import { executeClassBody } from "./class-body.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
@@ -168,12 +168,12 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         finally { leave(); }
       },
       setAttribute(object, name, value) {
-        if (object.kind === "instance" && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
+        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else statementHooks.setAttribute(object, name, value);
       },
       deleteAttribute(object, name) {
-        if (object.kind === "instance" && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
+        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
         else statementHooks.deleteAttribute(object, name);
       },

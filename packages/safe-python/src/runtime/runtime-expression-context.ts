@@ -13,7 +13,7 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import { runtimeUnary, type RuntimeUnaryProtocol } from "./runtime-unary.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type AttributeInstanceValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
 import type { KeyOperations } from "./ordered-key-map.js";
 import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
@@ -51,7 +51,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     readonly unary?: RuntimeUnaryProtocol;
     readonly iteration?: IterationContext<RuntimeValue>;
     /** Default owned-instance lookup; an explicit attribute hook still wins. */
-    instanceAttribute?(instance: Extract<RuntimeValue, { kind: "instance" }>, name: string): RuntimeValue;
+    instanceAttribute?(instance: AttributeInstanceValue, name: string): RuntimeValue;
     /** Default class lookup; an explicit attribute hook still wins. */
     typeAttribute?(type: Extract<RuntimeValue, { kind: "type" }>, name: string): RuntimeValue;
     /** Prepare type-level numeric addition slots for the evaluated pair.
@@ -103,7 +103,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     slice: parts => values.slice(parts),
     load: bindings.load.bind(bindings),
     store: bindings.store.bind(bindings),
-    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => receiver.kind === "instance" && bindings.instanceAttribute !== undefined
+    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => hasRuntimeInstanceAttributes(receiver) && bindings.instanceAttribute !== undefined
       ? bindings.instanceAttribute(receiver, name) : receiver.kind === "type" && bindings.typeAttribute !== undefined
         ? bindings.typeAttribute(receiver, name) : runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, getFormatting, methods)),
     beginCall: bindings.beginCall.bind(bindings),

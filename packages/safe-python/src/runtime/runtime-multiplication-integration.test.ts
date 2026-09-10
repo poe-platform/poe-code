@@ -1959,6 +1959,37 @@ it("calls staticmethod's native __call__ with positional and keyword arguments",
   expect(state.globals.get("result")).toBe(state.v.true);
 });
 
+it.each(["staticmethod", "classmethod"] as const)("binds %s instance methods and mutates its ordinary attributes", kind => {
+  const state = fixture(), owner = state.type("Owner"), fn = state.method(owner, "f", "def f(): return 7\n");
+  state.globals.set("factory", state.registry.methodDecoratorType(kind)); state.globals.set("f", fn); state.globals.set("Owner", owner);
+  state.run("wrapped=factory(f)\nwrapped.extra=True\nextra=wrapped.extra\nbound=wrapped.__get__(None,Owner)\nwrapped.__init__(f)\ndel wrapped.extra\n");
+  expect(state.globals.get("extra")).toBe(state.v.true);
+  expect(() => state.run("wrapped.extra\n")).toThrow("has no attribute 'extra'");
+  expect(() => state.run("wrapped.__func__=None\n")).toThrow("readonly attribute");
+  expect(() => state.run("del wrapped.__wrapped__\n")).toThrow("readonly attribute");
+  const bound = state.globals.get("bound")!;
+  if (kind === "staticmethod") expect(bound).toBe(fn);
+  else { if (bound.kind !== "method") throw Error("expected method"); expect(bound.value.function).toBe(fn); expect(bound.value.instance).toBe(owner); }
+});
+
+it.each(["staticmethod", "classmethod"] as const)("lets %s subclass attributes shadow inherited member descriptors", kind => {
+  const state = fixture(), child = state.type("Child", state.registry.methodDecoratorType(kind)), value = state.v.integer(8);
+  child.value.namespace.items.set(state.v.string("__func__"), value); state.globals.set("Child", child);
+  state.run("wrapped=Child(None)\ninitial=wrapped.__func__\nwrapped.__func__=True\nchanged=wrapped.__func__\ndel wrapped.__func__\nrestored=wrapped.__func__\n");
+  expect(state.globals.get("initial")).toBe(value); expect(state.globals.get("changed")).toBe(state.v.true); expect(state.globals.get("restored")).toBe(value);
+});
+
+it.each(["staticmethod", "classmethod"] as const)("uses %s subclass attribute overrides and missing-attribute fallback", kind => {
+  const state = fixture(), child = state.type("Child", state.registry.methodDecoratorType(kind));
+  state.method(child, "__getattr__", "def fallback(self,name): return True\n"); state.globals.set("Child", child);
+  state.run("wrapped=Child(None)\nfallback=wrapped.missing\n"); expect(state.globals.get("fallback")).toBe(state.v.true);
+  state.method(child, "__getattribute__", "def get(self,name): return False\n");
+  state.method(child, "__setattr__", "def set(self,name,value): visit(name)\n");
+  state.method(child, "__delattr__", "def delete(self,name): visit(name)\n");
+  state.run("overridden=wrapped.__func__\nwrapped.custom=True\ndel wrapped.other\n");
+  expect(state.globals.get("overridden")).toBe(state.v.false); expect(state.events).toEqual(["custom", "other"]);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

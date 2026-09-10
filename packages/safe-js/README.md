@@ -425,6 +425,8 @@ Native Promise imports accept genuine promises from other JavaScript realms,
 preserving aliases and copying fulfillment or rejection values. Imports remain
 settlement-only: own string and symbol properties are not copied, because they
 can contain private host async-context state. Property admission is unresolved.
+Maps and Sets in imported Promise fulfillment values retain their collection
+behavior, cycles, and aliases through input conversion and completed replay.
 
 </details>
 

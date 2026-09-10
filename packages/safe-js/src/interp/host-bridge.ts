@@ -55,6 +55,8 @@ import {
   defineOwnDataProperty,
   isArrayIndexKey,
   isSandboxClosure,
+  isSandboxMap,
+  isSandboxSet,
   isSandboxPromise,
   measureSandboxData,
   type SandboxClosure,
@@ -1240,7 +1242,8 @@ export function copyHostValueToSandbox(
     return copy;
   }
 
-  if (value instanceof Map) {
+  if (isSandboxMap(value) || value instanceof Map) {
+    const entries = isSandboxMap(value) ? value.entries : value;
     const existing = state.seen.get(value);
     if (existing !== undefined) {
       return existing;
@@ -1248,8 +1251,8 @@ export function copyHostValueToSandbox(
 
     const copy = createSandboxMap();
     state.seen.set(value, copy);
-    budget.allocateCollectionEntries(value.size);
-    for (const [key, entry] of value) {
+    budget.allocateCollectionEntries(entries.size);
+    for (const [key, entry] of entries) {
       const ordinal = copy.entries.size;
       copy.entries.set(
         copyHostValueToSandbox(
@@ -1271,7 +1274,8 @@ export function copyHostValueToSandbox(
     return copy;
   }
 
-  if (value instanceof Set) {
+  if (isSandboxSet(value) || value instanceof Set) {
+    const entries = isSandboxSet(value) ? value.values : value;
     const existing = state.seen.get(value);
     if (existing !== undefined) {
       return existing;
@@ -1279,8 +1283,8 @@ export function copyHostValueToSandbox(
 
     const copy = createSandboxSet();
     state.seen.set(value, copy);
-    budget.allocateCollectionEntries(value.size);
-    for (const entry of value) {
+    budget.allocateCollectionEntries(entries.size);
+    for (const entry of entries) {
       copy.values.add(
         copyHostValueToSandbox(
           entry,

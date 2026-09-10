@@ -916,6 +916,8 @@ Duration `total`, `compare`, and `round` also accept that zone form inside a
 `relativeTo` date bag, preserving the bag's date and calendar for DST arithmetic.
 Blank Duration totals return positive zero at both PlainDate range boundaries
 without constructing an out-of-range calendar interval.
+The Duration constructor and method adapters are committed locally but unreleased;
+public Temporal namespace and snapshot integration remain unfinished.
 
 Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
 `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values

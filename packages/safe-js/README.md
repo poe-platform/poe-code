@@ -641,6 +641,8 @@ results receive element definitions through `defineProperty` traps, with failure
 stopping further writes. `Array.from`, `Array.fromAsync`, and `Array.of` also
 dispatch element definitions when a custom constructor returns a Proxy;
 element-definition failures close the source iterator and preserve the original error.
+Typed-array results from custom array constructors and species convert guest
+element values through their number or BigInt conversion hooks, after index validation.
 Concat spreads wrapped arrays by default and honors
 `Symbol.isConcatSpreadable` overrides. `flat` and `flatMap` traverse wrapped nested
 arrays, snapshot each nested length, and honor depth limits while skipping holes.

@@ -25,6 +25,7 @@ import { readPropertyDescriptor } from "../accessors.js";
 import { getSandboxPropertyDescriptor } from "../object-model.js";
 import { sandboxIsArray } from "../guest-proxy-array.js";
 import { guestProxyStates } from "../guest-proxy.js";
+import { isNumericTypedArray } from "../typed-array.js";
 
 async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options: ArrayMethodOptions): Promise<SandboxValue & object> {
   const receiver = arrayLikeSources.get(value) ?? value;
@@ -50,7 +51,7 @@ async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options
 async function defineArrayResult(result: SandboxValue & object, index: number, value: SandboxValue, options: ArrayMethodOptions): Promise<void> {
   if (index >= Number.MAX_SAFE_INTEGER) throw new TypeError("Array result exceeds the safe integer limit.");
   if (Array.isArray(result)) options.budget.allocateArrayLength(index + 1);
-  if (guestProxyStates.has(result)) {
+  if (guestProxyStates.has(result) || isNumericTypedArray(result)) {
     await defineDataProperty(result, String(index), {
       value, writable: true, enumerable: true, configurable: true
     }, options.budget, options.context);

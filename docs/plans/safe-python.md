@@ -8316,6 +8316,21 @@ extension, integration, or validation requirement is missing or unverified.
   CPython. All 6,436 tests in 491 files, selected build, typecheck and scoped lint pass.
   Native generic aliases, complete constructors, mutable bases/MRO invalidation,
   guest exceptions and public execution assembly remain unfinished.
+- Added owned callable-instance dispatch and automatic owned descriptor slots.
+  Callability inspects actual-type __call__ presence without binding descriptors;
+  invocation ignores instance shadows, binds the live slot and forwards original
+  arguments through the shared stack. Instance calls defer keyword-name validation
+  until after descriptor binding, preserving disabled-call error precedence.
+  Owned __get__/__set__/__delete__ methods now supply ordinary descriptor behavior,
+  with paired mutation-slot errors and bounded recursive binding. Explicit
+  descriptor extensions retain precedence. Seven added compiled tests cover
+  callable/disabled methods, descriptor effects, data precedence and stack recovery.
+  Initial instance-call, custom-descriptor and keyword-order regressions failed
+  before their respective fixes. All 42 compiled instance-call cases and 512
+  descriptor-precedence cases match CPython. All 6,443 tests in 491 files, selected
+  build, typecheck and scoped lint pass. Wrapper-subclass call/get overrides,
+  complete native constructors, mutable bases and public execution assembly remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

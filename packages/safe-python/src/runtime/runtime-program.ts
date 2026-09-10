@@ -46,6 +46,7 @@ import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runt
 import { runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type-attributes.js";
 import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
 import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-object-attributes.js";
+import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -94,9 +95,17 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const suppliedSpecialMethods = hooks.specialMethods?.(frame); meter.checkpoint(1, suppliedSpecialMethods === undefined ? 0 : 96);
     const specialMethods = suppliedSpecialMethods === undefined ? undefined : Object.freeze({
       typeOf: suppliedSpecialMethods.typeOf.bind(suppliedSpecialMethods),
-      slots: suppliedSpecialMethods.slots.bind(suppliedSpecialMethods),
+      slots(value: RuntimeValue) {
+        const supplied = suppliedSpecialMethods.slots(value);
+        if (supplied !== undefined || value.kind !== "instance") return supplied;
+        return runtimeOwnedDescriptorSlots(value, values, meter, builtinCalls, () => calls.enter(frame));
+      },
       get invocation(): BuiltinInvocationContext { return builtinCalls; }
     });
+    const callability = { callable(value: RuntimeValue) {
+      if (value.kind === "instance" && specialMethods !== undefined) return builtinCalls.hasSpecial!(value, "__call__");
+      return hooks.callable(value);
+    } };
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
       get iteration() { return getIteration(); },
       values, keys, name(value) {
@@ -106,7 +115,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (value.kind === "method-wrapper") return `${value.value.descriptor.value.owner.value.name}.${value.value.descriptor.value.name}()`;
         return hooks.name(value);
       }, keywordName: hooks.keywordName.bind(hooks),
-      callable: value => runtimeCallable(value, meter, hooks),
+      callable: value => runtimeCallable(value, meter, callability),
       invoke(value, positional, keywords) {
         if (value.kind === "method" || value.kind === "staticmethod") {
           const receivers: RuntimeValue[] = [];
@@ -130,6 +139,14 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           finally { leave(); }
         }
         const fn = value;
+        if (fn.kind === "instance" && specialMethods !== undefined) {
+          const leave = calls.enter(frame);
+          try {
+            const hook = builtinCalls.lookupSpecial!(fn, "__call__"); meter.checkpoint();
+            if (hook === undefined) throw new PythonRuntimeError("TypeError", `'${fn.type.value.name}' object is not callable`);
+            return builtinCalls.call(hook, positional, keywords);
+          } finally { leave(); }
+        }
         if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
           values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null),
@@ -223,7 +240,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       attribute: (object, name) => expressions.attribute(object, name),
       get power() { return power; },
       numeric: expressionHooks.numeric?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeNumericContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
-      isCallable: value => runtimeCallable(value, meter, hooks),
+      isCallable: value => runtimeCallable(value, meter, callability),
       binary: (operator, left, right) => expressions.binary(operator, left, right),
       get integerIndex() { return getIntegerIndex(); },
       get iteration() { return getIteration(); },

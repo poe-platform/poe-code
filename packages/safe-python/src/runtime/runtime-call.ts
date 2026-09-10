@@ -5,7 +5,8 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
-import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { IterationContext } from "./protocol-iterator.js";
 
 export interface RuntimeCallContext {
@@ -74,10 +75,11 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
       meter.checkpoint(1, 32);
       const callable = context.callable(callee); meter.checkpoint();
       if (!callable) {
-        const name = callee.kind === "none" ? "NoneType" : callee.kind === "not-implemented" ? "NotImplementedType" : callee.kind;
+        const name = hasRuntimeInstanceAttributes(callee) ? diagnosticTypeName(callee.type.value.name, meter, 200)
+          : callee.kind === "none" ? "NoneType" : callee.kind === "not-implemented" ? "NotImplementedType" : callee.kind;
         throw new PythonRuntimeError("TypeError", `'${name}' object is not callable`);
       }
-      if (callee.kind !== "classmethod_descriptor" && (callee.kind !== "builtin_function_or_method" || callee.value.keywordValidation !== "callee")) {
+      if (callee.kind !== "instance" && callee.kind !== "classmethod_descriptor" && (callee.kind !== "builtin_function_or_method" || callee.value.keywordValidation !== "callee")) {
         const iterator = keywords.items.iterate(key => key);
         for (let item = iterator.next(); !item.done; item = iterator.next()) {
           meter.checkpoint();

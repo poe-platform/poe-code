@@ -11,6 +11,7 @@ import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-progr
 import { CallStack } from "./call-stack.js";
 import { PythonRuntimeError } from "./error.js";
 import { createBuildClassBuiltin } from "./builtin-build-class.js";
+import { createCallableBuiltin } from "./builtin-callable.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -19,6 +20,7 @@ function fixture() {
   const globals = new Map<string, RuntimeValue>([["type", registry.type], ["object", registry.object], ["__name__", v.string("example")]]), events: string[] = [];
   const builtins = new Map<string, RuntimeValue>([["visit", v.builtinFunction({ name: "visit", invoke(args) { const value = args[0]; if (value.kind !== "str") throw Error("expected string"); events.push(String.fromCodePoint(...value.value)); return v.none; } })]]);
   builtins.set("__build_class__", createBuildClassBuiltin({ registry, keys }, v, meter));
+  builtins.set("callable", createCallableBuiltin(v, meter));
   const unused = (): never => { throw Error("unexpected extension operation"); };
   const hooks: RuntimeProgramHooks = {
     expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
@@ -30,11 +32,66 @@ function fixture() {
       native.set(value.kind, type); return type;
     } })
   };
+  const calls = new CallStack<object>(50, meter);
   function run(source: string) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls: new CallStack<object>(50, meter) }, meter);
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls }, meter);
   }
-  return { v, meter, registry, globals, builtins, events, run };
+  return { v, meter, registry, globals, builtins, events, calls, run };
 }
+
+it("calls instance type slots and reflects callability without binding the descriptor", () => {
+  const state = fixture(), { v } = state;
+  state.run("class C:\n def __call__(self,value,*,extra):\n  return value+extra\ninstance=C()\ninstance.__call__=None\nrecognized=callable(instance)\nresult=instance(7,extra=2)\n");
+  expect(state.globals.get("recognized")).toBe(v.true); expect(state.globals.get("result")).toEqual(v.integer(9));
+});
+
+it("distinguishes absent and disabled call slots and observes live class changes", () => {
+  const state = fixture(), { v } = state;
+  state.run("class C:\n pass\ninstance=C()\nabsent=callable(instance)\ninstance.__call__=None\nshadow=callable(instance)\nC.__call__=None\ndisabled=callable(instance)\n");
+  expect(state.globals.get("absent")).toBe(v.false); expect(state.globals.get("shadow")).toBe(v.false); expect(state.globals.get("disabled")).toBe(v.true);
+  expect(() => state.run("instance()\n")).toThrow("'NoneType' object is not callable");
+  state.run("del C.__call__\n"); expect(() => state.run("instance()\n")).toThrow("'C' object is not callable");
+});
+
+it("binds custom call descriptors only during invocation", () => {
+  const state = fixture(), { v } = state;
+  state.run("def target(value):\n visit('target')\n return value\nclass Descriptor:\n def __get__(self,instance,owner):\n  visit('bind')\n  return target\nclass C:\n __call__=Descriptor()\ninstance=C()\nrecognized=callable(instance)\n");
+  expect(state.globals.get("recognized")).toBe(v.true); expect(state.events).toEqual([]);
+  state.run("result=instance(7)\n"); expect(state.globals.get("result")).toEqual(v.integer(7)); expect(state.events).toEqual(["bind", "target"]);
+  expect(() => state.run("instance(**{1:2})\n")).toThrow("keywords must be strings");
+  expect(state.events).toEqual(["bind", "target", "bind"]);
+  state.run("C.__call__=None\n");
+  expect(() => state.run("instance(**{1:2})\n")).toThrow("'NoneType' object is not callable");
+});
+
+it("bounds recursive instance calls and restores the shared call stack", () => {
+  const state = fixture(), { v } = state;
+  state.run("class C:\n def __call__(self):\n  return self()\ninstance=C()\n");
+  expect(() => state.run("instance()\n")).toThrow("maximum recursion depth exceeded");
+  expect(state.calls.depth).toBe(0);
+  state.run("def replacement(self):\n return 7\nC.__call__=replacement\nresult=instance()\n");
+  expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("applies owned data-descriptor precedence for reads, writes and deletion", () => {
+  const state = fixture(), { v } = state;
+  state.run("class Descriptor:\n def __get__(self,instance,owner):\n  if instance is None:\n   return owner\n  return instance.value\n def __set__(self,instance,value):\n  visit('set')\n  instance.value=value\n def __delete__(self,instance):\n  visit('delete')\n  instance.value=None\nclass C:\n field=Descriptor()\ninstance=C()\ninstance.__dict__['field']=99\ninstance.field=7\nresult=instance.field\nowner=C.field is C\ndel instance.field\nremoved=instance.field\n");
+  expect(state.globals.get("result")).toEqual(v.integer(7)); expect(state.globals.get("owner")).toBe(v.true); expect(state.globals.get("removed")).toBe(v.none);
+  expect(state.events).toEqual(["set", "delete"]);
+});
+
+it("reports missing paired descriptor mutation methods", () => {
+  const state = fixture();
+  state.run("class SetOnly:\n def __set__(self,instance,value):\n  pass\nclass DeleteOnly:\n def __delete__(self,instance):\n  pass\nclass C:\n setter=SetOnly()\n deleter=DeleteOnly()\ninstance=C()\n");
+  expect(() => state.run("del instance.setter\n")).toThrow("__delete__");
+  expect(() => state.run("instance.deleter=7\n")).toThrow("__set__");
+});
+
+it("bounds descriptor-binding recursion before entering a function body", () => {
+  const state = fixture();
+  state.run("class Descriptor:\n pass\ndescriptor=Descriptor()\nDescriptor.__get__=descriptor\nclass C:\n __call__=descriptor\ninstance=C()\n");
+  expect(() => state.run("instance()\n")).toThrow("maximum recursion depth exceeded"); expect(state.calls.depth).toBe(0);
+});
 
 it("constructs ordinary class statements through the concrete builtin builder", () => {
   const state = fixture(), { v } = state;

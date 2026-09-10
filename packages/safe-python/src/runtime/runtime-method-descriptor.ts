@@ -69,7 +69,7 @@ export function getRuntimeMethodDescriptor(descriptor: NativeMethodDescriptorVal
   checkReceiver(descriptor, instance, meter);
   if (descriptor.kind === "wrapper_descriptor") return values.methodWrapper(descriptor, instance);
   meter.checkpoint(0, 96);
-  return values.builtinFunction({ name: descriptor.value.name, invoke(positional, keywords, meter, context) {
+  return values.builtinFunction({ name: descriptor.value.name, keywordValidation: descriptor.value.boundKeywordValidation, invoke(positional, keywords, meter, context) {
     meter.checkpoint();
     const result = descriptor.value.invoke(instance, positional, keywords, meter, context);
     meter.checkpoint(); return result;

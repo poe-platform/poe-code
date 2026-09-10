@@ -230,6 +230,9 @@ export interface MemberDescriptorValue {
 export interface MethodDescriptorCapability extends NativeDocumentation {
   readonly owner: TypeValue;
   readonly name: string;
+  /** Bound native calls may validate keyword names after positional work.
+   * Unbound descriptor calls retain normal call-site validation. */
+  readonly boundKeywordValidation?: "callee";
   /** Native sequence fallback, not a numeric slot during operator negotiation. */
   readonly sequenceOperator?: "+" | "*";
   accepts(instance: RuntimeValue, meter: ExecutionMeter): boolean;

@@ -8987,6 +8987,21 @@ extension, integration, or validation requirement is missing or unverified.
   descriptors and owned subclass storage remain unfinished. Comprehensions are
   also still unsupported; these read-method checks use the native list constructor
   to inspect views and iterators. No push or release was requested.
+- Dictionary mutation-method canonicalization (2026-09-10): failing integration
+  tests reproduced missing type-level mutation methods and missing bound receiver
+  metadata. Added clear, pop, popitem, setdefault and update descriptors, reusing
+  native dictionary mutation kernels and active invocation policies. CPython
+  evidence distinguishes keyword timing: bound update applies positional writes
+  before rejecting non-string keyword names, but unbound dict.update rejects
+  them before mutation. A declarative boundKeywordValidation descriptor capability
+  preserves that distinction without changing unbound call dispatch. Four new
+  tests cover metadata, mutation results, keyword timing and partial pair updates;
+  existing guest mapping callback tests also pass. All 515 mutation cases compare
+  results, errors (KeyError args) and post-call storage with CPython; all match,
+  as do the 330 read-method regression cases. Workspace build, typecheck, focused
+  lint and all 6,855 unit tests in 493 files pass with two workers. Dictionary
+  protocol slots, construction, fromkeys and owned subclass storage remain open.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

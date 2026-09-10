@@ -52,6 +52,24 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("publishes canonical dictionary mutation methods and receiver metadata", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nd={}\nbound=d.update.__self__ is d\nowner=Dict.update.__objclass__ is Dict\nupdated=Dict.update(d,[('a',1)],b=2)\nexisting=Dict.setdefault(d,'a',9)\ninserted=Dict.setdefault(d,'c',3)\npopped=Dict.pop(d,'b')\nlast=Dict.popitem(d)\ncleared=Dict.clear(d)\ncorrect=bound and owner and updated is None and existing==1 and inserted==3 and popped==2 and last==('c',3) and cleared is None and d=={}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it.each(["d.update", "Dict.update"])("preserves native keyword validation timing in %s", method => {
+  const state = fixture(); state.run("Dict=type({})\nd={}\n");
+  expect(() => state.run(`${method}(${method === "Dict.update" ? "d," : ""}{'a':1},**{1:2})\n`)).toThrow("keywords must be strings");
+  state.run(`correct=d==${method === "d.update" ? "{'a':1}" : "{}"}\n`); expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("retains partial dictionary descriptor updates when pair conversion fails", () => {
+  const state = fixture(); state.run("Dict=type({})\nd={}\n");
+  expect(() => state.run("Dict.update(d,[('a',1),('b',2,3)])\n")).toThrow("dictionary update sequence element #1 has length 3; 2 is required");
+  state.run("correct=d=={'a':1}\n"); expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("publishes canonical dictionary read methods with bound receiver metadata", () => {
   const state = fixture();
   state.run("Dict=type({})\nList=type([])\nd={'a':1,'b':2}\nmethod=d.get\nbound=method.__self__ is d\nname=method.__name__\nowner=Dict.get.__objclass__ is Dict\nvalue=Dict.get(d,'a')\ndefault=Dict.get(d,'missing',3)\ncopy=Dict.copy(d)\nfresh=copy is not d\nkeys=List(Dict.keys(d))\nvalues=List(Dict.values(d))\nitems=List(Dict.items(d))\nreverse=List(Dict.__reversed__(d))\n");

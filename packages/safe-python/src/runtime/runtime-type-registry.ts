@@ -232,7 +232,7 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
-  /** Canonical dictionary identity and read-method catalog. */
+  /** Canonical dictionary identity and native method catalog. */
   dictionaryType(): TypeValue {
     this.meter.checkpoint();
     if (this.#dictionaryType !== undefined) return this.#dictionaryType;

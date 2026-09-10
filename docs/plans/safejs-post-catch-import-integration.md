@@ -42,3 +42,13 @@ match native TypeError/cleanup order (db5087). Although the collection loop
 itself delegates result-property reads, `guestIterator` validates the result
 object before returning it (0f085c). No additional close or validation patch is
 justified by that source-level suspicion. Main integration remains running.
+
+## Array length and Proxy order audit
+
+Twenty-three public native comparisons match for object-valued array-like
+length conversion and Proxy get/has/set/delete order (7faacc). The selection
+covers at/includes/indexOf/lastIndexOf/slice/join, callback traversal and
+reduction, concat, copyWithin/fill/reverse/sort/splice and push/pop/shift/unshift.
+Return values were JSON-normalized and effects compared directly. This is a
+bounded effects probe, not proof of complete array semantics or object identity.
+No runtime change follows from this audit.

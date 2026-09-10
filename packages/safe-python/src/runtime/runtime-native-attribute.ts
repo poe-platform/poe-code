@@ -62,11 +62,13 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * exposed; host payload fields and JavaScript prototypes are never inspected.
  * Custom object policies can replace this operation in expression bindings.
  * Type descriptors, inherited object members and native introspection remain
- * separate from these instance-bound container capabilities. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext }): RuntimeValue {
+ * separate from these instance-bound container capabilities. A formatting
+ * supplier is acquired only for members that actually require that policy. */
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
-    const context = formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
+    const supplied = typeof formatting === "function" ? formatting() : formatting; meter.checkpoint();
+    const context = supplied ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
     return createRuntimeBraceFormatMethod(receiver, name, values, meter, context, {
       attribute: (value, key) => runtimeNativeAttribute(value, key, values, meter, beginCall, context),
       getItem: (value, key) => runtimeIndex(value, key, values, meter)
@@ -76,7 +78,10 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (iteratorMethod !== undefined) return iteratorMethod;
   if ((name === "__str__" || name === "__repr__") && hasNativeRepresentation(receiver)) return createRuntimeNativeRepresentationMethod(receiver, name, values, meter);
   if (name === "__format__" && (receiver.kind === "str" || receiver.kind === "int" || receiver.kind === "bool"
-    || receiver.kind === "float" || receiver.kind === "complex" || hasNativeObjectFormat(receiver))) return createRuntimeNativeFormatMethod(receiver, values, meter, formatting);
+    || receiver.kind === "float" || receiver.kind === "complex" || hasNativeObjectFormat(receiver))) {
+    const context = typeof formatting === "function" ? formatting() : formatting; meter.checkpoint();
+    return createRuntimeNativeFormatMethod(receiver, values, meter, context);
+  }
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "from_bytes") return createRuntimeIntegerFromBytesMethod(receiver.kind === "bool", values, meter, methods);
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "to_bytes") return createRuntimeIntegerToBytesMethod(receiver, values, meter, methods);
   if (receiver.kind === "float" && name === "fromhex") return createRuntimeFloatFromhexMethod(values, meter);

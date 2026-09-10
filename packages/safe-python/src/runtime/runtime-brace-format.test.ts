@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
-import { ExecutionBudget } from "./execution-budget.js";
+import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { runtimeComparison } from "./runtime-comparison.js";
@@ -27,6 +27,25 @@ it("exposes bound string formatting with positional and keyword fields", () => {
   const { v, call, dictionary } = fixture();
   expect(call(v.string("{0.real:.1f}|{x[1]}|{2:>{1}}"), "format", [v.complex(1.25, 2), v.integer(4), v.string("z")], dictionary([[v.string("x"), v.list([v.integer(8), v.integer(9)])]]))).toEqual(v.string("1.2|9|   z"));
   expect(call(v.string("{} {}"), "format", [v.integer(1), v.integer(2), v.integer(3)])).toEqual(v.string("1 2"));
+});
+it.each(["format", "format_map", "__format__"] as const)("acquires and retains deferred formatting for %s", name => {
+  const { v, meter, dictionary } = fixture(); let reads = 0;
+  const context = { ...createRuntimeFormatContext(v, meter, { defaultRepr() { throw Error("unexpected repr"); } }),
+    lookupFormat(value: RuntimeValue) { expect(this).toBe(context); expect(value).toEqual(v.integer(12)); return (spec: RuntimeValue) => { expect(spec).toEqual(v.string("04")); return v.string("owned"); }; }
+  };
+  const receiver = name === "__format__" ? v.integer(12) : v.string(name === "format_map" ? "{x:04}" : "{:04}");
+  const method = runtimeNativeAttribute(receiver, name, v, meter, undefined, () => { reads++; return context; });
+  expect(reads).toBe(1);
+  if (method.kind !== "builtin_function_or_method") throw Error("expected bound method");
+  const args = name === "__format__" ? [v.string("04")] : name === "format_map" ? [dictionary([[v.string("x"), v.integer(12)]])] : [v.integer(12)];
+  for (let i = 0; i < 2; i++) expect(method.value.invoke(args, dictionary(), meter)).toEqual(v.string("owned"));
+  expect(reads).toBe(1);
+});
+it.each(["format", "format_map", "__format__"] as const)("checks cancellation after deferred %s policy acquisition", name => {
+  const { v, meter: initialMeter } = fixture(); let cancelled = false;
+  const context = createRuntimeFormatContext(v, initialMeter, { defaultRepr() { throw Error("unexpected repr"); } });
+  const meter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
+  expect(() => runtimeNativeAttribute(v.string(""), name, v, meter, undefined, () => { cancelled = true; return context; })).toThrow(ExecutionLimitError);
 });
 it("validates format_map arguments before parsing but defers mapping access", () => {
   const { v, call, dictionary } = fixture();

@@ -7355,6 +7355,16 @@ extension, integration, or validation requirement is missing or unverified.
   Native attribute dispatch still requests formatting when resolving native
   members; further allocation optimization, automatic type/storage classification,
   generic object defaults and suspended safe-fs effects remain unfinished.
+- Native attribute dispatch now accepts a deferred formatting supplier and
+  acquires it only for format/format_map/__format__. Three compiled regressions
+  failed first on unnecessary policy reads during list methods, string case
+  conversion and numeric attribute access. Six additional cases verify supplier
+  acquisition/retention and cancellation for formatting members. Existing direct
+  formatting contexts remain supported. All 5,532 tests in 446 files pass;
+  selected build, typecheck and scoped lint pass. Forty-eight compiled native __format__
+  cases match CPython. Further allocation/performance audits, automatic
+  type/storage classification, generic object defaults and suspended safe-fs
+  effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

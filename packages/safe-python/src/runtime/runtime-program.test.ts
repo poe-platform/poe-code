@@ -41,6 +41,13 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([['items=[]\nitems.append(3)\nresult=items.count(3)\n', 1], ['result="ab".upper()\n', "AB"], ['result=(3).real\n', 3]] as const)("does not acquire formatting for native members: %s", (source, expected) => {
+    const state = fixture(source);
+    state.hooks.expressions = () => ({ warn() {} });
+    const program = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, state.values, state.meter);
+    executeRuntimeProgram(program, { ...state, get formatting(): never { throw Error("native member does not need formatting"); } }, state.meter);
+    expect(state.globals.get("result")).toEqual(typeof expected === "string" ? state.values.string(expected) : state.values.integer(expected));
+  });
   it("does not acquire execution formatting for an arithmetic-only program", () => {
     const state = fixture("result=1+2\n");
     const expressions = state.hooks.expressions;

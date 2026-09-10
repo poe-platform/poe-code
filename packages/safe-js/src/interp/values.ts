@@ -35,6 +35,7 @@ import { iteratorHelperStates } from "./iterator-helper.js";
 import { privateElements } from "./private-state.js";
 import { regexpIteratorState, isSandboxRegExpIterator, restoreSandboxRegExpIterator, type SandboxRegExpIterator } from "./regexp-iterator.js";
 import { copyNativeDate, dateDataProperties, exportDate, isSandboxDate } from "./date.js";
+import { createSandboxTemporalInstant, hostTemporalInstantEpoch, isSandboxTemporalInstant, temporalInstantEpoch } from "./temporal-instant.js";
 import { isSandboxLocale, localeTag } from "./intl-locale.js";
 import { isSandboxCollator, collatorState } from "./intl-collator.js";
 import { isSandboxNumberFormat, numberFormatState } from "./intl-numberformat.js";
@@ -1301,6 +1302,8 @@ function copyToSandbox(
 
   if (state.structuredClone && typeof value === "object" && value !== null && guestProxyStates.has(value))
     throw new DOMException("Proxies cannot be structured cloned.", "DataCloneError");
+  if (state.structuredClone && isSandboxTemporalInstant(value))
+    throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && nodeTypes.isSymbolObject(value))
     throw new DOMException("Cannot clone a boxed symbol.", "DataCloneError");
   if (state.structuredClone && isSandboxModuleNamespace(value))
@@ -1391,6 +1394,25 @@ function copyToSandbox(
   if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
       !(state.structuredClone && (isPlainObject(value) || isPlainArray(value) || isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || isNumericTypedArray(value)))) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+  }
+
+  const instantEpoch = isSandboxTemporalInstant(value) ? temporalInstantEpoch(value) : hostTemporalInstantEpoch(value);
+  if (instantEpoch !== undefined) {
+    if (state.structuredClone) throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxTemporalInstant(instantEpoch);
+    state.seen.set(original, copy);
+    if (hasNullObjectPrototype(original) || (!isSandboxTemporalInstant(value) && Object.getPrototypeOf(original) === null)) setSandboxPrototype(copy, null);
+    for (const key of Reflect.ownKeys(original)) {
+      const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
+      if (!("value" in descriptor)) throw new TypeError("Instant accessor properties cannot be copied as data.");
+      Object.defineProperty(copy, key, { ...descriptor,
+        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
   }
 
   const primitive = nativeBoxedValue(value);

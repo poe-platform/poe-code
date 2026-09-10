@@ -41,3 +41,32 @@ semantics. Verify other Temporal host-copy branches while reconciling transport.
 The full gate still has no terminal totals. This document records a validated
 next repair, not a fix or a clean qualification. No push, release or issue
 closure under the release hold.
+
+## Implemented and qualified after the full run
+
+The frozen run has now completed (88b29b); its post-run fingerprint matches
+exactly (8371a0). Its failures are recorded in
+safejs-post-weak-accounting-full-gate.md. Runtime changes below occurred only
+after that result and are not covered by that full run.
+
+New host Instant regressions reproduced six failures on Node 22 (21b134) and
+twelve on native-Temporal Node 26.8.1 (12b429). Ordinary imports passed before
+the fix. Coverage includes direct values, records, arrays, map keys, set members
+and own-accessor non-observation for both backend and native Instants.
+
+The Instant import branch now rejects structured-clone mode before allocating
+or traversing an owned copy. The focused commit reconciles this ordinary import
+branch and its private-brand admission guard; unrelated Temporal exports,
+accounting, other types and public wiring remain separate uncommitted work.
+
+Qualification:
+
+- Node 26.8.1: 39 tests across host cloning, ordinary Instant copy/native import
+  and guest structured cloning passed, with zero skips (c4734b).
+- Node 22.23.2: 195 tests across 20 structured-clone files passed; seven native
+  Instant cases were skipped because this runtime lacks native Temporal
+  (7b6066). Those seven ran in the Node 26 cohort above.
+- Package TypeScript and scoped ESLint passed (ba6285).
+
+No full-suite green result or complete Temporal conformance is claimed. No push,
+release or issue closure under the hold.

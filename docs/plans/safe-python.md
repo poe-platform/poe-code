@@ -10572,6 +10572,27 @@ extension, integration, or validation requirement is missing or unverified.
   run passes all 7,567 tests in 512 files (134.55s; test bodies 9.99s).
   Metadata/hooks/finalization, context managers, public
   runtime, library/import and safe-fs integration remain unfinished.
+- Async context-manager statement lifecycle (2026-09-10): five failing cases
+  drove awaited entry/exit, reverse-order cleanup, retained prepared exits,
+  target-failure suppression and fatal/host-return bookkeeping restoration.
+  A further native coroutine regression drove explicit async-manager hooks through
+  runtime statement bindings. Exits run only after successful entry; pending
+  returns and loop transfers survive awaited cleanup, and truth conversion occurs
+  only for exception suppression. The initial implementation allocated an extra
+  continuation for every synchronous exit and failed the existing 5,000-manager
+  budget test. Exit handling now lives directly in the iterative frame loop;
+  the test passes without increasing its allocation budget.
+  All 4,096 controlled-protocol CPython comparisons pass across mixed sync/async
+  managers, entry/exit suspension, suppression, return/loop control, injected
+  exceptions and close. The comparison harness was corrected to return the sent
+  value from its awaiter, distinguish GeneratorExit from ValueError and retain
+  coroutine references until snapshots were captured. All 768 native coroutine
+  regressions also pass (4,864 comparisons total). Build, typecheck and focused
+  lint pass. The final uncached one-worker package run passes all 7,574 tests
+  in 512 files (132.39s; test bodies 9.84s).
+  This is the statement lifecycle and explicit extension-hook path, not native
+  context-manager lookup/awaitable acquisition or traceback integration. Those
+  remain required, along with the public runtime, libraries/import and safe-fs.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

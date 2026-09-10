@@ -1,3 +1,4 @@
+/* eslint-disable require-yield -- Async protocol callbacks can complete without suspending. */
 import { describe, expect, it } from "vitest";
 import { parseModule } from "../module.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
@@ -59,6 +60,63 @@ function fixture(inputs: Record<string, unknown> = {}, maxAllocatedBytes = 10000
 }
 
 describe("resumable statement execution", () => {
+  it("awaits prepared async entries and reverse-order exits while preserving a return",()=>{
+    const state=fixture({a:"a",b:"b"});
+    state.context.asyncManagers={prepare(value){
+      const manager={
+        *enter(){state.events.push(`enter:${value}`);manager.exit=function*(){throw Error("replaced exit");};yield `${value}:enter`;return value;},
+        *exit(){state.events.push(`exit:${value}`);yield `${value}:exit`;return false;}
+      };return manager;
+    },truth(){throw Error("normal exit must not test truth");}};
+    const cursor=state.run("async with a as x, b as y:\n return 7");
+    for(const value of ["a:enter","b:enter","b:exit","a:exit"])expect(cursor.next(null)).toEqual({done:false,value});
+    expect(cursor.next(null)).toEqual({done:true,value:{kind:"return",value:7}});
+    expect(state.names.get("x")).toBe("a");expect(state.names.get("y")).toBe("b");
+    expect(state.events.filter(value=>typeof value==="string"&&value.startsWith("exit:"))).toEqual(["exit:b","exit:a"]);
+  });
+
+  it("unwinds only entered async managers when a later entry await fails",()=>{
+    const state=fixture({a:"a",b:"b"}),failure=new Guest("entry");
+    state.context.asyncManagers={prepare(value){return {
+      *enter(){yield `${value}:enter`;return value;},
+      *exit(error){state.events.push([value,error?.error]);yield `${value}:exit`;return false;}
+    };},truth:Boolean};
+    const cursor=state.run("async with a, b:\n yield 1");
+    expect(cursor.next().value).toBe("a:enter");expect(cursor.next(null).value).toBe("b:enter");
+    expect(cursor.throw(failure).value).toBe("a:exit");expect(state.active()).toBe(failure);
+    expect(()=>cursor.next(null)).toThrow(failure);expect(state.active()).toBeUndefined();
+    expect(state.events.filter(Array.isArray)).toEqual([["a",failure]]);
+  });
+
+  it("awaits async target-failure suppression with the original exception active",()=>{
+    const obj=new Map(),state=fixture({obj,a:"a"}),failure=new Guest("target");
+    state.context.asyncManagers={prepare(){return {
+      *enter(){return 7;},*exit(error){expect(error?.error).toBe(failure);expect(state.active()).toBe(failure);yield 8;return true;}
+    };},truth(value){expect(state.active()).toBe(failure);return Boolean(value);}};
+    const cursor=state.run("async with a as obj[(yield 1)]:\n yield 2\nyield 3");
+    expect(cursor.next().value).toBe(1);expect(cursor.throw(failure).value).toBe(8);
+    expect(cursor.next(null).value).toBe(3);expect(state.active()).toBeUndefined();expect(obj.size).toBe(0);
+  });
+
+  it.each(["fatal","return"] as const)("restores async-exit bookkeeping on host %s without running outer guest cleanup",mode=>{
+    const failure=new Guest("body"),state=fixture({a:"a",b:"b",failure});
+    state.context.asyncManagers={prepare(value){return {
+      *enter(){return value;},*exit(){state.events.push(`exit:${value}`);yield 8;return false;}
+    };},truth:Boolean};
+    const cursor=state.run("async with a, b:\n raise failure");
+    expect(cursor.next().value).toBe(8);expect(state.active()).toBe(failure);
+    if(mode==="fatal")expect(()=>cursor.throw(new ExecutionLimitError("cancelled"))).toThrow(ExecutionLimitError);
+    else expect(cursor.return({kind:"normal"}).done).toBe(true);
+    expect(state.active()).toBeUndefined();expect(state.events).not.toContain("exit:a");
+  });
+
+  it("rejects missing async-manager capability before evaluating a manager",()=>{
+    const state=fixture({a:"a"});
+    state.context.managers={prepare(){throw Error("must not use synchronous manager");},truth:Boolean};
+    expect(()=>state.run("async with a:\n pass").next()).toThrow("unsupported statement: with");
+    expect(state.events).toEqual([]);
+  });
+
   it("retains loop and pending continue frames across yielding finalizers", () => {
     const state = fixture({ items: [1, 2] });
     const cursor = state.run("for x in items:\n try:\n  yield x\n  continue\n finally:\n  yield 9\nelse:\n yield 8\nreturn 7");

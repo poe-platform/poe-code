@@ -519,6 +519,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       setAttribute: builtinCalls.setAttribute!.bind(builtinCalls), deleteAttribute: builtinCalls.deleteAttribute!.bind(builtinCalls),
       assertions: statementHooks.assertions ?? context.exceptions?.assertions(), managers: statementHooks.managers,
       asyncIterate:statementHooks.asyncIterate??(suspension===undefined?undefined:value=>createRuntimeAsyncIterator(value,builtinCalls,awaitable=>suspension.delegate(awaitable,builtinCalls,"anext"),values,meter)),
+      asyncManagers:statementHooks.asyncManagers,
       exceptions: statementHooks.exceptions ?? context.exceptions?.statements(frame),
       executeUnhandled(statement) {
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);

@@ -80,7 +80,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   function run(source: string) {
     executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
-  return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable };
+  return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
 
 function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["expressions"]>>={}) {
@@ -88,6 +88,16 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("carries explicit async-manager hooks into native coroutine statement continuations",()=>{
+  const state=exceptionFixture(),{v}=state,statements=state.hooks.statements;
+  state.hooks.statements=frame=>({...statements(frame),asyncManagers:{
+    prepare(){return {*enter(){yield v.integer(1);return v.integer(7);},*exit(){yield v.integer(2);return v.false;}};},
+    truth(value:RuntimeValue){return value===v.true;}
+  }});
+  state.run("async def f():\n async with 0 as x:return x\nc=f()\nfirst=c.send(None)\nsecond=c.send(None)\ntry:c.send(None)\nexcept StopIteration as error:result=error.value\n");
+  expect(state.globals.get("first")).toEqual(v.integer(1));expect(state.globals.get("second")).toEqual(v.integer(2));expect(state.globals.get("result")).toEqual(v.integer(7));expect(state.calls.depth).toBe(0);
+});
 
 it("injects generator throw instances and preserves their identity",()=>{
   const state=exceptionFixture(),{v}=state;

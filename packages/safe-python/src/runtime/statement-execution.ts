@@ -27,6 +27,11 @@ export interface PreparedContextManager<Value> {
   exit(exception: { readonly error: unknown } | null): Value;
 }
 
+export interface PreparedAsyncContextManager<Value> {
+  enter():Generator<Value,Value,Value>;
+  exit(exception:{readonly error:unknown}|null):Generator<Value,Value,Value>;
+}
+
 export interface StatementContext<Value> {
   evaluate(expression: Expression): Value;
   /** Evaluate directly in branching context, including short-circuit truth rules.
@@ -76,14 +81,18 @@ export interface StatementContext<Value> {
   };
 }
 
-/** Suspensions occur only in explicit source expressions/targets/leaf operations.
- * Iterator and synchronous context-manager protocol calls remain ordinary calls.
+/** Source operations and async iteration/manager protocols can suspend.
+ * Synchronous iterator and context-manager protocol calls remain ordinary calls.
  * Each callback yields guest values and receives guest send values; adapters own
  * expression/leaf semantics and checkpoints before publication/resumed effects.
  */
 export interface ResumableStatementContext<Value> extends Omit<StatementContext<Value>, "evaluate" | "test" | "assign" | "execute"> {
   /** Acquire once; next owns awaited protocol calls and exhaustion only. */
   asyncIterate?(value:Value):{next():Generator<Value,IteratorResult<Value,Value>,Value>};
+  asyncManagers?: {
+    prepare(value:Value):PreparedAsyncContextManager<Value>;
+    truth(value:Value):boolean;
+  };
   evaluate(expression: Expression): Generator<Value, Value, Value>;
   test(expression: Expression): Generator<Value, boolean, Value>;
   assign(target: Expression, value: Value): Generator<Value, void, Value>;
@@ -114,7 +123,8 @@ type Frame<Value> =
   | { kind: "async-for"; statement: Extract<Statement, { kind: "for" }>; iterator: ReturnType<NonNullable<ResumableStatementContext<Value>["asyncIterate"]>> }
   | { kind: "finally"; body: readonly Statement[] }
   | { kind: "with-items"; statement: Extract<Statement, { kind: "with" }>; index: number }
-  | { kind: "with-exit"; exit: PreparedContextManager<Value>["exit"] }
+  | { kind: "with-exit"; asynchronous:false; exit: PreparedContextManager<Value>["exit"]; policy:Pick<NonNullable<StatementContext<Value>["managers"]>,"truth"> }
+  | { kind: "with-exit"; asynchronous:true; exit: PreparedAsyncContextManager<Value>["exit"]; policy:Pick<NonNullable<StatementContext<Value>["managers"]>,"truth"> }
   | { kind: "catch"; statement: Extract<Statement, { kind: "try" }> }
   | {
       kind: "search";
@@ -133,7 +143,7 @@ type StatementExecution<Value> =
 /** Synchronous execution of statically validated suites using explicit frames.
  * Finally suites run during normal and abrupt completion; guest exception state
  * is scoped to exception-triggered cleanup and ordinary except handlers. Except*
- * groups, async context managers and match are not implemented here yet;
+ * groups and match are not implemented here yet;
  * unsupported compounds fail
  * before evaluating their operands. Contexts own guest protocols and internal
  * metering; frame allocation still requires full heap accounting.
@@ -155,8 +165,8 @@ export function executeStatements<Value>(
  * The caller owns lifecycle and saved exception-frame activation on each resume.
  * Python close must inject GeneratorExit with throw, not use host return: host
  * return only releases bookkeeping and does not run guest finally/with cleanup.
- * Async operations, native leaf assembly and full frame heap accounting remain
- * separate integration work.
+ * Native protocol assembly and full frame heap accounting remain separate
+ * integration work.
  */
 export function createStatementContinuation<Value>(
   body: readonly Statement[], context: ResumableStatementContext<Value>, meter: ExecutionMeter
@@ -192,25 +202,6 @@ function* statementContinuation<Value>(
       if (exceptional) frame.restore();
     }
   };
-  const exitManager = (
-    frame: Extract<Frame<Value>, { kind: "with-exit" }>,
-    pending?: Transfer<Value>
-  ): Transfer<Value> | undefined => {
-    if (pending?.kind !== "throw") {
-      meter.checkpoint();
-      frame.exit(null);
-      return pending;
-    }
-    const restore = context.exceptions!.enter(pending.error);
-    try {
-      meter.checkpoint();
-      const result = frame.exit({ error: pending.error });
-      meter.checkpoint();
-      return context.managers!.truth(result) ? undefined : pending;
-    } finally {
-      restore();
-    }
-  };
   try {
     while (frames.length || transfer) {
       if (!frames.length && transfer) {
@@ -219,6 +210,24 @@ function* statementContinuation<Value>(
         throw new Error("statement suites must be statically validated");
       }
       meter.checkpoint();
+      const top=frames[frames.length-1];
+      if(top.kind==="with-exit") {
+        frames.pop();
+        const pending=transfer;
+        try {
+          const restore=pending?.kind==="throw"?context.exceptions!.enter(pending.error):undefined;
+          try {
+            meter.checkpoint();
+            const error=pending?.kind==="throw"?{error:pending.error}:null;
+            const result=top.asynchronous?yield* top.exit(error):top.exit(error);
+            if(pending?.kind==="throw") {
+              meter.checkpoint();
+              transfer=top.policy.truth(result)?undefined:pending;
+            }
+          } finally {restore?.();}
+        } catch(error){transfer=guestFailure(error);}
+        continue;
+      }
       if (transfer) {
         const frame = frames.pop()!;
         if (frame.kind === "finally") {
@@ -234,12 +243,6 @@ function* statementContinuation<Value>(
             restore: context.exceptions!.enter(transfer.error)
           });
           transfer = undefined;
-        } else if (frame.kind === "with-exit") {
-          try {
-            transfer = exitManager(frame, transfer);
-          } catch (error) {
-            transfer = guestFailure(error);
-          }
         } else if (frame.kind === "handler-cleanup") {
           try {
             clearHandler(frame, transfer.kind === "throw");
@@ -257,7 +260,7 @@ function* statementContinuation<Value>(
         continue;
       }
       try {
-        const frame = frames[frames.length - 1];
+        const frame = top;
         if (frame.kind === "with-items") {
           if (frame.index === frame.statement.items.length) {
             frames.pop();
@@ -267,22 +270,23 @@ function* statementContinuation<Value>(
           const item = frame.statement.items[frame.index++];
           const value = execution.kind === "synchronous" ? execution.context.evaluate(item.context) : yield* execution.context.evaluate(item.context);
           meter.checkpoint();
-          const manager = context.managers!.prepare(value),
-            exit = manager.exit;
-          meter.checkpoint();
-          const entered = manager.enter();
+          let exit:Extract<Frame<Value>,{kind:"with-exit"}>,entered:Value;
+          if(frame.statement.async&&execution.kind==="resumable") {
+            const policy=execution.context.asyncManagers!,manager=policy.prepare(value);
+            exit={kind:"with-exit",asynchronous:true,exit:manager.exit,policy};
+            meter.checkpoint();entered=yield* manager.enter();
+          } else {
+            const policy=context.managers!,manager=policy.prepare(value);
+            exit={kind:"with-exit",asynchronous:false,exit:manager.exit,policy};
+            meter.checkpoint();entered=manager.enter();
+          }
           frames.pop();
-          frames.push({ kind: "with-exit", exit }, frame);
+          frames.push(exit, frame);
           if (item.target !== null) {
             meter.checkpoint();
             if (execution.kind === "synchronous") execution.context.assign(item.target, entered);
             else yield* execution.context.assign(item.target, entered);
           }
-          continue;
-        }
-        if (frame.kind === "with-exit") {
-          frames.pop();
-          exitManager(frame);
           continue;
         }
         if (frame.kind === "catch") {
@@ -419,7 +423,7 @@ function* statementContinuation<Value>(
             frames.push({ kind: "block", body: statement.body, index: 0 });
             break;
           case "with":
-            if (statement.async || !context.managers) throw new UnsupportedStatementError(statement.kind);
+            if (statement.async ? execution.kind!=="resumable"||!execution.context.asyncManagers : !context.managers) throw new UnsupportedStatementError(statement.kind);
             frames.push({ kind: "with-items", statement, index: 0 });
             break;
           case "match":

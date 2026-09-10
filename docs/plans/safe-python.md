@@ -7398,6 +7398,15 @@ extension, integration, or validation requirement is missing or unverified.
   447 files pass; selected build, typecheck and scoped lint pass. Automatic
   type/storage classification, additional protocol assembly, allocation audits,
   generic object defaults and suspended safe-fs effects remain unfinished.
+- Audited shared frame index conversion across fourteen compiled native consumers:
+  list/tuple/string/bytes/range access, slice assignment/deletion, augmented
+  indexed assignment, stepped slices, list pop/insert, string/bytes find and
+  integer to_bytes. CPython confirms results and actual __index__ call counts,
+  including two conversions for augmented indexed assignment. Regression cases
+  also verify MRO lookup counts and inherited compiled method dispatch. No runtime
+  change was needed. All 5,572 tests in 448 files pass; typecheck and scoped lint
+  pass. Automatic type/storage classification, additional protocol assembly,
+  allocation audits and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

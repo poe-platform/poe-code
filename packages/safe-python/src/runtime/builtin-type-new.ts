@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { lookupMroAttribute } from "./class-attributes.js";
@@ -46,7 +47,7 @@ export function createTypeNewBuiltin(values: RuntimeValues, meter: ExecutionMete
           if (invocation?.attribute === undefined) throw Error("native type allocation requires ordinary base attribute lookup");
           let found = true;
           try { invocation.attribute(base, "__mro_entries__"); }
-          catch (error) { meter.checkpoint(); if (error instanceof PythonRuntimeError && error.name === "AttributeError") found = false; else throw error; }
+          catch (error) { meter.checkpoint(); if (runtimeExceptionMatches(error, "AttributeError", invocation)) found = false; else throw error; }
           meter.checkpoint();
           if (found) throw new PythonRuntimeError("TypeError", "type() doesn't support MRO entry resolution; use types.new_class()");
         }

@@ -79,6 +79,27 @@ function exceptionFixture() {
   return state;
 }
 
+it("treats guest AttributeError from nonclass base lookup as missing MRO entries",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Missing(AttributeError):\n pass\nclass Base:\n def __getattribute__(self,name):\n  raise Missing(name)\ntry:\n type('C',(Base(),),{})\nexcept BaseException as error:\n correct=type(error) is TypeError and error.args==('metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases',)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves nonmatching guest failures during nonclass base lookup",()=>{
+  const state=exceptionFixture();
+  state.run("original=ValueError('lookup')\nclass Base:\n def __getattribute__(self,name):\n  raise original\ntry:\n type('C',(Base(),),{})\nexcept ValueError as error:\n correct=error is original\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves fatal host errors during nonclass base lookup",()=>{
+  for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"AttributeError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;
+    try{state.run("class Base:\n def __getattribute__(self,name):\n  fail()\ntry:\n type('C',(Base(),),{})\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
 it("adds native diagnostic notes to guest set-name failures without replacing identity",()=>{
   const state=exceptionFixture();
   state.run("class Failure(ValueError):\n def add_note(self,note):\n  visit('override')\nerror=Failure('original')\nclass Descriptor:\n def __set_name__(self,owner,name):\n  raise error\ntry:\n class C:\n  field=Descriptor()\nexcept Failure as caught:\n correct=caught is error and caught.__notes__==[\"Error calling __set_name__ on 'Descriptor' instance 'field' in 'C'\"]\n");

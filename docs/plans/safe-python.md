@@ -9946,6 +9946,22 @@ extension, integration, or validation requirement is missing or unverified.
   Exception metadata/tracebacks/groups, suspension, remaining native protocols,
   public interpreter assembly and safe-fs integration remain unfinished.
   No push or release requested.
+- Direct type allocation exception lookup (2026-09-10): a failing integration
+  regression reproduced propagation of guest AttributeError subclasses from
+  nonclass bases' __mro_entries__ lookup. The allocator now uses the shared
+  guest-aware matcher, permitting normal metaclass validation to continue.
+  Nonmatching guest errors retain identity; host errors, spoofed AttributeError
+  names and execution limits remain fatal. All 30 CPython comparisons spanning
+  descriptor, __getattribute__ and __getattr__ lookup through type/type.__new__,
+  plus all 663 focused allocator/integration tests, pass. The selected workspace
+  build, typecheck and focused lint pass.
+  A separate 24-case read-only audit confirms four next mismatches: missing guest
+  hash descriptors must produce unhashable TypeError, missing __contains__
+  descriptors must fall back to iteration, and guest TypeError during containment
+  iterator binding/calling must receive the native non-iterable diagnostic. Those
+  four cases are not passing comparisons. Broader runtime assembly, safe-fs,
+  suspension and remaining exception families/metadata remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

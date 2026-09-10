@@ -29,6 +29,7 @@ import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { createIterBuiltin,createNextBuiltin } from "./builtin-iteration.js";
 import { createAiterBuiltin } from "./builtin-aiter.js";
+import { createAnextBuiltin } from "./builtin-anext.js";
 import { constructRuntimeInteger } from "./runtime-integer-construction.js";
 import { constructRuntimeFloat } from "./runtime-float-construction.js";
 import { createRoundBuiltin } from "./builtin-round.js";
@@ -89,6 +90,42 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("returns anext results immediately and defers default-awaitable validation",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("anext",createAnextBuiltin(v,state.meter));
+  state.run("events=[]\nclass I:\n def __anext__(self):\n  events.append('next')\n  return 3\ni=I()\nraw=anext(i)\na=anext(i,9)\ncreated=raw==3 and events==['next','next']\ntry:a.send(None)\nexcept TypeError as error:invalid=error.args==(\"'int' object can't be awaited\",)\n");
+  expect(state.globals.get("created")).toBe(v.true);expect(state.globals.get("invalid")).toBe(v.true);
+});
+
+it("awaits anext defaults for native coroutines and async generators",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("anext",createAnextBuiltin(v,state.meter));
+  state.run("class A:\n def __await__(self):yield 1\nclass I:\n async def __anext__(self):\n  await A()\n  raise StopAsyncIteration\na=anext(I(),9)\nfirst=a.send(None)\ntry:a.send(None)\nexcept StopIteration as error:default=error.value\nasync def source():yield 3\ng=source()\ntry:anext(g,8).send(None)\nexcept StopIteration as error:item=error.value\ntry:anext(g,8).send(None)\nexcept StopIteration as error:end=error.value\ncorrect=first==1 and default==9 and item==3 and end==8\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("reacquires anext await iterators and preserves tuple-expanded proxy calls",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("anext",createAnextBuiltin(v,state.meter));
+  state.run("events=[]\nclass Awaitable:\n def __await__(self):\n  events.append('await')\n  return self\n def __next__(self):raise StopAsyncIteration\n def send(self,*args):\n  events.append(args)\n  return 1\n def throw(self,*args):\n  events.append(args)\n  return 2\n def close(self):raise StopAsyncIteration\nclass I:\n def __anext__(self):return Awaitable()\na=anext(I(),9)\na.send((1,2))\na.send(())\na.throw(ValueError,3)\ntry:a.close()\nexcept StopIteration as error:closed=error.value==9\ntry:a.__next__()\nexcept StopIteration as error:again=error.value==9\ncorrect=events==['await',(1,2),'await',(),'await',(ValueError,3),'await','await'] and closed and again\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each(["__next__()","send(None)","throw(ValueError)","close()"])("does not replace anext await-acquisition failures during %s",operation=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("anext",createAnextBuiltin(v,state.meter));
+  state.run(`failure=StopAsyncIteration('acquisition')\nclass A:\n def __await__(self):raise failure\nclass I:\n def __anext__(self):return A()\na=anext(I(),9)\nidentity=a.__await__() is a and a.__iter__() is a\ntry:a.${operation}\nexcept StopAsyncIteration as error:correct=error is failure\n`);
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.globals.get("identity")).toBe(v.true);
+});
+
+it("uses ordinary attribute lookup for anext proxies but special lookup for next",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("anext",createAnextBuiltin(v,state.meter));
+  state.run("class A:\n def __await__(self):return self\n def __next__(self):return 3\n def __getattribute__(self,name):raise StopAsyncIteration(name)\nclass I:\n def __anext__(self):return A()\na=anext(I(),9)\nnext=a.__next__()\ntry:a.send(None)\nexcept StopIteration as error:correct=next==3 and error.value==9\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("preserves explicit None in anext defaults and async yielded values only",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("anext",createAnextBuiltin(v,state.meter));
+  state.run("async def source():\n try:yield None\n except ValueError:yield None\ng=source()\ntry:anext(g).send(None)\nexcept StopIteration as error:first=error.args==(None,)\ntry:g.athrow(ValueError).send(None)\nexcept StopIteration as error:thrown=error.args==(None,)\ntry:g.aclose().send(None)\nexcept StopIteration as error:closed=error.args==()\ntry:anext(g,None).send(None)\nexcept StopIteration as error:default=error.args==(None,)\nasync def coro():return None\ntry:coro().send(None)\nexcept StopIteration as error:returned=error.args==()\ncorrect=first and thrown and closed and default and returned\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 
 it("acquires native async iterators through aiter without instance lookup or advancing them",()=>{
   const state=exceptionFixture(),{v}=state;state.builtins.set("aiter",createAiterBuiltin(v,state.meter));

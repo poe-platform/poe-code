@@ -19,6 +19,7 @@ import { RuntimeMethodDecoratorState } from "./runtime-method-decorator-state.js
 import { RuntimeInstanceState } from "./runtime-instance-state.js";
 import type { RuntimeExceptionState } from "./runtime-exception-state.js";
 import type { RuntimeGeneratorState,RuntimeCoroutineWrapperState,RuntimeAsyncGeneratorState,RuntimeAsyncGeneratorOperationState } from "./runtime-generator-state.js";
+import type {RuntimeAnextAwaitableState} from "./runtime-anext-awaitable.js";
 import { ExecutionIdentity } from "./execution-identity.js";
 import type { IdentityContext } from "./builtin-id.js";
 
@@ -90,6 +91,7 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  wrapAnext?(awaitable:RuntimeValue,defaultValue:RuntimeValue):RuntimeValue;
   /** Internal exception inheritance, never guest instance/subclass hooks.
    * Ordinary host failures must remain false. Native operation faults may also
    * match a parent exception class through the execution's builtin catalogue. */
@@ -212,7 +214,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
+  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | RuntimeAnextAwaitableState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute

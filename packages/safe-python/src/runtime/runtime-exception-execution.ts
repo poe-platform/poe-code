@@ -41,11 +41,15 @@ export class RuntimeExceptionExecution {
     meter.checkpoint(1,160);this.#handled=new HandledExceptionState<InstanceValue>();Object.freeze(this);
   }
   get active():InstanceValue|null{return this.#handled.active;}
+  wrapAnext(wrapped:RuntimeValue,defaultValue:RuntimeValue):InstanceValue {
+    this.meter.checkpoint(1,64);
+    return this.values.instance(this.registry.anextAwaitableType(),undefined,Object.freeze({kind:"anext_awaitable",wrapped,defaultValue,exceptions:this}));
+  }
 
   /** Native completion does not implicitly chain the caller's handled error. */
-  completion(value:RuntimeValue):RuntimeRaisedException {
+  completion(value:RuntimeValue,preserveNone=false):RuntimeRaisedException {
     this.meter.checkpoint(0,8);
-    return new RuntimeRaisedException(this.native("StopIteration",value.kind==="none"?[]:[value]),this.meter);
+    return new RuntimeRaisedException(this.native("StopIteration",value.kind==="none"&&!preserveNone?[]:[value]),this.meter);
   }
 
   /** Internal termination signals bypass guest constructors and caller chaining. */

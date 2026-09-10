@@ -10624,6 +10624,27 @@ extension, integration, or validation requirement is missing or unverified.
   anext, native context-manager protocols,
   traceback/frame integration, public runtime, library/import and safe-fs work
   remain unfinished.
+- Native anext builtin/default awaitable (2026-09-10): immediate actual-type
+  anext lookup/call, unvalidated no-default result, and lazy default wrapper
+  acquisition are implemented with explicit extension capabilities. Native
+  coroutine and async-generator awaitables are supported. Each next/send/throw/
+  close operation reacquires the await iterator; only operation failures matching
+  StopAsyncIteration receive the default, never acquisition failures. Proxy
+  methods use ordinary attribute lookup and retain CPython tuple expansion for
+  send. Native wrapper identity, arity and non-instantiable type integration are
+  included. Failing tests established missing registration/type integration and
+  a CPython differential exposed the distinction between explicit None async
+  items/defaults and empty ordinary coroutine/close completion arguments; the
+  completion adapter now preserves that distinction. Eighteen builtin tests
+  cover protocol errors, arity and cancellation after successful/failing external
+  callbacks. Focused verification passes 880 tests; 784 custom-awaitable, 864
+  native coroutine/generator and 96 argument comparisons match CPython. Another
+  6,912 async termination regression sequences pass (8,656 comparisons total).
+  Selected workspace build, typecheck and scoped lint pass. The final uncached
+  one-worker package suite passes 7,635 tests in 515 files (183.15s; test bodies
+  9.72s).
+  Generator-based coroutine flags, native context managers, traceback/frame
+  integration, public runtime/import/library and safe-fs work remain required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

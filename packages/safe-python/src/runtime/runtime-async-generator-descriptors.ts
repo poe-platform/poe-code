@@ -58,7 +58,9 @@ export function installRuntimeAsyncGeneratorDescriptors(owner:TypeValue,values:R
         const result=operation.resume(name==="throw"?{kind:"throw",error:new RuntimeGeneratorThrowRequest(positional,invocation!,meter)}:name==="close"?{kind:"close"}:{kind:"send",value:name==="send"?positional[0]:values.none});
         if(result.done&&name!=="close") {
           if(generator.native?.kind!=="async_generator")throw Error("async generator send lost its owner");
-          throw generator.native.exceptions.completion(result.value);
+          // A suspended body completed this operation by yielding an item,
+          // including explicit None. Closed-body completion has no argument.
+          throw generator.native.exceptions.completion(result.value,generator.native.execution.phase==="suspended");
         }
         return result.value;
       }

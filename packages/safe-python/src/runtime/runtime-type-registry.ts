@@ -75,6 +75,7 @@ import { createListReprWrapper } from "./builtin-list-repr.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 import { installRuntimeGeneratorDescriptors } from "./runtime-generator-descriptors.js";
 import { installRuntimeAsyncGeneratorDescriptors } from "./runtime-async-generator-descriptors.js";
+import { installRuntimeAnextAwaitableDescriptors } from "./runtime-anext-awaitable.js";
 import { createNoneNewBuiltin } from "./builtin-none-new.js";
 
 interface TypeEntry {
@@ -111,6 +112,7 @@ export class RuntimeTypeRegistry {
   #generatorType:TypeValue|undefined;
   #coroutineTypes=new Map<"coroutine"|"coroutine_wrapper",TypeValue>();
   #asyncGeneratorTypes=new Map<"async_generator"|"async_generator_asend"|"async_generator_athrow",TypeValue>();
+  #anextAwaitableType:TypeValue|undefined;
   #noneType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
@@ -468,6 +470,17 @@ export class RuntimeTypeRegistry {
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     installRuntimeAsyncGeneratorDescriptors(type,this.values,this.meter,kind=>this.asyncGeneratorType(kind));
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#asyncGeneratorTypes.set(kind,type);
+    return type;
+  }
+
+  anextAwaitableType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#anextAwaitableType!==undefined)return this.#anextAwaitableType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("anext_awaitable",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    installRuntimeAnextAwaitableDescriptors(type,this.values,this.meter);
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#anextAwaitableType=type;
     return type;
   }
 

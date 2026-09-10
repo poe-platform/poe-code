@@ -214,6 +214,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      wrapAnext:context.exceptions?.wrapAnext.bind(context.exceptions),
       enterRecursiveCall: () => calls.enter(frame),
       get identity() { return context.identity ?? values.identity; },
       identityHash: keys.identityHash?.bind(keys),

@@ -6,6 +6,15 @@ focused test success, local commits, remote delivery and publication are separat
 
 ## Current local evidence
 
+Latest gate update at runtime 3cd9fad79: **28,271 passed, 15 failed, 47 skipped**
+across 1,247 files; all 100 filesystem type contracts passed. This supersedes
+the older full-gate counts and coverage statements below: template, optional
+chain, enumeration and loop-header repairs are now covered. Fourteen failures
+match the Promise/locale findings; an additional regex cursor runner failure
+requires investigation. Its 12-case focused rerun passes, which does not make
+the full gate green. See [the completed gate](safejs-post-loop-header-integration-gate.md).
+The two isolated loop-parser candidates remain unintegrated.
+
 At 9d2eeb443, the Temporal namespace includes Now and all eight constructors.
 Temporal replay/heap support, originating intrinsic prototype parents and weak
 graph snapshots are locally committed. Earlier statements that Now is absent

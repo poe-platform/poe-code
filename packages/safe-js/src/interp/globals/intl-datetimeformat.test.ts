@@ -25,8 +25,6 @@ it.each([
   "return [NaN,Infinity,8640000000000001,1n,Symbol()].map(value=>{try{return new Intl.DateTimeFormat('en',{timeZone:'UTC'}).format(value)}catch(e){return e.name}})",
   "return [[undefined,0],[0,undefined],[NaN,0],[1,0]].map(args=>{try{return new Intl.DateTimeFormat('en',{timeZone:'UTC'}).formatRange(...args)}catch(e){return e.name}})",
   "const trace=[];const value={valueOf(){trace.push('number');return 0}};return [new Intl.DateTimeFormat('en',{timeZone:'UTC'}).format(value),trace]",
-  "const trace=[];try{new Intl.DateTimeFormat('en',{get timeZone(){trace.push('zone');return 'invalid'},get year(){trace.push('year');return 'numeric'}})}catch(e){return [e.name,trace]}",
-  "const trace=[];try{new Intl.DateTimeFormat('en',{get fractionalSecondDigits(){trace.push('fraction');return 0},get timeZoneName(){trace.push('name');return 'short'}})}catch(e){return [e.name,trace]}",
   "return ['formatToParts','formatRange','formatRangeToParts','resolvedOptions'].map(key=>{try{return Intl.DateTimeFormat.prototype[key].call({},0,1)}catch(e){return e.name}})",
   "const d=Object.getOwnPropertyDescriptor(Intl.DateTimeFormat,'prototype');return [d.writable,d.enumerable,d.configurable]"
 ])("matches native DateTimeFormat: %s", async source => {
@@ -115,10 +113,27 @@ it.each(["pending", "completed"])("replays current-time formatting from a %s che
   } finally { await completed; }
 });
 
-it("reads constructor options in native order", async () => {
-  const source = "const trace=[];const options={};for(const key of ['localeMatcher','calendar','numberingSystem','hour12','hourCycle','timeZone','weekday','era','year','month','day','dayPeriod','hour','minute','second','fractionalSecondDigits','timeZoneName','formatMatcher','dateStyle','timeStyle'])Object.defineProperty(options,key,{get(){trace.push(key);return key==='timeZone'?'UTC':undefined}});new Intl.DateTimeFormat('en',options);return trace";
-  const expected = runInNewContext(`(function(){${source}})()`);
+// ECMA-402 CreateDateTimeFormat and Table 16 specify these observable reads.
+// Older hosts pre-read components or access them twice, so they are not an
+// oracle for this behavior even though their locale output remains useful.
+it("reads constructor options once in specification order without enumeration", async () => {
+  const expected = ['localeMatcher','calendar','numberingSystem','hour12','hourCycle','timeZone','weekday','era','year','month','day','dayPeriod','hour','minute','second','fractionalSecondDigits','timeZoneName','formatMatcher','dateStyle','timeStyle'];
+  const source = `const trace=[];const options=new Proxy({}, {
+    get(target,key){trace.push(key);return key==='timeZone'?'UTC':undefined},
+    ownKeys(){throw 'enumerated'}
+  });new Intl.DateTimeFormat('en',options);return trace`;
   expect(await run(source)).toMatchObject({ ok: true, returnValue: expected });
+});
+
+it.each([
+  ["timeZone", "invalid", "year"],
+  ["fractionalSecondDigits", 0, "timeZoneName"]
+])("validates %s once before reading later options", async (key, invalid, later) => {
+  const source = `const trace=[];try{new Intl.DateTimeFormat('en',{
+    get ${key}(){trace.push('${key}');return ${JSON.stringify(invalid)}},
+    get ${later}(){throw 'later option read'}
+  })}catch(e){return [e.name,trace]}`;
+  expect(await run(source)).toMatchObject({ok:true,returnValue:["RangeError",[key]]});
 });
 
 it.each(["en-US", "en-GB", "fr", "ar", "ja"].flatMap(locale =>

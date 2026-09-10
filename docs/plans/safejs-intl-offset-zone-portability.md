@@ -85,3 +85,7 @@ inspected in `screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-offset-qa
 The atomic parser/ordered-validation commit intentionally excludes the larger
 uncommitted PlainTime public integration; its build and integration evidence
 describe the working tree, not a clean-checkout full gate for that commit.
+
+The three older-host option-order oracle failures are now corrected without
+changing runtime semantics; see [the oracle validation record](safejs-intl-option-order-oracles.md).
+Numeric offsets and reversed Temporal ranges remain unresolved on Node 18.

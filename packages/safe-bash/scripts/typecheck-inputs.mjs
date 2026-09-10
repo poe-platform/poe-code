@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
-import { join } from "node:path";
+import { join, posix } from "node:path";
 import { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { verifyInventory } from "../tests/plugins/qualified-current-release/inventory-check.mjs";
 import { verifyStagedTypeInputs } from "./typecheck-staged-inputs.mjs";
@@ -30,6 +30,23 @@ export function mergeStandaloneInventory(inventory, sealedEntries) {
     entries: [...inventory.entries, ...additions],
     counts: { ...inventory.counts, "frozen-evidence": inventory.counts["frozen-evidence"] + additions.length },
   };
+}
+
+export function mergeBuildDeclarationInventory(inventory, build, tracked, read) {
+  const paths = ["bz2", "xz", "zstd"].map(name => `src/commands/bytes/compression/native/generated/${name}.d.mts`);
+  const entries = paths.map(path => {
+    assert.ok(tracked.includes(path), `production declaration must be tracked: ${path}`);
+    assert.ok(build.include?.includes(path), `production declaration must remain an explicit build input: ${path}`);
+    for (const exclusion of build.exclude ?? []) {
+      assert.ok(typeof exclusion === "string" && exclusion.length > 0 && !exclusion.includes("\\") && !posix.isAbsolute(exclusion) && posix.normalize(exclusion) === exclusion && exclusion !== "." && exclusion !== ".." && !exclusion.startsWith("../") && !exclusion.endsWith("/"), "build declaration admission requires canonical relative exclusion paths");
+      assert.ok(!["*", "?", "[", "{"].some(character => exclusion.includes(character)), "build declaration admission requires explicit exclusion paths");
+      const prefix = exclusion.endsWith("/") ? exclusion : `${exclusion}/`;
+      assert.ok(path !== exclusion && !path.startsWith(prefix), `production declaration excluded from build: ${path}`);
+    }
+    assert.ok(!inventory.entries.some(entry => entry.path === path), `duplicate production declaration route: ${path}`);
+    return { path, classification: "declaration", sha256: sha256(read(path)), qualifiedCoverage: "tsconfig.build.json explicit production declaration input" };
+  });
+  return { ...inventory, entries: [...inventory.entries, ...entries], counts: { ...inventory.counts, declaration: (inventory.counts.declaration ?? 0) + entries.length } };
 }
 
 export function verifyAdmittedStandaloneInventory(inventory, tracked, currentPaths, negativePaths, read, boundaries) {
@@ -74,7 +91,10 @@ export function verifyTypecheckInputs(root, fileSystem = fs) {
   }
   const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split("\0").filter(Boolean);
   for (const entry of staged.entries) assert.ok(tracked.includes(entry.path) && tracked.includes(entry.owner.path), `staged input and owning manifest must be tracked: ${entry.path}`);
-  const inventory = mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries);
+  const inventory = mergeBuildDeclarationInventory(
+    mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries),
+    JSON.parse(read("tsconfig.build.json")), tracked, read,
+  );
   const classified = new Set(inventory.entries.map(entry => entry.path));
   const unknown = tracked.filter(path => path.endsWith(".mts") && !classified.has(path));
   assert.equal(unknown.length, 0, `Unclassified current .mts inputs require an explicit existing-inventory route: ${unknown.join(", ")}`);

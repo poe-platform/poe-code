@@ -2867,3 +2867,37 @@ test("import-origin R2 operational inventory pin rejects missing swapped and rel
     assert.ok(reads.every(path => path === "/package/integration-lint-inventory.json"));
   }
 });
+
+test("production declaration census preserves build coverage and authenticates bytes", async () => {
+  const { mergeBuildDeclarationInventory } = await import("./typecheck-inputs.mjs");
+  const { verifyInventory } = await import("../tests/plugins/qualified-current-release/inventory-check.mjs");
+  const paths = ["bz2", "xz", "zstd"].map(name => `src/commands/bytes/compression/native/generated/${name}.d.mts`);
+  const read = () => Buffer.from("export {};\n");
+  const original = { entries: [], counts: {} };
+  const inventory = mergeBuildDeclarationInventory(original, { include: paths, exclude: ["tests", "dist", "node_modules"] }, paths, read);
+  assert.deepEqual(original, { entries: [], counts: {} });
+  assert.deepEqual(verifyInventory(inventory, paths, [], [], read), { declaration: 3 });
+  assert.throws(() => verifyInventory(inventory, paths, [], [], () => Buffer.from("changed")), /inventory changed/);
+  assert.throws(() => verifyInventory(inventory, [...paths, "src/unrouted.mts"], [], [], read), /classify new paths/);
+});
+
+test("production declaration admission refuses missing or excluded build inputs", async () => {
+  const { mergeBuildDeclarationInventory } = await import("./typecheck-inputs.mjs");
+  const paths = ["bz2", "xz", "zstd"].map(name => `src/commands/bytes/compression/native/generated/${name}.d.mts`);
+  const admit = (build, tracked = paths) => mergeBuildDeclarationInventory({ entries: [], counts: {} }, build, tracked, () => Buffer.from("export {};\n"));
+  assert.throws(() => admit({ include: paths.slice(1) }), /explicit build input/);
+  assert.throws(() => admit({ include: paths }, paths.slice(1)), /must be tracked/);
+  assert.throws(() => admit({ include: paths, exclude: ["src/commands"] }), /excluded from build/);
+  assert.throws(() => admit({ include: paths, exclude: ["src/**"] }), /explicit exclusion paths/);
+  assert.throws(() => admit({ include: paths, exclude: [paths[0]] }), /excluded from build/);
+  for (const exclusion of ["./src/commands", ".", "src/../src/commands", "src//commands", "src/commands/", "../src", "/src", "src\\commands"]) {
+    assert.throws(() => admit({ include: paths, exclude: [exclusion] }), /canonical relative exclusion paths/);
+  }
+});
+
+test("production declaration admission preserves regular-input refusal", async () => {
+  const { mergeBuildDeclarationInventory } = await import("./typecheck-inputs.mjs");
+  const paths = ["bz2", "xz", "zstd"].map(name => `src/commands/bytes/compression/native/generated/${name}.d.mts`);
+  const refusal = new Error("held or non-regular input");
+  assert.throws(() => mergeBuildDeclarationInventory({ entries: [], counts: {} }, { include: paths }, paths, () => { throw refusal; }), error => error === refusal);
+});

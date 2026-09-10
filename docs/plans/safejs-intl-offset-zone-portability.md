@@ -1,5 +1,30 @@
 # Intl fixed-offset zones on the minimum Node runtime
 
+## ZonedDateTime locale extension of the gap
+
+After ZonedDateTime.toLocaleString was implemented, all 32 original upstream
+locale cases passed on Node 22.23.2 (30067c). This does not establish minimum
+runtime portability. On Node 18.18.2, the unchanged upstream offset-time-zones.js
+fixture failed in both modes (be2111), pinned at revision
+419d3e0a2273ba01a3bfcbec423f2801425b8e93.
+
+A follow-up read-only probe (73cab5) caught guest errors explicitly and compared
+direct temporal-polyfill calls on the same host. UTC formatted successfully in
+both; +00:00, +01:00, -01:00 and +05:30 each raised RangeError with the message
+"Invalid time zone specified" in both. Thus this is the existing backend/host
+offset limitation affecting the new ZonedDateTime path, not a suspected public
+getter or option-order bug. The new focused Node 18 locale tests used named
+zones and did not cover it. Do not report those tests as complete portability.
+
+The initial diagnostic launch with --import tsx failed before any guest code
+because Node 18.18.2 requires the loader entry point; --loader tsx executed the
+actual probes. The launch failure is not a SafeJS semantic failure.
+
+Fix this alongside numeric Date/Instant and direct Intl offset support, covering
+localized zone names, parts/ranges, calendar/date boundaries, and extreme epochs.
+Do not substitute UTC or an English-only suffix merely to pass these examples.
+Current package gate 63746 remains live; source has not been edited during it.
+
 ## Reproduction
 
 The same built guest program, using

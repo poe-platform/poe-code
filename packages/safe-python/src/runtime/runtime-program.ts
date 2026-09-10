@@ -41,6 +41,7 @@ import { callRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
 import { runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type-attributes.js";
 import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
+import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-object-attributes.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -168,6 +169,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
       typeAttributeDefault: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods),
       mutateTypeAttributeDefault: specialMethods === undefined ? undefined : (type, name, change) => runtimeMutateTypeAttribute(type, name, change, values, meter, specialMethods),
+      objectAttributeDefault: specialMethods === undefined ? undefined : (object, name) => runtimeObjectAttribute(object, name, values, meter, specialMethods, (object, name) => expressions.attribute(object, name)),
+      mutateObjectAttributeDefault: specialMethods === undefined ? undefined : (object, name, change) => runtimeMutateObjectAttribute(object, name, change, values, meter, specialMethods, (object, name, change) => {
+        if (change.kind === "set") statementHooks.setAttribute(object, name, change.value);
+        else statementHooks.deleteAttribute(object, name);
+      }),
       callTypeDefault: specialMethods === undefined ? undefined : (type, positional, keywords) => {
         const leave = calls.enter(frame);
         try { return callRuntimeType(type, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks), "default"); }

@@ -90,6 +90,9 @@ export interface BuiltinInvocationContext {
   /** Default type attribute slots, without metaclass overrides or getattr. */
   typeAttributeDefault?(type: TypeValue, name: string): RuntimeValue;
   mutateTypeAttributeDefault?(type: TypeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }): void;
+  /** Base object slots, without guest attribute overrides or getattr fallback. */
+  objectAttributeDefault?(object: RuntimeValue, name: string): RuntimeValue;
+  mutateObjectAttributeDefault?(object: RuntimeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }): void;
   typeName?(value: RuntimeValue): string;
   setAttribute?(object: RuntimeValue, name: string, value: RuntimeValue): void;
   deleteAttribute?(object: RuntimeValue, name: string): void;

@@ -2141,6 +2141,43 @@ it("respects class dictionary shadows instead of replacing hidden instance stora
   expect(state.globals.get("own")).toBe(state.v.false);
 });
 
+it("lets instance attribute overrides delegate to native object methods", () => {
+  const state = fixture(), cls = state.type("C"); state.globals.set("object", state.registry.object);
+  state.method(cls, "__getattribute__", "def get(self,name):\n visit('get')\n return object.__getattribute__(self,name)\n");
+  state.method(cls, "__setattr__", "def set(self,name,value):\n visit('set')\n object.__setattr__(self,name,value)\n");
+  state.method(cls, "__delattr__", "def delete(self,name):\n visit('delete')\n object.__delattr__(self,name)\n");
+  state.instance("obj", cls);
+  state.run("obj.x=True\nresult=obj.x\ndel obj.x\n");
+  expect(state.globals.get("result")).toBe(state.v.true); expect(state.events).toEqual(["set", "get", "delete"]);
+});
+
+it("distinguishes explicit object lookup on classes from type lookup", () => {
+  const state = fixture(), base = state.type("Base"), cls = state.type("C", base);
+  state.globals.set("object", state.registry.object); state.globals.set("C", cls);
+  base.value.namespace.items.set(state.v.string("inherited"), state.v.true);
+  const fn = state.method(cls, "f", "def f(): pass\n");
+  state.run("own=object.__getattribute__(C,'f')\nname=object.__getattribute__(C,'__name__')\n");
+  expect(state.globals.get("own")).toBe(fn); expect(state.globals.get("name")).toEqual(state.v.string("C"));
+  expect(() => state.run("object.__getattribute__(C,'inherited')\n")).toThrow("'type' object has no attribute 'inherited'");
+  expect(() => state.run("object.__setattr__(C,'x',True)\n")).toThrow("can't apply this __setattr__ to type object");
+  expect(() => state.run("object.__delattr__(C,'x')\n")).toThrow("can't apply this __delattr__ to type object");
+});
+
+it("does not invoke getattr fallback during explicit base-object lookup", () => {
+  const state = fixture(), cls = state.type("C"); state.globals.set("object", state.registry.object);
+  state.method(cls, "__getattr__", "def fallback(self,name):\n visit('fallback')\n return True\n"); state.instance("obj", cls);
+  state.run("ordinary=obj.missing\n"); expect(state.globals.get("ordinary")).toBe(state.v.true);
+  expect(() => state.run("object.__getattribute__(obj,'missing')\n")).toThrow("'C' object has no attribute 'missing'");
+  expect(state.events).toEqual(["fallback"]);
+});
+
+it("uses base-object methods for function metadata without losing native policies", () => {
+  const state = fixture(); state.globals.set("object", state.registry.object);
+  state.run("def f(): pass\nobject.__setattr__(f,'custom',True)\nvalue=object.__getattribute__(f,'custom')\ndictionary=object.__getattribute__(f,'__dict__')\nsame=dictionary is f.__dict__\nobject.__delattr__(f,'custom')\n");
+  expect(state.globals.get("value")).toBe(state.v.true); expect(state.globals.get("same")).toBe(state.v.true);
+  expect(() => state.run("f.custom\n")).toThrow("'function' object has no attribute 'custom'");
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

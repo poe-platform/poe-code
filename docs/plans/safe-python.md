@@ -8098,6 +8098,23 @@ extension, integration, or validation requirement is missing or unverified.
   constructors match CPython. Scoped lint passes.
   Native payload dictionary introductions, __class__ mutation, remaining function
   fields and the full class-construction pipeline remain unfinished.
+- Installed native object __getattribute__/__setattr__/__delattr__ wrappers and
+  explicit default execution capabilities. Owned instance overrides can delegate
+  without recursively applying themselves or __getattr__. Functions retain
+  native metadata and dictionary policies. Explicit object lookup treats classes
+  as metaclass instances, reading their own namespace without binding contained
+  descriptors or searching base-class namespaces. Type mutation applicability is
+  checked after keyword/arity validation but before attribute-name validation,
+  matching a reproduced CPython discrepancy. Two initial compiled failures and
+  two error-priority failures now pass; four compiled cases and 17 wrapper tests
+  cover delegation, fallback suppression, metadata, validation and cancellation.
+  All 6,300 tests in 480 files, selected build and typecheck pass. All 288
+  instance/type argument-validation cases, 160 class descriptor-precedence cases,
+  96 ordinary constructors, 96 wrapper constructors and 60 wrapper abstractness
+  cases match CPython. Scoped lint passes. Opaque/native default storage
+  still uses the execution extension boundary; a complete native type/member
+  catalog, __class__, native payload layouts and full class construction remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

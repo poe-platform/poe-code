@@ -28,8 +28,8 @@ test("default preset exposes search commands with explicit Node regex injection"
   assert.equal(typeof browser.agentCommands, "function");
   const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(browser.agentCommands({ regexExecutor: provider }));
   assert.equal((await shell.exec("grep x", { stdin: "x\n" })).exitCode, 0);
-  assert.equal(shell.commands.list().length, 107);
-  for (const name of ["xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd"]) assert.equal(shell.commands.has(name), true);
+  assert.equal(shell.commands.list().length, 108);
+  for (const name of ["xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv"]) assert.equal(shell.commands.has(name), true);
   for (const source of ["printf 'first\\nsecond\\n' | grep second", "printf 'first\\nsecond\\n' | rg second", "printf 'first\\nsecond\\n' | sed -n '/second/p'"]) {
     const result = await shell.exec(source);
     assert.equal(result.exitCode, 0, result.stderr);

@@ -197,6 +197,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/grep-aliases",
       "./safe-bash/commands/hexdump",
       "./safe-bash/commands/html-to-markdown",
+      "./safe-bash/commands/iconv",
       "./safe-bash/commands/metadata",
       "./safe-bash/commands/network",
       "./safe-bash/commands/node",

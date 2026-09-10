@@ -123,6 +123,12 @@
       "browser": "./dist/commands/hexdump/index.browser.js",
       "import": "./dist/commands/hexdump/index.js"
     },
+    "./commands/iconv": {
+      "types": "./dist/commands/iconv/index.d.ts",
+      "workerd": "./dist/commands/iconv/index.browser.js",
+      "browser": "./dist/commands/iconv/index.browser.js",
+      "import": "./dist/commands/iconv/index.js"
+    },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
       "import": "./dist/commands/time-env/index.js"

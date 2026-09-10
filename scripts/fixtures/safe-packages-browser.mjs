@@ -94,3 +94,6 @@ for (const result of nested.results) {
     throw new Error(`Nested browser dispatch failed: ${JSON.stringify(result)}`);
   }
 }
+
+import { verifyIconvCommands } from "./safe-packages-iconv.mjs";
+await verifyIconvCommands();

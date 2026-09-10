@@ -1912,6 +1912,18 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/factor-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/getopt-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/hexdump-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/iconv-commands.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/boundaries.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/extent-diagnostics.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv-independent/synchronous-close.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv-independent/acquisition-close.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/native.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/review.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/translit-policy.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/translit-streams.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/translit.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/fresh.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/native.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/path.test.ts"));

@@ -17,6 +17,7 @@ export function resolveBrowserShellBuild(rootDir) {
       "commands/factor/index.browser": path.join(directory, "src/commands/factor/index.ts"),
       "commands/getopt/index.browser": path.join(directory, "src/commands/getopt/index.ts"),
       "commands/hexdump/index.browser": path.join(directory, "src/commands/hexdump/index.ts"),
+      "commands/iconv/index.browser": path.join(directory, "src/commands/iconv/index.ts"),
     },
     outdir: path.join(directory, "dist"),
     splitting: true,

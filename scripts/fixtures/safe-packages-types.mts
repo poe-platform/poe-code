@@ -198,3 +198,5 @@ void hdFactory;
 void hexdumpFactories;
 void hexdumpPluginFactory;
 void createAgentCommands(hexdumpAgentOptions);
+
+import "./safe-packages-iconv-types.mjs";

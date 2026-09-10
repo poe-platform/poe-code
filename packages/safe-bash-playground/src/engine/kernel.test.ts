@@ -483,10 +483,11 @@ describe("real safe-bash browser kernel", () => {
         "factor",
         "getopt",
         "hexdump",
-        "hd"
+        "hd",
+        "iconv"
       ])
     );
-    expect(kernel.supportedCommands).toHaveLength(107);
+    expect(kernel.supportedCommands).toHaveLength(108);
     expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum"]));
   });
 });

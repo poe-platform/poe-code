@@ -213,3 +213,7 @@ const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: 
 await mounted.copyFile("/source/input", "/target/copy", { exclusive: true });
 assert.deepEqual(await target.readFile("/copy"), new Uint8Array([42]));
 console.log("Scoped SafeJS, shell, canonical filesystem, copy options and input limits passed");
+
+import { verifyIconvCommands } from "./safe-packages-iconv.mjs";
+await verifyIconvCommands(defaultEntry);
+await verifyIconvCommands(nodeEntry);

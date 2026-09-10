@@ -43,6 +43,9 @@ import { installRuntimeIntegerByteDescriptors } from "./runtime-integer-byte-des
 import { createFloatNewBuiltin } from "./builtin-float-new.js";
 import { installRuntimeFloatSlots } from "./runtime-float-slots.js";
 import { installRuntimeFloatMethodDescriptors } from "./runtime-float-method-descriptors.js";
+import { createComplexNewBuiltin } from "./builtin-complex-new.js";
+import { installRuntimeComplexSlots } from "./runtime-complex-slots.js";
+import { installRuntimeComplexMethodDescriptors } from "./runtime-complex-method-descriptors.js";
 import { createBooleanNewBuiltin } from "./builtin-boolean-new.js";
 import { installRuntimeBooleanSlots } from "./runtime-boolean-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
@@ -95,6 +98,7 @@ export class RuntimeTypeRegistry {
   #rangeType: TypeValue | undefined;
   #integerType: TypeValue | undefined;
   #floatType: TypeValue | undefined;
+  #complexType: TypeValue | undefined;
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
@@ -297,6 +301,21 @@ export class RuntimeTypeRegistry {
     installRuntimeBooleanSlots(type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#booleanType = type;
+    return type;
+  }
+
+  complexType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#complexType!==undefined)return this.#complexType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("complex",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,variableSized:false});
+    const type=this.values.type(layout,this.type,{immutable:true});
+    namespace.items.set(this.values.string("__new__"),createComplexNewBuiltin(type,this.values,this.meter,type=>this.#entries.has(type.value)));
+    namespace.items.set(this.values.string("__doc__"),this.values.string("Create a complex number from a string or numbers.\n\nIf a string is given, parse it as a complex number.\nIf a single number is given, convert it to a complex number.\nIf the 'real' or 'imag' arguments are given, create a complex number\nwith the specified real and imaginary components."));
+    installRuntimeComplexSlots(type,this.values,this.meter);
+    installRuntimeComplexMethodDescriptors(type,this.values,this.meter);
+    this.meter.checkpoint(1,64);
+    this.#entries.set(layout,{type});this.#complexType=type;
     return type;
   }
 

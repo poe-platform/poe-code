@@ -52,6 +52,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       if (value.kind === "range") return registry.rangeType();
       if (value.kind === "int") return registry.integerType();
       if (value.kind === "float") return registry.floatType();
+      if (value.kind === "complex") return registry.complexType();
       if (value.kind === "bool") return registry.booleanType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
@@ -66,6 +67,45 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("allocates canonical complex instances and owned subclasses with native numeric slots",()=>{
+  const state=fixture();state.globals.set("Complex",state.registry.complexType());
+  state.run("class Z(Complex):\n pass\nx=Z('1+2j')\ny=Complex(3,4)\ncorrect=type(x) is Z and type(y) is Complex and x==1+2j and x+y==4+6j and 2*x==2+4j and x/2==0.5+1j and x**2==-3+4j and -x==-1-2j and +x==1+2j and not Z() and x.real==1.0 and x.imag==2.0\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("class Child(Complex):\n def __init__(self,**kw):\n  pass\nChild(tag=1)\n")).toThrow("complex() got an unexpected keyword argument 'tag'");
+});
+
+it("prioritizes complex subclass reflected numeric and comparison methods",()=>{
+  const state=fixture();state.globals.set("Complex",state.registry.complexType());
+  state.run("class Z(Complex):\n def __radd__(self,other):\n  visit('radd')\n  return 9\n def __eq__(self,other):\n  visit('eq')\n  return True\nx=Z(2)\ncorrect=(1j+x)==9 and (1j==x) and Complex.__add__(x,1j)==2+1j\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["radd","eq"]);
+});
+
+it("validates complex allocators and preserves constructor result identity rules",()=>{
+  const state=fixture();state.globals.set("Complex",state.registry.complexType());
+  state.run("class Z(Complex):\n pass\nx=Complex(1,2)\ny=Z(x)\ncorrect=Complex(x) is x and Complex.__new__(Complex,x) is x and type(y) is Z and y is not x and Complex(y) is not y\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("Complex.__new__()\n")).toThrow("complex.__new__(): not enough arguments");
+  expect(()=>state.run("Complex.__new__(None)\n")).toThrow("complex.__new__(X): X is not a type object (NoneType)");
+  expect(()=>state.run("Complex.__new__(object)\n")).toThrow("complex.__new__(object): object is not a subtype of complex");
+});
+
+it("publishes complex members and methods that inspect storage without conversion overrides",()=>{
+  const state=fixture();state.globals.set("Complex",state.registry.complexType());state.globals.set("Float",state.registry.floatType());
+  state.run("class Z(Complex):\n def __complex__(self):\n  visit('wrong')\n  return 9j\nx=Complex(1,2)\ny=Z(1,2)\ncorrect=type(y.real) is Float and y.real==1.0 and y.imag==2.0 and Complex.real.__objclass__ is Complex and Complex.real.__get__(y)==1.0 and x.__complex__() is x and Complex.__complex__(y)==x and y.conjugate()==1-2j and y.__getnewargs__()==(1.0,2.0) and type(+y) is Complex and y.__abs__()==x.__abs__() and f'{y!r}'=='(1+2j)'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+  expect(()=>state.run("y.real=2\n")).toThrow("readonly attribute");
+});
+
+it("hashes owned complex NaN components using the instance identity",()=>{
+  const state=fixture(),owner=state.registry.complexType();state.globals.set("Complex",owner);
+  state.run("class Z(Complex):\n pass\nx=Z('nan+nanj')\n");
+  const value=state.globals.get("x")!,descriptor=owner.value.namespace.items.lookup(state.v.string("__hash__"))?.value;
+  if(descriptor?.kind!=="wrapper_descriptor")throw Error("expected complex hash descriptor");
+  const keywords=state.v.dictionary(owner.value.namespace.items.emptyCopy());
+  const result=descriptor.value.invoke(value,[],keywords,state.meter,{nativeHash:()=>17n,identityHash:receiver=>receiver===value?31n:17n,call():never{throw Error("unexpected call");},isStopIteration:()=>false});
+  expect(result).toEqual(state.v.integer(31000124));
+});
 
 it("renders invalid float buffer inputs before releasing their leases", () => {
   const events:string[]=[];

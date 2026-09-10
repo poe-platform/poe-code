@@ -9597,6 +9597,23 @@ extension, integration, or validation requirement is missing or unverified.
   Canonical complex type publication, allocation and numeric/member descriptors,
   complete interpreter assembly, guest exceptions and safe-fs execution remain
   unfinished. No push or release was requested.
+- Canonical complex allocation and numeric slots (2026-09-10): failing guest
+  integration tests drove execution-owned complex type publication, safe native
+  allocation and subclass storage, unary/binary/comparison slots and reflected
+  subtype priority. Complex subclasses retain strict constructor keyword
+  validation even with custom initializers. Published read-only real/imag member
+  descriptors, conjugate, __complex__ and __getnewargs__; owned NaN hashing uses
+  the instance identity. Five integration tests cover allocation, identity,
+  reflection, descriptors and NaN hashes. All 1,058 focused mixed-numeric/member
+  comparisons and 430 descriptor/allocator comparisons match CPython. Workspace
+  build, typecheck, focused lint and all 7,104 tests in 501 files pass in the
+  uncached one-worker package run. An earlier
+  1,078-case exploratory run exposed three non-complex gaps: native None/str
+  hash descriptors and str.__getnewargs__; these remain unfinished alongside
+  canonical complex formatting/from_number, full interpreter assembly, guest
+  exceptions and safe-fs execution. Existing complex magnitude rounding and
+  transcendental power kernels retain their documented platform-ULP differences.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

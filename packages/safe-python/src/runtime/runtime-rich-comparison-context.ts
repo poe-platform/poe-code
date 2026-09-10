@@ -14,7 +14,7 @@ const methods: ReadonlyMap<string, readonly [string, string]> = new Map([
   ["<", ["__lt__", ">"]], ["<=", ["__le__", ">="]], [">", ["__gt__", "<"]], [">=", ["__ge__", "<="]]
 ]);
 
-const nativeContainerKinds = new Set(["dict", "list", "tuple", "set", "frozenset", "int", "float"]);
+const nativeContainerKinds = new Set(["dict", "list", "tuple", "set", "frozenset", "int", "float", "complex"]);
 
 /** Live type-MRO comparison dispatch. Strict subtypes reflect first even when
  * they inherit the method; same-type operands still get both attempts. Opaque

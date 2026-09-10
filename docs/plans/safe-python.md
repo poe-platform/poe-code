@@ -10024,6 +10024,22 @@ extension, integration, or validation requirement is missing or unverified.
   Full string subclass storage, broader public runtime/standard-library/safe-fs
   assembly, suspension and specialized exception families remain unfinished.
   No push or release requested.
+- Native syntax exception family (2026-09-10): failing regressions drove
+  SyntaxError, IndentationError and TabError catalog/layout integration, native
+  message/location/private-metadata fields, detail initialization and specialized
+  string formatting. Arguments remain separate from mutable native fields and
+  the guest dictionary. Failed detail collection retains callback effects;
+  cardinality failures preserve prior fields, while a five-item sequence writes
+  fields before its missing-end-offset error. Valid details clear omitted end
+  positions/metadata. No iterator hints or reacquisition occur. Formatting uses
+  basename/exact-integer line snapshots before guest message conversion and
+  bypasses attribute overrides. Host failures and execution limits stay fatal.
+  All 167 CPython comparisons and five focused regressions pass. The selected
+  workspace build, typecheck, focused lint and all 7,231 tests in 503 files pass
+  in the uncached one-worker run (159.86s; bodies 10.38s). Parser error conversion,
+  traceback display, other specialized exceptions, suspension and public
+  interpreter/standard-library/safe-fs assembly remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

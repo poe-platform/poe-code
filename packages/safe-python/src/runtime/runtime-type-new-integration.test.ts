@@ -80,6 +80,42 @@ function exceptionFixture() {
   return state;
 }
 
+it("constructs native syntax exception families with location fields",()=>{
+  for(const name of ["SyntaxError","IndentationError","TabError"] as const) {
+    const state=exceptionFixture();state.globals.set("Failure",state.registry.exceptionType(name));
+    state.run("error=Failure('bad',('folder/code.py',2,3,'text',4,5,{'key':1}))\ncorrect=error.msg=='bad' and error.filename=='folder/code.py' and error.lineno==2 and error.offset==3 and error.text=='text' and error.end_lineno==4 and error.end_offset==5 and error._metadata=={'key':1} and error.print_file_and_line is None and f'{error}'=='bad (code.py, line 2)'\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("retains syntax exception partial initialization and native state",()=>{
+  const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));
+  state.run("error=SyntaxError('old',('old.py',1,2,'old',3,4,5))\ntry:\n error.__init__('new',('new.py',6,7,'new',8))\nexcept TypeError as caught:\n correct=caught.args==('end_offset must be provided when end_lineno is provided',)\ncorrect=correct and error.args==('new',('new.py',6,7,'new',8)) and error.filename=='new.py' and error.end_lineno==8 and error.end_offset is None and error._metadata is None\nerror.__init__()\ncorrect=correct and error.args==() and error.msg=='new' and error.filename=='new.py'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("collects syntax exception details without hints or iterator reacquisition",()=>{
+  const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));
+  state.run("events=[]\nclass Cursor:\n def __init__(self):\n  self.i=0\n def __iter__(self):\n  events.append('cursor iter')\n  return self\n def __length_hint__(self):\n  events.append('cursor hint')\n  return 4\n def __next__(self):\n  if self.i==4:\n   raise StopIteration\n  self.i+=1\n  return self.i\nclass Details:\n def __iter__(self):\n  events.append('source iter')\n  return Cursor()\n def __len__(self):\n  events.append('source len')\n  return 4\ne=SyntaxError('bad',Details())\ncorrect=events==['source iter'] and e.filename==1 and e.text==4\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("isolates native syntax fields from attribute overrides and formatting mutations",()=>{
+  const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));
+  state.run("class Failure(SyntaxError):\n def __getattribute__(self,name):\n  if name in ('msg','filename','lineno'):\n   return 'override'\n  return object.__getattribute__(self,name)\n def __setattr__(self,name,value):\n  visit('set')\nclass Message:\n def __str__(self):\n  SyntaxError.filename.__set__(e,'changed')\n  SyntaxError.lineno.__set__(e,99)\n  return 'message'\ne=Failure(Message(),('folder/original.py',1,2,'text'))\ncorrect=f'{e}'=='message (original.py, line 1)' and SyntaxError.filename.__get__(e)=='changed' and SyntaxError.lineno.__get__(e)==99\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+});
+
+it("preserves fatal syntax detail iterator failures and partial argument updates",()=>{
+  for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"TypeError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("e=SyntaxError('old',('old.py',1,2,'old',3,4))\nclass Details:\n def __iter__(self):\n  fail()\ntry:\n e.__init__('new',Details())\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+    state.run("correct=e.args[0]=='new' and e.msg=='new' and e.filename=='old.py' and e.end_lineno==3\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
 it("dispatches string translation through guest mapping subscriptions",()=>{
   const state=exceptionFixture();
   state.run("class Table:\n def __getitem__(self,key):\n  return key+1\ncorrect='abc'.translate(Table())=='bcd'\n");

@@ -1,5 +1,6 @@
 import { installAttributeErrorStateDescriptors } from "./runtime-attribute-error-state.js";
 import { installImportErrorStateDescriptor } from "./runtime-import-error-state.js";
+import { installSyntaxErrorState } from "./runtime-syntax-error-state.js";
 
 /** Builtin exceptions using BaseException's allocation family. Representation
  * policies share storage; argument-derived members introduce native layouts.
@@ -15,6 +16,9 @@ export const standardExceptionCatalog = {
   OverflowError: {base:"ArithmeticError",doc:"Result too large to be represented."},
   ZeroDivisionError: {base:"ArithmeticError",doc:"Second argument to a division or modulo operation was zero."},
   AssertionError: {base:"Exception",doc:"Assertion failed."},
+  SyntaxError: {base:"Exception",doc:"Invalid syntax.",ownAllocator:false,nativeMembers:true,install:installSyntaxErrorState},
+  IndentationError: {base:"SyntaxError",doc:"Improper indentation.",ownAllocator:false},
+  TabError: {base:"IndentationError",doc:"Improper mixture of spaces and tabs.",ownAllocator:false},
   BufferError: {base:"Exception",doc:"Buffer error."},
   EOFError: {base:"Exception",doc:"Read beyond end of file."},
   LookupError: {base:"Exception",doc:"Base class for lookup errors."},

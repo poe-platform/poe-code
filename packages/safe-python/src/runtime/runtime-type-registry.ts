@@ -331,7 +331,7 @@ export class RuntimeTypeRegistry {
     if(!Object.hasOwn(standardExceptionCatalog,name))throw Error("unknown standard exception type");
     const spec=standardExceptionCatalog[name],base=this.exceptionType(spec.base);
     const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
-    const layout=new RuntimeTypeLayout(name,[base.value],namespace,this.meter,{sequenceTable:false,weakReferences:false,objectLayout:"member" in spec?false:undefined,nativeAllocator:base.value.nativeAllocator});
+    const layout=new RuntimeTypeLayout(name,[base.value],namespace,this.meter,{sequenceTable:false,weakReferences:false,objectLayout:"member" in spec||"nativeMembers" in spec?false:undefined,nativeAllocator:base.value.nativeAllocator});
     const type=this.values.type(layout,this.type,{immutable:true});
     if(!("ownAllocator" in spec)||spec.ownAllocator)namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value)));
     if("stringArgument" in spec||"stringMember" in spec)namespace.items.set(this.values.string("__str__"),createExceptionRepresentationDescriptor("__str__",type,this.values,this.meter,"stringArgument" in spec?spec.stringArgument:"str","stringMember" in spec?spec.stringMember:undefined));

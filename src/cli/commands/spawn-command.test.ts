@@ -3133,38 +3133,6 @@ describe("spawn command", () => {
     }
   });
 
-  it("prints kimi resume command with --session and --work-dir", async () => {
-    vi.mocked(sdkSpawn).mockImplementation(() => ({
-      events: emptyAsyncIterable(),
-      result: Promise.resolve({
-        stdout: "",
-        stderr: "",
-        exitCode: 0,
-        threadId: "thread_abc123"
-      })
-    }));
-
-    const processCwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/projects/demo");
-
-    try {
-      const logs: string[] = [];
-      const { runner } = createCommandRunnerStub();
-      const program = createProgram({
-        fs,
-        prompts: vi.fn().mockResolvedValue({}),
-        env: { cwd, homeDir },
-        commandRunner: runner,
-        logger: (message) => logs.push(message)
-      });
-
-      await program.parseAsync(["node", "cli", "spawn", "kimi", "hello"]);
-
-      const plainLog = stripAnsi(logs.join("\n"));
-      expect(plainLog).toContain("Resume: kimi --session thread_abc123 --work-dir /projects/demo");
-    } finally {
-      processCwdSpy.mockRestore();
-    }
-  });
 
   it("does not print resume when config has no resume spec", async () => {
     vi.mocked(sdkSpawn).mockImplementation(() => ({

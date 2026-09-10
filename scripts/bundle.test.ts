@@ -85,7 +85,13 @@ it.each([
             : "export {};\n"
         ])
       ),
-      [path.join(root, "src/providers/proof.ts")]: "export {};"
+      [path.join(root, "src/providers/proof.ts")]: "export {};",
+      [path.join(root, "dist/providers/retired.js")]: "export {};",
+      [path.join(root, "dist/providers/retired.js.map")]: "{}",
+      [path.join(root, "dist/providers/retired.d.ts")]: "export {};",
+      [path.join(root, "dist/providers/retired.d.ts.map")]: "{}",
+      [path.join(root, "dist/providers/proof.d.ts")]: "export {};",
+      [path.join(root, "dist/providers/notes.txt")]: "keep"
     });
     for (const name of ["safe-fs", "safe-js", "safe-bash", "memory", "agent-mcp-config", "agent-skill-config"]) {
       volume.mkdirSync(path.join(root, "packages", name, "dist"), { recursive: true });
@@ -163,6 +169,11 @@ it.each([
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      for (const suffix of [".js", ".js.map", ".d.ts", ".d.ts.map"]) {
+        expect(volume.existsSync(path.join(root, `dist/providers/retired${suffix}`))).toBe(false);
+      }
+      expect(volume.existsSync(path.join(root, "dist/providers/proof.d.ts"))).toBe(true);
+      expect(volume.readFileSync(path.join(root, "dist/providers/notes.txt"), "utf8")).toBe("keep");
       for (const [name, content] of Object.entries(experimentAssets)) {
         expect(await files.readFile(path.join(root, "dist", name), "utf8")).toBe(content);
       }

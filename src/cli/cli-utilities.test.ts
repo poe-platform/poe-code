@@ -192,8 +192,6 @@ describe("listIsolatedServiceIds", () => {
       "gemini-cli",
       "gemini",
       "goose",
-      "kimi",
-      "kimi-cli",
       "opencode"
     ]);
   });
@@ -225,8 +223,6 @@ describe("listIsolatedServiceIds", () => {
       "gemini-cli",
       "gemini",
       "goose",
-      "kimi",
-      "kimi-cli",
       "opencode",
       "custom-isolated"
     ]);

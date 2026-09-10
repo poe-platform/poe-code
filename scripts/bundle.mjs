@@ -2,7 +2,7 @@ import * as esbuild from "esbuild";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, cp, lstat, mkdir, open, readFile, readdir, realpath, stat, writeFile } from "node:fs/promises";
+import { copyFile, cp, lstat, mkdir, open, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
@@ -101,7 +101,10 @@ async function getProviderEntryPoints(root) {
     if (!isProviderSourceFile(entry.name)) continue;
     files.push(path.join(providersDir, entry.name));
   }
-  return files;
+  return {
+    entryPoints: files,
+    sourceNames: new Set(entries.filter(entry => entry.isFile()).map(entry => entry.name))
+  };
 }
 
 const mainBuild = await esbuild.build({
@@ -181,7 +184,7 @@ consumerBuilds.push(
   })
 );
 
-const providerEntryPoints = await getProviderEntryPoints(rootDir);
+const { entryPoints: providerEntryPoints, sourceNames: providerSourceNames } = await getProviderEntryPoints(rootDir);
 if (providerEntryPoints.length > 0) {
   consumerBuilds.push(
     await esbuild.build({
@@ -473,6 +476,18 @@ if (issues.length)
   throw new Error(
     `Bundle publication policy failed:\n${issues.map((issue) => `${issue.external}: ${issue.reason}`).join("\n")}`
   );
+const providerOutputDirectory = path.join(rootDir, "dist", "providers");
+await assertSafeOutputDirectory(rootDir, providerOutputDirectory);
+const providerOutputs = await readdir(providerOutputDirectory, { withFileTypes: true }).catch(error => {
+  if (error.code !== "ENOENT") throw error;
+  return [];
+});
+for (const entry of providerOutputs) {
+  const suffix = [".d.ts.map", ".js.map", ".d.ts", ".js"].find(extension => entry.name.endsWith(extension));
+  if (entry.isFile() && suffix && !providerSourceNames.has(`${entry.name.slice(0, -suffix.length)}.ts`)) {
+    await rm(path.join(providerOutputDirectory, entry.name));
+  }
+}
 await writeFile(path.join(rootDir, "dist/metafile.json"), JSON.stringify(metafile));
 
 console.log("Bundle complete: dist/index.js + dist/bin.cjs");

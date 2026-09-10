@@ -22,7 +22,6 @@ const COMMANDS = [
   "poe-code configure claude-code --yes --dry-run --verbose",
   "poe-code configure codex --yes --dry-run --verbose",
   "poe-code configure opencode --yes --dry-run --verbose",
-  "poe-code configure kimi --yes --dry-run --verbose",
   "poe-code unconfigure claude-code --dry-run --verbose",
   "poe-code spawn claude-code 'hello' --mode yolo --dry-run --verbose",
   "poe-code login --dry-run",

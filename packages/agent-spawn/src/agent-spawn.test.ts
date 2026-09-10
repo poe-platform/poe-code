@@ -8,7 +8,6 @@ import {
 import { claudeCodeSpawnConfig } from "./configs/claude-code.js";
 import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
-import { kimiSpawnConfig } from "./configs/kimi.js";
 import { gooseSpawnConfig } from "./configs/goose.js";
 import { piSpawnConfig } from "./configs/pi.js";
 import * as agentSpawnApi from "@poe-code/agent-spawn";
@@ -201,12 +200,6 @@ describe("stripModelNamespace", () => {
 // === build-spawn-args.test.ts ===
 
 describe("buildSpawnArgs", () => {
-  it("forwards an explicit Kimi model alias without choosing a default", () => {
-    const selected = buildSpawnArgs("kimi", { prompt: "test", model: "custom/model-alias", mode: "yolo" });
-    expect(selected.args).toContain("--model");
-    expect(selected.args[selected.args.indexOf("--model") + 1]).toBe("custom/model-alias");
-    expect(buildSpawnArgs("kimi", { prompt: "test", mode: "yolo" }).args).not.toContain("--model");
-  });
 
   it("throws error if agent ID cannot be resolved", () => {
     expect(() => buildSpawnArgs("unknown", { prompt: "test" })).toThrow(/Unknown agent/);
@@ -601,17 +594,6 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain("poe/poe/gpt-5.2");
   });
 
-  it("builds correct args for kimi", () => {
-    const result = buildSpawnArgs("kimi", { prompt: "hello", mode: "yolo" });
-
-    expect(result.binaryName).toBe("kimi");
-    expect(result.args).toEqual([
-      kimiSpawnConfig.promptFlag,
-      "hello",
-      ...kimiSpawnConfig.defaultArgs,
-      ...kimiSpawnConfig.modes.yolo
-    ]);
-  });
 
   it("builds goose args with the run subcommand before prompt and model flags", () => {
     const result = buildSpawnArgs("goose", {
@@ -751,7 +733,7 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain(prompt);
   });
 
-  it.each(["kimi", "goose"])(
+  it.each(["goose"])(
     "does not automatically pipe large prompts into the %s structured-input protocol",
     (agent) => {
       const prompt = "x".repeat(64 * 1024 + 1);
@@ -839,30 +821,6 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
-  it("adds kimi MCP config as --mcp-config JSON before mode args", () => {
-    const result = buildSpawnArgs("kimi", {
-      prompt: "hello",
-      mode: "yolo",
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"]
-        }
-      }
-    });
-
-    const mcpIndex = result.args.indexOf("--mcp-config");
-    expect(mcpIndex).toBeGreaterThan(-1);
-    expect(JSON.parse(result.args[mcpIndex + 1] ?? "{}")).toEqual({
-      mcpServers: {
-        test: {
-          command: "tiny-stdio-mcp-test-server",
-          args: ["serve", "word-of-the-day"]
-        }
-      }
-    });
-    expect(result.args.slice(mcpIndex + 2)).toEqual([...kimiSpawnConfig.modes.yolo]);
-  });
 
   it("adds goose MCP config as --with-extension args before the prompt flag", () => {
     const result = buildSpawnArgs("goose", {

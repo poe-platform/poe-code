@@ -152,6 +152,8 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
   };
   meter.checkpoint(0, 384);
   const methods = {
+    attribute: context.attribute.bind(context),
+    dictionaryKeys: "dictionaryKeys" in bindings ? bindings.dictionaryKeys : undefined,
     iterate: context.iterate.bind(context), compare: context.compare.bind(context),
     truth: context.truth.bind(context), get integerIndex() { return bindings.integerIndex; }, bytes: bindings.bytes,
     translation: bindings.translation, buffers: bindings.buffers

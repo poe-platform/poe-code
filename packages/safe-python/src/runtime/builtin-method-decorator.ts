@@ -16,6 +16,31 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
     for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
     return false;
   };
+  for (const name of ["__annotations__", "__annotate__"]) {
+    meter.checkpoint(1, 128);
+    owner.value.namespace.items.set(values.string(name), values.getsetDescriptor({ owner, name, accepts,
+      get(instance, meter, invocation) {
+        if (instance.kind !== kind) throw Error("invalid method-wrapper annotation receiver");
+        const cached = instance.state.attributes.get(name);
+        if (cached !== undefined) return cached;
+        if (invocation?.attribute === undefined) throw Error("method-wrapper annotations require an attribute policy");
+        const result = invocation.attribute(instance.value, name); meter.checkpoint();
+        instance.state.attributes.set(name, result); return result;
+      },
+      set(instance, value) {
+        if (instance.kind !== kind) throw Error("invalid method-wrapper annotation receiver");
+        instance.state.attributes.set(name, value);
+      },
+      delete(instance, meter) {
+        if (instance.kind !== kind) throw Error("invalid method-wrapper annotation receiver");
+        if (!instance.state.attributes.delete(name)) {
+          const typeName = diagnosticTypeName(instance.type?.value.name ?? kind, meter, 100);
+          meter.checkpoint(0, 128 + 2 * typeName.length);
+          throw new PythonRuntimeError("AttributeError", `'${typeName}' object has no attribute '${name}'`);
+        }
+      }
+    }));
+  }
   owner.value.namespace.items.set(values.string("__isabstractmethod__"), values.getsetDescriptor({ owner, name: "__isabstractmethod__", accepts,
     get(instance, meter, invocation) {
       if (instance.kind !== kind) throw Error("invalid method-wrapper abstractness receiver");

@@ -2034,6 +2034,40 @@ it.each(["staticmethod", "classmethod"] as const)("reads %s abstractness from fu
   state.run("second=wrapped.__isabstractmethod__\n"); expect(state.globals.get("second")).toBe(state.v.false);
 });
 
+it.each(["staticmethod", "classmethod"] as const)("lazily exposes ignored source annotations through %s", kind => {
+  const state = fixture(); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  state.run("@factory\ndef wrapped(x: Missing) -> Absent:\n return x\nfunction=wrapped.__func__\nannotations=wrapped.__annotations__\nsame=annotations is function.__annotations__\nagain=wrapped.__annotations__ is annotations\nannotate=wrapped.__annotate__\n");
+  const annotations = state.globals.get("annotations")!;
+  if (annotations.kind !== "dict") throw Error("expected ignored annotation dictionary");
+  expect(annotations.items.size).toBe(0); expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("again")).toBe(state.v.true); expect(state.globals.get("annotate")).toBe(state.v.none);
+});
+
+it.each(["staticmethod", "classmethod"] as const)("caches and replaces %s annotation proxy fields independently", kind => {
+  const state = fixture(); state.instance("payload", state.type("Payload")); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  for (const name of ["__annotations__", "__annotate__"]) {
+    state.run(`payload.${name}=True\nwrapped=factory(payload)\nfirst=wrapped.${name}\npayload.${name}=False\ncached=wrapped.${name}\ndel wrapped.${name}\nrefreshed=wrapped.${name}\nwrapped.${name}=None\nassigned=wrapped.${name}\nwrapped.__dict__={}\nuncached=wrapped.${name}\n`);
+    for (const key of ["first", "cached"]) expect(state.globals.get(key)).toBe(state.v.true);
+    for (const key of ["refreshed", "uncached"]) expect(state.globals.get(key)).toBe(state.v.false);
+    expect(state.globals.get("assigned")).toBe(state.v.none);
+    state.run(`del wrapped.${name}\n`);
+    expect(() => state.run(`del wrapped.${name}\n`)).toThrow(`'${kind}' object has no attribute '${name}'`);
+    state.run(`del payload.${name}\n`);
+    expect(() => state.run(`wrapped.${name}\n`)).toThrow(`'Payload' object has no attribute '${name}'`);
+  }
+});
+
+it("provides ignored function and wrapper annotations to nested format-field lookup", () => {
+  const state = fixture(); state.globals.set("factory", state.registry.methodDecoratorType("staticmethod"));
+  state.run("def f(x: Missing): pass\nresult='{0.__annotations__}'.format(f)\n@factory\ndef g(x: Absent): pass\nwrapped='{0.__annotations__}'.format(g)\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("{}"));
+  expect(state.globals.get("wrapped")).toEqual(state.v.string("{}"));
+});
+
+it.each(["staticmethod", "classmethod"] as const)("reports the None payload type when %s annotation lookup is missing", kind => {
+  const state = fixture(); state.globals.set("factory", state.registry.methodDecoratorType(kind)); state.run("wrapped=factory(None)\n");
+  expect(() => state.run("wrapped.__annotations__\n")).toThrow("'NoneType' object has no attribute '__annotations__'");
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

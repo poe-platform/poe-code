@@ -57,6 +57,8 @@ import { createRuntimeStringTranslateMethod, type RuntimeStringTranslationContex
 import { createRuntimeStringMaketransMethod } from "./runtime-string-maketrans-method.js";
 import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
  * exposed; host payload fields and JavaScript prototypes are never inspected.
@@ -64,9 +66,16 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. A formatting
  * supplier is acquired only for members that actually require that policy. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext }): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "function") {
+    if (name === "__annotate__") return values.none;
+    if (name === "__annotations__") {
+      if (receiver.value.annotations !== undefined) return receiver.value.annotations;
+      if (methods?.dictionaryKeys === undefined) throw Error("function annotation dictionaries require a key policy");
+      const dictionary = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(methods.dictionaryKeys, meter, runtimeDictionaryStorage));
+      meter.checkpoint(); receiver.value.annotations = dictionary; return dictionary;
+    }
     if (name === "__name__") return receiver.value.name;
     if (name === "__qualname__") return receiver.value.qualifiedName;
     if (name === "__module__") return receiver.value.module;
@@ -100,7 +109,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     const supplied = typeof formatting === "function" ? formatting() : formatting; meter.checkpoint();
     const context = supplied ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
     return createRuntimeBraceFormatMethod(receiver, name, values, meter, context, {
-      attribute: (value, key) => runtimeNativeAttribute(value, key, values, meter, beginCall, context),
+      attribute: methods?.attribute?.bind(methods) ?? ((value, key) => runtimeNativeAttribute(value, key, values, meter, beginCall, context, methods)),
       getItem: (value, key) => runtimeIndex(value, key, values, meter)
     });
   }
@@ -201,5 +210,5 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     }
   }
   meter.checkpoint(1, 128 + 2 * name.length);
-  throw new PythonRuntimeError("AttributeError", `'${receiver.kind}' object has no attribute '${name}'`);
+  throw new PythonRuntimeError("AttributeError", `'${receiver.kind === "none" ? "NoneType" : receiver.kind}' object has no attribute '${name}'`);
 }

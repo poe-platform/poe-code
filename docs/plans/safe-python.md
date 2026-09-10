@@ -8039,6 +8039,21 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,248 tests in 476 files, selected build, typecheck and scoped lint pass.
   General instance/function dictionaries, __class__, lazy annotations, full
   native metadata and subclass call/descriptor-slot overrides remain unfinished.
+- Added lazy method-wrapper __annotations__/__annotate__ proxy getsets. Reads
+  cache wrapped attributes by identity, including None; explicit writes accept
+  arbitrary values, and deletion removes only the wrapper cache. Successful
+  outer reads overwrite reentrant writes; lookup failures preserve nested effects.
+  Per the requested annotation policy, functions expose a lazy empty annotation
+  dictionary and None evaluator without evaluating source annotations. Nested
+  format fields now retain ordinary attribute dispatch and dictionary-key policy.
+  Reproduced missing-annotation diagnostics now use NoneType rather than the
+  internal none tag. Seven compiled regressions and five focused cache/cancellation
+  tests cover these paths. All 96 proxy cache/error/reentrancy cases, 60 abstractness
+  cases, 96 wrapper constructors and 20 dictionary traces match CPython; ignored
+  source-annotation semantics are intentionally tested against the user policy.
+  All 6,260 tests in 477 files, selected build, typecheck and scoped lint pass.
+  General instance/function dictionary mutation, __class__, full native metadata
+  and subclass call/descriptor-slot overrides remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

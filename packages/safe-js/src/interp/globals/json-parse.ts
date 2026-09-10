@@ -1,10 +1,19 @@
 import type { Budget } from "../budget.js";
 import { readPropertyDescriptor } from "../accessors.js";
-import { getSandboxPropertyDescriptor, getSandboxPrototype, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
+import { getSandboxPropertyDescriptor, getSandboxPrototype, setSandboxPrototype } from "../object-model.js";
+import { defineDataProperty, objectProperties } from "./object-array.js";
+import { guestProxyStates } from "../guest-proxy.js";
+import { sandboxIsArray } from "../guest-proxy-array.js";
+import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
+import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
+import { sandboxNumber } from "../string-coercion.js";
+import { isNumericTypedArray } from "../typed-array.js";
 import { retainValues } from "../resources.js";
 import {
-  allocateProducedSandboxValue, getRegexProperties,
-  isSandboxPromise, isSandboxRegex, ownEnumerableSandboxKeys,
+  allocateProducedSandboxValue,
+  isSandboxPromise, ownEnumerableSandboxKeys,
   type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue
 } from "../values.js";
 
@@ -103,26 +112,47 @@ export async function parseJsonWithReviver(
     const release = retainValues(budget, () => [holder, value, callbackContext]);
     try {
       if (context?.getProperty !== undefined) value = await context.getProperty(holder, key);
-      else {
+      else if (typeof holder === "object" && holder !== null && guestProxyStates.has(holder)) {
+        value = await sandboxGetProperty(holder, key, holder, budget, context);
+      } else {
         const descriptor = getSandboxPropertyDescriptor(holder as SandboxObject, key, budget);
         value = descriptor === undefined ? undefined : await readPropertyDescriptor(descriptor, holder, context);
       }
       const original = record !== undefined && Object.is(value, record.value) ? record : undefined;
       if (original?.source !== undefined) callbackContext.source = budget.allocateString(original.source);
       if (typeof value === "object" && value !== null) {
-        if (Array.isArray(value)) budget.allocateArrayLength(value.length);
-        const keys = Array.isArray(value)
-          ? Array.from({ length: value.length }, (_, index) => String(index))
-          : ownEnumerableSandboxKeys(value);
+        const proxy = guestProxyStates.has(value);
+        let keys: string[];
+        if (sandboxIsArray(value, budget)) {
+          const number = Array.isArray(value) ? value.length : await sandboxNumber(
+            await sandboxGetProperty(value, "length", value, budget, context), budget, context
+          );
+          const length = Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
+          budget.allocateArrayLength(length);
+          keys = Array.from({ length }, (_, index) => String(index));
+        } else if (proxy) {
+          keys = [];
+          const ownKeys = await sandboxOwnKeys(value, budget, context);
+          const releaseKeys = retainValues(budget, () => [ownKeys, keys]);
+          try {
+            for (const name of ownKeys) {
+              budget.visitNode();
+              if (typeof name !== "string") continue;
+              if ((await sandboxGetOwnPropertyDescriptor(value, name, budget, context))?.enumerable) keys.push(name);
+            }
+          } finally { releaseKeys(); }
+        } else keys = ownEnumerableSandboxKeys(value);
         budget.allocateArrayLength(keys.length);
         for (const name of keys) {
           const replacement = await internalize(value, name, original?.children?.get(name));
-          const properties = isGuestClosure(value) ? materializeFunctionProperties(value)
-            : isSandboxRegex(value) ? getRegexProperties(value) : value;
-          if (replacement === undefined) Reflect.deleteProperty(properties, name);
-          else Reflect.defineProperty(properties, name, {
-            value: replacement, configurable: true, enumerable: true, writable: true
-          });
+          if (replacement === undefined) await sandboxDeleteProperty(value, name, budget, context);
+          else if (proxy || isNumericTypedArray(value)) {
+            await defineDataProperty(value, name, {
+              value: replacement, configurable: true, enumerable: true, writable: true
+            }, budget, context, false);
+          } else Reflect.defineProperty(objectProperties(value, true), name, {
+              value: replacement, configurable: true, enumerable: true, writable: true
+            });
           context?.reconcileData?.(value);
         }
       }

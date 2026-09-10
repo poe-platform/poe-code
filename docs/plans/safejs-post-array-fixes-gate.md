@@ -38,3 +38,20 @@ memory and is not the official runner or a full conformance result. It justified
 no runtime change.
 
 No push, issue closure or release was performed; release hold remains active.
+
+## Terminal result
+
+Session 81518 completed with exit 1 (6c0c98). Its JSON report records 27,619
+passed tests, 14 failed and 48 skipped, across 1,218 files with four failing
+files. Test start to final recorded end is 1,196.94 seconds. All 100 filesystem
+type contracts had passed. No timeout failure is reported.
+
+The failures are two Promise own-property admission cases, six ISO standalone
+month/range cases, three PlainMonthDay locale cases and three PlainYearMonth
+locale cases. The latter three fail their native month-name precondition.
+The report lists no other failing files. This is an improvement over the prior
+34-failure gate but not a green package result.
+
+The two new JSON reviver regression files are absent from this run's discovered
+test list, as expected from their creation after launch. Runtime source remained
+unchanged until completion; the subsequent JSON repair is verified separately.

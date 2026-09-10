@@ -13,10 +13,11 @@ or those integrations are wholly uncommitted are obsolete.
 
 The latest snapshot-directory run passed 2,134 tests across 157 files, including
 mixed-realm iterator and mixed-source/template tests. This is
-not a full-package result. The latest full package gate passed 27,506 tests,
-failed 34 and skipped 48; all 100 filesystem type contracts passed. See
-[the full gate record](safejs-post-source-identity-full-gate.md). Its additional
-failures require diagnosis; earlier ten-failure totals are historical.
+not a full-package result. The latest full package gate passed 27,619 tests,
+failed 14 and skipped 48; all 100 filesystem type contracts passed. See
+[the full gate record](safejs-post-array-fixes-gate.md). Its failures are two
+Promise-property admission cases and twelve ISO month-formatting cases.
+No timeout failures were reported. Earlier 34- and ten-failure totals are historical.
 
 After the weak-constructor descriptor and CLI import fixes and the Date,
 boxed-accessor and legacy-regex test reconciliations, a focused failure-set
@@ -24,8 +25,8 @@ rerun reports 160 passes, 14 failures and one skip (df1c30). The remaining
 failures are two Promise-property admission cases and twelve ISO month-formatting
 cases, including six newly added standalone/range regressions. Buffer and camera
 tests pass in that selection; this does not establish full-suite timing
-reliability. The latest full-package count above remains the authoritative broad
-result until a new full run completes.
+reliability. The newer full-package result above now supersedes that selection
+as the broad result. JSON regressions added after its launch are checked separately.
 
 ## Remaining verified gaps and verification work
 
@@ -37,10 +38,10 @@ pass unchanged; neither result supersedes the full-package failure count.
 
 | Area | Evidence and remaining work |
 | --- | --- |
-| JSON reviver Proxy traversal | Six native-controlled reproductions and nine pinned Test262 cases confirm skipped Proxy traversal/traps. See [the repair record](safejs-json-reviver-proxy-gap.md). Runtime repair waits for the active full-package gate to finish. |
-| Full-suite reliability | Buffer compatibility and camera cases timed out in the full gate. Unchanged focused runs pass. Buffer cold imports consumed 2.43 seconds in one diagnostic; neither timeout is proved fixed. |
+| JSON reviver traversal and writes | Locally repaired: 268 focused tests and all 77 pinned JSON/parse cases pass in the main checkout. See [the repair record](safejs-json-reviver-proxy-gap.md). This fix is not included in the latest full-package result. |
+| Full-suite reliability | The latest full gate reports no timeout failures. Prior buffer/camera timeouts were not reproduced; repeatability remains unproven. |
 | Host Promise properties | Two full-gate failures concern omitted own properties. Define safe admission without copying private async-hook symbols; do not equate arbitrary host metadata with guest data. |
-| ISO locale month names | Six full-gate failures concern PlainMonthDay/PlainYearMonth month names on Node 22.23.2. Preserve calendar semantics rather than substituting Gregorian output. |
+| ISO locale month names | Twelve full-gate failures concern standalone/range and PlainMonthDay/PlainYearMonth month names on Node 22.23.2. Preserve calendar semantics rather than substituting Gregorian output. |
 | Older-runtime weak symbols | Native Node 18.18.2 rejects a symbol WeakRef target. Node 18.20.8 accepts it and passes all 42 selected weak snapshot tests. The supported version range is not uniformly covered. |
 | Mixed-realm transport | Intrinsic graphs, same-source closures, classes and generators preserve originating prototypes in tested checkpoints. Async-generator and pending guest-promise function tests pass, including settled-result recapture; see [the async record](safejs-mixed-realm-async-qualification.md). Mixed-source closures, external host-operation resumption, broader async behavior and public admission/replay boundaries still need further work. |
 | Temporal portability and extremes | Fixed-offset Intl zones on older runtimes, reversed PlainTime ranges, extreme Intl dates and skipped civil-day semantics remain tracked separately. Focused Temporal passes do not settle them. |

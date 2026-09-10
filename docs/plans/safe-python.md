@@ -8920,6 +8920,21 @@ extension, integration, or validation requirement is missing or unverified.
   Workspace build, typecheck and focused lint pass; all 6,823 unit tests in 493
   files pass with two workers. All 2,213 differential cases above pass. No push
   or release was requested.
+- Published canonical tuple concatenation and forward/reflected repetition
+  wrappers. Seven initial RED tests reproduced missing arithmetic descriptors.
+  Explicit calls reuse the immutable sequence kernels without numeric reflection;
+  guest index conversion and signed-size validation run before empty/one-copy
+  identity shortcuts. Bound receiver metadata, native argument validation and
+  operand type names are retained. Ordinary expression reflection remains
+  separate and is checked alongside explicit calls. All 267 compiled arithmetic
+  cases match CPython, including result identity and guest index events.
+  Tuple allocation and subclass payloads remain unfinished; the broader native
+  catalogs, public interpreter API and suspended safe-fs execution are still
+  required for the full goal.
+  Workspace build, typecheck and focused lint pass; all 6,830 unit tests in 493
+  files pass with two workers. The 496 tuple descriptor and 85 guest callback
+  regressions also pass, for 848 CPython comparisons in this increment. No push
+  or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

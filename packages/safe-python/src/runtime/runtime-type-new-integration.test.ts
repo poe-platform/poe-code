@@ -51,6 +51,40 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("binds tuple arithmetic wrappers and retains immutable identity shortcuts", () => {
+  const state = fixture();
+  state.run("items=(1,2)\nTuple=type(items)\njoined=Tuple.__add__(items,(3,))==(1,2,3)\nleft=Tuple.__add__((),items) is items\nright=items.__add__(()) is items\nonce=items.__mul__(1) is items\nrepeated=items.__rmul__(2)==(1,2,1,2)\nempty=items.__mul__(0)==()\nbound=items.__mul__.__self__ is items\nowner=Tuple.__mul__.__objclass__ is Tuple\nmember=Tuple.__mul__\n");
+  for (const name of ["joined", "left", "right", "once", "repeated", "empty", "bound", "owner"]) expect(state.globals.get(name), name).toBe(state.v.true);
+  expect(state.globals.get("member")?.kind).toBe("wrapper_descriptor");
+});
+
+it("keeps explicit tuple arithmetic independent of guest numeric reflection", () => {
+  const state = fixture();
+  state.run("class Operand:\n def __radd__(self,other):\n  visit('add')\n  return 9\n def __rmul__(self,other):\n  visit('multiply')\n  return 8\n def __index__(self):\n  visit('index')\n  return 2\nitems=(1,)\noperand=Operand()\nadded=items+operand\nmultiplied=items*operand\nexplicit=items.__mul__(operand)==(1,1)\nreverse=items.__rmul__(operand)==(1,1)\n");
+  expect(state.events).toEqual(["add", "multiply", "index", "index"]);
+  expect(state.globals.get("added")).toEqual(state.v.integer(9)); expect(state.globals.get("multiplied")).toEqual(state.v.integer(8)); expect(state.globals.get("explicit")).toBe(state.v.true); expect(state.globals.get("reverse")).toBe(state.v.true);
+  expect(() => state.run("items.__add__(operand)\n")).toThrow('can only concatenate tuple (not "Operand") to tuple');
+  expect(state.events).toEqual(["add", "multiply", "index", "index"]);
+});
+
+it.each(["__mul__", "__rmul__"])("validates tuple %s counts before empty identity shortcuts", name => {
+  const state = fixture();
+  state.run("class Huge:\n def __index__(self):\n  visit('index')\n  return 2**100\nitems=()\n");
+  expect(() => state.run(`items.${name}(Huge())\n`)).toThrow("cannot fit 'Huge' into an index-sized integer");
+  expect(state.events).toEqual(["index"]);
+  expect(() => state.run(`items.${name}(1.5)\n`)).toThrow("'float' object cannot be interpreted as an integer");
+  expect(() => state.run(`items.${name}(None)\n`)).toThrow("'NoneType' object cannot be interpreted as an integer");
+});
+
+it.each(["__add__", "__mul__", "__rmul__"])("validates the tuple %s descriptor receiver and arguments", name => {
+  const state = fixture(); state.run("Tuple=type(())\n");
+  expect(() => state.run(`Tuple.${name}()\n`)).toThrow(`descriptor '${name}' of 'tuple' object needs an argument`);
+  expect(() => state.run(`Tuple.${name}([])\n`)).toThrow(`descriptor '${name}' requires a 'tuple' object but received a 'list'`);
+  expect(() => state.run(`Tuple.${name}(())\n`)).toThrow("expected 1 argument, got 0");
+  expect(() => state.run(`Tuple.${name}((),1,2)\n`)).toThrow("expected 1 argument, got 2");
+  expect(() => state.run(`Tuple.${name}((),extra=1)\n`)).toThrow(`wrapper ${name}() takes no keyword arguments`);
+});
+
 it("publishes canonical tuple sequence and search descriptors", () => {
   const state = fixture();
   state.run("items=(1,2,1)\nTuple=type(items)\nsize=Tuple.__len__(items)\nfound=Tuple.__contains__(items,2)\ncount=Tuple.count(items,1)\nindex=Tuple.index(items,1,1)\nitem=Tuple.__getitem__(items,1)\niterator=Tuple.__iter__(items)\nfirst=iterator.__next__()\nbound=items.count.__self__ is items\nowner=Tuple.count.__objclass__ is Tuple\nstable=items.count==items.count\n");

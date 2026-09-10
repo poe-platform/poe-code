@@ -38,6 +38,8 @@ import { createRangeNewBuiltin } from "./builtin-range-new.js";
 import { installRuntimeRangeSlots } from "./runtime-range-slots.js";
 import { createIntegerNewBuiltin } from "./builtin-integer-new.js";
 import { installRuntimeIntegerSlots } from "./runtime-integer-slots.js";
+import { createBooleanNewBuiltin } from "./builtin-boolean-new.js";
+import { installRuntimeBooleanSlots } from "./runtime-boolean-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
@@ -87,6 +89,7 @@ export class RuntimeTypeRegistry {
   #sliceType: TypeValue | undefined;
   #rangeType: TypeValue | undefined;
   #integerType: TypeValue | undefined;
+  #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -120,6 +123,13 @@ export class RuntimeTypeRegistry {
     }
     objectLayout.namespace.items.set(values.string("__class__"), createObjectClassDescriptor(values, meter, this));
     meter.checkpoint(1, 192);
+    typeLayout.namespace.items.set(values.string("__base__"), values.memberDescriptor({
+      owner: this.type, name: "__base__", accepts: instance => instance.kind === "type",
+      get: instance => {
+        if (instance.kind !== "type") throw Error("type base requires type storage");
+        return instance.value.layoutBase === undefined ? values.none : this.resolve(instance.value.layoutBase);
+      }
+    }));
     const descriptors = [
       { name: "__bases__", get: (instance: TypeValue) => this.metadata(instance, "bases") },
       { name: "__mro__", get: (instance: TypeValue) => instance.value.mro.length === 0 ? values.none : this.metadata(instance, "mro") },
@@ -267,6 +277,20 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods("dict", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#dictionaryType = type;
+    return type;
+  }
+
+  booleanType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#booleanType !== undefined) return this.#booleanType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("bool", [this.integerType().value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: false, subclassable: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    namespace.items.set(this.values.string("__new__"), createBooleanNewBuiltin(type, this.values, this.meter));
+    namespace.items.set(this.values.string("__doc__"), this.values.string("Returns True when the argument is true, False otherwise.\nThe builtins True and False are the only two instances of the class bool.\nThe class bool is a subclass of the class int, and cannot be subclassed."));
+    installRuntimeBooleanSlots(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#booleanType = type;
     return type;
   }
 

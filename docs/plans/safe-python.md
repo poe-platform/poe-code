@@ -9325,6 +9325,21 @@ extension, integration, or validation requirement is missing or unverified.
   6,965 package tests in 495 files pass. Integer method/data descriptors, bool
   hierarchy, remaining scalar consumers, full interpreter and safe-fs execution
   remain unfinished. No push or release was requested.
+- Canonical booleans and selected type bases (2026-09-10): failing integration
+  tests drove singleton bool allocation, the immutable/non-subclassable int
+  hierarchy, boolean-specific bitwise/repr/invert descriptors, and inherited
+  integer conversion descriptors. Inversion uses the existing warning policy.
+  Native bool attribute lookup preserves inherited descriptor owners. The
+  hierarchy test exposed missing type.__base__; a read-only member descriptor
+  now resolves the selected layout base, including multiple inheritance where
+  it differs from the first declared base and None for object. A test assumption
+  also exposed unimplemented type.__instancecheck__; direct MRO assertions cover
+  this increment, and instance/subclass checking remains pending. All 903
+  CPython constructor and bound/unbound descriptor cases match, including guest
+  truth callbacks and warnings. Workspace build, typecheck, focused lint and all
+  6,968 package tests in 495 files pass. Remaining integer methods/data members,
+  other canonical scalar types, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -45,6 +45,7 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
       if (value.kind === "slice") return registry.sliceType();
       if (value.kind === "range") return registry.rangeType();
       if (value.kind === "int") return registry.integerType();
+      if (value.kind === "bool") return registry.booleanType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -58,6 +59,28 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("constructs singleton booleans under the canonical integer hierarchy", () => {
+  const state = fixture();state.globals.set("Bool",state.registry.booleanType());state.globals.set("Int",state.registry.integerType());
+  state.run("class Truth:\n def __bool__(self):\n  visit('bool')\n  return True\ncorrect=Bool() is False and Bool(1) is True and Bool(Truth()) is True and type(True) is Bool and Bool.__base__ is Int and Bool.__mro__==(Bool,Int,object) and Bool.__new__.__self__ is Bool\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["bool"]);
+  expect(()=>state.run("class Child(Bool):\n pass\n")).toThrow("type 'bool' is not an acceptable base type");
+  expect(()=>state.run("Int.__new__(Bool,1)\n")).toThrow("int.__new__(bool) is not safe, use bool.__new__()");
+});
+
+it("publishes boolean bitwise slots while inheriting integer conversion slots", () => {
+  const state = fixture();state.globals.set("Bool",state.registry.booleanType());state.globals.set("Int",state.registry.integerType());
+  state.run("correct=Bool.__and__(True,False) is False and Bool.__or__(False,True) is True and Bool.__xor__(True,True) is False and type(Bool.__and__(True,3)) is Int and True.__int__()==1 and True.__repr__()=='True' and Int.__repr__(True)=='1' and Bool.__int__ is Int.__int__\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("publishes read-only selected type bases rather than the first declared base", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Empty:\n __slots__=()\nclass Child(Empty,Int):\n pass\ncorrect=object.__base__ is None and Child.__base__ is Int and Child.__bases__==(Empty,Int) and type.__dict__['__base__'].__objclass__ is type\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("Child.__base__=object\n")).toThrow("readonly attribute");
+  expect(()=>state.run("del Child.__base__\n")).toThrow("readonly attribute");
+});
 
 it("accepts owned integer hash results without invoking conversion overrides", () => {
   const state = fixture(); state.globals.set("Int",state.registry.integerType());

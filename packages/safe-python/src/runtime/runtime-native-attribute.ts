@@ -115,9 +115,9 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (descriptorMethod !== undefined) return descriptorMethod;
   const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
   if (metadata !== undefined) return metadata;
-  if ((receiver.kind === "slice" || receiver.kind === "mappingproxy" || receiver.kind === "range" || receiver.kind === "int") && methods?.actualType !== undefined) {
+  if ((receiver.kind === "slice" || receiver.kind === "mappingproxy" || receiver.kind === "range" || receiver.kind === "int" || receiver.kind === "bool") && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();
-    const member = type.value.namespace.items.lookup(values.string(name))?.value;
+    const member = receiver.kind === "bool" ? lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value : type.value.namespace.items.lookup(values.string(name))?.value;
     if (member?.kind === "member_descriptor") return readRuntimeGetsetDescriptor(member, receiver, type, meter);
     if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }

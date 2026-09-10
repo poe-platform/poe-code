@@ -45,6 +45,27 @@ describe("targeted Test262-style supported semantics", () => {
   });
 });
 
-describe("explicit unsupported ECMAScript syntax", () => {
-  it.skip("skips proxies and weak references outside the sandbox language", () => undefined);
+describe("Proxy and weak-reference semantics", () => {
+  it("dispatches Proxy traps and rejects access after revocation", async () => {
+    const source = `const events=[];const target={value:7};
+      const revocable=Proxy.revocable(target,{get(t,key,receiver){events.push(key);return Reflect.get(t,key,receiver)}});
+      const value=revocable.proxy.value;revocable.revoke();
+      let error;try{revocable.proxy.value}catch(e){error=e.name}
+      return [value,events,error];`;
+    await expect(run(source)).resolves.toMatchObject({
+      ok: true, returnValue: [7, ["value"], "TypeError"]
+    });
+  });
+
+  it("supports live weak targets without depending on garbage-collection timing", async () => {
+    const source = `const target={};const token={};const map=new WeakMap([[target,7]]);
+      const set=new WeakSet([target]);const reference=new WeakRef(target);
+      const registry=new FinalizationRegistry(()=>{throw 'unexpected cleanup'});
+      registry.register(target,'held',token);
+      return [map.get(target),set.has(target),reference.deref()===target,
+        registry.unregister(token),registry.unregister(token),map.delete(target),set.delete(target)];`;
+    await expect(run(source)).resolves.toMatchObject({
+      ok: true, returnValue: [7, true, true, true, false, true, true]
+    });
+  });
 });

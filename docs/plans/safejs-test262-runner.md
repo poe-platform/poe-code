@@ -188,3 +188,10 @@ This is a separate resource-policy limitation, not a remaining metadata error
 or a semantic pass. No guard or harness source was weakened to bypass it.
 The repeat whole-corpus metadata inventory through maintained discovery remains
 live under 88195; do not substitute focused results for its final accounting.
+
+The corrected whole-corpus metadata inventory through maintained discovery
+completed (88195, terminal b9cd28): 53,876 JavaScript files, 53,582 tests,
+294 fixtures, zero metadata errors, and 102,926 variants (52,031 sloppy,
+50,022 strict, 32 raw, 841 module). This accounts for discovery and metadata,
+not execution success. The discovery implementation's seven tests, scoped lint
+and actual complete corpus walk now qualify its separate local commit.

@@ -4,6 +4,7 @@ import { isSandboxTemporalInstant, temporalInstantEpoch } from "./temporal-insta
 import { isSandboxTemporalPlainTime, temporalPlainTimeFields } from "./temporal-plain-time.js";
 import { isSandboxTemporalPlainDateTime, temporalPlainDateTimeFields } from "./temporal-plain-date-time.js";
 import { isSandboxTemporalPlainDate, temporalPlainDateFields } from "./temporal-plain-date.js";
+import { isSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
 
 const NativeDateTimeFormat = Intl.DateTimeFormat;
 const resolvedOptions = NativeDateTimeFormat.prototype.resolvedOptions;
@@ -38,7 +39,7 @@ export function dateTimeFormatState(value: unknown) {
 }
 
 export function isTemporalDateTimeInput(value: unknown): boolean {
-  return isSandboxTemporalInstant(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value);
+  return isSandboxTemporalInstant(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainMonthDay(value);
 }
 
 export function formatDateTimeValue(receiver: unknown, method: "format" | keyof typeof methods, values: SandboxValue[]): SandboxValue {
@@ -48,7 +49,8 @@ export function formatDateTimeValue(receiver: unknown, method: "format" | keyof 
     const plain = isSandboxTemporalPlainTime(values[0]);
     const dateTime = isSandboxTemporalPlainDateTime(values[0]);
     const date = isSandboxTemporalPlainDate(values[0]);
-    const matches = date ? isSandboxTemporalPlainDate : dateTime ? isSandboxTemporalPlainDateTime : plain ? isSandboxTemporalPlainTime : isSandboxTemporalInstant;
+    const monthDay = isSandboxTemporalPlainMonthDay(values[0]);
+    const matches = monthDay ? isSandboxTemporalPlainMonthDay : date ? isSandboxTemporalPlainDate : dateTime ? isSandboxTemporalPlainDateTime : plain ? isSandboxTemporalPlainTime : isSandboxTemporalInstant;
     if (values.some(value => !matches(value)))
       throw new TypeError("DateTimeFormat ranges require matching Temporal types.");
     const options: DateTimeFormatOptions = { ...(state.requestedOptions ?? state.options), timeZone: state.options.timeZone };
@@ -61,6 +63,10 @@ export function formatDateTimeValue(receiver: unknown, method: "format" | keyof 
     }
     const formatter = new BackendIntl.DateTimeFormat(state.options.locale as string, options as Intl.DateTimeFormatOptions);
     const converted = values.map(value => {
+      if (monthDay) {
+        const fields = temporalPlainMonthDayFields(value);
+        return new Backend.PlainMonthDay(fields.isoMonth, fields.isoDay, fields.calendar, fields.isoYear);
+      }
       if (date) {
         const fields = temporalPlainDateFields(value);
         return new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay, fields.calendar);

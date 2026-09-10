@@ -17,6 +17,8 @@ import { PythonRuntimeError } from "./error.js";
 import { CallStack } from "./call-stack.js";
 import { createRange } from "./integer-sequence.js";
 import { createSortedBuiltin } from "./builtin-sorted.js";
+import { createAttributeMutationBuiltin } from "./builtin-attribute-mutation.js";
+import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
 
 function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal }), v = new RuntimeValues(meter);
@@ -47,11 +49,15 @@ function fixture(signal?: AbortSignal) {
     owner.value.namespace.items.set(v.string(name), value); return value;
   }
   function guest(name: string, owner: TypeValue) { const value = v.cell({}); types.set(value, owner); globals.set(name, value); return value; }
+  function instance(name: string, owner: TypeValue, withDictionary = true) {
+    const value = v.instance(owner, withDictionary ? v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)) : undefined);
+    globals.set(name, value); return value;
+  }
   function run(source: string) {
     const program = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter);
     executeRuntimeProgram(program, { values: v, globals, builtins, keys, hooks, calls: new CallStack<object>(50, meter) }, meter);
   }
-  return { v, meter, globals, events, hooks, type, method, guest, run, registry, types };
+  return { v, meter, globals, events, hooks, type, method, guest, instance, run, registry, types };
 }
 
 it.each([
@@ -1452,4 +1458,54 @@ it("uses instance-owned types for unary, power and formatting", () => {
   state.run("negative=-instance\npower=instance**3\nrepresentation=repr(instance)\n");
   expect(state.globals.get("negative")).toEqual(state.v.integer(3)); expect(state.globals.get("power")).toEqual(state.v.integer(4));
   expect(state.globals.get("representation")).toEqual(state.v.string("instance-repr"));
+});
+
+it("executes compiled instance attribute initialization, reads, writes and deletion", () => {
+  const state = fixture(), owner = state.type("C"), allocated = state.instance("allocated", owner);
+  state.globals.set("C", owner);
+  state.method(owner, "__new__", "def allocate(cls, value):\n return allocated\n");
+  state.method(owner, "__init__", "def initialize(self, value):\n self.value=value\n");
+  state.method(owner, "read", "def read(self):\n return self.value\n");
+  state.run("instance=C(7)\nbefore=instance.read()\ninstance.value=9\nafter=instance.read()\ndel instance.value\n");
+  expect(state.globals.get("before")).toEqual(state.v.integer(7)); expect(state.globals.get("after")).toEqual(state.v.integer(9));
+  expect(allocated.dictionary!.items.size).toBe(0);
+  expect(() => state.run("instance.value\n")).toThrow("'C' object has no attribute 'value'");
+});
+
+it.each([false, true])("runs inherited instance getattribute with getattr fallback=%s", fallback => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("C", base);
+  state.instance("instance", owner);
+  state.globals.set("missing", state.v.builtinFunction({ name: "missing", invoke() { throw new PythonRuntimeError("AttributeError", "missing"); } }));
+  state.method(base, "__getattribute__", fallback ? "def attribute(self,name):\n visit('getattribute')\n return missing()\n" : "def attribute(self,name):\n visit('getattribute')\n return name\n");
+  if (fallback) state.method(base, "__getattr__", "def fallback(self,name):\n visit('getattr')\n return name\n");
+  state.run("result=instance.unknown\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("unknown")); expect(state.events).toEqual(["getattribute", ...(fallback ? ["getattr"] : [])]);
+});
+
+it("calls mutation overrides without pre-reading or storing their return values", () => {
+  const state = fixture(), owner = state.type("C"), instance = state.instance("instance", owner);
+  state.method(owner, "__getattribute__", "def read(self,name):\n visit('must not read')\n return None\n");
+  state.method(owner, "__setattr__", "def set(self,name,value):\n visit(name)\n return 7\n");
+  state.method(owner, "__delattr__", "def remove(self,name):\n visit(name)\n return False\n");
+  state.run("instance.first=3\ndel instance.second\n");
+  expect(state.events).toEqual(["first", "second"]); expect(instance.dictionary!.items.size).toBe(0);
+});
+
+it.each(["__getattribute__", "__getattr__", "__setattr__", "__delattr__"])("rejects disabled instance %s overrides", slot => {
+  const state = fixture(), owner = state.type("C"); state.instance("instance", owner);
+  owner.value.namespace.items.set(state.v.string(slot), state.v.none);
+  const source = slot === "__setattr__" ? "instance.x=1\n" : slot === "__delattr__" ? "del instance.x\n" : "instance.x\n";
+  expect(() => state.run(source)).toThrow("'NoneType' object is not callable");
+});
+
+it("shares instance attributes between builtins and attribute syntax", () => {
+  const state = fixture(), owner = state.type("C"); state.instance("instance", owner);
+  state.globals.set("setattr", createAttributeMutationBuiltin("setattr", state.v, state.meter));
+  state.globals.set("delattr", createAttributeMutationBuiltin("delattr", state.v, state.meter));
+  state.globals.set("getattr", createAttributeLookupBuiltin("getattr", state.v, state.meter));
+  state.globals.set("hasattr", createAttributeLookupBuiltin("hasattr", state.v, state.meter));
+  state.run("setattr(instance,'value',7)\nresult=instance.value\nread=getattr(instance,'value')\ndelattr(instance,'value')\npresent=hasattr(instance,'value')\nfallback=getattr(instance,'value',9)\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(state.globals.get("read")).toEqual(state.v.integer(7)); expect(state.globals.get("present")).toBe(state.v.false); expect(state.globals.get("fallback")).toEqual(state.v.integer(9));
+  expect(() => state.run("instance.value\n")).toThrow("'C' object has no attribute 'value'");
 });

@@ -50,6 +50,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     /** Type-level numeric unary methods; logical not remains truth-owned. */
     readonly unary?: RuntimeUnaryProtocol;
     readonly iteration?: IterationContext<RuntimeValue>;
+    /** Default owned-instance lookup; an explicit attribute hook still wins. */
+    instanceAttribute?(instance: Extract<RuntimeValue, { kind: "instance" }>, name: string): RuntimeValue;
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
     addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext | undefined;
@@ -99,7 +101,8 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     slice: parts => values.slice(parts),
     load: bindings.load.bind(bindings),
     store: bindings.store.bind(bindings),
-    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, getFormatting, methods)),
+    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => receiver.kind === "instance" && bindings.instanceAttribute !== undefined
+      ? bindings.instanceAttribute(receiver, name) : runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, getFormatting, methods)),
     beginCall: bindings.beginCall.bind(bindings),
     beginSet: "dictionaryKeys" in bindings
       ? bindings.beginSet?.bind(bindings) ?? (initial => beginRuntimeSet(initial, values, bindings.dictionaryKeys, meter))

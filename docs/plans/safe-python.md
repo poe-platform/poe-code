@@ -7702,6 +7702,19 @@ extension, integration, or validation requirement is missing or unverified.
   All 5,936 tests in 455 files, selected build, typecheck and scoped lint pass. Instance attribute
   access/mutation, default object allocation, slots/native payload layouts, complete
   class bootstrap and suspended safe-fs effects remain unfinished.
+- Connected owned instance attribute reads and mutation to frame expressions,
+  assignments and attribute builtins. A compiled initializer failed first on its
+  attribute write. Live descriptor precedence now composes with instance storage;
+  inherited getattribute/getattr and set/delete overrides use normal calls.
+  Mutation performs no pre-read and discards override return values. Default
+  object-style entry points bypass overrides for later object builtin wiring.
+  Twenty-three tests cover construction/method reads, all eight descriptor slot
+  combinations, dictionary-less/read-only diagnostics, class-attribute isolation,
+  cancellation, disabled overrides and builtin/syntax parity. All 120 operations
+  in 24 descriptor/storage traces match CPython. All 5,959 tests in 456 files,
+  selected build, typecheck and scoped lint pass. Default object allocation and metadata
+  descriptors, mutable class/dictionary ownership, slots/native payload layouts,
+  full class bootstrap and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -37,6 +37,7 @@ import { executeClassDefinition } from "./class-definition.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { callRuntimeType } from "./runtime-type-call.js";
+import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -140,8 +141,14 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       typeName: specialMethods === undefined ? undefined : value => {
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.name;
       },
-      setAttribute: statementHooks.setAttribute.bind(statementHooks),
-      deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),
+      setAttribute(object, name, value) {
+        if (object.kind === "instance" && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
+        else statementHooks.setAttribute(object, name, value);
+      },
+      deleteAttribute(object, name) {
+        if (object.kind === "instance" && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
+        else statementHooks.deleteAttribute(object, name);
+      },
       attribute: (object, name) => expressions.attribute(object, name),
       get power() { return power; },
       numeric: expressionHooks.numeric?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeNumericContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
@@ -213,6 +220,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
+      instanceAttribute: specialMethods === undefined ? undefined : (instance, name) => runtimeInstanceAttribute(instance, name, values, meter, specialMethods, builtinCalls),
       get formattedString() { return expressionHooks.formattedString; },
       addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
       multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),
@@ -236,7 +244,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get integerIndex() { return getIntegerIndex(); },
       deleteName: frame.delete.bind(frame),
       inplace,
-      setAttribute: statementHooks.setAttribute.bind(statementHooks), deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),
+      setAttribute: builtinCalls.setAttribute!.bind(builtinCalls), deleteAttribute: builtinCalls.deleteAttribute!.bind(builtinCalls),
       assertions: statementHooks.assertions, managers: statementHooks.managers, exceptions: statementHooks.exceptions,
       executeUnhandled(statement) {
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);

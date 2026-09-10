@@ -24,7 +24,7 @@ import { replaceErrorStack } from "../error/shape.js";
 import { consumeSettledHostCall, prepareAwaitedPromise, resolveSandboxValue } from "./promise.js";
 import type { Budget } from "./budget.js";
 
-const activeCancellation = new AsyncLocalStorage<{ signal?: AbortSignal; host: boolean }>();
+export const activeCancellation = new AsyncLocalStorage<{ signal?: AbortSignal; host: boolean }>();
 const sandboxPromises = new WeakSet<SandboxPromise>();
 const cancelableOutcomes = new WeakMap<
   SandboxPromise,

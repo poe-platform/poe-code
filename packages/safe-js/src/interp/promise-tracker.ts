@@ -111,7 +111,7 @@ export class SandboxPromiseRejectionTracker {
   }
 }
 
-const activePromiseTracker = new AsyncLocalStorage<SandboxPromiseRejectionTracker>();
+export const activePromiseTracker = new AsyncLocalStorage<SandboxPromiseRejectionTracker>();
 const fatalRejectionCleanup = new AsyncLocalStorage<boolean>();
 
 export function assertPromiseExecutionAllowed(): void {

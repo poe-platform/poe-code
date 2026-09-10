@@ -1,5 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
-import { observeSandboxPromise } from "./promise-tracker.js";
+import { activePromiseTracker, observeSandboxPromise } from "./promise-tracker.js";
+import { promiseReplayContext } from "./promise-replay.js";
+import { activeCancellation } from "./cancel.js";
+import { runResources } from "./resources.js";
 import { typedArrayDataProperties, typedArrayStorage, typedArrayViewLayouts, isNumericTypedArray } from "./typed-array.js";
 import { arrayBufferDataProperties, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "./array-buffer.js";
 import { isSandboxSharedArrayBuffer, sharedArrayBufferStorage, snapshotSharedArrayBufferStorage } from "./shared-array-buffer.js";
@@ -91,6 +94,34 @@ export type HostCallResumeProvider = (
   context?: HostCallResumeContext
 ) => HostCallResumeProof | Promise<HostCallResumeProof>;
 
+type ReconciliationWait<T> = {
+  current?: {
+    resolve: (value: T) => void;
+    reject: (reason: unknown) => void;
+    cancel: () => void;
+    pending: Set<() => void>;
+  };
+};
+
+function observeReconciliation<T>(work: T | Promise<T>, wait: ReconciliationWait<T>): void {
+  // Provider reactions must not retain the journal or settled waiter after disposal.
+  runResources.exit(() => activeCancellation.exit(() => activePromiseTracker.exit(() => promiseReplayContext.exit(() => {
+    void Promise.resolve(work).then(value => {
+      const current = wait.current;
+      if (current === undefined) return;
+      wait.current = undefined;
+      current.pending.delete(current.cancel);
+      current.resolve(value);
+    }, reason => {
+      const current = wait.current;
+      if (current === undefined) return;
+      wait.current = undefined;
+      current.pending.delete(current.cancel);
+      current.reject(reason);
+    });
+  }))));
+}
+
 export class HostCallResumabilityError extends Error {
   readonly #nativeInstance = true;
   readonly action: "reset" | "external-reconciliation";
@@ -127,6 +158,8 @@ export class UnresolvedReplayCapabilityError extends TypeError {
 }
 
 export class HostCallJournal {
+  private disposed = false;
+  private readonly pendingReconciliations = new Set<() => void>();
   readonly runId: string;
   private nextCall = 1;
   private readonly records: HostCallRecord[];
@@ -413,6 +446,7 @@ export class HostCallJournal {
     record: HostCallRecord,
     context?: HostCallResumeContext
   ): Promise<HostCallOutcome> {
+    if (this.disposed) throw new TypeError("Host call journal is disposed.");
     if (record.lifecycle === "settled" && record.outcome !== undefined) return record.outcome;
     if (record.lifecycle === "consumed") {
       throw new HostCallResumabilityError(
@@ -444,14 +478,15 @@ export class HostCallJournal {
     }
     const { id, outcome: ignoredOutcome, ...request } = record;
     void ignoredOutcome;
-    const proof = await this.resumeProvider(
+    const proof = await this.awaitReconciliation(this.resumeProvider(
       {
         ...request,
         callId: id,
         requirement: "external-reconciliation"
       },
       context
-    );
+    ));
+    if (this.disposed) throw new TypeError("Host call journal is disposed.");
     validateProof(record, proof);
     if (
       context !== undefined &&
@@ -464,9 +499,31 @@ export class HostCallJournal {
         `Host call ${record.id} has sandbox callbacks; its proof must specify callbackDisposition as joined or detached.`
       );
     }
-    if (proof.callbackDisposition === "joined") await context?.waitForCallbacks();
+    if (proof.callbackDisposition === "joined" && context !== undefined)
+      await this.awaitReconciliation(context.waitForCallbacks());
+    if (this.disposed) throw new TypeError("Host call journal is disposed.");
     this.settle(record, proof.outcome);
     return proof.outcome;
+  }
+
+  private awaitReconciliation<T>(work: T | Promise<T>): Promise<T> {
+    if (this.disposed) {
+      observeReconciliation(work, {});
+      return Promise.reject(new TypeError("Host call journal is disposed."));
+    }
+    const pending = this.pendingReconciliations;
+    return new Promise<T>((resolve, reject) => {
+      const wait: ReconciliationWait<T> = {};
+      const cancel = () => {
+        const current = wait.current;
+        if (current === undefined) return;
+        wait.current = undefined;
+        current.reject(new TypeError("Host call journal is disposed."));
+      };
+      wait.current = { resolve, reject, cancel, pending };
+      pending.add(cancel);
+      observeReconciliation(work, wait);
+    });
   }
 
   snapshot(): HostCallRecord[] {
@@ -485,6 +542,9 @@ export class HostCallJournal {
   }
 
   dispose(): void {
+    this.disposed = true;
+    for (const cancel of this.pendingReconciliations) cancel();
+    this.pendingReconciliations.clear();
     this.budget?.setRetainedDataUsage(this, 0);
     this.budget?.setRetainedValues(this, undefined);
     this.capabilities.clear();

@@ -53,12 +53,14 @@ export interface StatementContext<Value> {
     prepare(value: Value): PreparedContextManager<Value>;
     truth(value: Value): boolean;
   };
-  /** Host-only, non-throwing exception bookkeeping. Classify only guest errors,
+  /** Host-only exception bookkeeping. Classify only guest errors,
    * never implementation faults. Enter installs the active exception for bare
-   * raise and automatic chaining; its restore callback must not run guest code.
+   * raise and automatic chaining; entry/restoration must not throw or run guest code.
    * Without this capability all thrown values are treated as fatal host errors.
    */
   exceptions?: {
+    /** Translate recognized native operation faults without running guest code. */
+    prepare?(error: unknown): unknown;
     isGuest(error: unknown): boolean;
     enter(error: unknown): () => void;
     /** Guest operations, with internal metering owned by the adapter. Match
@@ -128,10 +130,11 @@ export function executeStatements<Value>(
   const guestFailure = (error: unknown): Transfer<Value> => {
     if (
       error instanceof ExecutionLimitError ||
-      error instanceof UnsupportedStatementError ||
-      !context.exceptions?.isGuest(error)
+      error instanceof UnsupportedStatementError
     )
       throw error;
+    if (context.exceptions?.prepare) error = context.exceptions.prepare(error);
+    if (!context.exceptions?.isGuest(error)) throw error;
     return { kind: "throw", error };
   };
   const clearHandler = (frame: Extract<Frame<Value>, { kind: "handler-cleanup" }>, exceptional: boolean): void => {

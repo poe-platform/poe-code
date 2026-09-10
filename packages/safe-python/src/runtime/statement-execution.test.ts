@@ -32,6 +32,17 @@ function fixture(inputs: Record<string, unknown> = {}) {
 }
 const budget = (maxSteps = 100000) => new ExecutionBudget({ maxSteps, maxAllocatedBytes: 100000 });
 
+it("preserves null guest payloads returned by native fault preparation",()=>{
+  const fault=Error("native"),seen:unknown[]=[];
+  const state=fixture({fail:()=>{throw fault;}});
+  state.context.exceptions={prepare:error=>{expect(error).toBe(fault);return null;},isGuest:error=>error===null,
+    enter:error=>{seen.push(error);return ()=>seen.push("restore");},
+    handlers:{match:()=>true,bind:()=>{},clear:()=>{}}
+  };
+  executeStatements(parseModule("try:\n fail\nexcept:\n 42\n").body,state.context,budget());
+  expect(state.events).toEqual([42]);expect(seen).toEqual([null,"restore"]);
+});
+
 describe("statement control flow", () => {
   it("executes only the first selected conditional suite", () => {
     const state = fixture({ a: false, b: true, never: () => { throw new Error("unreachable"); } });

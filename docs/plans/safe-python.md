@@ -9818,6 +9818,25 @@ extension, integration, or validation requirement is missing or unverified.
   uncached one-worker package run. OS, Unicode and other
   specialized exceptions, tracebacks, fault translation, raise/try wiring and
   interpreter/safe-fs assembly remain unfinished. No push or release requested.
+- Synchronous exception execution (2026-09-10): failing integration tests drove
+  an explicit execution-owned adapter shared across module, class and function
+  frames. Raise construction, virtual normalization, explicit causes, implicit
+  context, bare reraises, complete handler validation and alias cleanup now use
+  native exception instances. Assertions use the canonical builtin even when
+  names are shadowed. Recognized internal faults become guest instances without
+  rendering their arguments; KeyError retains its original key and normalization
+  notes survive translation. Guest StopIteration subclasses terminate native
+  iteration. Host failures, spoofed error names, unsupported native families and
+  execution-limit failures remain uncatchable; active state restores even after
+  actual step/allocation exhaustion. A generic preparation-hook regression also
+  preserves deliberately null guest payloads. All 78 focused CPython comparisons
+  match. The selected workspace build, typecheck, focused lint and all 7,162
+  tests in 502 files pass in the uncached one-worker package run.
+  Native protocol catch sites still need guest-aware classification beyond
+  StopIteration (including attribute fallback and sequence IndexError), and
+  unsupported native families still need translation. Tracebacks, exception
+  groups, suspension and public interpreter/safe-fs assembly remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

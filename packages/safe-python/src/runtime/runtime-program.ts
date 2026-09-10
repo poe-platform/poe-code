@@ -54,6 +54,7 @@ import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
 import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-object-attributes.js";
 import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
 import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
+import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -72,6 +73,7 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
 }
 
 export interface RuntimeExecutionContext {
+  readonly exceptions?: RuntimeExceptionExecution;
   /** Share an override with id registration and identity hashing when supplied. */
   readonly identity?: BuiltinInvocationContext["identity"];
   /** Shared by all frames; builtin registration can use this same context. */
@@ -297,6 +299,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       isStopIteration(error) {
         if (error instanceof ExecutionLimitError) return false;
         if (error instanceof PythonRuntimeError && error.name === "StopIteration") return true;
+        if (context.exceptions?.isStopIteration(error)) return true;
         const result = expressionHooks.iteration?.isStopIteration(error) ?? false;
         meter.checkpoint(); return result;
       }
@@ -388,10 +391,12 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       deleteName: frame.delete.bind(frame),
       inplace,
       setAttribute: builtinCalls.setAttribute!.bind(builtinCalls), deleteAttribute: builtinCalls.deleteAttribute!.bind(builtinCalls),
-      assertions: statementHooks.assertions, managers: statementHooks.managers, exceptions: statementHooks.exceptions,
+      assertions: statementHooks.assertions ?? context.exceptions?.assertions(), managers: statementHooks.managers,
+      exceptions: statementHooks.exceptions ?? context.exceptions?.statements(frame),
       executeUnhandled(statement) {
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);
         else if (statement.kind === "class") executeClassDefinition(statement, classDefinitions, meter);
+        else if (statement.kind === "raise" && context.exceptions) context.exceptions.raise(statement,expression=>evaluateExpression(expression,expressions,meter),builtinCalls);
         else statementHooks.executeUnhandled(statement);
       }
     }, values, meter);

@@ -26,16 +26,18 @@ import { constructRuntimeFloat } from "./runtime-float-construction.js";
 import { createRoundBuiltin } from "./builtin-round.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { NumericLocale } from "./numeric-locale.js";
+import { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
-function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Partial<ReturnType<RuntimeProgramHooks["expressions"]>> = {}) {
+function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Partial<ReturnType<RuntimeProgramHooks["expressions"]>> = {}, guestExceptions=false) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
   const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
   const calls = new CallStack<object>(50, meter), keys = new RuntimeExecutionKeys(v, hash, meter, calls);
   const registry = new RuntimeTypeRegistry(v, keys, meter), native = new Map<string, TypeValue>();
+  const exceptions=guestExceptions?new RuntimeExceptionExecution(registry,v,meter):undefined;
   const globals = new Map<string, RuntimeValue>([["type", registry.type], ["object", registry.object], ["__name__", v.string("example")]]), events: string[] = [];
   const builtins = new Map<string, RuntimeValue>([["visit", v.builtinFunction({ name: "visit", invoke(args) { const value = args[0]; if (value.kind !== "str") throw Error("expected string"); events.push(String.fromCodePoint(...value.value)); return v.none; } })]]);
   builtins.set("__build_class__", createBuildClassBuiltin({ registry, keys }, v, meter));
@@ -65,10 +67,89 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     } })
   };
   function run(source: string) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls, identity }, meter);
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls, identity, exceptions }, meter);
   }
-  return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
+  return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions };
 }
+
+function exceptionFixture() {
+  const state=fixture(undefined,1000000,{},true);
+  for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
+  return state;
+}
+
+it("raises and reraises guest exceptions across function frames with alias cleanup",()=>{
+  const state=exceptionFixture();
+  state.run("original=ValueError('outer')\ndef reraiser():\n raise\ntry:\n raise original\nexcept Exception as caught:\n first=caught is original\n try:\n  reraiser()\n except ValueError as again:\n  second=again is original\n");
+  expect(state.globals.get("first")).toBe(state.v.true);expect(state.globals.get("second")).toBe(state.v.true);
+  expect(state.globals.has("caught")).toBe(false);expect(state.globals.has("again")).toBe(false);expect(state.exceptions!.active).toBe(null);
+});
+
+it("chains guest exceptions and preserves explicit cause suppression",()=>{
+  const state=exceptionFixture();
+  state.run("try:\n raise ValueError('first')\nexcept ValueError as first:\n try:\n  raise TypeError('second') from None\n except TypeError as second:\n  correct=second.__context__ is first and second.__cause__ is None and second.__suppress_context__ is True\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("translates native arithmetic and dictionary faults without rendering guest keys",()=>{
+  const state=exceptionFixture();
+  state.run("try:\n 1/0\nexcept ZeroDivisionError as error:\n arithmetic=error.args==('division by zero',)\nclass Key:\n def __repr__(self):\n  return 1/0\nkey=Key()\ntry:\n {}[key]\nexcept KeyError as error:\n preserved=error.args[0] is key\ntry:\n assert False, key\nexcept AssertionError as error:\n assertion=error.args[0] is key\n");
+  for(const key of ["arithmetic","preserved","assertion"])expect(state.globals.get(key)).toBe(state.v.true);
+});
+
+it("does not let guest handlers catch host failures or execution limits",()=>{
+  for(const failure of [Error("host failure"),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("try:\n raise ValueError()\nexcept ValueError:\n try:\n  fail()\n except BaseException:\n  visit('caught')\n finally:\n  visit('cleanup')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
+it("validates complete handler tuples and chains handler-selection failures",()=>{
+  const state=exceptionFixture();
+  state.run("original=ValueError('first')\ntry:\n try:\n  raise original\n except (ValueError,42):\n  visit('wrong')\nexcept TypeError as error:\n correct=error.__context__ is original\n");
+  expect(state.events).toEqual([]);expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("handles explicit exception causes and errors constructing raised classes",()=>{
+  const state=exceptionFixture();
+  state.run("cause=ValueError('cause')\ntry:\n raise TypeError from cause\nexcept TypeError as error:\n linked=error.__cause__ is cause and error.__context__ is None and error.__suppress_context__\nclass Wrong(Exception):\n def __new__(cls):\n  return 3\ntry:\n raise Wrong\nexcept TypeError as error:\n invalid=f'{error}'\ntry:\n raise\nexcept RuntimeError as error:\n inactive=f'{error}'\n");
+  expect(state.globals.get("linked")).toBe(state.v.true);
+  const invalid=state.globals.get("invalid"),inactive=state.globals.get("inactive");
+  expect(invalid?.kind==="str"?String.fromCodePoint(...invalid.value):undefined).toBe("calling <class 'example.Wrong'> should have returned an instance of BaseException, not <class 'int'>");
+  expect(inactive?.kind==="str"?String.fromCodePoint(...inactive.value):undefined).toBe("No active exception to reraise");
+});
+
+it("consumes guest StopIteration subclasses in native iteration",()=>{
+  const state=exceptionFixture();
+  state.run("class Done(StopIteration):\n pass\nclass Iterator:\n def __iter__(self):\n  return self\n def __next__(self):\n  raise Done(42)\nresult=[*Iterator()]\ncorrect=result==[]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("preserves unsupported native faults and rejects name-spoofed host errors",()=>{
+  for(const failure of [new PythonRuntimeError("MemoryError","unavailable"),Object.assign(Error("host"),{name:"ValueError"})]) {
+    const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("try:\n fail()\nexcept BaseException:\n visit('wrong')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);
+  }
+});
+
+it("retains normalization diagnostics when translating native TypeError",()=>{
+  const state=exceptionFixture();
+  state.run("class M(type):\n def __subclasscheck__(cls,other):\n  return False\nclass E(Exception,metaclass=M):\n def __new__(cls,*args):\n  if args:\n   return 42\n  return BaseException.__new__(cls)\ntry:\n raise E\nexcept TypeError as error:\n correct=error.__notes__==['Normalization failed: type=E args=E()']\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("restores handled exception state after real budget exhaustion",()=>{
+  for(const kind of ["steps","allocation"] as const) {
+    const state=exceptionFixture();state.builtins.set("exhaust",state.v.builtinFunction({name:"exhaust",invoke(){
+      state.meter.checkpoint(kind==="steps"?Number.MAX_SAFE_INTEGER:0,kind==="allocation"?Number.MAX_SAFE_INTEGER:0);return state.v.none;
+    }}));
+    let caught:unknown;try{state.run("try:\n raise ValueError()\nexcept ValueError:\n try:\n  exhaust()\n except BaseException:\n  visit('caught')\n finally:\n  visit('cleanup')\n");}catch(error){caught=error;}
+    expect(caught).toBeInstanceOf(ExecutionLimitError);expect((caught as ExecutionLimitError).reason).toBe(kind);
+    expect(state.exceptions!.active).toBe(null);expect(state.events).toEqual([]);
+  }
+});
 
 it("initializes ImportError message and metadata while preserving old fields on keyword failure",()=>{
   const state=fixture();for(const name of ["ImportError","ModuleNotFoundError"] as const)state.globals.set(name,state.registry.exceptionType(name));

@@ -212,22 +212,32 @@ describe("accessor execution boundaries", () => {
       expect(() => deepCopyFromSandbox(result.returnValue as SandboxValue)).toThrow(
         /descriptor|accessor/i
       );
-      if (target === "{}" || target === "[]") {
-        const snapshot = JSON.parse(await dump(result));
-        const resumed = await run(source, { snapshot: restore(snapshot, { source }) });
-        expect(resumed.ok).toBe(true);
-        if (!resumed.ok) throw new Error("Accessor replay failed");
-        expect(Object.getOwnPropertyDescriptor(resumed.returnValue, "x")).toMatchObject({
-          get: expect.any(Function), set: undefined, enumerable: true, configurable: true
-        });
-        const recaptured = JSON.parse(await dump(resumed));
-        expect(recaptured.heap).toEqual(snapshot.heap);
-        expect(recaptured.bindings).toEqual(snapshot.bindings);
-      } else {
-        await expect(dump(result)).rejects.toThrow(/descriptor|accessor|prototype/i);
-      }
+      const snapshot = JSON.parse(await dump(result));
+      const resumed = await run(source, { snapshot: restore(snapshot, { source }) });
+      expect(resumed.ok).toBe(true);
+      if (!resumed.ok) throw new Error("Accessor replay failed");
+      expect(Object.getOwnPropertyDescriptor(resumed.returnValue, "x")).toMatchObject({
+        get: expect.any(Function), set: undefined, enumerable: true, configurable: true
+      });
+      const recaptured = JSON.parse(await dump(resumed));
+      expect(recaptured.heap).toEqual(snapshot.heap);
+      expect(recaptured.bindings).toEqual(snapshot.bindings);
     }
   );
+
+  it("preserves boxed accessor execution, captured state and receiver through repeated replay", async () => {
+    const source = `let reads=0;const o=new Number(7);
+      Object.defineProperty(o,'x',{get(){reads++;return this.valueOf()+reads},enumerable:true,configurable:true});
+      await 0;return [o.x,o.x,reads,Object.getPrototypeOf(o)===Number.prototype];`;
+    let result = await run(source);
+    for (let round = 0; round < 3; round++) {
+      expect(result).toMatchObject({ ok: true, returnValue: [8, 9, 2, true] });
+      if (round < 2) {
+        const snapshot = JSON.parse(await dump(result));
+        result = await run(source, { snapshot: restore(snapshot, { source }) });
+      }
+    }
+  });
 
   it("cancels an awaited async getter and releases its retained roots", async () => {
     const controller = new AbortController();

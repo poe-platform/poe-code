@@ -108,7 +108,8 @@ Async checks and the settled-result fix are recorded [here](../../docs/plans/saf
 
 Guest symbols, supported prototype links, and mutated guest intrinsics can be
 represented in checkpoints. Plain data-copy helpers have narrower contracts:
-for example, copying an array with a custom prototype can be rejected rather
+boxed Number accessors survive checkpoint replay, but data-copy helpers reject
+them rather than discard their getters. Copying an array with a custom prototype can be rejected rather
 than silently discarding the prototype. Checkpoint support does not imply that
 every host object or prototype graph is copyable. `run()` does not lint
 automatically.

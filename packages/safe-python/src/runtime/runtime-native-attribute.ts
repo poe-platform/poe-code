@@ -114,7 +114,8 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (descriptorMethod !== undefined) return descriptorMethod;
   const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
   if (metadata !== undefined) return metadata;
-  if ((name === "__eq__" || name === "__ne__" || name === "__lt__" || name === "__le__" || name === "__gt__" || name === "__ge__" || name === "__hash__")
+  if ((name === "__eq__" || name === "__ne__" || name === "__lt__" || name === "__le__" || name === "__gt__" || name === "__ge__" || name === "__hash__"
+      || (receiver.kind === "list" && (name === "__len__" || name === "__iter__" || name === "__contains__")))
     && (receiver.kind === "list" || receiver.kind === "method" || receiver.kind === "method-wrapper" || receiver.kind === "builtin_function_or_method")
     && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();

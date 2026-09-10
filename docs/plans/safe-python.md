@@ -8606,6 +8606,19 @@ extension, integration, or validation requirement is missing or unverified.
   slots/catalogs and public runtime assembly remain unfinished.
   Selected build, typecheck, scoped lint and all 6,608 tests in 493 files pass
   with two workers.
+- Published canonical list __len__, __iter__ and __contains__ wrapper slots.
+  Seven initial regressions reproduced absent type-level/ordinary slots and
+  noncanonical iteration binding metadata. The new sequence-slot module uses
+  live owned storage and active guest equality/truth, preserving identity
+  shortcuts, membership mutation behavior and metering. Ten added cases cover
+  direct/bound calls, live growth, permanent iterator exhaustion, wrapper
+  metadata/argument errors and original guest exceptions with stack unwinding.
+  All 96 sequence-slot differential cases match CPython; the existing 252 guest
+  containment, 560 guest comparison and 2,028 native comparison cases still pass.
+  List construction, subscription/mutation/arithmetic slots, remaining native
+  catalogs and public runtime assembly remain unfinished.
+  Selected build, typecheck, scoped lint and all 6,618 tests in 493 files pass
+  with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

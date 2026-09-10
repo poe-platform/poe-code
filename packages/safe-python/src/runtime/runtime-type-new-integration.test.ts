@@ -48,6 +48,40 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["direct", "bound"])("exposes live list length and iteration slots through %s calls", mode => {
+  const state = fixture(), length = mode === "direct" ? "type(items).__len__(items)" : "items.__len__()", iterate = mode === "direct" ? "type(items).__iter__(items)" : "items.__iter__()";
+  state.run(`items=[1,2]\nbefore=${length}\ncursor=${iterate}\nitems.append(3)\nafter=${length}\nresult=0\nfor value in cursor:\n result=result*10+value\n`);
+  expect(state.globals.get("before")).toEqual(state.v.integer(2)); expect(state.globals.get("after")).toEqual(state.v.integer(3)); expect(state.globals.get("result")).toEqual(state.v.integer(123));
+});
+
+it.each(["direct", "bound"])("uses live guest equality and truth in %s list contains slots", mode => {
+  const state = fixture(), call = mode === "direct" ? "type(items).__contains__(items,needle)" : "items.__contains__(needle)";
+  state.run(`class Truth:\n def __bool__(self):\n  visit('truth')\n  return False\nclass Member:\n def __eq__(self,other):\n  visit('equal')\n  items.append(other)\n  return Truth()\nneedle=object()\nitems=[Member()]\nresult=${call}\n`);
+  expect(state.globals.get("result")).toBe(state.v.true); expect(state.events).toEqual(["equal", "truth"]);
+});
+
+it.each(["__len__", "__iter__", "__contains__"])("retains list %s wrapper metadata and rejects invalid arguments", name => {
+  const state = fixture(); state.run(`items=[]\nmethod=items.${name}\nreceiver=method.__self__ is items\nname=method.__name__\n`);
+  expect(state.globals.get("receiver")).toBe(state.v.true); expect(state.globals.get("name")).toEqual(state.v.string(name));
+  expect(() => state.run(`method(x=1)\n`)).toThrow(`wrapper ${name}() takes no keyword arguments`);
+  expect(() => state.run("method(1,2)\n")).toThrow(`expected ${name === "__contains__" ? "1 argument" : "0 arguments"}, got 2`);
+});
+
+it("keeps a list slot iterator exhausted after later growth", () => {
+  const state = fixture();
+  state.run("items=[1,2]\ncursor=items.__iter__()\nfirst=0\nfor value in cursor:\n first=first*10+value\nitems.append(3)\nsecond=0\nfor value in cursor:\n second+=value\n");
+  expect(state.globals.get("first")).toEqual(state.v.integer(12)); expect(state.globals.get("second")).toEqual(state.v.integer(0));
+});
+
+it.each(["equal", "truth"])("preserves original %s errors and unwinds list membership slots", phase => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run(`class Truth:\n def __bool__(self):\n  fail()\nclass Member:\n def __eq__(self,other):\n  ${phase === "equal" ? "fail()" : "return Truth()"}\nitems=[Member()]\n`);
+  let thrown: unknown;
+  try { state.run("items.__contains__(object())\n"); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+});
+
 it.each(["dict", "set"])("dispatches guest key protocols in ordinary %s displays across frames", kind => {
   const state = fixture();
   state.run(`class Key:\n def __hash__(self):\n  visit('hash')\n  return 7\n def __eq__(self,other):\n  visit('equal')\n  return True\nleft=Key()\nright=Key()\ndef make():\n return ${kind === "dict" ? "{left:1}" : "{left}"}\ndef merge(target):\n target|=${kind === "dict" ? "{right:2}" : "{right}"}\nresult=make()\nmerge(result)\nfound=right in result\n`);

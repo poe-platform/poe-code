@@ -634,6 +634,9 @@ unimported host objects remain outside the internal interpreter's supported boun
 Internal Proxy `for-in` now uses own-key, prototype, and descriptor operations,
 including virtual keys, inherited properties, deletion, and early loop exits.
 The saved key-list format is unchanged.
+Lexical `for-in`, `for-of` and `for await-of` headers keep their bound names
+uninitialized while evaluating the RHS, separate from each iteration's bindings.
+Closures captured in the RHS retain that behavior across generator checkpoints.
 Array methods now await Proxy membership and deletion traps on array-like
 receivers. Internal index reads pass string keys to Proxy traps, including
 inherited Proxies and entry reads in `Object.fromEntries` and `Map` construction.

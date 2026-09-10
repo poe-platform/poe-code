@@ -1965,6 +1965,19 @@ async function evaluateIfStatement(
     ? {...result, hasValue: true, value: undefined} : result;
 }
 
+function evaluateForInOfHead(
+  node: ForInStatement | ForOfStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const names = node.left.type === "VariableDeclaration" && node.left.kind !== "var"
+    ? getDeclarationBindingNames(node.left) : [];
+  if (names.length === 0) return evaluateNode(node.right, context);
+  const scope = context.scope.child();
+  // These bindings remain uninitialized; iteration bindings live in different scopes.
+  for (const name of names) scope.predeclare(name, "let");
+  return evaluateNode(node.right, { ...context, scope });
+}
+
 async function evaluateForOfStatement(
   node: ForOfStatement,
   context: EvaluationContext
@@ -1984,7 +1997,7 @@ async function evaluateForOfStatement(
       }
     }
   }
-  const iterable = saved === undefined ? await evaluateNode(node.right, context) : { kind: "normal" as const, value: saved.values };
+  const iterable = saved === undefined ? await evaluateForInOfHead(node, context) : { kind: "normal" as const, value: saved.values };
   if (iterable.kind !== "normal") {
     return iterable;
   }
@@ -2212,7 +2225,7 @@ async function evaluateForInStatement(
   const restored = context.generatorResume === undefined || node.nodeId === undefined
     ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
   if (restored !== undefined && restored.kind !== "for-in") throw new TypeError("Invalid for-in continuation.");
-  const right = restored === undefined ? await evaluateNode(node.right, context)
+  const right = restored === undefined ? await evaluateForInOfHead(node, context)
     : { kind: "normal" as const, value: restored.object };
   if (right.kind !== "normal") {
     return right;

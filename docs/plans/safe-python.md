@@ -9447,6 +9447,18 @@ extension, integration, or validation requirement is missing or unverified.
   timeout or assertion changes. Float data/method descriptors, formatting,
   rounding and remaining scalar consumers still need work; full interpreter
   and safe-fs execution remain unfinished. No push or release was requested.
+- Float data and numeric method descriptors (2026-09-10): two failing
+  integration tests drove real/imag getsets and eight native numeric methods,
+  including ratio, hexadecimal representation, integral conversions and pickle
+  arguments. Owned subclasses expose plain float results without invoking
+  __float__ overrides. Exact conjugate/real preserve identity; __getnewargs__
+  intentionally creates a fresh float, matching CPython. All 1,084 CPython
+  property/method comparisons match, including special values, descriptor
+  receiver validation and argument diagnostics. Workspace build, typecheck,
+  focused lint and all 7,028 tests in 498 files pass in the uncached one-worker
+  package run. Float rounding, formatting and subclass-aware fromhex remain
+  next; full interpreter and safe-fs execution remain unfinished. No push or
+  release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

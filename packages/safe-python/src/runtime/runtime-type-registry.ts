@@ -42,6 +42,7 @@ import { installRuntimeIntegerMethodDescriptors } from "./runtime-integer-method
 import { installRuntimeIntegerByteDescriptors } from "./runtime-integer-byte-descriptors.js";
 import { createFloatNewBuiltin } from "./builtin-float-new.js";
 import { installRuntimeFloatSlots } from "./runtime-float-slots.js";
+import { installRuntimeFloatMethodDescriptors } from "./runtime-float-method-descriptors.js";
 import { createBooleanNewBuiltin } from "./builtin-boolean-new.js";
 import { installRuntimeBooleanSlots } from "./runtime-boolean-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
@@ -308,6 +309,7 @@ export class RuntimeTypeRegistry {
     namespace.items.set(this.values.string("__new__"), createFloatNewBuiltin(type, this.values, this.meter, type => this.#entries.has(type.value)));
     namespace.items.set(this.values.string("__doc__"), this.values.string("Convert a string or number to a floating-point number, if possible."));
     installRuntimeFloatSlots(type, this.values, this.meter);
+    installRuntimeFloatMethodDescriptors(type, this.values, this.meter);
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#floatType=type;
     return type;

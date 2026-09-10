@@ -67,6 +67,20 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("publishes float data descriptors without invoking subclass conversions", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __float__(self):\n  visit('wrong')\n  return 9.0\nx=1.25\ny=Child(x)\ncorrect=Float.real.__get__(x) is x and x.real is x and y.real==x and type(y.real) is Float and y.imag==0.0 and type(y.imag) is Float and Float.imag.__objclass__ is Float\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+  expect(()=>state.run("y.real=2\n")).toThrow("not writable");
+  expect(()=>state.run("del y.imag\n")).toThrow("not writable");
+});
+
+it("publishes native float numeric methods with correct identity and result types", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __float__(self):\n  visit('wrong')\n  return 9.0\nx=1.25\ny=Child(x)\ncorrect=x.conjugate() is x and y.conjugate()==x and type(y.conjugate()) is Float and y.as_integer_ratio()==(5,4) and not y.is_integer() and Float.is_integer(2.0) and y.hex()=='0x1.4000000000000p+0' and y.__trunc__()==1 and y.__floor__()==1 and y.__ceil__()==2 and (-1.25).__floor__()==-2 and (-1.25).__ceil__()==-1 and x.__getnewargs__()==(x,) and x.__getnewargs__()[0] is not x and type(y.__getnewargs__()[0]) is Float and Float.hex.__objclass__ is Float and y.hex.__self__ is y\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+});
+
 it("reflects boolean comparisons to float subclasses without bypassing overrides", () => {
   const state = fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Child(Float):\n def __eq__(self,other):\n  visit('equal')\n  return 7\nx=Child(1.0)\nresult=True==x\ncomplex_result=(1+0j)==x\n");

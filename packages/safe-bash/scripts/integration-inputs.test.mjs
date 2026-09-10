@@ -400,6 +400,7 @@ function assertSource7Discovery(files) {
     "tests/commands/bytes-stress/portable-compression.test.ts",
     "tests/commands/bytes/compression/bounded-codec.test.ts",
     "tests/commands/bytes/compression/native-codecs.test.ts",
+    "tests/source-census.test.ts",
     "tests/commands/bytes/compression/native-codec-safety.test.ts",
     "tests/shell/network-execution-deadline.test.ts",
   ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);

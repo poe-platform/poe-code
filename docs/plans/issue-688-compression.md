@@ -105,6 +105,15 @@ all 73 checks and strict types pass without late unhandled rejections. The
 byte-plugin suite now checks the exact 23-command order and collision handling
 for every command; all 48 focused checks pass. The full run remains in progress.
 
+The source census rejected the generated zstd module at its ordinary 1 MiB
+limit. It now admits only the three exact codec paths using the same manifest
+size bound as the build copier (at most 4 MiB per artifact), exact byte length,
+and SHA-256 verification. Manifest bytes are included in admission evidence and
+must match their later source capture. Ordinary 1 MiB, aggregate 64 MiB, and
+5,000-file limits remain unchanged. Four new in-memory controls and four existing
+census checks pass; the originally failing authorization suite passes all 56
+checks. Independent review approved the change.
+
 The maintained type route also exposed exact-optional-property and TextDecoder
 receiver type errors in two existing test files. Narrow corrections preserve
 the fixture behavior and passed focused strict typechecking and runtime tests;

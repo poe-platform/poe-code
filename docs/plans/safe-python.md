@@ -6866,6 +6866,15 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Concrete bytearray/exporter models, remaining
   native protocols, automatic object assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected byte membership expressions to guest integer-index and contiguous
+  buffer capabilities. Unlike byte search methods, membership prefers index
+  slots over buffer exports. Integer ranges, buffer errors, negation and cleanup
+  retain Python semantics; explicit container containment policies still win.
+- Four failing compiled regressions now pass. All 5,226 tests in 441 files pass;
+  60 CPython comparisons match results/errors and index/acquisition/release
+  traces. Typecheck, scoped lint and selected workspace build pass. Remaining
+  native protocols, concrete exporters, automatic object assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

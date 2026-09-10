@@ -39,6 +39,32 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["in", true], ["not in", false]])("checks buffer byte membership with %s", (operator, expected) => {
+    const state = fixture(`result=needle ${operator} b'aba'\n`), v = state.values; let released = false;
+    state.globals.set("needle", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() { released = true; } }; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.boolean(expected)); expect(released).toBe(true);
+  });
+  it("prefers integer index over buffer exports for byte membership", () => {
+    const state = fixture("result=needle in b'a'\n"), v = state.values;
+    state.globals.set("needle", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", warn() {}, typeName: () => "Needle",
+      lookupIndex: () => () => v.integer(98)
+    }, buffers: { acquireSimple() { throw Error("must not acquire"); } } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.false);
+  });
+  it("releases membership buffers after acquisition cancellation", () => {
+    const controller = new AbortController(), state = fixture("result=needle in b'a'\n", 100000, controller.signal), v = state.values; let released = false;
+    state.globals.set("needle", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { controller.abort(); return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it.each([["center", "xax"], ["ljust", "axx"], ["rjust", "xxa"]])("accepts bytearray payloads as %s fill", (method, expected) => {
     const state = fixture(`result=b'a'.${method}(3,fill)\n`), v = state.values, fill = v.cell({});
     state.globals.set("fill", fill);

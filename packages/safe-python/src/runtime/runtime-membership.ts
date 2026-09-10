@@ -9,14 +9,21 @@ import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { containsRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import { runtimeSetAccess } from "./runtime-set.js";
 import { protocolContains, type ContainmentContext } from "./containment-protocol.js";
+import { validateIndexResult, type IntegerIndexContext } from "./index-protocol.js";
+import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
+
+export interface RuntimeMembershipContext {
+  readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
+  readonly buffers?: RuntimeBufferContext;
+}
 
 /** Exact runtime membership. Integer/bool range searches use arithmetic; other
  * iterable searches consume only through the first identity/equality match.
  * Optional guest containment overrides native dispatch for this container.
- * Arbitrary buffer exporters and a shared guest comparison-depth policy remain
- * wider object-runtime responsibilities.
+ * Byte needles accept guest index slots before contiguous buffer exports.
  */
-export function runtimeMembership(operator: string, needle: RuntimeValue, container: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: ContainmentContext<RuntimeValue>): Extract<PrimitiveConstant, { kind: "bool" }> {
+export function runtimeMembership(operator: string, needle: RuntimeValue, container: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: ContainmentContext<RuntimeValue>, context?: RuntimeMembershipContext): Extract<PrimitiveConstant, { kind: "bool" }> {
   meter.checkpoint();
   if (operator !== "in" && operator !== "not in") throw new Error(`unsupported constant membership operator: ${operator}`);
   if (protocol !== undefined) {
@@ -58,13 +65,33 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
     found = container.value.search(needle.value, "find", 0n, null, meter) !== -1;
   } else if (container.kind === "bytes") {
     if (needle.kind === "bytes") found = container.value.contains(needle.value, meter);
-    else if (needle.kind === "int" || needle.kind === "bool") {
-      const integer = needle.kind === "int" ? needle.value : needle.value ? 1n : 0n;
-      if (integer < 0n || integer > 255n) throw new PythonRuntimeError("ValueError", "byte must be in range(0, 256)");
-      found = container.value.contains(Number(integer), meter);
-    } else {
-      const name = needle.kind === "none" ? "NoneType" : needle.kind === "not-implemented" ? "NotImplementedType" : needle.kind;
-      throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${name}'`);
+    else {
+      const indices = context?.integerIndex;
+      let integer = needle.kind === "int" ? needle.value : needle.kind === "bool" ? needle.value ? 1n : 0n : indices?.integer(needle);
+      meter.checkpoint();
+      if (integer === undefined && indices !== undefined) {
+        const slot = indices.lookupIndex(needle); meter.checkpoint();
+        if (slot !== undefined) integer = indices.integer(validateIndexResult(slot(), indices, meter));
+        meter.checkpoint();
+      }
+      if (integer !== undefined) {
+        if (integer < 0n || integer > 255n) throw new PythonRuntimeError("ValueError", "byte must be in range(0, 256)");
+        found = container.value.contains(Number(integer), meter);
+      } else {
+        let lease: RuntimeBufferLease | undefined;
+        try {
+          lease = context?.buffers?.acquireSimple(needle); meter.checkpoint();
+          if (lease === undefined) {
+            const nativeName = needle.kind === "none" ? "NoneType" : needle.kind === "not-implemented" ? "NotImplementedType" : needle.kind;
+            const name = context?.buffers?.typeName === undefined ? nativeName : diagnosticTypeName(context.buffers.typeName(needle), meter);
+            throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${name}'`);
+          }
+          const bytes = lease.copy(); meter.checkpoint();
+          found = container.value.contains(bytes, meter);
+        } finally {
+          lease?.release(); meter.checkpoint();
+        }
+      }
     }
   } else {
     const name = container.kind === "none" ? "NoneType" : container.kind === "not-implemented" ? "NotImplementedType" : container.kind;

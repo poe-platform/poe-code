@@ -39,6 +39,26 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["==", "!="])("preserves raw guest cell comparison results for %s", operator => {
+    const state = fixture(`result=left${operator}right\n`), v = state.values, member = v.cell({}), needle = v.cell({}), answer = v.cell({});
+    state.globals.set("left", v.cell({ content: { value: member } })); state.globals.set("right", v.cell({ content: { value: needle } }));
+    state.hooks.expressions = () => ({ warn() {}, richComparison(op, left, right) {
+      if (left !== member || right !== needle) return undefined;
+      expect(op).toBe(operator);
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented, forward: () => answer } };
+    }, truth() { throw Error("direct cell result must not be truth-converted"); } });
+    state.run(); expect(state.globals.get("result")).toBe(answer);
+  });
+  it.each(["==", "!="])("truth-converts guest cell results inside a list for %s", operator => {
+    const state = fixture(`result=[left]${operator}[right]\n`), v = state.values, member = v.cell({}), needle = v.cell({}), answer = v.cell({}); let conversions = 0;
+    state.globals.set("left", v.cell({ content: { value: member } })); state.globals.set("right", v.cell({ content: { value: needle } }));
+    state.hooks.expressions = () => ({ warn() {}, richComparison(op, left, right) {
+      if (left !== member || right !== needle) return undefined;
+      expect(op).toBe("==");
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented, forward: () => answer } };
+    }, truth(value) { expect(value).toBe(answer); conversions++; return true; } });
+    state.run(); expect(state.globals.get("result")).toBe(v.boolean(operator === "==")); expect(conversions).toBe(1);
+  });
   it.each(["==", "!="])("retains the dictionary scan position across clear and refill for %s", operator => {
     const state = fixture(`left={'a':member}\nright={'a':needle}\nresult=left${operator}right\n`), v = state.values;
     const member = v.cell({}), needle = v.cell({}); let probes = 0;

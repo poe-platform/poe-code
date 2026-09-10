@@ -8,6 +8,9 @@ import { compareRuntimeDictionaryViews } from "./runtime-dictionary-view.js";
 import { runtimeTruth } from "./runtime-truth.js";
 
 export interface RuntimeComparisonContext {
+  /** Prepared guest slots for any delegated comparison. When supplied, this
+   * replaces the specialized equality/ordering callbacks below. */
+  comparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue | undefined;
   /** Undefined delegates to the native comparison stack, not recursive dispatch.
    * A supplied result comes from prepared guest equality slots. */
   equality?(left: RuntimeValue, right: RuntimeValue): RuntimeValue | undefined;
@@ -54,7 +57,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
   if (!Number.isSafeInteger(maxDepth) || maxDepth < 1) throw new RangeError("maximum comparison depth must be a positive safe integer");
   if (operator === "is" || operator === "is not") return values.boolean(operator === "is" ? left === right : left !== right);
   if (operator !== "==" && operator !== "!=" && operator !== "<" && operator !== ">" && operator !== "<=" && operator !== ">=") throw new Error(`unsupported constant comparison operator: ${operator}`);
-  type Comparison = { operator: string; left: RuntimeValue; right: RuntimeValue; depth: number };
+  type Comparison = { operator: string; left: RuntimeValue; right: RuntimeValue; depth: number; truth?: boolean };
   meter.checkpoint(0, 64);
   const work: (Comparison | (() => void))[] = [{ operator, left, right, depth: 0 }];
   let result = false;
@@ -62,18 +65,16 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     meter.checkpoint();
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
-    const { operator: op, left: a, right: b, depth } = task;
-    if (depth > 0 && op !== "==" && op !== "!=" && context?.ordering !== undefined) {
+    const { operator: op, left: a, right: b, depth, truth } = task;
+    if (depth > 0 && context !== undefined) {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
-      const guest = context.ordering(op, a, b); meter.checkpoint();
-      // Ordering tasks are terminal decisions: native containers return the
-      // first unequal pair's requested comparison directly, through all nesting.
-      if (guest !== undefined) return guest;
-    }
-    if (depth > 0 && op === "==" && context?.equality !== undefined) {
-      if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
-      const guest = context.equality(a, b); meter.checkpoint();
+      const guest = context.comparison !== undefined ? context.comparison(op, a, b)
+        : op === "==" ? context.equality?.(a, b) : op === "!=" ? undefined : context.ordering?.(op, a, b);
+      meter.checkpoint();
       if (guest !== undefined) {
+        // Only container probes consume truth. Cell/proxy delegation preserves
+        // the caller's result mode, including raw equality/inequality results.
+        if (!truth) return guest;
         result = context.truth === undefined ? runtimeTruth(guest, meter) : context.truth(guest);
         meter.checkpoint(); continue;
       }
@@ -97,7 +98,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
         first = false;
         if (pair.done) { result = pair.value; return; }
         meter.checkpoint(0, 64);
-        work.push(next, { operator: "==", left: pair.value[0], right: pair.value[1], depth: depth + 1 });
+        work.push(next, { operator: "==", left: pair.value[0], right: pair.value[1], depth: depth + 1, truth: true });
       };
       work.push(next);
       continue;
@@ -105,10 +106,10 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     if (a.kind === "mappingproxy" || b.kind === "mappingproxy") {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       meter.checkpoint(0, 64);
-      if (a.kind === "mappingproxy") work.push({ operator: op, left: a.value, right: b, depth: depth + 1 });
+      if (a.kind === "mappingproxy") work.push({ operator: op, left: a.value, right: b, depth: depth + 1, truth });
       else if (b.kind === "mappingproxy") {
         const reflected = op === "<" ? ">" : op === ">" ? "<" : op === "<=" ? ">=" : op === ">=" ? "<=" : op;
-        work.push({ operator: reflected, left: b.value, right: a, depth: depth + 1 });
+        work.push({ operator: reflected, left: b.value, right: a, depth: depth + 1, truth });
       }
       continue;
     }
@@ -122,7 +123,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
       // Cell rich comparison delegates the requested operator directly, even
       // for identical contents (unlike container member equality shortcuts).
       meter.checkpoint(0, 64);
-      work.push({ operator: op, left: x.value, right: y.value, depth: depth + 1 });
+      work.push({ operator: op, left: x.value, right: y.value, depth: depth + 1, truth });
       continue;
     }
     if (a.kind === "method" && b.kind === "method" && (op === "==" || op === "!=")) {
@@ -139,7 +140,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
         first = false;
         if (pair.done) { result = op === "==" ? pair.value : !pair.value; return; }
         meter.checkpoint(0, 64);
-        work.push(next, { operator: "==", left: pair.value[0], right: pair.value[1], depth: depth + 1 });
+        work.push(next, { operator: "==", left: pair.value[0], right: pair.value[1], depth: depth + 1, truth: true });
       };
       work.push(next);
       continue;
@@ -176,8 +177,8 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
             }
             if (op === "==" || op === "!=") { result = op === "!="; return; }
             meter.checkpoint(0, 64);
-            work.push({ operator: op, left: item(a, comparedIndex), right: item(b, comparedIndex), depth: depth + 1 });
-          }, { operator: "==", left: x, right: y, depth: depth + 1 });
+            work.push({ operator: op, left: item(a, comparedIndex), right: item(b, comparedIndex), depth: depth + 1, truth });
+          }, { operator: "==", left: x, right: y, depth: depth + 1, truth: true });
           return;
         }
         result = orderedResult(op, length(a) - length(b));

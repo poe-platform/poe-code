@@ -6958,6 +6958,18 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build, typecheck and scoped lint pass. Automatic object assembly,
   remaining native protocols and broader interpreter/SDK/safe-fs integration
   remain unfinished.
+- Comparison tasks now distinguish truth-consuming container probes from raw
+  delegated results. Cells/proxies retain the caller's mode through native
+  delegation; direct cell equality returns guest objects without coercion and
+  inequality now dispatches the requested guest operator. A unified optional
+  prepared-comparison callback supports all operators; existing specialized
+  equality/ordering callbacks remain supported. Traversal stays stack-based.
+- Two failing direct-cell regressions now pass, with two nested-cell truth
+  conversion guards. All 5,267 tests in 441 files pass. CPython comparisons match
+  96 cell cases (six operators, nested cells/lists, truth outcomes and errors),
+  80 earlier container cases and 336 list-mutation cases. Selected workspace
+  build, typecheck and scoped lint pass. Remaining object protocols, automatic
+  object assembly and broader interpreter/SDK/safe-fs integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

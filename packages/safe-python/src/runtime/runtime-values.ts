@@ -201,6 +201,8 @@ export interface TypeValue {
   readonly value: RuntimeTypeLayout;
   readonly metaclass: TypeValue;
   readonly immutable: boolean;
+  /** Native types may validate keyword dictionaries during construction. */
+  readonly keywordValidation?: "callee";
   /** Trusted storage mutation after ownership and native layout validation. */
   assignMetaclass(metaclass: TypeValue, meter: ExecutionMeter): void;
 }
@@ -270,7 +272,7 @@ class RuntimeTypeRecord implements TypeValue {
   readonly kind = "type";
   #metaclass: TypeValue;
 
-  constructor(readonly value: RuntimeTypeLayout, metaclass: TypeValue | "self", readonly immutable: boolean) {
+  constructor(readonly value: RuntimeTypeLayout, metaclass: TypeValue | "self", readonly immutable: boolean, readonly keywordValidation?: "callee") {
     this.#metaclass = metaclass === "self" ? this : metaclass;
     Object.freeze(this);
   }
@@ -412,9 +414,9 @@ export class RuntimeValues extends ConstantValues {
   /** Adopt a validated layout and explicit metaclass. "self" is a host-only
    * bootstrap marker for type, not a guest metaclass argument or inferred default.
    * The object layer owns canonical publication and metaclass/layout validation. */
-  type(layout: RuntimeTypeLayout, metaclass: TypeValue | "self", options: { readonly immutable?: boolean } = {}): TypeValue {
+  type(layout: RuntimeTypeLayout, metaclass: TypeValue | "self", options: { readonly immutable?: boolean; readonly keywordValidation?: "callee" } = {}): TypeValue {
     this.runtimeMeter.checkpoint(1, 48);
-    return new RuntimeTypeRecord(layout, metaclass, options.immutable ?? false);
+    return new RuntimeTypeRecord(layout, metaclass, options.immutable ?? false, options.keywordValidation);
   }
 
   getsetDescriptor(value: GetsetDescriptorCapability): GetsetDescriptorValue {

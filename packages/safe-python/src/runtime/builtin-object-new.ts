@@ -13,7 +13,7 @@ import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues, TypeValue } fro
 export function createObjectNewBuiltin(values: RuntimeValues, meter: ExecutionMeter, keys: KeyOperations<RuntimeValue>, objectType: TypeValue, owns: (type: TypeValue) => boolean): BuiltinFunctionValue {
   meter.checkpoint(1, 96);
   const newName = values.string("__new__"), initName = values.string("__init__");
-  const builtin: BuiltinFunctionValue = values.builtinFunction({ name: "object.__new__", doc: "Create and return a new object.  See help(type) for accurate signature.", invoke(positional, keywords, meter, invocation) {
+  const builtin: BuiltinFunctionValue = values.builtinFunction({ name: "object.__new__", keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (positional.length === 0) throw new PythonRuntimeError("TypeError", "object.__new__(): not enough arguments");
     const type = positional[0];

@@ -7,7 +7,7 @@ import type { BuiltinFunctionValue, RuntimeValues, TypeValue } from "./runtime-v
  * Subclasses retain ordinary instance dictionaries and declared slot storage. */
 export function createListNewBuiltin(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, owns: (type: TypeValue) => boolean): BuiltinFunctionValue {
   meter.checkpoint(0, 96);
-  return values.builtinFunction({ name: "list.__new__", doc: "Create and return a new object.  See help(type) for accurate signature.",
+  return values.builtinFunction({ name: "list.__new__", keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.",
     invoke(positional, _keywords, meter, invocation) {
       meter.checkpoint();
       if (positional.length === 0) throw new PythonRuntimeError("TypeError", "list.__new__(): not enough arguments");

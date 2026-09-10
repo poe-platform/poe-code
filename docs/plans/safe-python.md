@@ -9121,6 +9121,22 @@ extension, integration, or validation requirement is missing or unverified.
   Broader native lifecycle, interpreter execution and safe-fs integration work
   remains; this increment does not establish full Python support. No push or
   release was requested.
+- Native allocator keyword ownership (2026-09-10): seven failing integration
+  cases reproduced premature caller-side rejection of non-string keywords in
+  list, set, tuple, frozenset and object __new__, plus lost tuple/frozenset input
+  effects before guest initializer errors. Native allocators now use the
+  existing callee-owned keyword validation capability. An 800-case CPython
+  matrix exposed two additional mismatches, reproduced with failing tests:
+  exact object construction owns its argument diagnostics, and list subclasses
+  with custom allocators allow initialization keywords. Added optional native
+  type keyword-validation policy and opted object into it. List initialization
+  checks the live raw allocator identity; aliasing list.__new__ retains native
+  keyword rejection. All 800 cases match across exact types, plain subclasses,
+  custom new/init combinations, explicit allocation and ordinary construction,
+  argument errors and source side effects. Workspace build, typecheck, focused
+  lint and all 6,905 package tests in 493 files pass. Nine tests were added.
+  Further native lifecycle and full interpreter/safe-fs work remain unfinished.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

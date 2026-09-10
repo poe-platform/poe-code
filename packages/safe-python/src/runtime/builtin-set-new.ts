@@ -11,7 +11,7 @@ import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues, TypeValue } fro
  * while retaining native storage behind ordinary guest protocol dispatch. */
 export function createSetNewBuiltin(kind: "set" | "frozenset", owner: TypeValue, values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter, owns: (type: TypeValue) => boolean): BuiltinFunctionValue {
   meter.checkpoint(0, 96);
-  return values.builtinFunction({ name: `${kind}.__new__`, doc: "Create and return a new object.  See help(type) for accurate signature.",
+  return values.builtinFunction({ name: `${kind}.__new__`, keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.",
     invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (positional.length === 0) throw new PythonRuntimeError("TypeError", `${kind}.__new__(): not enough arguments`);

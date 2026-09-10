@@ -2,6 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
+import { lookupMroAttribute } from "./class-attributes.js";
 import type { RuntimeValues, TypeValue, WrapperDescriptorValue } from "./runtime-values.js";
 
 /** Initialization replaces existing contents after validating arguments. Guest
@@ -13,7 +14,11 @@ export function createListInitWrapper(owner: TypeValue, values: RuntimeValues, m
       meter.checkpoint();
       const list = runtimeListPayload(receiver);
       if (list === undefined) throw Error("list initialization requires list storage");
-      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "list() takes no keyword arguments");
+      if (keywords.items.size !== 0) {
+        const name = values.string("__new__");
+        const allocator = receiver.kind === "instance" ? lookupMroAttribute(receiver.type.value.mro, name, (base, key) => base.namespace.items.lookup(key), meter)?.value : undefined;
+        if (receiver.kind !== "instance" || allocator === owner.value.namespace.items.lookup(name)?.value) throw new PythonRuntimeError("TypeError", "list() takes no keyword arguments");
+      }
       if (positional.length > 1) throw new PythonRuntimeError("TypeError", `list expected at most 1 argument, got ${positional.length}`);
       list.items.clear();
       const source = positional[0];

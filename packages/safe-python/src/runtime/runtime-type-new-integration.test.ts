@@ -53,6 +53,37 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("lets exact object construction reject keyword dictionaries itself", () => {
+  const state = fixture();
+  expect(() => state.run("object(**{1:2})\n")).toThrow("object() takes no arguments");
+});
+
+it("lets list subclasses with custom allocators consume initialization keywords", () => {
+  const state = fixture();
+  state.run("List=type([])\nclass Child(List):\n def __new__(cls,*args,**kw):\n  visit('new')\n  return List.__new__(cls)\nclass Source:\n def __iter__(self):\n  visit('iter')\n  return [1].__iter__()\nitems=Child(Source(),extra=2)\ncorrect=items==[1]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["new", "iter"]);
+  state.run("class Alias(List):\n __new__=List.__new__\n");
+  expect(() => state.run("Alias(extra=2)\n")).toThrow("list() takes no keyword arguments");
+});
+
+it.each(["list", "set", "tuple", "frozenset", "object"] as const)("lets the %s allocator own keyword validation", kind => {
+  const state = fixture();
+  state.globals.set("Base", kind === "object" ? state.registry.object : kind === "list" ? state.registry.listType() : kind === "tuple" ? state.registry.tupleType() : state.registry.setType(kind));
+  state.run("class Child(Base):\n def __init__(self,**kw):\n  visit('init')\nallocated=Base.__new__(Child,**{1:2})\ncorrect=type(allocated) is Child\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual([]);
+  if (kind === "list" || kind === "set") {
+    state.run("exact=Base.__new__(Base,**{1:2})\ncorrect=type(exact) is Base\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  } else expect(() => state.run("Base.__new__(Base,**{1:2})\n")).toThrow(kind === "object" ? "object() takes no arguments" : `${kind}() takes no keyword arguments`);
+});
+
+it.each(["tuple", "frozenset"] as const)("consumes %s allocation input before guest initializer keyword errors", kind => {
+  const state = fixture(); state.globals.set("Base", kind === "tuple" ? state.registry.tupleType() : state.registry.setType(kind));
+  state.run("class Child(Base):\n def __init__(self,*args,**kw):\n  visit('init')\nclass Source:\n def __iter__(self):\n  visit('iter')\n  return [].__iter__()\n");
+  expect(() => state.run("Child(Source(),**{1:2})\n")).toThrow("keywords must be strings");
+  expect(state.events).toEqual(["iter"]);
+});
+
 it.each(["list", "tuple", "set", "frozenset"] as const)("uses native %s comparison after subclass slots decline", kind => {
   const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
   state.globals.set("Base", kind === "list" ? state.registry.listType() : kind === "tuple" ? state.registry.tupleType() : state.registry.setType(kind));

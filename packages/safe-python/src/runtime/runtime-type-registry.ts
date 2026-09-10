@@ -81,7 +81,7 @@ export class RuntimeTypeRegistry {
     const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false, weakReferences: false });
     const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: true, objectLayout: false, variableSized: true });
     this.type = values.type(typeLayout, "self", { immutable: true });
-    this.object = values.type(objectLayout, this.type, { immutable: true });
+    this.object = values.type(objectLayout, this.type, { immutable: true, keywordValidation: "callee" });
     this.#entries.set(objectLayout, { type: this.object });
     this.#entries.set(typeLayout, { type: this.type });
     objectLayout.namespace.items.set(values.string("__new__"), createObjectNewBuiltin(values, meter, keys, this.object, type => this.#entries.get(type.value)?.type === type));

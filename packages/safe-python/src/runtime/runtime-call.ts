@@ -91,7 +91,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
       }
       if (callee.kind !== "instance" && !isRuntimeMethodDecoratorSubclass(callee) && callee.kind !== "classmethod_descriptor"
         && callee.kind !== "wrapper_descriptor" && callee.kind !== "method-wrapper"
-        && (callee.kind !== "type" || callee.immutable)
+        && (callee.kind !== "type" || (callee.immutable && callee.keywordValidation !== "callee"))
         && (callee.kind !== "builtin_function_or_method" || callee.value.keywordValidation !== "callee")) {
         const iterator = keywords.items.iterate(key => key);
         for (let item = iterator.next(); !item.done; item = iterator.next()) {

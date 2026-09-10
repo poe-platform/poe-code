@@ -51,6 +51,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
       if (value.kind === "slice") return registry.sliceType();
       if (value.kind === "range") return registry.rangeType();
       if (value.kind === "int") return registry.integerType();
+      if (value.kind === "float") return registry.floatType();
       if (value.kind === "bool") return registry.booleanType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
@@ -65,6 +66,47 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("reflects boolean comparisons to float subclasses without bypassing overrides", () => {
+  const state = fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __eq__(self,other):\n  visit('equal')\n  return 7\nx=Child(1.0)\nresult=True==x\ncomplex_result=(1+0j)==x\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(state.globals.get("complex_result")).toBe(state.v.true);expect(state.events).toEqual(["equal"]);
+});
+
+it("hashes owned float NaNs using the instance identity rather than backing storage", () => {
+  const state = fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n pass\nx=Child('nan')\n");
+  const value=state.globals.get("x")!,descriptor=state.registry.floatType().value.namespace.items.lookup(state.v.string("__hash__"))?.value;
+  if(descriptor?.kind!=="wrapper_descriptor")throw Error("expected float hash descriptor");
+  const keywords=state.v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,state.meter));
+  const result=descriptor.value.invoke(value,[],keywords,state.meter,{nativeHash:()=>17n,identityHash:receiver=>receiver===value?31n:17n,call():never{throw Error("unexpected call");},isStopIteration:()=>false});
+  expect(result).toEqual(state.v.integer(31));
+});
+
+it("allocates canonical floats and distinct subclass-owned float payloads", () => {
+  const state = fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("x=1.25\nclass Child(Float):\n def __init__(self,value):\n  self.tag='child'\ny=Child(x)\ncorrect=Float(x) is x and type(x) is Float and type(y) is Child and y.tag=='child' and Float(y)==x and Float(y) is not y and Float.__base__ is object and Float.__new__.__self__ is Float\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("uses float subclass numeric slots and reflected override priority", () => {
+  const state = fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n pass\nx=Child(2.5)\ncorrect=x+1==3.5 and 1+x==3.5 and x*2==5.0 and 2*x==5.0 and x-1==1.5 and 8/x==3.2 and 8//x==3.0 and x%2==0.5 and x**2==6.25 and x>2 and x==2.5 and -x==-2.5 and +x==2.5 and x.__int__()==2 and x.__bool__() and f'{x!r}'=='2.5'\nclass Reflected(Float):\n def __radd__(self,other):\n  visit('reflected')\n  return 9\npriority=1.0+Reflected(2.0)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.globals.get("priority")).toEqual(state.v.integer(9));expect(state.events).toEqual(["reflected"]);
+  state.globals.set("NI",state.v.notImplemented);
+  state.run("class Declines(Float):\n def __radd__(self,other):\n  visit('declines')\n  return NI\nfallback=1.0+Declines(2.0)\n");
+  expect(state.globals.get("fallback")).toEqual(state.v.float(3));expect(state.events).toEqual(["reflected","declines"]);
+  state.run("mixed=True+Reflected(2.0)\n");
+  expect(state.globals.get("mixed")).toEqual(state.v.integer(9));
+});
+
+it("lets overridden float initializers consume keyword arguments", () => {
+  const state = fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __init__(self,tag):\n  self.tag=tag\nx=Child(tag='yes')\ncorrect=x==0.0 and x.tag=='yes'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("Float(tag='no')\n")).toThrow("float() takes no keyword arguments");
+});
 
 it("constructs floats from native values and text while retaining exact float identity", () => {
   const state = fixture();

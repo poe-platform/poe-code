@@ -40,6 +40,8 @@ import { createIntegerNewBuiltin } from "./builtin-integer-new.js";
 import { installRuntimeIntegerSlots } from "./runtime-integer-slots.js";
 import { installRuntimeIntegerMethodDescriptors } from "./runtime-integer-method-descriptors.js";
 import { installRuntimeIntegerByteDescriptors } from "./runtime-integer-byte-descriptors.js";
+import { createFloatNewBuiltin } from "./builtin-float-new.js";
+import { installRuntimeFloatSlots } from "./runtime-float-slots.js";
 import { createBooleanNewBuiltin } from "./builtin-boolean-new.js";
 import { installRuntimeBooleanSlots } from "./runtime-boolean-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
@@ -91,6 +93,7 @@ export class RuntimeTypeRegistry {
   #sliceType: TypeValue | undefined;
   #rangeType: TypeValue | undefined;
   #integerType: TypeValue | undefined;
+  #floatType: TypeValue | undefined;
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
@@ -293,6 +296,20 @@ export class RuntimeTypeRegistry {
     installRuntimeBooleanSlots(type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#booleanType = type;
+    return type;
+  }
+
+  floatType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#floatType !== undefined) return this.#floatType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("float", [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    namespace.items.set(this.values.string("__new__"), createFloatNewBuiltin(type, this.values, this.meter, type => this.#entries.has(type.value)));
+    namespace.items.set(this.values.string("__doc__"), this.values.string("Convert a string or number to a floating-point number, if possible."));
+    installRuntimeFloatSlots(type, this.values, this.meter);
+    this.meter.checkpoint(1,64);
+    this.#entries.set(layout,{type});this.#floatType=type;
     return type;
   }
 

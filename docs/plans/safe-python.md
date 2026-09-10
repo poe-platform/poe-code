@@ -9429,6 +9429,24 @@ extension, integration, or validation requirement is missing or unverified.
   498 files pass. Canonical float type allocation and method catalog remain
   next; full interpreter and safe-fs execution remain unfinished. No push or
   release was requested.
+- Canonical float allocation and numeric slots (2026-09-10): failing integration
+  tests drove immutable float type publication, owned subclass allocation, and
+  unary/arithmetic/comparison/hash descriptors. Custom initializers consume
+  subclass keywords while plain float rejects them. Further failing regressions
+  fixed reflected NotImplemented fallback, mixed boolean reflection/comparison,
+  and NaN subclass hashing by instance identity rather than backing storage.
+  Updated one strict numeric integration classifier to register canonical floats.
+  The 3,372-case descriptor audit has 3,364 exact matches and eight fractional
+  power results differing by one ULP between host math implementations; the
+  latter are explicitly bounded comparisons, not exact matches. All 624 mixed
+  operator/override cases and 104 canonical constructor cases match exactly.
+  Workspace build, typecheck and focused lint pass. The original final unit run
+  terminated with six worker-start failures during a host slowdown, so it was
+  not counted as a pass. After that terminal result, an uncached one-worker
+  package run passed all 7,026 tests in 498 files with no worker errors and no
+  timeout or assertion changes. Float data/method descriptors, formatting,
+  rounding and remaining scalar consumers still need work; full interpreter
+  and safe-fs execution remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

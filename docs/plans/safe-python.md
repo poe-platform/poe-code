@@ -9376,6 +9376,21 @@ extension, integration, or validation requirement is missing or unverified.
   495 files pass. Integer byte-conversion descriptors, remaining scalar types,
   full interpreter and safe-fs execution remain unfinished. No push or release
   was requested.
+- Integer byte-conversion descriptors (2026-09-10): failing integration tests
+  reproduced absent class-bound from_bytes and owned-integer conversion methods.
+  Published to_bytes and from_bytes with native method/classmethod descriptors,
+  sharing argument parsing, conversion ordering and metering with the legacy
+  methods. from_bytes converts first, then invokes the bound subclass normally,
+  preserving custom constructor return values and bool singleton construction.
+  Builtin invocations now carry the execution owner's byte/buffer protocol; a
+  failing host-storage regression ensured descriptor adapters retain that policy
+  rather than overriding its byte recognition. Native instance attribute lookup
+  binds classmethod descriptors to the actual type. The 1,131-case CPython audit
+  initially exposed 45 guest byteorder type-name mismatches; a failing regression
+  drove correct diagnostic names without coercion, and all comparisons now pass.
+  Workspace build, typecheck, focused lint and all 6,977 tests in 495 files pass.
+  Remaining scalar types, general type checks, full interpreter and safe-fs
+  execution remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

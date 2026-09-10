@@ -39,6 +39,7 @@ import { installRuntimeRangeSlots } from "./runtime-range-slots.js";
 import { createIntegerNewBuiltin } from "./builtin-integer-new.js";
 import { installRuntimeIntegerSlots } from "./runtime-integer-slots.js";
 import { installRuntimeIntegerMethodDescriptors } from "./runtime-integer-method-descriptors.js";
+import { installRuntimeIntegerByteDescriptors } from "./runtime-integer-byte-descriptors.js";
 import { createBooleanNewBuiltin } from "./builtin-boolean-new.js";
 import { installRuntimeBooleanSlots } from "./runtime-boolean-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
@@ -305,6 +306,7 @@ export class RuntimeTypeRegistry {
     namespace.items.set(this.values.string("__doc__"), this.values.string("int([x]) -> integer\nint(x, base=10) -> integer\n\nConvert a number or string to an integer, or return 0 if no arguments\nare given.  If x is a number, return x.__int__().  For floating-point\nnumbers, this truncates towards zero.\n\nIf x is not a number or if base is given, then x must be a string,\nbytes, or bytearray instance representing an integer literal in the\ngiven base.  The literal can be preceded by '+' or '-' and be surrounded\nby whitespace.  The base defaults to 10.  Valid bases are 0 and 2-36.\nBase 0 means to interpret the base from the string as an integer\niteral.\n>>> int('0b100', base=0)\n4"));
     installRuntimeIntegerSlots(type, this.values, this.meter);
     installRuntimeIntegerMethodDescriptors(type, this.values, this.meter);
+    installRuntimeIntegerByteDescriptors(type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#integerType = type;
     return type;

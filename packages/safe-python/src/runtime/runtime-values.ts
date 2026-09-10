@@ -13,6 +13,7 @@ import type { IntegerIndexContext } from "./index-protocol.js";
 import type { RuntimePowerContext } from "./runtime-power-operation.js";
 import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 import type { FormatContext } from "./format-protocol.js";
+import type { RuntimeBytesInputProtocol } from "./runtime-bytes-input.js";
 import { RuntimeMethodDecoratorState } from "./runtime-method-decorator-state.js";
 import { RuntimeInstanceState } from "./runtime-instance-state.js";
 import { ExecutionIdentity } from "./execution-identity.js";
@@ -132,6 +133,8 @@ export interface BuiltinInvocationContext {
   binary?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
   readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
   readonly iteration?: IterationContext<RuntimeValue>;
+  /** Host-owned byte/buffer access, also shared by native byte constructors. */
+  readonly bytes?: RuntimeBytesInputProtocol;
   /** Reenter this execution's normal argument/callability/function call path. */
   call(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords?: DictionaryValue): RuntimeValue;
   isStopIteration(error: unknown): boolean;

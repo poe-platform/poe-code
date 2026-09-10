@@ -65,6 +65,41 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("retains host byte protocol storage when calling integer from_bytes", () => {
+  const state = fixture();const { v, meter } = state;
+  const owner = state.registry.integerType(), descriptor = owner.value.namespace.items.lookup(v.string("from_bytes"))?.value;
+  if(descriptor?.kind !== "classmethod_descriptor")throw Error("expected from_bytes descriptor");
+  const keywords = v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,meter));
+  const opaque = v.list([]), bytes = v.bytes([7]).value;
+  const events: string[] = [];
+  const result = descriptor.value.invoke(owner,[opaque],keywords,meter,{
+    call(): never { throw Error("unexpected guest call"); }, isStopIteration: () => false,
+    bytes: { lookupBytes: () => () => { events.push("bytes"); return opaque; }, byteString: value => value === opaque ? bytes : undefined, typeName: () => "Opaque" }
+  });
+  expect(result).toEqual(v.integer(7));expect(events).toEqual(["bytes"]);
+});
+
+it("names guest byteorder types without attempting their conversion", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Order:\n def __str__(self):\n  visit('wrong')\n  return 'big'\norder=Order()\n");
+  expect(()=>state.run("Int.from_bytes(b'1',order)\n")).toThrow("from_bytes() argument 'byteorder' must be str, not Order");
+  expect(()=>state.run("Int.to_bytes(1,2,order)\n")).toThrow("to_bytes() argument 'byteorder' must be str, not Order");
+  expect(state.events).toEqual([]);
+});
+
+it("publishes integer byte conversion with class binding and owned payloads", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());state.globals.set("Bool",state.registry.booleanType());
+  state.run("class Child(Int):\n def __init__(self,value):\n  visit('init')\n  self.tag='child'\n def __int__(self):\n  visit('wrong')\n  return 0\nx=Child.from_bytes(b'\\x01\\x02','big')\ncorrect=type(x) is Child and x.tag=='child' and x==258 and x.to_bytes(2,'little')==b'\\x02\\x01' and Int.to_bytes(x,2)==b'\\x01\\x02' and Bool.from_bytes(b'\\x02') is True and Child.from_bytes.__self__ is Child and x.from_bytes.__self__ is Child and Int.to_bytes.__objclass__ is Int\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["init"]);
+});
+
+it("converts integer byte inputs before invoking a subclass constructor", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Source:\n def __bytes__(self):\n  visit('bytes')\n  return b'\\x03'\nclass Signed:\n def __bool__(self):\n  visit('signed')\n  return False\nclass Child(Int):\n def __new__(cls,value):\n  visit('new')\n  return ('replacement',value)\nresult=Child.from_bytes(Source(),signed=Signed())\n");
+  expect(state.globals.get("result")).toEqual(state.v.tuple([state.v.string("replacement"),state.v.integer(3)]));
+  expect(state.events).toEqual(["signed","bytes","new"]);
+});
+
 it("shares the execution numeric locale with explicit integer formatting", () => {
   const state = fixture(); const { v, meter } = state;
   let reads = 0;

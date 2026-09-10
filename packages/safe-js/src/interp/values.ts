@@ -1221,6 +1221,8 @@ function copyToSandbox(
   depth = 0
 ): SandboxValue {
   assertSandboxDataDepth(depth);
+  if (state.structuredClone && (isSandboxPromise(value) || nodeTypes.isPromise(value)))
+    throw new DOMException("Promises cannot be structured cloned.", "DataCloneError");
   if (isSandboxPrimitive(value)) {
     return value;
   }

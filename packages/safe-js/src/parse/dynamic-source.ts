@@ -1,8 +1,15 @@
 import type { CompileOwner } from "../interp/budget.js";
-import { parseDynamicFunction, parseEvalScript, type EvalParseContext, type DynamicFunctionKind, type ParseResult } from "./parser.js";
+import { parseModule, parseDynamicFunction, parseEvalScript, type EvalParseContext, type DynamicFunctionKind, type ParseResult } from "./parser.js";
 
 import { dynamicNodeSources, dynamicSourceRecords, type DynamicSource } from "./function-source.js";
 export type { DynamicSource, EvalSourceContext } from "./function-source.js";
+
+export function createModuleSource(body: string, owner?: CompileOwner) {
+  const node = parseModule(body, "<snapshot module>", owner);
+  const source: DynamicSource = { kind: "module", parameters: "", body, nodes: new Map() };
+  registerDynamicSource(node, source);
+  return { node, source };
+}
 
 export function createDynamicSource(kind: DynamicFunctionKind, parameters: string, body: string, owner?: CompileOwner) {
   const node = parseDynamicFunction(kind, parameters, body, owner);

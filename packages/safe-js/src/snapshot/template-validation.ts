@@ -16,14 +16,17 @@ export function validateTemplateObjects(heap: Record<string, unknown>, nodes: It
       if (node.type === "TaggedTemplateExpression" && node.quasi.nodeId !== undefined) entries.set(node.quasi.nodeId, node.quasi);
     dynamicSites.set(id, entries);
   }
-  const seen = new Set<TemplateLiteral>();
+  const seen = new Map<TemplateLiteral, Set<number>>();
   const rawOwners = new Map<unknown, unknown>();
   for (const raw of Object.values(heap)) {
-    const entry = raw as { kind: string; templateNodeId?: number; state?: unknown; dynamicSource?: {id: number} };
+    const entry = raw as { kind: string; templateNodeId?: number; realm?: number; state?: unknown; dynamicSource?: {id: number} };
     if (entry.kind !== "guest-array" || entry.templateNodeId === undefined) continue;
     const node = (entry.dynamicSource === undefined ? sites : dynamicSites.get(entry.dynamicSource.id))?.get(entry.templateNodeId);
-    if (node === undefined || seen.has(node)) throw new TypeError("Invalid or duplicate template source identity.");
-    seen.add(node);
+    const realm = entry.realm ?? 0;
+    if (node === undefined || seen.get(node)?.has(realm)) throw new TypeError("Invalid or duplicate template source identity.");
+    let realms = seen.get(node);
+    if (realms === undefined) seen.set(node, realms = new Set());
+    realms.add(realm);
     const cooked = descriptors(entry.state);
     const rawReference = cooked.get("raw")?.value as { kind?: string; id?: number } | undefined;
     const rawArray = rawReference?.kind === "ref" ? heap[String(rawReference.id)] as { kind?: string; state?: unknown } : undefined;

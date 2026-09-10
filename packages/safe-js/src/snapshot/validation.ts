@@ -4,7 +4,7 @@ import { validateRegexProperties, type RegexPropertyData } from "./regexp-proper
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { types } from "node:util";
 import type { Budget, CompileOwner } from "../interp/budget.js";
-import { createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "../parse/dynamic-source.js";
+import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "../parse/dynamic-source.js";
 import type { ParseResult } from "../parse/parser.js";
 import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS, inMemoryRunSnapshots } from "./dump-format.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
@@ -485,7 +485,8 @@ export function validateInterpreterSnapshot(
       try {
         const compiled = source.kind === "guest-script"
           ? createEvalSource(source.body as string, source.context as EvalSourceContext, owner)
-          : createDynamicSource(source.functionKind as Exclude<DynamicSource["kind"], "eval">,
+          : source.functionKind === "module" ? createModuleSource(source.body as string, owner)
+          : createDynamicSource(source.functionKind as Exclude<DynamicSource["kind"], "eval" | "module">,
             source.parameters as string, source.body as string, owner);
         dynamicSources.set(Number(key), compiled.source);
       } catch (error) {

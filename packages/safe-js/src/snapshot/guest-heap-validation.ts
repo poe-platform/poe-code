@@ -98,8 +98,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
   if (record(raw).kind === "guest-source") {
     const source = record(raw);
     fields(source, ["kind", "functionKind", "parameters", "body"]);
-    if (!["normal", "async", "generator", "async-generator"].includes(String(source.functionKind))
+    if (!["normal", "async", "generator", "async-generator", "module"].includes(String(source.functionKind))
       || typeof source.parameters !== "string" || typeof source.body !== "string") throw new TypeError("Invalid dynamic source.");
+    if (source.functionKind === "module" && source.parameters !== "") throw new TypeError("Module sources cannot have parameters.");
     return true;
   }
   if (record(raw).kind === "mapped-arguments") {
@@ -1040,7 +1041,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "guest-object" || node.kind === "guest-array") {
-    fields(node, ["kind", "state"], node.kind === "guest-array" ? ["templateNodeId", "templateOwner", "dynamicSource"] : ["errorType"]);
+    fields(node, ["kind", "state"], node.kind === "guest-array" ? ["templateNodeId", "templateOwner", "dynamicSource", "realm"] : ["errorType"]);
+    if (Object.hasOwn(node, "realm") && (node.templateNodeId === undefined || !Number.isSafeInteger(node.realm) || (node.realm as number) < 1))
+      throw new TypeError("Invalid template realm identity.");
     if (node.dynamicSource !== undefined) {
       reference(node.dynamicSource, ["guest-source", "guest-script"]);
       if (node.templateNodeId === undefined) throw new TypeError("Dynamic template source requires a template identity.");

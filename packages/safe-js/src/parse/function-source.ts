@@ -1,4 +1,4 @@
-import type { ClassNode, DynamicFunctionKind, FunctionDeclaration, FunctionNode, ParseResult } from "./parser.js";
+import type { ClassNode, DynamicFunctionKind, FunctionDeclaration, FunctionNode, ParseResult, TemplateLiteral } from "./parser.js";
 
 export type FunctionSource = {
   readonly text: string;
@@ -7,6 +7,7 @@ export type FunctionSource = {
 };
 
 export const functionSources = new WeakMap<FunctionNode | ClassNode, FunctionSource>();
+export const templateSources = new WeakMap<TemplateLiteral, string>();
 export const functionStrictness = new WeakMap<FunctionNode, boolean>();
 /** Eval-root declarations are instantiated before statement execution. */
 export const evalFunctionDeclarations = new WeakSet<FunctionDeclaration>();
@@ -23,7 +24,7 @@ export type EvalSourceContext = {
 export type DynamicSource = {
   body: string;
   nodes: Map<number, ParseResult>;
-} & ({kind: DynamicFunctionKind; parameters: string} | {kind: "eval"; context: EvalSourceContext});
+} & ({kind: DynamicFunctionKind; parameters: string} | {kind: "eval"; context: EvalSourceContext} | {kind: "module"; parameters: ""});
 
 export const dynamicSourceRecords = new WeakSet<object>();
 export const dynamicNodeSources = new WeakMap<object, DynamicSource>();

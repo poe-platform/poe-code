@@ -173,7 +173,7 @@ export type GuestHeapNode<T> =
       sent: Array<{ type: "normal" | "return" | "throw"; value: T }>;
       environment?: { homeObject?: T; newTarget?: T; construction?: T; classInitializer?: true }; objectState?: GuestObjectState<T> }
   | { kind: "guest-object"; state: GuestObjectState<T>; errorType?: SandboxErrorName }
-  | { kind: "guest-array"; state: GuestObjectState<T>; templateNodeId?: number; templateOwner?: T; dynamicSource?: T }
+  | { kind: "guest-array"; state: GuestObjectState<T>; templateNodeId?: number; templateOwner?: T; dynamicSource?: T; realm?: number }
   | { kind: "intrinsic"; id: string; realm?: number; state?: GuestObjectState<T>; symbolRegistry?: Array<[string, T]> }
   | { kind: "module-function"; module: string; path: string[]; name?: string; state: GuestObjectState<T> }
   | { kind: "guest-function"; astNodeId: number; scope: T; name?: string; realm?: number; state: GuestObjectState<T>; dynamicSource?: T;

@@ -2,9 +2,12 @@ import type { TemplateLiteral } from "../parse.js";
 import type { Budget } from "./budget.js";
 import type { SandboxArray } from "./values.js";
 import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
+import { getSandboxPrototype } from "./object-model.js";
+import { getIntrinsicRealmIdentity } from "./intrinsics.js";
 
 const realms = new WeakMap<Budget, Map<TemplateLiteral, SandboxArray>>();
 export const templateOrigins = new WeakMap<SandboxArray, TemplateLiteral>();
+export const templateRealmIdentities = new WeakMap<object, object>();
 export const templateRawArrays = new WeakMap<SandboxArray, SandboxArray>();
 export const templateCookedArrays = new WeakMap<SandboxArray, SandboxArray>();
 
@@ -40,6 +43,9 @@ export function registerTemplateObject(node: TemplateLiteral, value: SandboxArra
   }
   realm.set(node, value);
   templateOrigins.set(value, node);
+  const prototype = getSandboxPrototype({}, budget);
+  const identity = prototype === null ? undefined : getIntrinsicRealmIdentity(prototype);
+  if (identity !== undefined) templateRealmIdentities.set(value, identity);
   const dynamicSource = dynamicNodeSources.get(node);
   if (dynamicSource !== undefined) dynamicValueSources.set(value, dynamicSource);
   templateRawArrays.set(value, raw as SandboxArray);

@@ -15,7 +15,10 @@ import { hasGuestObjectState, hasNullObjectPrototype, isGuestClosure } from "../
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotDataDepth, assertSnapshotGraphDepth } from "../graph-depth.js";
 import { captureGuestHeapNode, type GuestHeapNode, type GuestObjectState, type PrivateElementData } from "./guest-heap.js";
-import { getGeneratorOrigin } from "../interp/closure-origin.js";
+import { getClosureOrigin, getGeneratorOrigin } from "../interp/closure-origin.js";
+import { classOrigins } from "../interp/classes.js";
+import { functionSources, templateSources } from "../parse/function-source.js";
+import { templateOrigins, templateRealmIdentities } from "../interp/template-objects.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
 import { typedArrayStorage, isNumericTypedArray, type NumericTypedArray } from "../interp/typed-array.js";
@@ -39,6 +42,7 @@ import {
   getRegexProperties,
   isSandboxSet,
   type SandboxMap,
+  type SandboxArray,
   type SandboxClosure,
   type SandboxGenerator,
   type SandboxPromise,
@@ -239,6 +243,8 @@ export type SerializedSnapshot = {
 };
 
 type SerializationState = {
+  source: string;
+  moduleSources: Map<string, number>;
   intrinsicRealms: Map<object, number>;
   float32Buffers: WeakMap<ArrayBuffer, number>;
   sharedBlocks?:WeakMap<object,number>;
@@ -278,6 +284,8 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
     }
   }
   const state: SerializationState = {
+    source: input.source,
+    moduleSources: new Map(),
     intrinsicRealms: new Map(),
     float32Buffers: new WeakMap(),
     ancestors: new WeakMap(),
@@ -304,7 +312,7 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
   }
 
   if (state.intrinsicRealms.size === 1) {
-    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator") delete node.realm;
+    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator" || node.kind === "guest-array") delete node.realm;
   }
 
   return {
@@ -368,10 +376,29 @@ function serializeValue(
       state.serializedHeapIds.add(id);
       const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state), state.weakEntries.get(value), state.weakTargets.get(value), state.finalizationTargets.get(value));
       if (node === undefined) throw new TypeError(`Missing guest heap state at ${path}.`);
-      if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator") {
+      if ((node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator" || node.kind === "guest-array") && node.dynamicSource === undefined) {
+        const origin = getClosureOrigin(value) ?? classOrigins.get(value) ?? getGeneratorOrigin(value);
+        const template = Array.isArray(value) ? templateOrigins.get(value as SandboxArray) : undefined;
+        const body = template === undefined
+          ? origin === undefined ? undefined : functionSources.get(origin.node)?.text
+          : templateSources.get(template);
+        if (body !== undefined && body !== state.source) {
+          let sourceId = state.moduleSources.get(body);
+          if (sourceId === undefined) {
+            const source = { kind: "guest-source" as const, functionKind: "module" as const, parameters: "", body };
+            sourceId = state.heapIds.size + 1;
+            state.heapIds.set(source, sourceId);
+            state.moduleSources.set(body, sourceId);
+            state.heap[String(sourceId)] = source;
+          }
+          node.dynamicSource = { kind: "ref", id: sourceId };
+        }
+      }
+      if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator" || node.kind === "guest-array") {
         const realmValue = node.kind === "intrinsic" ? value
           : isSandboxClosure(value) ? getFunctionRealmPrototype(value, "Object", undefined) : undefined;
-        const origin = node.kind === "guest-generator" ? getGeneratorOrigin(value)?.realmIdentity
+        const origin = node.kind === "guest-array" ? templateRealmIdentities.get(value)
+          : node.kind === "guest-generator" ? getGeneratorOrigin(value)?.realmIdentity
           : realmValue === undefined ? undefined : getIntrinsicRealmIdentity(realmValue);
         if (origin === undefined && node.kind === "intrinsic") throw new TypeError("Missing intrinsic realm identity.");
         if (origin !== undefined) {

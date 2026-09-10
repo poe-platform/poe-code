@@ -6,7 +6,7 @@ import { inMemoryRunSnapshots, serializeSafeJSSnapshot } from "./snapshot/dump-f
 import { assertSnapshotInactive } from "./interp/running-state.js";
 import { validateSnapshotMigration, type SnapshotMigration } from "./snapshot/migration.js";
 import { parseModule } from "./parse/parser.js";
-import { createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "./parse/dynamic-source.js";
+import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "./parse/dynamic-source.js";
 import { validateGuestFunctionAst } from "./snapshot/guest-ast-validation.js";
 import { validateTemplateObjects } from "./snapshot/template-validation.js";
 import type { ParseResult } from "./parse.js";
@@ -86,7 +86,8 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
         try {
           const compiled = record.kind === "guest-script"
             ? createEvalSource(record.body as string, record.context as EvalSourceContext, owner)
-            : createDynamicSource(record.functionKind as Exclude<DynamicSource["kind"], "eval">,
+            : record.functionKind === "module" ? createModuleSource(record.body as string, owner)
+            : createDynamicSource(record.functionKind as Exclude<DynamicSource["kind"], "eval" | "module">,
               record.parameters as string, record.body as string, owner);
           dynamicSources.set(Number(id), compiled.source);
         } catch (error) {

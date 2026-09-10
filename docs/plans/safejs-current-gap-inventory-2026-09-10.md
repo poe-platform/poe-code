@@ -11,9 +11,8 @@ Temporal replay/heap support, originating intrinsic prototype parents and weak
 graph snapshots are locally committed. Earlier statements that Now is absent
 or those integrations are wholly uncommitted are obsolete.
 
-The latest snapshot-directory run passed 2,111 tests across 155 files, with 15
-direct mixed-realm value/iterator tests passing separately afterward. See the
-[iterator qualification](safejs-mixed-realm-iterator-qualification.md). This is
+The latest snapshot-directory run passed 2,134 tests across 157 files, including
+mixed-realm iterator and mixed-source/template tests. This is
 not a full-package result. The last full package gate passed 27,437 tests,
 failed 10 and skipped 48; all 100 filesystem type contracts passed. See
 [the full gate record](safejs-post-temporal-full-gate.md).
@@ -31,9 +30,12 @@ failed 10 and skipped 48; all 100 filesystem type contracts passed. See
 | Broad conformance | Parser, evaluation order, exotic objects, modules, recovery, host boundaries and resource limits still require broader evidence. No exhaustive JavaScript conformance result exists. |
 | Delivery | Release hold remains active. No new remote-main or publication claim follows from these local commits. |
 
-Mixed-source closure restoration is now a reproduced defect, not just missing
-qualification: two distinct function bodies with colliding AST IDs restore as
-the first source's body. See [the source-identity record](safejs-mixed-source-closure-identity.md).
+The reproduced mixed-source body-substitution defect now passes focused tests
+with explicit module-source records. Captured template provenance and cache
+ownership also pass targeted checks, including separate realms using the same
+source site. All 2,134 snapshot tests pass with this implementation, as do the
+maintained build's 23 workspace builds and five import checks. See
+[the source-identity record](safejs-mixed-source-closure-identity.md).
 
 ## Suspicions not established as defects
 

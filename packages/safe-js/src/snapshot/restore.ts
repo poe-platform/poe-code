@@ -1712,7 +1712,8 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
           : state.dynamicSources.get((serialized.dynamicSource as SerializedReferenceValue).id)!.nodes;
         const node = nodes.get(serialized.templateNodeId);
         if (node?.type !== "TemplateLiteral") throw new TypeError("Invalid template source identity.");
-        state.initializeIterators.push(() => registerTemplateObject(node, value as SandboxArray, state.budget));
+        const templateBudget = serialized.realm === undefined ? state.budget : initializeIntrinsicRealm(state, serialized.realm);
+        state.initializeIterators.push(() => registerTemplateObject(node, value as SandboxArray, templateBudget));
       }
     });
     return value;

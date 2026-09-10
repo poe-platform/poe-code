@@ -2,7 +2,7 @@ import { boundIdentifiers } from "./bindings.js";
 import { validatePrivateNames } from "./private-names.js";
 import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, type Position, type Token } from "./tokenizer.js";
 import { assignIds } from "./assign-ids.js";
-import { evalFunctionDeclarations, functionSources, functionStrictness } from "./function-source.js";
+import { evalFunctionDeclarations, functionSources, functionStrictness, templateSources } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
 import {
   createExportDefaultDeclaration,
@@ -4939,12 +4939,14 @@ function createTemplateLiteral(
 
   quasis.push(createTemplateElement(token.start, raw, quasiStart, raw.length - 1, true, options));
 
-  return {
+  const node: TemplateLiteral = {
     type: "TemplateLiteral",
     expressions,
     quasis,
     span: createTokenSpan(token)
   };
+  templateSources.set(node, options.source);
+  return node;
 }
 
 function assertBareImportSpecifier(specifier: StringLiteral): void {

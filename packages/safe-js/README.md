@@ -534,6 +534,33 @@ For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. 
 
 ## Development status
 
+### Pinned conformance runner
+
+Run a selected Test262 directory against a clean checkout of revision
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93`:
+
+```bash
+npm run test:conformance --workspace=@poe-code/safe-js -- \
+  --corpus /path/to/test262 \
+  --include built-ins/Array/of \
+  --report /tmp/safejs-conformance.jsonl
+```
+
+`--corpus` and `--report` are required. The report path must not exist.
+Repeat `--include` to select files or directories relative to the corpus's
+`test/` directory; omit it to select all JavaScript test sources.
+`--timeout-ms` sets the per-variant timeout (default: 3000).
+
+The JSONL report streams individual results and ends with a summary containing
+revision, runtime, execution limits and source/harness hashes. A missing final
+summary means the run is incomplete. Failures, metadata/execution errors and
+unsupported variants produce a nonzero exit status. Fixtures are not passes.
+The runner currently executes global Scripts; modules and explicit agent
+blocking modes are reported as unsupported. Other host capabilities and
+resource-policy limitations remain open. This is a conformance measurement
+route, not a claim of complete JavaScript support. See the
+[runner evidence and remaining work](../../docs/plans/safejs-test262-runner.md).
+
 ### Latest local changes — September 9, 2026
 
 CLI help no longer initializes interpreter globals. Execution and migration

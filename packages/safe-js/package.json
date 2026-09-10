@@ -47,6 +47,7 @@
     "pretest:unit": "node scripts/numberformat-data.mjs && npm run typecheck:fs",
     "test:unit": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
     "test:adversarial": "cd ../.. && vitest run packages/safe-js/test/adversarial",
+    "test:conformance": "tsx test/conformance/command.ts",
     "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts",
     "typecheck:fs": "node scripts/fs-type-contract.mjs"
   },

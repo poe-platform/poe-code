@@ -232,3 +232,38 @@ The updated report's eight focused tests and scoped lint passed (99587,
 terminal 06114b). A fresh bounded `Array.of` report with execution configuration
 is running under 63903. The report layer is qualified for its local commit;
 the maintained command entrypoint remains the next delivery step.
+
+The report layer is local commit cffadfa83. The refreshed real selection again
+passed all 32 variants and now records its 3,000ms timeout and budget options;
+it is preserved at `/tmp/safejs-test262-array-of-configured-report.json` (63903).
+
+The command-entrypoint tests first failed because the module was absent
+(2346, terminal fb8fe4). The candidate accepts a checkout, new JSONL report,
+optional selected paths and timeout; it writes a header, streams each entry,
+then writes a final summary. It refuses existing output files and closes its
+handle on failure. A report lacking the final summary is incomplete, not a
+successful run. Its focused command tests are running before package wiring.
+
+The first command test retained only the last record under memfs (30359,
+terminal 4a001e). The writer now explicitly opens exclusive-append mode and
+uses append operations for JSONL records instead of relying on write-file
+cursor behavior. Existing-file refusal remains unchanged. Rechecking the
+command precedes exit-status tests and real command execution.
+
+The append writer passed all five initial command tests (86737, terminal
+5e5167). Failure/unsupported/error exit-status and interrupted-output checks
+were then added, and the complete infrastructure selection passed all 79 tests
+(19227); scoped command lint remains live. Package `test:conformance` now runs
+the maintained entrypoint. A real invocation on `built-ins/Array/of` exited
+zero (34418, terminal d7d338); its new
+`/tmp/safejs-test262-command-array-of.jsonl` contains a header, sixteen result
+records and a final summary with all 32 variants passed (inspection b26ec1).
+README command/options documentation is included under the user's earlier
+request to keep the README updated. The existing product CLI is unchanged.
+
+Scoped command lint passed (19227, terminal d6d2c2), and whitespace checks
+passed. A second real command targeting the known regex-limited harness exited
+one as required (94047, terminal b19594), with its result preserved in
+`/tmp/safejs-test262-command-regex-limit.jsonl`. This verifies failure delivery;
+it does not repair or excuse the underlying regex limitation. The command,
+package wiring and README are ready for their scoped local commit.

@@ -14,7 +14,10 @@ export function dispatchInPlaceOperation<Value>(
   meter?.checkpoint();
   meter?.checkpoint();
   const result = inPlace();
+  meter?.checkpoint(0);
   if (result !== notImplemented) return result;
   meter?.checkpoint();
-  return binaryFallback();
+  const fallback = binaryFallback();
+  meter?.checkpoint(0);
+  return fallback;
 }

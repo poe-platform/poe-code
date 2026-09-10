@@ -25,14 +25,18 @@ export function dispatchRichComparison<Value>(
   if (options.rightIsStrictSubtype) {
     meter?.checkpoint();
     const result = options.reflected();
+    meter?.checkpoint(0);
     if (result !== options.notImplemented) return result;
   }
   meter?.checkpoint();
   const result = options.forward();
+  meter?.checkpoint(0);
   if (result !== options.notImplemented) return result;
   if (!options.rightIsStrictSubtype) {
     meter?.checkpoint();
-    return options.reflected();
+    const reflected = options.reflected();
+    meter?.checkpoint(0);
+    return reflected;
   }
   return options.notImplemented;
 }

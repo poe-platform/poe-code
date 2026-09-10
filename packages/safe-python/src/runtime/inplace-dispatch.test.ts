@@ -6,6 +6,37 @@ import { ExecutionBudget } from "./execution-budget.js";
 const notImplemented = Symbol("NotImplemented");
 
 describe("in-place operation negotiation", () => {
+  it.each(["inplace", "fallback"])("observes cancellation after %s returns without undoing mutations", stage => {
+    for (const result of ["accepted", notImplemented]) {
+      const controller = new AbortController(), events: string[] = [];
+      const run = (name: string) => {
+        events.push(name);
+        if (name === stage) { controller.abort(); return result; }
+        return notImplemented;
+      };
+      expect(() => dispatchInPlaceOperation<unknown>(
+        () => run("inplace"), () => run("fallback"), notImplemented,
+        new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0, signal: controller.signal })
+      )).toThrow("execution cancelled");
+      expect(events).toEqual(stage === "inplace" ? ["inplace"] : ["inplace", "fallback"]);
+    }
+  });
+
+  it.each(["inplace", "fallback"])("retains allocation failure swallowed by %s", stage => {
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0 });
+    const events: string[] = [];
+    const run = (name: string) => {
+      events.push(name);
+      if (name !== stage) return notImplemented;
+      try { meter.checkpoint(0, 1); } catch { /* A callback cannot recover the meter. */ }
+      return "accepted";
+    };
+    expect(() => dispatchInPlaceOperation<unknown>(
+      () => run("inplace"), () => run("fallback"), notImplemented, meter
+    )).toThrow("execution allocation limit exceeded");
+    expect(events).toEqual(stage === "inplace" ? ["inplace"] : ["inplace", "fallback"]);
+  });
+
   it("accepts results distinct from self and arbitrary false-like values", () => {
     for (const value of [null, undefined, false, 0, "", {}]) {
       const fallback = vi.fn();

@@ -5,6 +5,26 @@ import { ExecutionBudget } from "./execution-budget.js";
 const notImplemented = Symbol("NotImplemented");
 
 describe("rich comparison negotiation", () => {
+  it.each([
+    [false, "forward"], [false, "reflected"],
+    [true, "forward"], [true, "reflected"]
+  ] as const)("observes callback cancellation with subtype=%s at %s", (rightIsStrictSubtype, stage) => {
+    for (const result of ["accepted", notImplemented]) {
+      const controller = new AbortController(), events: string[] = [];
+      const run = (name: string) => {
+        events.push(name);
+        if (name === stage) { controller.abort(); return result; }
+        return notImplemented;
+      };
+      expect(() => dispatchRichComparison<unknown>({
+        rightIsStrictSubtype, notImplemented,
+        forward: () => run("forward"), reflected: () => run("reflected")
+      }, new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0, signal: controller.signal }))).toThrow("execution cancelled");
+      const order = rightIsStrictSubtype ? ["reflected", "forward"] : ["forward", "reflected"];
+      expect(events).toEqual(order.slice(0, order.indexOf(stage) + 1));
+    }
+  });
+
   it.each([false, true])("orders methods with strict right subtype=%s", rightIsStrictSubtype => {
     const events: string[] = [];
     expect(dispatchRichComparison({ rightIsStrictSubtype, notImplemented,

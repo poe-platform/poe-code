@@ -7416,6 +7416,15 @@ extension, integration, or validation requirement is missing or unverified.
   charges and method ordering. All 5,577 tests in 448 files pass; selected build,
   typecheck and scoped lint pass. Broader numeric/MRO assembly, other dispatch
   boundaries, native classification and suspended safe-fs effects remain unfinished.
+- Extended post-callback resource enforcement to in-place and rich-comparison
+  dispatch. Eight new regressions failed before the fixes: cancellation after
+  in-place/fallback and either comparison method in both subtype orderings, plus
+  swallowed allocation failures at both in-place boundaries. Accepted and
+  NotImplemented results are checked without undoing prior mutations or changing
+  operation charges. All 5,585 tests in 448 files pass; selected build, typecheck
+  and scoped lint pass. In-place dispatch remains a reusable kernel rather than complete
+  augmented-operation MRO assembly; broader numeric dispatch, native classification
+  and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

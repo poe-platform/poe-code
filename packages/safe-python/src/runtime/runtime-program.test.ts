@@ -39,6 +39,35 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["partition", "", "ba"], ["rpartition", "ab", ""]])("partitions bytes using the export object with %s", (method, left, right) => {
+    const state = fixture(`result=b'aba'.${method}(separator)\n`), v = state.values, separator = v.cell({}), exported = v.cell({});
+    let released = false;
+    state.globals.set("separator", separator);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        expect(value).toBe(separator);
+        return { object: exported, byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() { released = true; } };
+      }
+    } });
+    state.run(); expect(released).toBe(true);
+    expect(state.globals.get("result")).toEqual(v.tuple([v.bytes(new TextEncoder().encode(left)), exported, v.bytes(new TextEncoder().encode(right))]));
+  });
+  it("retains direct buffer exporters in matched partition results", () => {
+    const state = fixture("result=b'aba'.partition(separator)\nsame=result[1] is separator\n"), v = state.values;
+    state.globals.set("separator", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() {} }; }
+    } });
+    state.run(); expect(state.globals.get("same")).toEqual(v.true);
+  });
+  it("releases empty partition separator exports before reporting the error", () => {
+    const state = fixture("result=b'a'.partition(separator)\n"), v = state.values; let released = false;
+    state.globals.set("separator", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 0, copy: () => v.bytes(new Uint8Array()).value, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow("empty separator"); expect(released).toBe(true);
+  });
   it.each([["removeprefix", "ba"], ["removesuffix", "ab"]])("removes a byte buffer with %s", (method, expected) => {
     const state = fixture(`result=b'aba'.${method}(affix)\n`), v = state.values, trace: string[] = [];
     state.globals.set("affix", v.cell({}));

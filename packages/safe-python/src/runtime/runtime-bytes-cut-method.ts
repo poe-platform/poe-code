@@ -14,36 +14,32 @@ export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { ki
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `bytes.${name}() takes no keyword arguments`);
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `bytes.${name}() takes exactly one argument (${positional.length} given)`);
       const argument = positional[0], source = receiver.value;
-      if (name === "removeprefix" || name === "removesuffix") {
-        let lease: RuntimeBufferLease | undefined;
-        try {
-          if (argument.kind !== "bytes") {
-            lease = buffers?.acquireSimple(argument); meter.checkpoint();
-            if (lease === undefined) invalidBytesArgument(argument);
-          }
-          const separator = argument.kind === "bytes" ? argument.value : lease!.copy();
-          meter.checkpoint();
+      let lease: RuntimeBufferLease | undefined;
+      try {
+        if (argument.kind !== "bytes") {
+          lease = buffers?.acquireSimple(argument); meter.checkpoint();
+          if (lease === undefined) invalidBytesArgument(argument);
+        }
+        const separator = argument.kind === "bytes" ? argument.value : lease!.copy();
+        meter.checkpoint();
+        if (name === "removeprefix" || name === "removesuffix") {
           if (separator.length === 0 || !source.hasAffix(separator, name === "removeprefix" ? "start" : "end", 0n, null, meter)) return receiver;
           const start = name === "removeprefix" ? BigInt(separator.length) : 0n;
           const stop = name === "removesuffix" ? BigInt(source.length - separator.length) : null;
           return values.bytes(source.slice(start, stop, null, meter));
-        } finally {
-          lease?.release(); meter.checkpoint();
         }
+        if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
+        const index = source.search(separator, name === "partition" ? "find" : "rfind", 0n, null, meter);
+        if (index === -1) {
+          const empty = values.bytes(new Uint8Array());
+          return values.tuple(name === "partition" ? [receiver, empty, empty] : [empty, empty, receiver]);
+        }
+        const left = values.bytes(source.slice(0n, BigInt(index), null, meter)), end = index + separator.length;
+        const right = index === 0 && end === source.length ? left : values.bytes(source.slice(BigInt(end), null, null, meter));
+        return values.tuple([left, lease?.object ?? argument, right]);
+      } finally {
+        lease?.release(); meter.checkpoint();
       }
-      if (argument.kind !== "bytes") {
-        invalidBytesArgument(argument);
-      }
-      const separator = argument.value;
-      if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
-      const index = source.search(separator, name === "partition" ? "find" : "rfind", 0n, null, meter);
-      if (index === -1) {
-        const empty = values.bytes(new Uint8Array());
-        return values.tuple(name === "partition" ? [receiver, empty, empty] : [empty, empty, receiver]);
-      }
-      const left = values.bytes(source.slice(0n, BigInt(index), null, meter)), end = index + separator.length;
-      const right = index === 0 && end === source.length ? left : values.bytes(source.slice(BigInt(end), null, null, meter));
-      return values.tuple([left, argument, right]);
     }
   });
 }

@@ -6784,6 +6784,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Buffer partitioning,
   remaining native consumers, concrete exporters, automatic object assembly and
   broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.partition/rpartition to buffer leases. A lease can identify
+  its Py_buffer.obj-equivalent guest object; matched results retain that object,
+  defaulting to the direct exporter, rather than substituting copied bytes.
+  Prefix/suffix removal and partition now share acquisition and cleanup.
+- Four failing compiled regressions now pass. All 5,193 tests in 441 files pass;
+  80 CPython comparisons match results/errors and lease traces. Typecheck,
+  scoped lint and selected workspace build pass. The first full-suite run raced
+  dependency emission and saw FsError import failures; a post-build rerun passed
+  completely. Run dependency builds before unit checks, not concurrently.
+  Concrete export-wrapper objects, remaining buffer consumers, automatic object
+  assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -84,3 +84,11 @@ file imports it before its test bodies. Separate module-loading cost from
 execution cost before attributing the buffer failure to runtime semantics.
 The full-package failure remains authoritative; no green package or release
 is claimed.
+
+Temporary timing instrumentation of the buffer compatibility file on Node 22
+passed both cases (a21413). The first case spent 2,430.06 ms importing the
+runtime and 124.24 ms executing its assertions; the second spent 69.62 ms
+importing and 36.46 ms executing. All temporary instrumentation was removed,
+and the test file has no diff. This establishes a substantial cold module-load
+cost in that run, not the cause of every full-suite timeout. No setup move,
+timeout increase or runtime behavior change was made from this observation.

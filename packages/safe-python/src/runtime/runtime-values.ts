@@ -149,6 +149,9 @@ export interface NativeDocumentation {
 
 export interface BuiltinFunctionCapability extends NativeDocumentation {
   readonly name: string;
+  /** A fixed type receiver is metadata only; native allocators still receive
+   * their requested allocation class explicitly in positional arguments. */
+  readonly owner?: TypeValue;
   /** Native keyword-dict calling conventions may validate names after their
    * positional work. Opted-in callees must perform their own keyword checks. */
   readonly keywordValidation?: "callee";

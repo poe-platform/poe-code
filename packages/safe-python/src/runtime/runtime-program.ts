@@ -125,7 +125,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get iteration() { return getIteration(); },
       values, keys, name(value) {
         while (value.kind === "method" || value.kind === "staticmethod") { meter.checkpoint(); value = value.kind === "method" ? value.value.function : value.value; }
-        if (value.kind === "builtin_function_or_method") return `${value.value.name}()`;
+        if (value.kind === "builtin_function_or_method") return `${value.value.owner === undefined ? "" : value.value.owner.value.name + "."}${value.value.name}()`;
         if ((value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor") return `${value.value.owner.value.name}.${value.value.name}()`;
         if (value.kind === "method-wrapper") return `${value.value.descriptor.value.owner.value.name}.${value.value.descriptor.value.name}()`;
         return hooks.name(value);

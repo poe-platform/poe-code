@@ -33,16 +33,18 @@ export function createBoundCallableReprWrapper(kind: NativeBoundCallableKind, ow
         const parts = [values.string("<bound method ").value, name?.kind === "str" ? name.value : values.string("?").value, values.string(" of ").value, storage, values.string(">").value];
         return values.stringPoints(values.string("").value.join(parts, meter));
       }
-      if (receiver.kind === "builtin_function_or_method" && receiver.binding === undefined) {
+      if (receiver.kind === "builtin_function_or_method" && receiver.binding === undefined && receiver.value.owner === undefined) {
         meter.checkpoint(0, 64 + receiver.value.name.length * 2);
         return values.string(`<built-in function ${receiver.value.name}>`);
       }
       if (receiver.kind !== "method-wrapper" && receiver.kind !== "builtin_function_or_method") throw Error("invalid bound callable representation receiver");
       const binding = receiver.kind === "method-wrapper" ? receiver.value : receiver.binding;
-      if (binding === undefined || invocation?.actualType === undefined) throw Error("native callable repr requires binding and actual type policies");
-      const type = invocation.actualType(binding.instance); meter.checkpoint();
-      const identity = (invocation.identity ?? values.identity).id(binding.instance); meter.checkpoint();
-      const hex = identity.toString(16), name = binding.descriptor.value.name, typeName = type.value.name;
+      const instance = binding?.instance ?? (receiver.kind === "builtin_function_or_method" ? receiver.value.owner : undefined);
+      if (instance === undefined || invocation?.actualType === undefined) throw Error("native callable repr requires binding and actual type policies");
+      const type = invocation.actualType(instance); meter.checkpoint();
+      const identity = (invocation.identity ?? values.identity).id(instance); meter.checkpoint();
+      const name = receiver.kind === "method-wrapper" ? receiver.value.descriptor.value.name : receiver.binding?.descriptor.value.name ?? receiver.value.name;
+      const hex = identity.toString(16), typeName = type.value.name;
       meter.checkpoint(0, 128 + 2 * (hex.length + name.length + typeName.length));
       return values.string(receiver.kind === "method-wrapper" ? `<method-wrapper '${name}' of ${typeName} object at 0x${hex}>`
         : `<built-in method ${name} of ${typeName} object at 0x${hex}>`);

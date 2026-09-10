@@ -13,7 +13,7 @@ import { hasRuntimeInstanceAttributes, type BuiltinFunctionValue, type RuntimeVa
 export function createTypeNewBuiltin(values: RuntimeValues, meter: ExecutionMeter, registry: RuntimeTypeRegistry): BuiltinFunctionValue {
   meter.checkpoint(1, 128);
   const newName = values.string("__new__");
-  const builtin: BuiltinFunctionValue = values.builtinFunction({ name: "type.__new__", doc: "Create and return a new object.  See help(type) for accurate signature.",
+  const builtin: BuiltinFunctionValue = values.builtinFunction({ name: "__new__", owner: registry.type, doc: "Create and return a new object.  See help(type) for accurate signature.",
     invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       const typeName = (value: RuntimeValue, maxBytes?: number) => {

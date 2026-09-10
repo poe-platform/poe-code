@@ -7,7 +7,7 @@ import type { BuiltinFunctionValue, RuntimeValues, TypeValue } from "./runtime-v
  * empty storage. Only types owned by the current registry may be allocated. */
 export function createDictionaryNewBuiltin(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, owns: (type: TypeValue) => boolean): BuiltinFunctionValue {
   meter.checkpoint(0, 96);
-  return values.builtinFunction({ name: "dict.__new__", keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.",
+  return values.builtinFunction({ name: "__new__", owner: owner, keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.",
     invoke(positional, _keywords, meter, invocation) {
       meter.checkpoint();
       if (positional.length === 0) throw new PythonRuntimeError("TypeError", "dict.__new__(): not enough arguments");

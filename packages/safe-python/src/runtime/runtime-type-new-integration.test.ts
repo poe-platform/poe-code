@@ -53,6 +53,20 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["object", "type", "list", "tuple", "dict", "set", "frozenset"] as const)("retains the defining owner on %s allocation functions", kind => {
+  const state = fixture();
+  const base = kind === "object" ? state.registry.object : kind === "type" ? state.registry.type : kind === "list" ? state.registry.listType() : kind === "tuple" ? state.registry.tupleType() : kind === "dict" ? state.registry.dictionaryType() : state.registry.setType(kind);
+  state.globals.set("Base", base);
+  state.run("class Child(Base):\n pass\nallocator=Base.__new__\ncorrect=allocator.__self__ is Base and allocator.__name__=='__new__' and allocator.__module__ is None and Child.__new__ is allocator\nqualified=allocator.__qualname__\ntext=f'{allocator!r}'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.globals.get("qualified")).toEqual(state.v.string(`${kind}.__new__`));
+  expect(state.globals.get("text")).toEqual(state.v.string(`<built-in method __new__ of type object at 0x${state.v.identity.id(base).toString(16)}>`));
+  expect(() => state.run("allocator(x=1,**{'x':2})\n")).toThrow(`${kind}.__new__() got multiple values for keyword argument 'x'`);
+  if (kind !== "type") {
+    state.run("allocated=allocator(Child)\ncorrect=type(allocated) is Child\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
 it("lets exact object construction reject keyword dictionaries itself", () => {
   const state = fixture();
   expect(() => state.run("object(**{1:2})\n")).toThrow("object() takes no arguments");

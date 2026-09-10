@@ -10,7 +10,7 @@ import type { BuiltinFunctionValue, RuntimeValues, TypeValue } from "./runtime-v
  * tuples and ordinary dictionaries. Iteration requests no hints or closing. */
 export function createTupleNewBuiltin(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, owns: (type: TypeValue) => boolean): BuiltinFunctionValue {
   meter.checkpoint(0, 96);
-  return values.builtinFunction({ name: "tuple.__new__", keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.",
+  return values.builtinFunction({ name: "__new__", owner: owner, keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.",
     invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (positional.length === 0) throw new PythonRuntimeError("TypeError", "tuple.__new__(): not enough arguments");

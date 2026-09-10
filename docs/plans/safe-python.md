@@ -9137,6 +9137,20 @@ extension, integration, or validation requirement is missing or unverified.
   lint and all 6,905 package tests in 493 files pass. Nine tests were added.
   Further native lifecycle and full interpreter/safe-fs work remain unfinished.
   No push or release was requested.
+- Native allocator binding metadata (2026-09-10): seven failing integration
+  tests reproduced missing __self__ on the canonical object, type, list, tuple,
+  dict, set and frozenset allocation functions. Native capabilities can now
+  retain a fixed type owner independently of descriptor argument binding.
+  Allocators expose __name__, __qualname__, __self__ and None __module__, and
+  render as built-in methods using the defining type's execution-owned identity.
+  Subclasses inherit the same callable without rebinding; explicit allocation
+  still receives the requested class as an argument. Duplicate-key diagnostics
+  retain the defining owner's qualified prefix. CPython confirmed metadata and
+  duplicate-key behavior for all seven types; all 800 constructor regression
+  cases still match. Workspace build, typecheck, focused lint, 490 integration
+  tests and all 6,912 package tests in 493 files pass. Broader native type/catalog,
+  full interpreter and safe-fs execution requirements remain unfinished.
+  No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

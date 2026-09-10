@@ -229,13 +229,26 @@ export class OrderedKeyMap<Key, Value> {
    * recursive equality with its own explicit stack. Resume with that pair's
    * equality result; keys still use this map's trusted synchronous policy.
    * Captured values survive callback mutation, and shared policies reuse hashes.
+   * Dictionary scans retain numeric positions across clear/refill and compaction.
    */
   *compareValues(other: OrderedKeyMap<Key, Value>): Generator<readonly [Value, Value], boolean, boolean> {
     this.meter.checkpoint(0, 64);
     this.meter.checkpoint();
     if (this.#entries.size !== other.#entries.size) return false;
-    for (const entry of this.#entries) {
+    const entries = this.#dictionaryEntries ? undefined : this.#entries.values();
+    let position = 0;
+    while (true) {
       this.meter.checkpoint();
+      let entry: Entry<Key, Value>;
+      if (this.#dictionaryEntries) {
+        const next = this.#dictionaryEntries.next(position);
+        if (next === undefined) break;
+        entry = next.entry; position = next.position;
+      } else {
+        const next = entries!.next();
+        if (next.done) break;
+        entry = next.value;
+      }
       const { key, value } = entry;
       const hash = this.operations === other.operations ? entry.hash : other.operations.hash(key);
       const found = other.#find(key, hash);

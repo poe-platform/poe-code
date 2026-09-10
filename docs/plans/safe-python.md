@@ -6946,6 +6946,18 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Remaining comparison/
   object protocols, automatic object assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Dictionary equality now scans the existing positional entry storage instead
+  of the host insertion-order iterator when dictionary layout is enabled.
+  Numeric positions survive callback clear/refill and insertion compaction;
+  cached hashes and values captured before lookup remain intact. Storage without
+  dictionary layout keeps its existing insertion-order traversal.
+- Two failing compiled regressions now pass, with an additional positional
+  compaction regression. All 5,263 tests in 441 files pass; 60 CPython cases
+  match results and value-comparison traces across dictionary sizes, clear,
+  refill, replacement, deletion, compaction and equality outcomes. Selected
+  workspace build, typecheck and scoped lint pass. Automatic object assembly,
+  remaining native protocols and broader interpreter/SDK/safe-fs integration
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

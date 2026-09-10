@@ -20,6 +20,16 @@ it("captures each pair while reading later values and deletion holes live", () =
   map.set(3, 40);
   expect(map.nextDictionaryEntry(3)).toEqual({ position: 4, key: 3, value: 40 });
 });
+it("keeps dictionary equality at its numeric position when insertion compacts entries", () => {
+  const { map } = fixture(), other = map.emptyCopy(), trace: number[] = [];
+  for (let i = 0; i < 5; i++) { map.set(i, i); other.set(i, i + 10); }
+  expect(map.equals(other, (left, right) => {
+    trace.push(left); expect(right).toBe(left + 10);
+    if (left === 0) { map.delete(0); map.set(5, 5); }
+    return true;
+  })).toBe(false);
+  expect(trace).toEqual([0, 2, 3, 4]);
+});
 it("tracks compaction, popitem truncation and clear/refill positions", () => {
   const { map } = fixture();
   for (let i = 0; i < 5; i++) map.set(i, i);

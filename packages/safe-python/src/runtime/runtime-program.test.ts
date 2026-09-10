@@ -39,6 +39,21 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["==", "!="])("retains the dictionary scan position across clear and refill for %s", operator => {
+    const state = fixture(`left={'a':member}\nright={'a':needle}\nresult=left${operator}right\n`), v = state.values;
+    const member = v.cell({}), needle = v.cell({}); let probes = 0;
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(op, left, right) {
+      if (left !== member || right !== needle) return undefined;
+      expect(op).toBe("==");
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, reflected: () => v.notImplemented, forward() {
+        probes++;
+        const source = state.globals.get("left"); if (source?.kind !== "dict") throw Error("expected dictionary");
+        source.items.clear(); source.items.set(v.string("new"), v.integer(1)); return v.true;
+      } } };
+    } });
+    state.run(); expect(state.globals.get("result")).toBe(v.boolean(operator === "==")); expect(probes).toBe(1);
+  });
   it.each(["<", "<=", ">", ">="])("rereads list elements after equality before %s", operator => {
     const state = fixture(`left=[member]\nright=[needle]\nresult=left${operator}right\n`), v = state.values;
     const member = v.cell({}), needle = v.cell({}), replacement = v.cell({}), ordered = v.cell({}), trace: string[] = [];

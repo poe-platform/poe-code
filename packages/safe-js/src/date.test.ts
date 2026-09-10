@@ -145,9 +145,11 @@ describe("Date intrinsic", () => {
       "const date = new Date(); const alias = date; date.setTime(date.getTime() + 7); return [date, alias, new Date(NaN), Date.now()];";
     const first = await run(source, { clock: { now, snapshot: () => ({ next: 1001 }) } });
     const snapshot = JSON.parse(await dump(first));
-    expect(Object.values(snapshot.heap ?? {}).some((entry: any) => entry.kind === "date")).toBe(
-      true
-    );
+    expect(snapshot.bindings.alias).toEqual(snapshot.bindings.date);
+    expect(snapshot.heap[snapshot.bindings.date.id]).toMatchObject({
+      kind: "guest-date", value: 1007,
+      state: { prototype: { kind: "ref", id: expect.any(Number) } }
+    });
     const forbidden = vi.fn(() => {
       throw new Error("clock reread");
     });

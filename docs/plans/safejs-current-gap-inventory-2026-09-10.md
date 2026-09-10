@@ -31,7 +31,12 @@ failed 10 and skipped 48; all 100 filesystem type contracts passed. See
 | Broad conformance | Parser, evaluation order, exotic objects, modules, recovery, host boundaries and resource limits still require broader evidence. No exhaustive JavaScript conformance result exists. |
 | Delivery | Release hold remains active. No new remote-main or publication claim follows from these local commits. |
 
+Mixed-source closure restoration is now a reproduced defect, not just missing
+qualification: two distinct function bodies with colliding AST IDs restore as
+the first source's body. See [the source-identity record](safejs-mixed-source-closure-identity.md).
+
 ## Suspicions not established as defects
+
 
 Four Error diagnostic accessor checks pass unchanged, including frozen errors.
 A guest-captured thenable resolver works as a FinalizationRegistry callback and

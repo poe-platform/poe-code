@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readRuntimeTypeAttribute, mutateRuntimeTypeAttribute } from "./runtime-type-attributes.js";
+import { readRuntimeTypeAttribute, mutateRuntimeTypeAttribute, runtimeTypeAttribute } from "./runtime-type-attributes.js";
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
@@ -28,6 +28,19 @@ function fixture(signal?: AbortSignal) {
 }
 
 describe("concrete default type attribute access", () => {
+  it("omits metaclass overrides and fallback when requesting default type lookup", () => {
+    const { v, meter, cls, meta, name, context } = fixture();
+    cls.value.namespace.items.set(name, v.true);
+    meta.value.namespace.items.set(v.string("__getattribute__"), v.none); meta.value.namespace.items.set(v.string("__getattr__"), v.none);
+    const special = { ...context, typeOf: () => meta };
+    expect(runtimeTypeAttribute(cls, "x", v, meter, special)).toBe(v.true);
+    expect(() => runtimeTypeAttribute(cls, "missing", v, meter, special)).toThrow("type object 'C' has no attribute 'missing'");
+  });
+  it.each(["__getattribute__", "__getattr__"])("checks cancellation after metaclass %s", slot => {
+    const controller = new AbortController(), { v, meter, cls, meta, context } = fixture(controller.signal);
+    meta.value.namespace.items.set(v.string(slot), v.builtinFunction({ name: slot, invoke: () => v.none }));
+    expect(() => runtimeTypeAttribute(cls, "missing", v, meter, { ...context, typeOf: () => meta }, { call() { controller.abort(); return v.true; } })).toThrow("execution cancelled");
+  });
   it("keeps immutability local to the type and leaves direct descriptor validation intact", () => {
     const state = fixture();
     expect(state.registry.object.immutable).toBe(true); expect(state.registry.type.immutable).toBe(true);

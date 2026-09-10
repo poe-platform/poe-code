@@ -7828,6 +7828,18 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,070 tests in 465 files, selected build, typecheck and scoped lint pass. Native
   type.__new__, full class creation, remaining object/type attributes and
   suspended safe-fs effects remain unfinished.
+- Connected ordinary TypeValue attribute reads to metaclass/class descriptor
+  lookup. Two compiled regressions failed on inherited members and type.__call__.
+  Shared class reads now apply metaclass getattribute/getattr, native AttributeError
+  fallback and bounded diagnostics; allocator __new__ reads reuse this path instead
+  of duplicating it. Omitting invocation exposes default lookup for a future
+  explicit type.__getattribute__ adapter. Eleven tests cover inherited members,
+  MRO/dictionary metadata, native type slots, function binding, metaclass data
+  precedence, disabled overrides, fallback, cancellation and Unicode diagnostics.
+  All 160 class-descriptor and 192 compiled type-call cases match CPython. All 6,081 tests in 465 files,
+  selected build, typecheck and scoped lint pass. Class mutation wiring, intrinsic
+  type names/qualified names, native type.__new__, complete class construction and
+  suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

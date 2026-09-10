@@ -1683,3 +1683,50 @@ it("bounds recursive explicit default type calls and unwinds their stack entries
   expect(() => state.run("default_call(C)\n")).toThrow("maximum recursion depth exceeded");
   state.run("result=Safe()\n"); expect(state.globals.get("result")?.kind).toBe("instance");
 });
+
+it("reads inherited class attributes and canonical type metadata in compiled expressions", () => {
+  const state = fixture(), base = state.type("Base"), owner = state.type("C", base); state.globals.set("C", owner);
+  base.value.namespace.items.set(state.v.string("value"), state.v.integer(7)); owner.value.namespace.items.set(state.v.string("local"), state.v.integer(9));
+  state.run("value=C.value\nlocal=C.__dict__['local']\nmro=C.__mro__\ninstance=C.__call__()\n");
+  expect(state.globals.get("value")).toEqual(state.v.integer(7)); expect(state.globals.get("local")).toEqual(state.v.integer(9));
+  const mro = state.globals.get("mro"); if (mro?.kind !== "tuple") throw Error("expected MRO tuple"); expect(mro.items).toEqual([owner, base, state.registry.object]);
+  const instance = state.globals.get("instance"); if (instance?.kind !== "instance") throw Error("expected instance"); expect(instance.type).toBe(owner);
+});
+
+it("reads native type slots as unbound descriptors on type itself", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner); state.globals.set("type", state.registry.type);
+  state.run("instance=type.__call__(C)\nresult=type(instance)\ninitialized=type.__init__(C,None)\n");
+  expect(state.globals.get("result")).toBe(owner); expect(state.globals.get("initialized")).toBe(state.v.none);
+});
+
+it("gives metaclass data descriptors precedence over class attributes", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta);
+  meta.value.namespace.items.set(state.v.string("value"), state.v.getsetDescriptor({ owner: meta, name: "value", accepts: value => value === owner, get: () => state.v.integer(9) }));
+  owner.value.namespace.items.set(state.v.string("value"), state.v.integer(7)); state.globals.set("C", owner);
+  state.run("result=C.value\n"); expect(state.globals.get("result")).toEqual(state.v.integer(9));
+});
+
+it("binds metaclass getattribute and getattr through ordinary class reads", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta); state.globals.set("C", owner);
+  state.globals.set("missing", state.v.builtinFunction({ name: "missing", invoke() { throw new PythonRuntimeError("AttributeError", "missing"); } }));
+  state.method(meta, "__getattribute__", "def attribute(cls, name):\n visit(name)\n return missing()\n");
+  state.method(meta, "__getattr__", "def fallback(cls, name):\n visit('fallback')\n return 9\n");
+  state.run("result=C.value\n"); expect(state.globals.get("result")).toEqual(state.v.integer(9)); expect(state.events).toEqual(["value", "fallback"]);
+});
+
+it("keeps class functions unbound on class reads", () => {
+  const state = fixture(), owner = state.type("C"), instance = state.instance("instance", owner); state.globals.set("C", owner);
+  const method = state.method(owner, "method", "def method(self):\n return self\n");
+  state.run("function=C.method\nresult=C.method(instance)\n"); expect(state.globals.get("function")).toBe(method); expect(state.globals.get("result")).toBe(instance);
+});
+
+it.each(["__getattribute__", "__getattr__"])("rejects disabled metaclass %s on class reads", slot => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta);
+  meta.value.namespace.items.set(state.v.string(slot), state.v.none); state.globals.set("C", owner);
+  expect(() => state.run("C.missing\n")).toThrow("'NoneType' object is not callable");
+});
+
+it("bounds class names in missing attribute diagnostics", () => {
+  const state = fixture(); state.globals.set("C", state.type("é".repeat(100)));
+  expect(() => state.run("C.missing\n")).toThrow(`type object '${"é".repeat(50)}' has no attribute 'missing'`);
+});

@@ -39,6 +39,7 @@ import { lookupMroAttribute } from "./class-attributes.js";
 import { callRuntimeType } from "./runtime-type-call.js";
 import { callRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
+import { runtimeTypeAttribute } from "./runtime-type-attributes.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -229,6 +230,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
       instanceAttribute: specialMethods === undefined ? undefined : (instance, name) => runtimeInstanceAttribute(instance, name, values, meter, specialMethods, builtinCalls),
+      typeAttribute: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods, builtinCalls),
       get formattedString() { return expressionHooks.formattedString; },
       addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
       multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),

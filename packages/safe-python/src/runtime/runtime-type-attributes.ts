@@ -4,7 +4,37 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { deleteInstanceAttribute, writeInstanceAttribute, type AttributeValue } from "./instance-attributes.js";
 import type { RuntimeDescriptorContext } from "./runtime-descriptor.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
-import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+
+/** Ordinary class reads apply metaclass overrides and AttributeError fallback.
+ * Omit invocation to expose default type lookup without recursively reapplying
+ * overrides, as required by an explicit type.__getattribute__ adapter. */
+export function runtimeTypeAttribute(cls: TypeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation?: Pick<BuiltinInvocationContext, "call">): RuntimeValue {
+  meter.checkpoint(1, 64);
+  const key = values.string(name);
+  try {
+    const override = invocation === undefined ? undefined : lookupRuntimeSpecialMethod(cls, cls.metaclass, values.string("__getattribute__"), special, values, meter);
+    meter.checkpoint();
+    if (override !== undefined) {
+      meter.checkpoint(0, 16);
+      const result = invocation!.call(override, [key]); meter.checkpoint(); return result;
+    }
+    const found = readRuntimeTypeAttribute(cls, key, special, values, meter); meter.checkpoint();
+    if (found !== undefined) return found.value;
+    const typeName = diagnosticTypeName(cls.value.name, meter, 100);
+    meter.checkpoint(0, 128 + 2 * (name.length + typeName.length));
+    throw new PythonRuntimeError("AttributeError", `type object '${typeName}' has no attribute '${name}'`);
+  } catch (error) {
+    meter.checkpoint();
+    if (invocation === undefined || !(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
+    const fallback = lookupRuntimeSpecialMethod(cls, cls.metaclass, values.string("__getattr__"), special, values, meter); meter.checkpoint();
+    if (fallback === undefined) throw error;
+    meter.checkpoint(0, 16);
+    const result = invocation.call(fallback, [key]); meter.checkpoint(); return result;
+  }
+}
 
 /** Default type lookup from live metaclass/class MROs. Descriptor callbacks see
  * the current class and metaclass, not merely the defining ancestor. Overrides,

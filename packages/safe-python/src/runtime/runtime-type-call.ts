@@ -2,7 +2,7 @@ import type { ExpressionCall } from "./call-arguments.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { instantiateType } from "./type-instantiation.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
-import { readRuntimeTypeAttribute } from "./runtime-type-attributes.js";
+import { runtimeTypeAttribute } from "./runtime-type-attributes.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { PythonRuntimeError } from "./error.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
@@ -44,23 +44,7 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
       if (present === undefined) return undefined;
       let allocator: RuntimeValue;
       if (attribute !== undefined) allocator = attribute(requested, "__new__");
-      else {
-        try {
-          const getter = lookupRuntimeSpecialMethod(requested, requested.metaclass, values.string("__getattribute__"), special, values, meter); meter.checkpoint();
-          if (getter !== undefined) allocator = invoke(getter, [name]);
-          else {
-            const found = readRuntimeTypeAttribute(requested, name, special, values, meter); meter.checkpoint();
-            if (found === undefined) throw new PythonRuntimeError("AttributeError", `type object '${requested.value.name}' has no attribute '__new__'`);
-            allocator = found.value;
-          }
-        } catch (error) {
-          meter.checkpoint();
-          if (!(error instanceof PythonRuntimeError) || error.name !== "AttributeError") throw error;
-          const fallback = lookupRuntimeSpecialMethod(requested, requested.metaclass, values.string("__getattr__"), special, values, meter); meter.checkpoint();
-          if (fallback === undefined) throw error;
-          allocator = invoke(fallback, [name]);
-        }
-      }
+      else allocator = runtimeTypeAttribute(requested, "__new__", values, meter, special, { call: invoke });
       meter.checkpoint(0, 64);
       return (owner, args, named) => {
         meter.checkpoint(0, 32 + (args.length + 1) * 8);

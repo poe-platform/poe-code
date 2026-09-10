@@ -335,3 +335,36 @@ checks (f63e67). The built CLI screenshot (17c247) was inspected and confirms
 month clamping, subtraction and whole-day time-duration behavior:
 `screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-arithmetic.ajs.png`.
 Upstream add/subtract fixture execution is still active; no result claimed yet.
+
+The existing upstream runner completed add: 78 passed, zero failures/exclusions
+(e93e3f), using all unchanged fixtures at revision
+419d3e0a2273ba01a3bfcbec423f2801425b8e93 in normal/strict modes. Subtract remains
+active on the same runner; it has not been restarted.
+
+That runner subsequently completed subtract: 76 passed, zero failures/exclusions
+(0abdf0). Combined add/subtract evidence is 154/154 runs, not a whole-Temporal
+conformance result. The runner is now terminal.
+
+## PlainDate differences
+
+Six new tests failed against missing until/since (a8a9da). Both now convert
+the other date, reject incompatible calendars before reading options, normalize
+difference settings in order and use private ISO/calendar values for backend
+calendar differences. The resulting Duration is copied into owned slots,
+assigned the captured Duration prototype and checkpointed. Namespace wiring
+passes that prototype into the date constructor factory.
+
+The difference/arithmetic/date-time-difference selection passed 26 tests
+(b6201d), including rounding direction, date endpoints, matching calendar
+requirements, equal-date option validation and replay after public namespace
+replacement. Minimum-Node, lint, build and upstream checks are running.
+
+All six differences tests passed on Node 18.18.2 (934092). Scoped lint passed
+(6d57e3); the maintained build passed 23 tasks and five fresh ESM import checks
+(8b8ef7). The built CLI screenshot (abebd6) was inspected: P399D, P1Y1M2D,
+-P399D and the captured Duration prototype match the expected result:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-difference.ajs.png`.
+The upstream until/since runner remains active, so no final result is claimed.
+The namespace prototype-wiring edit remains part of uncommitted public Temporal
+integration; local method commits alone are not a fully delivered integration.
+No push or release.

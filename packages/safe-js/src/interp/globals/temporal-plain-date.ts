@@ -12,9 +12,10 @@ import { createSandboxClosure, type SandboxClosure, type SandboxValue } from "..
 import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
 import { readTemporalPlainDate } from "./temporal-plain-date-input.js";
 import { readTemporalDuration } from "./temporal-duration-input.js";
-import { temporalDurationFieldNames } from "../temporal-duration.js";
+import { createSandboxTemporalDuration, temporalDurationFieldNames } from "../temporal-duration.js";
+import { readTemporalDifferenceOptions } from "./temporal-difference-options.js";
 
-export function createTemporalPlainDateConstructor(budget: Budget): SandboxClosure {
+export function createTemporalPlainDateConstructor(budget: Budget, durationPrototype: object): SandboxClosure {
   const prototype = createIntrinsicObject();
   const constructor: SandboxClosure = createSandboxClosure({
     guest: true, sandbox: true, name: "PlainDate", length: 3,
@@ -88,6 +89,30 @@ export function createTemporalPlainDateConstructor(budget: Budget): SandboxClosu
   Object.defineProperty(materializeFunctionProperties(constructor), "compare", { value: compare, writable: true, configurable: true });
   Object.defineProperty(prototype, "equals", { value: equals, writable: true, configurable: true });
   methods.push(compare, equals);
+  for (const name of ["until", "since"] as const) {
+    const method = createSandboxClosure({ guest: true, sandbox: true, name, length: 1,
+      call: async ([other, options], context) => {
+        const fields = temporalPlainDateFields(context?.thisValue);
+        let otherFields: TemporalPlainDateFields | undefined;
+        let result: SandboxValue;
+        const release = retainValues(budget, () => [fields, other, options, otherFields, result]);
+        try {
+          otherFields = temporalPlainDateFields(await readTemporalPlainDate(other, undefined, budget, context));
+          if (fields.calendar !== otherFields.calendar) throw new RangeError("PlainDate difference requires matching calendars.");
+          const normalized = await readTemporalDifferenceOptions(options, budget, context);
+          const value = new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay, fields.calendar);
+          const otherValue = new Backend.PlainDate(otherFields.isoYear, otherFields.isoMonth, otherFields.isoDay, otherFields.calendar);
+          const duration = value[name](otherValue, normalized);
+          result = createSandboxTemporalDuration(Object.fromEntries(temporalDurationFieldNames.map(field => [field, duration[field]])));
+          setSandboxPrototype(result, durationPrototype, budget);
+          createDataCheckpoint(budget, context)(result, 0, true);
+          return result;
+        } finally { release(); }
+      }
+    });
+    Object.defineProperty(prototype, name, { value: method, writable: true, configurable: true });
+    methods.push(method);
+  }
   for (const name of ["add", "subtract"] as const) {
     const method = createSandboxClosure({ guest: true, sandbox: true, name, length: 1,
       call: async ([input, options], context) => {

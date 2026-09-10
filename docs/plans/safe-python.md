@@ -7815,6 +7815,19 @@ extension, integration, or validation requirement is missing or unverified.
   464 files, selected build, typecheck and scoped lint pass. Native type.__new__/__call__,
   complete three-argument class creation, remaining object methods/metadata and
   suspended safe-fs effects remain unfinished.
+- Installed native type.__call__ with a distinct default-call mode. Four initial
+  regressions failed because the slot was absent. Normal type calls retain
+  metaclass dispatch; explicit type.__call__ bypasses that override while sharing
+  allocation, initialization and canonical type inspection. The native invocation
+  capability forwards positional/keyword containers and enters a bounded default
+  call-stack frame, including for directly recursive wrapper calls. Seven tests
+  cover callback contracts, receiver validation, cancellation, explicit/bound
+  construction, metaclass bypass, keyword preservation and recursion unwinding.
+  Default inspection unit tests now explicitly select the default-call mode.
+  All 96 ordinary and 96 explicit compiled type-call cases match CPython.
+  All 6,070 tests in 465 files, selected build, typecheck and scoped lint pass. Native
+  type.__new__, full class creation, remaining object/type attributes and
+  suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

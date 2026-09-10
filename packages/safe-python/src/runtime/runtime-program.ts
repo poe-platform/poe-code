@@ -144,6 +144,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.name;
       },
       actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
+      callTypeDefault: specialMethods === undefined ? undefined : (type, positional, keywords) => {
+        const leave = calls.enter(frame);
+        try { return callRuntimeType(type, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks), "default"); }
+        finally { leave(); }
+      },
       setAttribute(object, name, value) {
         if (object.kind === "instance" && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else statementHooks.setAttribute(object, name, value);

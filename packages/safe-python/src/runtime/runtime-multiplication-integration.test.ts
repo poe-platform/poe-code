@@ -19,6 +19,7 @@ import { createRange } from "./integer-sequence.js";
 import { createSortedBuiltin } from "./builtin-sorted.js";
 import { createAttributeMutationBuiltin } from "./builtin-attribute-mutation.js";
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
+import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 
 function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal }), v = new RuntimeValues(meter);
@@ -1655,4 +1656,30 @@ it("retains the three-argument type construction path", () => {
   const state = fixture(), created = state.type("Created"); state.globals.set("Created", created); state.globals.set("type", state.registry.type);
   state.method(state.registry.type, "__new__", "def allocate(cls, name, bases, namespace):\n visit(name)\n return Created\n");
   state.run("result=type('Created',(),{})\n"); expect(state.globals.get("result")).toBe(created); expect(state.events).toEqual(["Created"]);
+});
+
+it("explicit type call bypasses metaclass call overrides and preserves initializer keywords", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", state.registry.object, {}, meta);
+  state.globals.set("C", owner); state.globals.set("default_call", state.registry.type.value.namespace.items.lookup(state.v.string("__call__"))!.value);
+  state.method(meta, "__call__", "def call(cls, *, value):\n visit('meta')\n return 7\n");
+  state.method(owner, "__init__", "def initialize(self, *, value):\n visit(value)\n self.value=value\n");
+  state.run("overridden=C(value='unused')\ninstance=default_call(C,value='init')\nresult=instance.value\n");
+  expect(state.globals.get("overridden")).toEqual(state.v.integer(7)); expect(state.globals.get("result")).toEqual(state.v.string("init")); expect(state.events).toEqual(["meta", "init"]);
+});
+
+it("supports bound native type calls and explicit canonical type inspection", () => {
+  const state = fixture(), owner = state.type("C"), descriptor = state.registry.type.value.namespace.items.lookup(state.v.string("__call__"))!.value;
+  if (descriptor.kind !== "wrapper_descriptor") throw Error("expected type call wrapper");
+  state.globals.set("construct", getRuntimeMethodDescriptor(descriptor, owner, state.v.none, state.v, state.meter));
+  state.globals.set("inspect", getRuntimeMethodDescriptor(descriptor, state.registry.type, state.v.none, state.v, state.meter));
+  state.run("instance=construct()\nresult=inspect(instance)\n"); expect(state.globals.get("result")).toBe(owner);
+});
+
+it("bounds recursive explicit default type calls and unwinds their stack entries", () => {
+  const state = fixture(), owner = state.type("C"), safe = state.type("Safe"), descriptor = state.registry.type.value.namespace.items.lookup(state.v.string("__call__"))!.value;
+  if (descriptor.kind !== "wrapper_descriptor") throw Error("expected type call wrapper");
+  owner.value.namespace.items.set(state.v.string("__new__"), getRuntimeMethodDescriptor(descriptor, owner, state.v.none, state.v, state.meter));
+  state.globals.set("default_call", descriptor); state.globals.set("C", owner); state.globals.set("Safe", safe);
+  expect(() => state.run("default_call(C)\n")).toThrow("maximum recursion depth exceeded");
+  state.run("result=Safe()\n"); expect(state.globals.get("result")?.kind).toBe("instance");
 });

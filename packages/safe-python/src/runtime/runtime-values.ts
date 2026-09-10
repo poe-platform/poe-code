@@ -83,6 +83,8 @@ export interface BuiltinInvocationContext {
   lookupSpecial?(object: RuntimeValue, name: string): RuntimeValue | undefined;
   /** Actual runtime type, bypassing instance attributes and virtual checks. */
   actualType?(value: RuntimeValue): TypeValue;
+  /** Enter type.__call__ directly, bypassing metaclass __call__ overrides. */
+  callTypeDefault?(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue): RuntimeValue;
   typeName?(value: RuntimeValue): string;
   setAttribute?(object: RuntimeValue, name: string, value: RuntimeValue): void;
   deleteAttribute?(object: RuntimeValue, name: string): void;

@@ -9,8 +9,9 @@ import type { DictionaryValue, RuntimeValue, RuntimeValues, TypeValue } from "./
 
 /** Runtime type calls use actual metaclass MRO dispatch, then the default
  * allocation/init lifecycle. Native allocation, heap layout
- * validation and default object methods remain bootstrap responsibilities. */
-export function callRuntimeType(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, special: RuntimeSpecialMethodContext, values: RuntimeValues, meter: ExecutionMeter, beginCall: (callee: RuntimeValue) => ExpressionCall<RuntimeValue>, attribute?: (receiver: RuntimeValue, name: string) => RuntimeValue): RuntimeValue {
+ * validation and default object methods remain bootstrap responsibilities.
+ * Default mode implements explicit type.__call__, bypassing metaclass dispatch. */
+export function callRuntimeType(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, special: RuntimeSpecialMethodContext, values: RuntimeValues, meter: ExecutionMeter, beginCall: (callee: RuntimeValue) => ExpressionCall<RuntimeValue>, attribute?: (receiver: RuntimeValue, name: string) => RuntimeValue, mode: "dispatch" | "default" = "dispatch"): RuntimeValue {
   meter.checkpoint(1, 512);
   const invoke = (callee: RuntimeValue, args: readonly RuntimeValue[], named?: DictionaryValue): RuntimeValue => {
     const call = beginCall(callee); meter.checkpoint();
@@ -19,9 +20,11 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
     meter.checkpoint();
     const result = call.invoke(); meter.checkpoint(); return result;
   };
-  const override = lookupRuntimeSpecialMethod(type, type.metaclass, values.string("__call__"), special, values, meter);
-  meter.checkpoint();
-  if (override !== undefined) return invoke(override, positional, keywords);
+  if (mode === "dispatch") {
+    const override = lookupRuntimeSpecialMethod(type, type.metaclass, values.string("__call__"), special, values, meter);
+    meter.checkpoint();
+    if (override !== undefined) return invoke(override, positional, keywords);
+  }
   // The registry's canonical type is its own metaclass. Subclasses of type
   // retain ordinary construction, even if they are also named "type".
   if (type.metaclass === type) {

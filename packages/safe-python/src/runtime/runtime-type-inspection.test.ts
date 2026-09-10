@@ -15,7 +15,7 @@ function fixture(signal?: AbortSignal) {
   const cls = registry.publish(new RuntimeTypeLayout("C", [registry.object.value], dictionary(), meter), registry.type);
   const classifications: RuntimeValue[] = [];
   const special = { typeOf(value: RuntimeValue) { classifications.push(value); return cls; }, slots: () => undefined };
-  const inspect = (...args: RuntimeValue[]) => callRuntimeType(registry.type, args, keywords, special, v, meter, () => { throw Error("inspection must not invoke new or init"); });
+  const inspect = (...args: RuntimeValue[]) => callRuntimeType(registry.type, args, keywords, special, v, meter, () => { throw Error("inspection must not invoke new or init"); }, undefined, "default");
   return { v, meter, registry, cls, dictionary, keywords, classifications, special, inspect };
 }
 

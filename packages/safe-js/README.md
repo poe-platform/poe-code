@@ -918,6 +918,8 @@ Blank Duration totals return positive zero at both PlainDate range boundaries
 without constructing an out-of-range calendar interval.
 The Duration and PlainTime constructors and method adapters are committed locally but unreleased;
 public Temporal namespace and snapshot integration remain unfinished.
+PlainDate conversions to MonthDay, YearMonth, and ZonedDateTime are also committed
+locally, preserving private calendar fields and destination-realm prototypes.
 
 Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
 `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values

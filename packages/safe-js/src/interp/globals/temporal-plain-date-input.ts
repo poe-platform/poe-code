@@ -7,6 +7,9 @@ import { validateTemporalStringOffsets } from "../temporal-offset-validation.js"
 import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields, isSandboxTemporalPlainDate, temporalPlainDateFields, type SandboxTemporalPlainDate, type TemporalPlainDateFields } from "../temporal-plain-date.js";
 import { isSandboxTemporalPlainDateTime, temporalPlainDateTimeFields } from "../temporal-plain-date-time.js";
 import { isSandboxTemporalPlainTime } from "../temporal-plain-time.js";
+import { isSandboxTemporalPlainMonthDay } from "../temporal-plain-month-day.js";
+import { isSandboxTemporalPlainYearMonth } from "../temporal-plain-year-month.js";
+import { isSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "../temporal-zoned-date-time.js";
 import type { SandboxCallContext, SandboxValue } from "../values.js";
 import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
 
@@ -17,9 +20,8 @@ export async function readTemporalPlainDate(input: SandboxValue, options: Sandbo
   const release = retainValues(budget, () => [input, options, normalized, fields, current, baseFields]);
   try {
     if (baseFields !== undefined) {
-      if (input === null || typeof input !== "object" || isSandboxTemporalPlainDate(input) || isSandboxTemporalPlainDateTime(input) || isSandboxTemporalPlainTime(input))
+      if (isSandboxTemporalPlainYearMonth(input) || isSandboxTemporalPlainMonthDay(input) || input === null || typeof input !== "object" || isSandboxTemporalPlainDate(input) || isSandboxTemporalPlainDateTime(input) || isSandboxTemporalPlainTime(input) || isSandboxTemporalZonedDateTime(input))
         throw new TypeError("PlainDate with requires a partial date object.");
-      // Add remaining calendar-bearing brands when their owned classes exist.
       // Instant and Duration are valid partial objects with relevant fields.
       for (const name of ["calendar", "timeZone"]) {
         current = await sandboxGetProperty(input, name, input, budget, context);
@@ -28,6 +30,10 @@ export async function readTemporalPlainDate(input: SandboxValue, options: Sandbo
     }
     if (isSandboxTemporalPlainDate(input)) fields = temporalPlainDateFields(input);
     else if (isSandboxTemporalPlainDateTime(input)) fields = temporalPlainDateTimeFields(input);
+    else if (isSandboxTemporalZonedDateTime(input)) {
+      const zoned = temporalZonedDateTimeFields(input);
+      fields = hostTemporalPlainDateFields(new Backend.ZonedDateTime(zoned.epochNanoseconds, zoned.timeZone, zoned.calendar).toPlainDate())!;
+    }
     else if (typeof input === "string") {
       budget.visitNode(input.length);
       validateTemporalStringOffsets(input);

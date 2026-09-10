@@ -18,8 +18,12 @@ import { readTemporalPlainTime } from "./temporal-plain-time-input.js";
 import { createSandboxTemporalPlainDateTime } from "../temporal-plain-date-time.js";
 import { readDateTimeFormatOptions } from "../date-locale.js";
 import { canonicalizeGuestLocales } from "../intl-options.js";
+import { createSandboxTemporalZonedDateTime, isSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "../temporal-zoned-date-time.js";
+import { parseTemporalTimeZoneString } from "../temporal-time-zone-string.js";
+import { createSandboxTemporalPlainMonthDay, hostTemporalPlainMonthDayFields } from "../temporal-plain-month-day.js";
+import { createSandboxTemporalPlainYearMonth, hostTemporalPlainYearMonthFields } from "../temporal-plain-year-month.js";
 
-export function createTemporalPlainDateConstructor(budget: Budget, durationPrototype: object, plainDateTimePrototype: object): SandboxClosure {
+export function createTemporalPlainDateConstructor(budget: Budget, durationPrototype: object, plainDateTimePrototype: object, zonedDateTimePrototype: object, plainMonthDayPrototype: object, plainYearMonthPrototype: object): SandboxClosure {
   const prototype = createIntrinsicObject();
   const constructor: SandboxClosure = createSandboxClosure({
     guest: true, sandbox: true, name: "PlainDate", length: 3,
@@ -55,6 +59,64 @@ export function createTemporalPlainDateConstructor(budget: Budget, durationProto
     [Symbol.toStringTag]: { value: "Temporal.PlainDate", configurable: true }
   });
   const methods: SandboxClosure[] = [];
+  const toPlainMonthDay = createSandboxClosure({ guest: true, sandbox: true, name: "toPlainMonthDay", length: 0,
+    call: (_args, context) => {
+      const fields = temporalPlainDateFields(context?.thisValue);
+      const value = new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay, fields.calendar).toPlainMonthDay();
+      const result = createSandboxTemporalPlainMonthDay(hostTemporalPlainMonthDayFields(value)!);
+      setSandboxPrototype(result, plainMonthDayPrototype, budget);
+      createDataCheckpoint(budget, context)(result, 0, true);
+      return result;
+    }
+  });
+  Object.defineProperty(prototype, "toPlainMonthDay", { value: toPlainMonthDay, writable: true, configurable: true });
+  methods.push(toPlainMonthDay);
+  const toPlainYearMonth = createSandboxClosure({ guest: true, sandbox: true, name: "toPlainYearMonth", length: 0,
+    call: (_args, context) => {
+      const fields = temporalPlainDateFields(context?.thisValue);
+      const value = new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay, fields.calendar).toPlainYearMonth();
+      const result = createSandboxTemporalPlainYearMonth(hostTemporalPlainYearMonthFields(value)!);
+      setSandboxPrototype(result, plainYearMonthPrototype, budget);
+      createDataCheckpoint(budget, context)(result, 0, true);
+      return result;
+    }
+  });
+  Object.defineProperty(prototype, "toPlainYearMonth", { value: toPlainYearMonth, writable: true, configurable: true });
+  methods.push(toPlainYearMonth);
+  const toZonedDateTime = createSandboxClosure({ guest: true, sandbox: true, name: "toZonedDateTime", length: 1,
+    call: async ([input], context) => {
+      const fields = temporalPlainDateFields(context?.thisValue);
+      let zoneLike: SandboxValue = input;
+      let timeLike: SandboxValue;
+      let timeZone: string | undefined;
+      let result: SandboxValue;
+      const release = retainValues(budget, () => [fields, input, zoneLike, timeLike, timeZone, result]);
+      try {
+        let readTime = false;
+        if (input !== null && typeof input === "object") {
+          zoneLike = await sandboxGetProperty(input, "timeZone", input, budget, context);
+          if (zoneLike === undefined) zoneLike = input;
+          else readTime = true;
+        }
+        if (isSandboxTemporalZonedDateTime(zoneLike)) timeZone = temporalZonedDateTimeFields(zoneLike).timeZone;
+        else {
+          if (typeof zoneLike !== "string") throw new TypeError("Time zone must be a string or ZonedDateTime.");
+          budget.visitNode(zoneLike.length);
+          timeZone = budget.allocateString(new Backend.ZonedDateTime(0n, parseTemporalTimeZoneString(zoneLike)).timeZoneId);
+        }
+        if (readTime) timeLike = await sandboxGetProperty(input, "plainTime", input, budget, context);
+        const time = timeLike === undefined ? undefined : await readTemporalPlainTime(timeLike, undefined, budget, context);
+        const date = new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay, fields.calendar);
+        const zoned = date.toZonedDateTime({ timeZone, plainTime: time });
+        result = createSandboxTemporalZonedDateTime({ epochNanoseconds: zoned.epochNanoseconds, timeZone, calendar: fields.calendar });
+        setSandboxPrototype(result, zonedDateTimePrototype, budget);
+        createDataCheckpoint(budget, context)(result, 0, true);
+        return result;
+      } finally { release(); }
+    }
+  });
+  Object.defineProperty(prototype, "toZonedDateTime", { value: toZonedDateTime, writable: true, configurable: true });
+  methods.push(toZonedDateTime);
   const from = createSandboxClosure({ guest: true, sandbox: true, name: "from", length: 1,
     call: async ([input, options], context) => {
       const result = await readTemporalPlainDate(input, options, budget, context);

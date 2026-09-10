@@ -1,7 +1,7 @@
 import type { ConstantValues } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
-import { isRuntimeSet, type DictionaryViewValue, type FrozenSetValue, type RuntimeValue, type SetValue } from "./runtime-values.js";
+import { isRuntimeSet, type BuiltinInvocationContext, type DictionaryViewValue, type FrozenSetValue, type RuntimeValue, type SetValue } from "./runtime-values.js";
 import { runtimeSetAccess } from "./runtime-set.js";
 
 /** Capture the cursor now, but construct item tuples and read values on next(). */
@@ -42,7 +42,7 @@ export function* containsRuntimeDictionaryView(view: DictionaryViewValue, needle
 /** Set-like view/set comparison. Values views are dispatched separately.
  * Membership permits unhashable item values and cross-kind views.
  */
-export function* compareRuntimeDictionaryViews(operator: string, left: DictionaryViewValue | SetValue | FrozenSetValue, right: DictionaryViewValue | SetValue | FrozenSetValue, values: ConstantValues, meter: ExecutionMeter): Generator<readonly [RuntimeValue, RuntimeValue], boolean, boolean> {
+export function* compareRuntimeDictionaryViews(operator: string, left: DictionaryViewValue | SetValue | FrozenSetValue, right: DictionaryViewValue | SetValue | FrozenSetValue, values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): Generator<readonly [RuntimeValue, RuntimeValue], boolean, boolean> {
   meter.checkpoint(1, 64);
   // A set declines non-set operands, so the view's reflected slot owns the
   // operation. This affects which membership path can raise on item values.
@@ -58,7 +58,7 @@ export function* compareRuntimeDictionaryViews(operator: string, left: Dictionar
   const iterator = isRuntimeSet(source) ? source.items.iterate(key => key, "set") : iterateRuntimeDictionaryView(source, values, meter);
   for (let item = iterator.next(); !item.done; item = iterator.next()) {
     meter.checkpoint();
-    const found = isRuntimeSet(target) ? runtimeSetAccess(target, item.value, "contains", values, meter) : (yield* containsRuntimeDictionaryView(target, item.value, meter));
+    const found = isRuntimeSet(target) ? runtimeSetAccess(target, item.value, "contains", values, meter, invocation) : (yield* containsRuntimeDictionaryView(target, item.value, meter));
     if (!found) return operator === "!=";
   }
   return operator !== "!=";

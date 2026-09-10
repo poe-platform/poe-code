@@ -79,6 +79,45 @@ function exceptionFixture() {
   return state;
 }
 
+it("uses frozen contents for set subclass probes after guest hash TypeError",()=>{
+  for(const action of ["result=probe in target","target.discard(probe)\nresult=target==set()","target.remove(probe)\nresult=target==set()"]) {
+    const state=exceptionFixture();state.globals.set("set",state.registry.setType("set"));state.globals.set("frozenset",state.registry.setType("frozenset"));
+    state.run("class Failure(TypeError):\n pass\nclass Probe(set):\n def __hash__(self):\n  raise Failure('hash')\nprobe=Probe([1])\ntarget={frozenset([1])}\n"+action+"\n");
+    expect(state.globals.get("result")).toBe(state.v.true);
+  }
+});
+
+it("supports set probe fallback through explicit and inherited slots",()=>{
+  for(const action of ["result=target.__contains__(probe)","result=set.__contains__(target,probe)","target.remove(probe)\nresult=target==set()","target.discard(probe)\nresult=target==set()"]) {
+    const state=exceptionFixture();state.globals.set("set",state.registry.setType("set"));state.globals.set("frozenset",state.registry.setType("frozenset"));
+    state.run("class Target(set):\n pass\nclass Probe(set):\n def __hash__(self):\n  raise TypeError('hash')\nprobe=Probe([1])\ntarget=Target([frozenset([1])])\n"+action+"\n");
+    expect(state.globals.get("result")).toBe(state.v.true);
+  }
+});
+
+it("preserves guest hash failures when set probe fallback does not apply",()=>{
+  for(const [name,action] of [["TypeError","target.add(probe)"],["ValueError","result=probe in target"],["ValueError","target.remove(probe)"],["ValueError","target.discard(probe)"]]) {
+    const state=exceptionFixture();state.globals.set("set",state.registry.setType("set"));
+    state.run(`original=${name}('hash')\nclass Probe(set):\n def __hash__(self):\n  raise original\nprobe=Probe([1])\ntarget=set()\ntry:\n ${action}\nexcept BaseException as error:\n correct=error is original and target==set()\n`);
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("preserves fatal host failures during set subclass probing",()=>{
+  for(const action of ["result=probe in target","target.discard(probe)","target.remove(probe)"])for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"TypeError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.globals.set("set",state.registry.setType("set"));state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;
+    try{state.run(`class Probe(set):\n def __hash__(self):\n  fail()\nprobe=Probe()\ntarget=set()\ntry:\n ${action}\nexcept BaseException:\n visit('caught')\n`);}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
+it("uses set probe fallback during dictionary key view comparison",()=>{
+  const state=exceptionFixture();state.globals.set("set",state.registry.setType("set"));state.globals.set("frozenset",state.registry.setType("frozenset"));
+  state.run("class Probe(set):\n def __hash__(self):\n  if fail:\n   raise TypeError('hash')\n  return 1\nfail=False\nprobe=Probe([1])\nd={probe:1}\ntarget={frozenset([1])}\nfail=True\ncorrect=d.keys()==target\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("normalizes guest TypeError during join and slice iterator acquisition",()=>{
   for(const binding of [false,true])for(const action of ["result=''.join(Item())","result=b''.join(Item())","target[:]=Item()","target[::2]=Item()"]) {
     const state=exceptionFixture();

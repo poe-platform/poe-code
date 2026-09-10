@@ -41,7 +41,7 @@ export function createRuntimeSetMutationMethod(receiver: SetValue, name: "add" |
         const key = positional[0];
         if (name === "add") runtimeSetAccess(receiver, key, "add", values, meter);
         else {
-          const removed = runtimeSetAccess(receiver, key, "discard", values, meter);
+          const removed = runtimeSetAccess(receiver, key, "discard", values, meter, invocation);
           if (!removed && name === "remove") throw new PythonKeyError(key, meter);
         }
         return values.none;

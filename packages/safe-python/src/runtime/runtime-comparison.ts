@@ -3,11 +3,11 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { numericComparison } from "./numeric-comparison.js";
 import { PythonRuntimeError } from "./error.js";
 import { rangesEqual } from "./integer-sequence.js";
-import { isRuntimeSet, type RuntimeValue } from "./runtime-values.js";
+import { isRuntimeSet, type BuiltinInvocationContext, type RuntimeValue } from "./runtime-values.js";
 import { compareRuntimeDictionaryViews } from "./runtime-dictionary-view.js";
 import { runtimeTruth } from "./runtime-truth.js";
 
-export interface RuntimeComparisonContext {
+export interface RuntimeComparisonContext extends Pick<BuiltinInvocationContext, "isException"> {
   /** Return NotImplemented for unsupported root pairs so an outer dispatcher
    * can try guest reflection. Delegated/member comparisons still resolve fully.
    * This is a combined native-kernel boundary, not an exposed single-type slot. */
@@ -95,7 +95,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     if ((a.kind === "dict_keys" || a.kind === "dict_items" || isRuntimeSet(a)) && (b.kind === "dict_keys" || b.kind === "dict_items" || isRuntimeSet(b))) {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       meter.checkpoint(0, 64);
-      const comparisons = compareRuntimeDictionaryViews(op, a, b, values, meter);
+      const comparisons = compareRuntimeDictionaryViews(op, a, b, values, meter, context);
       let first = true;
       const next = () => {
         const pair = first ? comparisons.next() : comparisons.next(result);

@@ -351,6 +351,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         return call;
       } : undefined,
       mapping: expressionHooks.mapping ?? builtinCalls,
+      isException: builtinCalls.isException,
       subscription: expressionHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
       percent: expressionHooks.percent ?? builtinCalls,
       bytes: expressionHooks.bytes,

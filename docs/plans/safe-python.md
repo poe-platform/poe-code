@@ -9995,6 +9995,22 @@ extension, integration, or validation requirement is missing or unverified.
   Remaining native exception boundaries, specialized exception families,
   suspension and public interpreter/standard-library/safe-fs assembly remain
   unfinished. No push or release requested.
+- Set subclass probe exception integration (2026-09-10): failing regressions
+  drove guest TypeError fallback to equivalent frozen contents during set
+  membership/discard/remove, explicit/inherited slots and dictionary key-view
+  comparisons. Expression membership and native comparison contexts now carry
+  the exception matcher; added bound policies are charged to the allocation
+  meter. Insertion and non-TypeError failures preserve guest identity, while
+  host errors, spoofed names and execution limits remain fatal. All 84 CPython
+  comparisons and five focused regressions pass. The selected workspace build,
+  typecheck, focused lint and all 7,220 tests in 503 files pass in the uncached
+  one-worker run (184.27s; bodies 10.14s). The previous 54 sequence-consumer comparisons and an
+  additional 18-case numeric descriptor exception audit pass. A separate two-case
+  probe confirms str.translate does not yet dispatch guest mapping __getitem__,
+  including its LookupError identity fallback. Those cases are next work, not
+  passing comparisons. The full public interpreter, standard library,
+  specialized exceptions, suspension and safe-fs assembly remain unfinished.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

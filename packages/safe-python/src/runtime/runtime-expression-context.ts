@@ -42,6 +42,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth" | "beginMethodCall">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
+    readonly isException?: BuiltinInvocationContext["isException"];
     readonly mapping?: BuiltinInvocationContext;
     readonly subscription?: BuiltinInvocationContext;
     /** Active numeric-conversion and representation policy for percent formats. */
@@ -159,8 +160,9 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     getItem: (object, key) => runtimeGetItem(object, key, values, meter, bindings.subscription, bindings.integerIndex),
     iterate: (value, notIterable, hint) => runtimeIterate(value, values, meter, bindings.iteration, notIterable, hint)
   };
-  meter.checkpoint(0, 384);
+  meter.checkpoint(0, 448);
   const methods = {
+    isException: bindings.isException?.bind(bindings),
     actualType: bindings.actualType?.bind(bindings),
     attribute: context.attribute.bind(context),
     dictionaryKeys: "dictionaryKeys" in bindings ? bindings.dictionaryKeys : undefined,
@@ -168,8 +170,9 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     truth: context.truth.bind(context), get integerIndex() { return bindings.integerIndex; }, bytes: bindings.bytes,
     translation: bindings.translation, buffers: bindings.buffers
   };
-  meter.checkpoint(0, 160);
+  meter.checkpoint(0, 168);
   const members = {
+    isException: methods.isException,
     comparison(operator: string, left: RuntimeValue, right: RuntimeValue) {
       const comparison = bindings.richComparison?.(operator, left, right); meter.checkpoint();
       return comparison === undefined ? undefined : runtimeRichComparison(operator, left, right, values, meter, comparison);

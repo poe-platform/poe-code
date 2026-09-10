@@ -35,8 +35,9 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
       if (ancestor === leftType.value) { rightIsStrictSubtype = true; break; }
     }
   }
-  meter.checkpoint(0, 512);
+  meter.checkpoint(0, 576);
   const native: RuntimeComparisonContext = {
+    isException: invocation.isException?.bind(invocation),
     declineUnsupported: true,
     comparison(op, a, b) {
       if (!usesRuntimeGuestNumericSlots(a) && !usesRuntimeGuestNumericSlots(b)) return undefined;

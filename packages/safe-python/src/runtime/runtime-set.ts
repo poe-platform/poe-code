@@ -1,5 +1,6 @@
 import type { ConstantValues } from "./constant-values.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionSet } from "./expression-evaluation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
@@ -8,14 +9,14 @@ import { RuntimeHashError } from "./runtime-hash-error.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeSetPayload } from "./runtime-set-payload.js";
 import type { IterationContext } from "./protocol-iterator.js";
-import type { DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
+import type { BuiltinInvocationContext, DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
-export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains", values: ConstantValues, meter: ExecutionMeter): boolean;
-export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "add", values: ConstantValues, meter: ExecutionMeter): void;
-export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "discard", values: ConstantValues, meter: ExecutionMeter): boolean;
+export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean;
+export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "add", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): void;
+export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "discard", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean;
 /** Exact set key operations. Mutable-set lookup probes use equivalent frozen
  * hashes without allocating replacement keys; insertion remains unhashable. */
-export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains" | "add" | "discard", values: ConstantValues, meter: ExecutionMeter): boolean | void {
+export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains" | "add" | "discard", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean | void {
   meter.checkpoint();
   try {
     if (operation === "contains") return set.items.containsKey(key, key.kind === "set" ? key.items.keySetHash() : undefined);
@@ -23,7 +24,7 @@ export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeVal
     set.items.set(key, values.none);
   } catch (error) {
     const probe = key.kind === "instance" ? runtimeSetPayload(key) : undefined;
-    const typeError = error instanceof RuntimeHashError ? error.original.name === "TypeError" : error instanceof PythonRuntimeError && error.name === "TypeError";
+    const typeError = runtimeExceptionMatches(error instanceof RuntimeHashError ? error.original : error, "TypeError", invocation);
     if (operation !== "add" && probe?.kind === "set" && typeError) {
       return operation === "contains" ? set.items.containsKey(probe, probe.items.keySetHash()) : set.items.delete(probe, probe.items.keySetHash());
     }

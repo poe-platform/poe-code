@@ -16,8 +16,9 @@ export function runtimeReceiverComparison(operator: string, left: RuntimeValue, 
   // receiver slot accepts only its own numeric widening direction.
   if ((left.kind === "int" || left.kind === "bool") && (right.kind === "float" || right.kind === "complex")
     || left.kind === "float" && right.kind === "complex") return values.notImplemented;
-  meter.checkpoint(0, 96);
+  meter.checkpoint(0, 160);
   return runtimeComparison(operator, left, right, values, meter, 1000, {
+    isException: invocation?.isException?.bind(invocation),
     declineUnsupported: true,
     comparison(op, a, b) {
       if (!usesRuntimeGuestNumericSlots(a) && !usesRuntimeGuestNumericSlots(b)) return undefined;

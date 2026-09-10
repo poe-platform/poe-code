@@ -39,13 +39,13 @@ export function installRuntimeSetSlots(kind: "set" | "frozenset", owner: TypeVal
   }
   meter.checkpoint(0, 96);
   owner.value.namespace.items.set(values.string("__contains__"), values.methodDescriptor({ owner, name: "__contains__", doc: "x.__contains__(y) <==> y in x.", accepts: receiver => runtimeSetPayload(receiver)?.kind === kind,
-    invoke(receiver, positional, keywords, meter) {
+    invoke(receiver, positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${kind}.__contains__() takes no keyword arguments`);
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `${kind}.__contains__() takes exactly one argument (${positional.length} given)`);
       const payload = runtimeSetPayload(receiver);
       if (payload === undefined) throw Error("set membership requires set storage");
-      return values.boolean(runtimeSetAccess(payload, positional[0], "contains", values, meter));
+      return values.boolean(runtimeSetAccess(payload, positional[0], "contains", values, meter, invocation));
     }
   }));
 }

@@ -3,7 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { rangeIndexOf } from "./integer-sequence.js";
 import { runtimeIterate } from "./runtime-iteration.js";
-import type { RuntimeValue } from "./runtime-values.js";
+import type { BuiltinInvocationContext, RuntimeValue } from "./runtime-values.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { containsRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import { runtimeSetAccess } from "./runtime-set.js";
@@ -13,7 +13,7 @@ import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 
-export interface RuntimeMembershipContext extends RuntimeSearchEqualityContext {
+export interface RuntimeMembershipContext extends RuntimeSearchEqualityContext, Pick<BuiltinInvocationContext, "isException"> {
   readonly buffers?: RuntimeBufferContext;
 }
 
@@ -33,7 +33,7 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
   }
   let found = false;
   if (container.kind === "set" || container.kind === "frozenset") {
-    found = runtimeSetAccess(container, needle, "contains", values, meter);
+    found = runtimeSetAccess(container, needle, "contains", values, meter, context);
   } else if (container.kind === "dict_keys" || container.kind === "dict_values" || container.kind === "dict_items") {
     const comparisons = containsRuntimeDictionaryView(container, needle, meter);
     const equal = createRuntimeSearchEquality(values, meter, context);

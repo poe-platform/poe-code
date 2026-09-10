@@ -846,6 +846,9 @@ string-conversion and position-conversion hooks in order, including Proxy
 lookups and abrupt completion. RegExp searches are rejected unless their
 `Symbol.match` override disables RegExp treatment. Primitive-only searches
 retain their synchronous direct-call path.
+String `indexOf` and `lastIndexOf` likewise honor guest string and position
+conversion, but do not inspect `Symbol.match`; `lastIndexOf` preserves its
+distinct handling of omitted and NaN positions.
 String `repeat` converts guest count objects through their numeric conversion
 hooks after receiver conversion, preserving thrown values, range validation,
 and output string-budget checks.

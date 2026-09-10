@@ -215,7 +215,7 @@ function callStringMethodBody(
   if (Object.hasOwn(stringHtmlMethods, methodName)) {
     return createStringHtml(value, stringHtmlMethods[methodName as keyof typeof stringHtmlMethods], args[0], budget, context);
   }
-  if (methodName === "startsWith" || methodName === "endsWith" || methodName === "includes") {
+  if (methodName === "startsWith" || methodName === "endsWith" || methodName === "includes" || methodName === "indexOf" || methodName === "lastIndexOf") {
     if (args.slice(0, 2).every(argument => argument === null || (typeof argument !== "object" && typeof argument !== "function")))
       return value[methodName](args[0] as string, args[1] as number | undefined);
     return callStringSearch(value, methodName, args, budget, context);
@@ -360,10 +360,6 @@ function callStringMethodBody(
         return value.codePointAt(asNumber(args[0]));
       case "concat":
         return budget.allocateString(value.concat(...args.map(String)));
-      case "indexOf":
-        return value.indexOf(String(args[0]), asNumberOrUndefined(args[1]));
-      case "lastIndexOf":
-        return value.lastIndexOf(String(args[0]), asNumberOrUndefined(args[1]));
       case "normalize":
         return budget.allocateString(value.normalize(asStringOrUndefined(args[0])));
       case "padEnd":

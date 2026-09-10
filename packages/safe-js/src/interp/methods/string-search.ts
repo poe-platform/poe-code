@@ -7,17 +7,17 @@ import { isSandboxRegex, type SandboxCallContext, type SandboxValue } from "../v
 
 export async function callStringSearch(
   value: string,
-  method: "startsWith" | "endsWith" | "includes",
+  method: "startsWith" | "endsWith" | "includes" | "indexOf" | "lastIndexOf",
   args: readonly SandboxValue[],
   budget: Budget,
   context?: SandboxCallContext
-): Promise<boolean> {
+): Promise<boolean | number> {
   const search = args[0];
   let text: string | undefined;
   const release = retainValues(budget, () => [value, ...args, text]);
   try {
     if (types.isRegExp(search)) throw new TypeError("String search does not accept unbranded host RegExp values.");
-    if (search !== null && typeof search === "object") {
+    if (method !== "indexOf" && method !== "lastIndexOf" && search !== null && typeof search === "object") {
       const match = context?.getProperty !== undefined
         ? await context.getProperty(search, Symbol.match)
         : await sandboxGetProperty(search, Symbol.match, search, budget, context);

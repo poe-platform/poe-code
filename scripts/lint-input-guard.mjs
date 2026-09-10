@@ -153,11 +153,11 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     const values = metadata('readdirSync', absolute, { encoding: 'buffer' });
     budget(Array.isArray(values) && values.length <= limits.directoryEntries, 'directory entry cap');
     const previous = decodedDirectories.get(absolute);
-    // Reread every time: only decoding is reused, never filesystem observations.
+    // Reread every time: only decoding and membership are reused, never filesystem observations.
     if (previous && values.length === previous.bytes.length && previous.bytes.every((expected, index) => Buffer.isBuffer(values[index]) && values[index].equals(expected))) {
       decodedDirectories.delete(absolute);
       decodedDirectories.set(absolute, previous);
-      return previous.strings;
+      return previous;
     }
     let byteLength = 0;
     const strings = Array.from(values, value => {
@@ -168,14 +168,16 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
       assert.ok(!name.includes('/') && !name.includes('\0'), 'invalid directory entry encoding');
       return name;
     });
-    assert.equal(new Set(strings).size, strings.length, 'duplicate directory entry');
+    const membership = new Set(strings);
+    assert.equal(membership.size, strings.length, 'duplicate directory entry');
     Object.freeze(strings);
+    const listing = { strings, membership };
     if (previous) {
       decodedDirectories.delete(absolute);
       decodedDirectoryBytes -= previous.byteLength;
       decodedDirectoryEntries -= previous.bytes.length;
     }
-    // Bound both copied byte storage and per-entry overhead, including empty names.
+    // Bound copied bytes and array/Set entry overhead, including empty names.
     if (byteLength <= 1048576 && values.length <= 32768) {
       while (decodedDirectories.size >= 32 || decodedDirectoryBytes + byteLength > 1048576 || decodedDirectoryEntries + values.length > 32768) {
         const oldest = decodedDirectories.keys().next().value;
@@ -184,11 +186,11 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
         decodedDirectoryBytes -= removed.byteLength;
         decodedDirectoryEntries -= removed.bytes.length;
       }
-      decodedDirectories.set(absolute, { bytes: values.map(value => Buffer.from(value)), strings, byteLength });
+      decodedDirectories.set(absolute, { ...listing, bytes: values.map(value => Buffer.from(value)), byteLength });
       decodedDirectoryBytes += byteLength;
       decodedDirectoryEntries += values.length;
     }
-    return strings;
+    return listing;
   }
 
   function scalar(value) {
@@ -232,7 +234,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     const rootStat = parentStat;
     assert.ok(parentStat.isDirectory() && !parentStat.isSymbolicLink(), 'regular root ancestor required');
     for (const [index, part] of parts.entries()) {
-      assert.ok(names(parent).includes(part), 'exact pathname spelling required');
+      assert.ok(names(parent).membership.has(part), 'exact pathname spelling required');
       const next = parent === '/' ? '/' + part : parent + '/' + part;
       const stat = metadata('lstatSync', next);
       if (validateSegment) validateSegment(next, stat);
@@ -329,7 +331,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     if (inspectEntries) ancestors.unshift({ absolute: '/', identity: Object.fromEntries(identityKeys.map(key => [key, input.rootStat[key]])) });
     assert.ok(input.stat.isDirectory() && !input.stat.isSymbolicLink(), 'regular non-symlink directory required');
     budget(counters.directories < limits.directories, 'directory cap');
-    const entries = [...names(input.absolute)].sort();
+    const entries = [...names(input.absolute).strings].sort();
     budget(counters.entries + entries.length <= limits.entries, 'aggregate directory entry cap');
     counters.directories++;
     counters.entries += entries.length;
@@ -351,13 +353,13 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
           }
           admitted(child);
           for (const ancestor of ancestors) {
-            if (ancestor.absolute !== '/') assert.ok(names(posix.dirname(ancestor.absolute)).includes(posix.basename(ancestor.absolute)), 'exact ancestor pathname spelling required');
+            if (ancestor.absolute !== '/') assert.ok(names(posix.dirname(ancestor.absolute)).membership.has(posix.basename(ancestor.absolute)), 'exact ancestor pathname spelling required');
             const current = metadata('lstatSync', ancestor.absolute);
             assert.ok(current.isDirectory() && !current.isSymbolicLink(), 'regular non-symlink ancestor required');
             same(current, ancestor.identity, ancestor.absolute, 'directory-entry-ancestor');
             assert.equal(metadata('realpathSync', ancestor.absolute), ancestor.absolute, 'canonical ancestor required');
           }
-          assert.ok(names(input.absolute).includes(name), 'exact child pathname spelling required');
+          assert.ok(names(input.absolute).membership.has(name), 'exact child pathname spelling required');
           const absolute = input.absolute + '/' + name;
           const stat = metadata('lstatSync', absolute);
           if (!stat.isSymbolicLink()) assert.equal(metadata('realpathSync', absolute), absolute, 'canonical pathname required');
@@ -590,7 +592,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
       available();
       assert.ok(options === undefined || (options && Object.keys(options).length === 1 && options.encoding === 'buffer'), 'unsupported directory read options');
       const path = absoluteInput(absolute);
-      const entries = path === null ? names(absolute) : directory(path).entries;
+      const entries = path === null ? names(absolute).strings : directory(path).entries;
       return options ? entries.map(name => Buffer.from(name, 'utf8')) : path === null ? [...entries] : entries;
     },
     lstatSync(absolute) {

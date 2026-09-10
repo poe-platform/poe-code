@@ -223,6 +223,12 @@ function callStringMethodBody(
   if (methodName === "concat" && args.some(argument => argument !== null && typeof argument === "object")) {
     return callConcat(value, args, budget, context);
   }
+  if (methodName === "repeat") {
+    const count = sandboxNumber(args[0], budget, context);
+    if (typeof count === "number") return budget.allocateString(value.repeat(count));
+    const release = retainValues(budget, () => [value, ...args]);
+    return count.then(number => budget.allocateString(value.repeat(number))).finally(release);
+  }
 
   if (methodName === "isWellFormed") {
     for (let index = 0; index < value.length; index++) {
@@ -366,8 +372,6 @@ function callStringMethodBody(
         return budget.allocateString(
           value.padStart(asNumber(args[0]), asStringOrUndefined(args[1]))
         );
-      case "repeat":
-        return budget.allocateString(value.repeat(asNumber(args[0])));
       case "slice":
         return budget.allocateString(
           value.slice(asNumberOrUndefined(args[0]), asNumberOrUndefined(args[1]))

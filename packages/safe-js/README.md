@@ -846,6 +846,9 @@ string-conversion and position-conversion hooks in order, including Proxy
 lookups and abrupt completion. RegExp searches are rejected unless their
 `Symbol.match` override disables RegExp treatment. Primitive-only searches
 retain their synchronous direct-call path.
+String `repeat` converts guest count objects through their numeric conversion
+hooks after receiver conversion, preserving thrown values, range validation,
+and output string-budget checks.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the
 originating guest String prototype. Getter and Proxy-ancestor reads preserve
 the primitive receiver, including later guest iterator overrides.

@@ -2,12 +2,19 @@ import { PythonRuntimeError } from "./error.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { initializeRuntimeMethodDecorator } from "./runtime-method-decorator-initialization.js";
-import type { RuntimeValues, TypeValue } from "./runtime-values.js";
+import { getRuntimeMethodDecorator } from "./runtime-method-decorator.js";
+import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Install native allocation and initialization independently: direct __new__
  * ignores extra arguments and produces a None-backed, metadata-empty wrapper. */
 export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmethod", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, owns: (type: TypeValue) => boolean): void {
   meter.checkpoint(1, 192);
+  const accepts = (instance: RuntimeValue, meter: ExecutionMeter): boolean => {
+    if (instance.kind !== kind) return false;
+    if (instance.type === undefined) return true;
+    for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
+    return false;
+  };
   owner.value.namespace.items.set(values.string("__new__"), values.builtinFunction({ name: `${kind}.__new__`, invoke(positional, _keywords, meter, invocation) {
     meter.checkpoint();
     if (positional.length === 0) throw new PythonRuntimeError("TypeError", `${kind}.__new__(): not enough arguments`);
@@ -28,12 +35,7 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
     return values.methodDecorator(kind, values.none, type);
   } }));
   owner.value.namespace.items.set(values.string("__init__"), values.wrapperDescriptor({ owner, name: "__init__",
-    accepts(instance, meter) {
-      if (instance.kind !== kind) return false;
-      if (instance.type === undefined) return true;
-      for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
-      return false;
-    },
+    accepts,
     invoke(instance, positional, keywords, meter, invocation) {
       if (instance.kind !== kind) throw Error("invalid method-wrapper initializer receiver");
       return initializeRuntimeMethodDecorator(instance, positional, keywords, values, meter, (value, name) => {
@@ -42,4 +44,24 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
       });
     }
   }));
+  owner.value.namespace.items.set(values.string("__get__"), values.wrapperDescriptor({ owner, name: "__get__", accepts,
+    invoke(instance, positional, keywords, meter, invocation) {
+      meter.checkpoint();
+      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "wrapper __get__() takes no keyword arguments");
+      if (positional.length === 0) throw new PythonRuntimeError("TypeError", "__get__ expected at least 1 argument, got 0");
+      if (positional.length > 2) throw new PythonRuntimeError("TypeError", `__get__ expected at most 2 arguments, got ${positional.length}`);
+      if (instance.kind !== kind) throw Error("invalid method-wrapper descriptor receiver");
+      return getRuntimeMethodDecorator(instance, positional[0]!, positional[1] ?? values.none, values, meter, invocation?.actualType?.bind(invocation));
+    }
+  }));
+  if (kind === "staticmethod") {
+    owner.value.namespace.items.set(values.string("__call__"), values.wrapperDescriptor({ owner, name: "__call__", accepts,
+      invoke(instance, positional, keywords, meter, invocation) {
+        meter.checkpoint();
+        if (instance.kind !== kind) throw Error("invalid staticmethod call receiver");
+        if (invocation === undefined) throw Error("staticmethod calls require an invocation policy");
+        const result = invocation.call(instance.value, positional, keywords); meter.checkpoint(); return result;
+      }
+    }));
+  }
 }

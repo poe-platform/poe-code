@@ -91,12 +91,14 @@ it("retains class-cell publication when a later checkpoint terminates allocation
 });
 
 it("automatically wraps only function-valued reserved class methods in the owned namespace", () => {
-  const { v, meter, namespace, create } = fixture(), program = compileProgram(analyzeModule("def f(): pass\n"), { stripDocstring: false }, v, meter);
+  const { v, meter, registry, namespace, create } = fixture(), program = compileProgram(analyzeModule("def f(): pass\n"), { stripDocstring: false }, v, meter);
   const fn = v.function(createFunctionState(program.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter));
   for (const name of ["__new__", "__init_subclass__", "__class_getitem__", "ordinary"]) namespace.items.set(v.string(name), fn);
   const cls = create();
   for (const [name, kind] of [["__new__", "staticmethod"], ["__init_subclass__", "classmethod"], ["__class_getitem__", "classmethod"], ["ordinary", "function"]]) {
     expect(cls.value.namespace.items.lookup(v.string(name))?.value.kind).toBe(kind); expect(namespace.items.lookup(v.string(name))?.value).toBe(fn);
+    const wrapper = cls.value.namespace.items.lookup(v.string(name))!.value;
+    if (wrapper.kind === "staticmethod" || wrapper.kind === "classmethod") expect(wrapper.type).toBe(registry.methodDecoratorType(wrapper.kind));
   }
 });
 

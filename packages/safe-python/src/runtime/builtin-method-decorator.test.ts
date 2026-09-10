@@ -47,3 +47,30 @@ it.each(["staticmethod", "classmethod"] as const)("rejects wrong-kind and foreig
   const foreign = fixture().registry.methodDecoratorType(kind);
   expect(() => callRuntimeMethodDescriptor(initialize, [v.methodDecorator(kind, v.true, foreign), v.false], keywords, meter)).toThrow(`requires a '${kind}' object`);
 });
+
+it.each(["staticmethod", "classmethod"] as const)("validates native %s __get__ arguments and descriptor markers", kind => {
+  const { registry, v, meter, keywords } = fixture(), type = registry.methodDecoratorType(kind), wrapper = v.methodDecorator(kind, v.true, type), get = type.value.namespace.items.lookup(v.string("__get__"))?.value;
+  if (get?.kind !== "wrapper_descriptor") throw Error("expected native __get__ wrapper");
+  expect(() => callRuntimeMethodDescriptor(get, [wrapper], keywords, meter)).toThrow("__get__ expected at least 1 argument, got 0");
+  expect(() => callRuntimeMethodDescriptor(get, [wrapper, v.none, type, v.true], keywords, meter)).toThrow("__get__ expected at most 2 arguments, got 3");
+  expect(() => callRuntimeMethodDescriptor(get, [wrapper, v.none], keywords, meter)).toThrow("__get__(None, None) is invalid");
+  const bound = callRuntimeMethodDescriptor(get, [wrapper, v.none, type], keywords, meter);
+  if (kind === "staticmethod") expect(bound).toBe(v.true);
+  else { if (bound.kind !== "method") throw Error("expected method"); expect(bound.value.function).toBe(v.true); expect(bound.value.instance).toBe(type); }
+  keywords.items.set(v.string("owner"), type);
+  expect(() => callRuntimeMethodDescriptor(get, [wrapper], keywords, meter)).toThrow("wrapper __get__() takes no keyword arguments");
+  expect(() => callRuntimeMethodDescriptor(get, [v.none], keywords, meter)).toThrow(`requires a '${kind}' object`);
+});
+
+it("installs __call__ only on staticmethod and forwards arguments without binding another receiver", () => {
+  const { registry, v, meter, keywords } = fixture(), type = registry.methodDecoratorType("staticmethod"), call = type.value.namespace.items.lookup(v.string("__call__"))?.value;
+  if (call?.kind !== "wrapper_descriptor") throw Error("expected staticmethod call wrapper");
+  expect(registry.methodDecoratorType("classmethod").value.namespace.items.lookup(v.string("__call__"))).toBeUndefined();
+  const payload = v.list([]), wrapper = v.methodDecorator("staticmethod", payload, type), arg = v.integer(7);
+  keywords.items.set(v.string("flag"), v.true);
+  const result = callRuntimeMethodDescriptor(call, [wrapper, arg], keywords, meter, {
+    call(callee, positional, named) { expect(callee).toBe(payload); expect(positional).toEqual([arg]); expect(named).toBe(keywords); return v.false; },
+    isStopIteration: () => false
+  });
+  expect(result).toBe(v.false);
+});

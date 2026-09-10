@@ -43,7 +43,10 @@ export function allocateRuntimeType(name: Extract<RuntimeValue, { kind: "str" }>
   if (options.module !== undefined && namespace.items.lookup(moduleKey) === undefined) namespace.items.set(moduleKey, options.module);
   for (const methodName of ["__new__", "__init_subclass__", "__class_getitem__"] as const) {
     const key = values.string(methodName), method = namespace.items.lookup(key)?.value;
-    if (method?.kind === "function") namespace.items.set(key, values.methodDecorator(methodName === "__new__" ? "staticmethod" : "classmethod", method));
+    if (method?.kind === "function") {
+      const kind = methodName === "__new__" ? "staticmethod" : "classmethod";
+      namespace.items.set(key, values.methodDecorator(kind, method, registry.methodDecoratorType(kind)));
+    }
   }
   const baseLayouts: RuntimeTypeLayout[] = [];
   for (const base of bases) { meter.checkpoint(); baseLayouts.push(base.value); }

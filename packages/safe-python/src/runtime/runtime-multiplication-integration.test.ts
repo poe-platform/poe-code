@@ -1941,6 +1941,24 @@ it.each(["staticmethod", "classmethod"] as const)("applies native %s decorator s
   expect(state.globals.get("name")).toBe(wrapped.value.value.name);
 });
 
+it.each(["staticmethod", "classmethod"] as const)("calls native %s __get__ through compiled descriptor dispatch", kind => {
+  const state = fixture(), type = state.registry.methodDecoratorType(kind), owner = state.type("Owner"), fn = state.method(owner, "f", "def f(): return 7\n");
+  state.globals.set("factory", type); state.globals.set("Owner", owner); state.globals.set("f", fn); state.instance("obj", owner);
+  state.run("wrapped=factory(f)\nclassBound=factory.__get__(wrapped,None,Owner)\ninstanceBound=factory.__get__(wrapped,obj)\n");
+  for (const name of ["classBound", "instanceBound"]) {
+    const bound = state.globals.get(name)!;
+    if (kind === "staticmethod") expect(bound).toBe(fn);
+    else { if (bound.kind !== "method") throw Error("expected method"); expect(bound.value.function).toBe(fn); expect(bound.value.instance).toBe(owner); }
+  }
+});
+
+it("calls staticmethod's native __call__ with positional and keyword arguments", () => {
+  const state = fixture(), fn = state.method(state.type("Owner"), "f", "def f(x,*,flag): return flag\n");
+  state.globals.set("factory", state.registry.methodDecoratorType("staticmethod")); state.globals.set("f", fn);
+  state.run("wrapped=factory(f)\nresult=factory.__call__(wrapped,7,flag=True)\n");
+  expect(state.globals.get("result")).toBe(state.v.true);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

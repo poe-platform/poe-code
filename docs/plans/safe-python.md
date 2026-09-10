@@ -7984,6 +7984,19 @@ extension, integration, or validation requirement is missing or unverified.
   native wrapper __get__/__call__/getset descriptors, guest dictionaries, full
   native metadata, subclass attribute/slot overrides, automatic canonical type
   assignment for raw class-allocation wrappers, and the default builtin catalog.
+- Installed native __get__ wrapper descriptors on both method-wrapper types and
+  __call__ only on staticmethod. Native get calls validate receiver, keywords,
+  arity and None markers in CPython order before using the existing binding
+  implementation; static calls forward positional/keyword arguments without an
+  added receiver. Shared applicability guards retain execution ownership.
+  Automatic class-allocation wrappers now own their canonical native types while
+  retaining empty metadata. Six initially failing unit/compiled tests cover the
+  native descriptors, and an allocation regression exposed missing ownership.
+  All 320 direct/bound binding cases, 96 native validation cases, 20 automatic
+  wrapping cases, 96 wrapper constructors and 96 ordinary compiled constructors
+  match CPython. All 6,220 tests in 473 files, selected build, typecheck and scoped
+  lint pass. Ordinary wrapper-instance attribute dispatch, native getsets, guest
+  dictionaries, full native metadata and subclass slot overrides remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

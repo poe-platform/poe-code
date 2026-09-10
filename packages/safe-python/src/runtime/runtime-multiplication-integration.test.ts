@@ -1617,3 +1617,22 @@ it("uses frame actual-type policy for explicit object init on native payloads", 
   state.globals.set("payload", value); state.globals.set("initialize", state.registry.object.value.namespace.items.lookup(state.v.string("__init__"))!.value);
   state.run("result=initialize(payload,1)\n"); expect(state.globals.get("result")).toBe(state.v.none);
 });
+
+it("initializes custom metaclass allocations with the inherited type initializer", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), cls = state.type("C", state.registry.object, {}, meta);
+  state.globals.set("Meta", meta); state.globals.set("C", cls);
+  state.method(meta, "__new__", "def allocate(cls, *args, **keywords):\n return C\n");
+  state.run("one=Meta(None)\nthree=Meta(None,None,None,arbitrary=True)\n");
+  expect(state.globals.get("one")).toBe(cls); expect(state.globals.get("three")).toBe(cls); expect(cls.value.name).toBe("C");
+  expect(() => state.run("Meta()\n")).toThrow("type.__init__() takes 1 or 3 arguments");
+  expect(() => state.run("Meta(None,None)\n")).toThrow("type.__init__() takes 1 or 3 arguments");
+  expect(() => state.run("Meta(None,arbitrary=True)\n")).toThrow("type.__init__() takes no keyword arguments");
+});
+
+it("permits a custom metaclass initializer to override type initialization rules", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), cls = state.type("C", state.registry.object, {}, meta);
+  state.globals.set("Meta", meta); state.globals.set("C", cls);
+  state.method(meta, "__new__", "def allocate(cls):\n return C\n");
+  state.method(meta, "__init__", "def initialize(cls):\n visit('init')\n");
+  state.run("result=Meta()\n"); expect(state.globals.get("result")).toBe(cls); expect(state.events).toEqual(["init"]);
+});

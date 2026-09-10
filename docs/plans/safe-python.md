@@ -7791,6 +7791,18 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,036 tests in 462 files, selected build, typecheck and scoped lint pass. Native type
   initialization/allocation, remaining default object methods and metadata,
   complete class bootstrap and suspended safe-fs effects remain unfinished.
+- Installed type.__init__ as its own native wrapper rather than inheriting
+  object initialization. Thirteen initial tests failed because the slot was
+  absent. Applicability follows the actual metaclass MRO; positional arity is
+  checked before keyword handling. One-argument initialization rejects keywords,
+  while three-argument initialization accepts them without rebuilding or mutating
+  the class. Fifteen tests cover positional/keyword matrices, receiver binding,
+  non-mutation, cancellation and compiled metaclass allocation/initializer
+  overrides. All 140 direct/bound initializer and 96 compiled type-call cases
+  match CPython. All 6,051 tests in 463 files, selected build, typecheck and scoped
+  lint pass. Native type
+  allocation/calling, remaining object methods and metadata, complete class
+  bootstrap and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

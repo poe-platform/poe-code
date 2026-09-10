@@ -1,5 +1,6 @@
 import "./safe-packages-portable-search-types.mjs";
-import { agentCommands, createAgentCommands, createBoundedRegexProvider, createZipCommand, createUnzipCommand, type AgentCommandsOptions, type ArchiveCommandsOptions } from "@poe-platform/safe-bash";
+import { agentCommands, createAgentCommands, createBoundedRegexProvider, createZipCommand, createUnzipCommand, type AgentCommandsOptions, type ArchiveCommandsOptions, type CsplitCommandsOptions } from "@poe-platform/safe-bash";
+import { createCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";
 import { createNodeRegexProvider } from "@poe-platform/safe-bash/node";
 import { posix } from "node:path";
 import { posixPath as contractPath, type CommandDefinition, type CommandInput } from "@poe-platform/safe-bash/contracts";
@@ -42,6 +43,9 @@ const agentOptions: AgentCommandsOptions = { regexExecutor: createBoundedRegexPr
 const archiveOptions: ArchiveCommandsOptions = { limits: { maxMembers: 100 } };
 const zipCommands: readonly CommandDefinition[] = [createZipCommand(archiveOptions), createUnzipCommand(archiveOptions)];
 void zipCommands;
+const csplitOptions: CsplitCommandsOptions = { limits: { maxFiles: 16 } };
+const csplitCommand: CommandDefinition = createCsplitCommand(csplitOptions);
+void csplitCommand;
 const commandNames: readonly string[] = createAgentCommands(agentOptions).map(command => command.name);
 void commandNames;
 const inputCommand: CommandDefinition = {

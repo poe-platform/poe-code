@@ -185,3 +185,14 @@ are not counted as passes. The focused bundle file then passed all 13 checks in
 read-only artifact reuse, unchanged initialization order and deadlines, and all
 consumer/VM assertions retained. Host contention prevents an isolated timing
 comparison with the earlier full-run measurements. A fresh full run is required.
+
+Integrated remote main's `csplit` changes from `b270fe045`, preserving the nine
+compression commands, ZIP pair, and the single-build portable test setup. Current
+inventories contain 101 commands (102 with a custom registration); `csplit` is
+last, matching the production composition, and stream-inspection positions remain
+75 through 78. The merged normal build and all 113 focused root, playground,
+bundle, and package-metadata checks passed. Full maintained lint/unit gates and
+publication remain outstanding.
+The eight focused Bash integration files passed all 294 checks, covering the
+new command's public API and registration, current inventories and inspection
+positions, canonical peer inventory, and bounded BRE search with its native worker.

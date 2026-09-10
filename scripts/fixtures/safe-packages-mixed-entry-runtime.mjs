@@ -1,4 +1,5 @@
 import * as defaultEntry from "@poe-platform/safe-bash";
+import { createCsplitCommand as createSubpathCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";
 import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs/core";
 
 export const expectedAgentCommandNames = Object.freeze([
@@ -8,7 +9,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit",
 ].sort());
 
 export const checksumWorkflows = Object.freeze([
@@ -181,6 +182,30 @@ export async function verifyZipCommands(entry = defaultEntry) {
     if (new TextDecoder().decode(await filesystem.readFile("/zip-work/extracted/retained")) !== "updated\n") throw new Error("Public ZIP update failed");
     const listed = await shell.exec("unzip -l archive.zip");
     if (listed.exitCode !== 0 || listed.stderr !== "" || !listed.stdout.endsWith("---------                     -------\n       14                     2 files\n")) throw new Error(`Public ZIP listing failed: ${JSON.stringify(listed)}`);
+  } finally { await shell.dispose(); }
+}
+
+export async function verifyCsplitCommands(entry = defaultEntry) {
+  const filesystem = new entry.MemoryFileSystem();
+  await filesystem.mkdir("/csplit-work");
+  const first = new TextEncoder().encode("alpha\nbeta\n");
+  const last = new TextEncoder().encode("gamma\n");
+  const binary = new Uint8Array([0, 255, 10, 65, 10]);
+  await filesystem.writeFile("/csplit-work/input", new TextEncoder().encode("alpha\nbeta\ngamma\n"));
+  await filesystem.writeFile("/csplit-work/bytes", binary);
+  await filesystem.writeFile("/csplit-work/workflow.sh", new TextEncoder().encode(
+    "csplit -f piece -b '%02d.dat' input '/beta/+1'\ncsplit -f raw -b '%02d.bin' bytes 2\n",
+  ));
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/csplit-work", env: { LC_ALL: "C" } }).use(entry.agentCommands());
+  try {
+    if (entry.createCsplitCommand().name !== "csplit") throw new Error("Public csplit factory is missing");
+    if (entry.createCsplitCommand !== createSubpathCsplitCommand) throw new Error("Csplit subpath factory identity differs");
+    const result = await shell.exec("sh workflow.sh");
+    if (result.exitCode !== 0 || result.stderr !== "" || result.stdout !== "11\n6\n3\n2\n") throw new Error(`Public csplit saved script failed: ${JSON.stringify(result)}`);
+    for (const [name, expected] of [["piece00.dat", first], ["piece01.dat", last], ["raw00.bin", binary.slice(0, 3)], ["raw01.bin", binary.slice(3)]]) {
+      const actual = await filesystem.readFile(`/csplit-work/${name}`);
+      if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public csplit changed ${name}`);
+    }
   } finally { await shell.dispose(); }
 }
 

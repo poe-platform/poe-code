@@ -1,7 +1,7 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
 import { foldAscii } from "./ascii.js";
 import { yieldTurn } from "../../contracts/yield.js";
-import { matchExprSteps } from "../expr/bre-engine.js";
+import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
 import { EreLedger } from "./ere/limits.js";
 import { compileEre } from "./ere/syntax.js";
@@ -9,7 +9,7 @@ import { prepareUtf8EreSubject } from "./ere/matcher.js";
 import { validateUtf8 } from "./utf8.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -46,7 +46,7 @@ interface OwnedRequest {
 }
 interface OwnedExprRequest {
   readonly id: number;
-  readonly descriptor: ExprMatchDescriptor;
+  readonly descriptor: ExprMatchDescriptor | BreSearchDescriptor;
   readonly subject: Uint8Array;
   readonly ownedUnits: number;
 }
@@ -165,7 +165,7 @@ function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProvi
   record(input, ["id", "descriptor", "rows"]);
   const selected: unknown = input.descriptor;
   record(selected, ["kind", "pattern", "profile", "limits"]);
-  if (selected.kind !== "expr-match" || selected.profile !== "byte" && selected.profile !== "utf8-scalar") fail("protocol", "invalid expr descriptor");
+  if (selected.kind !== "expr-match" && selected.kind !== "bre-search" || selected.profile !== "byte" && selected.profile !== "utf8-scalar") fail("protocol", "invalid expr descriptor");
   const keys = Object.keys(exprMatchCeilings) as (keyof ExprMatchLimits)[];
   record(selected.limits, keys);
   for (const key of keys) {
@@ -202,12 +202,21 @@ function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProvi
   };
   return {
     id: input.id,
-    descriptor: { kind: "expr-match", pattern: copy(selected.pattern), profile: selected.profile, limits: allowance },
+    descriptor: { kind: selected.kind, pattern: copy(selected.pattern), profile: selected.profile, limits: allowance },
     subject: copy(row.bytes), ownedUnits,
   };
 }
 
-async function executeExpr(input: OwnedExprRequest, signal: AbortSignal): Promise<ExprMatchReply> {
+async function executeExpr(input: OwnedExprRequest, signal: AbortSignal): Promise<ExprMatchReply | BreSearchReply> {
+  if (input.descriptor.kind === "bre-search") {
+    const execution = searchBreSteps(input.descriptor, input.subject, { ownedUnits: input.ownedUnits });
+    while (true) {
+      signal.throwIfAborted();
+      const step = execution.next();
+      if (step.done) return { id: input.id, operation: "bre-search", result: step.value };
+      await yieldTurn(signal);
+    }
+  }
   const execution = matchExprSteps(input.descriptor, input.subject, { asciiOnly: true, ownedUnits: input.ownedUnits });
   while (true) {
     signal.throwIfAborted();
@@ -494,7 +503,8 @@ class CooperativeWorker implements RegexWorker {
     if (!identity || !("value" in identity) || !Number.isSafeInteger(identity.value) || identity.value < 1) fail("protocol", "invalid request identity");
     const id = identity.value as number;
     const submitted = Object.getOwnPropertyDescriptor(input, "descriptor")?.value as unknown;
-    const expression = submitted !== null && typeof submitted === "object" && Object.getOwnPropertyDescriptor(submitted, "kind")?.value === "expr-match";
+    const operation: unknown = submitted !== null && typeof submitted === "object" ? Object.getOwnPropertyDescriptor(submitted, "kind")?.value : undefined;
+    const expression = operation === "expr-match" || operation === "bre-search";
     let owned: OwnedRequest | OwnedExprRequest | undefined;
     let failure: string | undefined;
     let category: ExprMatchError["category"] = "unsupported";
@@ -506,7 +516,7 @@ class CooperativeWorker implements RegexWorker {
     }
     this.#busy = true;
     const task = Promise.resolve().then(async () => {
-      let reply: Reply | ExprMatchReply;
+      let reply: Reply | ExprMatchReply | BreSearchReply;
       try {
         this.#controller.signal.throwIfAborted();
         reply = owned ? "subject" in owned ? await executeExpr(owned, this.#controller.signal) : await execute(owned, this.#controller.signal) : { id, error: failure! };
@@ -520,7 +530,7 @@ class CooperativeWorker implements RegexWorker {
         if (error instanceof ExprMatchError) category = error.category;
         reply = { id, error: error.message.slice(0, 512) };
       }
-      if (expression && "error" in reply) reply = { id, operation: "expr-match", category, error: reply.error };
+      if (expression && "error" in reply) reply = { id, operation: operation === "bre-search" ? "bre-search" : "expr-match", category, error: reply.error };
       // Clear request-owned payloads before notifying the consumer or allowing reuse.
       owned = undefined;
       this.#busy = false;

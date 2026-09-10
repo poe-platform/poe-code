@@ -1,14 +1,26 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
 import { parentPort } from "node:worker_threads";
 import { compile } from "./matching.js";
-import { matchExpr } from "../expr/bre-worker.js";
-import { ExprMatchError, matchRangeLimits, validateExprRequest, type ExprMatchRequest, type ExprMatchReply, type Request, type Reply } from "./protocol.js";
+import { matchExpr, searchBre } from "../expr/bre-worker.js";
+import { ExprMatchError, matchRangeLimits, validateExprRequest, validateBreSearchRequest, type BreSearchRequest, type BreSearchReply, type ExprMatchRequest, type ExprMatchReply, type Request, type Reply } from "./protocol.js";
 
 if (!parentPort) throw new Error("regex worker requires a parent port");
 const port = parentPort;
 let previous = "";
 let matcher: ReturnType<typeof compile> | undefined;
-port.on("message", (request: Request | ExprMatchRequest) => {
+port.on("message", (request: Request | ExprMatchRequest | BreSearchRequest) => {
+  if (request?.descriptor?.kind === "bre-search") {
+    let reply: BreSearchReply;
+    try {
+      validateBreSearchRequest(request);
+      reply = { id: request.id, operation: "bre-search", result: searchBre(request.descriptor, request.rows[0]!.bytes) };
+    } catch (error) {
+      if (!(error instanceof ExprMatchError)) throw error;
+      reply = { id: request.id, operation: "bre-search", category: error.category, error: error.message };
+    }
+    port.postMessage(reply);
+    return;
+  }
   if (request?.descriptor?.kind === "expr-match") {
     let reply: ExprMatchReply;
     try {

@@ -29,6 +29,8 @@ import { createWhichCommands, type WhichCommandsOptions } from "../commands/whic
 import { createTimeoutCommands, type TimeoutCommandsOptions } from "../commands/timeout/index.js";
 import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../commands/apply-patch/index.js";
 import { createXmlCommands, type XmlCommandsOptions } from "../commands/xml/index.js";
+import { createCsplitCommandWithExecutor } from "../commands/csplit/command.js";
+import type { CsplitCommandsOptions } from "../commands/csplit/internal.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
@@ -40,6 +42,7 @@ export interface AgentCommandsOptions {
   readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
   readonly which?: Omit<WhichCommandsOptions, "replace">;
   readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex" | "regexExecutor">;
+  readonly csplit?: Omit<CsplitCommandsOptions, "replace" | "regex" | "regexExecutor">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -78,6 +81,7 @@ export interface AgentRegexExecutors {
   readonly grep: RegexExecutor;
   readonly aliases: RegexExecutor;
   readonly expr: RegexExecutor;
+  readonly csplit: RegexExecutor;
   readonly search: RegexExecutor;
 }
 
@@ -85,6 +89,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
   const commands: CommandDefinition[] = [];
   const grep = createGrepCommands(executors.grep);
   const exprLimits = options.expr?.limits;
+  const csplitLimits = options.csplit?.limits;
   const whichLimits = options.which?.limits;
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
@@ -118,6 +123,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
     }),
     ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
     ...createXmlCommands(xmlLimits === undefined ? {} : { limits: xmlLimits }),
+    createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
   );
   return new CommandRegistry(commands).list();
 }

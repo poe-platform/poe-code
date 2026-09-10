@@ -188,6 +188,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",
+      "./safe-bash/commands/csplit",
       "./safe-bash/commands/du",
       "./safe-bash/commands/expr",
       "./safe-bash/commands/file",

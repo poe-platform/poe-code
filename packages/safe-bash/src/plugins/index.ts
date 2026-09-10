@@ -10,7 +10,7 @@ function createRegexExecutors(options: AgentCommandsOptions): AgentRegexExecutor
   const provider = options.regexExecutor === undefined ? createBoundedRegexProvider() : options.regexExecutor;
   const executor = new RegexExecutor(provider, options.regex);
   const search = options.search?.regex === undefined ? executor : new RegexExecutor(provider, options.search.regex);
-  return { grep: executor, aliases: executor, expr: executor, search };
+  return { grep: executor, aliases: executor, expr: executor, csplit: executor, search };
 }
 
 export function createAgentCommands(options: AgentCommandsOptions = {}): readonly CommandDefinition[] {

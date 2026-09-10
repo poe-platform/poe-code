@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useContainer, shellQuote } from '@poe-code/e2e-test-runner';
+import { useContainer, shellQuote, resolveBackend } from '@poe-code/e2e-test-runner';
+import { resolveMcpFixtureCommand } from './mcp-fixture.js';
 import { resolveE2eModel, registerKimiFixtureModel } from './runtime-models.js';
 
 interface AgentMcpSpawnTest {
@@ -34,10 +35,7 @@ const agents: AgentMcpSpawnTest[] = [
 ];
 
 const mcpConfig = shellQuote(JSON.stringify({
-  'tiny-stdio-mcp-test-server': {
-    command: 'tiny-stdio-mcp-test-server',
-    args: ['serve', 'word-of-the-day'],
-  },
+  'tiny-stdio-mcp-test-server': resolveMcpFixtureCommand(resolveBackend()),
 }));
 
 describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, spawnArgs }) => {

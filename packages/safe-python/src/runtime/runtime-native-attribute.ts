@@ -197,15 +197,14 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   }
   if (receiver.kind === "tuple" && (name === "count" || name === "index")) return createRuntimeTupleMethod(receiver, name, values, meter, methods);
   if (receiver.kind === "list") {
-    if (name === "sort") return createRuntimeListSortMethod(receiver, values, meter, beginCall);
     switch (name) {
-      case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index": case "__reversed__":
+      case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index": case "__reversed__": case "sort":
         if (methods?.actualType !== undefined) {
           const type = methods.actualType(receiver); meter.checkpoint();
           const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
           if (member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
         }
-        return createRuntimeListMethod(receiver, name, values, meter, methods);
+        return name === "sort" ? createRuntimeListSortMethod(receiver, values, meter, beginCall) : createRuntimeListMethod(receiver, name, values, meter, methods);
     }
   }
   if (receiver.kind === "dict" || receiver.kind === "mappingproxy") {

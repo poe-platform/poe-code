@@ -127,7 +127,42 @@ it.each(["equal", "truth", "less"])("preserves %s exceptions in explicit list co
   expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
 });
 
-it.each(["append", "extend", "insert", "pop", "clear", "reverse", "copy", "count", "remove", "index", "__reversed__"])("retains canonical list %s binding metadata and key identity", name => {
+it.each(["items.sort", "type(items).sort"])("sorts through canonical %s with guest key, comparison and reverse truth", callee => {
+  const state = fixture();
+  state.run(`class Reverse:\n def __bool__(self):\n  visit('reverse')\n  return True\nclass Key:\n def __init__(self,value):\n  self.value=value\n def __lt__(self,other):\n  return self.value<other.value\ndef key(value):\n visit('key')\n return Key(value)\nitems=[1,3,2]\nresult=${callee}(${callee.startsWith("type") ? "items," : ""}key=key,reverse=Reverse())\nfirst=items[0]\nlast=items[2]\n`);
+  expect(state.globals.get("result")).toBe(state.v.none); expect(state.globals.get("first")).toEqual(state.v.integer(3)); expect(state.globals.get("last")).toEqual(state.v.integer(1));
+  expect(state.events).toEqual(["reverse", "key", "key", "key"]);
+});
+
+it("retains temporary-empty semantics through an extracted sort descriptor", () => {
+  const state = fixture();
+  state.run("items=[1,3,2]\nsorter=items.sort\ndef key(value):\n if items==[]:\n  visit('empty')\n return -value\n");
+  state.run("sorter(key=key)\nfirst=items[0]\nlast=items[2]\n");
+  expect(state.events).toEqual(["empty", "empty", "empty"]); expect(state.globals.get("first")).toEqual(state.v.integer(3)); expect(state.globals.get("last")).toEqual(state.v.integer(1));
+});
+
+it.each(["key", "comparison", "reverse"])("restores the list and preserves %s callback errors during sort", phase => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Key:\n def __lt__(self,other):\n  fail()\nclass Reverse:\n def __bool__(self):\n  fail()\ndef key(value):\n fail()\nitems=[Key(),Key(),Key()]\n");
+  let thrown: unknown;
+  try { state.run(`type(items).sort(items${phase === "key" ? ",key=key" : phase === "reverse" ? ",reverse=Reverse()" : ""})\n`); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+  const items = state.globals.get("items")!; if (items.kind !== "list") throw Error("expected list"); expect(items.items.length).toBe(3);
+});
+
+it.each([
+  ["1", "sort() takes no positional arguments"],
+  ["1,2", "sort() takes no positional arguments"],
+  ["1,2,3", "sort() takes at most 2 arguments (3 given)"],
+  ["1,2,3,key=None", "sort() takes at most 2 arguments (4 given)"],
+  ["1,key=None,reverse=False,x=1", "sort() takes at most 2 arguments (4 given)"],
+  ["key=None,reverse=False,x=1", "sort() takes at most 2 keyword arguments (3 given)"]
+])("validates sort argument counts before keyword-only arguments: %s", (args, message) => {
+  expect(() => fixture().run(`[].sort(${args})\n`)).toThrow(message);
+});
+
+it.each(["append", "extend", "insert", "pop", "clear", "reverse", "copy", "count", "remove", "index", "__reversed__", "sort"])("retains canonical list %s binding metadata and key identity", name => {
   const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
   state.run(`items=[]\nleft=items.${name}\nright=items.${name}\nresult={left:1,right:2}\nequal_hash=hash(left)==hash(right)\nreceiver=left.__self__ is items\nname=left.__name__\nqualified=left.__qualname__\n`);
   const result = state.globals.get("result")!;

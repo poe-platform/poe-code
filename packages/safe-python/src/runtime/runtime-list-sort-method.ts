@@ -12,8 +12,9 @@ export function createRuntimeListSortMethod(receiver: ListValue, values: Runtime
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "sort",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
+      if (positional.length !== 0 && positional.length + keywords.items.size > 2) throw new PythonRuntimeError("TypeError", `sort() takes at most 2 arguments (${positional.length + keywords.items.size} given)`);
       if (positional.length !== 0) throw new PythonRuntimeError("TypeError", "sort() takes no positional arguments");
       if (keywords.items.size > 2) throw new PythonRuntimeError("TypeError", `sort() takes at most 2 keyword arguments (${keywords.items.size} given)`);
       let key: RuntimeValue = values.none, reverse: RuntimeValue = values.false;
@@ -25,13 +26,17 @@ export function createRuntimeListSortMethod(receiver: ListValue, values: Runtime
         else if (label === "reverse") reverse = value;
         else throw new PythonRuntimeError("TypeError", `sort() got an unexpected keyword argument '${label}'`);
       }
-      const descending = runtimeTruth(reverse, meter);
+      const descending = invocation?.truth === undefined ? runtimeTruth(reverse, meter) : invocation.truth(reverse);
       meter.checkpoint(1, 64);
       receiver.items.sort({
         reverse: descending,
         key(value) {
           if (key.kind === "none") return value;
-          if (beginCall === undefined) throw new Error("sort key invocation requires a runtime call capability");
+          if (beginCall === undefined) {
+            if (invocation === undefined) throw new Error("sort key invocation requires a runtime call capability");
+            meter.checkpoint(0, 8);
+            const result = invocation.call(key, [value]); meter.checkpoint(); return result;
+          }
           const call = beginCall(key);
           meter.checkpoint();
           call.positional(value);
@@ -40,7 +45,7 @@ export function createRuntimeListSortMethod(receiver: ListValue, values: Runtime
           meter.checkpoint();
           return result;
         },
-        less: (a, b) => runtimeComparison("<", a, b, values, meter).value
+        less: (a, b) => invocation?.compareTruth === undefined ? runtimeComparison("<", a, b, values, meter).value : invocation.compareTruth("<", a, b)
       });
       return values.none;
     }

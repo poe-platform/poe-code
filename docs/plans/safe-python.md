@@ -8591,6 +8591,21 @@ extension, integration, or validation requirement is missing or unverified.
   remaining list slots/sort binding and public runtime assembly remain unfinished.
   Selected build, typecheck, scoped lint and all 6,595 tests in 493 files pass
   with two workers.
+- Bound list.sort through the canonical list method descriptor, retaining stable
+  binding metadata and hash identity. Initial regressions reproduced missing
+  type-level sort, missing bound metadata and bypassed guest comparisons. Sort
+  now uses active guest call, comparison and truth capabilities, preserving the
+  explicit legacy key-call adapter when supplied. Thirteen added tests cover
+  direct/bound/extracted invocation, temporary-empty storage, original callback
+  errors with restored storage and stack unwinding, metadata, and argument-count
+  precedence. CPython differential checks exposed the latter error-message gap;
+  the total argument count is now checked before rejecting positional arguments.
+  All 104 sort cases and 72 canonical list-method cases match CPython. The stable
+  kernel still does not reproduce CPython's exact comparison schedule or partial
+  permutation after comparison failure. List construction, remaining native
+  slots/catalogs and public runtime assembly remain unfinished.
+  Selected build, typecheck, scoped lint and all 6,608 tests in 493 files pass
+  with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

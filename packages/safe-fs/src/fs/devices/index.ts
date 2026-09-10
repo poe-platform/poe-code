@@ -6,7 +6,7 @@ import type {
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
-import { compareEntries, registerEntryView } from "../mount/comparison.js";
+import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
 import { deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities } from "../capabilities.js";
@@ -85,6 +85,8 @@ export class DeviceFileSystem implements FileSystem {
         stat: resolved === nullPath ? this.#nullStat : this.#directoryStat, readOnly: false };
       return { filesystem, path };
     });
+    // This internal view has no identity proof beyond its synthetic stats.
+    registerEntryAuthority(this, async () => "unknown");
     return view;
   }
 

@@ -1,4 +1,5 @@
 import type { Budget } from "./budget.js";
+import { canonicalizeIntlOffsetZone } from "./intl-offset-zone.js";
 import { canonicalizeGuestLocales, convertIntlOption, intlOptionsObject, readIntlProperty, type IntlOptionType } from "./intl-options.js";
 import { retainValues } from "./resources.js";
 import { sandboxNumber, sandboxString } from "./string-coercion.js";
@@ -51,9 +52,11 @@ export async function readDateTimeFormatOptions(
       } else if (type === "zone") {
         const text = await sandboxString(value, budget, context);
         budget.visitNode(text.length);
-        // Validate before accessing later guest options. Only a primitive crosses into ICU.
-        new NativeDateTimeFormat("en", { timeZone: text });
-        options[key] = text;
+        // Validate before accessing later guest options, independently of
+        // host ICU support for fixed-offset identifiers.
+        const offset = canonicalizeIntlOffsetZone(text);
+        if (offset === undefined) new NativeDateTimeFormat("en", { timeZone: text });
+        options[key] = offset ?? text;
       } else options[key] = await convertIntlOption(value, key, type, budget, context);
     }
     return options;

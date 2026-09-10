@@ -370,7 +370,7 @@ function callStringMethodBody(
 
     switch (methodName) {
       case "concat":
-        return budget.allocateString(value.concat(...args.map(String)));
+        return budget.allocateString(value.concat(...args as string[]));
       case "toLowerCase":
         return budget.allocateString(value.toLowerCase());
       case "toUpperCase":

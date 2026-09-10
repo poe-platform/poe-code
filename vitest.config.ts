@@ -122,7 +122,7 @@ export default defineConfig({
   },
   test: {
     silent: "passed-only",
-    reporters: ["default"],
+    reporters: [path.resolve(__dirname, "scripts/vitest-immediate-reporter.mjs")],
     globals: true,
     environment: "node",
     pool: "threads",

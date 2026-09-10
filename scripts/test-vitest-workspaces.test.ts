@@ -313,6 +313,29 @@ describe("batched shared Vitest execution", () => {
     expect(mocks.reportFinished).toHaveBeenCalledTimes(3);
   });
 
+  it("native reporter retains normal module reports and final summary with immediate errors", async () => {
+    const { default: ImmediateReporter } = await import("./vitest-immediate-reporter.mjs");
+    const reporter = new ImmediateReporter();
+    const logger = { error: vi.fn(), printError: vi.fn() };
+    reporter.ctx = { logger };
+    expect(mocks.reporterOptions).toHaveBeenCalledWith({});
+    for (const state of ["passed", "skipped", "pending", "queued"]) {
+      const module = { state: () => state };
+      reporter.printTestModule(module);
+      expect(mocks.reportModule).toHaveBeenLastCalledWith(module);
+    }
+    const error = { message: "native failure", stack: "exact stack" };
+    const project = { name: "native" };
+    const module = { type: "module", relativeModuleId: "native.test.ts", project,
+      state: () => "failed", errors: () => [error],
+      children: { allSuites: () => [], allTests: () => [] } };
+    reporter.onTestModuleEnd(module);
+    expect(logger.printError).toHaveBeenCalledExactlyOnceWith(error, { project });
+    expect(mocks.reportFinished).not.toHaveBeenCalled();
+    reporter.onTestRunEnd([module], [], "failed");
+    expect(mocks.reportFinished).toHaveBeenCalledExactlyOnceWith([module], [], "failed");
+  });
+
   it("omits per-case progress and successful module output while retaining failed modules", async () => {
     contexts();
     await runSharedVitest("/repo", phases);

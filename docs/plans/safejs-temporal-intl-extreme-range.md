@@ -33,6 +33,15 @@ date formatting must not be used to dismiss this boundary failure.
 
 ## Implementation path and required repair
 
+Current Temporal Intl amendments were checked directly in the primary
+[specification source](https://github.com/tc39/proposal-temporal/blob/main/spec/intl.html)
+(42bfa2). HandleDateTimeTemporalDate and HandleDateTimeTemporalYearMonth combine
+the private ISO date with noon and retain epoch nanoseconds as a plain value;
+they do not apply TimeClip. HandleDateTimeOthers explicitly applies TimeClip
+to numeric inputs. A repair must preserve that distinction rather than relax
+numeric-Date validation. The relevant published anchor is
+`sec-temporal-handledatetimetemporaldate`, not `sec-handledatetimetemporaldate`.
+
 Source inspection of interp/intl-datetimeformat.ts (d4e0dd) shows that owned
 Temporal inputs are converted through private fields into backend Temporal
 values and passed to BackendIntl.DateTimeFormat. The failure is downstream of
@@ -47,6 +56,22 @@ ordering; clamping to Date's range or substituting Gregorian output is not a
 complete implementation. Keep invalid inputs rejected.
 
 ## Ongoing qualification
+
+The matching `formatRange` selection completed: 14 fixtures, 24 passing
+executions, four failures, zero unsupported (064b93). Both script modes fail
+temporal-objects-no-time-clip.js and temporal-objects-no-time-clip-weekday.js.
+The same-revision `formatRangeToParts` selection has 15 fixtures and is live in
+session 57322. It has emitted the same four failures (8b6774); no final totals
+are available yet. Do not count a started fixture or silent interval as a pass.
+
+Backend source inspection narrows the cause (23900c, 209b22, a2096c):
+chunks/classApi.js converts private Temporal values with
+temporalDateTimeToEpochMilli; chunks/internal.js computes a numeric epoch and
+passes that number to native format/formatToParts/formatRange/formatRangeToParts.
+The plain date conversion uses epoch-day arithmetic but does not remove the
+native numeric formatter's range restriction. This explains why extending the
+owned allocator's legal range cannot repair formatting. No node_modules edits
+were made. The candidate fingerprint is still unchanged (7761c5).
 
 The similarly selected formatToParts run is live in session 87723; it includes
 two large calendar-consistency fixtures. No final outcome is available yet.

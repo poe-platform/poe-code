@@ -48,3 +48,14 @@ the corresponding f16round comparison are reconciled by a narrowly checked
 guest-regex format transition in the test helper. The four-file selection has
 89 passes and one skip; see safejs-legacy-regex-graph-reconciliation.md. These
 focused results do not replace the recorded full-package result.
+
+## Focused remaining-failure check
+
+Current-source selection after e186533e4: 160 passed, 14 failed and one skipped
+(df1c30), across twelve actual files. All CLI-help, Date, accessor-boundary,
+regex-policy, legacy f16round, buffer-compatibility and camera cases in this
+selection pass. Remaining failures are the two native-Promise property tests,
+six original Temporal ISO locale cases, and six new ISO standalone/range cases.
+The extra historical intrinsic-retention-streaming filename filter matched no
+current file and contributed no tests. Cached file-failure rows were not treated
+as authoritative current membership. No full-package green result is claimed.

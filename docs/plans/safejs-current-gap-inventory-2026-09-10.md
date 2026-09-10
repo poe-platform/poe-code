@@ -18,6 +18,15 @@ failed 34 and skipped 48; all 100 filesystem type contracts passed. See
 [the full gate record](safejs-post-source-identity-full-gate.md). Its additional
 failures require diagnosis; earlier ten-failure totals are historical.
 
+After the weak-constructor descriptor and CLI import fixes and the Date,
+boxed-accessor and legacy-regex test reconciliations, a focused failure-set
+rerun reports 160 passes, 14 failures and one skip (df1c30). The remaining
+failures are two Promise-property admission cases and twelve ISO month-formatting
+cases, including six newly added standalone/range regressions. Buffer and camera
+tests pass in that selection; this does not establish full-suite timing
+reliability. The latest full-package count above remains the authoritative broad
+result until a new full run completes.
+
 ## Remaining verified gaps and verification work
 
 | Area | Evidence and remaining work |

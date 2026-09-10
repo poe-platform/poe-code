@@ -16,6 +16,8 @@ import { createSandboxTemporalDuration, temporalDurationFieldNames } from "../te
 import { readTemporalDifferenceOptions } from "./temporal-difference-options.js";
 import { readTemporalPlainTime } from "./temporal-plain-time-input.js";
 import { createSandboxTemporalPlainDateTime } from "../temporal-plain-date-time.js";
+import { readDateTimeFormatOptions } from "../date-locale.js";
+import { canonicalizeGuestLocales } from "../intl-options.js";
 
 export function createTemporalPlainDateConstructor(budget: Budget, durationPrototype: object, plainDateTimePrototype: object): SandboxClosure {
   const prototype = createIntrinsicObject();
@@ -201,6 +203,25 @@ export function createTemporalPlainDateConstructor(budget: Budget, durationProto
   });
   Object.defineProperty(prototype, "withCalendar", { value: withCalendar, writable: true, configurable: true });
   methods.push(withCalendar);
+  const toLocaleString = createSandboxClosure({ guest: true, sandbox: true, name: "toLocaleString", length: 0,
+    call: async (args, context) => {
+      const fields = temporalPlainDateFields(context?.thisValue);
+      let locales: string[] = [];
+      let options: Record<string, string | number | boolean> = Object.create(null);
+      const release = retainValues(budget, () => [fields, ...args, locales, options]);
+      try {
+        locales = await canonicalizeGuestLocales(args[0], budget, context);
+        options = await readDateTimeFormatOptions(args[1], budget, context);
+        // Validate the zone in guest read order, then format the date without
+        // shifting it, including on hosts without fixed-offset zone support.
+        delete options.timeZone;
+        const value = new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay, fields.calendar);
+        return budget.allocateString(value.toLocaleString(locales, options as Intl.DateTimeFormatOptions));
+      } finally { release(); }
+    }
+  });
+  Object.defineProperty(prototype, "toLocaleString", { value: toLocaleString, writable: true, configurable: true });
+  methods.push(toLocaleString);
   for (const name of ["toString", "toJSON"] as const) {
     const method = createSandboxClosure({ guest: true, sandbox: true, name, length: 0,
       call: async ([options], context) => {

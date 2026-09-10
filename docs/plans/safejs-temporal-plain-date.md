@@ -460,3 +460,35 @@ The namespace and date-time constructor modules still belong to uncommitted
 public integration; the date-method commit alone is not a delivered integration.
 No push or release. All verification processes started for this conversion and
 the earlier differences are now terminal.
+
+## PlainDate locale formatting
+
+Seven regressions failed against the inherited generic locale method (d817c1):
+it returned ISO dates and did not implement Temporal's own locale behavior.
+The new method brands the receiver, canonicalizes guest locales, reads options
+through the shared ordered adapter, then formats private ISO/calendar fields.
+The time zone is validated at its proper read position but not used to shift
+the date. Output strings are budgeted and the method registered for replay.
+
+The date/date-time/time locale selection passed 46 tests (07bec3), including
+fixed-offset zones, calendar compatibility, invalid time-only formats, private
+fields and captured-method replay. Direct Intl PlainDate admission remains a
+separate unimplemented path; upstream locale fixtures may exercise that path.
+Minimum-Node, lint, maintained build and pinned upstream locale checks are running.
+
+All seven new cases passed on Node 18.18.2 (5c4b61). The unchanged intl402
+PlainDate/toLocaleString directory at revision
+419d3e0a2273ba01a3bfcbec423f2801425b8e93 ran with frontmatter, helpers and both
+modes: 20 passed, eight failed, zero exclusions (e7fd16). Inspection (9f294e)
+shows all four failing fixtures call direct Intl.DateTimeFormat.format with a
+PlainDate (basic.js also uses formatToParts). That admission path remains
+unimplemented and is the next concrete locale interoperability gap. These are
+failures, not a complete locale conformance pass.
+
+Scoped lint passed (f8f1ca) and the maintained build passed 23 tasks and five
+fresh ESM import checks (77cb6c). The built CLI screenshot (328daa) was inspected:
+02/29/2000 with a validated fixed-offset zone and 2543 BE under the Buddhist
+calendar, despite a throwing public year getter:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-locale.ajs.png`.
+No push or release. All checks for this method are terminal; direct Intl
+admission is the next validated gap, and broader integration is still unfinished.

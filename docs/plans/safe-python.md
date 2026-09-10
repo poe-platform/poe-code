@@ -8619,6 +8619,22 @@ extension, integration, or validation requirement is missing or unverified.
   catalogs and public runtime assembly remain unfinished.
   Selected build, typecheck, scoped lint and all 6,618 tests in 493 files pass
   with two workers.
+- Published canonical list subscription descriptors: __getitem__ is a method
+  descriptor, while __setitem__/__delitem__ are wrapper descriptors with their
+  distinct CPython argument validation. Seven initial regressions reproduced
+  absent ordinary/type-level methods. The subscription-slot module shares the
+  native index and mutation kernels, forwarding active guest index and iteration
+  capabilities rather than reimplementing slice behavior. Twelve added tests
+  cover direct/bound reads and mutations, index-driven storage changes, binding
+  metadata, independent slice results, iterable-driven mutation before slice
+  normalization, None mutation results and original errors with stack unwinding.
+  All 108 native subscription differential cases match CPython. List construction,
+  arithmetic slots, remaining native catalogs and public runtime assembly remain
+  unfinished.
+  Previous 960 guest-subscription, 96 sequence-slot and 72 list-method cases
+  still pass. Selected build, typecheck, scoped lint and all 6,630 tests in 493
+  files pass with two workers; the same full-suite process completed despite
+  host scheduling delays (7.37 seconds of test execution).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

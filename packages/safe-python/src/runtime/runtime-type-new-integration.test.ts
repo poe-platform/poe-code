@@ -48,6 +48,39 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["direct", "bound"])("reads list subscriptions through %s native descriptors and guest indices", mode => {
+  const state = fixture(), call = mode === "direct" ? "type(items).__getitem__(items,index)" : "items.__getitem__(index)";
+  state.run(`class Index:\n def __index__(self):\n  visit('index')\n  items.append(3)\n  return -1\nitems=[1,2]\nindex=Index()\nresult=${call}\n`);
+  expect(state.globals.get("result")).toEqual(state.v.integer(3)); expect(state.events).toEqual(["index"]);
+});
+
+it.each(["direct", "bound"])("mutates list subscriptions through %s native descriptors and guest indices", mode => {
+  const state = fixture(), set = mode === "direct" ? "type(items).__setitem__(items,index,9)" : "items.__setitem__(index,9)", del = mode === "direct" ? "type(items).__delitem__(items,index)" : "items.__delitem__(index)";
+  state.run(`class Index:\n def __index__(self):\n  visit('index')\n  return -1\nitems=[1,2,3]\nindex=Index()\nassigned=${set}\nvalue=items[-1]\ndeleted=${del}\nlength=items.__len__()\n`);
+  expect(state.globals.get("assigned")).toBe(state.v.none); expect(state.globals.get("deleted")).toBe(state.v.none); expect(state.globals.get("value")).toEqual(state.v.integer(9)); expect(state.globals.get("length")).toEqual(state.v.integer(2)); expect(state.events).toEqual(["index", "index"]);
+});
+
+it.each(["__getitem__", "__setitem__", "__delitem__"])("publishes canonical list %s binding metadata", name => {
+  const state = fixture(); state.run(`items=[]\nmethod=items.${name}\nreceiver=method.__self__ is items\nname=method.__name__\n`);
+  expect(state.globals.get("receiver")).toBe(state.v.true); expect(state.globals.get("name")).toEqual(state.v.string(name));
+});
+
+it.each(["direct", "bound"])("uses guest slice replacements and independent slice reads through %s slots", mode => {
+  const state = fixture(); state.globals.set("key", state.v.slice({ lower: state.v.integer(1), upper: state.v.integer(3) }));
+  const call = (name: string, extra = "") => mode === "direct" ? `type(items).${name}(items,key${extra})` : `items.${name}(key${extra})`;
+  state.run(`class Replacement:\n def __iter__(self):\n  visit('iterate')\n  items.append(4)\n  return [7,8].__iter__()\nitems=[1,2,3]\ncopied=${call("__getitem__")}\nassigned=${call("__setitem__", ",Replacement()")}\nresult=0\nfor value in items:\n result=result*10+value\ndeleted=${call("__delitem__")}\nremaining=0\nfor value in items:\n remaining=remaining*10+value\ncopy_result=copied[0]*10+copied[1]\n`);
+  expect(state.globals.get("result")).toEqual(state.v.integer(1784)); expect(state.globals.get("remaining")).toEqual(state.v.integer(14)); expect(state.globals.get("copy_result")).toEqual(state.v.integer(23)); expect(state.events).toEqual(["iterate"]); expect(state.globals.get("assigned")).toBe(state.v.none); expect(state.globals.get("deleted")).toBe(state.v.none);
+});
+
+it.each(["__getitem__", "__setitem__", "__delitem__"])("preserves index errors from explicit list %s", name => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Index:\n def __index__(self):\n  fail()\nitems=[1,2,3]\n");
+  let thrown: unknown;
+  try { state.run(`items.${name}(Index()${name === "__setitem__" ? ",9" : ""})\n`); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+});
+
 it.each(["direct", "bound"])("exposes live list length and iteration slots through %s calls", mode => {
   const state = fixture(), length = mode === "direct" ? "type(items).__len__(items)" : "items.__len__()", iterate = mode === "direct" ? "type(items).__iter__(items)" : "items.__iter__()";
   state.run(`items=[1,2]\nbefore=${length}\ncursor=${iterate}\nitems.append(3)\nafter=${length}\nresult=0\nfor value in cursor:\n result=result*10+value\n`);

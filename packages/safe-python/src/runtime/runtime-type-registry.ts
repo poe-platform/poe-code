@@ -25,6 +25,7 @@ import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from ".
 import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
+import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 
 interface TypeEntry {
@@ -180,6 +181,7 @@ export class RuntimeTypeRegistry {
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeListMethodDescriptors(type, this.values, this.meter);
     installRuntimeListSequenceSlots(type, this.values, this.meter);
+    installRuntimeListSubscriptionSlots(type, this.values, this.meter);
     installRuntimeComparisonMethods("list", type, this.values, this.meter);
     namespace.items.set(this.values.string("__hash__"), this.values.none);
     this.meter.checkpoint(1, 64);

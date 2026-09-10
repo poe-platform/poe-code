@@ -6,6 +6,53 @@ focused test success, local commits, remote delivery and publication are separat
 
 ## Current local evidence
 
+### September 10, 20:00 UTC refresh
+
+This section supersedes the earlier status paragraphs below. Main's latest
+completed full-gate report is `/tmp/safejs-imported-scheduling-main-results.json`:
+28,712 passed, 21 failed, 47 skipped across 1,274 files (re-read as 3a17d2).
+It is not a green gate and predates the later reconciliation/allocation repairs.
+The current full package gate is still running in session 41633, with report
+target `/tmp/safejs-pending-integrated-full-results.json`. Failure markers have
+appeared; final attribution and totals are not yet available. Do not restart
+this run or treat a focused rerun as its completed result.
+
+Local commits now include reconciliation disposal, imported Promise replay
+scheduling, proof allocation validation, shared Promise allocation validation,
+and awaited settlement validation through `2cae77b5a`. Pending imported Promise
+reconciliation is integrated but uncommitted on main: 98 selected tests, scoped
+lint, 23 maintained builds, and five fresh-process imports passed. Its full
+gate remains outstanding. No remote delivery or release follows from that work.
+
+An isolated candidate at `/tmp/safejs-new-promise-capability.KGfWqD` additionally
+preserves native Promise own string data descriptors and nonextensibility,
+handles shadowed `then` data, rejects own accessors without invoking them, and
+captures Promise property graphs in replay inputs. Public original/completed
+replay, aliases, cycles, callable rebinding and distinct capability IDs have
+focused coverage. Its earlier nineteen-file selection passed 124 tests; later
+callable-path fixes passed 51 selected tests. Those results predate the budget
+repair below and are not a qualification of every latest candidate change.
+User-symbol metadata policy, inherited constructor/species hooks and broader
+host-boundary qualification remain open.
+
+New independent current-main evidence reproduces a replay allocation bypass
+with ordinary object inputs: restored strings/arrays can exceed a new run's
+stringLength/arrayLength limits (ce2dd3). The isolated shared-decoder repair
+passes 54 selected tests, followed by 19 allocation/rollback controls including
+restoration of earlier Promise property tables on later rejection. Lint and
+TypeScript passed before the two latest rollback tests; their scoped lint is
+running as 31883. The isolated full snapshot-directory suite is running as
+69560, report `/tmp/safejs-property-and-budget-snapshot-results.json`.
+These repairs are not yet integrated or committed on main.
+
+The latest unchanged camera-only run passed all 11 cases, but sandbox cases
+still took 1.6–2.8 seconds each (120c91). Prior timeout failures are not resolved
+by this pass. Performance reliability, locale/runtime compatibility, host
+Promise symbols and broad language conformance remain unfinished. The release
+hold remains in force: no push, publication or issue closure is claimed.
+
+### Earlier checkpoint history
+
 Newest completed full gate, runtime d4891dd09: **28,319 passed, 14 failed,
 47 skipped across 1,249 files**, plus 100 filesystem type contracts passed.
 Session 69114 is terminal. The prior regex cursor failure did not recur;

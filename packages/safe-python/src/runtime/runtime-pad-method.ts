@@ -2,9 +2,11 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
+import type { RuntimeBytesInputProtocol } from "./runtime-bytes-input.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "center" | "ljust" | "rjust" | "zfill", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
+export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "center" | "ljust" | "rjust" | "zfill", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>, bytes?: RuntimeBytesInputProtocol): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -21,12 +23,20 @@ export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "
       let fill = name === "zfill" ? 48 : 32;
       if (character !== undefined) {
         if (receiver.kind === "bytes") {
-          if (character.kind !== "bytes") {
-            const type = character.kind === "none" ? "None" : character.kind === "not-implemented" ? "NotImplementedType" : character.kind;
+          let storage = character.kind === "bytes" ? character.value : bytes?.byteString(character);
+          meter.checkpoint();
+          let type = "bytes";
+          if (storage === undefined) {
+            storage = bytes?.byteArray?.(character); meter.checkpoint();
+            type = "bytearray";
+          }
+          if (storage === undefined) {
+            const nativeType = character.kind === "none" ? "None" : character.kind === "not-implemented" ? "NotImplementedType" : character.kind;
+            const type = character.kind === "none" || bytes === undefined ? nativeType : diagnosticTypeName(bytes.typeName(character), meter);
             throw new PythonRuntimeError("TypeError", `${name}() argument 2 must be a byte string of length 1, not ${type}`);
           }
-          if (character.value.length !== 1) throw new PythonRuntimeError("TypeError", `${name}(): argument 2 must be a byte string of length 1, not a bytes object of length ${character.value.length}`);
-          fill = character.value.byteAt(0n, meter);
+          if (storage.length !== 1) throw new PythonRuntimeError("TypeError", `${name}(): argument 2 must be a byte string of length 1, not a ${type} object of length ${storage.length}`);
+          fill = storage.byteAt(0n, meter);
         } else {
           if (character.kind !== "str") {
             const type = character.kind === "none" ? "NoneType" : character.kind === "not-implemented" ? "NotImplementedType" : character.kind;

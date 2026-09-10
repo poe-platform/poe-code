@@ -6856,6 +6856,16 @@ extension, integration, or validation requirement is missing or unverified.
   build pass. Remaining native buffer consumers, concrete exporters, automatic
   object assembly and broader interpreter/SDK/safe-fs integration remain
   unfinished.
+- Connected byte padding fill validation to pure bytes/subclass and bytearray
+  payload inspection. Python accepts these one-byte values but rejects general
+  buffers; no buffer acquisition or __bytes__ coercion occurs. Length errors
+  retain bytes-versus-bytearray wording, including when width needs no padding.
+- Four failing compiled regressions now pass. All 5,222 tests in 441 files pass;
+  108 CPython comparisons match outputs/errors across methods, lengths, widths
+  and bytes/bytearray/general-buffer candidates. Typecheck, scoped lint and
+  selected workspace build pass. Concrete bytearray/exporter models, remaining
+  native protocols, automatic object assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

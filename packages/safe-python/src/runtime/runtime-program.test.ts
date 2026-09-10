@@ -39,6 +39,25 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["center", "xax"], ["ljust", "axx"], ["rjust", "xxa"]])("accepts bytearray payloads as %s fill", (method, expected) => {
+    const state = fixture(`result=b'a'.${method}(3,fill)\n`), v = state.values, fill = v.cell({});
+    state.globals.set("fill", fill);
+    state.hooks.expressions = () => ({ warn() {}, bytes: {
+      byteString: () => undefined,
+      byteArray(value) { expect(value).toBe(fill); return v.bytes(Uint8Array.of(120)).value; },
+      lookupBytes() { throw Error("must not coerce"); }, typeName: () => "bytearray"
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(new TextEncoder().encode(expected)));
+  });
+  it("validates bytearray fill length even when no padding is needed", () => {
+    const state = fixture("result=b'a'.center(0,fill)\n"), v = state.values;
+    state.globals.set("fill", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, bytes: {
+      byteString: () => undefined, byteArray: () => v.bytes(Uint8Array.of(120,121)).value,
+      lookupBytes() { throw Error("must not coerce"); }, typeName: () => "bytearray"
+    } });
+    expect(() => state.run()).toThrow("center(): argument 2 must be a byte string of length 1, not a bytearray object of length 2");
+  });
   it("observes same-size source-list replacements during buffer acquisition", () => {
     const state = fixture("source=[first,b'b']\nresult=b'-'.join(source)\n"), v = state.values;
     state.globals.set("first", v.cell({}));

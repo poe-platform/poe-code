@@ -11,7 +11,7 @@ import type { PercentBytesContext } from "./percent-bytes-conversion.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 
 export type RuntimeBytesInputProtocol = Pick<PercentBytesContext<RuntimeValue>, "lookupBytes" | "byteString" | "typeName"> &
-  Partial<Pick<PercentBytesContext<RuntimeValue>, "bufferBytes">>;
+  Partial<Pick<PercentBytesContext<RuntimeValue>, "bufferBytes" | "byteArray">>;
 
 export interface RuntimeBytesInputContext {
   readonly bytes?: RuntimeBytesInputProtocol;

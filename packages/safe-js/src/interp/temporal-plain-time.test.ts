@@ -1,6 +1,22 @@
 import { expect, it } from "vitest";
 import { createSandboxTemporalPlainTime, isSandboxTemporalPlainTime, temporalPlainTimeFields } from "./temporal-plain-time.js";
 
+it("rejects proxy input records before invoking descriptor traps", () => {
+  let reads = 0;
+  const input = new Proxy({ hour: 1 }, {
+    getOwnPropertyDescriptor(target, key) {
+      reads++;
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    }
+  });
+  expect(() => createSandboxTemporalPlainTime(input)).toThrow(TypeError);
+  expect(reads).toBe(0);
+});
+
+it.each([null, 1, "", true, () => 1])("rejects non-record input %s", input => {
+  expect(() => createSandboxTemporalPlainTime(input as never)).toThrow(TypeError);
+});
+
 it("creates an owned midnight value with no exposed internal slots", () => {
   const value=createSandboxTemporalPlainTime();
   expect(isSandboxTemporalPlainTime(value)).toBe(true);

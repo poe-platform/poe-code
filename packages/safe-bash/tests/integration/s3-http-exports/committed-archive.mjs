@@ -551,7 +551,8 @@ export async function readArchive(tar, filename, expectedHash, admit, fileSystem
   const files = new Map();
   let expanded = 0;
   await new Promise((resolvePromise, reject) => {
-    const parser = new tar.Parser({ strict: true, maxMetaEntrySize: 1024 * 1024 });
+    const Parser = tar.Parser ?? tar.Parse;
+    const parser = new Parser({ strict: true, maxMetaEntrySize: 1024 * 1024 });
     parser.on("error", reject);
     parser.on("end", resolvePromise);
     parser.on("entry", entry => {

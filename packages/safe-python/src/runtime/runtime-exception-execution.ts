@@ -21,6 +21,8 @@ import { standardExceptionCatalog, type StandardExceptionName } from "./standard
 import type { StatementContext } from "./statement-execution.js";
 import type { BuiltinInvocationContext, InstanceValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
+import { GeneratorExecution,type GeneratorInput } from "./generator-execution.js";
+import type { CallStack } from "./call-stack.js";
 
 /** Propagation must never render guest values or expose a host stack to Python. */
 export class RuntimeRaisedException {
@@ -29,15 +31,54 @@ export class RuntimeRaisedException {
   }
 }
 
-/** One synchronous execution's exception state, shared across nested frames.
+/** One execution's exception state, shared across nested and suspended frames.
  * Unknown native exception families and arbitrary host failures remain fatal.
- * Tracebacks, suspension and exception groups require separate capabilities. */
+ * Tracebacks and exception groups require separate capabilities. */
 export class RuntimeExceptionExecution {
   readonly #handled:HandledExceptionState<InstanceValue>;
   constructor(private readonly registry:RuntimeTypeRegistry,private readonly values:RuntimeValues,private readonly meter:ExecutionMeter) {
     meter.checkpoint(1,160);this.#handled=new HandledExceptionState<InstanceValue>();Object.freeze(this);
   }
   get active():InstanceValue|null{return this.#handled.active;}
+
+  /** Native completion does not implicitly chain the caller's handled error. */
+  completion(value:RuntimeValue):RuntimeRaisedException {
+    this.meter.checkpoint(0,8);
+    return new RuntimeRaisedException(this.native("StopIteration",value.kind==="none"?[]:[value]),this.meter);
+  }
+
+  /** Assemble an unstarted native generator around a trusted resumable body.
+   * Only the running body owns a call-stack entry and saved exception activation. */
+  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">):InstanceValue {
+    const {values,meter}=this;
+    meter.checkpoint(0,512);
+    const handled=this.#handled.createFrame(meter);
+    const execution=new GeneratorExecution<RuntimeValue>(input=>{
+      try {return driver(input);}
+      catch(error){throw this.prepare(error);}
+    },{
+      none:values.none,
+      enter:()=>{
+        meter.checkpoint(0,64);
+        const leave=calls.enter(frame);
+        let restore:()=>void;
+        try {restore=this.#handled.activate(handled,meter);}
+        catch(error){leave();throw error;}
+        return ()=>{restore();leave();};
+      },
+      generatorExit:()=>new RuntimeRaisedException(this.native("GeneratorExit",[]),meter),
+      isGeneratorExit:error=>this.matches(error,"GeneratorExit"),
+      isStopIteration:error=>this.matches(error,"StopIteration"),
+      wrapStopIteration:error=>{
+        const original=this.prepare(error);
+        if(!(original instanceof RuntimeRaisedException))throw Error("generator conversion requires native StopIteration");
+        const replacement=this.native("RuntimeError",[values.string("generator raised StopIteration")]),storage=runtimeExceptionPayload(replacement)!;
+        storage.assignCause(original.value,meter);storage.assignContext(original.value,meter);
+        return new RuntimeRaisedException(replacement,meter);
+      }
+    },meter);
+    return values.instance(this.registry.generatorType(),undefined,Object.freeze({kind:"generator",execution,exceptions:this}));
+  }
 
   private exceptionClass(value:RuntimeValue) {
     this.meter.checkpoint();

@@ -73,6 +73,7 @@ import { createListInitWrapper } from "./builtin-list-init.js";
 import { createListNewBuiltin } from "./builtin-list-new.js";
 import { createListReprWrapper } from "./builtin-list-repr.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
+import { installRuntimeGeneratorDescriptors } from "./runtime-generator-descriptors.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -105,12 +106,13 @@ export class RuntimeTypeRegistry {
   #floatType: TypeValue | undefined;
   #complexType: TypeValue | undefined;
   #baseExceptionType:TypeValue|undefined;
+  #generatorType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
-    meter.checkpoint(1, 256);
+    meter.checkpoint(1, 264);
     this.#entries = new WeakMap();
     const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false, weakReferences: false });
     const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: true, objectLayout: false, variableSized: true });
@@ -427,6 +429,18 @@ export class RuntimeTypeRegistry {
     installRuntimeMappingProxySlots(type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#mappingProxyType = type;
+    return type;
+  }
+
+  generatorType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#generatorType!==undefined)return this.#generatorType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("generator",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:true,subclassable:false,instantiable:false});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    installRuntimeGeneratorDescriptors(type,this.values,this.meter);
+    this.meter.checkpoint(1,64);
+    this.#entries.set(layout,{type});this.#generatorType=type;
     return type;
   }
 

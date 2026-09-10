@@ -55,7 +55,7 @@ import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-
 import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
 import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
-import { executeComprehensionClauses } from "./comprehension-execution.js";
+import { ComprehensionCursor,executeComprehensionClauses } from "./comprehension-execution.js";
 import type { StatementContext } from "./statement-execution.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
@@ -386,7 +386,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       createLambda: definitions.create.bind(definitions),
       comprehension(node) {
         meter.checkpoint();
-        if(node.kind==="comprehension"&&node.collection==="generator")throw new UnsupportedExpressionError(node.kind);
+        if(node.kind==="comprehension"&&node.collection==="generator"&&context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
         for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
         const scope=comprehensions?.get(node);
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
@@ -398,6 +398,14 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           const child=new LexicalFrame(scope,{...namespaces,closure},meter);
           leave();leave=calls.enter(child);
           const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
+          if(node.kind==="comprehension"&&node.collection==="generator") {
+            const cursor=new ComprehensionCursor(node.clauses,outer,inner,()=>inner.evaluate(node.element),meter);
+            return context.exceptions!.generator(input=>{
+              if(input.kind==="throw")throw input.error;
+              const step=cursor.next();
+              return step.done?{done:true,value:values.none}:step;
+            },child,calls);
+          }
           if(node.kind==="dictionary-comprehension") {
             const result=expressions.beginDictionary([]);
             executeComprehensionClauses(node.clauses,outer,inner,()=>{const key=inner.evaluate(node.key),value=inner.evaluate(node.value);result.set(key,value);},meter);

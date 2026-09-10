@@ -10,6 +10,7 @@ import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
+import { ModuleFrame } from "./module-frame.js";
 import { PythonRuntimeError } from "./error.js";
 import { PythonEncodeError } from "./encode-error.js";
 import { PythonDecodeError } from "./decode-error.js";
@@ -26,6 +27,7 @@ import { createRuntimeKeyOperations } from "./runtime-key-operations.js";
 import { RuntimeExecutionKeys } from "./runtime-execution-keys.js";
 import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
+import { createIterBuiltin,createNextBuiltin } from "./builtin-iteration.js";
 import { constructRuntimeInteger } from "./runtime-integer-construction.js";
 import { constructRuntimeFloat } from "./runtime-float-construction.js";
 import { createRoundBuiltin } from "./builtin-round.js";
@@ -83,6 +85,125 @@ function exceptionFixture() {
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("exposes native generator iteration and send without executing at creation",()=>{
+  const state=exceptionFixture(),{v}=state;
+  let count=0;
+  const generator=state.exceptions!.generator(input=>{
+    count++;
+    if(input.kind==="throw")throw input.error;
+    return count===1?{done:false,value:v.integer(10)}:{done:true,value:input.value};
+  },{},state.calls);
+  state.globals.set("g",generator);
+  expect(count).toBe(0);
+  state.run("same=g.__iter__() is g\nfirst=g.__next__()\nsuspended=g.gi_suspended\ntry:\n g.send(42)\nexcept StopIteration as error:\n result=error.value\n args=error.args\nfinished=not g.gi_running and not g.gi_suspended\n");
+  expect(state.globals.get("same")).toBe(v.true);expect(state.globals.get("suspended")).toBe(v.true);
+  expect(state.globals.get("finished")).toBe(v.true);expect(state.globals.get("result")).toEqual(v.integer(42));
+  expect(state.globals.get("args")).toEqual(v.tuple([v.integer(42)]));expect(count).toBe(2);
+  state.run("try:\n g.__next__()\nexcept StopIteration as error:\n empty=error.args==() and error.value is None\n");
+  expect(state.globals.get("empty")).toBe(v.true);expect(count).toBe(2);
+});
+
+it("executes generator expressions lazily with early outer acquisition and late inner values",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  self.index=0\n  return self\n def __next__(self):\n  events.append('next')\n  self.index+=1\n  if self.index>2: raise StopIteration\n  return self.index\nys=[10,20]\nfactor=1\ng=(x*y*factor for x in Source() for y in ys)\nearly=events==['iter']\nfirst=g.__next__()\nys=[30]\nfactor=2\nsecond=g.send(123)\nrest=[x for x in g]\ncorrect=early and first==10 and second==40 and rest==[120] and events==['iter','next','next','next']\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.calls.depth).toBe(0);
+});
+
+it("preserves generator-expression closure cells, walrus ownership and closed exhaustion",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def outer():\n value=10\n g=((value:=value+x) for x in [1,2])\n value=100\n return g,lambda:value\ng,read=outer()\nbefore=read()\nfirst=g.__next__()\nafter=read()\ng.close()\nremaining=[x for x in g]\ncorrect=before==100 and first==101 and after==101 and remaining==[] and read()==101\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("does not evaluate a generator-expression body on close before first resume",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("g=(1//0 for x in [1])\nclosed=g.close() is None and [x for x in g]==[]\n");
+  expect(state.globals.get("closed")).toBe(v.true);
+});
+
+it("consumes native generators through guest iteration and forbids native construction/subclassing",()=>{
+  const state=exceptionFixture(),{v}=state;
+  let count=0;
+  state.globals.set("g",state.exceptions!.generator(()=>++count<=3?{done:false,value:v.integer(count)}:{done:true,value:v.none},{},state.calls));
+  state.run("items=[x for x in g]\ncorrect=items==[1,2,3]\ntry:\n type(g)()\nexcept TypeError:\n construction=True\ntry:\n class Invalid(type(g)): pass\nexcept TypeError:\n subclassing=True\n");
+  for(const name of ["correct","construction","subclassing"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("supports builtin iter identity and next defaults for native generator expressions",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("iter",createIterBuiltin(v,state.meter));state.builtins.set("next",createNextBuiltin(v,state.meter));
+  state.run("g=(x for x in [1,2])\ncorrect=iter(g) is g and next(g)==1 and next(g,99)==2 and next(g,99)==99\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("delivers native GeneratorExit and returns close completion without retaining active frames",()=>{
+  const state=exceptionFixture(),{v}=state,frame={};
+  let count=0;
+  state.globals.set("g",state.exceptions!.generator(input=>{
+    expect(state.calls.current).toBe(frame);count++;
+    if(input.kind==="throw"){
+      expect(state.exceptions!.matches(input.error,"GeneratorExit")).toBe(true);
+      return {done:true,value:v.integer(99)};
+    }
+    return {done:false,value:v.none};
+  },frame,state.calls));
+  state.run("g.__next__()\nresult=g.close()\nagain=g.close()\n");
+  expect(state.globals.get("result")).toEqual(v.integer(99));expect(state.globals.get("again")).toBe(v.none);
+  expect(state.calls.depth).toBe(0);expect(count).toBe(2);
+});
+
+it("wraps escaping native StopIteration with its original exception as cause and context",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("g",state.exceptions!.generator(()=>{throw new PythonRuntimeError("StopIteration","escaped");},{},state.calls));
+  state.run("try:\n g.__next__()\nexcept RuntimeError as error:\n correct=error.args==('generator raised StopIteration',) and error.__cause__ is error.__context__ and error.__cause__.args==('escaped',) and error.__suppress_context__\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.calls.depth).toBe(0);
+});
+
+it("prepares generator faults before restoring its saved handled exception",()=>{
+  const state=exceptionFixture(),{v}=state;
+  const frame=new ModuleFrame(analyzeModule("").scopes,state,state.meter);
+  const handlers=state.exceptions!.statements(frame);
+  const local=state.exceptions!.prepare(new PythonRuntimeError("ValueError","local"));
+  let count=0;
+  state.globals.set("g",state.exceptions!.generator(()=>{
+    if(count++===0){handlers.enter(local);return {done:false,value:v.none};}
+    throw new PythonRuntimeError("TypeError","failed");
+  },frame,state.calls));
+  state.run("g.__next__()\ntry:\n raise ValueError('caller')\nexcept ValueError:\n try:\n  g.__next__()\n except TypeError as error:\n  correct=error.__context__.args==('local',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+  expect(state.exceptions!.active).toBe(null);expect(state.calls.depth).toBe(0);
+});
+
+it("inherits the current caller exception separately on each generator-expression resume",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("active",v.builtinFunction({name:"active",invoke:()=>state.exceptions!.active??v.none}));
+  state.run("g=(active() for x in [1,2])\ndef take(label):\n try:\n  raise ValueError(label)\n except ValueError:\n  return g.__next__()\nfirst=take('first')\nsecond=take('second')\ncorrect=first.args==('first',) and second.args==('second',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.exceptions!.active).toBe(null);
+});
+
+it("keeps generator completion unchained and closes after uncaught reentry",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("g=(x for x in [])\ntry:\n raise ValueError('caller')\nexcept ValueError:\n try:\n  g.__next__()\n except StopIteration as error:\n  unchained=error.__context__ is None and error.args==()\ng=(g.__next__() for x in [1])\ntry:\n g.__next__()\nexcept ValueError as error:\n reentry=error.args==('generator already executing',) and not g.gi_suspended\n");
+  expect(state.globals.get("unchained")).toBe(v.true);expect(state.globals.get("reentry")).toBe(v.true);
+});
+
+it("unwinds native generator frames without checkpoints after a fatal body failure",()=>{
+  const state=exceptionFixture(),{v}=state,failure=new ExecutionLimitError("cancelled");
+  let failed=false;
+  state.builtins.set("stop",v.builtinFunction({name:"stop",invoke(){failed=true;throw failure;}}));
+  state.run("g=(stop() for x in [1])\n");
+  const checkpoint=ExecutionBudget.prototype.checkpoint;
+  const spy=vi.spyOn(ExecutionBudget.prototype,"checkpoint").mockImplementation(function(this:ExecutionBudget,...args){
+    if(failed)throw Error("cleanup must not checkpoint after fatal failure");
+    return checkpoint.apply(this,args);
+  });
+  try {expect(()=>state.run("g.__next__()\n")).toThrow(failure);}
+  finally {spy.mockRestore();}
+  const generator=state.globals.get("g");
+  expect(generator?.kind==="instance"&&generator.native?.kind==="generator"&&generator.native.execution.phase).toBe("closed");
+  expect(state.calls.depth).toBe(0);expect(state.exceptions!.active).toBe(null);
+});
 
 it("executes eager comprehensions with isolated targets and nested filters",()=>{
   const state=exceptionFixture();

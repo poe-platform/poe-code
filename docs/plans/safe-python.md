@@ -10163,6 +10163,32 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker run (177.57s; bodies 9.72s). Native
   generator descriptors, resumable Python bodies and generator-expression
   integration remain unfinished. No push or release requested.
+- Native generator objects and generator expressions (2026-09-10): four
+  failing native-object regressions drove canonical nonconstructible,
+  nonsubclassable generator types and ordinary descriptors for iteration,
+  next/send/close and read-only running/suspended flags. Native storage shares
+  the existing lifecycle and drops body/frame references on termination.
+  Three failing AST regressions drove generator-expression integration with
+  eager outer-iterator acquisition, lazy element/filter/inner-iterator work,
+  lexical cells and walrus ownership. Ordinary iterators are not closed when
+  the generator closes. Native exception activation follows each resumption;
+  completion preserves StopIteration.value without attaching caller context.
+  Escaping StopIteration becomes RuntimeError with the original cause/context.
+  A failing saved-handler regression drove native fault preparation before
+  frame deactivation. Additional checks cover current-caller exception
+  inheritance, builtin iter/next, reentry, completion chaining and unmetered
+  cleanup after fatal errors. Twelve new tests cover this slice; 734 focused
+  tests and 160 native generator-expression CPython comparisons pass, plus 98
+  prior comprehension/unpacking comparisons. The 125 mutation traces among
+  those 160 comparisons now execute Python ASTs, not trusted cursor callbacks.
+  All 7,319 tests in 505 files pass in the uncached one-worker run (236.27s;
+  bodies 14.53s). The final 734-test focused run also covers the subsequently
+  added builtin iter/next regression and allocation-check ordering refinement.
+  Selected workspace build, typecheck and focused lint pass. Generator throw normalization,
+  name/repr/frame/code metadata, finalization, general resumable function bodies,
+  yield delegation and async generators remain unfinished. The public runtime,
+  stdlib and safe-fs assembly remain separate unfinished work. No push or
+  release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

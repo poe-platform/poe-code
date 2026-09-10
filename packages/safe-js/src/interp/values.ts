@@ -1625,7 +1625,7 @@ function copyToSandbox(
     nativePromises.set(value, sandboxPromise);
     const properties = getPromiseProperties(sandboxPromise);
     for (const [key, descriptor] of descriptors) {
-      Object.defineProperty(properties, key, { ...descriptor,
+      Object.defineProperty(properties, state.compilation?.owner?.budget.allocateString(key) ?? key, { ...descriptor,
         value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(properties);

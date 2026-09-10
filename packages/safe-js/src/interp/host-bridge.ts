@@ -1024,7 +1024,7 @@ export function copyHostValueToSandbox(
       for (const key of Reflect.ownKeys(properties)) {
         const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
         if (!("value" in descriptor)) throw new TypeError("Imported Promise accessors require an explicit capability.");
-        Object.defineProperty(getPromiseProperties(copied), key, { ...descriptor,
+        Object.defineProperty(getPromiseProperties(copied), typeof key === "string" ? budget.allocateString(key) : key, { ...descriptor,
           value: copyHostValueToSandbox(descriptor.value, stackFrames, options, state, joinPath(path, String(key))) });
       }
       if (!Object.isExtensible(properties)) Object.preventExtensions(getPromiseProperties(copied));
@@ -1274,7 +1274,7 @@ export function copyHostValueToSandbox(
     if (types.isPromise(value)) {
       const properties = getPromiseProperties(sandboxPromise);
       for (const [key, descriptor] of descriptors) {
-        Object.defineProperty(properties, key, { ...descriptor,
+        Object.defineProperty(properties, budget.allocateString(key), { ...descriptor,
           value: copyHostValueToSandbox(descriptor.value, stackFrames,
             { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
       }

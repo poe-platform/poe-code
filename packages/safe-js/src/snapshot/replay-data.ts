@@ -1078,6 +1078,8 @@ function defineProperties(
     ) {
       throw new TypeError("Invalid replay property flags.");
     }
+    // String property names are readable sandbox data, just like their values.
+    if (typeof key === "string") decode(key);
     Object.defineProperty(target, key, {
       value: decode(own(descriptor, "value")),
       configurable: descriptor.configurable,

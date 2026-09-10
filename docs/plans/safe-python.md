@@ -9567,6 +9567,19 @@ extension, integration, or validation requirement is missing or unverified.
   package run. Full interpreter assembly, guest exception rendering, remaining
   scalar types and safe-fs file execution remain unfinished. No push or release
   was requested.
+- Complex constructor text grammar (2026-09-10): failing tests drove a
+  standalone metered parser for real/imaginary components, optional parentheses,
+  Unicode decimal digits, strict whitespace and underscore handling, signed
+  zeros and non-finite values. Differential failures drove CPython's distinct
+  invalid-underscore diagnostic and its null-terminated validation prepass.
+  All 7,276 CPython syntax/randomized/Unicode comparisons match, including exact
+  component binary64 bits and error messages. Added 37 regression cases covering
+  valid and invalid grammar and execution/allocation limits. Workspace build,
+  typecheck, focused lint and all 7,085 tests in 500 files pass in the uncached
+  one-worker package run. Canonical complex
+  allocation and conversion protocols, full interpreter assembly, guest
+  exceptions and safe-fs execution remain unfinished. No push or release was
+  requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

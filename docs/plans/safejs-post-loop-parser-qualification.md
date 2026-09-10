@@ -41,3 +41,18 @@ probe does not justify copying private host metadata. See
 These are bounded qualification results, not full JavaScript conformance.
 The previous full-gate failures remain unresolved until independently fixed
 and verified. No push or release is authorized during the release hold.
+
+## Async-from-sync rejection oracle qualification
+
+A 12-case probe covers ordinary/fulfilled/rejected yielded values, break/throw
+body completions and successful/throwing iterator close (5add6a). Eight cases
+match Node 22; four rejected-value cases differ only because Node 22 omits the
+close operation. SafeJS closes and preserves the original rejection.
+
+This is not a SafeJS defect. The current
+[AsyncFromSyncIteratorContinuation algorithm](https://tc39.es/ecma262/multipage/control-abstraction-objects.html#sec-asyncfromsynciteratorcontinuation)
+requires closing on value rejection when the iterator is not done and the
+operation requests closing. Node 26.8.1 independently logs both next and close
+for the minimal rejected-value case (bb9cd8), agreeing with SafeJS. Do not use
+Node 22 as the oracle for this behavior or remove the existing close-on-reject
+implementation in `iteration.ts`.

@@ -19,3 +19,11 @@ reporter and routing tests passed afterward in 343 ms. Evidence:
 `/tmp/poe-688-reporter-immediate-green.log`. The implementation uses one public
 module-completion callback and the native error formatter without modifying
 logger methods or queue results.
+
+Native workspace runs inherit the root reporter configuration. The dot reporter
+marks failures with `x` but suppresses their file and case names until the final
+summary, delaying diagnosis during the long SafeJS phase. Use the built-in
+default reporter for these runs so names appear at file completion. The shared
+runner's explicit reporter override and immediate error details remain intact.
+Passing output is one line per file plus slow-case lines, rather than one line
+per test. This changes reporting only; test membership and results are unchanged.

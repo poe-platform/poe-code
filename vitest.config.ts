@@ -122,7 +122,7 @@ export default defineConfig({
   },
   test: {
     silent: "passed-only",
-    reporters: ["dot"],
+    reporters: ["default"],
     globals: true,
     environment: "node",
     pool: "threads",

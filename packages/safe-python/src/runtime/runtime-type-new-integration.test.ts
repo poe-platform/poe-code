@@ -42,6 +42,7 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
       if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return registry.dictionaryViewType(value.kind);
       if (value.kind === "mappingproxy") return registry.mappingProxyType();
       if (value.kind === "slice") return registry.sliceType();
+      if (value.kind === "range") return registry.rangeType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -55,6 +56,31 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("constructs canonical ranges through ordered index conversion", () => {
+  const state = fixture(); state.globals.set("Range", state.registry.rangeType());
+  state.run("class Index:\n def __init__(self,name,value):\n  self.name=name\n  self.value=value\n def __index__(self):\n  visit(self.name)\n  return self.value\nr=Range(Index('start',1),Index('stop',8),Index('step',2))\ncorrect=type(r) is Range and (r.start,r.stop,r.step)==(1,8,2) and Range.__new__.__self__ is Range\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(["start","stop","step"]);
+  expect(() => state.run("Range(**{1:2})\n")).toThrow("keywords must be strings");
+  expect(() => state.run("Range.__new__(Range,**{1:2})\n")).toThrow("range() takes no keyword arguments");
+  expect(() => state.run("Range(1,2,0)\n")).toThrow("range() arg 3 must not be zero");
+  expect(() => state.run("r.start=4\n")).toThrow("readonly attribute");
+});
+
+it("publishes range protocol descriptors without materializing large ranges", () => {
+  const state = fixture(); state.globals.set("Range", state.registry.rangeType());
+  state.run("r=Range(0,10**30,2)\ncorrect=Range.__bool__(r) and Range.__getitem__(r,-1)==10**30-2 and Range.__contains__(r,10**29) and r.count(10**29)==1 and r.index(10**29)==5*10**28 and Range.__eq__(Range(0),Range(1,1)) and r.__reduce__()[0] is Range and r.__reduce__()[1]==(0,10**30,2)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(() => state.run("Range.__len__(r)\n")).toThrow("Python int too large to convert to C ssize_t");
+});
+
+it("searches ranges through reflected guest equality rather than index conversion", () => {
+  const state = fixture(); state.globals.set("r",state.v.range({start:0n,stop:4n,step:1n,length:4n}));
+  state.run("class Needle:\n def __index__(self):\n  visit('index')\n  return 0\n def __eq__(self,other):\n  visit('eq')\n  return other==2\nn=Needle()\ncorrect=r.count(n)==1 and r.index(n)==2\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(Array(7).fill("eq"));
+});
 
 it("publishes retained mapping proxy read-method descriptors", () => {
   const state = fixture(); state.globals.set("Proxy", state.registry.mappingProxyType());

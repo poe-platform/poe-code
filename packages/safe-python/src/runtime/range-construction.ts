@@ -9,7 +9,7 @@ import { createRange, type IntegerProgression } from "./integer-sequence.js";
  * Call assembly owns duplicate/non-string keywords; guest range registration,
  * object wrapping and bigint payload/CPU accounting remain external.
  */
-export function constructRange<Value>(positional: readonly Value[], keywords: ReadonlyMap<string, Value>, context: IntegerIndexContext<Value>, meter: ExecutionMeter): IntegerProgression {
+export function constructRange<Value>(positional: readonly Value[], keywords: { readonly size: number }, context: IntegerIndexContext<Value>, meter: ExecutionMeter): IntegerProgression {
   meter.checkpoint();
   if (keywords.size !== 0) throw new PythonRuntimeError("TypeError", "range() takes no keyword arguments");
   const count = positional.length;

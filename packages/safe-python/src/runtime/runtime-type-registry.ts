@@ -34,6 +34,8 @@ import { createMappingProxyNewBuiltin } from "./builtin-mapping-proxy-new.js";
 import { createSliceNewBuiltin } from "./builtin-slice-new.js";
 import { installRuntimeSliceSlots } from "./runtime-slice-slots.js";
 import { installRuntimeMappingProxySlots } from "./runtime-mapping-proxy-slots.js";
+import { createRangeNewBuiltin } from "./builtin-range-new.js";
+import { installRuntimeRangeSlots } from "./runtime-range-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
@@ -81,6 +83,7 @@ export class RuntimeTypeRegistry {
   readonly #dictionaryViews = new Map<"dict_keys" | "dict_values" | "dict_items", TypeValue>();
   #mappingProxyType: TypeValue | undefined;
   #sliceType: TypeValue | undefined;
+  #rangeType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -261,6 +264,20 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods("dict", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#dictionaryType = type;
+    return type;
+  }
+
+  rangeType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#rangeType !== undefined) return this.#rangeType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("range", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    namespace.items.set(this.values.string("__new__"), createRangeNewBuiltin(type, this.values, this.meter));
+    namespace.items.set(this.values.string("__doc__"), this.values.string("range(stop) -> range object\nrange(start, stop[, step]) -> range object\n\nReturn an object that produces a sequence of integers from start (inclusive)\nto stop (exclusive) by step.  range(i, j) produces i, i+1, i+2, ..., j-1.\nstart defaults to 0, and stop is omitted!  range(4) produces 0, 1, 2, 3.\nThese are exactly the valid indices for a list of 4 elements.\nWhen step is given, it specifies the increment (or decrement)."));
+    installRuntimeRangeSlots(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#rangeType = type;
     return type;
   }
 

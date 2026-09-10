@@ -9243,6 +9243,21 @@ extension, integration, or validation requirement is missing or unverified.
   package tests in 493 files pass. Generic aliases/class subscription, remaining
   native types, full interpreter and safe-fs execution remain unfinished. No push
   or release was requested.
+- Canonical range allocation and descriptors (2026-09-10): three failing
+  integration tests reproduced the missing canonical type and range count/index
+  bypassing guest equality. Added immutable non-subclassable range allocation,
+  read-only members, protocol wrappers, search/reverse/reduction descriptors.
+  Construction uses ordered index conversion and lazy arbitrary-precision
+  progressions. Range search now shares the existing search kernel with active
+  rich equality and truth conversion instead of duplicating a payload-only loop.
+  A CPython audit exposed and a failing assertion reproduced the distinction
+  between ordinary range non-string keyword validation and raw allocator keyword
+  rejection; the canonical type now preserves that distinction. All 1,152
+  constructor/descriptor and 840 slicing cases match CPython, including large
+  bounds and guest coercion failures. Workspace build, typecheck, focused lint
+  and all 6,934 package tests in 493 files pass. Native object identity/lifecycle
+  audits, remaining scalar types, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

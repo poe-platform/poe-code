@@ -9049,6 +9049,20 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 493 files pass with two workers. Owned subclass allocation remains an
   explicit implementation gap, not a claimed Python exception; fromkeys and the
   broader interpreter lifecycle remain unfinished. No push or release requested.
+- Canonical dictionary fromkeys (2026-09-10): three failing integration tests
+  reproduced missing type-level class-method binding. Connected the existing
+  fromkeys kernel to a canonical classmethod_descriptor with proper owner,
+  bound-class metadata and native documentation. Exact dict keeps its direct
+  storage path; subclass-bound calls use ordinary no-argument construction and
+  active item-assignment dispatch for arbitrary returned objects. Construction
+  precedes iteration; duplicate keys still reach guest setters, and one default
+  value is shared. CPython comparison identified and corrected keyword diagnostics
+  to name the actual bound subclass. All 137 bound/raw descriptor, custom result,
+  invalid argument and callback-order cases match CPython. Workspace build,
+  typecheck, focused lint, 448 integration tests and all 6,870 package unit tests
+  in 493 files pass with two workers. Owned dictionary subclass storage remains
+  unfinished, along with the broader interpreter requirements. No push or release
+  was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

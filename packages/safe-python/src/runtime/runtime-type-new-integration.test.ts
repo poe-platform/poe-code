@@ -52,6 +52,26 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("binds canonical dictionary fromkeys to the defining class", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nd={'old':1}\nshared=[]\nresult=Dict.fromkeys(['a','b','a'],shared)\nbound=d.fromkeys.__self__ is Dict\nclassbound=Dict.fromkeys.__self__ is Dict\ncorrect=bound and classbound and result['a'] is shared and result['b'] is shared and d=={'old':1}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("constructs fromkeys results before source iteration and uses guest item assignment", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Target:\n def __setitem__(self,key,value):\n  visit(key)\nclass Child(Dict):\n def __new__(cls):\n  visit('new')\n  return Target()\nclass Source:\n def __getitem__(self,index):\n  visit('next')\n  return ('a','a','b')[index]\nresult=Child.fromkeys(Source(),7)\ncorrect=type(result) is Target\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["new", "next", "a", "next", "a", "next", "b", "next"]);
+});
+
+it("validates fromkeys arguments before invoking the bound class", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n def __new__(cls):\n  visit('new')\n  return {}\n");
+  expect(() => state.run("Child.fromkeys()\n")).toThrow("fromkeys expected at least 1 argument, got 0");
+  expect(() => state.run("Child.fromkeys([],value=1)\n")).toThrow("Child.fromkeys() takes no keyword arguments");
+  expect(state.events).toEqual([]);
+});
+
 it("constructs exact dictionaries from positional sources and keyword overrides", () => {
   const state = fixture();
   state.run("Dict=type({})\nsource={'a':1}\nd=Dict(source,a=2,b=3)\nempty=Dict()\ncorrect=d=={'a':2,'b':3} and source=={'a':1} and d is not source and empty=={} and type(d) is Dict\n");

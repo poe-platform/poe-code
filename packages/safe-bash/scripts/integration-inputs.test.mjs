@@ -401,6 +401,7 @@ function assertSource7Discovery(files) {
     "tests/commands/bytes-stress/portable-compression.test.ts",
     "tests/commands/bytes/compression/bounded-codec.test.ts",
     "tests/commands/bytes/compression/checkpoint-propagation.test.ts",
+    "tests/commands/bytes/compression/cleanup-outcome.test.ts",
     "tests/commands/bytes/compression/file-lifecycle.test.ts",
     "tests/commands/bytes/compression/ownership.test.ts",
     "tests/commands/bytes/compression/late-source.test.ts",

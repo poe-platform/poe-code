@@ -29,8 +29,10 @@ export class FileOperation {
         } : value;
       },
     });
-    const abort = (): void => { void this.close().catch(() => {}); };
-    this.close = (): Promise<void> => {
+    let outcomeClaimed = false;
+    let registeredClosing: Promise<void> | undefined;
+    const abort = (): void => { void retire().catch(() => {}); };
+    const retire = (): Promise<void> => {
       if (!this.closing) {
         this.closing = Promise.resolve().then(async () => {
           try {
@@ -48,9 +50,19 @@ export class FileOperation {
       }
       return this.closing;
     };
+    this.close = (): Promise<void> => {
+      outcomeClaimed = true;
+      return retire();
+    };
     const register = context.registerCleanup;
     this.check();
-    if (register) Reflect.apply(register, context, [this.close]);
+    if (register) Reflect.apply(register, context, [(): Promise<void> => {
+      registeredClosing ??= retire().catch(error => {
+        if (!outcomeClaimed) throw error;
+      });
+      void registeredClosing.catch(() => {});
+      return registeredClosing;
+    }]);
     this.check();
     this.caller.addEventListener("abort", abort, { once: true });
     if (this.caller.aborted) abort();

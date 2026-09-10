@@ -3,8 +3,10 @@ import { readIntlProperty } from "./intl-options.js";
 import { retainValues } from "./resources.js";
 import { sandboxNumber } from "./string-coercion.js";
 import type { SandboxCallContext, SandboxValue } from "./values.js";
+import { isSandboxTemporalDuration, temporalDurationFields } from "./temporal-duration.js";
 
 export async function readDurationRecord(input: SandboxValue, budget: Budget, context?: SandboxCallContext) {
+  if (isSandboxTemporalDuration(input)) return { ...temporalDurationFields(input) };
   if (typeof input === "string") throw new RangeError("Duration strings are not supported.");
   if (typeof input !== "object" || input === null) throw new TypeError("Expected a duration object.");
   const record = { years: 0, months: 0, weeks: 0, days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0, microseconds: 0, nanoseconds: 0 };

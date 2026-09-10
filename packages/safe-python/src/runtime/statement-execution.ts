@@ -82,6 +82,8 @@ export interface StatementContext<Value> {
  * expression/leaf semantics and checkpoints before publication/resumed effects.
  */
 export interface ResumableStatementContext<Value> extends Omit<StatementContext<Value>, "evaluate" | "test" | "assign" | "execute"> {
+  /** Acquire once; next owns awaited protocol calls and exhaustion only. */
+  asyncIterate?(value:Value):{next():Generator<Value,IteratorResult<Value,Value>,Value>};
   evaluate(expression: Expression): Generator<Value, Value, Value>;
   test(expression: Expression): Generator<Value, boolean, Value>;
   assign(target: Expression, value: Value): Generator<Value, void, Value>;
@@ -109,6 +111,7 @@ type Frame<Value> =
   | { kind: "block"; body: readonly Statement[]; index: number }
   | { kind: "while"; statement: Extract<Statement, { kind: "while" }> }
   | { kind: "for"; statement: Extract<Statement, { kind: "for" }>; iterator: Iterator<Value> }
+  | { kind: "async-for"; statement: Extract<Statement, { kind: "for" }>; iterator: ReturnType<NonNullable<ResumableStatementContext<Value>["asyncIterate"]>> }
   | { kind: "finally"; body: readonly Statement[] }
   | { kind: "with-items"; statement: Extract<Statement, { kind: "with" }>; index: number }
   | { kind: "with-exit"; exit: PreparedContextManager<Value>["exit"] }
@@ -245,7 +248,7 @@ function* statementContinuation<Value>(
           }
         } else if (frame.kind === "resume" || frame.kind === "search") frame.restore?.();
         else if (
-          (frame.kind === "while" || frame.kind === "for") &&
+          (frame.kind === "while" || frame.kind === "for" || frame.kind === "async-for") &&
           (transfer.kind === "break" || transfer.kind === "continue")
         ) {
           if (transfer.kind === "continue") frames.push(frame);
@@ -337,8 +340,8 @@ function* statementContinuation<Value>(
           }
           continue;
         }
-        if (frame.kind === "for") {
-          const next = frame.iterator.next();
+        if (frame.kind === "for"||frame.kind==="async-for") {
+          const next = frame.kind==="async-for"?yield* frame.iterator.next():frame.iterator.next();
           if (next.done) {
             frames.pop();
             frames.push({ kind: "block", body: frame.statement.otherwise, index: 0 });
@@ -373,11 +376,11 @@ function* statementContinuation<Value>(
             frames.push({ kind: "while", statement });
             break;
           case "for": {
-            if (statement.async) throw new UnsupportedStatementError(statement.kind);
+            if (statement.async&&(execution.kind==="synchronous"||execution.context.asyncIterate===undefined)) throw new UnsupportedStatementError(statement.kind);
             const iterable = execution.kind === "synchronous" ? execution.context.evaluate(statement.iterable) : yield* execution.context.evaluate(statement.iterable);
             meter.checkpoint();
-            const iterator = context.iterate(iterable);
-            frames.push({ kind: "for", statement, iterator });
+            if(statement.async&&execution.kind==="resumable")frames.push({kind:"async-for",statement,iterator:execution.context.asyncIterate!(iterable)});
+            else frames.push({ kind: "for", statement, iterator:context.iterate(iterable) });
             break;
           }
           case "break":

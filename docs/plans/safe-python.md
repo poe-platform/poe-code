@@ -10425,6 +10425,27 @@ extension, integration, or validation requirement is missing or unverified.
   metadata, finalization warnings/origin tracking, generator-based coroutine flags,
   async generators, async-for/with, and event-loop/public runtime/safe-fs assembly
   remain unfinished. This does not establish complete async support.
+- Native async-for (2026-09-10): added resumable async-iteration frames using
+  native __aiter__/__anext__ special lookup and coroutine await continuations.
+  Acquisition happens once; next awaits retain instruction state. Break,
+  continue and loop-else reuse the statement transfer engine. Only exceptions
+  from next-call/await handling can signal exhaustion; target/body failures are
+  not swallowed, and loop exit does not implicitly call aclose. Invalid awaitable
+  acquisition from __anext__ gets its contextual TypeError with original cause;
+  normal awaited-body failures remain unchanged. Four native unsupported-loop
+  failures drove implementation. A separate failing fatal-path regression caught
+  type-name inspection after an execution limit; that path now escapes before
+  diagnostic work. All 512 initial native async-for CPython sequences match.
+  A further failing regression captures a CPython distinction from ordinary
+  await: async-next can consume an already-started native coroutine. Only ordinary
+  await acquisition applies the already-awaited check.
+  Final focused verification passes 835 tests in four files. The 768 prior native
+  coroutine comparisons also pass (1,280 comparisons total). Selected workspace
+  build, typecheck and focused lint pass. All 7,496 tests in 509 files pass in the
+  final uncached one-worker run (208.09s; bodies 12.31s).
+  Async comprehensions, aiter/anext builtins,
+  async generators, context-manager integration and the broader public runtime,
+  traceback and safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

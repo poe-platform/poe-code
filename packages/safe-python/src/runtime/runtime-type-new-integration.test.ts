@@ -37,6 +37,7 @@ import { RuntimeExceptionExecution,RuntimeRaisedException } from "./runtime-exce
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.js";
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
+import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -84,7 +85,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
 
 function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["expressions"]>>={}) {
   const state=fixture(undefined,1000000,extensions,true);
-  for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
+  for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
 
@@ -224,6 +225,44 @@ it("creates native generator functions without running their bodies and accepts 
   expect(state.events).toEqual([]);
   state.run("first=g.__next__()\ntry:\n g.send(7)\nexcept StopIteration as error:\n result=error.value\n");
   expect(state.events).toEqual(["start"]);expect(state.globals.get("first")).toEqual(v.integer(3));expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("does not inspect async-next diagnostics after fatal await acquisition",()=>{
+  const state=exceptionFixture(),failure=new ExecutionLimitError("cancelled"),typeName=vi.fn(()=>"A");
+  const delegation=new RuntimeGeneratorDelegation(state.v,state.exceptions!,state.meter);
+  const cursor=delegation.delegate(state.v.none,{lookupSpecial:()=>state.v.none,call(){throw failure;},typeName},"anext");
+  expect(()=>cursor.next()).toThrow(failure);expect(typeName).not.toHaveBeenCalled();
+});
+
+it("executes native async-for with awaited next calls and loop else",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 1)\nclass I:\n def __init__(self):self.i=0\n def __aiter__(self):\n  visit('iter')\n  return self\n async def __anext__(self):\n  await A()\n  self.i+=1\n  if self.i>2:raise StopAsyncIteration\n  return self.i\nasync def f():\n result=[]\n async for x in I():result.append(x)\n else:result.append(9)\n return result\nc=f()\na=c.send(None)\nb=c.send(None)\nd=c.send(None)\ntry:c.send(None)\nexcept StopIteration as error:correct=error.value==[1,2,9]\n");
+  expect(state.events).toEqual(["iter"]);expect(state.globals.get("correct")).toBe(v.true);
+  for(const name of ["a","b","d"])expect(state.globals.get(name)).toEqual(v.integer(1));
+});
+
+it("preserves async-for break and continue without implicitly closing its iterator",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class I:\n def __init__(self):self.i=0\n def __aiter__(self):return self\n async def __anext__(self):\n  self.i+=1\n  return self.i\n async def aclose(self):visit('close')\nasync def f():\n result=[]\n async for x in I():\n  if x==1:continue\n  result.append(x)\n  if x==3:break\n else:result.append(9)\n return result\nc=f()\ntry:c.send(None)\nexcept StopIteration as error:correct=error.value==[2,3]\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.events).toEqual([]);
+});
+
+it("does not treat StopAsyncIteration from the async-for body as exhaustion",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class I:\n def __aiter__(self):return self\n async def __anext__(self):return 1\nasync def f():\n async for x in I():raise StopAsyncIteration('body')\n else:visit('else')\nc=f()\ntry:c.send(None)\nexcept StopAsyncIteration as error:result=error.args\n");
+  expect(state.globals.get("result")).toEqual(v.tuple([v.string("body")]));expect(state.events).toEqual([]);
+});
+
+it("accepts an already-started coroutine returned directly by async-next",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:\n def __await__(self):return (yield 1)\nasync def child():return await A()\nshared=child()\nshared.send(None)\nclass I:\n def __init__(self):self.i=0\n def __aiter__(self):return self\n def __anext__(self):\n  self.i+=1\n  if self.i>1:raise StopAsyncIteration\n  return shared\nasync def f():\n result=[]\n async for x in I():result.append(x)\n return result\nc=f()\ntry:c.send(None)\nexcept StopIteration as error:correct=error.value==[None]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("wraps invalid async-next await acquisition with the original cause",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("original=ValueError('await')\nclass A:\n def __await__(self):raise original\nclass I:\n def __aiter__(self):return self\n def __anext__(self):return A()\nasync def f():\n async for x in I():pass\nc=f()\ntry:c.send(None)\nexcept TypeError as error:\n message=error.args\n correct=error.__cause__ is original\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(state.globals.get("message")).toEqual(v.tuple([v.string("'async for' received an invalid object from __anext__: A")]));
 });
 
 it("reports the current Python diagnostic for a non-awaitable operand",()=>{

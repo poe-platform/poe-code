@@ -19,6 +19,7 @@ export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expressi
 export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
   Pick<StatementContext<RuntimeValue>, "assertions" | "managers" | "exceptions"> {
   readonly invocation?: BuiltinInvocationContext;
+  readonly asyncIterate?:ResumableStatementContext<RuntimeValue>["asyncIterate"];
   /** Invoke the left type's in-place slot, returning NotImplemented when absent
    * or declined. Do not perform ordinary binary fallback here. Disabled slots
    * raise through the adapter; mutations are not undone if fallback later fails. */
@@ -119,6 +120,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
         evaluate: suspended.evaluate,
         test: expression => createExpressionContinuation(expression, expressions, meter, values.none, "branch"),
         iterate: context.iterate, assertions: context.assertions, managers: context.managers, exceptions: context.exceptions,
+        asyncIterate:bindings.asyncIterate,
         assign(target, value) { meter.checkpoint(0, 8); return createAssignmentTargetsContinuation([target], value, suspended, meter); },
         execute(statement) { meter.checkpoint(1, 192); return executeLeaf(statement); }
       };

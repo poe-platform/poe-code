@@ -1,5 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
-import type { ExecutionMeter } from "./execution-budget.js";
+import { ExecutionLimitError,type ExecutionMeter } from "./execution-budget.js";
 import type { GeneratorDelegation, GeneratorInput } from "./generator-execution.js";
 import { RuntimeRaisedException, type RuntimeExceptionExecution } from "./runtime-exception-execution.js";
 import { runtimeExceptionPayload } from "./runtime-exception-state.js";
@@ -29,7 +29,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
     return bodyActive||this.#run===undefined?prepared():this.#run(prepared,this.#throwing);
   }
 
-  *delegate(source:RuntimeValue,invocation:BuiltinInvocationContext,awaiting=false):Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
+  *delegate(source:RuntimeValue,invocation:BuiltinInvocationContext,awaiting:boolean|"anext"=false):Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
     const {values,exceptions,meter}=this;
     meter.checkpoint(0,768);
     // Initial iteration already executes inside the body. A reentrant lookup
@@ -43,7 +43,8 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
           return acquireRuntimeIterator(value,values,meter,invocation.iteration);
         }
         meter.checkpoint(0,160);
-        const iterator=acquireAwaitableIterator(value,{
+        let iterator:RuntimeValue;
+        try {iterator=acquireAwaitableIterator(value,{
           nativeKind:value=>value.kind==="instance"&&value.native?.kind==="coroutine"?"coroutine":undefined,
           lookupAwait:value=>{
             const method=invocation.lookupSpecial!(value,"__await__");
@@ -52,8 +53,11 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
           },
           hasNext:value=>invocation.iteration!.hasNext(value),
           typeName:value=>invocation.typeName!(value)
-        },meter);
-        if(iterator.kind==="instance"&&iterator.native?.kind==="coroutine"&&iterator.native.execution.delegating)
+        },meter);}catch(error) {
+          if(awaiting!=="anext"||error instanceof ExecutionLimitError)throw error;
+          throw exceptions.caused(error,"TypeError",`'async for' received an invalid object from __anext__: ${invocation.typeName!(value)}`);
+        }
+        if(awaiting!=="anext"&&iterator.kind==="instance"&&iterator.native?.kind==="coroutine"&&iterator.native.execution.delegating)
           throw new PythonRuntimeError("RuntimeError","coroutine is being awaited already");
         return iterator;
       },

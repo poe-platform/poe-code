@@ -48,6 +48,16 @@ export class RuntimeExceptionExecution {
     return new RuntimeRaisedException(this.native("StopIteration",value.kind==="none"?[]:[value]),this.meter);
   }
 
+  /** Replace a guest protocol error with a contextual diagnostic, retaining its
+   * original cause/context. Opaque host failures and execution limits escape. */
+  caused(error:unknown,name:StandardExceptionName,message:string):RuntimeRaisedException {
+    const original=this.prepare(error);
+    if(!(original instanceof RuntimeRaisedException))throw original;
+    const value=this.native(name,[this.values.string(message)]),storage=runtimeExceptionPayload(value)!;
+    storage.assignCause(original.value,this.meter);storage.assignContext(original.value,this.meter);
+    return new RuntimeRaisedException(value,this.meter);
+  }
+
   /** Assemble an unstarted generator/coroutine around a trusted resumable body.
    * Only the running body owns a call-stack entry and saved exception activation. */
   generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>,kind:"generator"|"coroutine"="generator"):InstanceValue {

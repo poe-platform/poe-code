@@ -59,6 +59,7 @@ import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js
 import { ComprehensionCursor,executeComprehensionClauses } from "./comprehension-execution.js";
 import { createStatementContinuation } from "./statement-execution.js";
 import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
+import { createRuntimeAsyncIterator } from "./runtime-async-iteration.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -465,6 +466,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       inplace,
       setAttribute: builtinCalls.setAttribute!.bind(builtinCalls), deleteAttribute: builtinCalls.deleteAttribute!.bind(builtinCalls),
       assertions: statementHooks.assertions ?? context.exceptions?.assertions(), managers: statementHooks.managers,
+      asyncIterate:statementHooks.asyncIterate??(suspension===undefined?undefined:value=>createRuntimeAsyncIterator(value,builtinCalls,awaitable=>suspension.delegate(awaitable,builtinCalls,"anext"),values,meter)),
       exceptions: statementHooks.exceptions ?? context.exceptions?.statements(frame),
       executeUnhandled(statement) {
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);

@@ -47,3 +47,27 @@ the default runtime or claim that a native expected-value assertion is a fix.
 
 No dependency, runtime source or test source changed during these probes. This
 record rejects incomplete repair strategies; it does not claim a repair.
+
+## Primary-source clarification during the post-source-identity gate
+
+The [CLDR 46 release notes](https://cldr.unicode.org/downloads/cldr-46) document
+the addition of root ISO-calendar patterns, using localized names with their own
+initially unlocalized separators. The pinned
+[CLDR 48 root data](https://raw.githubusercontent.com/unicode-org/cldr/release-48/common/main/root.xml)
+has an ISO-calendar month-name alias to Gregorian names but independent date
+patterns: `yMMMM` uses `y MMMM`, and `MMMMd` uses `MMMM d`. This supports reusing
+the appropriate month-name data, not replacing the entire formatted result with
+Gregorian ordering. CLDR distinguishes format and standalone name contexts;
+see [date/time patterns](https://cldr.unicode.org/translation/date-time/date-time-patterns).
+
+A fresh native-only probe on Node 22.23.2 / ICU 78.2 confirmed all three affected
+forms for en-US, pl-PL and ru-RU. A long month alone yields no parts; year/month
+yields the year and a trailing space; month/day yields a leading space and day.
+`resolvedOptions()` still reports `month: long`. Thus a repair must restore an
+absent field, not replace an empty existing month part.
+
+Next implementation candidate: a maintained ISO pattern/name-data path that
+resolves the month-name alias with its required grammatical context and preserves
+the requested ISO layout. Any candidate must still satisfy the earlier range,
+locale, numbering-system and calendar checks. No new dependency or runtime
+change was made during this research; the full package gate remains running.

@@ -151,3 +151,40 @@ and tests have not changed since the 50-test/lint pass, and the subsequent
 51-test run and unchanged upstream case exercise it with the repaired host.
 Corpus acquisition, revision verification, discovery and a durable report
 remain the next missing layer; these commits alone do not cover the corpus.
+
+Local commits: e41efac2e repairs child initialization; 067b2a062 adds Script
+execution. Acquisition of the exact pinned upstream revision has started in
+`/tmp/safejs-test262-corpus.19JhPM` (45121), with detached checkout and explicit
+revision verification. This is external test data, not a project branch or a
+release. No corpus result is claimed until acquisition and execution complete.
+
+The detached checkout verified the exact pinned hash (45121, terminal 582dc1).
+A full metadata-only inventory (43879, terminal 8d8e00) found 53,876 JavaScript
+files: 53,581 parsed tests, 294 fixtures, and one metadata error. Parsed tests
+produce 102,924 variants (52,030 sloppy, 50,021 strict, 32 raw, 841 module).
+No test execution is implied by this inventory. The sole metadata error is
+`built-ins/Function/prototype/toString/line-terminator-normalisation-CR.js`:
+the YAML parser rejects its CR-only metadata. Source line endings must remain
+unchanged; validate a metadata-only normalization fix before repeating inventory.
+
+Deterministic discovery tests initially failed because the module was absent
+(85427, terminal 4597da). The candidate uses normal filesystem reads with memfs
+tests, retains fixture filenames, sorts and deduplicates selected paths, and
+rejects escapes, symbolic links and empty/missing selections. Its focused
+checks are running while the CR-only metadata defect is queued for reproduction.
+
+Discovery passed all seven initial tests (99778, terminal 8d1b1c). The CR-only
+metadata regression then failed while eighteen controls passed (82045,
+terminal 88148b). The candidate normalizes CR/CRLF only in the extracted YAML
+substring; the original test source and variant source are unchanged. Combined
+conformance tests and scoped metadata/discovery lint are running.
+
+All 61 infrastructure tests and scoped lint passed (67384, terminal fe312a).
+The unchanged upstream CR-only file now parses with its source preserved
+(15303, terminal 0b7d36), but both execution variants fail during harness setup.
+Direct inspection (4468, terminal a5e59d) isolates `nativeFunctionMatcher.js`:
+its large Unicode regex exceeds the fixed regex-source cap (4097 > 4096).
+This is a separate resource-policy limitation, not a remaining metadata error
+or a semantic pass. No guard or harness source was weakened to bypass it.
+The repeat whole-corpus metadata inventory through maintained discovery remains
+live under 88195; do not substitute focused results for its final accounting.

@@ -66,3 +66,10 @@ it.each([
 it("rejects an unterminated metadata block", () => {
   expect(() => prepareTest262("example.js", "/*---\nflags: [raw]")).toThrow();
 });
+
+it.each(["\r", "\r\n", "\n"])("parses metadata line endings without normalizing test source: %j", ending => {
+  const source = ["/*---", "flags: [noStrict]", "includes: [compareArray.js]", "---*/", "function f(){return 1}"].join(ending);
+  expect(prepareTest262("line-endings.js", source)).toMatchObject({
+    kind: "test", variants: [{ mode: "sloppy", source, harness: ["assert.js", "sta.js", "compareArray.js"] }]
+  });
+});

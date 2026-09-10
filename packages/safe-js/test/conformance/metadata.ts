@@ -28,7 +28,8 @@ export function prepareTest262(filename: string, source: string): PreparedTest26
   if (start !== -1) {
     const end = source.indexOf("---*/", start + 5);
     if (end === -1) throw new Error("Unterminated Test262 metadata");
-    const parsed: unknown = parse(source.slice(start + 5, end), { uniqueKeys: true });
+    const yaml = source.slice(start + 5, end).replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+    const parsed: unknown = parse(yaml, { uniqueKeys: true });
     if (parsed !== null && (typeof parsed !== "object" || Array.isArray(parsed)))
       throw new Error("Test262 metadata must be a mapping");
     metadata = (parsed ?? {}) as Record<string, unknown>;

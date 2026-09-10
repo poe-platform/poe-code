@@ -7,6 +7,19 @@ export interface NativeMethodMetadataContext {
   actualType?(value: RuntimeValue): TypeValue;
 }
 
+/** CPython's protocol-wrapper documentation is shared by slot, independent of
+ * the defining class. An explicit native capability can override the text. */
+const wrapperDocumentation: ReadonlyMap<string, string> = new Map([
+  ["__get__", "Return an attribute of instance, which is of type owner."],
+  ["__set__", "Set an attribute of instance to value."],
+  ["__delete__", "Delete an attribute of instance."],
+  ["__init__", "Initialize self.  See help(type(self)) for accurate signature."],
+  ["__call__", "Call self as a function."],
+  ["__getattribute__", "Return getattr(self, name)."],
+  ["__setattr__", "Implement setattr(self, name, value)."],
+  ["__delattr__", "Implement delattr(self, name)."]
+]);
+
 function qualifiedName(owner: TypeValue, name: string, source: "descriptor" | "method", values: RuntimeValues, meter: ExecutionMeter, context?: NativeMethodMetadataContext): Extract<RuntimeValue, { kind: "str" }> {
   const stem = context?.attribute === undefined ? owner.value.names.get("__qualname__", values, meter) : context.attribute(owner, "__qualname__");
   meter.checkpoint();
@@ -17,7 +30,13 @@ function qualifiedName(owner: TypeValue, name: string, source: "descriptor" | "m
 /** Native descriptors cache their defining owner's qualified name. Bound
  * built-ins instead consult their receiver's current type on every read. */
 export function readRuntimeNativeMethodMetadata(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, context?: NativeMethodMetadataContext): RuntimeValue | undefined {
+  if (receiver.kind === "builtin_function_or_method" && name === "__doc__") {
+    meter.checkpoint();
+    const doc = receiver.binding === undefined ? receiver.value.doc : receiver.binding.descriptor.value.doc;
+    return doc === undefined ? values.none : values.string(doc);
+  }
   if (receiver.kind === "builtin_function_or_method" && receiver.binding !== undefined) {
+    meter.checkpoint();
     const binding = receiver.binding;
     if (name === "__name__") return values.string(binding.descriptor.value.name);
     if (name === "__self__") return binding.instance;
@@ -32,9 +51,14 @@ export function readRuntimeNativeMethodMetadata(receiver: RuntimeValue, name: st
     }
     return qualifiedName(owner, binding.descriptor.value.name, "method", values, meter, context);
   }
-  if (receiver.kind === "method-wrapper" && name === "__self__") return receiver.value.instance;
+  if (receiver.kind === "method-wrapper" && name === "__self__") { meter.checkpoint(); return receiver.value.instance; }
   const descriptor = receiver.kind === "method-wrapper" ? receiver.value.descriptor : receiver;
   if (descriptor.kind !== "method_descriptor" && descriptor.kind !== "classmethod_descriptor" && descriptor.kind !== "wrapper_descriptor" && descriptor.kind !== "getset_descriptor" && descriptor.kind !== "member_descriptor") return undefined;
+  meter.checkpoint();
+  if (name === "__doc__") {
+    const doc = descriptor.value.doc ?? (descriptor.kind === "wrapper_descriptor" ? wrapperDocumentation.get(descriptor.value.name) : undefined);
+    return doc === undefined ? values.none : values.string(doc);
+  }
   if (name === "__name__") return values.string(descriptor.value.name);
   if (name === "__objclass__") return descriptor.value.owner;
   if (name === "__qualname__") return values.descriptorQualifiedName(descriptor, () => qualifiedName(descriptor.value.owner, descriptor.value.name, "descriptor", values, meter, context));

@@ -45,6 +45,6 @@ export function installRuntimeInstanceSlots(owner: TypeValue, values: RuntimeVal
   const weakKey = values.string("__weakref__");
   if (owner.value.hasWeakReferences && (declaration?.weakReferences || !inheritedWeakReferences && owner.value.namespace.items.lookup(weakKey) === undefined)) {
     meter.checkpoint(1, 96);
-    owner.value.namespace.items.set(weakKey, values.getsetDescriptor({ owner, name: "__weakref__", accepts, get: () => values.none }));
+    owner.value.namespace.items.set(weakKey, values.getsetDescriptor({ owner, name: "__weakref__", doc: "list of weak references to the object", accepts, get: () => values.none }));
   }
 }

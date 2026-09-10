@@ -117,7 +117,12 @@ export interface BuiltinInvocationContext {
   compare?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
 }
 
-export interface BuiltinFunctionCapability {
+export interface NativeDocumentation {
+  /** Native documentation text, never a guest attribute lookup or evaluator. */
+  readonly doc?: string;
+}
+
+export interface BuiltinFunctionCapability extends NativeDocumentation {
   readonly name: string;
   /** Native keyword-dict calling conventions may validate names after their
    * positional work. Opted-in callees must perform their own keyword checks. */
@@ -175,7 +180,7 @@ export interface TypeValue {
 
 /** Explicit native descriptor capability. Accessors receive a receiver already
  * accepted by the applicability policy; callbacks own their internal metering. */
-export interface GetsetDescriptorCapability {
+export interface GetsetDescriptorCapability extends NativeDocumentation {
   readonly owner: TypeValue;
   readonly name: string;
   accepts(instance: RuntimeValue, meter: ExecutionMeter): boolean;
@@ -196,7 +201,7 @@ export interface MemberDescriptorValue {
 
 /** Native instance method: receiver applicability is separate from argument
  * validation. The implementation receives an accepted receiver, not self in args. */
-export interface MethodDescriptorCapability {
+export interface MethodDescriptorCapability extends NativeDocumentation {
   readonly owner: TypeValue;
   readonly name: string;
   accepts(instance: RuntimeValue, meter: ExecutionMeter): boolean;

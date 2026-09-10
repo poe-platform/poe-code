@@ -16,7 +16,7 @@ function actualClass(value: RuntimeValue, meter: ExecutionMeter, invocation?: Bu
  * Existing dictionaries, payloads and captured bound methods are left intact. */
 export function createObjectClassDescriptor(values: RuntimeValues, meter: ExecutionMeter, registry: RuntimeTypeRegistry): GetsetDescriptorValue {
   meter.checkpoint(1, 96);
-  return values.getsetDescriptor({ owner: registry.object, name: "__class__", accepts: () => true,
+  return values.getsetDescriptor({ owner: registry.object, name: "__class__", doc: "the object's class", accepts: () => true,
     get: actualClass,
     set(receiver, next, meter, invocation) {
       if (next.kind !== "type") {

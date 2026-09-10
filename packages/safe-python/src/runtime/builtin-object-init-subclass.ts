@@ -6,6 +6,7 @@ import type { ClassMethodDescriptorValue, RuntimeValues, TypeValue } from "./run
 export function createObjectInitSubclassDescriptor(values: RuntimeValues, meter: ExecutionMeter, objectType: TypeValue): ClassMethodDescriptorValue {
   meter.checkpoint(1, 96);
   return values.classMethodDescriptor({ owner: objectType, name: "__init_subclass__",
+    doc: "This method is called when a class is subclassed.\n\nThe default implementation does nothing. It may be\noverridden to extend subclasses.\n",
     accepts(receiver, meter) {
       if (receiver.kind !== "type") return false;
       for (const ancestor of receiver.value.mro) { meter.checkpoint(); if (ancestor === objectType.value) return true; }

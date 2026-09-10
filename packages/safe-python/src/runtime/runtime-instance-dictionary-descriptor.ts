@@ -7,7 +7,7 @@ import { hasRuntimeInstanceAttributes, type GetsetDescriptorValue, type RuntimeV
 export function createInstanceDictionaryDescriptor(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): GetsetDescriptorValue {
   meter.checkpoint(1, 96);
   return values.getsetDescriptor({
-    owner, name: "__dict__",
+    owner, name: "__dict__", doc: "dictionary for instance variables",
     accepts(instance, meter) {
       if (instance.kind !== "instance") return false;
       for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }

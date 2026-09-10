@@ -83,7 +83,7 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
       }
     }));
   }
-  owner.value.namespace.items.set(values.string("__new__"), values.builtinFunction({ name: `${kind}.__new__`, invoke(positional, _keywords, meter, invocation) {
+  owner.value.namespace.items.set(values.string("__new__"), values.builtinFunction({ name: `${kind}.__new__`, doc: "Create and return a new object.  See help(type) for accurate signature.", invoke(positional, _keywords, meter, invocation) {
     meter.checkpoint();
     if (positional.length === 0) throw new PythonRuntimeError("TypeError", `${kind}.__new__(): not enough arguments`);
     const type = positional[0]!;

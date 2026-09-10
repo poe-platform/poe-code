@@ -6,6 +6,7 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { allocateRuntimeType } from "./runtime-type-allocation.js";
 import { readRuntimeGetsetDescriptor, mutateRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
+import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -41,6 +42,14 @@ it("retains duplicate positions while publishing the last descriptor", () => {
   expect(owner.value.slotCount).toBe(2);
   mutateRuntimeGetsetDescriptor(slot, instance, { kind: "set", value: v.true }, meter);
   expect(instance.state.slots.get(0)).toBeUndefined(); expect(instance.state.slots.get(1)).toBe(v.true);
+});
+
+it("keeps slot descriptor documentation separate from dictionary-form declarations", () => {
+  const { v, meter, registry, dictionary, descriptor } = fixture(), source = dictionary(), declarations = dictionary();
+  declarations.items.set(v.string("x"), v.string("Documentation for inspect.getdoc.")); source.items.set(v.string("__slots__"), declarations);
+  const owner = allocateRuntimeType(v.string("C"), [], source, registry.type, registry, v, meter), slot = descriptor(owner, "x");
+  expect(runtimeNativeAttribute(slot, "__doc__", v, meter)).toBe(v.none);
+  expect(owner.value.namespace.items.lookup(v.string("__slots__"))?.value).toBe(declarations);
 });
 
 it.each(["staticmethod", "classmethod"] as const)("stores %s subclass slots separately from wrapper metadata", kind => {

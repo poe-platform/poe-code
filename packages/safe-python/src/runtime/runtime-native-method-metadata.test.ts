@@ -13,8 +13,37 @@ function fixture(signal?: AbortSignal) {
   const keys = { hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, v, meter).value }, registry = new RuntimeTypeRegistry(v, keys, meter);
   const type = (name: string) => registry.publish(new RuntimeTypeLayout(name, [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter), registry.type);
   const owner = type("C"), capability = { owner, name: "field", accepts: () => true, invoke: () => v.none, get: () => v.none };
-  return { meter, v, owner, type, capability };
+  return { meter, v, owner, type, capability, registry };
 }
+
+it("reflects missing descriptor documentation as None without owner lookups", () => {
+  const { meter, v, capability } = fixture();
+  for (const value of [v.methodDescriptor(capability), v.classMethodDescriptor(capability), v.wrapperDescriptor(capability), v.getsetDescriptor(capability), v.memberDescriptor(capability)]) {
+    expect(readRuntimeNativeMethodMetadata(value, "__doc__", v, meter, { attribute() { throw Error("unexpected owner lookup"); } })).toBe(v.none);
+  }
+});
+
+it("exposes canonical wrapper documentation on descriptors and their bound methods", () => {
+  const { meter, v, registry } = fixture(), descriptor = registry.object.value.namespace.items.lookup(v.string("__init__"))!.value;
+  if (descriptor.kind !== "wrapper_descriptor") throw Error("expected wrapper descriptor");
+  const bound = getRuntimeMethodDescriptor(descriptor, v.true, v.none, v, meter);
+  for (const value of [descriptor, bound]) expect(readRuntimeNativeMethodMetadata(value, "__doc__", v, meter)).toEqual(v.string("Initialize self.  See help(type(self)) for accurate signature."));
+});
+
+it.each(["", "Native documentation.\nSecond line."])("preserves explicit documentation %j on native bindings and descriptors", doc => {
+  const { meter, v, capability } = fixture(), documented = { ...capability, doc };
+  const method = v.methodDescriptor(documented), bound = getRuntimeMethodDescriptor(method, v.true, v.none, v, meter);
+  for (const value of [method, bound, v.getsetDescriptor(documented), v.memberDescriptor(documented), v.builtinFunction({ name: "native", doc, invoke: () => v.none })]) {
+    expect(readRuntimeNativeMethodMetadata(value, "__doc__", v, meter)).toEqual(v.string(doc));
+  }
+  const wrapper = v.wrapperDescriptor({ ...documented, name: "__init__" });
+  expect(readRuntimeNativeMethodMetadata(wrapper, "__doc__", v, meter)).toEqual(v.string(doc));
+});
+
+it("checks cancellation even for missing native documentation", () => {
+  const controller = new AbortController(), { meter, v, capability } = fixture(controller.signal), descriptor = v.memberDescriptor(capability);
+  controller.abort(); expect(() => readRuntimeNativeMethodMetadata(descriptor, "__doc__", v, meter)).toThrow("execution cancelled");
+});
 
 it("caches qualified names independently for all five native descriptor families", () => {
   const { meter, v, owner, capability } = fixture();

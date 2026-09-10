@@ -84,6 +84,15 @@ it("retains slot values across compatible compiled class reassignment", () => {
   expect(state.globals.get("result")).toEqual(state.v.integer(9)); expect(state.globals.get("changed")).toBe(state.v.true);
 });
 
+it("reads native documentation through compiled attribute access", () => {
+  const state = fixture(); state.globals.set("object", state.registry.object);
+  state.run("init_doc=object.__init__.__doc__\nnew_doc=object.__new__.__doc__\ninstance=object()\nbound_doc=instance.__init__.__doc__\nclass_doc=object.__dict__['__class__'].__doc__\n");
+  expect(state.globals.get("init_doc")).toEqual(state.v.string("Initialize self.  See help(type(self)) for accurate signature."));
+  expect(state.globals.get("bound_doc")).toEqual(state.globals.get("init_doc"));
+  expect(state.globals.get("new_doc")).toEqual(state.v.string("Create and return a new object.  See help(type) for accurate signature."));
+  expect(state.globals.get("class_doc")).toEqual(state.v.string("the object's class"));
+});
+
 it.each([
   ["[True] * index", "[True, True]"], ["index * [True]", "[True, True]"],
   ["(True,) * index", "(True, True)"], ["index * (True,)", "(True, True)"],

@@ -8231,6 +8231,21 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint pass. Actual weak-reference objects/callbacks, slot documentation
   introspection, complete native sizing/alignment, mutable-base invalidation and
   public class-builder/execution wiring remain unfinished.
+- Added native __doc__ reflection for descriptor families, bound native methods,
+  method wrappers and builtin capabilities. Protocol-wrapper documentation is
+  shared by slot; explicit native text (including empty text) is preserved.
+  Object/class storage descriptors, subclass hooks and allocation builtins expose
+  their documented text. Slot descriptors correctly return None independently of
+  dictionary-form __slots__ documentation, which remains available to a future
+  inspect.getdoc implementation. Two metadata regressions initially failed;
+  seven added tests cover compiled reads, native bindings, overrides, slot docs
+  and cancellation. The full suite caught three budget-sensitive regressions
+  from a misplaced metadata checkpoint; restricting charges to applicable native
+  values fixed them without increasing test budgets. All 50 native documentation
+  reads, 105 qualified-name reads and 96 wrapper constructions match CPython.
+  All 6,391 tests in 486 files, selected build, typecheck and scoped lint pass.
+  Complete builtin documentation catalogs, inspect integration, weak-reference
+  objects and public class-builder/execution wiring remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

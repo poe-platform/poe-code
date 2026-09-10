@@ -67,3 +67,8 @@ cases without runtime changes:
 The some result is d9ffac; every/find complete in d974b3. No guest or native
 failure was reported in these selections. The full-package gate was still
 running independently, and these results do not supersede its eventual result.
+
+The remaining checked consumers/adaptor add 64 unchanged passes with matching
+fresh native controls and no metadata exclusions: forEach 27, toArray 18
+(d7ed28), and Iterator.from 19 (77f3a5). The same strict-source and harness
+limitations apply; this does not qualify every iterator proposal or realm case.

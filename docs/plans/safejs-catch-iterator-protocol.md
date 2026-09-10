@@ -46,7 +46,34 @@ snapshot validators. Do not simply accept arbitrary block-scope IDs or skip
 binding validation. The general array-pattern continuation preserves its
 iterator/index, but catch currently creates a fresh lexical scope on entry.
 The native comparison expects the earlier `a` and resumed `b` to survive.
-Candidate typecheck/lint session 10582 has not yet returned a terminal result.
+Candidate typecheck/lint session 10582 completed successfully (2e1c2f), before
+the subsequent scope-recovery changes.
+
+## Catch-scope recovery candidate
+
+Catch scope is now retained under the CatchClause AST identity in the existing
+scope map. Parameter initialization also retains the original thrown value in
+an existing pattern-source expression record. Resumption recognizes the whole
+handler, not only its body, avoiding repeated execution of the try block.
+An existing restored catch scope is reused without predeclaring its initialized
+bindings again. Body resumption still skips completed parameter binding.
+
+The AST validator derives the exact expected CatchClause scope from the yield
+path and expects the catch source only while inside the parameter. The restore
+path accepts BlockStatement or CatchClause nodes for scope records; arbitrary
+IDs remain rejected by source-ownership validation.
+
+The eight initial sync/async checkpoint cases pass (0455d8). The expanded
+selection passes 21 tests (d9c874): object/default/computed keys, rest, nested
+catches, effect counts and four missing/unrelated scope/source corruptions.
+The candidate full snapshot selection is running in session 19063 with report
+`/tmp/safejs-catch-snapshot-candidate-results.json`. Scoped lint passed (d2de5d).
+TypeScript session 9411 found two AST type assumptions: resume-target accepted
+only ParseResult and the restore scope discriminator excluded CatchClause.
+The candidate explicitly admits CatchClause in resume-target's input type and
+checks the restored scope node's string discriminator against only the two
+supported scope-bearing types. These are type-only changes; a fresh TypeScript
+check is running in session 30946. Do not integrate based only on focused passes.
 
 ## Repair requirements
 

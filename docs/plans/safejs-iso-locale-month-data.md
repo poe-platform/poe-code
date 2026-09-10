@@ -86,3 +86,26 @@ These assertions avoid the existing year/month test's native expected-value
 precondition: they validate actual guest results against known standalone names.
 They do not assume a universal year/month ordering across CLDR versions.
 No runtime workaround has been added; the full-package run is still active.
+
+## Width controls and extraction feasibility
+
+The expanded standalone guest regression covers all five month widths in the
+same three locales. On Node 22.23.2 it reports 12 passes and three failures:
+numeric, two-digit, short and narrow work across all three guest APIs; only
+long names disappear (focused run c5a2e7). This narrows the repair investigation
+to wide-name resolution rather than absence of all ISO month data. The initial
+attempt from the package directory could not load root test setup and ran no
+tests; the reported result uses Vitest from the repository root.
+
+Read-only inspection of the published `cldr-dates-full@48.2.0` tar archive
+finds only `ca-generic.json`, `ca-gregorian.json`, `dateFields.json` and
+`timeZoneNames.json` under `main/en`, and no ISO-named paths anywhere in the
+archive. The generic calendar's wide month names are M01 through M12, not
+localized Gregorian names. Therefore installing this package alone does not
+provide the previously proposed direct ISO-pattern extraction source. Its
+registry metadata reports 94,909,291 unpacked bytes; no dependency was added.
+
+Next, evaluate whether native working-width parts can locate the missing field
+without changing ISO layout, and separately resolve the required wide-name
+grammatical context. Do not assume short and long patterns or range collapsing
+are interchangeable: validate those boundaries before adopting this route.

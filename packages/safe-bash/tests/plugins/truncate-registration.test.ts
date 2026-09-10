@@ -2,13 +2,18 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { agentCommands, createAgentCommands, CommandRegistry, createMemoryFileSystem, createReadOnlyFileSystem, evaluateCommandSupport, Shell } from "../../src/index.js";
 
-test("truncate support declaration requires retained resizing and respects readonly policy", () => {
+test("truncate support declaration accepts retained or atomic resizing and respects readonly policy", () => {
   const command = createAgentCommands().find(definition => definition.name === "truncate");
   assert.ok(command);
   for (const [capabilities, status] of [
     [{ retainedResize: true }, "supported"],
     [{}, "partial"],
-    [{ retainedResize: false }, "unsupported"],
+    [{ retainedResize: false }, "partial"],
+    [{ atomicResize: false }, "partial"],
+    [{ retainedResize: false, atomicResize: false }, "unsupported"],
+    [{ atomicResize: true }, "supported"],
+    [{ retainedResize: false, atomicResize: true }, "supported"],
+    [{ atomicResize: true, readOnly: true }, "unsupported"],
     [{ retainedResize: true, readOnly: true }, "unsupported"],
   ] as const) {
     const result = evaluateCommandSupport(command, capabilities);

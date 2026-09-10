@@ -180,6 +180,11 @@ console.log(result.returnValue);
 
 The lint registry describes exports; the runtime registry supplies their values. Both accept records or Maps. Module names are host-defined identifiers, not file paths or npm packages. Validate arguments and enforce permissions inside each host operation. Adding a function does not make its effects safe to replay.
 
+Dynamic `import()` processes enumerable string-keyed attributes using
+normal property reflection, including Proxy traps and getter-driven changes.
+Attribute-processing errors reject the import promise. Nonempty import
+attributes are unsupported by the registered-module host and are rejected.
+
 ## Keep state between evaluations
 
 ```js

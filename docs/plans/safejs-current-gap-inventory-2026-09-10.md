@@ -64,6 +64,12 @@ failure count. Legacy substr is also repaired; see
 
 ## Remaining verified gaps and verification work
 
+Dynamic import attribute reflection is repaired locally: Proxy key/descriptor/
+get traps and live enumerability now use the shared enumerable-property helper.
+Eight regressions failed before the fix; 1,285 related tests pass, with clean
+lint and TypeScript checks. Nonempty attributes remain unsupported by the
+registered-module host. See [the repair record](safejs-import-attribute-reflection.md).
+
 Catch destructuring's array-only binding, omitted Proxy object-rest reflection
 and lost parameter-default checkpoint bindings are now repaired on local main
 using the shared binding implementation. Main validation passes 73 focused

@@ -1205,7 +1205,7 @@ function createArrayFromConstructorArgs(
   return value;
 }
 
-async function getOwnEnumerableProperties(
+export async function getOwnEnumerableProperties(
   value: SandboxValue,
   kind: "key" | "value" | "key+value",
   budget: Budget,

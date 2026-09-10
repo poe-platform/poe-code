@@ -24,7 +24,7 @@ import { getGeneratorOrigin } from "./closure-origin.js";
 import { retainValues } from "./resources.js";
 import { templateObject, templateRawArrays } from "./template-objects.js";
 import { evaluateClass } from "./classes.js";
-import { defineDataProperty, reflectionProperties } from "./globals/object-array.js";
+import { defineDataProperty, getOwnEnumerableProperties, reflectionProperties } from "./globals/object-array.js";
 import { objectToPrimitive, sandboxString } from "./string-coercion.js";
 import type {
   ArrayExpression,
@@ -184,7 +184,6 @@ import {
   createSandboxRegex,
   createSandboxPromise,
   allocateProducedSandboxValue,
-  ownEnumerableSandboxKeys,
   ownSandboxSymbolKeys,
   isSandboxClosure,
   isSandboxGenerator,
@@ -379,11 +378,10 @@ const dispatchTable: DispatchTable = {
         const attributes = await getPropertyValue(options.value,"with",context);
         if (attributes !== undefined) {
           if (typeof attributes !== "object" || attributes === null) throw new TypeError("Import attributes must be an object.");
-          const keys = ownEnumerableSandboxKeys(attributes);
-          const values = [];
-          for (const key of keys) values.push(await getPropertyValue(attributes,key,context));
+          const values = await getOwnEnumerableProperties(attributes, "value", context.budget, callContext);
+          retained.push(values);
           if (values.some(value=>typeof value !== "string")) throw new TypeError("Import attribute values must be strings.");
-          if (keys.length !== 0) throw new TypeError("Registered modules do not support import attributes.");
+          if (values.length !== 0) throw new TypeError("Registered modules do not support import attributes.");
         }
       }
       const environment = context.scope.lookupModuleEnvironment();

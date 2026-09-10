@@ -9677,6 +9677,17 @@ extension, integration, or validation requirement is missing or unverified.
   Tracebacks/notes, dictionary/serialization descriptors, builtin exception
   hierarchy, fault translation, raise/try wiring and full interpreter/safe-fs
   assembly remain unfinished. No push or release was requested.
+- Exception notes (2026-09-10): two failing integration tests drove
+  BaseException.add_note, preserving native list identity, validating strings
+  before virtual attribute lookup, and publishing an empty list through the
+  setter before native append. List-subclass append overrides are bypassed.
+  Two additional tests cover setters that discard the list and guest/host/fatal
+  hook failures without premature append. All 252 argument/storage/binding
+  comparisons and 48 attribute-hook comparisons match CPython. Focused tests,
+  typecheck, lint, the selected workspace build and all 7,121 tests in 502 files
+  pass in the uncached one-worker package run. Dictionary/serialization and traceback descriptors, exception
+  hierarchy, fault translation, raise/try wiring and full interpreter/safe-fs
+  assembly remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

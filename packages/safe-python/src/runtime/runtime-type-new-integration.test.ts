@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { analyzeModule } from "../analysis.js";
-import { ExecutionBudget } from "./execution-budget.js";
+import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { RuntimeValues, type RuntimeValue, type TypeValue } from "./runtime-values.js";
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
@@ -26,6 +26,7 @@ import { constructRuntimeFloat } from "./runtime-float-construction.js";
 import { createRoundBuiltin } from "./builtin-round.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { NumericLocale } from "./numeric-locale.js";
+import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -67,6 +68,42 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("adds exception notes through native list storage while preserving list identity",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());state.globals.set("List",state.registry.listType());
+  state.run("e=BaseException('message')\nfirst=e.add_note('first')\nnotes=e.__notes__\ne.add_note('second')\nclass L(List):\n def append(self,value):\n  visit('wrong')\ne.__notes__=L()\ne.add_note('third')\ncorrect=first is None and notes==['first','second'] and e.__notes__==['third']\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+  state.run("e.__notes__=None\n");expect(()=>state.run("e.add_note('x')\n")).toThrow("Cannot add note: __notes__ is not a list");
+  expect(()=>state.run("e.add_note(None)\n")).toThrow("add_note() argument must be str, not None");
+});
+
+it("validates notes before lookup and exposes the empty list to the attribute setter",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("class E(BaseException):\n def __getattribute__(self,name):\n  if name=='__notes__':\n   visit('get')\n  return object.__getattribute__(self,name)\n def __setattr__(self,name,value):\n  if name=='__notes__':\n   visit('empty' if value==[] else 'not empty')\n  object.__setattr__(self,name,value)\ne=E()\n");
+  expect(()=>state.run("e.add_note(1)\n")).toThrow("add_note() argument must be str, not int");expect(state.events).toEqual([]);
+  state.run("e.add_note('one')\ne.add_note('two')\ncorrect=e.__notes__==['one','two']\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["get","empty","get","get"]);
+  expect(()=>state.run("e.add_note()\n")).toThrow("E.add_note() takes exactly one argument (0 given)");
+  expect(()=>state.run("BaseException.add_note(e)\n")).toThrow("BaseException.add_note() takes exactly one argument (0 given)");
+});
+
+it("appends to the supplied note list even when an attribute setter discards it",()=>{
+  const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());
+  state.run("captured=[]\nclass E(BaseException):\n def __setattr__(self,name,value):\n  if name=='__notes__':\n   captured.append(value)\n  else:\n   object.__setattr__(self,name,value)\ne=E()\ne.add_note('one')\ne.add_note('two')\ncorrect=captured==[['one'],['two']]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves note hook failures and does not append before a successful setter",()=>{
+  const state=fixture(),owner=state.registry.baseExceptionType();state.globals.set("BaseException",owner);state.run("e=BaseException()\n");
+  const descriptor=createExceptionAddNoteDescriptor(owner,state.v,state.meter),receiver=state.globals.get("e")!,keywords=state.v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,state.meter));
+  const unused=():never=>{throw Error("unexpected call");};
+  for(const failure of [Error("host fault"),new ExecutionLimitError("cancelled"),new PythonRuntimeError("ValueError","guest fault")]) {
+    expect(()=>descriptor.value.invoke(receiver,[state.v.string("note")],keywords,state.meter,{call:unused,isStopIteration:unused,attribute(){throw failure;},setAttribute:unused})).toThrow(failure);
+    let captured:RuntimeValue|undefined;
+    expect(()=>descriptor.value.invoke(receiver,[state.v.string("note")],keywords,state.meter,{call:unused,isStopIteration:unused,attribute(){throw new PythonRuntimeError("AttributeError","missing");},setAttribute(_receiver,_name,value){captured=value;throw failure;}})).toThrow(failure);
+    expect(captured?.kind).toBe("list");if(captured?.kind==="list")expect(captured.items.length).toBe(0);
+  }
+});
 
 it("stores exception cause/context independently and enables suppression on cause assignment",()=>{
   const state=fixture();state.globals.set("BaseException",state.registry.baseExceptionType());

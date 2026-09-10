@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeExceptionPayload } from "./runtime-exception-state.js";
@@ -13,6 +14,7 @@ import type { RuntimeValues,TypeValue } from "./runtime-values.js";
  * mutations through guest attributes cannot substitute for native args. */
 export function installRuntimeExceptionDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
   installRuntimeExceptionLinkDescriptors(owner,values,meter);
+  owner.value.namespace.items.set(values.string("add_note"),createExceptionAddNoteDescriptor(owner,values,meter));
   meter.checkpoint(0,192);
   owner.value.namespace.items.set(values.string("args"),values.getsetDescriptor({owner,name:"args",accepts:value=>runtimeExceptionPayload(value)!==undefined,
     get(value,meter){meter.checkpoint();return runtimeExceptionPayload(value)!.args;},

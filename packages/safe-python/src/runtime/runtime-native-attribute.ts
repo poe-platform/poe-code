@@ -53,6 +53,7 @@ import { createRuntimeBytesStripMethod } from "./runtime-bytes-strip-method.js";
 import { createRuntimeStringClassificationMethod } from "./runtime-string-classification-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import type { RuntimeBytesInputContext } from "./runtime-bytes-input.js";
+import { createRuntimeStringTranslateMethod, type RuntimeStringTranslationContext } from "./runtime-string-translate-method.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
@@ -60,7 +61,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * Custom object policies can replace this operation in expression bindings.
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, methods?: RuntimeListMethodContext & RuntimeBytesInputContext): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
     const context = formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
@@ -115,6 +116,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
       case "isdigit": case "isnumeric": case "isalnum": case "isprintable": case "islower": case "isupper": case "istitle":
         return createRuntimeStringClassificationMethod(receiver, name, values, meter);
     }
+    if (name === "translate") return createRuntimeStringTranslateMethod(receiver, values, meter, methods?.translation);
     if (name === "replace") return createRuntimeStringReplaceMethod(receiver, values, meter, methods?.integerIndex);
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeStringStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeStringJoinMethod(receiver, values, meter, methods?.iterate);

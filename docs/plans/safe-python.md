@@ -6715,6 +6715,16 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck and selected workspace build pass. Native str.translate binding and
   mapping-result protocols are next; concrete object models, automatic builtin
   assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected native str.translate to the metered kernel and frame capabilities.
+  Native mappings use subscription; guest lookup and pure subclass payload
+  inspection are explicit capabilities. LookupError preserves characters, None
+  deletes, and integer/string results are validated without coercion hooks.
+- Eight compiled regressions cover native mappings, empty input, guest lookup
+  schedules and invalid results. All 5,153 tests in 441 files pass; 216 CPython
+  comparisons match output/errors and lookup traces. Typecheck, scoped lint and
+  selected workspace build pass. str.maketrans, concrete object models, automatic
+  builtin assembly and broader interpreter/SDK/safe-fs integration remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

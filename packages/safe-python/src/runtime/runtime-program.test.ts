@@ -39,6 +39,40 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([
+    ["[]", "character mapping must return integer, None or str"],
+    ["-1", "character mapping must be in range(0x110000)"],
+    ["1 << 100", "character mapping must be in range(0x110000)"]
+  ])("validates translation result %s", (value, message) => {
+    const state = fixture(`result='a'.translate({97:${value}})\n`);
+    state.hooks.expressions = () => ({ warn() {} });
+    expect(() => state.run()).toThrow(message);
+    expect(state.globals.has("result")).toBe(false);
+  });
+  it.each([
+    ["'ababa'.translate({97:'xy',98:None})", "xyxyxy"],
+    ["'aéa'.translate({97:98})", "béb"],
+    ["'abc'.translate({97:False})", "\0bc"],
+    ["''.translate(None)", ""]
+  ])("executes native string translation: %s", (expression, expected) => {
+    const state = fixture(`result=${expression}\n`);
+    state.hooks.expressions = () => ({ warn() {} });
+    state.run(); expect(state.globals.get("result")).toEqual(state.values.string(expected));
+  });
+  it("preserves guest translation lookup schedules", () => {
+    const state = fixture("result='ababa'.translate(table)\n"), v = state.values, table = v.cell({}), calls: bigint[] = [];
+    state.globals.set("table", table);
+    state.hooks.expressions = () => ({ warn() {}, translation: {
+      lookup(mapping, key) {
+        expect(mapping).toBe(table); if (key.kind !== "int") throw Error("expected key");
+        calls.push(key.value);
+        if (key.value === 97n) return v.string("xy");
+        throw new PythonRuntimeError("LookupError", "missing");
+      }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.string("xybxybxy"));
+    expect(calls).toEqual([97n,97n,98n,97n,98n,97n]);
+  });
   it.each(["Guest", "x".repeat(300)])("reports guest byte-input types with bounded diagnostics: %s", name => {
     const state = fixture("result=(0).from_bytes(source)\n"), v = state.values;
     state.globals.set("source", v.cell({}));

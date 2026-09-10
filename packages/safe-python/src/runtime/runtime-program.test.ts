@@ -39,6 +39,35 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("constructs byte translation tables from live buffer leases", () => {
+    const state = fixture("result=b'a'.translate(b''.maketrans(source,target))\n"), v = state.values, source = v.cell({}), target = v.cell({}), trace: string[] = [];
+    const data = Uint8Array.of(98);
+    state.globals.set("source", source); state.globals.set("target", target);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        const name = value === source ? "source" : "target"; trace.push(`acquire ${name}`);
+        if (value === target) data[0] = 97;
+        return { byteLength: 1, copy: () => v.bytes(value === source ? data : Uint8Array.of(99)).value, release() { trace.push(`release ${name}`); } };
+      }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(Uint8Array.of(99)));
+    expect(trace).toEqual(["acquire source", "acquire target", "release source", "release target"]);
+  });
+  it.each(["length", "acquisition", "cancel"] as const)("cleans up byte maketrans leases after %s failure", mode => {
+    const controller = new AbortController(), state = fixture("result=b''.maketrans(source,target)\n", 100000, controller.signal), v = state.values;
+    const source = v.cell({}), target = v.cell({}), trace: string[] = [];
+    state.globals.set("source", source); state.globals.set("target", target);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        const name = value === source ? "source" : "target";
+        if (value === target && mode === "acquisition") throw new PythonRuntimeError("BufferError", "bad buffer");
+        if (value === target && mode === "cancel") controller.abort();
+        return { byteLength: value === target ? 2 : 1, copy() { throw Error("must not copy"); }, release() { trace.push(name); } };
+      }
+    } });
+    expect(() => state.run()).toThrow(mode === "length" ? "maketrans arguments must have same length" : mode === "acquisition" ? "bad buffer" : "execution cancelled");
+    expect(trace).toEqual(mode === "acquisition" ? ["source"] : ["source", "target"]);
+  });
   it("retains translation buffers until both inputs have been acquired", () => {
     const state = fixture("result=b'ab'.translate(table,deleted)\n"), v = state.values, table = v.cell({}), deleted = v.cell({}), trace: string[] = [];
     const data = Uint8Array.from({ length: 256 }, (_, index) => index);

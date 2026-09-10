@@ -6755,6 +6755,15 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Concrete buffer
   exporters, automatic object assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected bytes.maketrans to contiguous buffer leases. Both arguments are
+  acquired before length comparison and snapshots, preserving mutations during
+  the second acquisition. Cleanup releases the first then second lease even on
+  acquisition failure, invalid lengths or cancellation.
+- Four failing compiled regressions now pass. All 5,179 tests in 441 files pass;
+  48 CPython comparisons match tables/errors and acquisition/release traces.
+  Typecheck, scoped lint and selected workspace build pass. Remaining native
+  buffer consumers, concrete exporters, automatic object assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

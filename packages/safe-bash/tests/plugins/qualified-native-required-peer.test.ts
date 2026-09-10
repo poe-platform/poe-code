@@ -220,7 +220,7 @@ async function withIo(
   setup: ReturnType<typeof fixture>,
   run: () => Promise<void>
 ) {
-  for (const name of ["readFile", "lstat", "realpath"] as const)
+  for (const name of ["readFile", "lstat", "realpath", "readdir"] as const)
     context.mock.method(filesystem, name, setup.io.promises[name].bind(setup.io.promises));
   syncBuiltinESMExports();
   try {
@@ -480,6 +480,52 @@ test("required peer hashes binary buffers without any text decoding", async (con
     assert.equal(result.edges[`${prefix}${binaryPath}`], undefined);
   });
 });
+
+test("full emitted verification reads each fresh leaf once for hashing and peer imports", async (context) => {
+  const setup = fixture();
+  const map = "dist/index.js.map";
+  setup.io.writeFileSync(`${setup.snapshot}/${map}`, "{}");
+  const expected = { ...setup.emitted, [map]: digest("{}") };
+  const reads = new Map<string, number>();
+  const original = setup.io.promises.readFile.bind(setup.io.promises);
+  setup.io.promises.readFile = (async (...args: Parameters<typeof original>) => {
+    const path = String(args[0]);
+    reads.set(path, (reads.get(path) ?? 0) + 1);
+    return original(...args);
+  }) as typeof original;
+  await withIo(context, setup, async () => {
+    for (let scan = 1; scan <= 2; scan++) {
+      const peer = await captureRequiredPeer(setup.snapshot, expected, setup.tools, setup.binding, true);
+      assert.ok(peer.entries["poe-code/safe-fs"]);
+      for (const path of Object.keys(expected)) assert.equal(reads.get(`${setup.snapshot}/${path}`), scan);
+    }
+    setup.io.writeFileSync(`${setup.snapshot}/${map}`, "changed");
+    await assert.rejects(captureRequiredPeer(setup.snapshot, expected, setup.tools, setup.binding, true), /Built public artifacts changed/);
+  });
+});
+
+for (const change of ["changed", "missing", "extra", "symlink", "private-import"] as const) {
+  test(`full emitted verification rejects ${change} after a successful fresh capture`, async context => {
+    const setup = fixture();
+    await withIo(context, setup, async () => {
+      await captureRequiredPeer(setup.snapshot, setup.emitted, setup.tools, setup.binding, true);
+      const path = `${setup.snapshot}/dist/index.js`;
+      if (change === "changed") setup.io.writeFileSync(path, "changed");
+      if (change === "missing") setup.io.unlinkSync(path);
+      if (change === "extra") setup.io.writeFileSync(`${setup.snapshot}/dist/extra.js.map`, "{}");
+      if (change === "symlink") {
+        setup.io.unlinkSync(path);
+        setup.io.symlinkSync(`${setup.snapshot}/package.json`, path);
+      }
+      if (change === "private-import") {
+        const source = 'import "poe-code/private";';
+        setup.io.writeFileSync(path, source);
+        setup.emitted["dist/index.js"] = digest(source);
+      }
+      await assert.rejects(captureRequiredPeer(setup.snapshot, setup.emitted, setup.tools, setup.binding, true));
+    });
+  });
+}
 
 test("required peer retains emitted-source and captured-tool hash checks", async (context) => {
   const setup = fixture();

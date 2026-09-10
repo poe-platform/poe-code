@@ -28,7 +28,7 @@ interface CapturedDependency {
   files: { path: string; sha256: string }[];
 }
 
-export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashes, tools: Hashes, peerBinding?: { profile: string; metadataSha256: string; entries: Record<string, string>; files: readonly { path: string; sha256: string }[] }): Promise<RequiredPeer> {
+export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashes, tools: Hashes, peerBinding?: { profile: string; metadataSha256: string; entries: Record<string, string>; files: readonly { path: string; sha256: string }[] }, verifyEmittedTree = false): Promise<RequiredPeer> {
   const { capturePeerRuntimeFacts } = await import(new URL("../../../plugins/qualified-current-release/peer.mjs", import.meta.url).href);
   const facts: {
     edges: Readonly<Record<string, Readonly<Record<string, string>>>>;
@@ -71,10 +71,11 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
   }
   const entries: Record<string, string> = {};
   const publicEntries = checkoutBinding ? ["poe-code/safe-fs", "poe-code/safe-fs/core"] : ["poe-code/safe-fs"];
-  for (const path of Object.keys(emittedHashes).filter(path => path.endsWith(".js"))) {
-    const bytes = await readFile(join(snapshot, path));
-    assert.equal(digest(bytes), emittedHashes[path], `Emitted bytes changed before peer capture: ${path}`);
-    for (const { fileName } of ts.preProcessFile(bytes.toString(), true).importedFiles) {
+  const collectEntries = (path: string, bytes: Uint8Array, hash: string): void => {
+    if (!path.endsWith(".js")) return;
+    assert.equal(hash, emittedHashes[path], `Emitted bytes changed before peer capture: ${path}`);
+    const source = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString();
+    for (const { fileName } of ts.preProcessFile(source, true).importedFiles) {
       if (fileName !== "poe-code" && !fileName.startsWith("poe-code/")) continue;
       assert.ok(publicEntries.includes(fileName), `Unreviewed canonical runtime entry: ${fileName}`);
       const target = peer.exports[`.${fileName.slice("poe-code".length)}`]?.import;
@@ -82,6 +83,14 @@ export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashe
       assert.ok(target!.startsWith("./packages/") && target!.includes("/dist/") && !target!.split("/").includes(".."), "Canonical public target is not a built package entry");
       if (peerBinding) assert.equal(target, `./${peerBinding.entries[fileName]}`, `Canonical runtime differs from authenticated public binding: ${fileName}`);
       entries[fileName] = posix.join("node_modules/poe-code", target!);
+    }
+  };
+  if (verifyEmittedTree) {
+    assert.deepEqual(await census(join(snapshot, "dist"), snapshot, { readdir, readFile }, collectEntries), emittedHashes, "Built public artifacts changed after compilation");
+  } else {
+    for (const path of Object.keys(emittedHashes).filter(path => path.endsWith(".js"))) {
+      const bytes = await readFile(join(snapshot, path));
+      collectEntries(path, bytes, digest(bytes));
     }
   }
   assert.deepEqual(Object.keys(entries).sort(), publicEntries, "Canonical public runtime entry is missing");
@@ -206,7 +215,7 @@ interface CensusReader {
   readFile(path: string): Promise<Uint8Array>;
 }
 
-export async function census(directory: string, base = directory, io: CensusReader = { readdir, readFile }): Promise<Hashes> {
+export async function census(directory: string, base = directory, io: CensusReader = { readdir, readFile }, inspect?: (path: string, bytes: Uint8Array, hash: string) => void): Promise<Hashes> {
   const paths: string[] = [];
   async function visit(current: string): Promise<void> {
     for (const entry of await io.readdir(current, { withFileTypes: true })) {
@@ -220,7 +229,12 @@ export async function census(directory: string, base = directory, io: CensusRead
   const result: Hashes = {};
   for (let offset = 0; offset < paths.length; offset += 16) {
     const batch = paths.slice(offset, offset + 16);
-    const reads = await Promise.allSettled(batch.map(async path => digest(await io.readFile(path))));
+    const reads = await Promise.allSettled(batch.map(async path => {
+      const bytes = await io.readFile(path);
+      const hash = digest(bytes);
+      inspect?.(relative(base, path), bytes, hash);
+      return hash;
+    }));
     for (const [index, read] of reads.entries()) {
       if (read.status === "rejected") throw read.reason;
       result[relative(base, batch[index]!)] = read.value;
@@ -325,7 +339,6 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     const verify = async (): Promise<void> => {
       await assertInputsUnchanged(repository, captured.files);
       assert.deepEqual((await captureInputs(snapshot)).files, captured.files, "Captured source was changed after build");
-      assert.deepEqual(await census(join(snapshot, "dist"), snapshot), emitted, "Built public artifacts changed after compilation");
       assert.equal(await readFile(manifestPath, "utf8"), manifestBytes, "Public source manifest changed after capture");
       assertPeerArtifact(peerBinding, snapshot);
       assertArchiveDependencies(dependencies, snapshot);
@@ -335,7 +348,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
         assert.deepEqual(await readFile(join(outer, path)), bytes, "Copied integrated root input changed after capture");
       }
       for (const { path, sha256 } of peerBinding.files) assert.equal(digest(await readFile(join(outer, path))), sha256, "Copied public peer input changed after capture");
-      assert.deepEqual(await captureRequiredPeer(snapshot, emitted, tools, peerBinding), requiredPeer, "Required runtime peer changed after capture");
+      assert.deepEqual(await captureRequiredPeer(snapshot, emitted, tools, peerBinding, true), requiredPeer, "Required runtime peer changed after capture");
     };
     await verify();
     return { snapshot, manifestPath, probe: join(snapshot, probePath), manifest: report, verify, dispose };

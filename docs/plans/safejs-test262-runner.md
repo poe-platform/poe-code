@@ -35,3 +35,18 @@ async completion and cancellation; source-module dependency resolution; pinned
 corpus discovery with machine-readable results; upstream qualification. Each
 stage must retain the full contract rather than turn unavailable modes into
 green results.
+
+## Owned realm host
+
+The realm-host tests initially failed because the module was absent (48135,
+terminal 51b10f). The first implementation passed isolation, resource-failure
+classification and pending-work disposal, but failed primitive thrown-value
+preservation (38101, terminal cf9e3f): requesting surfaced interpreter errors
+turns `throw 42` into a host Error. The conformance host now uses the existing
+raw thrown-value path rather than changing guest runtime semantics. Parse,
+runtime and host-error outcomes remain distinct. The four host tests and
+metadata tests are being rechecked with scoped lint. Host-defined `$262`
+capabilities, module execution and async result classification are still open.
+The corrected host and metadata selection passed all 20 tests and scoped lint
+(3821, terminal faf31f); whitespace checks passed. The host is ready for its
+own local commit, without implying the still-missing `$262` API is implemented.

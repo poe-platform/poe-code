@@ -82,7 +82,10 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     assert.ok(Array.isArray(policy.heldSourceFiles) && Array.isArray(policy.heldEvidenceDirectories), 'held boundaries required');
     for (const path of [...policy.heldSourceFiles, ...policy.heldEvidenceDirectories]) assertLiteralInputPath(path);
     held = freeze(structuredClone(policy));
-    protectedDirectories = [...held.heldEvidenceDirectories, ...held.heldSourceFiles.map(path => posix.dirname(path))].map(path => packagePrefix + '/' + path);
+    protectedDirectories = [...held.heldEvidenceDirectories, ...held.heldSourceFiles.map(path => posix.dirname(path))].map(path => {
+      const folded = (packagePrefix + '/' + path).toLowerCase();
+      return { folded, descendantPrefix: folded + '/' };
+    });
   }
   if (held !== null) installPolicy(held);
   const fixedBootstrapPaths = ['package.json', 'eslint.config.js', 'scripts/lint-input-guard.mjs', 'scripts/lint-eslint.mjs', BOUNDARY_POLICY.path, BOUNDARY_RECEIPTS.path];
@@ -94,6 +97,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
   assert.ok(Number.isInteger(fileSystem.constants.O_NONBLOCK) && fileSystem.constants.O_NONBLOCK !== 0, 'O_NONBLOCK required');
   const counters = { metadataOperations: 0, directories: 0, entries: 0, configurationBytes: 0, subjectBytes: 0, subjects: 0, opens: 0, closes: 0, readCalls: 0, readBytes: 0, receiptChecks: 0 };
   const receipts = new Map();
+  const receiptComparisons = [];
   const subjects = new Set();
   const decodedDirectories = new Map();
   let decodedDirectoryBytes = 0;
@@ -146,7 +150,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     assert.ok(parts.every(part => part !== '' && part !== '.' && part !== '..' && !part.includes('\0')), 'invalid POSIX leaf');
     if (path !== 'CLAUDE.md') admitted(parts.slice(0, -1).join('/'));
     const folded = path.toLowerCase();
-    assert.ok(!protectedDirectories.some(directory => folded === directory.toLowerCase() || folded.startsWith(directory.toLowerCase() + '/')), 'held receipt leaf');
+    assert.ok(!protectedDirectories.some(directory => folded === directory.folded || folded.startsWith(directory.descendantPrefix)), 'held receipt leaf');
   }
 
   function names(absolute) {
@@ -219,9 +223,8 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     assert.ok(!failed, 'input guard failed');
     assert.equal(typeof path, 'string', 'literal input path required');
     const folded = path.toLowerCase();
-    for (const boundary of receipts.keys()) {
-      const boundaryFolded = boundary.toLowerCase();
-      assert.ok(!folded.startsWith(boundaryFolded + '/') && (folded !== boundaryFolded || (receipt && path === boundary)), 'metadata-only receipt boundary');
+    for (const boundary of receiptComparisons) {
+      assert.ok(!folded.startsWith(boundary.descendantPrefix) && (folded !== boundary.folded || (receipt && path === boundary.path)), 'metadata-only receipt boundary');
     }
     if (path !== '') {
       if (receipt) rawLeaf(path);
@@ -347,9 +350,8 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
         if (receipts.has(child)) continue;
         try {
           const folded = child.toLowerCase();
-          for (const boundary of receipts.keys()) {
-            const boundaryFolded = boundary.toLowerCase();
-            assert.ok(folded !== boundaryFolded && !folded.startsWith(boundaryFolded + '/'), 'metadata-only receipt boundary');
+          for (const boundary of receiptComparisons) {
+            assert.ok(folded !== boundary.folded && !folded.startsWith(boundary.descendantPrefix), 'metadata-only receipt boundary');
           }
           admitted(child);
           for (const ancestor of ancestors) {
@@ -469,7 +471,11 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
       }
       assert.ok(![...paths].some(path => packet.inventory.path === path || packet.inventory.path.startsWith(path + '/')), 'inventory cannot be a receipt leaf');
       assert.ok(![...owners.keys()].some(path => path.toLowerCase() === packet.inventory.path.toLowerCase()), 'inventory cannot be a receipt owner');
-      for (const record of packet.records) receipts.set(record.path, freeze(record));
+      for (const record of packet.records) {
+        receipts.set(record.path, freeze(record));
+        const folded = record.path.toLowerCase();
+        receiptComparisons.push({ path: record.path, folded, descendantPrefix: folded + '/' });
+      }
       if (bootstrap) permittedReads = new Set([...fixedBootstrapPaths, ...owners.keys()]);
       for (const owner of owners.values()) {
         const bytes = authenticated(owner);

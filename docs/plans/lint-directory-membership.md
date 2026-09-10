@@ -31,3 +31,18 @@ the unchanged supervision limits. It linted all 10,543 configured files with
 artifacts; completion is not a clean gate. A two-second native sample still
 showed directory reads in about half of the main-thread stacks. This is evidence
 of completion under the limit, not an isolated end-to-end speedup measurement.
+
+A later private-root attempt also reached its unchanged deadline without a
+result. A second narrow optimization precomputes lowercase receipt paths and
+their descendant prefixes after the exact 25-record packet is authenticated.
+Protected policy-directory comparisons are likewise prepared when the policy
+is installed. The private derived records preserve original receipt spelling;
+no filesystem observations, receipt authorization, or caps are cached away.
+
+The new in-memory regression first failed with 350 repeated receipt-path folds
+while inspecting 12 children. It retains the same 148 metadata operations and
+14 directory reads and requires zero repeated receipt-path folds after loading.
+RED evidence: `/tmp/poe-688-receipt-fold-red.log`. All 279 focused guard tests
+pass in `/tmp/poe-688-receipt-fold-green.log`; a completed repository lint
+remains necessary, and this computation reduction alone does not prove a
+wall-clock improvement on the filesystem-heavy gate.

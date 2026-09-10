@@ -168,6 +168,27 @@ describe("fixture operation observation retention", () => {
     expect(() => guard.inspect("src/forged.js")).toThrow("exact pathname spelling required");
   });
 
+  it("reuses authenticated receipt comparisons without changing filesystem observations", () => {
+    const state = model(Object.fromEntries(Array.from({ length: 12 }, (_, index) => [`src/comparison-${index}.js`, ""])));
+    const records = state.guard.loadReceipts(state.binding);
+    const paths = new Set(records.map((record: { path: string }) => record.path));
+    state.guard.directory("src");
+    const before = state.guard.snapshot().metadataOperations;
+    const lower = String.prototype.toLowerCase;
+    let repeatedFolds = 0;
+    const spy = vi.spyOn(String.prototype, "toLowerCase").mockImplementation(function(this: string) {
+      if (paths.has(String(this))) repeatedFolds++;
+      return lower.call(this);
+    });
+    let result;
+    try { result = state.guard.directory("src", true); }
+    finally { spy.mockRestore(); }
+    expect(result.inspections.size).toBe(12);
+    expect(state.guard.snapshot().metadataOperations - before).toBe(148);
+    expect(state.operations.filter(operation => operation.method === "readdirSync" && operation.path === root + "/src")).toHaveLength(14);
+    expect(repeatedFolds).toBe(0);
+  });
+
   it("does not expose or borrow cached directory observations", () => {
     const state = model({ "src/π.js": "export {};" });
     const bytes = Buffer.from("π.js");

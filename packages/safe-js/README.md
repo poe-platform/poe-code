@@ -418,6 +418,11 @@ Factories return exports to register in `modules`; calling a factory alone does 
 
 Guest functions with materialized own-property state, prototype-linked objects, and custom data descriptors are not portable checkpoint data. Dump, restore, and replay serialization reject these values instead of silently discarding their state. Data-copy boundaries also reject prototype-linked objects and custom descriptors; pass a plain projection such as `{ value: counter.value }` to host operations. Bridged callbacks retain their function identity and properties while the run is alive.
 
+Snapshot reference validation keeps Promise aggregate state, async execution
+drivers, adoption tokens, cleanup state and scope resource-state records out of
+guest data. Their field-specific internal links remain restorable; guest handler
+functions can still be retained by custom Promise constructors.
+
 - `dump(resultOrRunningPromise, { mode?, onFailure? })` returns checkpoint JSON. `mode` is `capture` or `replay`; `onFailure` is `throw` or `checkpoint`.
 - `restore(snapshot, { source })` validates state for compatible source; pass it as `run`'s `snapshot` option. It does not run the program.
 - `new FileSnapshotBackend(path, { writeMaxAttempts?, writeRetryDelayMs? })` defaults to 3 write attempts and a 100 ms retry delay.

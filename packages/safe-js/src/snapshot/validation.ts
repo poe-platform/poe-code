@@ -81,6 +81,7 @@ type ValidationState = {
   validateTaggedPayloads: boolean;
   dataPropertiesOnly?: boolean;
   allowHostFunctionState?: boolean;
+  scopeResourceNodes?: ReadonlySet<unknown>;
 };
 
 export function validateSnapshotData(value: unknown): void {
@@ -218,6 +219,19 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
   catch (error) { fail("invalidCycle", "$.heap", error instanceof Error ? error.message : "invalid guest scope parent graph"); }
 }
 
+const internalContinuationReferences: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  "aggregate-entry": { aggregate: "promise-aggregate" },
+  "aggregate-handler": { entry: "aggregate-entry" },
+  "async-function-handler": { driver: "async-function-driver" },
+  "async-generator-handler": { driver: "async-generator-driver" },
+  "guest-generator": { driver: "async-generator-driver" },
+  "guest-promise": { generatorOwner: "async-generator-driver" },
+  "pending-promise": { generatorOwner: "async-generator-driver", adoption: "promise-adoption" },
+  "async-cleanup-handler": { cleanup: "async-cleanup" },
+  "adoption-resolver": { bridge: "promise-adoption" }
+};
+const internalContinuationKinds = new Set(Object.values(internalContinuationReferences).flatMap(Object.values));
+
 function validateDumpReferences(
   value: unknown,
   path: string,
@@ -225,12 +239,23 @@ function validateDumpReferences(
   state: ValidationState,
   heapIds: Set<number>,
   heap: Record<string, unknown>,
-  role: "root" | "heap" | "heap-node" | "scope-map" | "expressions" | "expression" | "function-environment" | "data" = "data",
+  role: "root" | "heap" | "heap-node" | "scope-map" | "expressions" | "expression" | "function-environment" | "resource-state" | "data" = "data",
   allowScopeReference = false,
   allowConstructionReference = false,
   allowThenableReference = false,
-  allowSourceReference = false
+  allowSourceReference = false,
+  allowedContinuationKind?: string
 ): void {
+  if (role === "root") {
+    const resources = new Set<unknown>();
+    for (const rawNode of Object.values(heap)) {
+      const node = rawNode as Record<string, unknown>;
+      if (node.kind !== "scope-frame" || node.resourceState === null || typeof node.resourceState !== "object") continue;
+      const reference = node.resourceState as Record<string, unknown>;
+      if (reference.kind === "ref") resources.add(heap[String(reference.id)]);
+    }
+    state.scopeResourceNodes = resources;
+  }
   if (value === null || typeof value !== "object") return;
   if (depth > state.limits.maxDepth)
     fail("budgetExceeded", path, `exceeds nesting limit ${state.limits.maxDepth}`);
@@ -245,6 +270,11 @@ function validateDumpReferences(
   if (record.kind === "ref") {
     const id = requireSafeInteger(record.id, `${path}.id`, 1);
     if (!heapIds.has(id)) fail("danglingReference", `${path}.id`, `unknown heap value ${id}`);
+    const targetKind = String((heap[String(id)] as Record<string, unknown>).kind);
+    if (internalContinuationKinds.has(targetKind) && targetKind !== allowedContinuationKind)
+      fail("invalidValue", path, "Internal continuation records cannot be guest data");
+    if (state.scopeResourceNodes?.has(heap[String(id)]) && allowedContinuationKind !== "resource-scope")
+      fail("invalidValue", path, "Internal continuation records cannot be guest data");
     if ((heap[String(id)] as Record<string, unknown>).kind === "scope-frame" && !allowScopeReference)
       fail("invalidValue", path, "Internal scopes cannot be guest data");
     if (["guest-source", "guest-script"].includes(String((heap[String(id)] as Record<string, unknown>).kind)) && !allowSourceReference)
@@ -256,6 +286,7 @@ function validateDumpReferences(
   }
   for (const [key, entry] of Object.entries(record)) {
     const childRole = role === "root" && key === "heap" ? "heap" : role === "heap" ? "heap-node"
+      : role === "heap-node" && key === "entries" && state.scopeResourceNodes?.has(record) ? "resource-state"
       : role === "heap-node" && (record.kind === "guest-function" || record.kind === "guest-generator") && key === "environment" ? "function-environment"
       : role === "heap-node" && record.kind === "guest-generator" && key === "blockScopes" ? "scope-map"
       : role === "heap-node" && record.kind === "guest-generator" && key === "expressionStates" ? "expressions"
@@ -273,7 +304,10 @@ function validateDumpReferences(
       role === "function-environment" && key === "construction",
       role === "heap-node" && ((record.kind === "thenable-resolver" && key === "continuation") ||
         (record.kind === "pending-promise" && key === "thenable")),
-      role === "heap-node" && ["guest-function", "guest-class", "guest-generator", "guest-array"].includes(String(record.kind)) && key === "dynamicSource");
+      role === "heap-node" && ["guest-function", "guest-class", "guest-generator", "guest-array"].includes(String(record.kind)) && key === "dynamicSource",
+      role === "resource-state" && key === "cleanup" ? "async-cleanup"
+        : role === "heap-node" && record.kind === "scope-frame" && key === "resourceState" ? "resource-scope"
+        : role === "heap-node" ? internalContinuationReferences[String(record.kind)]?.[key] : undefined);
   }
 }
 

@@ -81,3 +81,34 @@ cleanup, adoption, weak snapshots, validation and TypeScript/lint. These checks
 must not be replaced by a narrow malformed-record-only test.
 
 All investigation so far was read-only. No fix or release is claimed.
+
+## Implementation after the terminal full gate
+
+Full session 15942 terminated unsuccessfully with 10 failures; all 1,594 source
+fingerprints matched afterward. Its freeze ended before implementation began.
+
+The first 18 whole-restore regressions fail specifically because forged direct,
+nested and shared references are accepted. Their unmodified snapshots restore
+and settle correctly before the rejection assertion (578def).
+
+The initial field-specific guard exposed a missed legitimate path: four checks
+failed because scope resource state stores its cleanup link in an ordinary heap
+object (`entries.cleanup`). It is not enough to allow cleanup references only
+from async-cleanup-handler nodes. Do not whitelist every object.cleanup field.
+
+The current implementation identifies resource-state nodes from scope-frame
+resourceState ownership, permits only their immediate cleanup field to refer
+to async-cleanup, and rejects guest references to the resource-state node
+itself. The adjusted guard passes 47 continuation checks (1a9d3e). Three more
+regressions exercise direct, nested and shared resource-state exposure.
+
+The complete snapshot directory finished successfully in session 91101:
+2,080 tests across 152 files passed (129.36 seconds, terminal 06aaa6).
+TypeScript and focused lint pass after the resource-state adjustment.
+A fresh Node 18.20.8 run of the 21 reference regressions and existing async
+function continuation checks passed all 50 tests across two files (ce6c6b).
+
+These results qualify the reference-boundary change, not JavaScript completeness
+or the full package gate: the last package run still has 10 failures documented
+in safejs-post-temporal-full-gate.md. No push or release is authorized during
+the release hold. Unrelated staged SafeBash changes remain untouched.

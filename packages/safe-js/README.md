@@ -931,6 +931,9 @@ promoting weak-only keys into snapshot roots. Portable weak-symbol lifetime
 support across all supported Node.js 18 versions remains unresolved. See the
 [public integration record](../../docs/plans/safejs-weak-collection-public-reconciliation.md).
 
+The four weak-object constructors have read-only `prototype` properties,
+including after replay; ordinary function constructors remain writable.
+
 The `WeakRef` and `FinalizationRegistry` public APIs are committed locally but
 unreleased. Weak-state snapshots retain strongly reachable targets and preserve
 aliases; weak-only targets and unregister tokens are omitted. Finalization held

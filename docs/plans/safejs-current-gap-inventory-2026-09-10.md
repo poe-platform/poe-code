@@ -13,9 +13,10 @@ or those integrations are wholly uncommitted are obsolete.
 
 The latest snapshot-directory run passed 2,134 tests across 157 files, including
 mixed-realm iterator and mixed-source/template tests. This is
-not a full-package result. The last full package gate passed 27,437 tests,
-failed 10 and skipped 48; all 100 filesystem type contracts passed. See
-[the full gate record](safejs-post-temporal-full-gate.md).
+not a full-package result. The latest full package gate passed 27,506 tests,
+failed 34 and skipped 48; all 100 filesystem type contracts passed. See
+[the full gate record](safejs-post-source-identity-full-gate.md). Its additional
+failures require diagnosis; earlier ten-failure totals are historical.
 
 ## Remaining verified gaps and verification work
 

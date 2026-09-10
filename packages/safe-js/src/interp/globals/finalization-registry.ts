@@ -58,7 +58,7 @@ export function createFinalizationRegistryGlobal(budget: Budget): SandboxClosure
       return entry.state.unregister(token);
     }
   });
-  Object.defineProperty(materializeFunctionProperties(constructor),"prototype",{value:prototype});
+  Object.defineProperty(materializeFunctionProperties(constructor),"prototype",{value:prototype,writable:false});
   Object.defineProperties(prototype,{
     constructor:{value:constructor,writable:true,configurable:true},
     register:{value:register,writable:true,configurable:true},

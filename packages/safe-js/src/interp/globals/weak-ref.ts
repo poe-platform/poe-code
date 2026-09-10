@@ -42,7 +42,7 @@ export function createWeakRefGlobal(budget: Budget): SandboxClosure {
       return target;
     }
   });
-  Object.defineProperty(materializeFunctionProperties(constructor), "prototype", { value: prototype });
+  Object.defineProperty(materializeFunctionProperties(constructor), "prototype", { value: prototype, writable: false });
   Object.defineProperties(prototype, {
     constructor: { value: constructor, writable: true, configurable: true },
     deref: { value: deref, writable: true, configurable: true },

@@ -25,3 +25,19 @@ These paths did not reproduce a defect, so no runtime fix was made. The full
 package run remains live; its runtime source has not changed. Test-only edits
 made after launch are independently qualified and are not claimed to have
 been discovered by that already-running gate.
+
+## Terminal result
+
+Session 66781 terminated with exit 1 (28274f): 27,506 passed, 34 failed and
+48 skipped tests; 1,201 passed, nine failed and two skipped files. Duration was
+1,069.77 seconds. All 100 filesystem contracts had passed. Runtime sources
+remained unchanged through completion. The later descriptor repair is not part
+of this result.
+
+Visible failures include CLI help loading interpreter globals through snapshot
+validation, Date heap-node expectations, boxed-number accessor snapshot
+expectations, regex compile-policy cases, a legacy dump-graph shape comparison,
+and the six known ISO month-name failures. Terminal output was truncated by the
+tool, so this is not a complete failure-by-failure diagnosis. Recover or re-run
+the failed selections before deciding which are implementation bugs versus
+outdated assertions. Do not dismiss either category or claim a green package.

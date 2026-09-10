@@ -23,7 +23,30 @@ dependencies linked to the main checkout. Its new
 The initial run reports **17 failures and one array control pass** (c5d2ba).
 Besides the 12 failure/close cases, it checks Set, Unicode string iteration,
 overridden array iteration, generator closing, and an empty catch pattern.
-No runtime fix has been applied yet.
+## Candidate implementation and follow-up evidence
+
+The isolated candidate now supplies a typed catch-binding callback from the
+interpreter into the exception evaluator. It uses `bindPattern` and
+`createPatternContext` with the actual catch scope. The separate array/object
+catch binding implementation was removed, rather than kept as a fallback.
+The original 18 cases and existing exception tests pass: 31 tests (285983).
+Additional default-throw cleanup, TDZ, inferred names, nested Map destructuring
+and elision cases pass. Seven focused exception/pattern/recovery files pass
+94 tests (05095c).
+
+A new isolated checkpoint file,
+`src/snapshot/guest-generator-catch-iterator.test.ts`, reports four passes and
+four failures (6ff235). Sync/async checkpoints inside catch bodies pass for
+Sets and generators. Yielding inside catch parameter defaults and restoring
+loses the earlier initialized binding `a`, for both arrays and Sets. This is
+a real recovery gap and the candidate is not ready to integrate.
+
+Next inspect catch-scope persistence and the strict block/expression-state
+snapshot validators. Do not simply accept arbitrary block-scope IDs or skip
+binding validation. The general array-pattern continuation preserves its
+iterator/index, but catch currently creates a fresh lexical scope on entry.
+The native comparison expects the earlier `a` and resumed `b` to survive.
+Candidate typecheck/lint session 10582 has not yet returned a terminal result.
 
 ## Repair requirements
 

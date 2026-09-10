@@ -3,11 +3,12 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { ListStorage } from "./list-storage.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
+import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Exact str/bytes split binding with optional guest index slots.
  * Integer limits match the signed-size sequence model; subclasses are separate. */
-export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "split" | "rsplit", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
+export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "split" | "rsplit", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>, buffers?: RuntimeBufferContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -27,14 +28,24 @@ export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind:
       }
       const maxsplit = limit === undefined ? -1n : runtimeSizeIndex(limit, meter, context);
       if (receiver.kind === "bytes") {
-        if (separator.kind !== "none" && separator.kind !== "bytes") throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}'`);
-        const reverse = name === "rsplit", result = new ListStorage<RuntimeValue>([], meter);
-        for (const part of receiver.value.split(separator.kind === "none" ? null : separator.value, maxsplit, reverse, meter)) {
+        let lease: RuntimeBufferLease | undefined;
+        try {
+          if (separator.kind !== "none" && separator.kind !== "bytes") {
+            lease = buffers?.acquireSimple(separator); meter.checkpoint();
+            if (lease === undefined) throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}'`);
+          }
+          const storage = separator.kind === "none" ? null : separator.kind === "bytes" ? separator.value : lease!.copy();
           meter.checkpoint();
-          result.append(part === receiver.value ? receiver : values.bytes(part));
+          const reverse = name === "rsplit", result = new ListStorage<RuntimeValue>([], meter);
+          for (const part of receiver.value.split(storage, maxsplit, reverse, meter)) {
+            meter.checkpoint();
+            result.append(part === receiver.value ? receiver : values.bytes(part));
+          }
+          if (reverse) result.reverse();
+          return values.list(result);
+        } finally {
+          lease?.release(); meter.checkpoint();
         }
-        if (reverse) result.reverse();
-        return values.list(result);
       }
       if (separator.kind !== "none" && separator.kind !== "str") throw new PythonRuntimeError("TypeError", `must be str or None, not ${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}`);
       const reverse = name === "rsplit", result = new ListStorage<RuntimeValue>([], meter);

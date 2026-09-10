@@ -39,6 +39,31 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["split", "", "ba"], ["rsplit", "ab", ""]])("acquires %s separator buffers after maxsplit conversion", (method, left, right) => {
+    const state = fixture(`result=b'aba'.${method}(separator,count)\n`), v = state.values, trace: string[] = [];
+    const data = Uint8Array.of(98);
+    state.globals.set("separator", v.cell({})); state.globals.set("count", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", warn() {}, typeName: () => "Count",
+      lookupIndex: () => () => { trace.push("index"); data[0] = 97; return v.integer(1); }
+    }, buffers: {
+      acquireSimple() { trace.push("acquire"); return { byteLength: 1, copy: () => v.bytes(data).value, release() { trace.push("release"); } }; }
+    } });
+    state.run(); const result = state.globals.get("result");
+    if (result?.kind !== "list") throw Error("expected list");
+    expect(result.items.snapshot()).toEqual([v.bytes(new TextEncoder().encode(left)),v.bytes(new TextEncoder().encode(right))]);
+    expect(trace).toEqual(["index", "acquire", "release"]);
+  });
+  it("releases split separator buffers on cancellation", () => {
+    const controller = new AbortController(), state = fixture("result=b'a'.split(separator)\n", 100000, controller.signal), v = state.values;
+    let released = false;
+    state.globals.set("separator", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { controller.abort(); return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it("copies replacement buffers after guest count conversion", () => {
     const state = fixture("result=b'aaa'.replace(old,new,count)\n"), v = state.values, old = v.cell({}), replacement = v.cell({}), count = v.cell({}), trace: string[] = [];
     const data = Uint8Array.of(98);

@@ -6805,6 +6805,16 @@ extension, integration, or validation requirement is missing or unverified.
   followed build completion. Remaining native buffer consumers, concrete
   exporters, automatic object assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected bytes.split/rsplit to contiguous separator leases. Guest maxsplit
+  conversion precedes acquisition, matching CPython and exposing intervening
+  mutations. Leases cover separator copying and result construction and release
+  on every exit; the shared str path retains its existing semantics.
+- Three failing compiled regressions now pass. All 5,200 tests in 441 files pass;
+  320 CPython comparisons match output/errors and lease traces across directions,
+  separator contents and split limits. Typecheck, scoped lint and selected
+  workspace build pass. Remaining native buffer consumers, concrete exporters,
+  automatic object assembly and broader interpreter/SDK/safe-fs integration
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -35,7 +35,14 @@ import { iteratorHelperStates } from "./iterator-helper.js";
 import { privateElements } from "./private-state.js";
 import { regexpIteratorState, isSandboxRegExpIterator, restoreSandboxRegExpIterator, type SandboxRegExpIterator } from "./regexp-iterator.js";
 import { copyNativeDate, dateDataProperties, exportDate, isSandboxDate } from "./date.js";
-import { createSandboxTemporalInstant, hostTemporalInstantEpoch, isSandboxTemporalInstant, temporalInstantEpoch } from "./temporal-instant.js";
+import { createHostTemporalInstant, createSandboxTemporalInstant, hostTemporalInstantEpoch, isSandboxTemporalInstant, temporalInstantEpoch } from "./temporal-instant.js";
+import { createHostTemporalDuration, createSandboxTemporalDuration, hostTemporalDurationFields, isSandboxTemporalDuration, temporalDurationFieldNames, temporalDurationFields } from "./temporal-duration.js";
+import { createHostTemporalPlainTime, createSandboxTemporalPlainTime, hostTemporalPlainTimeFields, isSandboxTemporalPlainTime, temporalPlainTimeFieldNames, temporalPlainTimeFields } from "./temporal-plain-time.js";
+import { createHostTemporalPlainDateTime, createSandboxTemporalPlainDateTime, hostTemporalPlainDateTimeFields, isSandboxTemporalPlainDateTime, temporalPlainDateTimeNumericFields, temporalPlainDateTimeFields } from "./temporal-plain-date-time.js";
+import { createHostTemporalPlainDate, createSandboxTemporalPlainDate, hostTemporalPlainDateFields, isSandboxTemporalPlainDate, temporalPlainDateNumericFields, temporalPlainDateFields } from "./temporal-plain-date.js";
+import { createHostTemporalPlainMonthDay, createSandboxTemporalPlainMonthDay, hostTemporalPlainMonthDayFields, isSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
+import { createHostTemporalPlainYearMonth, createSandboxTemporalPlainYearMonth, hostTemporalPlainYearMonthFields, isSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
+import { createHostTemporalZonedDateTime, createSandboxTemporalZonedDateTime, hostTemporalZonedDateTimeFields, isSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "./temporal-zoned-date-time.js";
 import { isSandboxLocale, localeTag } from "./intl-locale.js";
 import { isSandboxCollator, collatorState } from "./intl-collator.js";
 import { isSandboxNumberFormat, numberFormatState } from "./intl-numberformat.js";
@@ -619,6 +626,8 @@ export function* cloneStructuredGraph(
 ): Generator<StructuredCloneRequest, SandboxValue, SandboxValue> {
   assertSandboxDataDepth(depth);
   budget.visitNode();
+  if (isSandboxTemporalInstant(value) || isSandboxTemporalDuration(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainMonthDay(value) || isSandboxTemporalPlainYearMonth(value) || isSandboxTemporalZonedDateTime(value))
+    throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
   if (typeof value === "object" && value !== null && guestProxyStates.has(value))
     throw new DOMException("Proxies cannot be structured cloned.", "DataCloneError");
   if (typeof value === "symbol" || isSandboxModuleNamespace(value) || isSandboxClosure(value) || isSandboxPromise(value) ||
@@ -950,6 +959,18 @@ export function measureSandboxData(
       visit(helperState.callback, depth + 1);
     }
     if (isSandboxDate(value)) usage += 8;
+    if (isSandboxTemporalInstant(value)) visit(temporalInstantEpoch(value), depth + 1);
+    if (isSandboxTemporalDuration(value)) usage += temporalDurationFieldNames.length * 8;
+    if (isSandboxTemporalPlainTime(value)) usage += temporalPlainTimeFieldNames.length * 8;
+    if (isSandboxTemporalPlainDateTime(value)) usage += temporalPlainDateTimeNumericFields.length * 8 + temporalPlainDateTimeFields(value).calendar.length;
+    if (isSandboxTemporalPlainDate(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainDateFields(value).calendar.length;
+    if (isSandboxTemporalPlainMonthDay(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainMonthDayFields(value).calendar.length;
+    if (isSandboxTemporalPlainYearMonth(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainYearMonthFields(value).calendar.length;
+    if (isSandboxTemporalZonedDateTime(value)) {
+      const fields = temporalZonedDateTimeFields(value);
+      visit(fields.epochNanoseconds, depth + 1);
+      usage += fields.timeZone.length + fields.calendar.length;
+    }
     if (isSandboxLocale(value)) usage += localeTag(value).length;
     if (isSandboxListFormat(value)) visit(listFormatState(value).options, depth + 1);
     if (isSandboxRelativeTimeFormat(value)) visit(relativeTimeFormatState(value).options, depth + 1);
@@ -1302,7 +1323,7 @@ function copyToSandbox(
 
   if (state.structuredClone && typeof value === "object" && value !== null && guestProxyStates.has(value))
     throw new DOMException("Proxies cannot be structured cloned.", "DataCloneError");
-  if (state.structuredClone && isSandboxTemporalInstant(value))
+  if (state.structuredClone && (isSandboxTemporalInstant(value) || isSandboxTemporalDuration(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainMonthDay(value) || isSandboxTemporalPlainYearMonth(value) || isSandboxTemporalZonedDateTime(value)))
     throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && nodeTypes.isSymbolObject(value))
     throw new DOMException("Cannot clone a boxed symbol.", "DataCloneError");
@@ -1394,6 +1415,70 @@ function copyToSandbox(
   if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
       !(state.structuredClone && (isPlainObject(value) || isPlainArray(value) || isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || isNumericTypedArray(value)))) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+  }
+
+  const dateTimeFields = isSandboxTemporalPlainDateTime(value) ? temporalPlainDateTimeFields(value) : hostTemporalPlainDateTimeFields(value);
+  const dateFields = isSandboxTemporalPlainDate(value) ? temporalPlainDateFields(value) : hostTemporalPlainDateFields(value);
+  const monthDayFields = isSandboxTemporalPlainMonthDay(value) ? temporalPlainMonthDayFields(value) : hostTemporalPlainMonthDayFields(value);
+  const yearMonthFields = isSandboxTemporalPlainYearMonth(value) ? temporalPlainYearMonthFields(value) : hostTemporalPlainYearMonthFields(value);
+  const zonedFields = isSandboxTemporalZonedDateTime(value) ? temporalZonedDateTimeFields(value) : hostTemporalZonedDateTimeFields(value);
+  if (dateTimeFields !== undefined || dateFields !== undefined || monthDayFields !== undefined || yearMonthFields !== undefined || zonedFields !== undefined) {
+    if (state.structuredClone) throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = zonedFields !== undefined ? createSandboxTemporalZonedDateTime(zonedFields)
+      : dateTimeFields !== undefined ? createSandboxTemporalPlainDateTime(dateTimeFields)
+        : yearMonthFields !== undefined ? createSandboxTemporalPlainYearMonth(yearMonthFields)
+          : monthDayFields !== undefined ? createSandboxTemporalPlainMonthDay(monthDayFields) : createSandboxTemporalPlainDate(dateFields!);
+    state.seen.set(original, copy);
+    if (hasNullObjectPrototype(original) || (!isSandboxTemporalPlainDateTime(value) && !isSandboxTemporalPlainDate(value) && !isSandboxTemporalPlainMonthDay(value) && !isSandboxTemporalPlainYearMonth(value) && !isSandboxTemporalZonedDateTime(value) && Object.getPrototypeOf(original) === null)) setSandboxPrototype(copy, null);
+    for (const key of Reflect.ownKeys(original)) {
+      const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
+      if (!("value" in descriptor)) throw new TypeError("Temporal date accessor properties cannot be copied as data.");
+      Object.defineProperty(copy, key, { ...descriptor,
+        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  const timeFields = isSandboxTemporalPlainTime(value) ? temporalPlainTimeFields(value) : hostTemporalPlainTimeFields(value);
+  if (timeFields !== undefined) {
+    if (state.structuredClone) throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxTemporalPlainTime(timeFields);
+    state.seen.set(original, copy);
+    if (hasNullObjectPrototype(original) || (!isSandboxTemporalPlainTime(value) && Object.getPrototypeOf(original) === null)) setSandboxPrototype(copy, null);
+    for (const key of Reflect.ownKeys(original)) {
+      const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
+      if (!("value" in descriptor)) throw new TypeError("PlainTime accessor properties cannot be copied as data.");
+      Object.defineProperty(copy, key, { ...descriptor,
+        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  const durationFields = isSandboxTemporalDuration(value) ? temporalDurationFields(value) : hostTemporalDurationFields(value);
+  if (durationFields !== undefined) {
+    if (state.structuredClone) throw new DOMException("Temporal values cannot be structured cloned.", "DataCloneError");
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxTemporalDuration(durationFields);
+    state.seen.set(original, copy);
+    if (hasNullObjectPrototype(original) || (!isSandboxTemporalDuration(value) && Object.getPrototypeOf(original) === null)) setSandboxPrototype(copy, null);
+    for (const key of Reflect.ownKeys(original)) {
+      const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
+      if (!("value" in descriptor)) throw new TypeError("Duration accessor properties cannot be copied as data.");
+      Object.defineProperty(copy, key, { ...descriptor,
+        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
   }
 
   const instantEpoch = isSandboxTemporalInstant(value) ? temporalInstantEpoch(value) : hostTemporalInstantEpoch(value);
@@ -1733,6 +1818,36 @@ function copyFromSandbox(
   }
   if (!isSandboxClosure(value) && hasGuestObjectState(value)) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+  }
+
+  if (isSandboxTemporalInstant(value) || isSandboxTemporalDuration(value) || isSandboxTemporalPlainTime(value) || isSandboxTemporalPlainDateTime(value) || isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainMonthDay(value) || isSandboxTemporalPlainYearMonth(value) || isSandboxTemporalZonedDateTime(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = isSandboxTemporalInstant(value)
+      ? createHostTemporalInstant(temporalInstantEpoch(value))
+      : isSandboxTemporalDuration(value)
+        ? createHostTemporalDuration(temporalDurationFields(value))
+        : isSandboxTemporalPlainTime(value)
+          ? createHostTemporalPlainTime(temporalPlainTimeFields(value))
+          : isSandboxTemporalPlainDateTime(value)
+            ? createHostTemporalPlainDateTime(temporalPlainDateTimeFields(value))
+            : isSandboxTemporalPlainDate(value)
+              ? createHostTemporalPlainDate(temporalPlainDateFields(value))
+              : isSandboxTemporalPlainMonthDay(value)
+                ? createHostTemporalPlainMonthDay(temporalPlainMonthDayFields(value))
+                : isSandboxTemporalPlainYearMonth(value)
+                  ? createHostTemporalPlainYearMonth(temporalPlainYearMonthFields(value))
+                  : createHostTemporalZonedDateTime(temporalZonedDateTimeFields(value));
+    if (hasNullObjectPrototype(value)) Object.setPrototypeOf(copy, null);
+    state.seen.set(value, copy);
+    for (const key of Reflect.ownKeys(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+      if (!("value" in descriptor)) throw new TypeError("Temporal accessor properties cannot be copied as data.");
+      Object.defineProperty(copy, key, { ...descriptor,
+        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
   }
 
   if (isSandboxBox(value)) {

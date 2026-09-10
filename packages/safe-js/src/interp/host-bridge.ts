@@ -7,6 +7,15 @@ import { moduleFunctionOrigins } from "./module-function-origin.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { normalizeClosureResult } from "./async.js";
 import { copyNativeDate } from "./date.js";
+import { createSandboxTemporalInstant, hostTemporalInstantEpoch } from "./temporal-instant.js";
+import { createSandboxTemporalDuration, hostTemporalDurationFields } from "./temporal-duration.js";
+import { createSandboxTemporalPlainTime, hostTemporalPlainTimeFields } from "./temporal-plain-time.js";
+import { createSandboxTemporalPlainDateTime, hostTemporalPlainDateTimeFields } from "./temporal-plain-date-time.js";
+import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields } from "./temporal-plain-date.js";
+import { createSandboxTemporalPlainMonthDay, hostTemporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
+import { createSandboxTemporalPlainYearMonth, hostTemporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
+import { createSandboxTemporalZonedDateTime, hostTemporalZonedDateTimeFields } from "./temporal-zoned-date-time.js";
+import { setSandboxPrototype } from "./object-model.js";
 import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { exportHostCapability, importHostCapability, isLiveCapability } from "./host-capabilities.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
@@ -1034,6 +1043,48 @@ export function copyHostValueToSandbox(
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key))
       });
     }
+    return copy;
+  }
+
+  const instantEpoch = hostTemporalInstantEpoch(value);
+  const durationFields = hostTemporalDurationFields(value);
+  const timeFields = hostTemporalPlainTimeFields(value);
+  const dateTimeFields = hostTemporalPlainDateTimeFields(value);
+  const dateFields = hostTemporalPlainDateFields(value);
+  const monthDayFields = hostTemporalPlainMonthDayFields(value);
+  const yearMonthFields = hostTemporalPlainYearMonthFields(value);
+  const zonedFields = hostTemporalZonedDateTimeFields(value);
+  if (instantEpoch !== undefined || durationFields !== undefined || timeFields !== undefined || dateTimeFields !== undefined || dateFields !== undefined || monthDayFields !== undefined || yearMonthFields !== undefined || zonedFields !== undefined) {
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = instantEpoch !== undefined
+      ? createSandboxTemporalInstant(instantEpoch)
+      : durationFields !== undefined
+        ? createSandboxTemporalDuration(durationFields)
+        : timeFields !== undefined
+          ? createSandboxTemporalPlainTime(timeFields)
+          : dateTimeFields !== undefined
+            ? createSandboxTemporalPlainDateTime(dateTimeFields)
+            : dateFields !== undefined
+              ? createSandboxTemporalPlainDate(dateFields)
+              : monthDayFields !== undefined
+                ? createSandboxTemporalPlainMonthDay(monthDayFields)
+                : yearMonthFields !== undefined
+                  ? createSandboxTemporalPlainYearMonth(yearMonthFields)
+                  : createSandboxTemporalZonedDateTime(zonedFields!);
+    state.seen.set(original, copy);
+    budget.chargeDataUsage(measureSandboxData([copy]));
+    if (Object.getPrototypeOf(original) === null) setSandboxPrototype(copy, null);
+    for (const key of Reflect.ownKeys(original)) {
+      if (typeof key !== "string") throw new TypeError("Host Temporal symbol properties require an explicit capability path.");
+      const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
+      if (!("value" in descriptor)) throw new TypeError(`Unsupported sandbox value at ${joinPath(path, key)}: accessor property`);
+      Object.defineProperty(copy, budget.allocateString(key), { ...descriptor,
+        value: copyHostValueToSandbox(descriptor.value, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
+    }
+    if (!Object.isExtensible(original)) Object.preventExtensions(copy);
     return copy;
   }
 

@@ -6,7 +6,7 @@ import { getClosureOrigin } from "./closure-origin.js";
 import { activeFunctionRealmPrototypes, getFunctionRealmPrototype } from "./function-realm.js";
 import { runResources } from "./resources.js";
 import { getIntrinsicIdentity, registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
-import { releaseTemplateObjects } from "./template-objects.js";
+import { releaseTemplateObjects } from "./template-cache.js";
 import { isSandboxDate } from "./date.js";
 import { isSandboxTemporalInstant } from "./temporal-instant.js";
 import { isSandboxTemporalDuration } from "./temporal-duration.js";

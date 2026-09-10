@@ -4,15 +4,15 @@ import type { SandboxArray } from "./values.js";
 import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
 import { getSandboxPrototype } from "./object-model.js";
 import { getIntrinsicRealmIdentity } from "./intrinsics.js";
+import { templateRealms } from "./template-cache.js";
 
-const realms = new WeakMap<Budget, Map<TemplateLiteral, SandboxArray>>();
 export const templateOrigins = new WeakMap<SandboxArray, TemplateLiteral>();
 export const templateRealmIdentities = new WeakMap<object, object>();
 export const templateRawArrays = new WeakMap<SandboxArray, SandboxArray>();
 export const templateCookedArrays = new WeakMap<SandboxArray, SandboxArray>();
 
 export function templateObject(node: TemplateLiteral, budget: Budget): SandboxArray {
-  const cached = realms.get(budget)?.get(node);
+  const cached = templateRealms.get(budget)?.get(node);
   if (cached !== undefined) return cached;
   budget.allocateArrayLength(node.quasis.length);
   const strings = node.quasis.map(quasi => quasi.value.cooked === undefined
@@ -32,12 +32,12 @@ export function registerTemplateObject(node: TemplateLiteral, value: SandboxArra
       node.quasis.some((quasi, index) => Object.getOwnPropertyDescriptor(value, String(index))?.value !== quasi.value.cooked ||
         Object.getOwnPropertyDescriptor(raw, String(index))?.value !== quasi.value.raw))
     throw new TypeError("Invalid template object contents.");
-  let realm = realms.get(budget);
+  let realm = templateRealms.get(budget);
   const existing = realm?.get(node);
   if (existing !== undefined && existing !== value) throw new TypeError("Conflicting template object identity.");
   if (realm === undefined) {
     realm = new Map();
-    realms.set(budget, realm);
+    templateRealms.set(budget, realm);
     const retained = realm;
     budget.setRetainedValues(realm, () => retained.values());
   }
@@ -50,10 +50,4 @@ export function registerTemplateObject(node: TemplateLiteral, value: SandboxArra
   if (dynamicSource !== undefined) dynamicValueSources.set(value, dynamicSource);
   templateRawArrays.set(value, raw as SandboxArray);
   templateCookedArrays.set(raw as SandboxArray, value);
-}
-
-export function releaseTemplateObjects(budget: Budget): void {
-  const realm = realms.get(budget);
-  if (realm !== undefined) budget.setRetainedValues(realm, undefined);
-  realms.delete(budget);
 }

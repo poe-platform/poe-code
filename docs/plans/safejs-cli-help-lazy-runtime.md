@@ -49,3 +49,25 @@ depending on import scheduling. No timeout ceiling or coverage was removed.
 The obsolete fixed-microtask helper was removed after lint identified it as
 unused. This change does not resolve the remaining full-gate Promise policy or replay/projection/regex
 performance findings, and it has not been pushed or released.
+
+## Template-cache import regression
+
+The post-source-identity package gate reproduced a new eager import route:
+CLI → Budget → template-objects → object-model → values → promise-replay →
+snapshot validation → interpreter globals. The help-import test threw its
+explicit "Help must not initialize the interpreter" error. A static import
+traversal independently identified the path (7427a3).
+
+Template cache ownership and cleanup now live in a module with type-only
+dependencies. Budget and object-model import this cleanup directly; template
+creation still records source and realm provenance. No lazy asynchronous
+cleanup, generic callback registry, timeout increase or loss of template
+identity was introduced.
+
+The help-import regression and template/budget/mixed-source selection pass all
+37 tests (0ca14c). Normal CLI and entrypoint coverage passes 57 tests (0f7665).
+Scoped ESLint and package TypeScript checks pass (a36e33). The maintained build
+passes all 23 workspace build tasks and five fresh native ESM import checks
+(747a47). The source help screenshot (da4ce4) was visually inspected: usage,
+options, aliases and exit codes remain readable and unchanged. This does not
+resolve the other full-gate failures; releases remain on hold.

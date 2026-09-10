@@ -1,5 +1,5 @@
 import { replaceErrorStack } from "../error/shape.js";
-import { releaseTemplateObjects } from "./template-objects.js";
+import { releaseTemplateObjects } from "./template-cache.js";
 
 export type BudgetName =
   | "steps"

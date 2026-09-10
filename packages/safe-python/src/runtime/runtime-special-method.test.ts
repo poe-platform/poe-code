@@ -19,6 +19,7 @@ import { createReversedBuiltin } from "./builtin-reversed.js";
 import { createNextBuiltin } from "./builtin-iteration.js";
 import { createFormatBuiltin } from "./builtin-format.js";
 import { createRepresentationBuiltin } from "./builtin-representation.js";
+import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -207,10 +208,24 @@ it.each([
   if (mode.startsWith("invalid") || mode.startsWith("disabled")) expect(run).toThrow(expected);
   else { run(); expect(globals.get("result")).toEqual(v.string(expected)); }
 });
-it.each(["repr", "ascii", "f-string"])("shares active representation containers across compiled %s calls", operation => {
-  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), items = v.list([receiver]), globals = new Map<string, RuntimeValue>([["items", items]]), unused = (): never => { throw Error("unexpected ordinary lookup or call"); };
+it.each([
+  ["list", "[[...]]"], ["tuple", "((...),)"], ["dict", "{'x': {...}}"],
+  ["proxy", "mappingproxy({'x': mappingproxy({...})})"], ["keys", "dict_keys([...])"],
+  ["values", "dict_values([...])"], ["items", "dict_items([('x', ...)])"],
+  ["list-clear", "[[]]", "[]"], ["dict-clear", "{'x': {...}}", "{}"],
+  ["proxy-clear", "mappingproxy({'x': mappingproxy({...})})", "mappingproxy({})"],
+  ["keys-clear", "dict_keys([...])", "dict_keys([])"], ["values-clear", "dict_values([...])", "dict_values([])"],
+  ["items-clear", "dict_items([('x', ...)])", "dict_items([])"]
+].flatMap(([kind, expected, again = expected]) => ["repr", "ascii", "f-string"].map(operation => [kind, expected, operation, again])))("shares active %s containers with result %s through compiled %s", (scenario, expected, operation, again) => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), unused = (): never => { throw Error("unexpected ordinary lookup or call"); };
+  const clear = scenario.endsWith("-clear"), kind = clear ? scenario.slice(0, -6) : scenario;
+  const dictionary = constructRuntimeDictionary([], new Map(), v, { hash: () => 1n, equal: (a,b) => a === b }, meter);
+  dictionary.items.set(kind === "keys" ? receiver : v.string("x"), kind === "keys" ? v.integer(0) : receiver);
+  const items = kind === "list" ? v.list([receiver]) : kind === "tuple" ? v.tuple([receiver]) : kind === "dict" ? dictionary : kind === "proxy" ? v.mappingProxy(dictionary) : v.dictionaryView(dictionary, kind === "keys" ? "dict_keys" : kind === "values" ? "dict_values" : "dict_items");
+  const globals = new Map<string, RuntimeValue>([["items", items]]);
   const builtins = new Map([ ["repr", createRepresentationBuiltin("repr", v, meter)], ["ascii", createRepresentationBuiltin("ascii", v, meter)] ]);
-  const methods = compileProgram<RuntimeValue>(analyzeModule('def special(self): return ascii(items)\n'), { stripDocstring: false }, v, meter);
+  builtins.set("erase", v.builtinFunction({ name: "erase", invoke() { if (items.kind === "list") items.items.clear(); else dictionary.items.clear(); return v.none; } }));
+  const methods = compileProgram<RuntimeValue>(analyzeModule(clear ? 'def special(self):\n erase()\n return ascii(items)\n' : 'def special(self): return ascii(items)\n'), { stripDocstring: false }, v, meter);
   base.value.namespace.items.set(v.string("__repr__"), v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals, builtins, none: v.none }, meter)));
   const expression = operation === "f-string" ? 'f"{items!r}"' : `${operation}(items)`;
   const program = compileProgram<RuntimeValue>(analyzeModule(`result=${expression}\nagain=${expression}\n`), { stripDocstring: false }, v, meter);
@@ -218,6 +233,6 @@ it.each(["repr", "ascii", "f-string"])("shares active representation containers 
     values: v, globals, builtins, keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
     hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
   }, meter);
-  expect(globals.get("result")).toEqual(v.string("[[...]]"));
-  expect(globals.get("again")).toEqual(v.string("[[...]]"));
+  expect(globals.get("result")).toEqual(v.string(expected));
+  expect(globals.get("again")).toEqual(v.string(again));
 });

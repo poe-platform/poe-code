@@ -7323,6 +7323,16 @@ extension, integration, or validation requirement is missing or unverified.
   own state; broader native-container recursion audits, automatic type/storage
   classification, allocation optimization and suspended safe-fs effects remain
   unfinished.
+- Expanded the compiled representation recursion matrix from three to 39 cases:
+  lists, tuples, dictionaries, mapping proxies and all dictionary views through
+  repr/ascii/f-strings, plus clearing mutable backing containers during guest
+  __repr__. Each case also verifies the subsequent rendering. CPython confirms
+  all 39 scenarios. The initial dictionary fixture lacked positional storage;
+  it now uses the normal runtime dictionary constructor. No runtime change was
+  needed after that correction. All 5,512 tests in 446 files pass; typecheck
+  and scoped lint pass. This is a test-only increment. Automatic type/storage classification,
+  generic object defaults, allocation optimization and suspended safe-fs effects
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

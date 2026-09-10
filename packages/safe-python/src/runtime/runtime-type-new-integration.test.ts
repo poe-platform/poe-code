@@ -18,6 +18,7 @@ import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.j
 import { runtimeHash } from "./runtime-hash.js";
 import { constructRuntimeSet } from "./runtime-set.js";
 import { constructRuntimeFrozenSet } from "./runtime-frozenset.js";
+import { createHashBuiltin } from "./builtin-hash.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -43,7 +44,7 @@ function fixture() {
   function run(source: string) {
     executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls }, meter);
   }
-  return { v, meter, keys, registry, globals, builtins, events, calls, run };
+  return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
 it("calls instance type slots and reflects callability without binding the descriptor", () => {
@@ -170,6 +171,44 @@ it("disables inherited hashing when a class defines equality without a hash", ()
   const state = fixture();
   state.run("class Base:\n def __hash__(self):\n  return 7\nclass Equal(Base):\n def __eq__(self,other):\n  return True\nresult=Equal.__dict__['__hash__']\n");
   expect(state.globals.get("result")).toBe(state.v.none);
+});
+
+it("dispatches guest hash methods for direct and nested immutable values", () => {
+  const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run("class Value:\n def __hash__(self):\n  visit('hash')\n  return 7\nvalue=Value()\ndirect=hash(value)\nnested=hash((value,value))\nexpected=hash((7,7))\n");
+  expect(state.globals.get("direct")).toEqual(state.v.integer(7)); expect(state.globals.get("nested")).toEqual(state.globals.get("expected")); expect(state.events).toEqual(["hash", "hash", "hash"]);
+});
+
+it("honors disabled and live hash slots while ignoring instance shadows", () => {
+  const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run("class Value:\n def __hash__(self):\n  return 7\nvalue=Value()\nvalue.__hash__=None\nfirst=hash(value)\nValue.__hash__=None\n");
+  expect(state.globals.get("first")).toEqual(state.v.integer(7)); expect(() => state.run("hash(value)\n")).toThrow("unhashable type: 'Value'");
+  state.run("def replacement(self):\n return -1\nValue.__hash__=replacement\nrestored=hash(value)\nclass Equal:\n __eq__=None\n");
+  expect(state.globals.get("restored")).toEqual(state.v.integer(-2)); expect(() => state.run("hash((Equal(),))\n")).toThrow("unhashable type: 'Equal'");
+});
+
+it("binds hash descriptors and distinguishes disabled results from invalid return values", () => {
+  const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run("def target():\n visit('call')\n return True\nclass Descriptor:\n def __get__(self,instance,owner):\n  visit('bind')\n  return target\nclass Value:\n __hash__=Descriptor()\nresult=hash(Value())\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(1)); expect(state.events).toEqual(["bind", "call"]);
+  state.run("def disabled(self,instance,owner):\n return None\nDescriptor.__get__=disabled\n"); expect(() => state.run("hash(Value())\n")).toThrow("unhashable type: 'Value'");
+  state.run("def bad(self):\n return 1.5\nValue.__hash__=bad\n"); expect(() => state.run("hash(Value())\n")).toThrow("__hash__ method should return an integer");
+});
+
+it("uses metaclass hash slots and normalizes oversized hash results", () => {
+  const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
+  state.run("class Meta(type):\n def __hash__(self):\n  visit('meta')\n  return 2**100\nclass Value(metaclass=Meta):\n pass\nresult=hash(Value)\nexpected=hash(2**100)\n");
+  expect(state.globals.get("result")).toEqual(state.globals.get("expected")); expect(state.events).toEqual(["meta"]);
+});
+
+it("preserves guest hash exceptions and explicit extension precedence", () => {
+  const state = fixture(), failure = new PythonRuntimeError("TypeError", "hash failed");
+  state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash)); state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Value:\n def __hash__(self):\n  fail()\nvalue=Value()\n");
+  expect(() => state.run("hash(value)\n")).toThrow(failure); expect(() => state.run("hash((value,))\n")).toThrow(failure);
+  const value = state.globals.get("value")!;
+  state.builtins.set("custom", createHashBuiltin(state.v, state.meter, { ...state.hash, guestHash: candidate => candidate !== value ? undefined : { lookupHash: () => () => state.v.integer(19), integer: result => result.kind === "int" ? result.value : undefined, typeName: () => "Value" } }));
+  state.run("result=custom(value)\n"); expect(state.globals.get("result")).toEqual(state.v.integer(19));
 });
 
 it("publishes automatic hash disabling before descriptor initialization and preserves inheritance", () => {

@@ -8455,6 +8455,19 @@ extension, integration, or validation requirement is missing or unverified.
   repository configuration changes. This establishes class hash metadata;
   automatic runtime guest hash/key-policy dispatch and canonical native object
   hash methods remain unfinished, alongside the broader execution work.
+- Added an execution hash-slot adapter and connected hash() to active guest
+  methods, including nested immutable members. Explicit extension hash policies
+  retain precedence; native identity/payload policies are preserved. Hash lookup
+  ignores instance shadows, observes live type changes and disabled descriptor
+  results, validates actual integer/bool results, normalizes -1 and oversized
+  integers, and preserves guest exceptions. The initial compiled regression
+  returned the identity hash instead of calling __hash__. Five added compiled
+  cases cover nested hashes, disabled/live slots, descriptors, metaclasses and
+  extension precedence. All 240 compiled hash cases match CPython. Build,
+  typecheck, scoped lint and all 6,525 tests in 491 files pass (two workers).
+  Collection key-policy assembly still needs to
+  adopt the same adapter; canonical object.__hash__, native type catalogs and
+  public execution assembly remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

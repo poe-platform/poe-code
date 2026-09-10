@@ -10464,6 +10464,25 @@ extension, integration, or validation requirement is missing or unverified.
   Async generator expressions and generator expressions whose outer source awaits
   remain separate unfinished work, alongside async generators, context managers,
   traceback/public runtime assembly and safe-fs integration.
+- Generator-expression outer awaits (2026-09-10): a failing native regression
+  confirmed that a synchronous generator expression rejected await in its outer
+  source. The suspended expression path now evaluates that source in the enclosing
+  frame, acquires its iterator immediately, and shares normal lazy generator
+  construction with the synchronous path. The generator body does not retain the
+  enclosing coroutine's await controller. CPython confirms that an await confined
+  to the outer source still produces a normal generator, consistent with the
+  [expression reference](https://docs.python.org/3/reference/expressions.html#generator-expressions).
+  All 512 new suspension,
+  injected-error, close, source-error and lazy-consumption comparisons match;
+  98 synchronous and 512 async materialization comparisons also pass. The same
+  outer-source path also passes 256 CPython yield/yield-from comparisons (1,378
+  comparisons total). Build, typecheck, focused lint and all 782 native integration
+  tests pass. The uncached one-worker package run passes all 7,501 tests in
+  509 files (268.02s; test bodies 17.37s).
+  Async generator bodies/expressions remain unfinished. Their operation wrappers
+  must distinguish an awaited suspension from an emitted async-generator item,
+  retain running-across-await ownership, and implement separate send/throw/close
+  completion and reuse semantics; a coroutine alias would not provide that.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

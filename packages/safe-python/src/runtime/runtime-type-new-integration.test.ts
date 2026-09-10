@@ -233,6 +233,20 @@ it.each(["[x*2 async for x in I()]","{x*2 async for x in I()}","{x:x*2 async for
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("awaits a generator expression's outer source before creating a lazy normal generator",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("iter",createIterBuiltin(v,state.meter));
+  state.builtins.set("next",createNextBuiltin(v,state.meter));
+  state.run("events=[]\nclass I:\n def __iter__(self):\n  events.append('iter')\n  return iter([1,2])\nclass A:\n def __await__(self):\n  events.append('await')\n  yield 7\n  return I()\ndef element(x):\n events.append(x)\n return x*2\nasync def f():\n x=99\n g=(element(x) for x in await A())\n return (g,x)\nc=f()\nfirst=c.send(None)\nbefore=events[:]\ntry:c.send(None)\nexcept StopIteration as error:g,x=error.value\ncreated=events[:]\nkind=type(g).__name__\na=next(g)\nb=next(g)\n");
+  expect(state.globals.get("first")).toEqual(v.integer(7));
+  state.run("ordered=before==['await'] and created==['await','iter'] and events==['await','iter',1,2]\n");
+  expect(state.globals.get("ordered")).toBe(v.true);
+  expect(state.globals.get("kind")).toEqual(v.string("generator"));
+  expect(state.globals.get("x")).toEqual(v.integer(99));
+  expect(state.globals.get("a")).toEqual(v.integer(2));expect(state.globals.get("b")).toEqual(v.integer(4));
+  expect(state.calls.depth).toBe(0);
+});
+
 it("awaits comprehension filters and elements while isolating targets",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("class A:\n def __init__(self,value):self.value=value\n def __await__(self):\n  yield self.value\n  return self.value\nasync def f():\n x=99\n result=[await A(x*2) for x in [1,2] if await A(x==2)]\n return (result,x)\nc=f()\na=c.send(None)\nb=c.send(None)\nd=c.send(None)\ntry:c.send(None)\nexcept StopIteration as error:correct=error.value==([4],99)\n");

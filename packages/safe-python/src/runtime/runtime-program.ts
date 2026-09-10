@@ -367,6 +367,19 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     };
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
+    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,outer:Iterator<RuntimeValue>,child:LexicalFrame<RuntimeValue>)=>{
+      if(context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
+      const leave=calls.enter(child);
+      try {
+        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
+        const cursor=new ComprehensionCursor(node.clauses,outer,inner,()=>inner.evaluate(node.element),meter);
+        return context.exceptions.generator(input=>{
+          if(input.kind==="throw")throw input.error;
+          const step=cursor.next();
+          return step.done?{done:true,value:values.none}:step;
+        },child,calls);
+      } finally {leave();}
+    };
     const expressions = createRuntimeExpressionContext(values, {
       beginMethodCall: expressionHooks.attribute === undefined ? (receiver, name) => {
         const callee = expressions.attribute(receiver, name);
@@ -419,16 +432,9 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           meter.checkpoint(0,192);
           const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
           const child=new LexicalFrame(scope,{...namespaces,closure},meter);
+          if(node.kind==="comprehension"&&node.collection==="generator"){leave();return generatorComprehension(node,outer,child);}
           leave();leave=calls.enter(child);
           const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
-          if(node.kind==="comprehension"&&node.collection==="generator") {
-            const cursor=new ComprehensionCursor(node.clauses,outer,inner,()=>inner.evaluate(node.element),meter);
-            return context.exceptions!.generator(input=>{
-              if(input.kind==="throw")throw input.error;
-              const step=cursor.next();
-              return step.done?{done:true,value:values.none}:step;
-            },child,calls);
-          }
           if(node.kind==="dictionary-comprehension") {
             const result=expressions.beginDictionary([]);
             executeComprehensionClauses(node.clauses,outer,inner,()=>{const key=inner.evaluate(node.key),value=inner.evaluate(node.value);result.set(key,value);},meter);
@@ -452,7 +458,6 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       expressions.delegate=source=>suspension.delegate(source,builtinCalls);
       expressions.awaitValue=source=>suspension.delegate(source,builtinCalls,true);
       expressions.comprehensionContinuation=function*(node) {
-        if(node.kind==="comprehension"&&node.collection==="generator")return expressions.comprehension!(node);
         const scope=comprehensions?.get(node);
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
         const source=yield* createExpressionContinuation(node.clauses[0].iterable,expressions,meter,values.none);
@@ -462,6 +467,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           :{kind:"sync",value:expressions.iterate(source)};
         const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
         const child=new LexicalFrame(scope,{...namespaces,closure},meter);
+        if(node.kind==="comprehension"&&node.collection==="generator") {
+          if(outer.kind!=="sync")throw new UnsupportedExpressionError(node.kind);
+          return generatorComprehension(node,outer.value,child);
+        }
         // Comprehension locals are isolated, but their awaits belong to the
         // enclosing coroutine's active frame and handled-exception state.
         const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,suspension).suspend();

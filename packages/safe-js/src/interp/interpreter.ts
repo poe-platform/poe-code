@@ -3133,7 +3133,7 @@ async function evaluateMemberExpression(
 ): Promise<EvaluationResult> {
   return evaluateMemberAccess(node, context, async (member) => {
     if (member.kind === "nullish" || member.object === null || member.object === undefined) {
-      if (member.kind === "nullish") return { kind: "normal", hasValue: true, value: undefined };
+      if (member.kind === "nullish") return { kind: "normal", hasValue: true, value: undefined, optionalChainShortCircuited: true };
       throw new TypeError("Cannot read properties of null or undefined.");
     }
     return {
@@ -3298,6 +3298,7 @@ async function evaluateCallExpression(
     return callee;
   }
 
+  if (node.continuesOptionalChain && callee.optionalChainShortCircuited) return callee;
   return evaluateResolvedCallExpression(node, callee.value, context, receiver);
 }
 
@@ -3465,7 +3466,8 @@ async function evaluateMemberAccess(
     : await evaluateNode(node.object, context);
   if (object.kind !== "normal") return object;
 
-  if ((object.value === null || object.value === undefined) && node.optional) {
+  if ((node.continuesOptionalChain && "optionalChainShortCircuited" in object && object.optionalChainShortCircuited) ||
+      ((object.value === null || object.value === undefined) && node.optional)) {
     return consume({ kind: "nullish" });
   }
 
@@ -3549,10 +3551,13 @@ async function evaluateMemberCallExpression(
   return evaluateMemberAccess(node.callee, context, async reference => {
     if (reference.kind === "nullish" || reference.object === null || reference.object === undefined) {
       if (reference.kind === "nullish") {
+        if (!node.continuesOptionalChain)
+          return evaluateResolvedCallExpression(node, undefined, context);
         return {
           kind: "normal",
           hasValue: true,
-          value: undefined
+          value: undefined,
+          optionalChainShortCircuited: true
         };
       }
 
@@ -4534,7 +4539,8 @@ async function evaluateResolvedCallExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: undefined
+      value: undefined,
+      optionalChainShortCircuited: true
     };
   }
 

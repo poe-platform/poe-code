@@ -266,6 +266,7 @@ export type MemberExpression = BaseNode & {
   computed: boolean;
   object: Expression;
   optional: boolean;
+  continuesOptionalChain?: true;
   property: Expression;
 };
 
@@ -311,6 +312,7 @@ export type CallExpression = BaseNode & {
   arguments: Array<Expression | SpreadElement>;
   callee: Expression;
   optional: boolean;
+  continuesOptionalChain?: true;
 };
 
 export type NewExpression = BaseNode & {
@@ -3059,11 +3061,15 @@ class Parser {
     let expression = this.parsePrimaryExpression();
 
     while (true) {
+      // Parentheses end short-circuit propagation without discarding a method receiver.
+      const continuesOptionalChain = !expression.parenthesized &&
+        (expression.node.type === "MemberExpression" || expression.node.type === "CallExpression") &&
+        (expression.node.optional || expression.node.continuesOptionalChain === true);
       const optionalChain = this.consumePunctuator("?.");
       if (optionalChain !== undefined) {
         if (this.consumePunctuator("(") !== undefined) {
           expression = {
-            node: this.createCallExpression(expression.node, true),
+            node: this.createCallExpression(expression.node, true, continuesOptionalChain),
             parenthesized: false
           };
           continue;
@@ -3078,6 +3084,7 @@ class Parser {
               computed: true,
               object: expression.node,
               optional: true,
+              ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
               property: property.node,
               span: createSpan(expression.node.span.start, end.end)
             },
@@ -3093,6 +3100,7 @@ class Parser {
             computed: false,
             object: expression.node,
             optional: true,
+            ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
             property,
             span: createSpan(expression.node.span.start, property.span.end)
           },
@@ -3109,6 +3117,7 @@ class Parser {
             computed: false,
             object: expression.node,
             optional: false,
+            ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
             property,
             span: createSpan(expression.node.span.start, property.span.end)
           },
@@ -3126,6 +3135,7 @@ class Parser {
             computed: true,
             object: expression.node,
             optional: false,
+            ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
             property: property.node,
             span: createSpan(expression.node.span.start, end.end)
           },
@@ -3136,7 +3146,7 @@ class Parser {
 
       if (this.consumePunctuator("(") !== undefined) {
         expression = {
-          node: this.createCallExpression(expression.node, false),
+          node: this.createCallExpression(expression.node, false, continuesOptionalChain),
           parenthesized: false
         };
         continue;
@@ -3806,7 +3816,7 @@ class Parser {
     return args;
   }
 
-  private createCallExpression(callee: Expression, optional: boolean): CallExpression {
+  private createCallExpression(callee: Expression, optional: boolean, continuesOptionalChain = false): CallExpression {
     const args = this.parseArguments();
     const end = this.previousToken();
     return {
@@ -3814,6 +3824,7 @@ class Parser {
       arguments: args,
       callee,
       optional,
+      ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
       span: createSpan(callee.span.start, end.end)
     };
   }

@@ -877,6 +877,9 @@ Malformed template escapes report positions in the original source, including
 after CRLF line endings.
 Tagged templates in `new` expressions run the tag before constructing its result,
 preserving substitutions, member receivers, constructor arguments and parentheses.
+Optional chains skip the remaining contiguous member accesses, calls and their
+arguments after a nullish short circuit. Parentheses end that propagation without
+discarding method receivers; ordinary undefined results still produce normal errors.
 Locale-list canonicalization observes Proxy membership and element reads in
 order, including inherited entries and throwing traps. This preserves locale
 selection for locale-aware case conversion, collation and Intl constructors.

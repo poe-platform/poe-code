@@ -63,6 +63,8 @@ export type CompletionResult = {
   span?: ErrorSourceSpan;
   stackFrames?: readonly string[];
   value: SandboxValue;
+  // Internal expression state, not a guest value; only a contiguous chain consumes it.
+  optionalChainShortCircuited?: true;
   label?: string;
   node?: BreakStatement | ContinueStatement;
 };

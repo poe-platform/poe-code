@@ -231,6 +231,23 @@ async function withIo(
   }
 }
 
+test("peer artifact scans read each leaf once and freshly detect subsequent tampering", () => {
+  const setup = fixture();
+  const original = setup.io.readFileSync.bind(setup.io);
+  const reads = new Map<string, number>();
+  setup.io.readFileSync = ((...args: Parameters<typeof original>) => {
+    const path = String(args[0]);
+    reads.set(path, (reads.get(path) ?? 0) + 1);
+    return original(...args);
+  }) as typeof original;
+  for (let scan = 1; scan <= 2; scan++) {
+    peerCapture.assertPeerArtifact(setup.binding, setup.snapshot);
+    for (const { path } of setup.binding.files) assert.equal(reads.get(`${setup.snapshot}/${prefix}${path}`), scan);
+  }
+  setup.io.writeFileSync(`${setup.snapshot}/${prefix}${runtime}`, "changed");
+  assert.throws(() => peerCapture.assertPeerArtifact(setup.binding, setup.snapshot), /Consumer peer bytes changed/);
+});
+
 for (const empty of [false, true])
   test(`required peer captures exact native assets and importer edge: empty=${empty}`, async (context) => {
     const setup = fixture(true, empty);

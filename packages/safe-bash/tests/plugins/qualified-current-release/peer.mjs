@@ -460,19 +460,22 @@ export function stagePeerArtifact(binding, consumer) {
 
 export function assertPeerArtifact(binding, consumer) {
   const state = stateFor(binding), { io, selected } = state;
-  const destination = join(io.realpathSync(consumer), "node_modules/poe-code"), actual = [];
+  const destination = join(io.realpathSync(consumer), "node_modules/poe-code"), actual = new Map();
   for (const [directory, names] of state.nativeDirectories) nativeDirectoryMembers(io, destination, directory, names);
   const walk = directory => {
     assert.ok(io.lstatSync(directory).isDirectory() && !io.lstatSync(directory).isSymbolicLink() && io.realpathSync(directory) === directory, "Consumer peer directory redirects");
     for (const name of io.readdirSync(directory)) {
       const path = join(directory, name), stat = io.lstatSync(path);
       if (stat.isDirectory()) walk(path);
-      else { regularBytes(io, path, state.captureLimits.get(relative(destination, path))); actual.push(relative(destination, path)); }
+      else {
+        const local = relative(destination, path);
+        actual.set(local, digest(regularBytes(io, path, state.captureLimits.get(local))));
+      }
     }
   };
   walk(destination);
-  assert.deepEqual(actual.sort(), [...selected.keys()].sort(), "Consumer peer closure file set changed");
-  for (const [path, bytes] of selected) assert.equal(digest(regularBytes(io, join(destination, path), state.captureLimits.get(path))), digest(bytes), `Consumer peer bytes changed: ${path}`);
+  assert.deepEqual([...actual.keys()].sort(), [...selected.keys()].sort(), "Consumer peer closure file set changed");
+  for (const [path, bytes] of selected) assert.equal(actual.get(path), digest(bytes), `Consumer peer bytes changed: ${path}`);
 }
 
 export function assertPeerDeclarationFiles(binding, files, consumer) {

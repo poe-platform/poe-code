@@ -101,6 +101,19 @@ bindings. All 27 cases pass (a4e056), including sync/async execution. The runtim
 did not change for that expansion. Main integration session 69114 remains live
 and main sources unchanged; PID 60496 was using 192.7% CPU after 10:49 (33e526).
 
+## Object-rest path qualification
+
+Because the candidate replaces both separate catch destructuring paths, six
+native comparisons checked symbol keys, string receivers, Proxy reflection,
+computed exclusions, getter mutation and null rejection. All six pass in the
+candidate (bb4d13). Rechecking three against unchanged main found a genuine
+Proxy-rest gap (d470ca): native and candidate return the rest property and log
+`get:a`, `keys`, `desc:b`, `get:b`; main omits that property and logs only `get:a`.
+The symbol and primitive/prototype controls pass main and are not defects.
+A new Proxy regression is included in the isolated protocol file; all 24 tests
+in that file pass (c79b5d). The source change remains the shared binding repair,
+not a separate Proxy-specific workaround.
+
 ## Repair requirements
 
 Prefer sharing the maintained binding/iterator implementation over perpetuating

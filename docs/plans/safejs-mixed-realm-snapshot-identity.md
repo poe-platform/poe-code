@@ -93,3 +93,47 @@ earlier completed-run dump rejection. The next runtime probe should use the
 actual registered callback/binding paths and distinguish admission, dump and
 recovery before changing the snapshot format. The isolated full-package test
 candidate remains unchanged by this documentation follow-up.
+
+## September 10 mutation-loss reproduction
+
+On current local code after weak snapshot integration, separate runs mutate
+Number.prototype.label to `first` and `second`. Both values are passed to the
+low-level serializer and restored from JSON. Probe ec201b reports distinct
+values before capture, identical values afterward, and labels `["second",
+"second"]`. Both intrinsic heap nodes use `["Number","prototype"]` without
+an originating-realm identifier. This confirms overwritten state as well as
+identity loss. An initial probe failed on an unused nonexistent import; the
+corrected probe above is the runtime evidence.
+
+The new uncommitted mixed-realm-intrinsics.test.ts exercises Number, Date and
+Map constructors, their prototypes, original Object prototypes, distinct
+mutations, and within-realm aliases. Initial assertion formatting invoked
+native boxed-value helpers on guest prototypes; identity checks now compare
+booleans to avoid those diagnostic side effects. Establish the corrected red
+result before implementing a format change.
+
+Implementation constraints from current source:
+
+- Intrinsic identities survive close, but currently retain only an installation
+  path. A budget is not a durable realm identity: it can start another realm.
+- Function prototype tables already attach to function identities; active
+  global-object/eval lookup and several builtin tables remain keyed by budget.
+- Restoration currently initializes one intrinsic realm and one symbol
+  registry. Merely adding a realm label to heap nodes will not reconstruct
+  separate callable behavior or registry ownership.
+- Do not use independent unaccounted budgets, clone callable wrappers pointing
+  at one realm, or reject mixed input and claim transport support complete.
+  Reconstruct coherent realm graphs with shared execution-budget accounting.
+
+A separate retained dynamic-function probe successfully started a second run
+with the same budget but rejected the old function invocation with compilation
+owner `reentry` (18a400). It did not execute the function body, so it does not
+validate the suspected wrong-global lookup. Do not change that behavior from
+source inspection alone.
+
+Corrected red run 740193 fails all three cases at the intended checks:
+constructor, prototype and Object-prototype identities collapse, and the first
+mutation becomes `second`. Native/pre-capture distinctions, the second label,
+within-realm constructor/prototype links and repeated binding aliases pass.
+The regression file remains uncommitted pending the runtime/format correction.
+No implementation fix, successful new package gate or release is claimed.

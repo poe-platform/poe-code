@@ -9,6 +9,7 @@ import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeNewBuiltin } from "./builtin-type-new.js";
 import { createTypePrepareDescriptor } from "./builtin-type-prepare.js";
+import { createTypeReprWrapper } from "./builtin-type-repr.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
 import { createObjectAttributeWrapper } from "./builtin-object-attribute.js";
@@ -50,6 +51,7 @@ export class RuntimeTypeRegistry {
     objectLayout.namespace.items.set(values.string("__new__"), createObjectNewBuiltin(values, meter, keys, this.object, type => this.#entries.get(type.value)?.type === type));
     typeLayout.namespace.items.set(values.string("__new__"), createTypeNewBuiltin(values, meter, this));
     typeLayout.namespace.items.set(values.string("__prepare__"), createTypePrepareDescriptor(values, meter, keys, this.type));
+    typeLayout.namespace.items.set(values.string("__repr__"), createTypeReprWrapper(values, meter, this.type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__init_subclass__"), createObjectInitSubclassDescriptor(values, meter, this.object));
     typeLayout.namespace.items.set(values.string("__init__"), createTypeInitWrapper(values, meter, this.type));
@@ -62,6 +64,7 @@ export class RuntimeTypeRegistry {
     objectLayout.namespace.items.set(values.string("__class__"), createObjectClassDescriptor(values, meter, this));
     meter.checkpoint(1, 192);
     const descriptors = [
+      { name: "__bases__", get: (instance: TypeValue) => this.metadata(instance, "bases") },
       { name: "__mro__", get: (instance: TypeValue) => instance.value.mro.length === 0 ? values.none : this.metadata(instance, "mro") },
       { name: "__dict__", get: (instance: TypeValue) => values.mappingProxy(instance.value.namespace) }
     ];

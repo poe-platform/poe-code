@@ -2,6 +2,7 @@ import { buildClass, type ClassBuilderContext } from "./class-builder.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { createRuntimeClassBuilderContext, type RuntimeClassBuilderPolicy } from "./runtime-class-builder.js";
 
 export interface RuntimeClassBuilderContext extends Omit<ClassBuilderContext<RuntimeValue, RuntimeValue>, "isFunction" | "isString" | "preparation"> {
   readonly preparation: Omit<ClassBuilderContext<RuntimeValue, RuntimeValue>["preparation"], "isMetaclassKeyword">;
@@ -9,15 +10,16 @@ export interface RuntimeClassBuilderContext extends Omit<ClassBuilderContext<Run
 
 /** Explicitly register the concrete builtin using the runtime's object policies.
  * Intrinsic function/string checks and reserved keyword recognition are owned
- * here. Bases, metaclass protocols and prepared-body execution remain supplied
- * capabilities; registration never executes them or grants filesystem access.
+ * here. A registry/key policy connects bases, metaclass protocols and prepared
+ * body execution to the active invocation; a complete custom context remains
+ * supported. Registration never executes guest code or grants filesystem access.
  */
-export function createBuildClassBuiltin(context: RuntimeClassBuilderContext, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createBuildClassBuiltin(policy: RuntimeClassBuilderContext | RuntimeClassBuilderPolicy, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   const metaclassKey = values.string("metaclass");
   return values.builtinFunction({
     name: "__build_class__",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint(1, 320);
       const entries = new Map<RuntimeValue, RuntimeValue>();
       for (const [key, value] of keywords.items.snapshot()) {
@@ -25,6 +27,7 @@ export function createBuildClassBuiltin(context: RuntimeClassBuilderContext, val
         if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
         entries.set(key, value);
       }
+      const context = "registry" in policy ? createRuntimeClassBuilderContext(policy, values, meter, invocation) : policy;
       const preparation = context.preparation;
       const result = buildClass(positional, entries, {
         isFunction: value => value.kind === "function",

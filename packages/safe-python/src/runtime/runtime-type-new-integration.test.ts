@@ -10,6 +10,7 @@ import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
 import { PythonRuntimeError } from "./error.js";
+import { createBuildClassBuiltin } from "./builtin-build-class.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -17,6 +18,7 @@ function fixture() {
   const registry = new RuntimeTypeRegistry(v, keys, meter), native = new Map<string, TypeValue>();
   const globals = new Map<string, RuntimeValue>([["type", registry.type], ["object", registry.object], ["__name__", v.string("example")]]), events: string[] = [];
   const builtins = new Map<string, RuntimeValue>([["visit", v.builtinFunction({ name: "visit", invoke(args) { const value = args[0]; if (value.kind !== "str") throw Error("expected string"); events.push(String.fromCodePoint(...value.value)); return v.none; } })]]);
+  builtins.set("__build_class__", createBuildClassBuiltin({ registry, keys }, v, meter));
   const unused = (): never => { throw Error("unexpected extension operation"); };
   const hooks: RuntimeProgramHooks = {
     expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
@@ -34,6 +36,13 @@ function fixture() {
   return { v, meter, registry, globals, builtins, events, run };
 }
 
+it("constructs ordinary class statements through the concrete builtin builder", () => {
+  const state = fixture(), { v } = state;
+  state.run("def decorate(cls):\n visit(cls.__name__)\n return cls\n@decorate\nclass C:\n __slots__=('field',)\n def owner(self):\n  return __class__\ninstance=C()\ninstance.field=7\nresult=instance.field\nowner=instance.owner() is C\n");
+  expect(state.globals.get("result")).toEqual(v.integer(7)); expect(state.globals.get("owner")).toBe(v.true);
+  expect(state.events).toEqual(["C"]); expect(state.globals.has("__slots__")).toBe(false);
+});
+
 it("executes prepared class bodies without leaking locals and keeps class closure cells", () => {
   const state = fixture(), { v, registry } = state;
   state.builtins.set("__build_class__", v.builtinFunction({ name: "__build_class__", invoke(args, keywords, meter, invocation) {
@@ -47,6 +56,49 @@ it("executes prepared class bodies without leaking locals and keeps class closur
   state.run("def outer(value):\n class C:\n  field=value\n  def owner(self):\n   return __class__\n return C\nC=outer(7)\nresult=C.field\nowner=C().owner() is C\n");
   expect(state.globals.get("result")).toEqual(v.integer(7)); expect(state.globals.get("owner")).toBe(v.true);
   expect(state.globals.has("field")).toBe(false); expect(state.globals.has("__qualname__")).toBe(false);
+});
+
+it("orders native builder preparation, body, allocation, initialization and decoration", () => {
+  const state = fixture(), { v, registry } = state;
+  state.globals.set("classmethod", registry.methodDecoratorType("classmethod"));
+  state.run("class Meta(type):\n @classmethod\n def __prepare__(meta,name,bases,*,flag):\n  visit('prepare:'+flag)\n  return {'seed':7}\n def __new__(meta,name,bases,namespace,*,flag):\n  visit('new:'+flag)\n  return type.__new__(meta,name,bases,namespace)\n def __init__(cls,name,bases,namespace,*,flag):\n  visit('init:'+flag)\ndef decorate(cls):\n visit('decorate')\n return cls\n@decorate\nclass C(metaclass=Meta,flag='value'):\n visit('body')\n field=seed\nresult=C.field\n");
+  expect(state.events).toEqual(["prepare:value", "body", "new:value", "init:value", "decorate"]);
+  expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("resolves MRO entries before preparation and records the original base tuple", () => {
+  const state = fixture(), { v } = state;
+  state.run("class Base:\n pass\nclass Proxy:\n def __mro_entries__(self,bases):\n  visit('resolve')\n  return (Base,)\nproxy=Proxy()\nclass C(proxy):\n __orig_bases__=None\noriginal=C.__orig_bases__[0] is proxy\nresolved=C.__bases__[0] is Base\n");
+  expect(state.events).toEqual(["resolve"]); expect(state.globals.get("original")).toBe(v.true); expect(state.globals.get("resolved")).toBe(v.true);
+});
+
+it("allows non-type metaclasses and arbitrary results without class-cell checks", () => {
+  const state = fixture();
+  state.run("def meta(name,bases,namespace,*,flag):\n visit(flag)\n return False\nclass C(metaclass=meta,flag='construct'):\n def owner(self):\n  return __class__\n");
+  expect(state.events).toEqual(["construct"]); expect(state.globals.get("C")).toBe(state.v.false);
+});
+
+it("checks preparation mapping flags before executing the body", () => {
+  const state = fixture(); state.globals.set("classmethod", state.registry.methodDecoratorType("classmethod"));
+  state.run("class Meta(type):\n @classmethod\n def __prepare__(meta,*args):\n  return None\n");
+  expect(() => state.run("class C(metaclass=Meta):\n visit('body')\n")).toThrow("Meta.__prepare__() must return a mapping, not NoneType");
+  state.run("class SequenceMeta(type):\n @classmethod\n def __prepare__(meta,*args):\n  return []\n");
+  expect(() => state.run("class C(metaclass=SequenceMeta):\n visit('body')\n")).toThrow("list indices must be integers or slices, not str");
+  expect(state.events).toEqual([]); expect(state.globals.has("C")).toBe(false);
+});
+
+it("diagnoses a metaclass that drops the captured class cell", () => {
+  const state = fixture();
+  state.run("class Meta(type):\n def __new__(meta,name,bases,namespace):\n  namespace.pop('__classcell__')\n  return type.__new__(meta,name,bases,namespace)\n");
+  expect(() => state.run("class C(metaclass=Meta):\n def owner(self):\n  return __class__\n")).toThrow("__class__ not set defining 'C' as <class 'example.C'>. Was __classcell__ propagated to type.__new__?");
+  expect(state.globals.has("C")).toBe(false);
+});
+
+it("rejects a metaclass result inconsistent with the captured class cell", () => {
+  const state = fixture();
+  state.run("class Other:\n pass\nclass Meta(type):\n def __new__(meta,name,bases,namespace):\n  created=type.__new__(meta,name,bases,namespace)\n  return Other\n");
+  expect(() => state.run("class C(metaclass=Meta):\n def owner(self):\n  return __class__\n")).toThrow("__class__ set to <class 'example.C'> defining 'C' as <class 'example.Other'>");
+  expect(state.globals.has("C")).toBe(false);
 });
 
 it("prepares independent namespaces through inherited native class-method binding", () => {

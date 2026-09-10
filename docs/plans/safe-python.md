@@ -8283,6 +8283,23 @@ extension, integration, or validation requirement is missing or unverified.
   files, selected build, typecheck and scoped lint pass. Concrete __build_class__
   assembly, remaining native constructors and public execution packaging remain
   unfinished.
+- Connected the concrete __build_class__ builtin to registry/key policies and
+  active invocation capabilities while preserving complete custom contexts.
+  Ordinary class statements now resolve replacement bases, select/prepare the
+  metaclass, execute prepared bodies, store original bases and validate captured
+  class cells through the shared lifecycle. Mapping flags are checked without
+  invoking instance attribute overrides; original keyword values reach preparation
+  and construction. Integration exposed missing __bases__ reads and native type
+  representation; both now support normal metadata access and class-cell errors.
+  Native representation preserves code points and follows CPython's simple-name
+  fallback for builtins/non-string modules, including a differential-discovered
+  regression fixed with failing tests. Eleven added tests cover lifecycle order,
+  custom metaclasses, slots, decorators, invalid mappings and cell consistency.
+  All 72 concrete builder mapping traces and 80 representation cases match
+  CPython; the previous 154 allocator validation and 640 allocation cases also
+  match. All 6,428 tests in 491 files, selected build, typecheck and scoped lint pass.
+  Mutable bases/MRO invalidation, complete native constructors, guest exceptions,
+  public execution assembly and packaging remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

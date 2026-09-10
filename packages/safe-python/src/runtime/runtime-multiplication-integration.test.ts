@@ -15,6 +15,8 @@ import { createDivmodBuiltin } from "./builtin-divmod.js";
 import { createIterBuiltin, createNextBuiltin } from "./builtin-iteration.js";
 import { PythonRuntimeError } from "./error.js";
 import { CallStack } from "./call-stack.js";
+import { createRange } from "./integer-sequence.js";
+import { createSortedBuiltin } from "./builtin-sorted.js";
 
 function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal }), v = new RuntimeValues(meter);
@@ -1300,4 +1302,11 @@ it("requests a native remainder hint only after the unpacking prefix", () => {
   state.globals.set("cursor", state.v.iterator({ lengthHint() { events.push("hint"); return -1n; }, next() { events.push("next"); return { done: false, value: state.v.true }; } }));
   expect(() => state.run("head,*tail=cursor\n")).toThrow("__length_hint__() should return >= 0");
   expect(events).toEqual(["next", "hint"]);
+});
+
+it.each(["result=[]\nresult.extend(source)\n", "result=sorted(source)\n", "result=[*source]\n", "result=(*source,)\n", "def collect(*args):\n return args\nresult=collect(0,*source)\n"])("rejects source range length overflow before collection: %s", source => {
+  const state = fixture();
+  state.globals.set("source", state.v.range(createRange(0n, 1n << 70n)));
+  state.globals.set("sorted", createSortedBuiltin(state.v, state.meter));
+  expect(() => state.run(source)).toThrow("Python int too large to convert to C ssize_t");
 });

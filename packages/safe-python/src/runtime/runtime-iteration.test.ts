@@ -43,6 +43,21 @@ describe("concrete runtime iteration", () => {
     const source = { next: () => { calls++; return { done: false, value: v.none }; } };
     expect(runtimeIterate(v.iterator(source), v, meter)).toBe(source); expect(calls).toBe(0);
   });
+  it.each([1n, -3n])("validates range source length at signed-machine boundaries with step %s", step => {
+    for (const size of [0n, 1n, (1n << 63n) - 1n, 1n << 63n]) {
+      const { meter, values: v } = fixture(), source = v.range(createRange(5n, 5n + step * size, step));
+      if (size === 1n << 63n) {
+        expect(() => runtimeIterate(source, v, meter, undefined, undefined, true)).toThrow("Python int too large to convert to C ssize_t");
+        // Streaming still acquires and pulls huge ranges without a size check.
+        expect(runtimeIterate(source, v, meter).next().value).toEqual(v.integer(5));
+      } else {
+        const iterator = runtimeIterate(source, v, meter, undefined, undefined, true);
+        expect(iterator.lengthHint?.()).toBe(size);
+        expect(iterator.next().done).toBe(size === 0n);
+      }
+      expect(meter.usage.allocatedBytes).toBeLessThan(2000);
+    }
+  });
   it("reuses Unicode code-point and unsigned byte iteration", () => {
     const { meter, values: v } = fixture(), text = runtimeIterate(v.string("😀x"), v, meter);
     expect(text.next().value).toEqual(v.string("😀")); expect(text.next().value).toEqual(v.string("x"));

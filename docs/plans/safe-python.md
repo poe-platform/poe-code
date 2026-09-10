@@ -7653,6 +7653,16 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Source-length overflow audits,
   exact iterator type-name diagnostics, full class/storage ownership and suspended
   safe-fs effects remain unfinished.
+- Checked range source hints for list-style acquisition. Five compiled
+  regressions previously consumed oversized ranges until the execution allocation
+  limit instead of raising Python's length overflow. Acquisition now validates the
+  exact range cursor hint only when the consumer requests it; streaming retains
+  lazy access to arbitrarily large progressions. Seven added tests cover extension,
+  sorted, starred list/tuple/call collection, signed-machine boundaries and both
+  step directions without reserving memory from the hint. All 80 range-consumer
+  cases match CPython. All 5,884 tests in 453 files, selected build, typecheck
+  and scoped lint pass. Exact iterator type-name diagnostics, full class/storage ownership,
+  native-subclass adapters and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

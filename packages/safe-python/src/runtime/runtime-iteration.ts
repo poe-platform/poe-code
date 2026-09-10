@@ -33,7 +33,11 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
     case "dict": case "mappingproxy":
       meter.checkpoint(1, 32);
       return (value.kind === "dict" ? value : value.value).items.iterate(key => key);
-    case "range": return createRuntimeRangeIterator(value.value, false, values, meter);
+    case "range": {
+      const iterator = createRuntimeRangeIterator(value.value, false, values, meter);
+      if (hint) nativeIteratorLengthHint(iterator, meter);
+      return iterator;
+    }
     case "tuple": case "str": case "bytes": return new ConstantIterator<RuntimeValue>(value, values, meter);
     default: {
       if (protocol !== undefined) {

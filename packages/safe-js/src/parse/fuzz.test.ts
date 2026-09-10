@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { parse, type ParseResult } from "../parse.js";
 import { tokenize, type Token } from "./tokenizer.js";
+import { REGEX_COMPILE_LIMITS, SandboxError } from "../interp/budget.js";
 
 const RUN_FUZZ = process.env.SAFEJS_PARSE_FUZZ === "1";
 const FUZZ_SEED = 0x5eed_f022;
@@ -143,14 +144,14 @@ function assertTokenizeAndParseCleanly(
   if (tokenized.ok) {
     assertCleanTokens(tokenized.value);
   } else {
-    assertLocatedError(tokenized.error, source, label);
+    assertParseFailure(tokenized.error, source, label);
   }
 
   const parsed = capture(() => parse(source, `${label}.SafeJS`));
   if (parsed.ok) {
     assertAstNodeIds(parsed.value);
   } else {
-    assertLocatedError(parsed.error, source, label);
+    assertParseFailure(parsed.error, source, label);
   }
 
   return { parse: parsed, tokenize: tokenized };
@@ -246,7 +247,16 @@ function assertLocatedParseError(error: Error, source: string): void {
   assertErrorLocationPointsIntoSource(error, source);
 }
 
-function assertLocatedError(error: Error, source: string, label: string): void {
+function assertParseFailure(error: Error, source: string, label: string): void {
+  if (error instanceof SandboxError) {
+    expect(error, label).toMatchObject({
+      code: "budgetExceeded",
+      budget: "stringLength",
+      limit: REGEX_COMPILE_LIMITS.flagsLength
+    });
+    expect(error.current, label).toBeGreaterThan(REGEX_COMPILE_LIMITS.flagsLength);
+    return;
+  }
   expect(error.message, label).toMatch(/ at line \d+, column \d+\./);
   assertErrorLocationPointsIntoSource(error, source);
 }

@@ -27,6 +27,14 @@ identity. Main reproduced 22 failures and three passing controls before the
 repair. See [the repair record](safejs-error-cause-reflection.md). This change
 postdates the completed full gate and is not delivered remotely.
 
+Skipped-case qualification: the 13 host-feature-dependent skips execute on
+Node 26.8.1, with all 86 tests in their four files passing. The opt-in parser
+fuzz harness exposed a stale expectation that intentional regex flag-budget
+rejections have syntax coordinates; its narrowly corrected classifier passes
+3,100 generated inputs without changing runtime guards or deadlines. The other
+33 skips are named memfs reference differences. See
+[the qualification](safejs-opt-in-fuzz-qualification.md).
+
 Latest gate update at runtime 3cd9fad79: **28,271 passed, 15 failed, 47 skipped**
 across 1,247 files; all 100 filesystem type contracts passed. This supersedes
 the older full-gate counts and coverage statements below: template, optional

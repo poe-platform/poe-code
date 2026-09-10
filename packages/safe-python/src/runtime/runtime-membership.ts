@@ -1,6 +1,5 @@
 import type { ConstantValues, PrimitiveConstant } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeComparison } from "./runtime-comparison.js";
 import { PythonRuntimeError } from "./error.js";
 import { rangeIndexOf } from "./integer-sequence.js";
 import { runtimeIterate } from "./runtime-iteration.js";
@@ -36,10 +35,11 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
     found = runtimeSetAccess(container, needle, "contains", values, meter);
   } else if (container.kind === "dict_keys" || container.kind === "dict_values" || container.kind === "dict_items") {
     const comparisons = containsRuntimeDictionaryView(container, needle, meter);
+    const equal = createRuntimeSearchEquality(values, meter, context);
     let item = comparisons.next();
     while (!item.done) {
       meter.checkpoint();
-      item = comparisons.next(runtimeComparison("==", item.value[0], item.value[1], values, meter).value);
+      item = comparisons.next(equal(item.value[0], item.value[1]));
     }
     found = item.value;
   } else if (container.kind === "dict" || container.kind === "mappingproxy") {

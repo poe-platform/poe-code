@@ -39,6 +39,15 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["needle in mapping.values()", "('key',needle) in mapping.items()"])("uses guest equality for dictionary view membership: %s", expression => {
+    const state = fixture(`mapping={'key':member}\nresult=${expression}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), truth = v.cell({}), trace: string[] = [];
+    state.globals.set("member", member); state.globals.set("needle", needle);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(operator, left, right) {
+      expect(operator).toBe("=="); expect(left).toBe(member); expect(right).toBe(needle);
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward() { trace.push("equal"); return truth; }, reflected: () => v.notImplemented } };
+    }, truth(value) { expect(value).toBe(truth); trace.push("truth"); return true; } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.true); expect(trace).toEqual(["equal", "truth"]);
+  });
   it.each(["[member]", "(member,)"])("uses rich equality and guest truth for membership in %s", container => {
     const state = fixture(`result=needle in ${container}\n`), v = state.values, member = v.cell({}), needle = v.cell({}), truth = v.cell({}), trace: string[] = [];
     state.globals.set("member", member); state.globals.set("needle", needle);

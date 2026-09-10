@@ -6905,6 +6905,15 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Dictionary-view guest equality, remaining native
   protocols, automatic object assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected dictionary values/items view membership to shared guest equality
+  and truth conversion. The view generator retains identity shortcuts, key
+  lookup policy and mutation detection; only yielded value comparisons now use
+  the execution frame's rich-comparison capabilities.
+- Two failing compiled regressions now pass. All 5,242 tests in 441 files pass;
+  32 CPython comparisons match results/errors and equality/truth traces across
+  both views, mutations and negation. Typecheck, scoped lint and selected
+  workspace build pass. Remaining native comparison protocols, automatic object
+  assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

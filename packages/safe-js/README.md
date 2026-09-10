@@ -659,6 +659,8 @@ including nested conditionals and async generators.
 `yield` follows assignment-expression precedence: higher-precedence operands
 must parenthesize it, such as `1 + (yield 2)`. Non-strict `yield` identifiers
 outside generator bodies remain supported.
+An `await` expression on the left of `**` requires parentheses, as in
+`(await value) ** 2`; `await (value ** 2)` and right-side awaits remain valid.
 Non-strict statement-only bodies distinguish a `let` identifier followed by a
 newline from a lexical declaration; strict-mode and declaration restrictions
 still apply.

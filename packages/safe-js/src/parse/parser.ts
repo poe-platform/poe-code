@@ -2971,7 +2971,7 @@ class Parser {
       return left;
     }
 
-    if (!left.parenthesized && left.node.type === "UnaryExpression") {
+    if (!left.parenthesized && (left.node.type === "UnaryExpression" || left.node.type === "AwaitExpression")) {
       const operator = this.previousToken();
       throw new Error(
         `Unary expressions cannot be used as the left-hand side of '**' without parentheses at line ${operator.start.line}, column ${operator.start.column}.`

@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { LocalNamespace } from "./module-frame.js";
 import { runtimeGetItem, runtimeMutateSubscription } from "./runtime-subscription.js";
@@ -20,7 +21,7 @@ export class RuntimeMappingNamespace implements LocalNamespace<RuntimeValue> {
       this.meter.checkpoint(1, 16); return { value };
     } catch (error) {
       this.meter.checkpoint();
-      if (error instanceof PythonRuntimeError && error.name === "KeyError") return undefined;
+      if (runtimeExceptionMatches(error,"KeyError",this.invocation)) return undefined;
       throw error;
     }
   }
@@ -35,10 +36,10 @@ export class RuntimeMappingNamespace implements LocalNamespace<RuntimeValue> {
     try { runtimeMutateSubscription(this.mapping, key, { kind: "delete" }, this.values, this.meter, this.invocation); return true; }
     catch (error) {
       this.meter.checkpoint();
-      if (error instanceof PythonRuntimeError && error.name === "KeyError") return false;
+      if (runtimeExceptionMatches(error,"KeyError",this.invocation)) return false;
       throw error;
     }
   }
 
-  isGuest(error: unknown): boolean { return error instanceof PythonRuntimeError; }
+  isGuest(error: unknown): boolean { return error instanceof PythonRuntimeError || runtimeExceptionMatches(error,"BaseException",this.invocation); }
 }

@@ -31,7 +31,8 @@ export function executeRuntimeBuilderBody(
   const body = createRuntimeFrameBody(program, context, meter);
   const bindBody = (frame: Parameters<typeof body>[0]) => body(frame, fn.value, code.definitions ?? program.functions, code.classDefinitions ?? program.classFunctions);
   if (code.body.kind === "class") {
-    const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter) : context.namespace?.(namespace);
+    if(namespace.kind==="dict")meter.checkpoint(0,96);
+    const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter,{isException:context.exceptions?.matches.bind(context.exceptions)}) : context.namespace?.(namespace);
     meter.checkpoint();
     if (locals === undefined) throw new Error("prepared class namespace mapping adapter is unavailable");
     const result = executeClassBody(code.body.code, {

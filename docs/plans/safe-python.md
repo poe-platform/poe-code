@@ -9897,6 +9897,21 @@ extension, integration, or validation requirement is missing or unverified.
   Other native protocol catch sites, metadata, tracebacks, exception groups,
   suspension and interpreter/safe-fs integration remain unfinished.
   No push or release requested.
+- Class namespace exception integration (2026-09-10): failing regressions drove
+  guest-aware KeyError misses in prepared mappings, deletion-error replacement
+  with NameError, and AttributeError fallback during optional __prepare__ lookup.
+  A further regression covers guest equality failures during deletion from exact
+  prepared dictionaries. Their exception policy now follows every class-body
+  entry path, including direct builder/class helpers, with the additional policy
+  storage charged to the execution meter. Lookup and storage still propagate
+  nonmatching exceptions; deletion recognizes BaseException subclasses while
+  preserving fatal host/limit failures. Exact-dictionary lookup still propagates
+  comparison KeyError rather than treating it like a custom-mapping miss.
+  All 98 CPython comparisons and 669 focused tests pass. The selected workspace
+  build, typecheck, focused lint and all 7,189 tests in 503 files pass in the
+  uncached one-worker package run. Remaining native protocol
+  catch sites, exception metadata/tracebacks/groups, suspension, and public
+  interpreter/safe-fs assembly remain unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

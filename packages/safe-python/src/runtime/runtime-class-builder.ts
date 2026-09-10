@@ -1,6 +1,6 @@
 import type { RuntimeClassBuilderContext } from "./builtin-build-class.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
@@ -27,7 +27,7 @@ export function createRuntimeClassBuilderContext(policy: RuntimeClassBuilderPoli
   const lookup = (value: RuntimeValue, name: string) => {
     if (invocation?.attribute === undefined) throw Error("class construction requires ordinary attribute lookup");
     try { const result = invocation.attribute(value, name); meter.checkpoint(1, 16); return { value: result }; }
-    catch (error) { meter.checkpoint(); if (error instanceof PythonRuntimeError && error.name === "AttributeError") return undefined; throw error; }
+    catch (error) { meter.checkpoint(); if (runtimeExceptionMatches(error,"AttributeError",invocation)) return undefined; throw error; }
   };
   const repr = (value: RuntimeValue) => {
     const formatting = invocation?.formatting;
@@ -88,7 +88,7 @@ export function createRuntimeClassBuilderContext(policy: RuntimeClassBuilderPoli
     },
     storeOriginalBases(namespace, original) {
       if (invocation === undefined) throw Error("class construction requires invocation capabilities");
-      const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter)
+      const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter, invocation)
         : new RuntimeMappingNamespace(namespace, values, meter, invocation);
       locals.store("__orig_bases__", original); meter.checkpoint();
     },

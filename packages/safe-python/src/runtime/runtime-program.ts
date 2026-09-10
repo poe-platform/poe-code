@@ -230,7 +230,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           const result = builtinCalls.call(fn, []); meter.checkpoint();
           return result.kind === "cell" ? result.value : undefined;
         }
-        const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter)
+        const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter, builtinCalls)
           : new RuntimeMappingNamespace(namespace, values, meter, builtinCalls);
         return executeClassBody(fn.value.code.body.code, {
           ...fn.value, calls, locals, cell: cell => values.cell(cell),

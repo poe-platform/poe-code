@@ -25,7 +25,8 @@ export function executeRuntimeClassBody(
   meter.checkpoint(1, 96);
   const code = program.classes.get(statement);
   if (code === undefined) throw new Error("class definition has no matching compiled code");
-  const locals = new RuntimeDictionaryNamespace(context.namespace, context.values, meter);
+  meter.checkpoint(0,96);
+  const locals = new RuntimeDictionaryNamespace(context.namespace, context.values, meter,{isException:context.exceptions?.matches.bind(context.exceptions)});
   const body = createRuntimeFrameBody(program, context, meter);
   return executeClassBody(code, {
     globals: context.globals, builtins: context.builtins, closure: context.closure,

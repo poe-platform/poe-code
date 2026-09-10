@@ -79,6 +79,39 @@ function exceptionFixture() {
   return state;
 }
 
+it("uses guest KeyError as missing names in prepared class namespaces",()=>{
+  const state=exceptionFixture();state.globals.set("classmethod",state.registry.methodDecoratorType("classmethod"));
+  state.run("class Namespace:\n def __init__(self):\n  self.data={}\n def __getitem__(self,key):\n  if key=='seed':\n   return 41\n  return self.data[key]\n def __setitem__(self,key,value):\n  self.data[key]=value\nclass Meta(type):\n @classmethod\n def __prepare__(meta,name,bases):\n  return Namespace()\n def __new__(meta,name,bases,namespace):\n  return type.__new__(meta,name,bases,namespace.data)\nclass C(metaclass=Meta):\n field=seed+1\ncorrect=C.field==42\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("replaces guest deletion faults with NameError in prepared class namespaces",()=>{
+  const state=exceptionFixture();state.globals.set("classmethod",state.registry.methodDecoratorType("classmethod"));
+  state.run("class Namespace:\n def __init__(self):\n  self.data={}\n def __getitem__(self,key):\n  return self.data[key]\n def __setitem__(self,key,value):\n  self.data[key]=value\n def __delitem__(self,key):\n  raise ValueError('delete')\nclass Meta(type):\n @classmethod\n def __prepare__(meta,name,bases):\n  return Namespace()\n def __new__(meta,name,bases,namespace):\n  return type.__new__(meta,name,bases,namespace.data)\nclass C(metaclass=Meta):\n try:\n  del gone\n except NameError:\n  deleted=True\ncorrect=C.deleted\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("uses the default class namespace when prepare lookup raises guest AttributeError",()=>{
+  const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Missing(AttributeError):\n pass\nclass MetaMeta(type):\n def __getattribute__(cls,name):\n  if name=='__prepare__':\n   raise Missing(name)\n  return type.__getattribute__(cls,name)\nclass Meta(type,metaclass=MetaMeta):\n pass\nclass C(metaclass=Meta):\n field=42\ncorrect=C.field==42\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("replaces guest comparison faults during deletion from exact class dictionaries",()=>{
+  const state=exceptionFixture();state.globals.set("classmethod",state.registry.methodDecoratorType("classmethod"));state.builtins.set("hash",createHashBuiltin(state.v,state.meter,state.hash));
+  state.run("class Key:\n def __hash__(self):\n  return hash('gone')\n def __eq__(self,other):\n  if other=='gone':\n   raise ValueError('comparison')\n  return False\nkey=Key()\nclass Meta(type):\n @classmethod\n def __prepare__(meta,name,bases):\n  return {key:1}\n def __new__(meta,name,bases,namespace):\n  namespace.pop(key)\n  return type.__new__(meta,name,bases,namespace)\nclass C(metaclass=Meta):\n try:\n  del gone\n except NameError:\n  deleted=True\ncorrect=C.deleted\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves host failures and execution limits in class namespace protocols",()=>{
+  for(const phase of ["prepare","lookup","delete"])for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"KeyError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.globals.set("classmethod",state.registry.methodDecoratorType("classmethod"));state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    const source="class Namespace:\n def __init__(self):\n  self.data={}\n def __getitem__(self,key):\n  if key=='probe':\n   fail()\n  return self.data[key]\n def __setitem__(self,key,value):\n  self.data[key]=value\n def __delitem__(self,key):\n  fail()\nclass MetaMeta(type):\n def __getattribute__(cls,name):\n  if name=='__prepare__' and "+(phase==="prepare"?"True":"False")+":\n   fail()\n  return type.__getattribute__(cls,name)\nclass Meta(type,metaclass=MetaMeta):\n @classmethod\n def __prepare__(meta,name,bases):\n  return Namespace()\ntry:\n class C(metaclass=Meta):\n  "+(phase==="delete"?"del probe":phase==="lookup"?"value=probe":"value=42")+"\nexcept BaseException:\n visit('caught')\n";
+    let caught:unknown;try{state.run(source);}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
 it("uses native KeyError arguments during keyword expansion despite attribute overrides",()=>{
   const state=exceptionFixture();
   state.run("class Args:\n def __get__(self,obj,owner):\n  visit('wrong')\n  raise ValueError('virtual args')\nclass Missing(KeyError):\n args=Args()\nclass Mapping:\n def keys(self):\n  return ['key']\n def __getitem__(self,key):\n  raise Missing('native')\ndef call(**kw):\n visit('body')\ntry:\n call(**Mapping())\nexcept TypeError as error:\n correct=error.args==(\"guest() got multiple values for keyword argument 'native'\",)\n");

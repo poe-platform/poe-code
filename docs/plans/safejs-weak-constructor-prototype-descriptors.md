@@ -57,3 +57,18 @@ subclasses, cross-realm prototypes and weak snapshot restoration. All five new
 tests pass on Node 18.20.8 (a1347d). Scoped ESLint and package TypeScript checks
 pass (bee91b). This is a focused repair, not a green full-package result; see
 the separately recorded 34-failure pre-fix gate. Release hold remains active.
+
+## Additional intrinsic coverage
+
+A targeted Node 26.8.1 key comparison (4d41e1) confirms the missing keys in the
+earlier standard-global selection: 19 legacy RegExp static names and three
+V8 Error hooks. Iterator, Iterator.prototype and Intl.Locale.prototype have no
+native-only keys in that sample. Guest-only zip/zipKeyed and Locale variants
+cannot be qualified against this native runtime by key comparison.
+
+The follow-up checks generator-function, async-function and async-generator
+function prototypes and constructors, plus both generator iterator prototypes.
+All 27 shared descriptor rows match and no missing/extra rows are observed
+(868504). This compares flags, value/accessor kind and function name/length;
+it does not prove iterator behavior or broad language conformance. No further
+runtime change is justified by these bounded metadata checks.

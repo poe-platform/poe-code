@@ -10,6 +10,7 @@ import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { createSandboxTemporalPlainDate, temporalPlainDateFields, temporalPlainDateNumericFields, type TemporalPlainDateFields } from "../temporal-plain-date.js";
 import { createSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
 import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
+import { readTemporalPlainDate } from "./temporal-plain-date-input.js";
 
 export function createTemporalPlainDateConstructor(budget: Budget): SandboxClosure {
   const prototype = createIntrinsicObject();
@@ -47,6 +48,16 @@ export function createTemporalPlainDateConstructor(budget: Budget): SandboxClosu
     [Symbol.toStringTag]: { value: "Temporal.PlainDate", configurable: true }
   });
   const methods: SandboxClosure[] = [];
+  const from = createSandboxClosure({ guest: true, sandbox: true, name: "from", length: 1,
+    call: async ([input, options], context) => {
+      const result = await readTemporalPlainDate(input, options, budget, context);
+      setSandboxPrototype(result, prototype, budget);
+      createDataCheckpoint(budget, context)(result, 0, true);
+      return result;
+    }
+  });
+  Object.defineProperty(materializeFunctionProperties(constructor), "from", { value: from, writable: true, configurable: true });
+  methods.push(from);
   for (const name of ["calendarId", "era", "eraYear", "year", "month", "monthCode", "day", "dayOfWeek", "dayOfYear", "weekOfYear", "yearOfWeek", "daysInWeek", "daysInMonth", "daysInYear", "monthsInYear", "inLeapYear"] as const) {
     const getter = createSandboxClosure({ guest: true, sandbox: true, name: `get ${name}`, length: 0,
       call: (_args, context) => {

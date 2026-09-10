@@ -242,3 +242,41 @@ The public constructor module and construction tests were previously untracked;
 the local public-date commit captures that existing work with calendar replacement.
 Namespace, copying and snapshot wiring still include uncommitted integration.
 No push or release; the broader objective remains incomplete.
+
+## PlainDate.from
+
+Seven regressions failed against the missing factory (008571). A dedicated
+date input reader now handles private PlainDate/PlainDateTime slots, ISO strings
+and ordered calendar/date property bags. It never reads time fields from bags.
+Calendar bag years are interpreted by the backend; ISO strings retain their ISO
+year even with a non-ISO annotation. Expanded years use an equivalent ISO
+400-year cycle for grammar checking before options, followed by actual range
+validation after options. The factory captures its intrinsic prototype and is
+registered for replay.
+
+Nineteen factory/construction/calendar tests passed (ff6e51), including date
+endpoints, immediate field coercion, private-slot conversion, option ordering,
+fresh intrinsic results and replay. Upstream from/withCalendar fixtures,
+minimum-Node tests and typechecking are in progress. Other factories, arithmetic,
+replacement, locale integration and date conversions remain incomplete.
+
+All seven new cases passed on Node 18.18.2 (790277); TypeScript checking passed
+(73ecce), as did scoped lint (79752b) and the maintained build's 23 tasks and
+five fresh ESM import checks (06740a).
+
+The entire pinned Test262 PlainDate/from directory ran unchanged with parsed
+YAML frontmatter, sta/assert and declared helpers, in normal/strict modes:
+132 passed, ten failed, zero exclusions (3607f6). The five failing fixtures are
+argument-zoneddatetime-slots.js, argument-zoneddatetime.js,
+calendar-temporal-object.js, order-of-operations.js and overflow-invalid-string.js.
+Inspection (76d6fa, aa6abb) shows all require missing ZonedDateTime or the other
+missing calendar-bearing classes. In order-of-operations.js, preceding bag and
+owned-date/date-time assertions run before the missing ZonedDateTime constructor.
+These failures remain part of the total; this is not complete conformance.
+
+The complete withCalendar rerun improved from 26/34 to 32/34 (37e7e6), with
+only calendar-temporal-object.js failing in both modes due to absent classes.
+The built CLI screenshot (9568a6) was inspected: a calendar-based Buddhist bag
+and private copy preserve 2000-02-29/year 2543, and both date endpoints convert:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-from.ajs.png`.
+No push or release; other public integration remains uncommitted.

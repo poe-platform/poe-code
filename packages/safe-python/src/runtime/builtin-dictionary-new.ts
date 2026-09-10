@@ -24,8 +24,10 @@ export function createDictionaryNewBuiltin(owner: TypeValue, values: RuntimeValu
         const name = diagnosticTypeName(type.value.name, meter);
         throw new PythonRuntimeError("TypeError", `dict.__new__(${name}): ${name} is not a subtype of dict`);
       }
-      if (type !== owner) throw Error("dictionary subclass allocation is not implemented");
-      return values.dictionary(owner.value.namespace.items.emptyCopy());
+      const payload = values.dictionary(owner.value.namespace.items.emptyCopy());
+      if (type === owner) return payload;
+      const dictionary = type.value.hasInstanceDictionary ? values.dictionary(owner.value.namespace.items.emptyCopy()) : undefined;
+      return values.instance(type, dictionary, payload);
     }
   });
 }

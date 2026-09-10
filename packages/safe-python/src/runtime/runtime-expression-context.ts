@@ -40,7 +40,7 @@ import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
-  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth">> &
+  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth" | "beginMethodCall">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
     readonly mapping?: BuiltinInvocationContext;
     readonly subscription?: BuiltinInvocationContext;
@@ -111,6 +111,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       ? bindings.instanceAttribute(receiver, name) : receiver.kind === "type" && bindings.typeAttribute !== undefined
         ? bindings.typeAttribute(receiver, name) : runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, getFormatting, methods)),
     beginCall: bindings.beginCall.bind(bindings),
+    beginMethodCall: bindings.beginMethodCall?.bind(bindings),
     beginSet: "dictionaryKeys" in bindings
       ? bindings.beginSet?.bind(bindings) ?? (initial => beginRuntimeSet(initial, values, bindings.dictionaryKeys, meter, bindings.iteration))
       : bindings.beginSet.bind(bindings),

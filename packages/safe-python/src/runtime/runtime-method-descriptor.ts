@@ -71,7 +71,7 @@ export function getRuntimeMethodDescriptor(descriptor: NativeMethodDescriptorVal
   meter.checkpoint(0, 96);
   return values.builtinFunction({ name: descriptor.value.name, keywordValidation: descriptor.value.boundKeywordValidation, invoke(positional, keywords, meter, context) {
     meter.checkpoint();
-    const result = descriptor.value.invoke(instance, positional, keywords, meter, context);
+    const result = descriptor.value.invoke(instance, positional, keywords, meter, context, true);
     meter.checkpoint(); return result;
   } }, { descriptor, instance });
 }

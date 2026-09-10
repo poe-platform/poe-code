@@ -51,6 +51,7 @@ export interface ExpressionContext<Value> {
    * non-callable callee here. Callability/binding are checked at invoke time.
    */
   beginCall(callee: Value): ExpressionCall<Value>;
+  beginMethodCall?(receiver: Value, name: string): ExpressionCall<Value>;
   tuple(values: readonly Value[]): Value;
   /** Allocate a fresh guest list, preserving element references. */
   list(values: readonly Value[]): Value;
@@ -319,9 +320,12 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
         } else work.push(assemble);
         break;
       }
-      case "call":
+      case "call": {
+        const attribute = context.beginMethodCall !== undefined && node.callee.kind === "attribute" && node.arguments.every(argument => {
+          meter.checkpoint(); return argument.kind !== "starred" && argument.kind !== "mapping";
+        }) ? node.callee : undefined;
         work.push(() => {
-          const call = context.beginCall(value);
+          const call = attribute === undefined ? context.beginCall(value) : context.beginMethodCall!(value, attribute.name);
           const arguments_ = evaluateCallArguments(node.arguments, call, meter);
           const advance = () => {
             const next = arguments_.next(value);
@@ -329,8 +333,9 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
             else work.push(advance, { node: next.value, test: "value" });
           };
           work.push(advance);
-        }, { node: node.callee, test: "value" });
+        }, { node: attribute?.object ?? node.callee, test: "value" });
         break;
+      }
       case "binary":
         work.push(() => {
           const left = value;

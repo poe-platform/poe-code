@@ -22,8 +22,8 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   const names = runtimeNumericMethods.get(operator);
   if (names === undefined) throw Error(`unsupported numeric operator: ${operator}`);
   const { forward: forwardName, reflected: reflectedName } = names;
-  const leftType = leftGuest || isRuntimeSet(left) ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
-  const rightType = rightGuest || isRuntimeSet(right) ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
+  const leftType = leftGuest || isRuntimeSet(left) || left.kind === "dict" ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest || isRuntimeSet(right) || right.kind === "dict" ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let relation: "same" | "right-subtype" | "other" = "other";
   if (leftType !== undefined && rightType !== undefined) {
     if (leftType === rightType) relation = "same";

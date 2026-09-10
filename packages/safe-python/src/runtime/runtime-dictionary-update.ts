@@ -4,6 +4,8 @@ import { updateDictionaryPairs } from "./dictionary-update.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
+import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
+import { runtimeDictionaryCopySource } from "./runtime-dictionary-copy-source.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
 import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
@@ -19,7 +21,9 @@ import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
  */
 export function updateRuntimeDictionary(target: DictionaryValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): RuntimeValues["none"] {
   meter.checkpoint();
-  if (source.kind === "dict") target.items.update(source.items);
+  const native = runtimeDictionaryCopySource(source, values, meter, invocation);
+  if (native !== undefined) target.items.update(native.items);
+  else if (runtimeDictionaryPayload(source) !== undefined) mergeRuntimeMapping(target, source, values, meter, invocation, invocation?.iteration);
   else if (source.kind === "mappingproxy") mergeRuntimeMappingProxy(target, source, meter);
   else {
     let mapping = false;

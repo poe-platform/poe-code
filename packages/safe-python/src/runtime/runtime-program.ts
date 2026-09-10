@@ -26,6 +26,7 @@ import type { CallStack } from "./call-stack.js";
 import type { KeyOperations } from "./ordered-key-map.js";
 import type { CompiledProgram } from "./program-compilation.js";
 import { beginRuntimeCall, type RuntimeCallContext } from "./runtime-call.js";
+import { runtimeDirectMethod } from "./runtime-direct-method.js";
 import { runtimeCallable } from "./runtime-callability.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import { createRuntimeIndexContext } from "./runtime-index-context.js";
@@ -329,6 +330,13 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
     const expressions = createRuntimeExpressionContext(values, {
+      beginMethodCall: expressionHooks.attribute === undefined ? (receiver, name) => {
+        const callee = expressions.attribute(receiver, name);
+        const descriptor = runtimeDirectMethod(receiver, name, callee, values, meter, builtinCalls);
+        const call = beginCall(descriptor ?? callee);
+        if (descriptor !== undefined) call.positional(receiver);
+        return call;
+      } : undefined,
       mapping: expressionHooks.mapping ?? builtinCalls,
       subscription: expressionHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
       bytes: expressionHooks.bytes,

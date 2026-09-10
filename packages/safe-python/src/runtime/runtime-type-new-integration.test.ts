@@ -52,6 +52,65 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("retains dictionary subclass source effects before invalid constructor keywords", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n pass\nclass Mapping:\n def keys(self):\n  visit('keys')\n  return ['a']\n def __getitem__(self,key):\n  visit(key)\n  return 7\n");
+  expect(() => state.run("Child(Mapping(),**{1:2})\n")).toThrow("keywords must be strings");
+  expect(state.events).toEqual(["keys", "a"]);
+});
+
+it("keeps overridden attribute lookup and instance shadows on bound method calls", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n def __getattribute__(self,name):\n  return object.__getattribute__(self,name)\nd=Child()\nclass Plain(Dict):\n pass\np=Plain()\np.copy=p.copy\n");
+  expect(() => state.run("d.copy(1)\n")).toThrow("Child.copy() takes no arguments (1 given)");
+  expect(() => state.run("p.copy(1)\n")).toThrow("Plain.copy() takes no arguments (1 given)");
+});
+
+it("bypasses mapping overrides when copying a dictionary with the native iterator", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n def keys(self):\n  visit('keys')\n  return ['x']\n def __getitem__(self,key):\n  visit('get')\n  return 8\nd=Child(a=1)\na=Dict(d)\nb=d.copy()\nc=d|{}\ne={}\ne.update(d)\ncorrect=a=={'a':1} and b==a and c==a and e==a\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual([]);
+});
+
+it("constructs fromkeys on owned dictionary subclasses through their setters", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n __slots__=()\n def __setitem__(self,key,value):\n  visit(key)\n  Dict.__setitem__(self,key,value)\nd=Child.fromkeys(['a','a','b'],7)\ncorrect=type(d) is Child and d=={'a':7,'b':7}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["a", "a", "b"]);
+  expect(() => state.run("d.extra=1\n")).toThrow("has no attribute 'extra'");
+});
+
+it("preserves direct versus stored native dictionary method diagnostics", () => {
+  const state = fixture(); state.run("Dict=type({})\nclass Child(Dict):\n pass\nd=Child()\nstored=d.copy\n");
+  expect(() => state.run("d.copy(1)\n")).toThrow("dict.copy() takes no arguments (1 given)");
+  expect(() => state.run("stored(1)\n")).toThrow("Child.copy() takes no arguments (1 given)");
+  expect(() => state.run("d.copy(*(1,))\n")).toThrow("Child.copy() takes no arguments (1 given)");
+  expect(() => state.run("Dict.copy(d,1)\n")).toThrow("dict.copy() takes no arguments (1 given)");
+});
+
+it.each(["Dict(d)", "d.copy()", "d|{}", "{}|d"])("observes overridden dictionary iteration slots when copying with %s", expression => {
+  const state = fixture();
+  state.run(`Dict=type({})\nclass Child(Dict):\n def __iter__(self):\n  visit('iter')\n  return ['x'].__iter__()\n def keys(self):\n  visit('keys')\n  return ['x']\n def __getitem__(self,key):\n  visit('get')\n  return 8\nd=Child(a=1)\nresult=${expression}\ncorrect=result=={'x':8}\n`);
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["keys", "get"]);
+});
+
+it("allocates owned dictionary subclasses with native protocols and instance attributes", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nList=type([])\nclass Child(Dict):\n pass\nd=Child(a=1)\nd.label='owned'\nd['b']=2\nsize=d.__len__()\nkeys=List(d)\nvalue=d.get('a')\nd.setdefault('c',3)\npopped=d.pop('c')\ntext=f'{d!r}'\ncopy=d.copy()\ncorrect=type(d) is Child and d.label=='owned' and size==2 and keys==['a','b'] and value==1 and popped==3 and d=={'a':1,'b':2} and type(copy) is Dict\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.globals.get("text")).toEqual(state.v.string("{'a': 1, 'b': 2}"));
+});
+
+it("dispatches dictionary missing hooks only for item retrieval", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Child(Dict):\n def __missing__(self,key):\n  visit(key)\n  return 7\nd=Child()\nfirst=d['a']\nsecond=Dict.__getitem__(d,'b')\nmissing=d.get('c')\nfound='c' in d\ncorrect=first==7 and second==7 and missing is None and not found\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["a", "b"]);
+});
+
+it("preserves owned dictionary in-place union identity and ordinary union reflection", () => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("Dict=type({})\nclass Child(Dict):\n def __ror__(self,other):\n  visit('reverse')\n  return NotImplemented\nd=Child(a=1)\noriginal=d\nd|={'b':2}\ncombined={'a':3}|d\ncorrect=d is original and d=={'a':1,'b':2} and combined=={'a':1,'b':2} and type(combined) is Dict\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["reverse"]);
+});
+
 it("binds canonical dictionary fromkeys to the defining class", () => {
   const state = fixture();
   state.run("Dict=type({})\nd={'old':1}\nshared=[]\nresult=Dict.fromkeys(['a','b','a'],shared)\nbound=d.fromkeys.__self__ is Dict\nclassbound=Dict.fromkeys.__self__ is Dict\ncorrect=bound and classbound and result['a'] is shared and result['b'] is shared and d=={'old':1}\n");

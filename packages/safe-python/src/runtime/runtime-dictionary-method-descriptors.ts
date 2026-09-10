@@ -1,6 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { createRuntimeDictionaryMethod } from "./runtime-dictionary-method.js";
 import { createRuntimeDictionaryMutationMethod } from "./runtime-dictionary-mutation-method.js";
+import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Stable dictionary descriptors retain native storage and active key policies. */
@@ -15,10 +16,11 @@ export function installRuntimeDictionaryMethodDescriptors(owner: TypeValue, valu
     ["__reversed__", "Return a reverse iterator over the dict keys."]
   ] as const) {
     meter.checkpoint(0, 96);
-    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({ owner, name, doc, accepts: receiver => receiver.kind === "dict",
-      invoke(receiver, positional, keywords, meter, invocation) {
-        if (receiver.kind !== "dict") throw Error("dictionary method requires dictionary storage");
-        const method = createRuntimeDictionaryMethod(receiver, name, values, meter);
+    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({ owner, name, doc, accepts: receiver => runtimeDictionaryPayload(receiver) !== undefined,
+      invoke(receiver, positional, keywords, meter, invocation, bound) {
+        const payload = runtimeDictionaryPayload(receiver);
+        if (payload === undefined) throw Error("dictionary method requires dictionary storage");
+        const method = createRuntimeDictionaryMethod(payload, name, values, meter, receiver, bound === true);
         return method.value.invoke(positional, keywords, meter, invocation);
       }
     }));
@@ -31,11 +33,12 @@ export function installRuntimeDictionaryMethodDescriptors(owner: TypeValue, valu
     ["update", "D.update([E, ]**F) -> None.  Update D from mapping/iterable E and F.\nIf E is present and has a .keys() method, then does:  for k in E.keys(): D[k] = E[k]\nIf E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v\nIn either case, this is followed by: for k in F:  D[k] = F[k]"]
   ] as const) {
     meter.checkpoint(0, 96);
-    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({ owner, name, doc, accepts: receiver => receiver.kind === "dict",
+    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({ owner, name, doc, accepts: receiver => runtimeDictionaryPayload(receiver) !== undefined,
       ...(name === "update" ? { boundKeywordValidation: "callee" as const } : {}),
-      invoke(receiver, positional, keywords, meter, invocation) {
-        if (receiver.kind !== "dict") throw Error("dictionary method requires dictionary storage");
-        const method = createRuntimeDictionaryMutationMethod(receiver, name, values, meter);
+      invoke(receiver, positional, keywords, meter, invocation, bound) {
+        const payload = runtimeDictionaryPayload(receiver);
+        if (payload === undefined) throw Error("dictionary method requires dictionary storage");
+        const method = createRuntimeDictionaryMutationMethod(payload, name, values, meter, bound ? receiver : payload);
         return method.value.invoke(positional, keywords, meter, invocation);
       }
     }));

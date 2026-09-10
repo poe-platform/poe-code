@@ -9063,6 +9063,32 @@ extension, integration, or validation requirement is missing or unverified.
   in 493 files pass with two workers. Owned dictionary subclass storage remains
   unfinished, along with the broader interpreter requirements. No push or release
   was requested.
+- Owned dictionary subclasses (2026-09-10): failing integration tests
+  reproduced the allocation guard, missing native storage dispatch and incorrect
+  copying of overridden dictionary sources. Added trusted dictionary payloads to
+  owned instances and connected initialization, read/mutation methods, equality,
+  iteration, representation and union wrappers. Item lookup consults __missing__
+  only after a native miss; get/contains/mutation do not. Fromkeys invokes owned
+  subclass setters, including duplicate keys, and respects empty slots. Native
+  copy/update/union bypass mapping overrides only while the canonical __iter__
+  slot is inherited; raw-slot inspection avoids binding guest descriptors during
+  that decision. Exact dictionaries participate in subtype reflection priority.
+  CPython diagnostics distinguish immediate native method calls from retained
+  bound methods. Added optional direct-method call preparation that excludes
+  unpacked calls, custom attribute lookup and instance shadows; native descriptor
+  invocation records bound calling convention for receiver-specific diagnostics.
+  A further failing test established that heap dictionary constructors consume
+  positional sources before rejecting invalid keyword names, unlike exact dict;
+  heap class calls now delegate that validation to allocation/initialization.
+  Twelve added tests cover these boundaries. All 1,772 direct and 1,772 retained
+  subclass descriptor cases, 2,655 native protocol regressions, 70 copy-override
+  cases, 126 missing-hook cases, 130 subclass and 130 exact constructor cases and
+  137 owned fromkeys cases match CPython (6,792 total). Workspace build, typecheck,
+  focused lint and all 6,882 unit tests in 493 files pass with two workers.
+  Further subclass view/proxy ownership, recursive comparison and native lifecycle
+  audits remain, alongside public APIs, exception objects, suspension and safe-fs
+  execution. This is not completion of the full interpreter objective. No push
+  or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

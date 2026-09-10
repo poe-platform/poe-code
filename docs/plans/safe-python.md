@@ -10483,6 +10483,24 @@ extension, integration, or validation requirement is missing or unverified.
   must distinguish an awaited suspension from an emitted async-generator item,
   retain running-across-await ownership, and implement separate send/throw/close
   completion and reuse semantics; a coroutine alias would not provide that.
+- Async-generator send operation layer (2026-09-10): added a metered, reusable
+  asend/anext lifecycle around trusted body continuations. Await suspensions retain
+  shared operation ownership; emitted items complete only their operation, while
+  exhaustion signals StopAsyncIteration. Initial argument selection, competing
+  operations, throw injection, reuse rejection and synchronous wrapper close are
+  distinct from body execution. Fatal failures release operation ownership without
+  guest exception classification. A failing regression also drove async-generator
+  StopAsyncIteration conversion in the shared body engine; ordinary generators and
+  coroutines do not acquire that conversion.
+  All 44 focused tests pass, including 19 new cases. Build and typecheck pass.
+  A controlled-body comparison matches CPython on 10,368 four-operation sequences;
+  this does not establish native async-generator integration. The oracle snapshots
+  results before later CPython finalization can mutate recorded event arrays.
+  All 768 native coroutine regression comparisons also pass (11,136 comparisons
+  total). Focused lint passes. The uncached one-worker package run passes all 7,520 tests
+  in 510 files (205.28s; test bodies 12.90s). Native async-generator
+  objects, asynchronous athrow/aclose operations, async generator expressions,
+  hooks/finalization and the wider runtime/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

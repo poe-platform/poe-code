@@ -4,6 +4,7 @@ import { ExecutionLimitError,type ExecutionMeter } from "./execution-budget.js";
 export type GeneratorInput<Value>={readonly kind:"send";readonly value:Value}|{readonly kind:"throw";readonly error:unknown};
 export type GeneratorRequest<Value>=GeneratorInput<Value>|{readonly kind:"close"};
 export type GeneratorPhase="created"|"running"|"suspended"|"closed";
+export type GeneratorKind="generator"|"coroutine"|"async generator";
 
 export interface GeneratorDelegation<Value> {
   readonly active:boolean;
@@ -17,7 +18,7 @@ export interface GeneratorDelegation<Value> {
 
 export interface GeneratorExecutionContext<Value> {
   readonly none:Value;
-  readonly kind?:"generator"|"coroutine";
+  readonly kind?:GeneratorKind;
   readonly delegation?:GeneratorDelegation<Value>;
   /** Host-only frame/handled-exception activation. Failure must restore its own
    * partial entry; successful entry returns unmetered, non-throwing cleanup.
@@ -29,8 +30,11 @@ export interface GeneratorExecutionContext<Value> {
   generatorExit():unknown;
   isGeneratorExit(error:unknown):boolean;
   isStopIteration(error:unknown):boolean;
+  /** Only async-generator bodies convert escaping StopAsyncIteration. */
+  isStopAsyncIteration?(error:unknown):boolean;
   /** Construct native RuntimeError with the original StopIteration as cause
-   * and context, bypassing guest exception constructors. Runs before deactivation. */
+   * and context, bypassing guest exception constructors. Also handles escaping
+   * StopAsyncIteration for async generators. Runs before deactivation. */
   wrapStopIteration(error:unknown):unknown;
 }
 
@@ -44,7 +48,7 @@ export class GeneratorExecution<Value> {
   #driver:((input:GeneratorInput<Value>)=>IteratorResult<Value,Value>)|undefined;
   #context:GeneratorExecutionContext<Value>|undefined;
   readonly #none:Value;
-  readonly #kind:"generator"|"coroutine";
+  readonly #kind:GeneratorKind;
   constructor(driver:(input:GeneratorInput<Value>)=>IteratorResult<Value,Value>,context:GeneratorExecutionContext<Value>,private readonly meter:ExecutionMeter) {
     meter.checkpoint(1,120);this.#driver=driver;this.#context=context;this.#none=context.none;this.#kind=context.kind??"generator";Object.freeze(this);
   }
@@ -118,7 +122,7 @@ export class GeneratorExecution<Value> {
       } catch(error) {
         this.#finish();
         if(error instanceof ExecutionLimitError)throw error;
-        if(context.isStopIteration(error))throw context.wrapStopIteration(error);
+        if(context.isStopIteration(error)||this.#kind==="async generator"&&context.isStopAsyncIteration?.(error))throw context.wrapStopIteration(error);
         if(request.kind==="close"&&context.isGeneratorExit(error))return {done:true,value:this.#none};
         throw error;
       }

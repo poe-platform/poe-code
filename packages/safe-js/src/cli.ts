@@ -11,15 +11,12 @@ import { Budget, SandboxError } from "./interp/budget.js";
 import { countLineBreaks, extractBlock, maskSource } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { lint, type Diagnostic, type Fix } from "./lint.js";
-import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
 import { makeAgentModule } from "./modules/agent.js";
 import { makeEnvModule, parseEnvConfig, type EnvModuleOptions } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
-import { makeFsModule, type FsModuleOptions } from "./modules/fs.js";
+import type { FsModuleOptions } from "./modules/fs.js";
 import { parseFsConfig, resolveFsConfig } from "./modules/fs-config.js";
-import { makeMcpModule } from "./modules/mcp.js";
 import { parseMcpConfig, type McpModuleOptions } from "./modules/mcp-transport.js";
-import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule, type LogModuleEntry } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
 import {
@@ -31,10 +28,9 @@ import {
 } from "./output-stream.js";
 import type { ModuleExports, ModuleRegistry } from "./modules/registry.js";
 import { parseModule } from "./parse/parser.js";
-import { restore, type SafeJSSnapshot } from "./restore.js";
-import { run, type RunResult } from "./run.js";
-import { dump, dumpCurrent } from "./snapshot/dump.js";
-import { migrateSnapshotFile, type SnapshotMigrationFileOptions } from "./migration-file.js";
+import type { SafeJSSnapshot } from "./restore.js";
+import type { RunResult } from "./run.js";
+import type { SnapshotMigrationFileOptions } from "./migration-file.js";
 
 type CliStream = OutputStream;
 
@@ -125,6 +121,7 @@ export async function runCli(
         }
 
         if (argv[0] === "migrate") {
+          const { migrateSnapshotFile } = await import("./migration-file.js");
           const result = await migrateSnapshotFile({
             ...parseMigrationArgs(argv.slice(1)),
             cwd: options.cwd ?? readCurrentWorkingDirectory()
@@ -383,13 +380,17 @@ async function runScriptFile(
     writeFile: WriteMarkdownFile;
   }
 ): Promise<number> {
+  const [{ run }, { restore }, { dump, dumpCurrent }, { createLintModulesFromRuntimeRegistry }, { makeFsModule }, { makeMcpModule }] = await Promise.all([
+    import("./run.js"), import("./restore.js"), import("./snapshot/dump.js"),
+    import("./lint/runtime-modules.js"), import("./modules/fs.js"), import("./modules/mcp.js")
+  ]);
   const loaded = loadExecutableSource(filepath, await options.readFile(filepath, "utf8"));
   const meta = {
     filepath,
     kind: loaded.frontmatter.kind,
     version: loaded.frontmatter.version
   };
-  const runtime = createRuntime(loaded.frontmatter, meta, {
+  const runtime = await createRuntime(loaded.frontmatter, meta, {
     fs: parsed.fs
       ? { root: path.resolve(options.cwd, parsed.fsRoot ?? dirname(filepath)) }
       : undefined,
@@ -499,7 +500,7 @@ async function runScriptFile(
     options.stderr.write("Interrupted by SIGINT\n");
 
     if (parsed.snapshotPath !== undefined && runPromise !== undefined) {
-      signalSnapshotWrite = writeCurrentSnapshot(runPromise, parsed.snapshotPath, options);
+      signalSnapshotWrite = writeCurrentSnapshot(runPromise, parsed.snapshotPath, options, dumpCurrent);
     }
   };
 
@@ -622,7 +623,7 @@ function replaceExecutableSource(
   );
 }
 
-function createRuntime(
+async function createRuntime(
   frontmatter: Record<string, unknown>,
   meta: HarnessMeta,
   options: {
@@ -631,7 +632,7 @@ function createRuntime(
     stderr: CliStream;
     stdout: CliStream;
   }
-): CliRuntime {
+): Promise<CliRuntime> {
   if (options.modulesFor !== undefined) {
     return {
       registry: options.modulesFor(frontmatter, meta, {
@@ -641,6 +642,9 @@ function createRuntime(
     };
   }
 
+  const [{ makeHarnessModule }, { makeFsModule }] = await Promise.all([
+    import("./modules/harness.js"), import("./modules/fs.js")
+  ]);
   const state = {
     metricCalls: new Map<string, number>(),
     spawnCount: 0
@@ -714,10 +718,11 @@ async function writeCurrentSnapshot(
     cwd: string;
     stderr: CliStream;
     writeFile: WriteMarkdownFile;
-  }
+  },
+  capture: typeof import("./snapshot/dump.js").dumpCurrent
 ): Promise<void> {
   try {
-    await writeSnapshot(snapshotPath, await dumpCurrent(result), options);
+    await writeSnapshot(snapshotPath, await capture(result), options);
   } catch (error) {
     options.stderr.write(
       `Failed to write snapshot at ${snapshotPath}: ${readErrorMessage(error)}\n`

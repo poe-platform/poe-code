@@ -707,6 +707,7 @@ describe("SafeJS CLI", () => {
     const stderr = createSink();
     const process = new EventEmitter();
     const wait = createDeferred<void>();
+    const entered = createDeferred<void>();
 
     vol.writeFileSync(
       "/repo/script.md",
@@ -731,7 +732,10 @@ describe("SafeJS CLI", () => {
         api: {
           wait: createSandboxClosure({
             async: true,
-            call: () => createSandboxPromise(wait.promise),
+            call: () => {
+              entered.resolve();
+              return createSandboxPromise(wait.promise);
+            },
             name: "wait"
           })
         }
@@ -741,7 +745,7 @@ describe("SafeJS CLI", () => {
       stderr
     });
 
-    await flushMicrotasks();
+    await entered.promise;
     process.emit("SIGINT");
     const exitCode = await result;
 
@@ -836,10 +840,4 @@ function createDeferred<T>() {
     promise,
     resolve
   };
-}
-
-async function flushMicrotasks(iterations = 20): Promise<void> {
-  for (let index = 0; index < iterations; index += 1) {
-    await Promise.resolve();
-  }
 }

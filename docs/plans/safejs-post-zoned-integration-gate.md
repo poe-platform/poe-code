@@ -31,9 +31,11 @@ of an expected completed setup result. No timeout has been repaired yet.
   multiline ^a. replacement cases timed out.
 
 The previous PPR2 co timeout did not recur; this is not proof of a repair.
-An unchanged focused rerun of all five failing files is live in session 68744
-(fdb34c). Its result must not replace the full-gate failures or justify raising
-timeouts/removing coverage. Validate causes before applying fixes.
+The unchanged focused rerun of all five failing files finished (897397):
+1,065 passed and two failed across 1,067 tests; only the Promise property-import
+expectations failed. This does not replace the full-gate failures or establish
+a timeout repair. Subsequent CLI import-path work is recorded separately in
+[the help startup repair](safejs-cli-help-lazy-runtime.md).
 
 ## Independent locale corpus
 

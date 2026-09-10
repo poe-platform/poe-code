@@ -452,6 +452,10 @@ For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. 
 
 ### Latest local changes — September 9, 2026
 
+CLI help no longer initializes interpreter globals. Execution and migration
+dependencies load when those commands need them; help text and aliases are
+unchanged. See the [startup verification record](../../docs/plans/safejs-cli-help-lazy-runtime.md).
+
 `npm run typecheck:fs --workspace=@poe-code/safe-js` checks the filesystem option
 contract in NodeNext and Bundler modes, each with and without DOM types. Both
 package `npm test` and `npm run test:unit` run it automatically in their pretest

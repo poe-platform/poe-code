@@ -298,6 +298,24 @@ it.each([["chr", "A"], ["bin", "0b1000001"], ["oct", "0o101"], ["hex", "0x41"]])
   }, meter);
   expect(globals.get("result")).toEqual(v.string(expected)); expect(conversions).toBe(1);
 });
+it.each([false, true])("routes pow through frame power policy with modulus=%s", modular => {
+  const { meter, v, context } = fixture(), guest = v.cell({}), answer = v.cell({}), globals = new Map<string, RuntimeValue>([["guest",guest]]), unused = (): never => { throw Error("unexpected callback"); }; let calls = 0;
+  const program = compileProgram<RuntimeValue>(analyzeModule(`def calculate(): return pow(guest,2${modular ? ",5" : ""})\nresult=calculate()\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, power: { power(base, exponent, modulus) { expect(base).toBe(guest); expect(exponent).toEqual(v.integer(2)); expect(modulus).toBe(modular ? v.integer(5) : v.none); calls++; return answer; } } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(answer); expect(calls).toBe(1);
+});
+it.each(["125", "125.0"])("routes round(%s) digits through frame index conversion", number => {
+  const { meter, v, context } = fixture(), digits = v.cell({}), globals = new Map<string, RuntimeValue>([["digits",digits]]), unused = (): never => { throw Error("unexpected callback"); }; let conversions = 0;
+  const program = compileProgram<RuntimeValue>(analyzeModule(`result=round(${number},digits)\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, integerIndex: { integer: value => value.kind === "int" ? value.value : undefined, isExactInteger: value => value.kind === "int", lookupIndex(value) { expect(value).toBe(digits); return () => { conversions++; return v.integer(-1); }; }, typeName: () => "Guest", warn: unused } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toEqual(number === "125" ? v.integer(120) : v.float(120)); expect(conversions).toBe(1);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

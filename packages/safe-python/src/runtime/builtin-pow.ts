@@ -7,9 +7,9 @@ export type { RuntimePowerContext as PowContext } from "./runtime-power-operatio
 
 /** Explicit pow registration. Slot results are unrestricted; keyword binding
  * precedes all numeric work and normalizes omitted mod to the None singleton. */
-export function createPowBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: RuntimePowerContext = {}): BuiltinFunctionValue {
+export function createPowBuiltin(values: RuntimeValues, meter: ExecutionMeter, context?: RuntimePowerContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name: "pow", invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name: "pow", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     const count = positional.length + keywords.items.size;
     if (count > 3) throw new PythonRuntimeError("TypeError", `pow() takes at most 3 ${positional.length === 0 ? "keyword " : ""}arguments (${count} given)`);
@@ -30,6 +30,6 @@ export function createPowBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
     if (duplicate !== undefined) throw new PythonRuntimeError("TypeError", duplicate);
     if (unexpected !== undefined) throw new PythonRuntimeError("TypeError", `pow() got an unexpected keyword argument '${unexpected}'`);
     const base = args[0], exponent = args[1], modulus = args[2] ?? values.none;
-    return runtimePowerOperation(base, exponent, modulus, values, meter, context);
+    return runtimePowerOperation(base, exponent, modulus, values, meter, context ?? invocation?.power);
   } });
 }

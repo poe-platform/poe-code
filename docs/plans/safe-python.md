@@ -7184,6 +7184,16 @@ extension, integration, or validation requirement is missing or unverified.
   All 5,377 tests in 444 files pass; selected build, typecheck and scoped lint
   pass. Remaining builtin frame integration, concrete guest type assembly,
   suspended effects and full safe-fs execution remain unfinished.
+- Pow now inherits the frame's binary/ternary power policy unless an explicit
+  context is supplied; native-number round inherits the frame integer-index
+  policy for ndigits. Four compiled regressions failed first and now cover guest
+  binary/modular operands and integer/float rounding digits. Two extra power
+  tests preserve explicit override/receiver priority, unsupported-type diagnostics
+  and post-dispatch cancellation. All 5,383 tests in 444 files pass; selected
+  build, typecheck and scoped lint pass. Rerun differential checks match 988
+  compiled pow and 717 compiled round cases. Guest __round__ lookup remains
+  explicit-only; concrete guest types, remaining builtin integrations and
+  suspended safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

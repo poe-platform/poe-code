@@ -19,7 +19,7 @@ export interface RoundContext {
  * Native ndigits uses __index__; guest __round__ receives it unchanged. */
 export function createRoundBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: RoundContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name: "round", invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name: "round", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     const count = positional.length + keywords.items.size;
     if (count > 2) throw new PythonRuntimeError("TypeError", `round() takes at most 2 ${positional.length === 0 ? "keyword " : ""}arguments (${count} given)`);
@@ -47,7 +47,8 @@ export function createRoundBuiltin(values: RuntimeValues, meter: ExecutionMeter,
       const name = context.typeName?.(number) ?? (number.kind === "none" ? "NoneType" : number.kind === "not-implemented" ? "NotImplementedType" : number.kind);
       throw new PythonRuntimeError("TypeError", `type ${diagnosticTypeName(name, meter, 100)} doesn't define __round__ method`);
     }
-    const places = digits === undefined ? undefined : context.index === undefined ? runtimeIntegerIndex(digits, meter) : integerIndex(digits, context.index, meter);
+    const index = context.index ?? invocation?.integerIndex;
+    const places = digits === undefined ? undefined : index === undefined ? runtimeIntegerIndex(digits, meter) : integerIndex(digits, index, meter);
     meter.checkpoint();
     if (number.kind === "float") {
       // Binary64 ratios and decimal factors here have a fixed bounded size.

@@ -10,6 +10,7 @@ import type { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { CompletionIterator } from "./iterator-completion.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
+import type { RuntimePowerContext } from "./runtime-power-operation.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -73,6 +74,7 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  readonly power?: RuntimePowerContext;
   isCallable?(value: RuntimeValue): boolean;
   /** Ordinary binary expression dispatch, never augmented assignment. */
   binary?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;

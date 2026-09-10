@@ -55,3 +55,12 @@ it("reports declines and checks cancellation after guest dispatch", () => {
   const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000, signal: controller.signal });
   expect(() => builtin.value.invoke([v.none, v.none], keywords, meter)).toThrow(ExecutionLimitError);
 });
+it.each([false, true])("retains power diagnostics and cancellation with explicit policy=%s", explicit => {
+  const { v, meter, keywords } = fixture(), guest = v.cell({}), unused = (): never => { throw Error("explicit policy must win"); }; let cancelled = false;
+  const policy: PowContext = { power() { expect(this).toBe(policy); return v.notImplemented; }, typeName: () => "Guest" };
+  const builtin = createPowBuiltin(v, meter, explicit ? policy : undefined);
+  const invocation = { call: unused, isStopIteration: unused, power: explicit ? { power: unused } : policy };
+  expect(() => builtin.value.invoke([guest, guest], keywords, meter, invocation)).toThrow("unsupported operand type(s) for ** or pow(): 'Guest' and 'Guest'");
+  policy.power = () => { cancelled = true; return v.none; };
+  expect(() => builtin.value.invoke([guest, guest], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, invocation)).toThrow(ExecutionLimitError);
+});

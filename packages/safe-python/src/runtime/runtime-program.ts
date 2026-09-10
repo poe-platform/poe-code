@@ -100,6 +100,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      power: expressionHooks.power,
       isCallable: value => runtimeCallable(value, meter, hooks),
       binary: (operator, left, right) => expressions.binary(operator, left, right),
       integerIndex: expressionHooks.integerIndex,

@@ -6764,6 +6764,15 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Remaining native
   buffer consumers, concrete exporters, automatic object assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.strip/lstrip/rstrip to contiguous buffer leases. Explicit
+  character buffers are acquired even for empty or unchanged receivers, copied
+  with cancellation checks and released on every exit. Omitted/None arguments
+  retain whitespace semantics; unchanged receiver identity is preserved.
+- Six failing compiled regressions now pass. All 5,185 tests in 441 files pass;
+  120 CPython comparisons match output/errors, identity and lease traces.
+  Typecheck, scoped lint and selected workspace build pass. Remaining native
+  buffer consumers, concrete exporters, automatic object assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

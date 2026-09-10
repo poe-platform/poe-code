@@ -39,6 +39,36 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["strip", "b"], ["lstrip", "ba"], ["rstrip", "ab"]])("strips bytes with a buffer using %s", (method, expected) => {
+    const state = fixture(`result=b'aba'.${method}(chars)\n`), v = state.values, chars = v.cell({}), trace: string[] = [];
+    state.globals.set("chars", chars);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        expect(value).toBe(chars); trace.push("acquire");
+        return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() { trace.push("release"); } };
+      }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(new TextEncoder().encode(expected)));
+    expect(trace).toEqual(["acquire", "release"]);
+  });
+  it.each(["", "bbb"])("acquires and releases strip buffers even for unchanged %s", source => {
+    const state = fixture(`source=b'${source}'\nresult=source.strip(chars)\nsame=result is source\n`), v = state.values;
+    let released = false;
+    state.globals.set("chars", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 1, copy: () => v.bytes(Uint8Array.of(97)).value, release() { released = true; } }; }
+    } });
+    state.run(); expect(released).toBe(true); expect(state.globals.get("same")).toEqual(v.true);
+  });
+  it("releases strip buffers on copy cancellation", () => {
+    const controller = new AbortController(), state = fixture("result=b'a'.strip(chars)\n", 100000, controller.signal), v = state.values;
+    const data = v.bytes(Uint8Array.of(97)).value; let released = false;
+    state.globals.set("chars", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 1, copy() { controller.abort(); return data; }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it("constructs byte translation tables from live buffer leases", () => {
     const state = fixture("result=b'a'.translate(b''.maketrans(source,target))\n"), v = state.values, source = v.cell({}), target = v.cell({}), trace: string[] = [];
     const data = Uint8Array.of(98);

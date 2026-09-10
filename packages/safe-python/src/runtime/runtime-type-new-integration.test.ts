@@ -50,6 +50,46 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["set", "frozenset"] as const)("publishes inherited %s read methods with canonical binding and exact results", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
+  state.run("class Child(Base):\n pass\nitems=Child([1])\ncopy=items.copy()\nexact=type(copy) is Base\nbound=items.copy.__self__ is items\nowner=Base.copy.__objclass__ is Base\nsame=items.copy==items.copy\nunion=items.union([2])==Base([1,2])\nintersection=items.intersection([1,2])==Base([1])\ndifference=items.difference([1])==Base()\nxor=items.symmetric_difference([1,2])==Base([2])\nsubset=items.issubset([1,2])\nsuperset=items.issuperset([1])\ndisjoint=items.isdisjoint([2])\n");
+  for (const name of ["exact", "bound", "owner", "same", "union", "intersection", "difference", "xor", "subset", "superset", "disjoint"]) expect(state.globals.get(name), name).toBe(state.v.true);
+});
+
+it.each(["set", "frozenset"] as const)("short circuits %s self-disjointness before subclass iteration", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
+  state.run("class Child(Base):\n def __iter__(self):\n  visit('iter')\n  return [9].__iter__()\nfull=Child([1])\nempty=Child()\nnonempty=not full.isdisjoint(full)\nzero=empty.isdisjoint(empty)\n");
+  expect(state.events).toEqual([]); expect(state.globals.get("nonempty")).toBe(state.v.true); expect(state.globals.get("zero")).toBe(state.v.true);
+});
+
+it.each(["set", "frozenset"] as const)("validates %s descriptors before accessing native storage", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
+  expect(() => state.run("Base.copy()\n")).toThrow(`unbound method ${kind}.copy() needs an argument`);
+  expect(() => state.run("Base.copy(None)\n")).toThrow(`descriptor 'copy' for '${kind}' objects doesn't apply to a 'NoneType' object`);
+  expect(() => state.run("Base.copy([])\n")).toThrow(`descriptor 'copy' for '${kind}' objects doesn't apply to a 'list' object`);
+  expect(() => state.run("Base().copy(1)\n")).toThrow(`${kind}.copy() takes no arguments (1 given)`);
+  expect(() => state.run("Base().copy(extra=1)\n")).toThrow(`${kind}.copy() takes no keyword arguments`);
+});
+
+it("copies frozen subclasses freshly while retaining exact frozen identity", () => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType("frozenset"));
+  state.run("class Child(Base):\n pass\nbase=Base([1])\nchild=Child(base)\nfresh=child.copy() is not child.copy()\nseparate=child.copy() is not base\nsame=base.copy() is base\n");
+  for (const name of ["fresh", "separate", "same"]) expect(state.globals.get(name)).toBe(state.v.true);
+});
+
+it("inherits all mutable set methods and preserves ordinary overrides", () => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType("set"));
+  state.run("class Child(Base):\n def add(self,value):\n  visit('override')\nitems=Child([1])\nitems.add(9)\nBase.add(items,2)\nitems.update([3])\nitems.remove(1)\nitems.discard(9)\nitems.intersection_update([2,3])\nitems.difference_update([2])\nitems.symmetric_difference_update([3,4])\nresult=items.pop()\nitems.clear()\nempty=items==Base()\n");
+  expect(state.events).toEqual(["override"]); expect(state.globals.get("result")).toEqual(state.v.integer(4)); expect(state.globals.get("empty")).toBe(state.v.true);
+});
+
+it.each(["set", "frozenset"] as const)("bypasses overridden source iteration in %s native methods", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind)); state.globals.set("Mutable", state.registry.setType("set"));
+  state.run("class Child(Base):\n def __iter__(self):\n  visit('iter')\n  return [9].__iter__()\nsource=Child([1])\nitems=Base([1])\nunion=items.union(source)==items\nintersection=items.intersection(source)==items\ndifference=items.difference(source)==Base()\nxor=items.symmetric_difference(source)==Base()\nsubset=items.issubset(source)\nsuperset=items.issuperset(source)\ndisjoint=items.isdisjoint(source)\na=Mutable([1])\na.difference_update(source)\nb=Mutable([1])\nb.intersection_update(source)\nc=Mutable([1])\nc.symmetric_difference_update(source)\nmutation=a==Mutable() and b==Mutable([1]) and c==Mutable()\n");
+  expect(state.events).toEqual(["iter"]);
+  for (const name of ["union", "intersection", "difference", "xor", "subset", "superset", "disjoint", "mutation"]) expect(state.globals.get(name), name).toBe(state.v.true);
+});
+
 it.each(["set", "frozenset"] as const)("allocates owned %s subclasses with dictionaries and native protocols", kind => {
   const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
   state.run("class Child(Base):\n pass\nitems=Child([1])\nitems.label='owned'\nresult=f'{items!r}'\ncorrect=type(items) is Child\nsize=items.__len__()\nfound=items.__contains__(1)\nempty=f'{Child()!r}'\nbase=Base.__repr__(items)\n");

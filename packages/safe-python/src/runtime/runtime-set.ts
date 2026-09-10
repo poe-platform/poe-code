@@ -60,7 +60,8 @@ export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values:
  * are not converted to equivalent frozen probes. */
 export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): void {
   meter.checkpoint();
-  if (source.kind === "set" || source.kind === "frozenset") target.items.subtractKeysInPlace(source.items);
+  const nativeSource = runtimeSetPayload(source);
+  if (nativeSource !== undefined) target.items.subtractKeysInPlace(nativeSource.items);
   else {
     const iterator = runtimeIterate(source, values, meter, iteration);
     while (true) {
@@ -83,7 +84,8 @@ export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, value
  * Exact dictionaries/sets instead use their cached key hashes directly. */
 export function symmetricDifferenceUpdateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): void {
   meter.checkpoint();
-  if (source.kind === "set" || source.kind === "frozenset") target.items.mergeKeysInPlace(source.items, "^");
+  const nativeSource = runtimeSetPayload(source);
+  if (nativeSource !== undefined) target.items.mergeKeysInPlace(nativeSource.items, "^");
   else if (source.kind === "dict") {
     meter.checkpoint(0, 16);
     target.items.mergeKeysInPlace(source.items, "^", { value: values.none });

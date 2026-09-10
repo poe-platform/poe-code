@@ -4,7 +4,8 @@ import type { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import { subtractRuntimeSet, updateRuntimeSet } from "./runtime-set.js";
-import { isRuntimeSet, type BuiltinFunctionValue, type FrozenSetValue, type RuntimeValue, type RuntimeValues, type SetValue } from "./runtime-values.js";
+import { runtimeSetPayload } from "./runtime-set-payload.js";
+import type { BuiltinFunctionValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
 /** Build all stages privately; callers decide whether to publish a new value or
  * replace a mutable receiver. Even empty intermediate results process later
@@ -15,7 +16,8 @@ export function intersectRuntimeSets(receiver: SetValue | FrozenSetValue, source
   let result = receiver.items;
   for (const source of sources) {
     meter.checkpoint(1, 32);
-    result = isRuntimeSet(source) ? result.intersectKeys(source.items) : result.intersectKeysFrom(() => runtimeIterate(source, values, meter, iteration), values.none);
+    const nativeSource = runtimeSetPayload(source);
+    result = nativeSource !== undefined ? result.intersectKeys(nativeSource.items) : result.intersectKeysFrom(() => runtimeIterate(source, values, meter, iteration), values.none);
   }
   meter.checkpoint();
   return result;
@@ -41,9 +43,9 @@ export function createRuntimeSetAlgebraMethod(receiver: SetValue | FrozenSetValu
         updateRuntimeSet(result, positional[0], values, meter, invocation?.iteration);
         result.items.mergeKeysInPlace(receiver.items, "^");
       } else if (name === "difference") {
-        const first = positional[0], direct = first !== undefined && (isRuntimeSet(first) || first.kind === "dict");
-        result = values.set(direct ? receiver.items.differenceKeys(first.items) : receiver.items.copy());
-        for (let index = direct ? 1 : 0; index < positional.length; index++) subtractRuntimeSet(result, positional[index], values, meter, invocation?.iteration);
+        const first = positional[0], direct = first === undefined ? undefined : runtimeSetPayload(first) ?? (first.kind === "dict" ? first : undefined);
+        result = values.set(direct !== undefined ? receiver.items.differenceKeys(direct.items) : receiver.items.copy());
+        for (let index = direct !== undefined ? 1 : 0; index < positional.length; index++) subtractRuntimeSet(result, positional[index], values, meter, invocation?.iteration);
       } else {
         result = values.set(receiver.items.copy());
         for (const source of positional) {

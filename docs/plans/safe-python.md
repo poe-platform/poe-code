@@ -8869,6 +8869,22 @@ extension, integration, or validation requirement is missing or unverified.
   integration remain unfinished.
   Final workspace build, typecheck and focused lint pass; all 6,795 unit tests
   in 493 files pass with two workers. All 3,459 differential cases above pass.
+- Published canonical set/frozenset read/algebra methods and mutable set methods.
+  Descriptors retain original receiver identity, inherited method binding and
+  ordinary overrides while operating on owned native storage. Initial RED tests
+  reproduced missing subclass methods and incorrect native-source iteration.
+  Native algebra and subset/superset methods now consume subclass storage;
+  isdisjoint deliberately honors subclass iteration except for its self-identity
+  shortcut, covered by two additional RED regressions. Frozen subclass copies
+  are fresh exact frozensets even when allocation shared an immutable payload.
+  Ten added tests cover method catalogs, ownership, binding, validation, source
+  overrides, self-identity and copying. All 400 compiled CPython differential
+  cases match results, mutation state, iteration events and errors (KeyError
+  compares guest argument payloads; guest exception rendering remains unfinished).
+  Workspace build, typecheck and focused lint pass; all 6,805 unit tests in 493
+  files pass with two workers. Set operator-slot publication, remaining native
+  catalogs and lifecycle auditing, and public interpreter/safe-fs integration
+  remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -5,6 +5,24 @@ session 63746 (7d33be). This gate includes public ZonedDateTime integration,
 locale formatting, and Duration private ZonedDateTime relativeTo admission.
 The process is live; there are no final test counts yet.
 
+Pretest completed all 100 filesystem type contracts (b1dadf). Unit execution
+is live and has emitted failure markers (d84c78, f05914); wait for the named
+terminal report before diagnosing their cause. Do not call this a green run.
+
+## Independent locale corpus
+
+Read-only source-runtime run 24195 completed (30067c): all 16 original fixtures
+in test/intl402/Temporal/ZonedDateTime/prototype/toLocaleString passed in both
+script modes, 32 passes, zero failures, zero exclusions. Revision:
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93`. Original sta.js/assert.js and declared
+includes were loaded unchanged; metadata controlled strict modes and explicit
+async/module/raw/negative exclusions (none applied). Each run had to return
+ok:true and the appended completion sentinel. This checks this directory on
+Node 22.23.2, not all Temporal semantics or Node 18 fixed-offset portability.
+The source and tests were not edited while either verification run executed.
+
+## Package source fingerprint
+
 Early-run fingerprint (313f8b), collected during pretest before unit execution:
 
 - Node: v22.23.2.

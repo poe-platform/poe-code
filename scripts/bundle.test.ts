@@ -201,6 +201,7 @@ it.each([
         "commands/pr/index.browser": path.join(root, "packages/safe-bash/src/commands/pr/index.ts"),
         "commands/tsort/index.browser": path.join(root, "packages/safe-bash/src/commands/tsort/index.ts"),
         "commands/factor/index.browser": path.join(root, "packages/safe-bash/src/commands/factor/index.ts"),
+        "commands/getopt/index.browser": path.join(root, "packages/safe-bash/src/commands/getopt/index.ts"),
       },
     ]);
   }

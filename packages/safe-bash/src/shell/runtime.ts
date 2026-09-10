@@ -26,10 +26,12 @@ import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, compilePatternBoundaries, matchesPattern } from "./pattern.js";
-import { nextCodePointOffset, previousCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
+import { nextCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
 import { selectMenu } from "./select-menu.js";
 import type { StringWork } from "./string-operations.js";
 import { byteLocale } from "./locale.js";
+import { trimParameter } from "./parameter-trim.js";
+import { ownedShellSource, type OwnedShellSource } from "./source-value.js";
 import { functionDisplay } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
 import { invocationScope, throwCleanupFailures, type InvocationScope } from "./cleanup.js";
@@ -91,6 +93,7 @@ const shellBuiltinNames = new Set([
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
+const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
   "allexport", "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
   "ignoreeof", "interactive-comments", "keyword", "monitor", "noclobber", "noexec", "noglob", "nolog",
@@ -3070,21 +3073,23 @@ export class Runtime {
     return matches;
   }
 
-  processState(context: CommandContext, state: State, arg0: string, args: readonly string[]): State {
+  processState(context: CommandContext, state: State, arg0: ShellValue, args: readonly string[], io: IO): State {
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
     const exported = new Set(Object.keys(variables));
     variables.OPTIND = "1";
     variables.OPTERR = "1";
-    return {
+    const child = trackState({
       cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true },
       directoryStack: { entries: [], bytes: 0 },
       dotglob: false,
       globstar: false,
-      positional: [...args], arg0, profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
+      positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
       errexit: false,
-    };
+    }, this.budget, io[invocationScope]);
+    this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
+    return child;
   }
 
   async interpreter(context: CommandContext, state: State, io: IO, loadedSource?: { path: string; source: string }): Promise<number> {
@@ -3117,8 +3122,10 @@ export class Runtime {
       await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
       return 2;
     }
+    const zeroIndex = context.args.length - args.length;
     const arg0 = commandString ? args.shift() ?? context.command : context.command;
-    const child = this.processState(context, state, arg0, args);
+    const zeroValue = commandString && zeroIndex < context.args.length ? getCommandArguments(context).values[zeroIndex]! : arg0;
+    const child = this.processState(context, state, zeroValue, args, io);
     child.errexit = errexit;
     child.braceexpand = braceexpand;
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: arg0 });
@@ -3465,7 +3472,7 @@ export class Runtime {
       await writeDiagnostic(context.stderr, `${target}: line ${line}: syntax error: ${error.reason}\n`);
       return error.exitCode;
     }
-    const child = this.processState(context, state, target, args);
+    const child = this.processState(context, state, target, args, io);
     child.errexit = errexit;
     child.braceexpand = braceexpand;
     if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
@@ -3481,7 +3488,7 @@ export class Runtime {
     return status;
   }
 
-  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string): Promise<number> {
+  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string, sourceValues?: OwnedShellSource["values"]): Promise<number> {
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     let position = 0;
     let status = 0;
@@ -3489,7 +3496,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, sourceValues);
         for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.script(unit.script, state, io);
@@ -3517,19 +3524,27 @@ export class Runtime {
     }
     if (!args.length) return 0;
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
-    const source = args.join(" ");
-    this.budget.source(Buffer.byteLength(source));
-    this.sourceText(Buffer.from(source), "eval");
+    const values = getCommandArguments(context).values.slice(context.args.length - args.length);
+    let length = values.length - 1;
+    for (const value of values) { this.signal.throwIfAborted(); length += shellValueByteLength(value); }
+    this.budget.source(length);
+    const allocation = this.budget.values.scope();
+    try {
+    allocation.reserve(64 + values.length * 32, 0);
+    const value = concatShellValues(values.flatMap((entry, index) => index ? [" ", entry] : [entry]), allocation);
+    const source = typeof value === "string" ? { text: this.sourceText(Buffer.from(value), "eval"), values: undefined } : ownedShellSource(value, this.budget.parsing, allocation);
+    if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(source.text)) throw new CommandFailure("eval: cannot execute binary script", 126);
     const restoration = stateMonitor(state)?.restoration(true);
     try { state.depth++; }
     catch (error) { restoration?.close(); throw error; }
     try {
-      return await this.runCurrentText(source, state, { ...io, diagnosticOffset: (io.diagnosticLine ?? 1) - 1 }, special, `${io.scriptName ?? "shell"}: eval`);
+      return await this.runCurrentText(source.text, state, { ...io, diagnosticOffset: (io.diagnosticLine ?? 1) - 1 }, special, `${io.scriptName ?? "shell"}: eval`, source.values);
     } finally {
       const restore = () => { state.depth--; };
       if (restoration) restoration.apply(restore);
       else restore();
     }
+    } finally { allocation.close(); }
   }
 
   async sourceBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
@@ -4261,8 +4276,9 @@ export class Runtime {
           try {
             const quoted = shellValueText(await transformParameter(value, "Q", { maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), work, allocation: callbackAllocation }));
             if (Buffer.byteLength(source) + Buffer.byteLength(quoted) + String(index).length + 2 > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+            const argumentValues = createCommandArguments([source, String(index), quoted], callbackAllocation);
             mapfileCallbackStates.add(state);
-            await this.evalBuiltin({ ...context, args: [source, String(index), quoted] }, state, context, false);
+            await this.evalBuiltin({ ...context, args: argumentValues.args, argumentValues }, state, context, false);
           } catch (error) {
             if (error instanceof Flow && (error.kind === "break" || error.kind === "continue")) pendingFlow = error;
             else throw error;
@@ -4804,6 +4820,7 @@ export class Runtime {
     const token = index === undefined || selector?.kind === "members" ? undefined : binding?.values.get(index)?.text;
     token?.retain();
     try {
+      if (token && part.kind === "variable" && part.operator && ["#", "##", "%", "%%"].includes(part.operator)) return this.parameterPattern(part, token.rawValue ?? token.value, state, io, hereString);
       if (token?.rawValue && part.kind === "variable" && !part.length && !part.operator && !part.substring) return shellValueFromBytes(shellValueBytes(token.rawValue, io[valueScope]), io[valueScope]);
       const value = await this.partValue(part, state, io, hereString);
       if (binding) await textToken(requireArrays(state).owner, shellValueText(value), this.signal);
@@ -4922,6 +4939,7 @@ export class Runtime {
     let retained: ShellValue | undefined = value;
     if (!part.length && value !== undefined) {
       if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name) && !arrayStore(state)?.get(part.name)) retained = stateMonitor(state)?.values.get(part.name, value) ?? value;
+      else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
       else if (/^[1-9][0-9]*$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {
         const separator = hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "";
@@ -4936,7 +4954,7 @@ export class Runtime {
     if (part.operator) {
       if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) {
         this.requireParameter(value, part.name, state, io, part.line);
-        return this.parameterPattern(part, value ?? "", state, io, hereString);
+        return this.parameterPattern(part, retained ?? "", state, io, hereString);
       }
       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
       const operator = part.operator.at(-1)!;
@@ -5045,12 +5063,21 @@ export class Runtime {
     } finally { scratch.close(); }
   }
 
-  async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, text: string, state: State, io: IO, hereString: boolean): Promise<string> {
+  async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
     const limit = this.budget.limits.maxExpansionBytes;
-    if (Buffer.byteLength(text) > limit) this.budget.fail("maxExpansionBytes");
+    if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
     const scratch = this.budget.values.scope();
     const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation: scratch };
     try {
+    if (!part.operator!.startsWith("/")) {
+      const parts: { value: ShellValue; literal: boolean }[] = [];
+      await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString, false, (_text, literal, original) => {
+        scratch.reserve(64, 0);
+        parts.push({ value: original, literal });
+      });
+      return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope]);
+    }
+    const text = shellValueText(value);
     const patternFields = await this.word(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString);
     let patternUnits = 0;
     for (const field of patternFields) {
@@ -5060,27 +5087,9 @@ export class Runtime {
     }
     scratch.reserve(patternUnits * 2, 0);
     const pattern = patternFields.join("");
-    const size = (await scanString(text, work)).count;
+    await scanString(text, work);
     const boundaries = await compilePatternBoundaries(pattern, work);
     const operator = part.operator!;
-    if (!operator.startsWith("/")) {
-      const longest = operator.length === 2;
-      const prefix = operator.startsWith("#");
-      const ends = await boundaries(text, !longest && prefix, !prefix);
-      let boundary = longest === prefix ? text.length : 0;
-      for (let length = longest ? size : 0; longest ? length >= 0 : length <= size; length += longest ? -1 : 1) {
-        const pending = stringCheckpoint(work);
-        if (pending) await pending;
-        if (ends[prefix ? 0 : boundary] === (prefix ? boundary : text.length)) {
-          const start = prefix ? boundary : 0;
-          const end = prefix ? text.length : boundary;
-          scratch.reserve((end - start) * 2, 0);
-          return text.slice(start, end);
-        }
-        boundary = longest === prefix ? previousCodePointOffset(text, boundary) : nextCodePointOffset(text, boundary);
-      }
-      return text;
-    }
     scratch.reserve(64, 0);
     const replacements: { value: string; quoted: boolean }[] = [];
     let replacementBytes = 0;
@@ -5162,11 +5171,11 @@ export class Runtime {
     } finally { scratch.close(); }
   }
 
-  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {
+  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void): Promise<string[]> {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
   }
 
-  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void, braces = split && !pattern && !hereString): Promise<ShellValue[]> {
+  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, braces = split && !pattern && !hereString): Promise<ShellValue[]> {
     if (braces && state.braceexpand !== false && word.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
       const fields: ShellValue[] = [];
       let bytes = 0;
@@ -5230,7 +5239,7 @@ export class Runtime {
         if (typeof value !== "string") io[valueScope]?.hold(value);
         field.bytes = true;
       }
-      regexAppend?.(text, !glob);
+      regexAppend?.(text, !glob, value);
       field.fragments.push(value);
       field.present ||= present;
       if (present) {
@@ -5440,10 +5449,15 @@ export class Runtime {
     return state.positional.map((text, index) => stateMonitor(state)?.positionals.get(String(index), text) ?? text);
   }
 
-  private replacePositionals(state: State, values: readonly ShellValue[], action?: () => void): void {
+  private replacePositionals(state: State, values: readonly ShellValue[], action?: () => void, initialArg0?: ShellValue): void {
     const publish = action ?? (() => { state.positional = values.map(shellValueText); });
     const store = stateMonitor(state)?.positionals;
-    if (store) store.replace(values.map((value, index) => [String(index), value] as const), publish);
+    if (store) {
+      const zero = initialArg0 ?? store.get(zeroPositionKey, state.arg0 ?? "virtual-bash");
+      const entries: (readonly [string, ShellValue])[] = values.map((value, index) => [String(index), value] as const);
+      if (typeof zero !== "string") entries.push([zeroPositionKey, zero]);
+      store.replace(entries, publish);
+    }
     else publish();
   }
 

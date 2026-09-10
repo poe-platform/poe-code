@@ -111,6 +111,12 @@
       "browser": "./dist/commands/factor/index.browser.js",
       "import": "./dist/commands/factor/index.js"
     },
+    "./commands/getopt": {
+      "types": "./dist/commands/getopt/index.d.ts",
+      "workerd": "./dist/commands/getopt/index.browser.js",
+      "browser": "./dist/commands/getopt/index.browser.js",
+      "import": "./dist/commands/getopt/index.js"
+    },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
       "import": "./dist/commands/time-env/index.js"

@@ -3,6 +3,7 @@ import { createCsplitCommand as createSubpathCsplitCommand } from "@poe-platform
 import { createPrCommand as createSubpathPrCommand, createPrCommands as createSubpathPrCommands, prCommands as subpathPrCommands } from "@poe-platform/safe-bash/commands/pr";
 import { createTsortCommand as createSubpathTsortCommand, createTsortCommands as createSubpathTsortCommands, tsortCommands as subpathTsortCommands } from "@poe-platform/safe-bash/commands/tsort";
 import { createFactorCommand as createSubpathFactorCommand, createFactorCommands as createSubpathFactorCommands, factorCommands as subpathFactorCommands } from "@poe-platform/safe-bash/commands/factor";
+import { createGetoptCommand as createSubpathGetoptCommand, createGetoptCommands as createSubpathGetoptCommands, getoptCommands as subpathGetoptCommands } from "@poe-platform/safe-bash/commands/getopt";
 import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs/core";
 
 export const expectedAgentCommandNames = Object.freeze([
@@ -12,7 +13,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt",
 ].sort());
 
 export const checksumWorkflows = Object.freeze([
@@ -458,6 +459,63 @@ export async function verifyFactorCommands(entry = defaultEntry) {
     try { entry.createFactorCommand({ limits: { maxValue: 4294967296 } }); }
     catch (error) { invalidLimit = error; }
     if (invalidLimit?.name !== "RangeError") throw new Error("Public factor allowed a limit above its supported maximum");
+  } finally { await shell.dispose(); }
+}
+
+export async function verifyGetoptCommands(entry = defaultEntry) {
+  const filesystem = new entry.MemoryFileSystem();
+  const encoder = new TextEncoder();
+  await filesystem.mkdir("/getopt-work");
+  await filesystem.writeFile("/getopt-work/normalize.sh", encoder.encode('getopt "$@"\n'));
+  await filesystem.writeFile("/getopt-work/roundtrip.sh", encoder.encode(
+    'parsed=$(getopt -o "" -- "$@") || exit "$?"\neval "set -- $parsed"\nshift\nprintf \'<%s>\\n\' "$@"\n',
+  ));
+  await filesystem.writeFile("/getopt-work/raw.sh", encoder.encode(
+    'raw=$(cat raw-second; printf .)\nraw=${raw%.}\ngetopt -o "" -- "$(cat raw-first)" "$raw"\n',
+  ));
+  await filesystem.writeFile("/getopt-work/mapfile.sh", encoder.encode(
+    'callback() { sh roundtrip.sh "$2"; }\nmapfile -t -C callback -c 1 rows < raw-first\n',
+  ));
+  await filesystem.writeFile("/getopt-work/raw-first", Uint8Array.of(128, 255));
+  await filesystem.writeFile("/getopt-work/raw-second", Uint8Array.of(97, 39, 255, 92, 10));
+  const quotedArguments = "'' 'a b' \"O'Reilly\" 'line\nnext' 'tab\there' '\\$`!\";$(nothing)'";
+  const cases = [
+    ["enhanced", "sh normalize.sh -o ab:c:: --long alpha,beta:,color:: -- pre --alph -b value --color -- -a ''", 0, " --alpha -b 'value' --color '' -- 'pre' '-a' ''\n", ""],
+    ["quoted", `sh normalize.sh -o '' -- ${quotedArguments}`, 0, " -- '' 'a b' 'O'\\''Reilly' 'line\nnext' 'tab\there' '\\$`!\";$(nothing)'\n", ""],
+    ["invalid", "sh normalize.sh -o ab -- -axb --unknown tail", 1, " -a -b -- 'tail'\n", "getopt: invalid option -- 'x'\ngetopt: unrecognized option '--unknown'\n"],
+    ["test", "sh normalize.sh -T", 4, "", ""],
+    ["roundtrip", `sh roundtrip.sh ${quotedArguments}`, 0, "<>\n<a b>\n<O'Reilly>\n<line\nnext>\n<tab\there>\n<\\$`!\";$(nothing)>\n", ""],
+  ];
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/getopt-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+  try {
+    if (entry.createGetoptCommand().name !== "getopt") throw new Error("Public getopt factory is missing");
+    if (entry.createGetoptCommand !== createSubpathGetoptCommand || entry.createGetoptCommands !== createSubpathGetoptCommands || entry.getoptCommands !== subpathGetoptCommands) throw new Error("Getopt subpath factory identity differs");
+    for (const [name, script, status, stdout, stderr] of cases) {
+      const result = await shell.exec(script);
+      if (result.exitCode !== status) throw new Error(`Public getopt ${name} status differs: ${result.exitCode}`);
+      for (const [stream, expected] of [["stdoutBytes", encoder.encode(stdout)], ["stderrBytes", encoder.encode(stderr)]]) {
+        const actual = result[stream];
+        if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) throw new Error(`Public getopt ${name} ${stream} differs: ${JSON.stringify(Array.from(actual))}`);
+      }
+    }
+    const internalErrors = [];
+    const raw = await shell.exec("sh raw.sh", { onInternalError(error) { internalErrors.push(String(error)); } });
+    const rawExpected = Uint8Array.of(32, 45, 45, 32, 39, 128, 255, 39, 32, 39, 97, 39, 92, 39, 39, 255, 92, 10, 39, 10);
+    if (raw.exitCode !== 0 || raw.stderrBytes.length !== 0 || raw.stdoutBytes.length !== rawExpected.length || raw.stdoutBytes.some((value, index) => value !== rawExpected[index])) throw new Error(`Public getopt raw bytes changed: ${JSON.stringify({ status: raw.exitCode, stdout: Array.from(raw.stdoutBytes), stderr: Array.from(raw.stderrBytes), internalErrors })}`);
+    const rawRoundtrip = await shell.exec('sh roundtrip.sh "$(cat raw-first)"');
+    const roundtripExpected = Uint8Array.of(60, 128, 255, 62, 10);
+    if (rawRoundtrip.exitCode !== 0 || rawRoundtrip.stderrBytes.length !== 0 || rawRoundtrip.stdoutBytes.length !== roundtripExpected.length || rawRoundtrip.stdoutBytes.some((value, index) => value !== roundtripExpected[index])) throw new Error(`Public getopt eval roundtrip changed raw operand bytes: ${JSON.stringify({ status: rawRoundtrip.exitCode, stdout: Array.from(rawRoundtrip.stdoutBytes), stderr: Array.from(rawRoundtrip.stderrBytes) })}`);
+    const rawForwarded = await shell.exec("cat raw-first | xargs -0 sh roundtrip.sh");
+    if (rawForwarded.exitCode !== 0 || rawForwarded.stderrBytes.length !== 0 || rawForwarded.stdoutBytes.length !== roundtripExpected.length || rawForwarded.stdoutBytes.some((value, index) => value !== roundtripExpected[index])) throw new Error(`Public getopt xargs roundtrip changed raw operand bytes: ${JSON.stringify({ status: rawForwarded.exitCode, stdout: Array.from(rawForwarded.stdoutBytes), stderr: Array.from(rawForwarded.stderrBytes) })}`);
+    const rawCallback = await shell.exec("sh mapfile.sh");
+    if (rawCallback.exitCode !== 0 || rawCallback.stderrBytes.length !== 0 || rawCallback.stdoutBytes.length !== roundtripExpected.length || rawCallback.stdoutBytes.some((value, index) => value !== roundtripExpected[index])) throw new Error(`Public getopt mapfile roundtrip changed raw operand bytes: ${JSON.stringify({ status: rawCallback.exitCode, stdout: Array.from(rawCallback.stdoutBytes), stderr: Array.from(rawCallback.stderrBytes) })}`);
+    shell.use(entry.getoptCommands({ replace: true, limits: { maxWork: 1 } }));
+    const limited = await shell.exec("sh normalize.sh -o ''");
+    if (limited.exitCode !== 3 || limited.stdoutBytes.length !== 0 || limited.stderr !== "getopt: work limit exceeded\n") throw new Error(`Public getopt work cap failed: ${JSON.stringify(limited)}`);
+    let invalidLimit;
+    try { entry.createGetoptCommand({ limits: { maxWork: 0 } }); }
+    catch (error) { invalidLimit = error; }
+    if (invalidLimit?.name !== "RangeError") throw new Error("Public getopt accepted an invalid work limit");
   } finally { await shell.dispose(); }
 }
 

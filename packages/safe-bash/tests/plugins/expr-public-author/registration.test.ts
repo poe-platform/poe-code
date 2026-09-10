@@ -17,13 +17,13 @@ async function direct(definition: CommandDefinition, args: string[], overrides: 
   finally { await Promise.all(cleanups.flatMap(cleanup => [cleanup(), cleanup()])); }
 }
 
-test("public104 inventory retains frozen expr76 plus which, timeout, apply_patch, three SHA-2 commands, cmp, fmt, shuf, numfmt, truncate, XML queries, nine native compression commands, zip, unzip, csplit, pr, tsort and factor", async () => {
+test("public105 inventory retains frozen expr76 plus which, timeout, apply_patch, three SHA-2 commands, cmp, fmt, shuf, numfmt, truncate, XML queries, nine native compression commands, zip, unzip, csplit, pr, tsort, factor and getopt", async () => {
   assert.equal(expected.names76.length, 76); assert.equal(new Set(expected.names76).size, 76);
-  const names104 = [...expected.names76, "which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "cmp", "fmt", "shuf", "numfmt", "truncate", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor"].sort();
-  assert.equal(names104.length, 104); assert.equal(new Set(names104).size, 104);
-  assert.deepEqual(createAgentCommands().map(command => command.name).sort(), names104);
+  const names105 = [...expected.names76, "which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "cmp", "fmt", "shuf", "numfmt", "truncate", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt"].sort();
+  assert.equal(names105.length, 105); assert.equal(new Set(names105).size, 105);
+  assert.deepEqual(createAgentCommands().map(command => command.name).sort(), names105);
   const target = host(); await agentCommands().setup(target);
-  assert.deepEqual(target.commands.list().map(command => command.name).sort(), names104);
+  assert.deepEqual(target.commands.list().map(command => command.name).sort(), names105);
   for (const name of ["getopts", "curl", "safejs", "node", "npm", "npx"]) assert.equal(target.commands.has(name), false);
 });
 
@@ -35,7 +35,7 @@ test("expr aggregate collision preflight and top-level replacement preserve cust
   assert.throws(() => agentCommands(nested).setup(target), /already registered: expr/u);
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ ...nested, replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 105); assert.equal(target.commands.get("custom"), registeredCustom); assert.notEqual(target.commands.get("expr"), registeredExpr);
+  assert.equal(target.commands.list().length, 106); assert.equal(target.commands.get("custom"), registeredCustom); assert.notEqual(target.commands.get("expr"), registeredExpr);
 });
 
 test("unknown nested expr regex is ignored with and without global regex", () => {

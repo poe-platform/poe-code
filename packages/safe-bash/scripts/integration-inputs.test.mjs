@@ -395,6 +395,7 @@ function assertSource7Discovery(files) {
     "tests/shell/select.test.ts",
     "tests/shell/arithmetic-for.test.ts",
     "tests/shell/mapfile.test.ts",
+    "tests/shell/mapfile-eval-arguments.test.ts",
     "tests/shell/associative-arrays.test.ts",
     "tests/commands/network/wget.test.ts",
     "tests/commands/bytes-stress/portable-compression.test.ts",
@@ -1899,6 +1900,25 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/pr-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/tsort-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/factor-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/getopt-commands.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt/native.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt-independent/review.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt-independent/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/parameters/raw-pattern-trim/raw-pattern-trim.test.ts"));
+  assert.ok(files.includes("tests/parameters/raw-pattern-trim/eval-source.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/native.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/bounds.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/delimiter.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/source-lifetime.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/handoff.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/native.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/pattern.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/options.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/warning.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/trace-controls.test.ts"));
   assert.ok(files.includes("tests/commands/factor/native.test.ts"));
   assert.ok(files.includes("tests/commands/factor/safety.test.ts"));
   assert.ok(files.includes("tests/commands/factor/getters.test.ts"));

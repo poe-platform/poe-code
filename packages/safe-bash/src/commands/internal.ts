@@ -23,6 +23,7 @@ export interface ParsedOptions {
 export function options(
   args: readonly string[], short: string, long: Readonly<Record<string, string>> = {},
   stopAtOperand = false, onOperand?: (index: number) => void,
+  onValue?: (key: string, index: number, offset: number) => void,
 ): ParsedOptions {
   const flags = new Set<string>();
   const values = new Map<string, string[]>();
@@ -51,6 +52,7 @@ export function options(
       if (specifications.get(key)) {
         const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
         if (value === undefined) throw new UsageError(`option '--${name}' requires an argument`);
+        onValue?.(key, index, equals >= 0 ? equals + 1 : 0);
         values.set(key, [...values.get(key) ?? [], value]);
       } else if (equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);
       flags.add(key);
@@ -62,6 +64,7 @@ export function options(
       if (specifications.get(key)) {
         const value = argument.slice(offset + 1) || args[++index];
         if (value === undefined) throw new UsageError(`option requires an argument -- '${key}'`);
+        onValue?.(key, index, offset + 1 < argument.length ? offset + 1 : 0);
         values.set(key, [...values.get(key) ?? [], value]);
         offset = argument.length;
       }

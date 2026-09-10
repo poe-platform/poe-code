@@ -15,6 +15,7 @@ export function resolveBrowserShellBuild(rootDir) {
       "commands/pr/index.browser": path.join(directory, "src/commands/pr/index.ts"),
       "commands/tsort/index.browser": path.join(directory, "src/commands/tsort/index.ts"),
       "commands/factor/index.browser": path.join(directory, "src/commands/factor/index.ts"),
+      "commands/getopt/index.browser": path.join(directory, "src/commands/getopt/index.ts"),
     },
     outdir: path.join(directory, "dist"),
     splitting: true,

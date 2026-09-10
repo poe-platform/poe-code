@@ -11,6 +11,8 @@ const methods: ReadonlyMap<string, readonly [string, string]> = new Map([
   ["<", ["__lt__", ">"]], ["<=", ["__le__", ">="]], [">", ["__gt__", "<"]], [">=", ["__ge__", "<="]]
 ]);
 
+const nativeContainerKinds = new Set(["dict", "list", "tuple", "set", "frozenset"]);
+
 /** Live type-MRO comparison dispatch. Strict subtypes reflect first even when
  * they inherit the method; same-type operands still get both attempts. Opaque
  * cell/type object defaults use identity, not their backing payload equality.
@@ -21,8 +23,8 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
   if (!leftGuest && !rightGuest) return undefined;
   const names = methods.get(operator);
   if (names === undefined) throw Error(`unsupported rich comparison operator: ${operator}`);
-  const leftType = leftGuest || left.kind === "dict" ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
-  const rightType = rightGuest || right.kind === "dict" ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
+  const leftType = leftGuest || nativeContainerKinds.has(left.kind) ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest || nativeContainerKinds.has(right.kind) ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let rightIsStrictSubtype = false;
   if (leftType !== undefined && rightType !== undefined && leftType !== rightType) {
     for (const ancestor of rightType.value.mro) {

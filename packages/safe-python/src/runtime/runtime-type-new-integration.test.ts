@@ -53,6 +53,14 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["list", "tuple", "set", "frozenset"] as const)("uses native %s comparison after subclass slots decline", kind => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.globals.set("Base", kind === "list" ? state.registry.listType() : kind === "tuple" ? state.registry.tupleType() : state.registry.setType(kind));
+  state.run("class Child(Base):\n def __eq__(self,other):\n  visit('eq')\n  return NotImplemented\n def __ne__(self,other):\n  visit('ne')\n  return NotImplemented\n def __lt__(self,other):\n  visit('lt')\n  return NotImplemented\n def __le__(self,other):\n  visit('le')\n  return NotImplemented\n def __gt__(self,other):\n  visit('gt')\n  return NotImplemented\n def __ge__(self,other):\n  visit('ge')\n  return NotImplemented\na=Child([1])\nb=Base([1])\nresults=(a==b,b==a,a!=b,b!=a,a<b,b<a,a<=b,b<=a,a>b,b>a,a>=b,b>=a)\ncorrect=results==(True,True,False,False,False,False,True,True,False,False,True,True)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(["eq", "eq", "ne", "ne", "lt", "gt", "le", "ge", "gt", "lt", "ge", "le"]);
+});
+
 it.each(["d", "Dict.keys(d).mapping", "Dict.values(d).mapping", "Dict.items(d).mapping"])("falls back to native dictionary comparison after declined subclass slots through %s", expression => {
   const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
   state.run(`Dict=type({})\nclass Child(Dict):\n def __eq__(self,other):\n  visit('equal')\n  return NotImplemented\n def __ne__(self,other):\n  visit('different')\n  return NotImplemented\nd=Child(a=1)\np=${expression}\nforward=p=={'a':1}\nreverse={'a':1}==p\nunequal=p!={'a':1}\nreverseUnequal={'a':1}!=p\n`);

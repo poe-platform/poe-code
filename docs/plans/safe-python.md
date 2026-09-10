@@ -9108,6 +9108,19 @@ extension, integration, or validation requirement is missing or unverified.
   construction, arbitrary mapping owners, recursive lifecycle audits and the
   broader full-interpreter requirements remain unfinished. No push or release
   was requested.
+- Native container comparison fallback (2026-09-10): four failing integration
+  cases reproduced valid list, tuple, set and frozenset subclass comparisons
+  raising TypeError when guest ordering slots returned NotImplemented. Mixed
+  native/guest comparisons now resolve canonical container slots, preserving
+  strict-subtype reflection priority and native payload fallback. Exact/native
+  pairs retain their kernel fast path. Regression tests cover all six operators
+  in both orientations and assert callback order. All 3,024 CPython differential
+  cases match across four container families, individual versus complete slot
+  overrides, three return policies and three storage relationships. Workspace
+  build, typecheck, focused lint and all 6,896 package tests in 493 files pass.
+  Broader native lifecycle, interpreter execution and safe-fs integration work
+  remains; this increment does not establish full Python support. No push or
+  release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

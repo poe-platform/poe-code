@@ -10111,6 +10111,23 @@ extension, integration, or validation requirement is missing or unverified.
   locals/introspection and complete frame allocation accounting remain pending,
   alongside public interpreter/stdlib/safe-fs and other outstanding runtime work.
   No push or release requested.
+- Generator resumption lifecycle foundation (2026-09-10): 22 new tests drove a
+  metered created/running/suspended/closed state machine for trusted resumable
+  Python-body drivers. It rejects initial non-None sends and reentrancy, injects
+  normalized throws, skips unstarted bodies for throw/close, preserves close
+  return values, and leaves ignored-GeneratorExit yields suspended. Escaping
+  StopIteration uses an explicit native wrapping policy rather than normal
+  completion. Fatal limits bypass exception classification; activation restores
+  without metered cleanup. A failing cancellation-at-entry regression prevents
+  body execution after cancellation. Closing drops driver and activation-context
+  references. All 47 selected lifecycle/frame/exception/completion tests and 648
+  paired trusted-body lifecycle comparisons with CPython pass. The comparisons
+  cover send/throw/close sequences and phases, not execution of Python ASTs by
+  the new module. Selected workspace build, typecheck and focused lint pass.
+  Guest generator types/descriptors, resumable expression/statement drivers,
+  generator-expression integration, exception-state switching, yield delegation,
+  async suspension and finalization remain unfinished. This is not yet guest
+  generator support or a complete interpreter. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -72,7 +72,7 @@ export class FileOperation {
   }
 
   private ownSource(source: ByteSource): ByteSource {
-    let iterator: AsyncIterator<Uint8Array> | undefined;
+    let iterator: AsyncIterator<Uint8Array> | undefined = undefined;
     let closing: Promise<IteratorResult<Uint8Array>> | undefined;
     const close = (): Promise<IteratorResult<Uint8Array>> => {
       closing ??= Promise.resolve().then(async () => {

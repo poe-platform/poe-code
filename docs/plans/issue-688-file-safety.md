@@ -81,3 +81,11 @@ Independent final review passes 77/77 cases and strict types; root's repeated
 complete compression and discovery check passes 356/356 with no cancellations
 (`/tmp/issue688-safety-live-v3.log`). All four additive payload hashes match
 authenticated replay. These focused checks do not replace final merged gates.
+
+Final merged lint identifies one `prefer-const` finding in the source-retirement
+holder. Its initially empty state is now explicit (`= undefined`) before the
+later iterator assignment. Moving initialization to a later `const` declaration
+would instead create a temporal-dead-zone risk if acquisition throws before
+retirement. The correction preserves the existing runtime state and cleanup
+checks. The concurrent full test is interrupted before this source adjustment;
+it is not counted as a completed final gate.

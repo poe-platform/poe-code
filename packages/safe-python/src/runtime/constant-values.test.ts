@@ -11,6 +11,17 @@ function fixture() {
 }
 
 describe("concrete immutable constants", () => {
+  it("caches the empty tuple lazily within one value factory", () => {
+    const { values, meter } = fixture(), before = meter.usage.allocatedBytes;
+    const first = values.tuple([]);
+    expect(meter.usage.allocatedBytes - before).toBe(32);
+    const allocated = meter.usage.allocatedBytes;
+    expect(values.tuple([])).toBe(first);
+    expect(values.tuple(0, () => { throw Error("empty reader must not run"); })).toBe(first);
+    expect(meter.usage.allocatedBytes).toBe(allocated);
+    expect(fixture().values.tuple([])).not.toBe(first);
+    expect(() => values.tuple(0 as never)).toThrow("tuple item reader is required");
+  });
   it("builds tuple slots directly from a trusted indexed reader", () => {
     const { values, meter } = fixture(), member = { mutable: true }, calls: number[] = [], before = meter.usage.allocatedBytes;
     const tuple = values.tuple(3, index => { calls.push(index); return member; });

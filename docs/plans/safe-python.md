@@ -8935,6 +8935,23 @@ extension, integration, or validation requirement is missing or unverified.
   files pass with two workers. The 496 tuple descriptor and 85 guest callback
   regressions also pass, for 848 CPython comparisons in this increment. No push
   or release was requested.
+- Added native exact tuple allocation through ordinary type calls and explicit
+  tuple.__new__. Six initial RED regressions reproduced blocked construction and
+  fresh empty-tuple identities. Exact tuple inputs retain identity, exact list
+  slots copy directly into immutable storage, and generic iterables are consumed
+  without hints or closing, matching CPython 3.14. Validation precedes iteration;
+  failures retain the original guest exception and never publish partial tuples.
+  Empty tuples are now lazily cached per value factory, including slices,
+  repetition and independent executions sharing the runtime. The cache preserves
+  reader validation and charges allocation once; independent runtimes do not
+  share the singleton. All 162 construction, 267 arithmetic, 496 descriptor and
+  85 guest callback comparisons match CPython. Owned tuple subclass allocation
+  remains an explicit implementation gap, not a fabricated ordinary instance.
+  The broader native catalogs, public interpreter API and suspended safe-fs
+  execution remain unfinished.
+  Workspace build, typecheck and focused lint pass; all 6,836 unit tests in 493
+  files pass with two workers. All 1,010 differential cases above pass. No push
+  or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

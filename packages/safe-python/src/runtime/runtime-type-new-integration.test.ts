@@ -51,6 +51,44 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("constructs exact tuples and preserves exact input and empty identities", () => {
+  const state = fixture();
+  state.run("Tuple=type(())\nitems=([1],)\nsame=Tuple(items) is items\ndirect=Tuple.__new__(Tuple,items) is items\nempty=Tuple() is ()\ncollected=Tuple([]) is ()\nmember=[]\ncopy=Tuple([member])\nretained=copy[0] is member\ncorrect=type(copy) is Tuple\n");
+  for (const name of ["same", "direct", "empty", "collected", "retained", "correct"]) expect(state.globals.get(name), name).toBe(state.v.true);
+});
+
+it("shares empty tuple identity across repetition, slicing and independent runs", () => {
+  const state = fixture(); state.globals.set("emptySlice", state.v.slice({ lower: state.v.integer(0), upper: state.v.integer(0) }));
+  state.run("original=()\nrepeated=(1,).__mul__(0) is original\nsliced=(1,).__getitem__(emptySlice) is original\n");
+  state.run("same=original is ()\n");
+  for (const name of ["repeated", "sliced", "same"]) expect(state.globals.get(name), name).toBe(state.v.true);
+});
+
+it("constructs tuples from guest iterables without requesting length hints", () => {
+  const state = fixture();
+  state.run("class Source:\n def __iter__(self):\n  visit('iter')\n  return [1,2].__iter__()\n def __len__(self):\n  visit('len')\n  return 99\n def __length_hint__(self):\n  visit('hint')\n  return 99\nTuple=type(())\nresult=Tuple(Source())==(1,2)\n");
+  expect(state.events).toEqual(["iter"]); expect(state.globals.get("result")).toBe(state.v.true);
+});
+
+it("preserves tuple construction failures and leaves the source cursor open", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "iteration failed");
+  state.globals.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Source:\n def __iter__(self):\n  self.first=True\n  return self\n def __next__(self):\n  visit('next')\n  if self.first:\n   self.first=False\n   return 1\n  fail()\n def close(self):\n  visit('close')\nsource=Source()\nTuple=type(())\n");
+  let caught: unknown; try { state.run("result=Tuple(source)\n"); } catch (error) { caught = error; }
+  expect(caught).toBe(failure); expect(state.globals.has("result")).toBe(false); expect(state.events).toEqual(["next", "next"]);
+});
+
+it("validates tuple construction before consuming the source", () => {
+  const state = fixture();
+  state.run("class Source:\n def __iter__(self):\n  visit('iter')\n  return [].__iter__()\nTuple=type(())\nsource=Source()\n");
+  expect(() => state.run("Tuple(source,source)\n")).toThrow("tuple expected at most 1 argument, got 2");
+  expect(() => state.run("Tuple(source,source,extra=1)\n")).toThrow("tuple() takes no keyword arguments");
+  expect(() => state.run("Tuple.__new__()\n")).toThrow("tuple.__new__(): not enough arguments");
+  expect(() => state.run("Tuple.__new__(None)\n")).toThrow("tuple.__new__(X): X is not a type object (NoneType)");
+  expect(() => state.run("Tuple.__new__(type([]))\n")).toThrow("tuple.__new__(list): list is not a subtype of tuple");
+  expect(state.events).toEqual([]);
+});
+
 it("binds tuple arithmetic wrappers and retains immutable identity shortcuts", () => {
   const state = fixture();
   state.run("items=(1,2)\nTuple=type(items)\njoined=Tuple.__add__(items,(3,))==(1,2,3)\nleft=Tuple.__add__((),items) is items\nright=items.__add__(()) is items\nonce=items.__mul__(1) is items\nrepeated=items.__rmul__(2)==(1,2,1,2)\nempty=items.__mul__(0)==()\nbound=items.__mul__.__self__ is items\nowner=Tuple.__mul__.__objclass__ is Tuple\nmember=Tuple.__mul__\n");

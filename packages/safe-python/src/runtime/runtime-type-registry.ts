@@ -35,6 +35,7 @@ import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descrip
 import { installRuntimeSetOperatorSlots } from "./runtime-set-operator-slots.js";
 import { installRuntimeTupleSlots } from "./runtime-tuple-slots.js";
 import { installRuntimeTupleArithmeticSlots } from "./runtime-tuple-arithmetic-slots.js";
+import { createTupleNewBuiltin } from "./builtin-tuple-new.js";
 import { createSetNewBuiltin } from "./builtin-set-new.js";
 import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
 import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
@@ -213,7 +214,7 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
-  /** Tuple storage protocols; allocation and subclass payloads are separate. */
+  /** Exact tuple allocation and storage protocols; subclass payloads are separate. */
   tupleType(): TypeValue {
     this.meter.checkpoint();
     if (this.#tupleType !== undefined) return this.#tupleType;
@@ -222,6 +223,7 @@ export class RuntimeTypeRegistry {
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeTupleSlots(type, this.values, this.meter);
     installRuntimeTupleArithmeticSlots(type, this.values, this.meter);
+    namespace.items.set(this.values.string("__new__"), createTupleNewBuiltin(type, this.values, this.meter, requested => this.#entries.get(requested.value)?.type === requested));
     installRuntimeComparisonMethods("tuple", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#tupleType = type;

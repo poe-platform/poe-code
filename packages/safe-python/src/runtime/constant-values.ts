@@ -39,6 +39,7 @@ const REFERENCE_BYTES = 8;
  * host records must never be exposed through guest JavaScript property access.
  * Singleton identity is scoped to this factory/runtime. Tuples own only their
  * slots, permitting mutable guest members through the generic tuple factory.
+ * The empty tuple is cached lazily and shared by all exact tuple operations.
  * Charge 32 bytes per tagged record and 8 per tuple slot; copied string/byte
  * buffers are charged separately. Existing bigint payloads are retained, not
  * copied: their creation must be charged by the parser/arithmetic caller.
@@ -52,6 +53,7 @@ export class ConstantValues {
   #smallIntegers: Map<number, Extract<PrimitiveConstant, { kind: "int" }>> | undefined;
   #smallBytes: Map<number, BytesConstant> | undefined;
   #smallStrings: Map<number, StringConstant> | undefined;
+  #emptyTuple: TupleConstant<never> | undefined;
   readonly none: Extract<PrimitiveConstant, { kind: "none" }>;
   readonly true: Extract<PrimitiveConstant, { kind: "bool" }>;
   readonly false: Extract<PrimitiveConstant, { kind: "bool" }>;
@@ -165,6 +167,13 @@ export class ConstantValues {
     const length = typeof values === "number" ? values : values.length;
     if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("tuple length must be a nonnegative safe integer");
     if (typeof values === "number" && typeof readItem !== "function") throw new TypeError("tuple item reader is required");
+    if (length === 0) {
+      if (this.#emptyTuple === undefined) {
+        this.meter.checkpoint(0, VALUE_BYTES);
+        this.#emptyTuple = Object.freeze({ kind: "tuple", items: Object.freeze([]) });
+      }
+      return this.#emptyTuple;
+    }
     this.meter.checkpoint(0, VALUE_BYTES + length * REFERENCE_BYTES);
     const items: Value[] = new Array(length);
     for (let index = 0; index < length; index++) { this.meter.checkpoint(); items[index] = typeof values === "number" ? readItem!(index) : values[index]; }

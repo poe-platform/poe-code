@@ -1435,8 +1435,8 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       const length = deserializeValue(serialized.length, state);
       if (length !== undefined && typeof length !== "number") throw new TypeError("Invalid bound function length.");
       value = createBoundFunction(boundState, serialized.name, length,
-        (callee, args, stack, thisValue, construct, newTarget) =>
-          invokeBuiltinClosure(callee, args, state.budget, { stack, thisValue, newTarget }, thisValue, construct));
+        (callee, args, stack, thisValue, construct, newTarget, context) =>
+          invokeBuiltinClosure(callee, args, state.budget, { ...context, stack, thisValue, newTarget }, thisValue, construct));
       // Allocate every bound identity before decoding arguments and receivers:
       // either may point back to this function, including through another bind.
       state.initializeIterators.push(() => {

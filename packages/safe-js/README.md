@@ -977,7 +977,8 @@ PlainDate, PlainTime, PlainDateTime and Instant values, with requested options p
 These public adapters are committed locally. Owned ZonedDateTime values are
 rejected without primitive coercion, even if their `valueOf` is overridden.
 Cached DateTimeFormat/NumberFormat `format` and Collator `compare` functions
-preserve guest proxy coercion, including calls after completed replay.
+preserve guest proxy coercion, including calls after completed replay and calls
+through cached functions restored from a guest heap.
 Legacy formatter snapshots lack original requested options and use their saved
 resolved options as a fallback.
 `PlainTime.toLocaleString`, `PlainDateTime.toLocaleString` and `PlainDate.toLocaleString` accept valid fixed-offset

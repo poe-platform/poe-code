@@ -918,6 +918,12 @@ Blank Duration totals return positive zero at both PlainDate range boundaries
 without constructing an out-of-range calendar interval.
 The Temporal namespace, Now wiring, and all eight constructors and method adapters
 are committed locally but unreleased; snapshot integration remains unfinished.
+Replay-data encoding now retains the private slots of all eight Temporal types,
+including MonthDay/YearMonth reference dates and exact nanosecond epochs. JSON
+round trips preserve aliases, data descriptors, symbol cycles, explicit null
+prototypes and frozen state. Malformed slot records and accessor properties are
+rejected. This codec integration does not complete heap restoration or qualify
+the full snapshot system.
 PlainMonthDay's current checks pass on Node 18.20.8 and 26.8.1, but three ISO
 month-name locale checks still fail on Node 22.23.2; local integration is not a
 claim of complete locale support or a green package gate.

@@ -23,6 +23,14 @@ import { dataViewBuffer, dataViewDataProperties, isSandboxDataView } from "../in
 import { decodeDataViewStorage, encodeDataViewLayout, type DataViewData } from "./data-view.js";
 import { decodeArrayBufferStorage, encodeArrayBufferStorage, type ArrayBufferData } from "./array-buffer.js";
 import { dateDataProperties, isSandboxDate, restoreDateTime, serializedDateTime } from "../interp/date.js";
+import { createSandboxTemporalInstant, isSandboxTemporalInstant, temporalInstantEpoch } from "../interp/temporal-instant.js";
+import { createSandboxTemporalZonedDateTime, isSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "../interp/temporal-zoned-date-time.js";
+import { createSandboxTemporalDuration, isSandboxTemporalDuration, temporalDurationFieldNames, temporalDurationFields, type TemporalDurationFields } from "../interp/temporal-duration.js";
+import { createSandboxTemporalPlainTime, isSandboxTemporalPlainTime, temporalPlainTimeFieldNames, temporalPlainTimeFields, type TemporalPlainTimeFields } from "../interp/temporal-plain-time.js";
+import { createSandboxTemporalPlainDateTime, isSandboxTemporalPlainDateTime, temporalPlainDateTimeNumericFields, temporalPlainDateTimeFields, type TemporalPlainDateTimeFields } from "../interp/temporal-plain-date-time.js";
+import { createSandboxTemporalPlainDate, isSandboxTemporalPlainDate, temporalPlainDateNumericFields, temporalPlainDateFields, type TemporalPlainDateFields } from "../interp/temporal-plain-date.js";
+import { createSandboxTemporalPlainMonthDay, isSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields, type TemporalPlainMonthDayFields } from "../interp/temporal-plain-month-day.js";
+import { createSandboxTemporalPlainYearMonth, isSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields, type TemporalPlainYearMonthFields } from "../interp/temporal-plain-year-month.js";
 import { createRawJson, isRawJson } from "../interp/raw-json.js";
 import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "../interp/boxed.js";
 import { validateBoxedProperties } from "./boxed.js";
@@ -72,6 +80,14 @@ type DataNode =
   | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: Atom; index: number; exhausted: boolean; properties: Properties; extensible: boolean }
   | { kind: "date"; time: number | null; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-instant"; epochNanoseconds: string; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-zoned-date-time"; slots: { epochNanoseconds: string; timeZone: string; calendar: string }; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-duration"; slots: TemporalDurationFields; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-plain-time"; slots: TemporalPlainTimeFields; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-plain-date-time"; slots: TemporalPlainDateTimeFields; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-plain-date"; slots: TemporalPlainDateFields; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-plain-month-day"; slots: TemporalPlainMonthDayFields; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
+  | { kind: "temporal-plain-year-month"; slots: TemporalPlainYearMonthFields; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
   | (TypedArrayData<Atom> & { properties: Properties; extensible: boolean })
   | (ArrayBufferData<Atom> & { properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> })
   | (SharedArrayBufferData<Atom> & { properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> })
@@ -190,6 +206,38 @@ export function encodeReplayData(
         if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
         properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
       }
+    } else if (isSandboxTemporalPlainYearMonth(entry) || isSandboxTemporalPlainMonthDay(entry) || isSandboxTemporalInstant(entry) || isSandboxTemporalDuration(entry) || isSandboxTemporalPlainTime(entry) || isSandboxTemporalPlainDateTime(entry) || isSandboxTemporalPlainDate(entry) || isSandboxTemporalZonedDateTime(entry)) {
+      const properties: Properties = Object.create(null);
+      for (const key of Object.getOwnPropertyNames(entry)) {
+        const descriptor = Object.getOwnPropertyDescriptor(entry, key)!;
+        if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
+        properties[key] = { value: child(descriptor.value, key), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true };
+      }
+      let symbolIndex = 0;
+      const symbolProperties = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      nodes[id] = {
+        ...(isSandboxTemporalZonedDateTime(entry)
+          ? { kind: "temporal-zoned-date-time" as const, slots: {
+              ...temporalZonedDateTimeFields(entry), epochNanoseconds: temporalZonedDateTimeFields(entry).epochNanoseconds.toString()
+            } }
+          : isSandboxTemporalInstant(entry)
+          ? { kind: "temporal-instant" as const, epochNanoseconds: temporalInstantEpoch(entry).toString() }
+          : isSandboxTemporalDuration(entry)
+            ? { kind: "temporal-duration" as const, slots: { ...temporalDurationFields(entry) } }
+            : isSandboxTemporalPlainTime(entry)
+              ? { kind: "temporal-plain-time" as const, slots: { ...temporalPlainTimeFields(entry) } }
+              : isSandboxTemporalPlainDateTime(entry)
+                ? { kind: "temporal-plain-date-time" as const, slots: { ...temporalPlainDateTimeFields(entry) } }
+                : isSandboxTemporalPlainYearMonth(entry)
+                  ? { kind: "temporal-plain-year-month" as const, slots: { ...temporalPlainYearMonthFields(entry) } }
+                  : isSandboxTemporalPlainMonthDay(entry)
+                    ? { kind: "temporal-plain-month-day" as const, slots: { ...temporalPlainMonthDayFields(entry) } }
+                    : { kind: "temporal-plain-date" as const, slots: { ...temporalPlainDateFields(entry) } }),
+        ...(hasNullObjectPrototype(entry) ? { nullPrototype: true as const } : {}),
+        ...(Object.keys(properties).length === 0 ? {} : { properties }),
+        ...(symbolProperties.length === 0 ? {} : { symbolProperties }),
+        ...(Object.isExtensible(entry) ? {} : { extensible: false })
+      };
     } else if (isSandboxDate(entry)) {
       const properties: Properties = Object.create(null);
       for (const [key, descriptor] of dateDataProperties(entry)) {
@@ -485,6 +533,161 @@ export function decodeReplayData(
           throw new TypeError("Invalid replay raw JSON fields.");
         const result = createRawJson(own(node, "text") as string);
         restored.set(id, result);
+        return result;
+      }
+      if (kind === "temporal-zoned-date-time") {
+        if (Object.keys(node).some(key => !["kind", "slots", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized ZonedDateTime fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay ZonedDateTime prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay ZonedDateTime extensibility.");
+        const slots = record(own(node, "slots"));
+        if (Reflect.ownKeys(slots).length !== 3) throw new TypeError("Invalid ZonedDateTime slot encoding.");
+        const epoch = own(slots, "epochNanoseconds");
+        const timeZone = own(slots, "timeZone");
+        const calendar = own(slots, "calendar");
+        if (typeof epoch !== "string" || epoch.length === 0 || epoch.length > 23 ||
+            typeof timeZone !== "string" || typeof calendar !== "string")
+          throw new TypeError("Invalid ZonedDateTime slot types.");
+        const epochNanoseconds = BigInt(epoch);
+        if (epochNanoseconds.toString() !== epoch) throw new TypeError("Noncanonical ZonedDateTime epoch.");
+        const result = createSandboxTemporalZonedDateTime({ epochNanoseconds, timeZone, calendar });
+        const canonical = temporalZonedDateTimeFields(result);
+        if (canonical.timeZone !== timeZone || canonical.calendar !== calendar)
+          throw new TypeError("Noncanonical ZonedDateTime identifiers.");
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "temporal-plain-date") {
+        if (Object.keys(node).some(key => !["kind", "slots", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized PlainDate fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay PlainDate prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay PlainDate extensibility.");
+        const slots = record(own(node, "slots"));
+        if (Reflect.ownKeys(slots).length !== temporalPlainDateNumericFields.length + 1)
+          throw new TypeError("Invalid PlainDate slot encoding.");
+        for (const name of temporalPlainDateNumericFields) {
+          const value = own(slots, name);
+          if (typeof value !== "number" || Object.is(value, -0)) throw new TypeError("Invalid canonical PlainDate field.");
+        }
+        const result = createSandboxTemporalPlainDate(slots as TemporalPlainDateFields);
+        if (temporalPlainDateFields(result).calendar !== own(slots, "calendar"))
+          throw new TypeError("Invalid canonical PlainDate calendar.");
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "temporal-plain-year-month") {
+        if (Object.keys(node).some(key => !["kind", "slots", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized PlainYearMonth fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay PlainYearMonth prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay PlainYearMonth extensibility.");
+        const slots = record(own(node, "slots"));
+        if (Reflect.ownKeys(slots).length !== temporalPlainDateNumericFields.length + 1)
+          throw new TypeError("Invalid PlainYearMonth slot encoding.");
+        for (const name of temporalPlainDateNumericFields) {
+          const value = own(slots, name);
+          if (typeof value !== "number" || Object.is(value, -0)) throw new TypeError("Invalid canonical PlainYearMonth field.");
+        }
+        const result = createSandboxTemporalPlainYearMonth(slots as TemporalPlainYearMonthFields);
+        if (temporalPlainYearMonthFields(result).calendar !== own(slots, "calendar"))
+          throw new TypeError("Invalid canonical PlainYearMonth calendar.");
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "temporal-plain-month-day") {
+        if (Object.keys(node).some(key => !["kind", "slots", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized PlainMonthDay fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay PlainMonthDay prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay PlainMonthDay extensibility.");
+        const slots = record(own(node, "slots"));
+        if (Reflect.ownKeys(slots).length !== temporalPlainDateNumericFields.length + 1)
+          throw new TypeError("Invalid PlainMonthDay slot encoding.");
+        for (const name of temporalPlainDateNumericFields) {
+          const value = own(slots, name);
+          if (typeof value !== "number" || Object.is(value, -0)) throw new TypeError("Invalid canonical PlainMonthDay field.");
+        }
+        const result = createSandboxTemporalPlainMonthDay(slots as TemporalPlainMonthDayFields);
+        if (temporalPlainMonthDayFields(result).calendar !== own(slots, "calendar"))
+          throw new TypeError("Invalid canonical PlainMonthDay calendar.");
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "temporal-plain-date-time") {
+        if (Object.keys(node).some(key => !["kind", "slots", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized PlainDateTime fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay PlainDateTime prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay PlainDateTime extensibility.");
+        const slots = record(own(node, "slots"));
+        if (Reflect.ownKeys(slots).length !== temporalPlainDateTimeNumericFields.length + 1)
+          throw new TypeError("Invalid PlainDateTime slot encoding.");
+        for (const name of temporalPlainDateTimeNumericFields) {
+          const value = own(slots, name);
+          if (typeof value !== "number" || Object.is(value, -0)) throw new TypeError("Invalid canonical PlainDateTime field.");
+        }
+        const result = createSandboxTemporalPlainDateTime(slots as TemporalPlainDateTimeFields);
+        if (temporalPlainDateTimeFields(result).calendar !== own(slots, "calendar"))
+          throw new TypeError("Invalid canonical PlainDateTime calendar.");
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "temporal-plain-time") {
+        if (Object.keys(node).some(key => !["kind", "slots", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized PlainTime fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay PlainTime prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay PlainTime extensibility.");
+        const slots = record(own(node, "slots"));
+        if (Reflect.ownKeys(slots).length !== temporalPlainTimeFieldNames.length)
+          throw new TypeError("Invalid PlainTime slot encoding.");
+        for (const name of temporalPlainTimeFieldNames) {
+          const value = own(slots, name);
+          if (typeof value !== "number" || Object.is(value, -0)) throw new TypeError("Invalid canonical PlainTime field.");
+        }
+        const result = createSandboxTemporalPlainTime(slots as TemporalPlainTimeFields);
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "temporal-duration") {
+        if (Object.keys(node).some(key => !["kind", "slots", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized Duration fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay Duration prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay Duration extensibility.");
+        const slots = record(own(node, "slots"));
+        if (Reflect.ownKeys(slots).length !== temporalDurationFieldNames.length)
+          throw new TypeError("Invalid Duration slot encoding.");
+        for (const name of temporalDurationFieldNames) {
+          const value = own(slots, name);
+          if (typeof value !== "number" || Object.is(value, -0)) throw new TypeError("Invalid canonical Duration field.");
+        }
+        const result = createSandboxTemporalDuration(slots as TemporalDurationFields);
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "temporal-instant") {
+        if (Object.keys(node).some(key => !["kind", "epochNanoseconds", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized Instant fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay Instant prototype.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay Instant extensibility.");
+        const text = own(node, "epochNanoseconds");
+        if (typeof text !== "string" || text.length === 0 || text.length > 23) throw new TypeError("Invalid Instant epoch encoding.");
+        const epoch = BigInt(text);
+        if (epoch.toString() !== text) throw new TypeError("Noncanonical Instant epoch encoding.");
+        const result = createSandboxTemporalInstant(epoch);
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
+        restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
         return result;
       }
       if (kind === "date") {

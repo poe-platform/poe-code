@@ -7,8 +7,8 @@ import { Budget, resolveLimits } from "../../src/shell/runtime.js";
 
 const environment = { PATH: "/usr/bin:/bin", HOME: "/home/brace", LC_ALL: "C" };
 
-function native(source: string) {
-  const result = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], {
+function native(source: string | readonly string[]) {
+  const result = spawnSync("/bin/bash", ["--noprofile", "--norc", ...(typeof source === "string" ? ["-c", source] : source)], {
     cwd: "/", env: environment, timeout: 2000, maxBuffer: 64 * 1024,
   });
   assert.equal(result.error, undefined);
@@ -65,7 +65,8 @@ const cases = [
   ["function and eval share option state", String.raw`disable() { set +B; }; disable; eval 'printf "<%s>\n" {a,b}'; enable() { set -B; }; enable; eval 'printf "<%s>\n" {a,b}'`],
   ["command substitution inherits and isolates options", String.raw`set +B; printf '<%s>\n' "$(printf '%s' {a,b}; set -B; printf '%s' {c,d})"; printf '<%s>\n' {a,b}`],
   ["child Bash starts with independent default", String.raw`set +B; bash -c 'printf "<%s>\n" {a,b}'; printf '<%s>\n' {a,b}`],
-  ["child Bash accepts short option", String.raw`bash +B -c 'printf "<%s>\n" {a,b}; set -B; printf "<%s>\n" {a,b}'`],
+  // The native oracle can launch this child directly: there is no parent state to test.
+  ["child Bash accepts short option", String.raw`bash +B -c 'printf "<%s>\n" {a,b}; set -B; printf "<%s>\n" {a,b}'`, ["+B", "-c", String.raw`printf "<%s>\n" {a,b}; set -B; printf "<%s>\n" {a,b}`]],
   ["pipeline stages inherit but isolate option state", String.raw`set +B; printf '<%s>\n' {a,b} | cat; set -B | cat; printf '<%s>\n' {a,b}`],
 ] as const;
 
@@ -99,7 +100,7 @@ const bashVersion = Buffer.from(version.stdout, "hex").toString();
 const bashMajor = Number(bashVersion.split(".")[0]);
 assert.ok(Number.isInteger(bashMajor) && bashMajor > 0, `Invalid Bash version: ${bashVersion}`);
 
-for (const [name, source] of cases) {
+for (const [name, source, nativeArguments] of cases) {
   test(`brace expansion differential: ${name}`, async context => {
     const fs = createMemoryFileSystem();
     await fs.mkdir("/dev");
@@ -116,7 +117,7 @@ for (const [name, source] of cases) {
         skip: bashMajor < 5 ? `GNU Bash 5+ oracle unavailable; /bin/bash is ${bashVersion}` : false,
       }, () => { assert.deepEqual(observed, native(source)); });
     } else {
-      assert.deepEqual(observed, native(source));
+      assert.deepEqual(observed, native(nativeArguments ?? source));
     }
   });
 }

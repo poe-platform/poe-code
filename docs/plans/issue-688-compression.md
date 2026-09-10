@@ -165,6 +165,19 @@ runtime check, and existing hook/test deadline remains intact. Nothing is cached
 across test-file runs. Focused validation is pending the current full run's
 termination; that run's already-recorded failures are not treated as passes.
 
+The next full run completed with one Bash failure: the native oracle for
+`child Bash accepts short option` hit its unchanged 2-second spawn deadline
+(`/tmp/poe-688-bundle-reuse-full-unit.log`). That fixture now supplies explicit
+native argv to launch `/bin/bash +B -c` directly, removing the outer Bash whose
+only job was launching that child. The virtual-shell source and literal child
+body remain unchanged, as do native environment, byte/status comparisons,
+output cap, and deadline. Other fixtures retain their parent-shell semantics.
+One bounded native comparison confirmed identical nested/direct stdout bytes,
+empty stderr, and status zero (`/tmp/poe-688-brace-native-direct-equivalence.log`).
+The whole focused file passed 61 tests with its existing 13 unavailable-Bash-5
+oracle skips, no failures (`/tmp/poe-688-brace-native-direct-green.log`). This is
+not a timing improvement claim or a completed full gate.
+
 The failed shared run was intentionally stopped after the two reported bundle
 failures so the completed repair could be validated promptly. Its later stages
 are not counted as passes. The focused bundle file then passed all 13 checks in

@@ -20,6 +20,14 @@ function fixture() {
 }
 
 describe("canonical runtime type registry", () => {
+  it("does not publish partially initialized descriptor types on allocation failure", () => {
+    const state = fixture(); state.fail(true);
+    expect(() => state.registry.descriptorType("member_descriptor")).toThrow(ExecutionLimitError);
+    state.fail(false);
+    const owner = state.registry.descriptorType("member_descriptor");
+    expect(state.registry.descriptorType("member_descriptor")).toBe(owner);
+    for (const name of ["__get__", "__set__", "__delete__"]) expect(owner.value.namespace.items.lookup(state.values.string(name))?.value.kind).toBe("wrapper_descriptor");
+  });
   it.each(["__name__", "__qualname__"] as const)("installs intrinsic %s getsets with immutable and deletion guards", name => {
     const { registry, values, meter, layout } = fixture(), cls = registry.publish(layout("C"), registry.type);
     const descriptor = registry.type.value.namespace.items.lookup(values.string(name))!.value;

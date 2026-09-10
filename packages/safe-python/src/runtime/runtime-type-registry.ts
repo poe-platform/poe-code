@@ -14,6 +14,7 @@ import { createObjectInitSubclassDescriptor } from "./builtin-object-init-subcla
 import { createObjectClassDescriptor } from "./builtin-object-class.js";
 import { PythonRuntimeError } from "./error.js";
 import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
+import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from "./runtime-descriptor-method.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -33,9 +34,10 @@ export class RuntimeTypeRegistry {
   readonly type: TypeValue;
   readonly #entries: WeakMap<RuntimeTypeLayout, TypeEntry>;
   readonly #methodDecorators = new Map<"staticmethod" | "classmethod", TypeValue>();
+  readonly #descriptors = new Map<IntrinsicDescriptorKind, TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
-    meter.checkpoint(1, 192);
+    meter.checkpoint(1, 256);
     this.#entries = new WeakMap();
     const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false });
     const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false });
@@ -115,6 +117,21 @@ export class RuntimeTypeRegistry {
     installMethodDecoratorBuiltins(kind, type, this.values, this.meter, this.keys, candidate => this.#entries.get(candidate.value)?.type === candidate);
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#methodDecorators.set(kind, type);
+    return type;
+  }
+
+  /** Canonical native descriptor layouts, with protocol methods published before
+   * the type becomes visible. Exact functions alone own an instance dictionary. */
+  descriptorType(kind: IntrinsicDescriptorKind): TypeValue {
+    this.meter.checkpoint();
+    const existing = this.#descriptors.get(kind);
+    if (existing !== undefined) return existing;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: kind === "function", objectLayout: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeDescriptorMethods(kind, type, this.values, this.meter);
+    this.meter.checkpoint(1, 96);
+    this.#entries.set(layout, { type }); this.#descriptors.set(kind, type);
     return type;
   }
 

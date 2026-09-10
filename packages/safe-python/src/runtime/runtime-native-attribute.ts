@@ -62,6 +62,7 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } from "./runtime-native-method-metadata.js";
 import { runtimeFunctionDefaults } from "./runtime-function-defaults.js";
+import { readRuntimeDescriptorMethod } from "./runtime-descriptor-method.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
  * exposed; host payload fields and JavaScript prototypes are never inspected.
@@ -106,6 +107,8 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "__func__") return receiver.value.function;
     if (name === "__self__") return receiver.value.instance;
   }
+  const descriptorMethod = readRuntimeDescriptorMethod(receiver, name, values, meter, methods);
+  if (descriptorMethod !== undefined) return descriptorMethod;
   const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
   if (metadata !== undefined) return metadata;
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {

@@ -2260,6 +2260,36 @@ it("reflects and replaces positional function defaults with live call behavior",
   expect(() => state.run("f.__defaults__=[]\n")).toThrow("__defaults__ must be set to a tuple object");
 });
 
+it("exposes explicit function descriptor binding without invoking the body", () => {
+  const state = fixture(), owner = state.type("Owner");
+  const fn = state.method(owner, "f", "def f(self,x):\n visit('body')\n return x\n");
+  state.types.set(fn, state.registry.descriptorType("function"));
+  state.instance("instance", owner); state.globals.set("Owner", owner);
+  state.run("bound=f.__get__(instance)\nsame=f.__get__(None,Owner) is f\n");
+  expect(state.events).toEqual([]); expect(state.globals.get("same")).toBe(state.v.true);
+  state.run("result=bound(7)\n"); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(state.events).toEqual(["body"]); expect(fn.kind).toBe("function");
+});
+
+it("runs explicit native getset methods through the compiled call path", () => {
+  const state = fixture(), owner = state.type("Owner"), descriptor = state.registry.type.value.namespace.items.lookup(state.v.string("__name__"))!.value;
+  state.types.set(descriptor, state.registry.descriptorType("getset_descriptor"));
+  state.globals.set("slot", descriptor); state.globals.set("Owner", owner);
+  state.run("before=slot.__get__(Owner)\nwritten=slot.__set__(Owner,'Renamed')\nafter=slot.__get__(Owner)\nidentity=slot.__get__(None,True) is slot\n");
+  expect(state.globals.get("before")).toEqual(state.v.string("Owner")); expect(state.globals.get("after")).toEqual(state.v.string("Renamed"));
+  expect(state.globals.get("written")).toBe(state.v.none); expect(state.globals.get("identity")).toBe(state.v.true);
+  expect(() => state.run("slot.__delete__(Owner)\n")).toThrow("cannot delete '__name__' attribute of immutable type 'Renamed'");
+});
+
+it("uses actual receiver types for explicit native classmethod binding", () => {
+  const state = fixture(), owner = state.type("Owner"), descriptor = state.registry.object.value.namespace.items.lookup(state.v.string("__init_subclass__"))!.value;
+  state.types.set(descriptor, state.registry.descriptorType("classmethod_descriptor"));
+  state.globals.set("slot", descriptor); state.globals.set("Owner", owner); state.instance("instance", owner);
+  state.run("bound=slot.__get__(instance)\nreceiver=bound.__self__ is Owner\nresult=bound()\nexplicit=slot.__get__(None,Owner)\nexplicit_receiver=explicit.__self__ is Owner\n");
+  expect(state.globals.get("receiver")).toBe(state.v.true); expect(state.globals.get("explicit_receiver")).toBe(state.v.true);
+  expect(state.globals.get("result")).toBe(state.v.none);
+});
+
 it("shares live keyword-default dictionaries with subsequent calls", () => {
   const state = fixture();
   state.run("def f(*,x=1): return x\ninitial=f.__kwdefaults__\ninitial['x']=2\nchanged=f()\nreplacement={'x':3,'unused':True}\nf.__kwdefaults__=replacement\nsame=f.__kwdefaults__ is replacement\nreplaced=f()\ndel f.__kwdefaults__\ncleared=f.__kwdefaults__\n");

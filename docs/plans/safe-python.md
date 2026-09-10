@@ -8170,6 +8170,21 @@ extension, integration, or validation requirement is missing or unverified.
   in 483 files, selected workspace build, typecheck and scoped lint pass. Full function
   code/closure metadata, canonical native types and class construction remain
   unfinished.
+- Added canonical intrinsic descriptor layouts and explicit protocol methods for
+  functions and native method/classmethod/wrapper/getset/member descriptors.
+  Public __get__, __set__ and __delete__ are actual bound method-wrapper values,
+  preserving defining-owner metadata, receiver guards and Python argument-error
+  ordering. Explicit gets reuse intrinsic binding without invoking method bodies;
+  getsets retain the execution's callback context. Function dictionary shadows
+  precede non-data __get__. Native classification remains an execution capability;
+  the registry now supplies canonical descriptor types to that capability.
+  A compiled function-binding regression initially failed. Three compiled cases
+  plus focused family, arity, mutation, cancellation and publication-failure tests
+  pass. All 420 explicit protocol cases, 180 existing class-method cases and 105
+  qualified-name reads match CPython. All 6,348 tests in 484 files, selected build
+  typecheck and scoped lint pass. Complete native type classification/public SDK wiring,
+  descriptor metadata catalogs, native constructors and subclass-layout rules
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

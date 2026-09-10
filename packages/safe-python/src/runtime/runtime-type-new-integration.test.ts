@@ -79,6 +79,52 @@ function exceptionFixture() {
   return state;
 }
 
+it("ignores guest AttributeError subclasses when copying method-wrapper metadata",()=>{
+  for(const kind of ["staticmethod","classmethod"] as const) {
+    const state=exceptionFixture();state.globals.set("Wrapper",state.registry.methodDecoratorType(kind));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+    state.run("events=[]\nclass Missing(AttributeError):\n pass\nclass Item:\n def __getattribute__(self,name):\n  events.append(name)\n  if name=='__name__':\n   return 'kept'\n  raise Missing(name)\nitem=Item()\nwrapper=Wrapper(item)\ncorrect=wrapper.__func__ is item and wrapper.__dict__=={'__name__':'kept'} and events==['__module__','__name__','__qualname__','__doc__']\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("treats guest missing abstractness as false for method wrappers",()=>{
+  for(const kind of ["staticmethod","classmethod"] as const) {
+    const state=exceptionFixture();state.globals.set("Wrapper",state.registry.methodDecoratorType(kind));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+    state.run("class Missing(AttributeError):\n pass\nclass Item:\n def __getattribute__(self,name):\n  if name=='__isabstractmethod__':\n   raise Missing(name)\n  return object.__getattribute__(self,name)\nwrapper=Wrapper(Item())\ncorrect=wrapper.__isabstractmethod__ is False\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("uses bound-method repr fallback after guest metadata lookup failures",()=>{
+  const state=exceptionFixture();state.globals.set("classmethod",state.registry.methodDecoratorType("classmethod"));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class Missing(AttributeError):\n pass\nclass Item:\n def __getattribute__(self,name):\n  raise Missing(name)\nclass C:\n method=classmethod(Item())\ncorrect=f'{C.method!r}'==\"<bound method ? of <class 'example.C'>>\"\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("retains partial method-wrapper initialization when nonmatching guest errors occur",()=>{
+  for(const kind of ["staticmethod","classmethod"] as const) {
+    const state=exceptionFixture();state.globals.set("Wrapper",state.registry.methodDecoratorType(kind));
+    state.run("class Old:\n def __getattribute__(self,name):\n  return 'old-'+name\nclass New:\n def __getattribute__(self,name):\n  if name=='__module__':\n   return 'new-module'\n  raise ValueError(name)\nwrapper=Wrapper(Old())\nnew=New()\ntry:\n wrapper.__init__(new)\nexcept ValueError as error:\n correct=error.args==('__name__',) and wrapper.__func__ is new and wrapper.__dict__=={'__module__':'new-module','__name__':'old-__name__','__qualname__':'old-__qualname__','__doc__':'old-__doc__'}\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("does not swallow AttributeError from method-wrapper abstractness truth conversion",()=>{
+  for(const kind of ["staticmethod","classmethod"] as const) {
+    const state=exceptionFixture();state.globals.set("Wrapper",state.registry.methodDecoratorType(kind));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+    state.run("failure=AttributeError('truth')\nclass Flag:\n def __bool__(self):\n  raise failure\nclass Item:\n __isabstractmethod__=Flag()\nwrapper=Wrapper(Item())\ntry:\n result=wrapper.__isabstractmethod__\nexcept AttributeError as error:\n correct=error is failure\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("preserves host failures in method-wrapper metadata and abstractness",()=>{
+  for(const kind of ["staticmethod","classmethod"] as const)for(const field of ["__module__","__isabstractmethod__"])for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"AttributeError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.globals.set("Wrapper",state.registry.methodDecoratorType(kind));state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;try{state.run("class Item:\n def __getattribute__(self,name):\n  if name=='"+field+"':\n   fail()\n  return object.__getattribute__(self,name)\ntry:\n wrapper=Wrapper(Item())\n result=wrapper.__isabstractmethod__\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
 it("uses guest KeyError as missing names in prepared class namespaces",()=>{
   const state=exceptionFixture();state.globals.set("classmethod",state.registry.methodDecoratorType("classmethod"));
   state.run("class Namespace:\n def __init__(self):\n  self.data={}\n def __getitem__(self,key):\n  if key=='seed':\n   return 41\n  return self.data[key]\n def __setitem__(self,key,value):\n  self.data[key]=value\nclass Meta(type):\n @classmethod\n def __prepare__(meta,name,bases):\n  return Namespace()\n def __new__(meta,name,bases,namespace):\n  return type.__new__(meta,name,bases,namespace.data)\nclass C(metaclass=Meta):\n field=seed+1\ncorrect=C.field==42\n");

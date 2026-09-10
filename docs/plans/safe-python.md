@@ -9912,6 +9912,23 @@ extension, integration, or validation requirement is missing or unverified.
   uncached one-worker package run. Remaining native protocol
   catch sites, exception metadata/tracebacks/groups, suspension, and public
   interpreter/safe-fs assembly remain unfinished. No push or release requested.
+- Method-wrapper exception integration (2026-09-10): failing regressions drove
+  guest-aware missing metadata during staticmethod/classmethod initialization,
+  missing abstractness detection, and bound-method repr name fallback. Native
+  wrapper initialization now carries the explicit exception policy through its
+  validation/state layers. Partial metadata writes and the new wrapped object
+  survive nonmatching initialization errors; AttributeError from abstractness
+  truth conversion still propagates. Host failures, spoofed error names and
+  execution limits remain uncatchable. All 112 CPython comparisons and 646 focused
+  integration tests pass, along with the prior 98 class-namespace comparisons.
+  The selected workspace build, typecheck, focused lint and all 7,195 tests in
+  503 files pass in the uncached one-worker package run. Remaining
+  native catch sites, exception metadata/tracebacks/groups, suspension and public
+  interpreter/safe-fs assembly remain unfinished. A separate two-case read-only
+  audit confirms that explicit guest exceptions and translated arithmetic faults
+  escaping __set_name__ currently lack CPython's contextual diagnostic note.
+  That note integration is next work, not a passing comparison.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

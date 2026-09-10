@@ -1,6 +1,6 @@
-import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import { RuntimeSlotStorage } from "./runtime-slot-storage.js";
 
@@ -32,7 +32,7 @@ export class RuntimeMethodDecoratorState {
     meter.checkpoint(); this.#type = type;
   }
 
-  initialize(value: RuntimeValue, attribute: (value: RuntimeValue, name: string) => RuntimeValue, meter: ExecutionMeter): void {
+  initialize(value: RuntimeValue, attribute: (value: RuntimeValue, name: string) => RuntimeValue, meter: ExecutionMeter, invocation?:Pick<BuiltinInvocationContext,"isException">): void {
     meter.checkpoint();
     this.#value = value;
     for (const name of ["__module__", "__name__", "__qualname__", "__doc__"]) {
@@ -41,7 +41,7 @@ export class RuntimeMethodDecoratorState {
       try { metadata = attribute(value, name); }
       catch (error) {
         meter.checkpoint();
-        if (error instanceof PythonRuntimeError && error.name === "AttributeError") continue;
+        if (runtimeExceptionMatches(error,"AttributeError",invocation)) continue;
         throw error;
       }
       meter.checkpoint();

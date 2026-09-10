@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { initializeRuntimeMethodDecorator } from "./runtime-method-decorator-initialization.js";
@@ -69,7 +70,7 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
       try { flag = invocation.attribute(instance.value, "__isabstractmethod__"); }
       catch (error) {
         meter.checkpoint();
-        if (error instanceof PythonRuntimeError && error.name === "AttributeError") return values.false;
+        if (runtimeExceptionMatches(error,"AttributeError",invocation)) return values.false;
         throw error;
       }
       meter.checkpoint();
@@ -128,7 +129,7 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
       return initializeRuntimeMethodDecorator(instance, positional, keywords, values, meter, (value, name) => {
         if (invocation?.attribute === undefined) throw Error("method-wrapper initialization requires an attribute policy");
         return invocation.attribute(value, name);
-      });
+      },invocation);
     }
   }));
   owner.value.namespace.items.set(values.string("__get__"), values.wrapperDescriptor({ owner, name: "__get__", accepts,

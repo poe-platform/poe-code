@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { representationObject } from "./representation-protocol.js";
 import { createRuntimeRepresentationContext } from "./runtime-representation.js";
@@ -23,7 +24,7 @@ export function createBoundCallableReprWrapper(kind: NativeBoundCallableKind, ow
           for (const field of ["__qualname__", "__name__"]) {
             meter.checkpoint();
             try { name = invocation.attribute(fn, field); break; }
-            catch (error) { if (!(error instanceof PythonRuntimeError && error.name === "AttributeError")) throw error; }
+            catch (error) { if (!runtimeExceptionMatches(error,"AttributeError",invocation)) throw error; }
           }
         }
         const context = invocation?.formatting ?? createRuntimeRepresentationContext(values, meter, { defaultRepr() { throw Error("method repr requires a representation policy"); } });

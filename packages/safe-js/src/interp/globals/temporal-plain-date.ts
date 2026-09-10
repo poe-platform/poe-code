@@ -14,8 +14,10 @@ import { readTemporalPlainDate } from "./temporal-plain-date-input.js";
 import { readTemporalDuration } from "./temporal-duration-input.js";
 import { createSandboxTemporalDuration, temporalDurationFieldNames } from "../temporal-duration.js";
 import { readTemporalDifferenceOptions } from "./temporal-difference-options.js";
+import { readTemporalPlainTime } from "./temporal-plain-time-input.js";
+import { createSandboxTemporalPlainDateTime } from "../temporal-plain-date-time.js";
 
-export function createTemporalPlainDateConstructor(budget: Budget, durationPrototype: object): SandboxClosure {
+export function createTemporalPlainDateConstructor(budget: Budget, durationPrototype: object, plainDateTimePrototype: object): SandboxClosure {
   const prototype = createIntrinsicObject();
   const constructor: SandboxClosure = createSandboxClosure({
     guest: true, sandbox: true, name: "PlainDate", length: 3,
@@ -72,6 +74,23 @@ export function createTemporalPlainDateConstructor(budget: Budget, durationProto
   });
   Object.defineProperty(prototype, "with", { value: withFields, writable: true, configurable: true });
   methods.push(withFields);
+  const toPlainDateTime = createSandboxClosure({ guest: true, sandbox: true, name: "toPlainDateTime", length: 0,
+    call: async ([input], context) => {
+      const fields = temporalPlainDateFields(context?.thisValue);
+      const release = retainValues(budget, () => [fields, input]);
+      try {
+        const time = input === undefined
+          ? { hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }
+          : await readTemporalPlainTime(input, undefined, budget, context);
+        const result = createSandboxTemporalPlainDateTime({ ...fields, ...time });
+        setSandboxPrototype(result, plainDateTimePrototype, budget);
+        createDataCheckpoint(budget, context)(result, 0, true);
+        return result;
+      } finally { release(); }
+    }
+  });
+  Object.defineProperty(prototype, "toPlainDateTime", { value: toPlainDateTime, writable: true, configurable: true });
+  methods.push(toPlainDateTime);
   const compare = createSandboxClosure({ guest: true, sandbox: true, name: "compare", length: 2,
     call: async ([one, two], context) => {
       let first: TemporalPlainDateFields | undefined;

@@ -410,3 +410,53 @@ exclusions (72e6c8). Inspection (dcbe8a) confirms its two failing fixtures requi
 the missing ZonedDateTime or the calendar helper's other missing classes.
 Since has loaded all 87 fixtures and remains active on the same runner.
 No push or release; broader public integration remains uncommitted.
+
+## PlainDate.toPlainDateTime
+
+Five tests failed against the missing conversion (a521ac). It now combines the
+receiver's private ISO/calendar slots with midnight or the shared validated
+time-input reader, allocates a fresh owned date-time, sets the captured intrinsic
+prototype and checkpoints the result. The method is registered for replay.
+
+Namespace initialization creates the date-time prototype before either date
+constructor factory needs it. The date-time factory initializes that supplied
+prototype rather than allocating a second one. This resolves the bidirectional
+date/date-time conversion dependency without consulting replaceable public
+namespace properties during conversion.
+
+Twenty-one conversion/construction tests passed (799bab), including private
+time/date-time input, calendar preservation, default midnight, constrain behavior,
+date-time endpoint validation, subclass independence and replay after public
+namespace replacement. Broader date-time/snapshot, minimum-Node, lint, maintained
+build and upstream conversion checks are running.
+
+The broader date-time/snapshot selection passed 179 tests in 16 files (60489a),
+and all five new cases passed on Node 18.18.2 (20a873). Scoped lint passed
+(e80bfb). The first maintained build failed (8c9ee4): the supplied prototype
+parameter had been typed object rather than SandboxObject. Correcting that
+annotation restored TypeScript checking (3ed4ca); a full maintained rebuild is
+running. No runtime logic changed in that type-only correction.
+
+All 35 unchanged upstream toPlainDateTime fixtures ran in normal/strict modes
+at revision 419d3e0a2273ba01a3bfcbec423f2801425b8e93 with parsed frontmatter,
+sta/assert and declared helpers: 64 passed, six failed, zero exclusions (60e9c7).
+Source inspection (c48f4d) confirms the two zoned-time fixtures need the missing
+ZonedDateTime constructor; basic.js passes its string/bag/PlainTime/PlainDateTime
+assertions before attempting the absent ZonedDateTime.from. These remain failed
+fixtures and a real interoperability gap, not a complete conformance pass.
+
+The prior difference runner completed since: 170 passed, four failed, zero
+exclusions (41c897). Inspection (65cea6) confirms the same missing ZonedDateTime
+and calendar-bearing-class requirements as until. Combined until/since result:
+338 passed, eight failed, zero exclusions. That runner is terminal.
+
+The corrected maintained build passed all 23 tasks and five fresh ESM import
+checks (e405e0), and the type-corrected date-time module passed lint (881d58).
+The built CLI screenshot (caeda6) was inspected and shows preserved Buddhist
+calendar, nanosecond time, round-trip date and captured intrinsic identity after
+public constructor replacement:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-to-date-time.ajs.png`.
+The namespace and date-time constructor modules still belong to uncommitted
+public integration; the date-method commit alone is not a delivered integration.
+No push or release. All verification processes started for this conversion and
+the earlier differences are now terminal.

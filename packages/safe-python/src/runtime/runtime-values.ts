@@ -126,6 +126,14 @@ export interface CellValue {
   readonly value: CellStorage<RuntimeValue>;
 }
 
+/** Concrete guest instance. Allocation/layout policy supplies its actual type
+ * and optional owned dictionary; neither implies native-subclass payload storage. */
+export interface InstanceValue {
+  readonly kind: "instance";
+  readonly type: TypeValue;
+  readonly dictionary?: DictionaryValue;
+}
+
 export interface TypeValue {
   readonly kind: "type";
   readonly value: RuntimeTypeLayout;
@@ -171,6 +179,7 @@ export type RuntimeValue =
   | BuiltinFunctionValue
   | BoundMethodValue
   | CellValue
+  | InstanceValue
   | TypeValue
   | GetsetDescriptorValue
   | MappingProxyValue
@@ -190,6 +199,13 @@ export type RuntimeValue =
 export class RuntimeValues extends ConstantValues {
   constructor(private readonly runtimeMeter: ExecutionMeter) {
     super(runtimeMeter);
+  }
+
+  /** Adopt explicitly allocated instance storage without running guest methods.
+   * Missing dictionary denotes a dictionary-less layout, not lazy allocation. */
+  instance(type: TypeValue, dictionary?: DictionaryValue): InstanceValue {
+    this.runtimeMeter.checkpoint(1, 48);
+    return Object.freeze({ kind: "instance", type, dictionary });
   }
 
   /** Adopt trusted owned storage (for example, a slice) without a second copy. */

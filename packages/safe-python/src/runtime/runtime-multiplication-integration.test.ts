@@ -1421,3 +1421,35 @@ it("reports types with no allocator as non-instantiable", () => {
   const state = fixture(); state.globals.set("C", state.type("C"));
   expect(() => state.run("result=C()\n")).toThrow("cannot create 'C' instances");
 });
+
+it("uses instance-owned types for compiled construction and numeric methods", () => {
+  const state = fixture(), owner = state.type("C"), allocated = state.v.instance(owner);
+  state.globals.set("allocated", allocated); state.globals.set("C", owner);
+  state.method(owner, "__new__", "def allocate(cls):\n return allocated\n");
+  state.method(owner, "__init__", "def initialize(self):\n visit('init')\n");
+  state.method(owner, "__add__", "def add(self, value):\n return value+2\n");
+  state.run("instance=C()\nresult=instance+5\n");
+  expect(state.globals.get("instance")).toBe(allocated); expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(state.events).toEqual(["init"]);
+});
+
+it("uses instance-owned types for truth, comparison and indexed containment", () => {
+  const state = fixture(), owner = state.type("Container"), instance = state.v.instance(owner);
+  state.globals.set("instance", instance);
+  state.method(owner, "__bool__", "def truth(self):\n return False\n");
+  state.method(owner, "__eq__", "def equal(self, other):\n return True\n");
+  state.method(owner, "__getitem__", "def item(self, index):\n return index\n");
+  state.run("truth=not instance\nequal=instance==7\ncontains=2 in instance\n");
+  expect(state.globals.get("truth")).toBe(state.v.true); expect(state.globals.get("equal")).toBe(state.v.true); expect(state.globals.get("contains")).toBe(state.v.true);
+});
+
+it("uses instance-owned types for unary, power and formatting", () => {
+  const state = fixture(), owner = state.type("C"), instance = state.v.instance(owner);
+  state.globals.set("instance", instance);
+  state.method(owner, "__neg__", "def negative(self):\n return 3\n");
+  state.method(owner, "__pow__", "def power(self, other):\n return other+1\n");
+  state.method(owner, "__repr__", "def representation(self):\n return 'instance-repr'\n");
+  state.run("negative=-instance\npower=instance**3\nrepresentation=repr(instance)\n");
+  expect(state.globals.get("negative")).toEqual(state.v.integer(3)); expect(state.globals.get("power")).toEqual(state.v.integer(4));
+  expect(state.globals.get("representation")).toEqual(state.v.string("instance-repr"));
+});

@@ -7689,6 +7689,19 @@ extension, integration, or validation requirement is missing or unverified.
   default object/type bootstrap (including native type.__call__ and type(x)),
   native layout policies, complete class creation and suspended safe-fs effects
   remain unfinished.
+- Added concrete instance records carrying an actual type and optional owned
+  dictionary. A compiled construction regression failed before the factory
+  existed. Shared actual-type resolution now uses intrinsic instance/metaclass
+  ownership; external policy remains for opaque/native values. Numeric, power,
+  comparison, iteration and frame/type-call adapters use that resolution. Native
+  binary fallback, truth and identity-hash paths explicitly handle instances.
+  Ten tests cover distinct identity, dictionary-less records, shared members and
+  cycles, shadow __class__ isolation, allocation limits, classification cancellation
+  and compiled protocols without ownership maps. All 96 type-call and 120 iteration
+  cases still match CPython after replacing placeholder cells with owned instances.
+  All 5,936 tests in 455 files, selected build, typecheck and scoped lint pass. Instance attribute
+  access/mutation, default object allocation, slots/native payload layouts, complete
+  class bootstrap and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

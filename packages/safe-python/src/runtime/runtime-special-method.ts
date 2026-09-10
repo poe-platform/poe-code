@@ -8,6 +8,15 @@ export interface RuntimeSpecialMethodContext extends RuntimeDescriptorContext {
   typeOf(value: RuntimeValue): TypeValue;
 }
 
+/** Instance/type records own their actual type. The external policy classifies
+ * remaining native or opaque values; guest __class__ never participates. */
+export function runtimeActualType(value: RuntimeValue, context: RuntimeSpecialMethodContext, meter: ExecutionMeter): TypeValue {
+  meter.checkpoint();
+  if (value.kind === "instance") return value.type;
+  if (value.kind === "type") return value.metaclass;
+  const type = context.typeOf(value); meter.checkpoint(); return type;
+}
+
 /** Look up an implicit special method on the receiver's actual type MRO, then
  * bind its descriptor to the receiver. Never inspect instance dictionaries,
  * ordinary attribute overrides or the type's metaclass. The object dispatcher

@@ -6,7 +6,7 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import { readRuntimeIteratorMethod } from "./runtime-iterator-method.js";
 import { runtimeLength } from "./runtime-length.js";
-import type { RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Frame-owned iteration, with live next/getitem lookup and advisory hints only
@@ -51,7 +51,7 @@ export function createRuntimeIterationContext(values: RuntimeValues, meter: Exec
     },
     hasSequenceItem(value) {
       if (value.kind === "iterator" || !usesRuntimeGuestNumericSlots(value)) return false;
-      const type = special.typeOf(value); meter.checkpoint();
+      const type = runtimeActualType(value, special, meter); meter.checkpoint();
       const present = type.value.hasSequenceTable && (invocation.hasSpecial?.(value, "__getitem__") ?? false);
       meter.checkpoint(); return present;
     },

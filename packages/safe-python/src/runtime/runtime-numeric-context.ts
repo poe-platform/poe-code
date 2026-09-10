@@ -1,5 +1,5 @@
 import type { ExecutionMeter } from "./execution-budget.js";
-import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
 import type { MultiplicationContext } from "./runtime-multiplication.js";
 import { runtimeNumericMethods, usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
@@ -19,8 +19,8 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   const names = runtimeNumericMethods.get(operator);
   if (names === undefined) throw Error(`unsupported numeric operator: ${operator}`);
   const { forward: forwardName, reflected: reflectedName } = names;
-  const leftType = leftGuest ? special.typeOf(left) : undefined; meter.checkpoint();
-  const rightType = rightGuest ? special.typeOf(right) : undefined; meter.checkpoint();
+  const leftType = leftGuest ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let relation: "same" | "right-subtype" | "other" = "other";
   if (leftType !== undefined && rightType !== undefined) {
     if (leftType === rightType) relation = "same";
@@ -73,7 +73,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     },
     get integerIndex() { return invocation.integerIndex; },
     typeName(value) {
-      if (usesRuntimeGuestNumericSlots(value)) { const type = special.typeOf(value); meter.checkpoint(); return type.value.name; }
+      if (usesRuntimeGuestNumericSlots(value)) { const type = runtimeActualType(value, special, meter); meter.checkpoint(); return type.value.name; }
       return value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
     }
   };

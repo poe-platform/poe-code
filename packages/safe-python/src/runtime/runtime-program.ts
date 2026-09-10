@@ -34,7 +34,7 @@ import { ClassFrame } from "./class-frame.js";
 import { executeClassBody } from "./class-body.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
 import { executeClassDefinition } from "./class-definition.js";
-import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { callRuntimeType } from "./runtime-type-call.js";
 
@@ -128,17 +128,17 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get formatting() { return getFormatting(); },
       hasSpecial(value, name) {
         if (specialMethods === undefined) return false;
-        const type = specialMethods.typeOf(value); meter.checkpoint();
+        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint();
         return lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter) !== undefined;
       },
       warn: expressionHooks.warn.bind(expressionHooks),
       lookupSpecial(value, name) {
         if (specialMethods === undefined) return undefined;
-        const type = specialMethods.typeOf(value); meter.checkpoint();
+        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint();
         return lookupRuntimeSpecialMethod(value, type, values.string(name), specialMethods, values, meter);
       },
       typeName: specialMethods === undefined ? undefined : value => {
-        const type = specialMethods.typeOf(value); meter.checkpoint(); return type.value.name;
+        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.name;
       },
       setAttribute: statementHooks.setAttribute.bind(statementHooks),
       deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),

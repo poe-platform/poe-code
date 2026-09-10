@@ -2,7 +2,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeComparison, type RuntimeComparisonContext } from "./runtime-comparison.js";
 import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import type { RuntimeRichComparisonContext } from "./runtime-rich-comparison.js";
-import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
@@ -21,8 +21,8 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
   if (!leftGuest && !rightGuest) return undefined;
   const names = methods.get(operator);
   if (names === undefined) throw Error(`unsupported rich comparison operator: ${operator}`);
-  const leftType = leftGuest ? special.typeOf(left) : undefined; meter.checkpoint();
-  const rightType = rightGuest ? special.typeOf(right) : undefined; meter.checkpoint();
+  const leftType = leftGuest ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let rightIsStrictSubtype = false;
   if (leftType !== undefined && rightType !== undefined && leftType !== rightType) {
     for (const ancestor of rightType.value.mro) {
@@ -54,7 +54,7 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
       const truth = invocation.truth === undefined ? runtimeTruth(equal, meter) : invocation.truth(equal);
       meter.checkpoint(); return values.boolean(!truth);
     }
-    if (receiver.kind !== "cell" && receiver.kind !== "type") return runtimeComparison(op, receiver, other, values, meter, 1000, native);
+    if (receiver.kind !== "instance" && receiver.kind !== "cell" && receiver.kind !== "type") return runtimeComparison(op, receiver, other, values, meter, 1000, native);
     return op === "==" && receiver === other ? values.true : values.notImplemented;
   };
   return {
@@ -63,7 +63,7 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
       reflected: () => call(names[1], right, left, rightType)
     },
     typeName(value) {
-      if (usesRuntimeGuestNumericSlots(value)) { const type = special.typeOf(value); meter.checkpoint(); return type.value.name; }
+      if (usesRuntimeGuestNumericSlots(value)) { const type = runtimeActualType(value, special, meter); meter.checkpoint(); return type.value.name; }
       return value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
     }
   };

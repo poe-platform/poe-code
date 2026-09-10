@@ -4,7 +4,7 @@ import { createRuntimeNumericContext } from "./runtime-numeric-context.js";
 import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import type { RuntimePowerContext } from "./runtime-power-operation.js";
 import { runtimePower, runtimePowerSlot } from "./runtime-power.js";
-import type { RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import type { BuiltinInvocationContext, RuntimeValues } from "./runtime-values.js";
 
 /** Frame-owned power protocol shared by ** and pow. Python heap power slots
@@ -22,7 +22,7 @@ export function createRuntimePowerContext(values: RuntimeValues, meter: Executio
       return runtimePowerSlot(modulus, base, exponent, modulus, values, meter);
     },
     typeName(value) {
-      if (usesRuntimeGuestNumericSlots(value)) { const type = special.typeOf(value); meter.checkpoint(); return type.value.name; }
+      if (usesRuntimeGuestNumericSlots(value)) { const type = runtimeActualType(value, special, meter); meter.checkpoint(); return type.value.name; }
       return value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
     }
   };

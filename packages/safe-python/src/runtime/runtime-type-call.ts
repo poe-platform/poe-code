@@ -1,7 +1,7 @@
 import type { ExpressionCall } from "./call-arguments.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { instantiateType } from "./type-instantiation.js";
-import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
+import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { readRuntimeTypeAttribute } from "./runtime-type-attributes.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { PythonRuntimeError } from "./error.js";
@@ -55,7 +55,7 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
         return invoke(allocator, [owner, ...args], named);
       };
     },
-    typeOf(value) { return value.kind === "type" ? value.metaclass : special.typeOf(value); },
+    typeOf(value) { return runtimeActualType(value, special, meter); },
     isSubtype(actual, requested) {
       if (actual.kind !== "type" || requested.kind !== "type") throw Error("subtype check requires actual types");
       for (const ancestor of actual.value.mro) { meter.checkpoint(); if (ancestor === requested.value) return true; }

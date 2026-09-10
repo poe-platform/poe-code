@@ -190,3 +190,56 @@ the earlier in-progress statements above are historical. The ISO failures
 remain unresolved. Next investigate an ISO pattern/data implementation with
 explicit parts and range partitions; neither tested published formatter is
 sufficient on its own.
+
+## Source-version and name-extraction qualification, September 10
+
+FormatJS commit
+[406fca5a8de51906f85e2f956e2cadfeabc3e3eb](https://github.com/formatjs/formatjs/commit/406fca5a8de51906f85e2f956e2cadfeabc3e3eb)
+adds ISO negotiation, but explicitly shares Gregorian patterns with ISO. The
+source assigns `processedData.formats.iso8601 = processedData.formats.gregory`.
+This is source inspection, not execution of the unpublished engine. It does
+not meet this repair's ISO-layout requirement; newer advertised calendar support
+does not reverse the earlier published-package rejection.
+
+A fresh read of CLDR release-48 XML (36d062) finds the ISO calendar node in
+`root.xml`, but not in `en.xml`, `pl.xml`, `ru.xml` or `af.xml`. The root aliases
+month names to Gregorian data while retaining independent patterns, including
+`y MMMM` for year/month and `MMMM d` for month/day. Its standalone abbreviated
+month skeleton uses `LLL`; interval data separately defines `LLL–LLL` and
+`y MMMM–MMMM`. This five-file inspection does not prove that all locales lack
+ISO overrides. Root-only pattern synthesis remains unqualified.
+
+The proposed native Gregorian **field-name lookup**, independently of whole
+pattern substitution, also fails qualification. Read-only native probes on
+Node 26.8.1 / ICU 78.3 used all 662 supported locale directory names from
+installed `cldr-units-full/main`, every month of 2000 (day 15, UTC), and three
+text widths. For standalone context, they compared the ISO month-only part
+with the Gregorian month-only part. For format context, they compared the ISO
+year/month part with the Gregorian month/day part. No guest code or global
+Intl replacement was involved.
+
+| Width and context | Comparisons | Different month values |
+| --- | ---: | ---: |
+| Long standalone | 7,944 | 60 |
+| Long format | 7,944 | 220 |
+| Short standalone | 7,944 | 66 |
+| Short format | 7,944 | 420 |
+| Narrow standalone | 7,944 | 24 |
+| Narrow format | 7,944 | 191 |
+| Total | 47,664 | 981 |
+
+Evidence: a33c26 and the context-grouped follow-up 885d62. Greek January
+standalone is `Ιανουάριος` for ISO but `Ιανουαρίου` for Gregorian, despite both
+resolving to long month width. For Buriat (`bua`), Gregorian month/day resolves
+the requested long month to two digits, whereas ISO year/month supplies
+`нэгэдүгээр һара`. Thus checking the Gregorian resolved width would catch some
+failures, but would not fix grammatical-context mismatches such as Greek.
+These are comparisons with a patched runtime, not universal normative locale
+constants or a conformance pass count.
+
+Do not implement native Gregorian month-only/month-day extraction as a complete
+ISO name-data provider. The next candidate needs explicit CLDR format and
+standalone names with alias/inheritance resolution, as well as pattern matching
+and interval partitioning. No dependency or runtime code changed in this
+qualification. Existing failing regressions remain intact. No screenshots are
+needed for this nonvisual research record; publication remains on hold.

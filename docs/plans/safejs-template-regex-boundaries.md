@@ -71,3 +71,24 @@ quasis/values. The unmodified upstream PlainTime selection completed successfull
 runs with no failures at the pinned revision above. The 18 prior helper-parse
 failures are resolved. This qualifies this selection and the local parser fix,
 not the entire Test262 corpus, a full-package pass or a delivered release.
+
+## Broader construction follow-up
+
+The complete `Temporal/PlainTime/from` directory at the same pinned revision
+contains 51 fixtures. All were executed unmodified with declared helpers in
+normal and strict script modes: 102 runs, 94 passed, eight failed, no metadata
+exclusions (0d3992). Four fixtures failed in both modes:
+
+- `argument-plaindatetime.js`
+- `argument-zoneddatetime-balance-negative-time-units.js`
+- `argument-zoneddatetime-negative-epochnanoseconds.js`
+- `order-of-operations.js`
+
+Follow-up inspection exposed TypeError from each fixture (2af59a). Fresh built
+reflection confirmed PlainDateTime and ZonedDateTime are undefined (cd558e).
+The order-of-operations prefix through property-bag conversion and PlainTime
+cloning passes, stopping immediately before its PlainDateTime conversion. This
+prefix diagnostic is not an additional complete upstream pass. These results
+confirm the existing missing-type work; they do not validate an independent
+PlainTime field-order or negative-time arithmetic defect. Retry all fixtures
+after implementing the missing types and their internal-slot conversions.

@@ -7071,6 +7071,19 @@ extension, integration, or validation requirement is missing or unverified.
   empty inputs, defaults, ties and invalid keys. Build, typecheck and scoped lint
   pass. Other callback/iteration integrations, native type/exception assembly,
   resumable filesystem effects and the complete public interpreter remain open.
+- Sorted now uses invocation capabilities for compiled key calls, frame rich
+  less-than comparisons and reverse truth conversion when explicit policies are
+  absent. Explicit sort policies retain priority; source materialization and
+  option-validation order remain unchanged. Sorted context registration is now
+  optional in the shared builtin namespace.
+- The compiled stable-reverse regression failed before implementation. Two
+  additional tests cover invocation callback order and explicit overrides. All
+  5,329 tests in 444 files pass; 64 compiled CPython cases match results, errors
+  and key-call order across lists/tuples, empty/nonempty inputs, ties, reverse and
+  invalid keys. Build, typecheck and scoped lint pass. Exact sort comparison
+  scheduling, remaining callback/iteration integrations, native type/exception
+  assembly, resumable filesystem effects and the full public interpreter remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

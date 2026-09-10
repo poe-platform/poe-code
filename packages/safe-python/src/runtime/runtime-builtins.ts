@@ -56,7 +56,7 @@ export interface RuntimeBuiltinContexts {
   representation: Parameters<typeof createRepresentationBuiltin>[3];
   reversed?: Parameters<typeof createReversedBuiltin>[2];
   round?: Parameters<typeof createRoundBuiltin>[2];
-  sorted: Parameters<typeof createSortedBuiltin>[2];
+  sorted?: Parameters<typeof createSortedBuiltin>[2];
   sum?: Parameters<typeof createSumBuiltin>[2];
   zip?: Parameters<typeof createZipBuiltin>[2];
 }

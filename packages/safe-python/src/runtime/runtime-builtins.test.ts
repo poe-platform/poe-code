@@ -128,6 +128,17 @@ it.each(["min", "max"])("lets %s invoke compiled key functions", name => {
   }, meter);
   expect(globals.get("result")).toEqual(v.integer(name === "min" ? 8 : 1));
 });
+it("lets sorted invoke compiled keys with stable reverse ordering", () => {
+  const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
+  delete context.sorted;
+  const program = compileProgram<RuntimeValue>(analyzeModule("result=sorted([1,4,3,2],key=lambda value:value%2,reverse=True)\n"), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {} }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  const result = globals.get("result"); if (result?.kind !== "list") throw Error("expected list");
+  expect(result.items.snapshot()).toEqual([1,3,4,2].map(value => v.integer(value)));
+});
 it.each(["min", "max"])("routes %s ordering through frame rich comparison", name => {
   const { meter, v, context } = fixture(), first = v.cell({}), second = v.cell({}), answer = v.cell({}), globals = new Map<string, RuntimeValue>([["first", first], ["second", second]]), unused = (): never => { throw Error("unexpected guest callback"); }; let comparisons = 0;
   const program = compileProgram<RuntimeValue>(analyzeModule(`result=${name}([first,second])\n`), { stripDocstring: false }, v, meter);

@@ -12,7 +12,7 @@ export interface SortedContext {
   /** Complete execution-owned list materialization protocol, including native
    * inputs, guest iteration and length hints. Omission uses native inputs only. */
   extension?: ListExtensionContext<RuntimeValue>;
-  callKey(key: RuntimeValue, value: RuntimeValue): RuntimeValue;
+  callKey?(key: RuntimeValue, value: RuntimeValue): RuntimeValue;
   less?(left: RuntimeValue, right: RuntimeValue): boolean;
   truth?(value: RuntimeValue): boolean;
 }
@@ -20,9 +20,9 @@ export interface SortedContext {
 /** Materialize before keyword binding or reverse conversion, then use the same
  * stable-sort storage operation as list.sort. Exact comparison schedules and
  * advisory-hint preallocation retain the underlying kernels' documented gaps. */
-export function createSortedBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: SortedContext): BuiltinFunctionValue {
+export function createSortedBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: SortedContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name: "sorted", invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name: "sorted", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `sorted expected 1 argument, got ${positional.length}`);
     const source = positional[0], result = new ListStorage<RuntimeValue>([], meter);
@@ -41,9 +41,16 @@ export function createSortedBuiltin(values: RuntimeValues, meter: ExecutionMeter
     }
     result.sort(bindSortOptions([], options, {
       isNone: value => value.kind === "none",
-      truth: value => context.truth === undefined ? runtimeTruth(value, meter) : context.truth(value),
-      callKey: context.callKey.bind(context),
-      less: (a, b) => context.less === undefined ? runtimeComparison("<", a, b, values, meter).value : context.less(a, b)
+      truth: value => context.truth !== undefined ? context.truth(value)
+        : invocation?.truth !== undefined ? invocation.truth(value) : runtimeTruth(value, meter),
+      callKey(key, value) {
+        if (context.callKey !== undefined) return context.callKey(key, value);
+        if (invocation !== undefined) { meter.checkpoint(0, 8); return invocation.call(key, [value]); }
+        throw new Error("sorted requires an execution call capability");
+      },
+      less: (a, b) => context.less !== undefined ? context.less(a, b)
+        : invocation?.compareTruth !== undefined ? invocation.compareTruth("<", a, b)
+        : runtimeComparison("<", a, b, values, meter).value
     }, meter));
     meter.checkpoint();
     return values.list(result);

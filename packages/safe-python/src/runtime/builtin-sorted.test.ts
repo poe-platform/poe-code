@@ -22,6 +22,25 @@ it("copies source slots and preserves member identity in stable reverse ordering
   expect(result.items.get(0n)).toBe(first); expect(result.items.get(1n)).toBe(second);
   expect(source.items.snapshot()).toEqual([first, low, second]);
 });
+it("uses invocation key, comparison and reverse-truth capabilities", () => {
+  const { v, meter, keywords } = fixture(), key = v.cell({}), reverse = v.cell({}), trace: string[] = [];
+  keywords.items.set(v.string("key"), key); keywords.items.set(v.string("reverse"), reverse);
+  const result = createSortedBuiltin(v, meter).value.invoke([v.list([v.integer(2), v.integer(1)])], keywords, meter, {
+    call(fn, args) { expect(fn).toBe(key); trace.push("key"); return args[0]; },
+    compareTruth(operator, left, right) { expect(operator).toBe("<"); if (left.kind !== "int" || right.kind !== "int") throw Error("expected integers"); trace.push("less"); return left.value < right.value; },
+    truth(value) { expect(value).toBe(reverse); trace.push("reverse"); return false; }, isStopIteration: () => false
+  });
+  if (result.kind !== "list") throw Error("expected list"); expect(result.items.snapshot()).toEqual([v.integer(1), v.integer(2)]);
+  expect(trace.slice(0,3)).toEqual(["reverse", "key", "key"]); expect(trace).toContain("less");
+});
+it("retains explicit sort policies over invocation defaults", () => {
+  const { v, meter, keywords, context, builtin } = fixture(), first = v.integer(2), second = v.integer(1);
+  context.callKey = (_key, value) => value; context.less = () => false; context.truth = () => false;
+  keywords.items.set(v.string("key"), v.true); keywords.items.set(v.string("reverse"), v.true);
+  const unused = (): never => { throw Error("explicit policy must win"); };
+  const result = builtin.value.invoke([v.list([first,second])], keywords, meter, { call: unused, truth: unused, compareTruth: unused, isStopIteration: unused });
+  if (result.kind !== "list") throw Error("expected list"); expect(result.items.snapshot()).toEqual([first, second]);
+});
 it("validates positional arity first but consumes input before keyword validation", () => {
   const { v, call, keywords } = fixture(); let pulls = 0;
   keywords.items.set(v.string("bad"), v.none);

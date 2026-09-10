@@ -137,6 +137,19 @@ do focused types. The final owner freeze is
 Root owns this additional plan path. Independent final review and the complete
 committed-candidate gates remain required before delivery.
 
+The first committed candidate is `baac1a1fc5d8c52b82824582f5b4746a573d5904`.
+The full test run exposes four missed independent integration inventories:
+root bundle entries, root package exports, playground command catalog/count,
+and playground help count. The full test and lint runs are interrupted before
+editing; they are incomplete, not passing gates. A focused replay records six
+failures and 90 passes in `/tmp/issue684-root-inventory-red-v1.log`.
+
+Update those four exact witnesses for the intentional new family and 98-name
+inventory, preserving all prior names and assertions. No product behavior or
+owned-source tests change. Commit this correction separately, freeze the new
+54-path candidate and restart both full gates. Future utility integration must
+include these root/playground surfaces as well as the command-package catalogs.
+
 ## Validation and delivery
 
 Run focused command/public/discovery/adjacent-byte and browser-source checks,

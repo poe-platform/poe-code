@@ -714,3 +714,83 @@ it("rejects cancelled compiled power before result write-back", () => {
   expect(() => state.run("result=guest ** 2\n")).toThrow("execution cancelled");
   expect(state.globals.has("result")).toBe(false);
 });
+
+it.each([["+", "__pos__"], ["-", "__neg__"], ["~", "__invert__"]])("dispatches inherited unary %s with unrestricted results", (operator, name) => {
+  for (const result of ["False", "None", "NotImplemented"]) {
+    const state = fixture(), base = state.type("Base"), owner = state.type("Derived", base);
+    state.method(base, name, `def unary(self):\n visit('unary')\n return ${result}\n`);
+    state.guest("guest", owner); state.run(`def calculate():\n return ${operator}guest\nresult=calculate()\n`);
+    expect(state.globals.get("result")).toBe(result === "False" ? state.v.false : result === "None" ? state.v.none : state.v.notImplemented);
+    expect(state.events).toEqual(["unary"]);
+  }
+});
+
+it.each([["+", "__pos__"], ["-", "__neg__"], ["~", "__invert__"]])("rejects disabled unary %s methods as noncallable", (operator, name) => {
+  const state = fixture(), owner = state.type("Guest");
+  owner.value.namespace.items.set(state.v.string(name), state.v.none); state.guest("guest", owner);
+  expect(() => state.run(`result=${operator}guest\n`)).toThrow("'NoneType' object is not callable");
+});
+
+it.each(["+", "-", "~"])("reports actual guest types for missing unary %s without index coercion", operator => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__index__", "def index(self):\n visit('index')\n return 2\n");
+  state.guest("guest", owner);
+  expect(() => state.run(`result=${operator}guest\n`)).toThrow(`bad operand type for unary ${operator}: 'Guest'`);
+  expect(state.events).toEqual([]);
+});
+
+it("binds unary descriptors to the evaluated operand and actual derived type", () => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base), v = state.v;
+  const method = state.method(base, "__neg__", "def negative(self):\n visit('call')\n return self\n");
+  const descriptor = v.cell({}), guest = state.guest("guest", derived);
+  base.value.namespace.items.set(v.string("__neg__"), descriptor);
+  state.globals.set("operand", v.builtinFunction({ name: "operand", invoke() { state.events.push("operand"); return guest; } }));
+  const special = state.hooks.specialMethods!;
+  state.hooks.specialMethods = frame => ({ ...special(frame), slots(value) {
+    return value !== descriptor ? undefined : { get(instance, owner) {
+      expect(instance).toBe(guest); expect(owner).toBe(derived); state.events.push("bind");
+      return v.boundMethod(method, instance!);
+    } };
+  } });
+  state.hooks.expressions = () => ({ warn() {}, attribute(): never { throw Error("ordinary attribute lookup must not run"); } });
+  state.run("result=-operand()\n");
+  expect(state.globals.get("result")).toBe(guest); expect(state.events).toEqual(["operand", "bind", "call"]);
+});
+
+it("preserves explicit unary protocol ownership ahead of frame lookup", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner), v = state.v, method = v.cell({});
+  state.hooks.specialMethods = () => ({ typeOf(): never { throw Error("explicit unary policy must win"); }, slots: () => undefined });
+  const unary = {
+    lookupSpecial(value: RuntimeValue, name: string) { expect(this).toBe(unary); expect(value).toBe(guest); expect(name).toBe("__pos__"); return method; },
+    call(value: RuntimeValue, args: readonly RuntimeValue[]) { expect(this).toBe(unary); expect(value).toBe(method); expect(args).toEqual([]); return v.none; }
+  };
+  state.hooks.expressions = () => ({ warn() {}, unary });
+  state.run("result=+guest\n"); expect(state.globals.get("result")).toBe(v.none);
+});
+
+it("keeps logical not on the truth protocol instead of numeric unary lookup", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.method(owner, "__bool__", "def boolean(self):\n visit('bool')\n return True\n");
+  state.guest("guest", owner);
+  state.hooks.expressions = () => ({ warn() {}, unary: {
+    lookupSpecial(): never { throw Error("not is not numeric"); }, call: () => v.none
+  } });
+  state.run("result=not guest\n"); expect(state.globals.get("result")).toBe(v.false); expect(state.events).toEqual(["bool"]);
+});
+
+it("keeps native unary values and errors off the guest type policy", () => {
+  const state = fixture(), v = state.v, integer = v.integer(7);
+  state.globals.set("native", integer); state.run("positive=+native\nnegative=-native\ninverted=~native\n");
+  expect(state.globals.get("positive")).toBe(integer);
+  expect(state.globals.get("negative")).toEqual(v.integer(-7)); expect(state.globals.get("inverted")).toEqual(v.integer(-8));
+  expect(() => state.run("result=-[]\n")).toThrow("bad operand type for unary -: 'list'");
+});
+
+it("rejects cancelled compiled unary methods before assigning results", () => {
+  const controller = new AbortController(), state = fixture(controller.signal), owner = state.type("Guest");
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { controller.abort(); return state.v.none; } }));
+  state.method(owner, "__invert__", "def invert(self):\n stop()\n return NotImplemented\n");
+  state.guest("guest", owner);
+  expect(() => state.run("result=~guest\n")).toThrow("execution cancelled");
+  expect(state.globals.has("result")).toBe(false);
+});

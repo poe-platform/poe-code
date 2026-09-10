@@ -57,6 +57,26 @@ describe("runtime unary operations", () => {
     expect(() => runtimeUnary("invalid", v.list([]), context, meter)).toThrow("unsupported runtime unary operator: invalid");
     expect(() => runtimeUnary("-", v.list([]), context, new ExecutionBudget({ maxSteps: 0, maxAllocatedBytes: 0 }))).toThrow(ExecutionLimitError);
   });
+  it("observes cancellation immediately after special lookup", () => {
+    const controller = new AbortController(), meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000, signal: controller.signal });
+    const v = new RuntimeValues(meter), guest = v.cell({}), method = v.cell({});
+    expect(() => runtimeUnary("+", guest, { values: v, warn() {} }, meter, {
+      lookupSpecial() { controller.abort(); return method; }, call(): never { throw Error("must not call after cancellation"); }
+    })).toThrow("execution cancelled");
+  });
+  it("observes cancellation after a unary call even for NotImplemented", () => {
+    const controller = new AbortController(), meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000, signal: controller.signal });
+    const v = new RuntimeValues(meter), guest = v.cell({});
+    expect(() => runtimeUnary("-", guest, { values: v, warn() {} }, meter, {
+      lookupSpecial: () => guest, call() { controller.abort(); return v.notImplemented; }
+    })).toThrow("execution cancelled");
+  });
+  it("bounds guest unary type diagnostics by UTF-8 bytes", () => {
+    const { meter, v, context } = fixture();
+    expect(() => runtimeUnary("~", v.cell({}), context, meter, {
+      typeName: () => "é".repeat(150), call: () => v.none
+    })).toThrow(`bad operand type for unary ~: '${"é".repeat(100)}'`);
+  });
   it("connects parsed not, negative indices and negative slice steps", () => {
     const { meter, v, context: unary } = fixture();
     const context = {

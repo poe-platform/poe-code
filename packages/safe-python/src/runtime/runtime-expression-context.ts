@@ -12,7 +12,7 @@ import { runtimeIndex } from "./runtime-index.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
 import { runtimeTruth } from "./runtime-truth.js";
-import { runtimeUnary } from "./runtime-unary.js";
+import { runtimeUnary, type RuntimeUnaryProtocol } from "./runtime-unary.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
 import type { KeyOperations } from "./ordered-key-map.js";
@@ -47,6 +47,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     readonly translation?: RuntimeStringTranslationContext;
     readonly buffers?: RuntimeBufferContext;
     readonly power?: RuntimePowerContext;
+    /** Type-level numeric unary methods; logical not remains truth-owned. */
+    readonly unary?: RuntimeUnaryProtocol;
     readonly iteration?: IterationContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
@@ -67,7 +69,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
 /** Assemble concrete exact-value operations with scope/object hooks. Setup runs
  * no guest code. The factory and hooks belong to the same metered execution.
  * Addition includes native fallback/diagnostics and optional guest negotiation.
- * Other declined binary families still fail as explicit implementation gaps.
+ * Numeric operators use explicit protocols when supplied and native kernels otherwise.
  */
 export function createRuntimeExpressionContext(values: RuntimeValues, bindings: RuntimeExpressionBindings, meter: ExecutionMeter): ExpressionContext<RuntimeValue> {
   meter.checkpoint(1, 960);
@@ -105,7 +107,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     beginDictionary: "beginDictionary" in bindings
       ? bindings.beginDictionary.bind(bindings)
       : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),
-    unary: (operator, value) => operator === "not" ? values.boolean(!context.truth(value)) : runtimeUnary(operator, value, unary, meter),
+    unary: (operator, value) => operator === "not" ? values.boolean(!context.truth(value)) : runtimeUnary(operator, value, unary, meter, bindings.unary),
     binary(operator, left, right, augmented = false) {
       if (operator === "**") return runtimePowerOperation(left, right, values.none, values, meter, bindings.power, augmented);
       if (operator === "+") {

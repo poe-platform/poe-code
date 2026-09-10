@@ -7537,6 +7537,17 @@ extension, integration, or validation requirement is missing or unverified.
   remain unchanged. All 5,728 tests in 450 files pass, as do the selected workspace
   build, typecheck and scoped lint. Unary/divmod frame assembly, native-subclass storage,
   metaclass overrides and suspended safe-fs effects remain unfinished.
+- Integrated frame-owned __pos__, __neg__ and __invert__ lookup with the shared
+  unary runtime. Exact native values keep scalar kernels and warning policies;
+  logical not remains truth-owned. Guest unary methods accept every return value,
+  including NotImplemented, and missing methods never trigger index coercion.
+  Nine regressions failed first. Seventeen added tests cover nested inheritance,
+  disabled/missing methods, descriptor binding after operand evaluation, explicit
+  policy receivers, native identity/errors, bounded UTF-8 diagnostics and
+  cancellation after lookup/call. All 60 compiled guest and 144 native unary
+  comparisons match CPython. All 5,745 tests in 450 files, selected workspace build,
+  typecheck and scoped lint pass. Divmod frame assembly, native-subclass storage,
+  metaclass overrides and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -7,6 +7,18 @@ does not describe the published package or only committed sources.
 
 ## Latest verification update
 
+A fresh full package gate after PlainDate/Intl integration is running; see
+[the source fingerprint and live-run record](safejs-post-plain-date-full-gate.md).
+Its 100 filesystem type contracts passed; no final unit result is claimed yet.
+The source is held unchanged during that gate.
+
+A source-runtime reflection check against Node 26.4.0 (153cde) now finds only
+three missing PlainDate conversion names, the zoned conversions on Instant and
+PlainDateTime, and the three missing constructors PlainYearMonth, PlainMonthDay
+and ZonedDateTime. There were no mismatches in checked existing own string-keyed
+descriptor attributes or method/getter names and lengths. This audit excludes
+symbol keys, caller/arguments, algorithm behavior and Now; see the linked record.
+
 The post-PlainDateTime full package gate completed with 26,614 passed, two failed
 and 41 skipped tests (13effb), plus 100 passing filesystem type contracts.
 Both failures concern native Promise property imports. The source fingerprint

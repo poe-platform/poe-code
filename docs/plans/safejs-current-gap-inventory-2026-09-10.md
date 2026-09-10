@@ -29,6 +29,12 @@ result until a new full run completes.
 
 ## Remaining verified gaps and verification work
 
+The subsequently reproduced `sort`/`toSorted` comparator-order defect is fixed
+locally in `d8e21fdfb`: 614 focused array tests and 21 pinned Test262 `toSorted`
+cases pass. See [the regression record](safejs-array-sort-validation-order.md).
+Additional bounded [array, grouping and Set probes](safejs-test262-copy-and-group-behavior.md)
+pass unchanged; neither result supersedes the full-package failure count.
+
 | Area | Evidence and remaining work |
 | --- | --- |
 | Full-suite reliability | Buffer compatibility and camera cases timed out in the full gate. Unchanged focused runs pass. Buffer cold imports consumed 2.43 seconds in one diagnostic; neither timeout is proved fixed. |

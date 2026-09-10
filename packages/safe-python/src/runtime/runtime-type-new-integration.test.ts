@@ -37,6 +37,7 @@ function fixture(identity?: IdentityContext) {
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "list") return registry.listType();
       if (value.kind === "tuple") return registry.tupleType();
+      if (value.kind === "dict") return registry.dictionaryType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -50,6 +51,36 @@ function fixture(identity?: IdentityContext) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("publishes canonical dictionary read methods with bound receiver metadata", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nList=type([])\nd={'a':1,'b':2}\nmethod=d.get\nbound=method.__self__ is d\nname=method.__name__\nowner=Dict.get.__objclass__ is Dict\nvalue=Dict.get(d,'a')\ndefault=Dict.get(d,'missing',3)\ncopy=Dict.copy(d)\nfresh=copy is not d\nkeys=List(Dict.keys(d))\nvalues=List(Dict.values(d))\nitems=List(Dict.items(d))\nreverse=List(Dict.__reversed__(d))\n");
+  for (const name of ["bound", "owner", "fresh"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(state.globals.get("name")).toEqual(state.v.string("get"));
+  expect(state.globals.get("value")).toEqual(state.v.integer(1)); expect(state.globals.get("default")).toEqual(state.v.integer(3));
+  state.run("correct=keys==['a','b'] and values==[1,2] and items==[('a',1),('b',2)] and reverse==['b','a'] and copy==d\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("validates canonical dictionary read method receivers and arguments", () => {
+  const state = fixture(); state.run("Dict=type({})\n");
+  expect(() => state.run("Dict.get([],1)\n")).toThrow("descriptor 'get' for 'dict' objects doesn't apply to a 'list' object");
+  expect(() => state.run("Dict.get({})\n")).toThrow("get expected at least 1 argument, got 0");
+  expect(() => state.run("Dict.keys({},1)\n")).toThrow("dict.keys() takes no arguments (1 given)");
+});
+
+it("retains active guest key policies through explicit dictionary get", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Key:\n def __hash__(self):\n  visit('hash')\n  return 7\n def __eq__(self,other):\n  visit('equal')\n  return True\nkey=Key()\nd={key:42}\nresult=Dict.get(d,Key())\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(42));
+  expect(state.events).toEqual(["hash", "hash", "equal"]);
+});
+
+it.each(["keys", "values", "items"])("retains live dictionary %s views through canonical descriptors", name => {
+  const state = fixture();
+  state.run(`Dict=type({})\nList=type([])\nd={'a':1}\nview=Dict.${name}(d)\nd['b']=2\nresult=List(view)\ncorrect=result==${name === "keys" ? "['a','b']" : name === "values" ? "[1,2]" : "[('a',1),('b',2)]"}\n`);
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
 
 it("retains native list in-place repetition after a forward numeric override declines", () => {
   const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);

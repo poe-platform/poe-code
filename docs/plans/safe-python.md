@@ -8974,6 +8974,19 @@ extension, integration, or validation requirement is missing or unverified.
   Workspace build, typecheck and focused lint pass; all 6,845 unit tests in 493
   files pass with two workers. All 2,601 differential cases above pass. No push
   or release was requested.
+- Dictionary read-method canonicalization (2026-09-10): reproduced missing
+  type-level dict.get and missing bound-method __self__ with failing integration
+  tests. Added a canonical dictionary registry identity and six native read
+  descriptors: get, copy, keys, values, items and __reversed__. Instance binding
+  retains the original dictionary, descriptor ownership and native documentation;
+  calls reuse existing storage operations and active guest key policies. Six
+  added tests cover metadata, argument validation, guest hash/equality and live
+  views. All 330 explicit/bound method and invalid-receiver cases match CPython.
+  Workspace build, typecheck, focused lint and all 6,851 unit tests in 493 files
+  pass with two workers. Dictionary protocol slots, construction, mutation-method
+  descriptors and owned subclass storage remain unfinished. Comprehensions are
+  also still unsupported; these read-method checks use the native list constructor
+  to inspect views and iterators. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -34,6 +34,7 @@ import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
 import { installRuntimeSetOperatorSlots } from "./runtime-set-operator-slots.js";
 import { installRuntimeTupleSlots } from "./runtime-tuple-slots.js";
+import { installRuntimeDictionaryMethodDescriptors } from "./runtime-dictionary-method-descriptors.js";
 import { installRuntimeTupleArithmeticSlots } from "./runtime-tuple-arithmetic-slots.js";
 import { createTupleNewBuiltin } from "./builtin-tuple-new.js";
 import { createSetNewBuiltin } from "./builtin-set-new.js";
@@ -66,6 +67,7 @@ export class RuntimeTypeRegistry {
   readonly #boundCallables = new Map<NativeBoundCallableKind, TypeValue>();
   #listType: TypeValue | undefined;
   #tupleType: TypeValue | undefined;
+  #dictionaryType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -227,6 +229,19 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods("tuple", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#tupleType = type;
+    return type;
+  }
+
+  /** Canonical dictionary identity and read-method catalog. */
+  dictionaryType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#dictionaryType !== undefined) return this.#dictionaryType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("dict", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeDictionaryMethodDescriptors(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#dictionaryType = type;
     return type;
   }
 

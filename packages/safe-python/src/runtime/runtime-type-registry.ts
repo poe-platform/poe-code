@@ -31,6 +31,7 @@ import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from ".
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
+import { createSetNewBuiltin } from "./builtin-set-new.js";
 import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
 import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
 import { createListInitWrapper } from "./builtin-list-init.js";
@@ -189,8 +190,8 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
-  /** Canonical exact set layouts. Allocation, mutation-method publication and
-   * subclass native storage are separate from these native protocol slots. */
+  /** Canonical exact set layouts. Mutation-method publication and subclass
+   * native storage remain separate from the installed native protocol slots. */
   setType(kind: "set" | "frozenset"): TypeValue {
     this.meter.checkpoint();
     const existing = this.#sets.get(kind);
@@ -199,6 +200,7 @@ export class RuntimeTypeRegistry {
     const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: true });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeSetSlots(kind, type, this.values, this.meter);
+    namespace.items.set(this.values.string("__new__"), createSetNewBuiltin(kind, type, this.values, this.keys, this.meter, requested => this.#entries.get(requested.value)?.type === requested));
     installRuntimeComparisonMethods(kind, type, this.values, this.meter);
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#sets.set(kind, type);

@@ -8836,6 +8836,20 @@ extension, integration, or validation requirement is missing or unverified.
   allocation, subclass storage and the remaining full-interpreter scope stay open.
   Workspace build, typecheck and focused lint pass; all 6,773 unit tests in 493
   files pass with two workers. All 530 differential cases above pass.
+- Published exact set/frozenset allocation through normal native type calls.
+  Six RED cases reproduced unsafe object-allocation fallback and incorrect new
+  validation. Set new creates independent empty storage without touching init
+  arguments; frozen new consumes through the existing frozen construction kernel
+  and preserves exact frozen source identity. Ownership/subtype checks precede
+  storage construction. Native set-subclass storage is explicitly still absent,
+  rather than allocating incorrect generic instances. Six added tests cover
+  ordinary/direct construction, identity, guest iteration and type errors.
+  All 60 allocation, 52 initialization, 388 canonical slot and 90 representation
+  differential cases match CPython. Subclass allocation, mutation-method
+  publication, full catalogs and public interpreter/safe-fs integration remain
+  unfinished.
+  Workspace build, typecheck and focused lint pass; all 6,779 unit tests in 493
+  files pass with two workers. All 590 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

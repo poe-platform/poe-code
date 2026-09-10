@@ -50,6 +50,35 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("allocates exact sets through normal native type calls", () => {
+  const state = fixture(); state.run("Set=type({1})\nitems=Set([2,3])\nresult=f'{items!r}'\nempty=Set()\nother=Set()\nfresh=empty is not other\ncorrect=type(items) is Set\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("{2, 3}")); expect(state.globals.get("fresh")).toBe(state.v.true); expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("set allocation ignores initialization arguments without consuming them", () => {
+  const state = fixture(); state.run("class Source:\n def __iter__(self):\n  visit('iterate')\n  return [1].__iter__()\nSet=type({1})\nitems=Set.__new__(Set,Source(),2,x=3)\nresult=f'{items!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("set()")); expect(state.events).toEqual([]);
+});
+
+it("constructs exact frozen sets during new and preserves exact input identity", () => {
+  const state = fixture(); state.globals.set("Frozen", state.registry.setType("frozenset"));
+  state.run("items=Frozen([1])\nresult=f'{items!r}'\nsame=Frozen(items) is items\ndirect=Frozen.__new__(Frozen,items) is items\nempty=f'{Frozen()!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("frozenset({1})")); expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("direct")).toBe(state.v.true); expect(state.globals.get("empty")).toEqual(state.v.string("frozenset()"));
+});
+
+it("frozen set allocation consumes guest sources exactly once", () => {
+  const state = fixture(); state.globals.set("Frozen", state.registry.setType("frozenset"));
+  state.run("class Source:\n def __iter__(self):\n  visit('iterate')\n  return [1].__iter__()\nitems=Frozen(Source())\nresult=f'{items!r}'\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("frozenset({1})")); expect(state.events).toEqual(["iterate"]);
+});
+
+it.each(["set", "frozenset"] as const)("validates %s native allocation type arguments", kind => {
+  const state = fixture(); state.globals.set("SetType", state.registry.setType(kind));
+  expect(() => state.run("SetType.__new__()\n")).toThrow(`${kind}.__new__(): not enough arguments`);
+  expect(() => state.run("SetType.__new__(1)\n")).toThrow(`${kind}.__new__(X): X is not a type object (int)`);
+  expect(() => state.run("SetType.__new__(type([]))\n")).toThrow(`list is not a subtype of ${kind}`);
+});
+
 it("initializes existing sets through their canonical native slot", () => {
   const state = fixture(); state.run("items={1}\nresult=type(items).__init__(items,[2,3])\ncontents=f'{items!r}'\nitems.__init__(items)\nempty=f'{items!r}'\nitems.add(4)\nitems.__init__()\ncleared=f'{items!r}'\n");
   expect(state.globals.get("result")).toBe(state.v.none); expect(state.globals.get("contents")).toEqual(state.v.string("{2, 3}"));

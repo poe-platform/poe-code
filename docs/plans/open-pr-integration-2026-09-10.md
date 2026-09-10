@@ -29,4 +29,4 @@ Each original logical code change retains its own commit. Review historical fail
 
 ## Delivery
 
-PR 716 was closed as superseded by existing main fixes. Other PRs remain open until reviewed changes are verified on remote main. Final artifact checks, push, PR dispositions and both release publications remain pending.
+PR 716 was closed as superseded by existing main fixes. Other PRs remain open until reviewed changes are verified on remote main. Final normal build, all 22 installed-consumer stages (scoped Node/Bun/types/browser, legacy, standalone FS and root Node/Bun), and final full guarded lint passed. Push, remaining PR dispositions and both release publications remain pending.

@@ -910,6 +910,9 @@ owner with error reporting. The snapshot and selected weak-reference checks pass
 
 ## Meaningful limitations
 
+Instant string formatting accepts an owned ZonedDateTime as its `timeZone`
+option and reads its private zone without invoking public accessors.
+
 Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
 `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values
 with focused snapshot, replay and host-copy coverage. PlainTime currently has

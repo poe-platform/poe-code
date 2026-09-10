@@ -1223,6 +1223,8 @@ function copyToSandbox(
   assertSandboxDataDepth(depth);
   if (state.structuredClone && (isSandboxPromise(value) || nodeTypes.isPromise(value)))
     throw new DOMException("Promises cannot be structured cloned.", "DataCloneError");
+  if (state.structuredClone && typeof value === "symbol")
+    throw new DOMException("Symbols cannot be structured cloned.", "DataCloneError");
   if (isSandboxPrimitive(value)) {
     return value;
   }

@@ -9493,6 +9493,19 @@ extension, integration, or validation requirement is missing or unverified.
   comparison identifies __getformat__ and from_number as still missing float
   class methods. Remaining scalar consumers, full interpreter and safe-fs
   execution are unfinished. No push or release was requested.
+- Float numeric-only construction (2026-09-10): a failing integration test
+  drove from_number class-method publication. Extracted shared numeric
+  conversion from float construction without text/buffer fallback. Unlike
+  float(), from_number reads float-subclass storage without invoking __float__;
+  other numeric objects retain __float__/__index__ dispatch. Exact float identity
+  and bound subclass construction are preserved. A further failing regression
+  corrected rejected argument type names to CPython's 50-byte diagnostic limit.
+  All 143 CPython comparisons match, including long ASCII/Unicode names. The
+  first full run retained the pre-correction diagnostic failure and was not
+  counted as a pass; a fresh final-code run passes all 7,034 tests in 498 files.
+  Final workspace build, typecheck and focused lint pass. Float __getformat__,
+  remaining scalar consumers, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

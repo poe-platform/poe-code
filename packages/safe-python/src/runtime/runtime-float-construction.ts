@@ -28,8 +28,27 @@ export function constructRuntimeFloat(positional: readonly RuntimeValue[], keywo
   if (positional.length > 1) throw new PythonRuntimeError("TypeError", `float expected at most 1 argument, got ${positional.length}`);
   const source = positional[0];
   if (source === undefined) return values.float(0);
+  const numeric = convertRuntimeFloatNumber(source,values,meter,context.invocation);
+  if(numeric!==undefined)return numeric;
+  const input = source.kind === "str" || source.kind === "bytes" ? source.value : context.byteArray?.(source); meter.checkpoint();
+  if (input !== undefined) return values.float(parseFloatText(input,meter));
+  let lease: RuntimeBufferLease | undefined;
+  try { lease = context.buffers?.acquireSimple(source); }
+  catch (error) { if (error instanceof ExecutionLimitError || (!(error instanceof PythonRuntimeError) && context.isPythonException?.(error) !== true)) throw error; }
+  if (lease !== undefined) {
+    try { meter.checkpoint();return values.float(parseFloatText(lease.copy(),meter)); }
+    finally { lease.release(); }
+  }
+  meter.checkpoint();
+  const type=diagnosticTypeName(context.invocation?.typeName?.(source)??(source.kind==="none"?"NoneType":source.kind==="not-implemented"?"NotImplementedType":source.kind),meter);
+  throw new PythonRuntimeError("TypeError", `float() argument must be a string or a real number, not '${type}'`);
+}
+
+/** Numeric conversion only. Undefined means no numeric protocol was present,
+ * not a failed conversion; guest conversion errors propagate unchanged. */
+export function convertRuntimeFloatNumber(source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, invocation?: BuiltinInvocationContext): Extract<RuntimeValue,{kind:"float"}>|undefined {
+  meter.checkpoint();
   if (source.kind === "float") return source;
-  const invocation = context.invocation;
   const typeName = (value: RuntimeValue, limit?: number): string => diagnosticTypeName(invocation?.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind), meter, limit);
   const method = invocation?.lookupSpecial?.(source,"__float__"); meter.checkpoint();
   if (method !== undefined) {
@@ -50,15 +69,5 @@ export function constructRuntimeFloat(positional: readonly RuntimeValue[], keywo
     const result = validateIndexResult(indexMethod(),index!,meter);
     return values.float(integerToFloat(index!.integer(result)!));
   }
-  const input = source.kind === "str" || source.kind === "bytes" ? source.value : context.byteArray?.(source); meter.checkpoint();
-  if (input !== undefined) return values.float(parseFloatText(input,meter));
-  let lease: RuntimeBufferLease | undefined;
-  try { lease = context.buffers?.acquireSimple(source); }
-  catch (error) { if (error instanceof ExecutionLimitError || (!(error instanceof PythonRuntimeError) && context.isPythonException?.(error) !== true)) throw error; }
-  if (lease !== undefined) {
-    try { meter.checkpoint();return values.float(parseFloatText(lease.copy(),meter)); }
-    finally { lease.release(); }
-  }
-  meter.checkpoint();
-  throw new PythonRuntimeError("TypeError", `float() argument must be a string or a real number, not '${typeName(source)}'`);
+  return undefined;
 }

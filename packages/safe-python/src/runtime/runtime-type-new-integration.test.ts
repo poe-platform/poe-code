@@ -67,6 +67,23 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("bypasses float subclass conversion only for from_number", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Stored(Float):\n def __float__(self):\n  visit('float')\n  return 9.0\nx=Stored(2.0)\ncorrect=Float.from_number(x)==2.0 and type(Float.from_number(x)) is Float and Stored.from_number(x)==2.0 and type(Stored.from_number(x)) is Stored and Float(x)==9.0\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["float"]);
+});
+
+it("constructs floats from numbers without text parsing", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n def __new__(cls,value):\n  visit('new')\n  return Float.__new__(cls,value)\n def __init__(self,value):\n  visit('init')\nclass Number:\n def __float__(self):\n  visit('float')\n  return 1.25\nclass Index:\n def __index__(self):\n  visit('index')\n  return 2\nx=1.25\ny=Child.from_number(Number())\ncorrect=Float.from_number(x) is x and type(y) is Child and y==x and Float.from_number(Index())==2.0 and Float.from_number(True)==1.0 and y.from_number.__self__ is Child\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["float","new","init","index"]);
+  expect(()=>state.run("Child.from_number('1.25')\n")).toThrow("must be real number, not str");
+  expect(()=>state.run("Float.from_number(b'1.25')\n")).toThrow("must be real number, not bytes");
+  expect(state.events).toEqual(["float","new","init","index"]);
+  state.run("Long=type('x'*80,(object,),{})\n");
+  expect(()=>state.run("Float.from_number(Long())\n")).toThrow(expect.objectContaining({message:`must be real number, not ${"x".repeat(50)}`}));
+});
+
 it("constructs float subclasses through inherited fromhex after parsing", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Child(Float):\n def __new__(cls,value):\n  visit('new')\n  return Float.__new__(cls,value)\n def __init__(self,value):\n  visit('init')\nx=Child.fromhex('0x1.8p1')\ncorrect=type(x) is Child and x==3.0 and Child.fromhex.__self__ is Child and x.fromhex.__self__ is Child and Float.fromhex('0x1p0')==1.0\n");

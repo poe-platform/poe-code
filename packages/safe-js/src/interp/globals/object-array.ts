@@ -6,6 +6,7 @@ import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-ex
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
 import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
 import { setGuestProxyIntegrity, testGuestProxyIntegrity } from "../guest-proxy-integrity.js";
@@ -1287,75 +1288,42 @@ function stringFromCodes(
   }
 }
 
-function stringRaw(
+async function stringRaw(
   args: readonly SandboxValue[],
   budget: Budget,
   context?: SandboxCallContext
-): string | Promise<string> {
+): Promise<string> {
   const [template, ...substitutions] = args;
-  if (context?.getProperty !== undefined)
-    return (async () => {
-      if (template === null || template === undefined)
-        throw new TypeError("String.raw requires a template object.");
-      const raw = await context.getProperty!(template, "raw");
-      if (raw === null || raw === undefined)
-        throw new TypeError("String.raw requires raw strings.");
-      const number = await sandboxNumber(
-        await context.getProperty!(raw, "length"),
-        budget,
-        context
-      );
-      const length =
-        Number.isNaN(number) || number <= 0
-          ? 0
-          : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
-      let result = "";
-      const retained = {};
-      budget.setRetainedValues(retained, () => [raw, result]);
-      try {
-        for (let index = 0; index < length; index++) {
-          budget.visitNode();
-          result = budget.allocateString(
-            result + (await sandboxString(await context.getProperty!(raw, index), budget, context))
-          );
-          if (index + 1 < length && index < substitutions.length)
-            result = budget.allocateString(
-              result + (await sandboxString(substitutions[index], budget, context))
-            );
-        }
-        return result;
-      } finally {
-        budget.setRetainedValues(retained, undefined);
-      }
-    })();
-  const raw = getTemplateRawParts(template);
-
+  if (template === null || template === undefined)
+    throw new TypeError("String.raw requires a template object.");
+  let cooked: SandboxValue;
+  let raw: SandboxValue;
   let result = "";
-  for (let index = 0; index < raw.length; index += 1) {
-    result += String(raw[index]);
-    if (index < raw.length - 1 && index < substitutions.length) {
-      result += String(substitutions[index]);
+  const release = retainValues(budget, () => [...args, cooked, raw, result]);
+  try {
+    cooked = typeof template === "object" ? template : createSandboxBox(template);
+    raw = await (context?.getProperty !== undefined
+      ? context.getProperty(cooked, "raw")
+      : sandboxGetProperty(cooked, "raw", cooked, budget, context));
+    if (raw === null || raw === undefined)
+      throw new TypeError("String.raw requires raw strings.");
+    if (typeof raw !== "object") raw = createSandboxBox(raw);
+    const number = await sandboxNumber(await (context?.getProperty !== undefined
+      ? context.getProperty(raw, "length")
+      : sandboxGetProperty(raw, "length", raw, budget, context)), budget, context);
+    const length = Number.isNaN(number) || number <= 0
+      ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
+    for (let index = 0; index < length; index++) {
+      budget.visitNode();
+      const part = await (context?.getProperty !== undefined
+        ? context.getProperty(raw, String(index))
+        : sandboxGetProperty(raw, String(index), raw, budget, context));
+      result = budget.allocateString(result + (await sandboxString(part, budget, context)));
+      if (index + 1 < length && index < substitutions.length)
+        result = budget.allocateString(result + (await sandboxString(substitutions[index], budget, context)));
     }
+    return result;
+  } finally {
+    release();
   }
-
-  return budget.allocateString(result);
-}
-
-function getTemplateRawParts(template: SandboxValue): SandboxArray {
-  const raw =
-    typeof template === "object" && template !== null
-      ? (template as Record<string, SandboxValue>).raw
-      : undefined;
-
-  if (
-    typeof template !== "object" ||
-    template === null ||
-    isSandboxClosure(template) ||
-    isSandboxPromise(template) ||
-    !Array.isArray(raw)
-  ) {
-    throw new TypeError("String.raw requires a raw strings array.");
-  }
-
-  return raw;
 }

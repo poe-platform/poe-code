@@ -868,6 +868,9 @@ Case conversion and trimming ignore extra argument values, including functions,
 while preserving normal caller-side evaluation of those arguments.
 String `concat` rejects Symbol arguments in both primitive-only and guest-object
 conversion paths, preserving conversion order and abrupt completion.
+`String.raw` uses guest conversion for raw entries and substitutions, including
+direct intrinsic calls. Raw values may be array-like objects or boxed primitives;
+length is captured once, Symbols are rejected, and iteration is budgeted.
 Locale-list canonicalization observes Proxy membership and element reads in
 order, including inherited entries and throwing traps. This preserves locale
 selection for locale-aware case conversion, collation and Intl constructors.

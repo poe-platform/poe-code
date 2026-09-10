@@ -226,7 +226,7 @@ describe("createObjectArrayGlobals", () => {
     expect(await raw.call([{ raw: ["a"] }, 1])).toBe("a");
     expect(await raw.call([{ raw: ["a", "b"] }, 1, 2])).toBe("a1b");
     expect(await raw.call([{ raw: [] }])).toBe("");
-    expect(() => raw.call([{}])).toThrow("String.raw requires a raw strings array.");
+    await expect(raw.call([{}])).rejects.toThrow("String.raw requires raw strings.");
   });
 
   it("exposes budgeted String character factories", async () => {

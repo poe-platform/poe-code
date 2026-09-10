@@ -77,7 +77,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
         const name = callee.kind === "none" ? "NoneType" : callee.kind === "not-implemented" ? "NotImplementedType" : callee.kind;
         throw new PythonRuntimeError("TypeError", `'${name}' object is not callable`);
       }
-      if (callee.kind !== "builtin_function_or_method" || callee.value.keywordValidation !== "callee") {
+      if (callee.kind !== "classmethod_descriptor" && (callee.kind !== "builtin_function_or_method" || callee.value.keywordValidation !== "callee")) {
         const iterator = keywords.items.iterate(key => key);
         for (let item = iterator.next(); !item.done; item = iterator.next()) {
           meter.checkpoint();

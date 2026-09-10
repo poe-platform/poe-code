@@ -128,7 +128,7 @@ export interface BuiltinFunctionValue {
   readonly value: BuiltinFunctionCapability;
   /** Execution-owned native binding. The canonical implementation token may
    * differ from the accessed descriptor when native methods alias one callback. */
-  readonly binding?: { readonly descriptor: MethodDescriptorValue; readonly implementation: MethodDescriptorValue; readonly instance: RuntimeValue };
+  readonly binding?: { readonly descriptor: NativeMethodDescriptorValue; readonly implementation: NativeMethodDescriptorValue; readonly instance: RuntimeValue };
 }
 
 export interface BoundMethodValue {
@@ -204,6 +204,13 @@ export interface MethodDescriptorValue {
   readonly value: MethodDescriptorCapability;
 }
 
+export interface ClassMethodDescriptorValue {
+  readonly kind: "classmethod_descriptor";
+  readonly value: MethodDescriptorCapability;
+}
+
+export type NativeMethodDescriptorValue = MethodDescriptorValue | ClassMethodDescriptorValue;
+
 export interface WrapperDescriptorValue {
   readonly kind: "wrapper_descriptor";
   readonly value: MethodDescriptorCapability;
@@ -242,6 +249,7 @@ export type RuntimeValue =
   | GetsetDescriptorValue
   | MemberDescriptorValue
   | MethodDescriptorValue
+  | ClassMethodDescriptorValue
   | WrapperDescriptorValue
   | MethodWrapperValue
   | MappingProxyValue
@@ -259,7 +267,7 @@ export type RuntimeValue =
  * separate concerns; this is not yet the complete Python object model.
  */
 export class RuntimeValues extends ConstantValues {
-  #nativeImplementations?: WeakMap<MethodDescriptorCapability["invoke"], MethodDescriptorValue>;
+  #nativeImplementations?: WeakMap<MethodDescriptorCapability["invoke"], NativeMethodDescriptorValue>;
   constructor(private readonly runtimeMeter: ExecutionMeter) {
     super(runtimeMeter);
   }
@@ -297,7 +305,7 @@ export class RuntimeValues extends ConstantValues {
   /** Retain an explicit capability without calling it. Native bindings retain
    * one implementation-identity token per callback in this execution, allowing
    * the ordinary identity-hash policy to hash aliases consistently. */
-  builtinFunction(value: BuiltinFunctionCapability, binding?: { readonly descriptor: MethodDescriptorValue; readonly instance: RuntimeValue }): BuiltinFunctionValue {
+  builtinFunction(value: BuiltinFunctionCapability, binding?: { readonly descriptor: NativeMethodDescriptorValue; readonly instance: RuntimeValue }): BuiltinFunctionValue {
     this.runtimeMeter.checkpoint(1, 32);
     if (binding === undefined) return Object.freeze({ kind: "builtin_function_or_method", value });
     if (this.#nativeImplementations === undefined) { this.runtimeMeter.checkpoint(0, 64); this.#nativeImplementations = new WeakMap(); }
@@ -364,6 +372,11 @@ export class RuntimeValues extends ConstantValues {
   methodDescriptor(value: MethodDescriptorCapability): MethodDescriptorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "method_descriptor", value });
+  }
+
+  classMethodDescriptor(value: MethodDescriptorCapability): ClassMethodDescriptorValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "classmethod_descriptor", value });
   }
 
   wrapperDescriptor(value: MethodDescriptorCapability): WrapperDescriptorValue {

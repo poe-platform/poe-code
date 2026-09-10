@@ -44,11 +44,4 @@ export function finalizeRuntimeType(type: TypeValue, keywords: DictionaryValue, 
     const hook = attribute.slots?.get === undefined ? attribute.value : attribute.slots.get(null, type); meter.checkpoint();
     meter.checkpoint(0, 24); context.call(hook, [], keywords); meter.checkpoint(); return;
   }
-  // Default object behavior until its native classmethod descriptor is installed.
-  if (keywords.items.size !== 0) {
-    let qualifiedName = "";
-    for (const point of type.value.names.get("__qualname__", values, meter).value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); qualifiedName += String.fromCodePoint(point); }
-    meter.checkpoint(0, 128 + qualifiedName.length * 2);
-    throw new PythonRuntimeError("TypeError", `${qualifiedName}.__init_subclass__() takes no keyword arguments`);
-  }
 }

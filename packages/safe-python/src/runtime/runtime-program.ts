@@ -98,7 +98,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       values, keys, name(value) {
         while (value.kind === "method" || value.kind === "staticmethod") { meter.checkpoint(); value = value.kind === "method" ? value.value.function : value.value; }
         if (value.kind === "builtin_function_or_method") return `${value.value.name}()`;
-        if (value.kind === "method_descriptor" || value.kind === "wrapper_descriptor") return `${value.value.owner.value.name}.${value.value.name}()`;
+        if ((value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor") return `${value.value.owner.value.name}.${value.value.name}()`;
         if (value.kind === "method-wrapper") return `${value.value.descriptor.value.owner.value.name}.${value.value.descriptor.value.name}()`;
         return hooks.name(value);
       }, keywordName: hooks.keywordName.bind(hooks),
@@ -119,7 +119,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           return builtinCalls.call(callable, args, keywords);
         }
         if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter, builtinCalls);
-        if (value.kind === "method_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "method-wrapper") return callRuntimeMethodDescriptor(value, positional, keywords, meter, builtinCalls);
+        if ((value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor" || value.kind === "method-wrapper") return callRuntimeMethodDescriptor(value, positional, keywords, meter, builtinCalls);
         if (value.kind === "type" && specialMethods !== undefined) {
           const leave = calls.enter(frame);
           try { return callRuntimeType(value, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks)); }

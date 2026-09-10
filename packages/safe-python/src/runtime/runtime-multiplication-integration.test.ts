@@ -2178,6 +2178,26 @@ it("uses base-object methods for function metadata without losing native policie
   expect(() => state.run("f.custom\n")).toThrow("'function' object has no attribute 'custom'");
 });
 
+it("binds the native subclass hook to the accessed class through class and instance reads", () => {
+  const state = fixture(), cls = state.type("C"); state.globals.set("C", cls); state.globals.set("object", state.registry.object); state.instance("obj", cls);
+  const nativeType = state.type("builtin_function_or_method"), resolve = state.hooks.specialMethods!;
+  state.hooks.specialMethods = frame => { const original = resolve(frame); return { ...original, typeOf: value => value.kind === "builtin_function_or_method" ? nativeType : original.typeOf(value) }; };
+  state.run("root=object.__init_subclass__()\nresult=C.__init_subclass__()\nclass_owner=C.__init_subclass__.__self__ is C\ninstance_owner=obj.__init_subclass__.__self__ is C\nsame=C.__init_subclass__ == obj.__init_subclass__\n");
+  expect(state.globals.get("root")).toBe(state.v.none); expect(state.globals.get("result")).toBe(state.v.none);
+  for (const name of ["class_owner", "instance_owner", "same"]) expect(state.globals.get(name)).toBe(state.v.true);
+  cls.value.names.set("__qualname__", state.v.string("Outer.C"), state.meter);
+  expect(() => state.run("C.__init_subclass__(True)\n")).toThrow("Outer.C.__init_subclass__() takes no arguments (1 given)");
+  expect(() => state.run("C.__init_subclass__(True,flag=True)\n")).toThrow("Outer.C.__init_subclass__() takes no keyword arguments");
+});
+
+it("checks an unbound native class-method receiver before keyword names", () => {
+  const state = fixture(), cls = state.type("C"); state.globals.set("C", cls);
+  state.globals.set("hook", state.registry.object.value.namespace.items.lookup(state.v.string("__init_subclass__"))!.value);
+  expect(() => state.run("hook(None,**{1:True})\n")).toThrow("descriptor '__init_subclass__' for type 'object' needs a type, not a 'NoneType' as arg 2");
+  expect(() => state.run("hook(**{1:True})\n")).toThrow("descriptor '__init_subclass__' of 'object' object needs an argument");
+  expect(() => state.run("hook(C,**{1:True})\n")).toThrow("keywords must be strings");
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

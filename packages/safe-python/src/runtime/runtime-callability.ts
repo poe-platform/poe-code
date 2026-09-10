@@ -14,7 +14,7 @@ export function runtimeCallable(value: RuntimeValue, meter: ExecutionMeter, cont
   meter.checkpoint(0);
   if (value.kind === "staticmethod") return true;
   if (value.kind === "classmethod") return false;
-  if (value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "method-wrapper" || value.kind === "method" || value.kind === "type") return true;
+  if (value.kind === "function" || value.kind === "builtin_function_or_method" || (value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor" || value.kind === "method-wrapper" || value.kind === "method" || value.kind === "type") return true;
   const result = context?.callable(value) ?? false;
   meter.checkpoint(0);
   return result;

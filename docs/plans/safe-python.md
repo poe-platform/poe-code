@@ -8115,6 +8115,21 @@ extension, integration, or validation requirement is missing or unverified.
   still uses the execution extension boundary; a complete native type/member
   catalog, __class__, native payload layouts and full class construction remain
   unfinished.
+- Added native classmethod_descriptor values and object.__init_subclass__.
+  Binding uses the explicit class owner or the receiver's actual type, never
+  instance __class__ shadows. Native bound methods retain implementation/owner
+  identity, truth, hash and callable behavior through the existing protocols.
+  The finalizer now resolves and calls the root hook normally; its temporary
+  keyword-rejection fallback was removed. Unbound class-method receiver checks
+  precede keyword-name validation, as demonstrated by a failing compiled case.
+  Another compiled regression initially reproduced the missing hook. Six focused
+  tests cover owner selection, direct calls, subtype rejection, intrinsic slots,
+  native identity/hash and cancellation. All 180 binding/invocation cases, 240
+  finalization cases, 96 constructors, 54 existing native method bindings and 54
+  slot-wrapper bindings match CPython. All 6,308 tests in 481 files, selected
+  build, typecheck and scoped lint pass. The complete
+  native descriptor type/member catalog, __class__, native payload layouts and
+  full class-construction pipeline remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

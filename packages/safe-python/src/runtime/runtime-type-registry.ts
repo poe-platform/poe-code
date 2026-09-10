@@ -10,6 +10,7 @@ import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
 import { createObjectAttributeWrapper } from "./builtin-object-attribute.js";
+import { createObjectInitSubclassDescriptor } from "./builtin-object-init-subclass.js";
 import { PythonRuntimeError } from "./error.js";
 import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 
@@ -43,6 +44,7 @@ export class RuntimeTypeRegistry {
     this.#entries.set(typeLayout, { type: this.type });
     objectLayout.namespace.items.set(values.string("__new__"), createObjectNewBuiltin(values, meter, keys, this.object, type => this.#entries.get(type.value)?.type === type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
+    objectLayout.namespace.items.set(values.string("__init_subclass__"), createObjectInitSubclassDescriptor(values, meter, this.object));
     typeLayout.namespace.items.set(values.string("__init__"), createTypeInitWrapper(values, meter, this.type));
     typeLayout.namespace.items.set(values.string("__call__"), createTypeCallWrapper(values, meter, this.type));
     for (const name of ["__getattribute__", "__setattr__", "__delattr__"] as const) {

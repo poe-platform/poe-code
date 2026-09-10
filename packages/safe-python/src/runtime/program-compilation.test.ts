@@ -22,6 +22,8 @@ describe("whole-program code preparation", () => {
     const analysis = analyzeModule("xs=[lambda: 1 for x in []]\nys=(lambda: 2 for y in [])");
     const program = compileProgram(analysis, { stripDocstring: false }, constants, budget());
     expect([...program.functions.values()].map(code => code.qualifiedName)).toEqual(["<lambda>", "<genexpr>.<lambda>"]);
+    expect([...program.comprehensions!.values()].map(scope => scope.scope.kind)).toEqual(["comprehension", "comprehension"]);
+    for(const code of program.functions.values())expect(code.comprehensions).toBe(program.comprehensions);
   });
   it("rejects invalid nested docstrings even in uncalled and unreachable definitions", () => {
     for (const definition of ['def f():\n "\\ud800"', 'class C:\n "\\ud800"']) {

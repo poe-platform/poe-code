@@ -7,6 +7,7 @@ import { compileFunction, type CompiledFunction } from "./function-compilation.j
 import { compileSuite } from "./suite-compilation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { compileLiteralPool, type LiteralExpression, type LiteralPool } from "./literal-pool.js";
+import type { ComprehensionNode } from "./comprehension-execution.js";
 
 export interface CompiledModule<Value> {
   readonly scope: ResolvedScope;
@@ -15,6 +16,7 @@ export interface CompiledModule<Value> {
 }
 
 export interface CompiledProgram<Value> {
+  readonly comprehensions?: ReadonlyMap<ComprehensionNode,ResolvedScope>;
   readonly literals?: LiteralPool<Value>;
   readonly module: CompiledModule<Value>;
   readonly functions: ReadonlyMap<FunctionNode, CompiledFunction<Value>>;
@@ -27,7 +29,7 @@ export interface CompiledProgram<Value> {
  * searches or recompilation. Traversal includes unexecuted suites, defaults and
  * comprehension children; no guest code runs here. The maps are host compiler
  * metadata, not exposed guest mappings or a security boundary. Comprehension
- * execution, general constant folding, guest code objects and complete allocation
+ * scope identities travel with nested code. General constant folding, guest code objects and complete allocation
  * accounting remain unfinished; this is not a standalone Python execution API.
  */
 export function compileProgram<Value>(
@@ -40,6 +42,8 @@ export function compileProgram<Value>(
   const module: CompiledModule<Value> = { scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
   const literals = constants.literal ? compileLiteralPool(analysis.module.body, constants.literal.bind(constants), meter, constants.tuple.bind(constants)) : undefined;
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
+  meter.checkpoint(0,48);
+  const comprehensions = new Map<ComprehensionNode,ResolvedScope>();
   const classes = new Map<Extract<Statement, { kind: "class" }>, CompiledClassBody<Value>>();
   const classFunctions = new Map<Extract<Statement, { kind: "class" }>, CompiledFunction<Value>>();
   const pending = [analysis.scopes];
@@ -48,21 +52,24 @@ export function compileProgram<Value>(
     const scope = pending.pop()!, node = scope.scope.node;
     if (node.kind === "function" || node.kind === "lambda") {
       const code = compileFunction(scope, analysis, options, constants, meter);
-      meter.checkpoint(0, 96);
-      functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions, literals });
+      meter.checkpoint(0, 104);
+      functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions, comprehensions, literals });
     }
     else if (node.kind === "class") {
       const code = compileClassBody(scope, analysis, options, constants, meter);
       classes.set(node, code);
-      meter.checkpoint(0, 128);
+      meter.checkpoint(0, 136);
       classFunctions.set(node, {
         scope, kind: "function", name: constants.string(node.name.name),
         qualifiedName: code.qualifiedName, firstLine: code.firstLine,
         docstring: undefined, body: { kind: "class", code },
-        definitions: functions, classDefinitions: classFunctions, literals
+        definitions: functions, classDefinitions: classFunctions, comprehensions, literals
       });
+    }
+    else if(node.kind==="comprehension"||node.kind==="dictionary-comprehension") {
+      meter.checkpoint(0,48);comprehensions.set(node,scope);
     }
     for (let index = scope.children.length - 1; index >= 0; index--) { meter.checkpoint(); pending.push(scope.children[index]); }
   }
-  return { module, functions, classes, classFunctions, literals };
+  return { module, functions, classes, classFunctions, comprehensions, literals };
 }

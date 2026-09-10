@@ -10090,6 +10090,27 @@ extension, integration, or validation requirement is missing or unverified.
   as supported. Full string/bytes subclass storage, OS exceptions, traceback,
   suspension, public interpreter/stdlib and safe-fs assembly remain unfinished.
   No push or release requested.
+- Eager comprehension execution (2026-09-10): failing regressions drove compiled
+  comprehension-scope registries that travel with function/class code, a metered
+  iterative clause walker, and runtime list/set/dict construction. Outer iterable
+  acquisition uses the enclosing scope; targets, filters, later iterables and
+  bodies use isolated lexical storage with captured cells. Nested closures and
+  walrus writes retain their analyzed ownership across separate compiled
+  programs. Dictionary keys precede values and hashing. Clause iterators are
+  neither length-hinted nor closed on abrupt completion; target unpacking keeps
+  normal assignment protocols. Comprehension frames are active
+  for key operations and restore without metered cleanup; a failing fatal-error
+  regression verified the latter. A differential mismatch also drove exact
+  list/tuple excess-unpack cardinality diagnostics in the shared assignment
+  adapter, leaving subclasses on their generic iterator path. All 1,057 focused
+  tests and 98 CPython comparisons pass, including 5,000 nested clauses, infinite
+  iteration limits and cross-program scope ownership. Selected workspace build,
+  typecheck and focused lint pass. Final uncached one-worker verification passes
+  all 7,263 tests in 504 files (143.24s; bodies 9.39s).
+  Generator expressions, asynchronous comprehensions, suspension, inlined-frame
+  locals/introspection and complete frame allocation accounting remain pending,
+  alongside public interpreter/stdlib/safe-fs and other outstanding runtime work.
+  No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

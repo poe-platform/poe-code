@@ -1486,6 +1486,14 @@ describe("assembled concrete runtime programs", () => {
     caller.globals.set("f", origin.globals.get("f")!); caller.globals.set("value", origin.globals.get("value")!);
     caller.run(); expect(caller.globals.get("result")).toBe(caller.values.true);
   });
+  it("retains comprehension scopes and captured cells across separately compiled programs", () => {
+    const origin=fixture("token=10\ndef f():\n return [lambda: x+token for x in [1,2,3]]\n");origin.run();
+    const caller=fixture("token=100\ncallbacks=f()\nresult=[callback() for callback in callbacks]\n");
+    caller.globals.set("f",origin.globals.get("f")!);caller.run();
+    const result=caller.globals.get("result");
+    expect(result?.kind==="list"?result.items.snapshot():result).toEqual([13,13,13].map(n=>caller.values.integer(n)));
+    expect(caller.calls.depth).toBe(0);
+  });
   it("reuses constants when the same compiled program executes again", () => {
     const state = fixture('value="long reusable literal!"\n'); state.run();
     const first = state.globals.get("value"); state.run();

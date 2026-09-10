@@ -55,6 +55,8 @@ import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-
 import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
 import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
+import { executeComprehensionClauses } from "./comprehension-execution.js";
+import type { StatementContext } from "./statement-execution.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -104,7 +106,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
   const representationState: RuntimeRepresentationState = {};
   let defaultFormatting: FormatContext<RuntimeValue> | undefined;
   const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null) => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions):StatementContext<RuntimeValue> => {
     meter.checkpoint(1, 512);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -166,7 +168,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const fn = value;
         if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
-          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null),
+          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions),
           classBody(code) {
             let result: RuntimeValue = values.none;
             const globals = fn.value.globals;
@@ -178,7 +180,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
                 delete: name => globals.delete(name), isGuest: () => false
               },
               cell: cell => { result = values.cell(cell); return result; },
-              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null)
+              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions)
             }, meter);
             return result;
           }
@@ -234,7 +236,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           : new RuntimeMappingNamespace(namespace, values, meter, builtinCalls);
         return executeClassBody(fn.value.code.body.code, {
           ...fn.value, calls, locals, cell: cell => values.cell(cell),
-          body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null)
+          body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions)
         }, meter);
       },
       finalizeType: specialMethods === undefined ? undefined : (type, keywords) => finalizeRuntimeType(type, keywords, specialMethods, values, meter, {
@@ -381,7 +383,38 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get iteration() { return getIteration(); },
       get formatting() { return getFormatting(); },
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
-      createLambda: definitions.create.bind(definitions)
+      createLambda: definitions.create.bind(definitions),
+      comprehension(node) {
+        meter.checkpoint();
+        if(node.kind==="comprehension"&&node.collection==="generator")throw new UnsupportedExpressionError(node.kind);
+        for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
+        const scope=comprehensions?.get(node);
+        if(scope===undefined)throw Error("comprehension has no matching compiled scope");
+        let leave=calls.enter(frame);
+        try {
+          const outer=expressions.iterate(evaluateExpression(node.clauses[0].iterable,expressions,meter));
+          meter.checkpoint(0,192);
+          const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
+          const child=new LexicalFrame(scope,{...namespaces,closure},meter);
+          leave();leave=calls.enter(child);
+          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
+          if(node.kind==="dictionary-comprehension") {
+            const result=expressions.beginDictionary([]);
+            executeComprehensionClauses(node.clauses,outer,inner,()=>{const key=inner.evaluate(node.key),value=inner.evaluate(node.value);result.set(key,value);},meter);
+            return result.finish();
+          }
+          if(node.collection==="set") {
+            const result=expressions.beginSet([]);
+            executeComprehensionClauses(node.clauses,outer,inner,()=>result.add(inner.evaluate(node.element)),meter);
+            return result.finish();
+          }
+          const result=values.list([]);
+          executeComprehensionClauses(node.clauses,outer,inner,()=>result.items.append(inner.evaluate(node.element)),meter);
+          return result;
+        } finally {
+          leave();
+        }
+      }
     }, meter);
     keys.bindInvocation?.(frame, builtinCalls); meter.checkpoint();
     let inplace = statementHooks.inplace?.bind(statementHooks);

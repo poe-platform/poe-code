@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { analyzeModule } from "../analysis.js";
 import { PythonSyntaxError } from "../source.js";
 import { PythonIndentationError, PythonTabError } from "../indentation.js";
@@ -83,6 +83,47 @@ function exceptionFixture() {
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("executes eager comprehensions with isolated targets and nested filters",()=>{
+  const state=exceptionFixture();
+  state.run("x='outer'\nitems=[x*y for x in [1,2,3] if x>1 for y in [10,20] if y==20]\nunique={x%2 for x in [1,2,3]}\nmapping={x:x+10 for x in [1,2,1]}\ncorrect=items==[40,60] and unique=={0,1} and mapping=={1:11,2:12} and x=='outer'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("captures comprehension cells and routes walrus writes to their enclosing scope",()=>{
+  const state=exceptionFixture();
+  state.run("def f():\n total=0\n callbacks=[lambda: x for x in [1,2,3] if (total:=total+x)]\n return callbacks[0](),callbacks[2](),total\nresult=f()\ncorrect=result==(3,3,6)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("evaluates a comprehension outer iterable in class scope but its body outside class locals",()=>{
+  const state=exceptionFixture();
+  state.run("x=100\nclass C:\n x=[1,2]\n values=[x+y for y in x]\ncorrect=C.values==[101,102] and C.x==[1,2]\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("preserves dictionary comprehension key-value-hash order and guest exception identity",()=>{
+  const state=exceptionFixture();
+  state.run("failure=ValueError('stop')\nclass Key:\n def __hash__(self):\n  visit('hash')\n  raise failure\ndef key():\n visit('key')\n return Key()\ndef value():\n visit('value')\n return 1\ntry:\n result={key():value() for x in [0]}\nexcept ValueError as error:\n correct=error is failure\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["key","value","hash"]);
+});
+
+it("restores comprehension frames without metered work after fatal termination",()=>{
+  const state=exceptionFixture(),failure=new ExecutionLimitError("cancelled"),checkpoint=state.meter.checkpoint.bind(state.meter);
+  let stopped=false;
+  const spy=vi.spyOn(ExecutionBudget.prototype,"checkpoint").mockImplementation((...args)=>{if(stopped)throw Error("cleanup attempted metered work");checkpoint(...args);});
+  state.builtins.set("stop",state.v.builtinFunction({name:"stop",invoke(){stopped=true;throw failure;}}));
+  let caught:unknown;try{state.run("result=[stop() for x in [1]]\n");}catch(error){caught=error;}finally{spy.mockRestore();}
+  expect(caught).toBe(failure);expect(state.calls.depth).toBe(0);
+});
+
+it("reports exact list and tuple unpack lengths without applying that fast path to subclasses",()=>{
+  for(const [source,message] of [["[1,2,3]","too many values to unpack (expected 2, got 3)"],["(1,2,3)","too many values to unpack (expected 2, got 3)"],["L([1,2,3])","too many values to unpack (expected 2)"]]) {
+    const state=exceptionFixture();state.globals.set("List",state.registry.listType());state.globals.set("message",state.v.string(message));
+    state.run(`class L(List): pass\ntry:\n result=[a+b for a,b in [${source}]]\nexcept ValueError as error:\n correct=f'{error}'==message\n`);
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
 
 it("constructs and renders native Unicode exception families",()=>{
   for(const [name,args,text] of [

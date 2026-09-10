@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { evaluateCallArguments, type ExpressionCall } from "./call-arguments.js";
 import { evaluateFormattedString, type FormattedStringContext } from "./formatted-string-evaluation.js";
+import type { ComprehensionNode } from "./comprehension-execution.js";
 export type { ExpressionCall } from "./call-arguments.js";
 
 /** Concrete guest set operations own hashing/equality, optimized updates from
@@ -71,6 +72,9 @@ export interface ExpressionContext<Value> {
    * function-frame initialization applies private-name mangling when binding.
    */
   createLambda?(node: Extract<Expression, { kind: "lambda" }>, defaults: ReadonlyMap<string, Value>): Value;
+  /** Scope-aware execution owns outer-iterator acquisition, target isolation,
+   * collection construction and any suspension policy. */
+  comprehension?(node:ComprehensionNode):Value;
 }
 
 /** Host implementation gap, not a catchable guest exception. */
@@ -115,6 +119,9 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
     knownTruth = undefined;
     if (context.constants?.has(node)) { value = context.constants.get(node)!; continue; }
     switch (node.kind) {
+      case "comprehension": case "dictionary-comprehension":
+        if(context.comprehension===undefined)throw new UnsupportedExpressionError(node.kind);
+        value=context.comprehension(node);break;
       case "interpolated-string": {
         if (node.flavor !== "formatted" || context.formattedString === undefined) throw new UnsupportedExpressionError(node.kind);
         meter.checkpoint(0, 192);

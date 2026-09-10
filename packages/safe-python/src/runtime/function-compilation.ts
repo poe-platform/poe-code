@@ -8,8 +8,10 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { compileSuite } from "./suite-compilation.js";
 import type { CompiledClassBody } from "./class-compilation.js";
 import type { LiteralPool } from "./literal-pool.js";
+import type { ComprehensionNode } from "./comprehension-execution.js";
 
 export interface CompiledFunction<Value> {
+  readonly comprehensions?: ReadonlyMap<ComprehensionNode,ResolvedScope>;
   /** Literal objects belong to the originating compilation, not each call. */
   readonly literals?: LiteralPool<Value>;
   /** Originating program's code registry. Nested definitions follow their code,

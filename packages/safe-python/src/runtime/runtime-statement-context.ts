@@ -40,6 +40,11 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
     evaluate: expression => evaluateExpression(expression, expressions, meter),
     store: expressions.store.bind(expressions), list: expressions.list.bind(expressions), resolve,
     unpack(value, before, after) {
+      meter.checkpoint();
+      // Exact sequences expose their cardinality without guest iteration. Do
+      // not use subclass payloads: their iterator can have different contents.
+      const length=value.kind==="list"?value.items.length:value.kind==="tuple"?value.items.length:undefined;
+      if(after===null&&length!==undefined&&length>before)throw new PythonRuntimeError("ValueError",`too many values to unpack (expected ${before}, got ${length})`);
       const iterator = expressions.iterate(value, name => {
         throw new PythonRuntimeError("TypeError", `cannot unpack non-iterable ${name} object`);
       });

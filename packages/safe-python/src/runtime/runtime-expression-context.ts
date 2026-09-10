@@ -39,7 +39,7 @@ import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
  * Hooks must implement guest semantics and charge their execution internally.
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
-  "load" | "store" | "beginCall" | "createLambda"> &
+  "load" | "store" | "beginCall" | "createLambda" | "comprehension"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth" | "beginMethodCall">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
     readonly isException?: BuiltinInvocationContext["isException"];
@@ -180,5 +180,8 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     truth: methods.truth
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
+  if (bindings.comprehension) {
+    meter.checkpoint(0,64);context.comprehension = bindings.comprehension.bind(bindings);
+  }
   return context;
 }

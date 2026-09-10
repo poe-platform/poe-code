@@ -7343,6 +7343,18 @@ extension, integration, or validation requirement is missing or unverified.
   comparisons still match CPython. No implicit host stream or filesystem access
   was added. Automatic type/storage classification, generic object defaults,
   allocation optimization and suspended safe-fs effects remain unfinished.
+- Deferred runtime expression/program formatting and f-string contexts until
+  first use, caching them thereafter and retaining shared recursion state.
+  Two arithmetic-only regressions first failed on eager policy reads; extending
+  the program case exposed a second eager f-string-capability read, also fixed.
+  Two additional cases cover one-time acquisition, disabling/restoring f-string
+  support and deferred-acquisition cancellation. Closure allocations remain
+  metered. All 5,523 tests in 446 files pass; selected build, typecheck and scoped
+  lint pass.
+  All 128 compiled format/representation comparisons still match CPython.
+  Native attribute dispatch still requests formatting when resolving native
+  members; further allocation optimization, automatic type/storage classification,
+  generic object defaults and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -41,6 +41,14 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("does not acquire execution formatting for an arithmetic-only program", () => {
+    const state = fixture("result=1+2\n");
+    const expressions = state.hooks.expressions;
+    state.hooks.expressions = frame => ({ ...expressions(frame), get formattedString(): never { throw Error("unused f-string capability"); } });
+    const program = compileProgram<RuntimeValue>(analyzeModule("result=1+2\n"), { stripDocstring: false }, state.values, state.meter);
+    executeRuntimeProgram(program, { ...state, get formatting(): never { throw Error("unused execution formatting"); } }, state.meter);
+    expect(state.globals.get("result")).toEqual(state.values.integer(3));
+  });
   it("runs print through explicit builtin and stream capabilities", () => {
     const state = fixture("result=print(12, 'hello', sep='|', end='!', flush=True)\n"), v = state.values, stream = v.cell({}), chunks: string[] = []; let flushed = false;
     state.builtins.set("print", createPrintBuiltin(v, state.meter, {

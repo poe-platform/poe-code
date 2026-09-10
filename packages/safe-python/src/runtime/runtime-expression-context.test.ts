@@ -4,6 +4,7 @@ import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
+import { createRuntimeFormatContext } from "./runtime-format.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -27,6 +28,35 @@ function fixture() {
 }
 
 describe("concrete runtime expression context", () => {
+  it("does not acquire formatting capabilities for ordinary arithmetic", () => {
+    const { meter, v, bindings } = fixture();
+    const context = createRuntimeExpressionContext(v, { ...bindings,
+      get formatting(): never { throw Error("unused formatting policy"); },
+      get formattedString(): never { throw Error("unused f-string policy"); }
+    }, meter);
+    expect(evaluateExpression(parseExpression("1+2"), context, meter)).toEqual(v.integer(3));
+  });
+  it("acquires formatting once on first use and permits disabling f-string support", () => {
+    const { meter, v, bindings } = fixture(); let reads = 0;
+    const formatting = createRuntimeFormatContext(v, meter, { defaultRepr() { throw Error("unexpected repr"); } });
+    const context = createRuntimeExpressionContext(v, { ...bindings, get formatting() { reads++; return formatting; } }, meter);
+    expect(reads).toBe(0);
+    for (let i = 0; i < 2; i++) expect(evaluateExpression(parseExpression('f"{12:04}"'), context, meter)).toEqual(v.string("0012"));
+    expect(reads).toBe(1);
+    const original = context.formattedString;
+    context.formattedString = undefined;
+    expect(() => evaluateExpression(parseExpression('f"{12}"'), context, meter)).toThrow(UnsupportedExpressionError);
+    context.formattedString = original;
+    expect(evaluateExpression(parseExpression('f"{12}"'), context, meter)).toEqual(v.string("12"));
+    expect(reads).toBe(1);
+  });
+  it("checks cancellation after deferred formatting policy acquisition", () => {
+    const { v, bindings, meter: initialMeter } = fixture(); let cancelled = false;
+    const formatting = createRuntimeFormatContext(v, initialMeter, { defaultRepr() { throw Error("unexpected repr"); } });
+    const meter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
+    const context = createRuntimeExpressionContext(v, { ...bindings, get formatting() { cancelled = true; return formatting; } }, meter);
+    expect(() => evaluateExpression(parseExpression('f"{12}"'), context, meter)).toThrow(ExecutionLimitError);
+  });
   it("evaluates native f-strings without custom formatting hooks", () => {
     const { v, names, run } = fixture(), value = v.string("😀éz");
     names.set("x", value);

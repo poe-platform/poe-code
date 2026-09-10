@@ -61,13 +61,14 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, R
  * suspended execution, full resource accounting and safe-fs still need integration.
  */
 export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
-  meter.checkpoint(1, 192);
+  meter.checkpoint(1, 256);
   const { values, keys, hooks, calls } = context;
   meter.checkpoint(0, 16);
   const representationState: RuntimeRepresentationState = {};
-  const defaultFormatting = context.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
+  let defaultFormatting: FormatContext<RuntimeValue> | undefined;
+  const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
   const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null) => {
-    meter.checkpoint(1, 384);
+    meter.checkpoint(1, 448);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
     const specialMethods = hooks.specialMethods?.(frame); meter.checkpoint();
@@ -108,7 +109,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
-      formatting: defaultFormatting,
+      get formatting() { return getFormatting(); },
       hasSpecial(value, name) {
         if (specialMethods === undefined) return false;
         const type = specialMethods.typeOf(value); meter.checkpoint();
@@ -148,10 +149,14 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         meter.checkpoint(); return result;
       }
     };
-    const formatting = context.formatting === undefined && specialMethods !== undefined
-      ? createRuntimeInvocationFormatContext(values, meter, builtinCalls, defaultFormatting, representationState)
-      : defaultFormatting;
-    builtinCalls.formatting = formatting;
+    let formatting: FormatContext<RuntimeValue> | undefined;
+    const getFormatting = () => {
+      meter.checkpoint();
+      formatting ??= context.formatting ?? (specialMethods !== undefined
+        ? createRuntimeInvocationFormatContext(values, meter, builtinCalls, getDefaultFormatting(), representationState)
+        : getDefaultFormatting());
+      meter.checkpoint(); return formatting;
+    };
     const definitionBindings: RuntimeFunctionDefinitionBindings = {
       globals: namespaces.globals, builtins: namespaces.builtins,
       capture: frame instanceof LexicalFrame || frame instanceof ClassFrame ? frame.capture.bind(frame) : undefined,
@@ -174,14 +179,14 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
-      formattedString: expressionHooks.formattedString,
+      get formattedString() { return expressionHooks.formattedString; },
       addition: expressionHooks.addition?.bind(expressionHooks),
       power: expressionHooks.power,
       truth: expressionHooks.truth?.bind(expressionHooks),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks),
       containment: expressionHooks.containment?.bind(expressionHooks),
       iteration: expressionHooks.iteration,
-      formatting,
+      get formatting() { return getFormatting(); },
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)
     }, meter);

@@ -64,10 +64,25 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
  * Other declined binary families still fail as explicit implementation gaps.
  */
 export function createRuntimeExpressionContext(values: RuntimeValues, bindings: RuntimeExpressionBindings, meter: ExecutionMeter): ExpressionContext<RuntimeValue> {
-  meter.checkpoint(1, 768);
+  meter.checkpoint(1, 960);
   const unary = { values, warn: bindings.warn.bind(bindings) };
-  const formatting = bindings.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } });
+  let formatting: FormatContext<RuntimeValue> | undefined;
+  const getFormatting = () => {
+    meter.checkpoint();
+    formatting ??= bindings.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } });
+    meter.checkpoint(); return formatting;
+  };
+  let formattedString: ExpressionContext<RuntimeValue>["formattedString"], resolved = false;
   const context: ExpressionContext<RuntimeValue> = {
+    get formattedString() {
+      meter.checkpoint();
+      if (!resolved) {
+        formattedString = bindings.formattedString ?? createRuntimeFormattedStringContext(values, getFormatting(), meter);
+        meter.checkpoint(); resolved = true;
+      }
+      return formattedString;
+    },
+    set formattedString(value) { formattedString = value; resolved = true; },
     constants: bindings.constants,
     literal: bindings.literal?.bind(bindings) ?? values.literal.bind(values),
     boolean: values.boolean.bind(values),
@@ -76,7 +91,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     slice: parts => values.slice(parts),
     load: bindings.load.bind(bindings),
     store: bindings.store.bind(bindings),
-    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, formatting, methods)),
+    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, getFormatting(), methods)),
     beginCall: bindings.beginCall.bind(bindings),
     beginSet: "dictionaryKeys" in bindings
       ? bindings.beginSet?.bind(bindings) ?? (initial => beginRuntimeSet(initial, values, bindings.dictionaryKeys, meter))
@@ -131,6 +146,5 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     truth: methods.truth
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
-  context.formattedString = bindings.formattedString ?? createRuntimeFormattedStringContext(values, formatting, meter);
   return context;
 }

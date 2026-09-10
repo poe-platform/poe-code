@@ -1,11 +1,12 @@
 import type { Expression } from "../ast.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeMutateItem } from "./runtime-mutation.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { runtimeMutateSubscription } from "./runtime-subscription.js";
+import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 
 export interface RuntimeReferenceWrites {
+  readonly subscription?: BuiltinInvocationContext;
   readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
   deleteName(name: string): void;
   setAttribute(object: RuntimeValue, name: string, value: RuntimeValue): void;
@@ -21,7 +22,8 @@ export interface RuntimeReference {
 /** Resolve one validated target, evaluating receiver/key once but never reading
  * its current value. Later access uses current bound operations on the retained
  * receiver/key, not cached descriptors or values. No host property access occurs.
- * Guest subscription mutation slots and full closure accounting remain pending.
+ * Supplied subscription capabilities resolve mutation slots at access time.
+ * Full closure accounting remains pending.
  */
 export function resolveRuntimeReference(target: Expression, context: ExpressionContext<RuntimeValue>, writes: RuntimeReferenceWrites, values: RuntimeValues, meter: ExecutionMeter): RuntimeReference {
   meter.checkpoint(1, 128);
@@ -43,8 +45,8 @@ export function resolveRuntimeReference(target: Expression, context: ExpressionC
       const { object, key } = evaluateExpression(target, context, meter, "subscript-reference");
       return {
         get() { meter.checkpoint(); return context.getItem(object, key); },
-        set(value) { meter.checkpoint(1, 96); runtimeMutateItem(object, key, { kind: "set", value }, values, meter, writes.integerIndex, context.iterate.bind(context)); },
-        remove() { meter.checkpoint(1, 16); runtimeMutateItem(object, key, { kind: "delete" }, values, meter, writes.integerIndex); }
+        set(value) { meter.checkpoint(1, 96); runtimeMutateSubscription(object, key, { kind: "set", value }, values, meter, writes.subscription, writes.integerIndex, context.iterate.bind(context)); },
+        remove() { meter.checkpoint(1, 16); runtimeMutateSubscription(object, key, { kind: "delete" }, values, meter, writes.subscription, writes.integerIndex); }
       };
     }
     default: throw new Error(`invalid reference target: ${target.kind}`);

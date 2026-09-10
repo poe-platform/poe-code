@@ -10,6 +10,7 @@ function fixture(signal?: AbortSignal) {
   const hooks = new Map<string, RuntimeValue>(), calls: RuntimeValue[][] = [];
   const keywords = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 0n, equal: (a, b) => a === b }, meter));
   const invocation: BuiltinInvocationContext = {
+    hasSpecial: (_object, name) => hooks.has(name),
     lookupSpecial(object, name) { expect(object).toBe(mapping); return hooks.get(name); },
     call(hook, args) { calls.push([...args]); if (hook.kind !== "builtin_function_or_method") throw new PythonRuntimeError("TypeError", "not callable"); return hook.value.invoke(args, keywords, meter); },
     isStopIteration: () => false
@@ -61,4 +62,12 @@ it("preserves cancellation when a slot raises KeyError after aborting", () => {
   const controller = new AbortController(), { v, hooks, namespace } = fixture(controller.signal);
   hooks.set("__getitem__", v.builtinFunction({ name: "get", invoke() { controller.abort(); throw new PythonRuntimeError("KeyError", "missing"); } }));
   expect(() => namespace.lookup("x")).toThrow(ExecutionLimitError);
+});
+
+it("uses the shared missing-paired-method errors for prepared mapping mutation", () => {
+  const { v, hooks, namespace } = fixture();
+  hooks.set("__setitem__", v.builtinFunction({ name: "set", invoke: () => v.none }));
+  expect(() => namespace.delete("x")).toThrow("__delitem__");
+  hooks.clear(); hooks.set("__delitem__", v.builtinFunction({ name: "delete", invoke: () => v.none }));
+  expect(() => namespace.store("x", v.none)).toThrow("__setitem__");
 });

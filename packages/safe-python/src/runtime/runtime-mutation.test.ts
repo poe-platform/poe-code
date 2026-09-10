@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeMutateItem } from "./runtime-mutation.js";
-import { RuntimeValues } from "./runtime-values.js";
+import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
+import { OrderedKeyMap } from "./ordered-key-map.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 
@@ -69,6 +70,12 @@ describe("runtime item mutation", () => {
     expect(() => runtimeMutateItem(v.tuple([]), v.integer(0n), { kind: "set", value: v.none }, v, meter)).toThrow("'tuple' object does not support item assignment");
     expect(() => runtimeMutateItem(v.tuple([]), v.integer(0n), { kind: "delete" }, v, meter)).toThrow("'tuple' object doesn't support item deletion");
     expect(() => runtimeMutateItem(v.none, v.integer(0n), { kind: "delete" }, v, meter)).toThrow("'NoneType' object does not support item deletion");
+  });
+  it("uses sequence-table deletion diagnostics for sets and dictionary views", () => {
+    const { meter, v } = fixture(), storage = () => new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 0n, equal: (a, b) => a === b }, meter);
+    const dictionary = v.dictionary(storage());
+    const receivers = [v.set(storage()), v.frozenSet(storage()), ...(["dict_keys", "dict_values", "dict_items"] as const).map(kind => v.dictionaryView(dictionary, kind))];
+    for (const receiver of receivers) expect(() => runtimeMutateItem(receiver, v.integer(0), { kind: "delete" }, v, meter)).toThrow(`'${receiver.kind}' object doesn't support item deletion`);
   });
   it("stops infinite replacement iterators at the fatal budget without assignment", () => {
     const { v, list } = fixture(), meter = new ExecutionBudget({ maxSteps: 30, maxAllocatedBytes: 10000 });

@@ -8,12 +8,12 @@ import { runtimeAddition, type AdditionContext } from "./runtime-addition.js";
 import { runtimeMultiplication, type MultiplicationContext } from "./runtime-multiplication.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeRichComparison, type RuntimeRichComparisonContext } from "./runtime-rich-comparison.js";
-import { runtimeIndex } from "./runtime-index.js";
+import { runtimeGetItem } from "./runtime-subscription.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import { runtimeUnary, type RuntimeUnaryProtocol } from "./runtime-unary.js";
-import { hasRuntimeInstanceAttributes, type AttributeInstanceValue, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type AttributeInstanceValue, type BuiltinInvocationContext, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
 import type { KeyOperations } from "./ordered-key-map.js";
 import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
@@ -42,6 +42,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
+    readonly subscription?: BuiltinInvocationContext;
     readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
     readonly bytes?: RuntimeBytesInputProtocol;
     readonly translation?: RuntimeStringTranslationContext;
@@ -149,7 +150,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       meter.checkpoint();
       return result;
     },
-    getItem: (object, key) => runtimeIndex(object, key, values, meter, bindings.integerIndex),
+    getItem: (object, key) => runtimeGetItem(object, key, values, meter, bindings.subscription, bindings.integerIndex),
     iterate: (value, notIterable, hint) => runtimeIterate(value, values, meter, bindings.iteration, notIterable, hint)
   };
   meter.checkpoint(0, 384);

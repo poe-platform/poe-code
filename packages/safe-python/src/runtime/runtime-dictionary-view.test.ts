@@ -125,7 +125,7 @@ describe("live dictionary views", () => {
       if (kind === "dict_values") expect(runtimeHash(view, hash, meter)).toBe(17n);
       else expect(() => runtimeHash(view, hash, meter)).toThrow(`unhashable type: '${kind}'`);
       expect(() => runtimeIndex(view, v.integer(0), v, meter)).toThrow(`'${kind}' object is not subscriptable`);
-      expect(() => runtimeMutateItem(view, key, { kind: "delete" }, v, meter)).toThrow(`'${kind}' object does not support item deletion`);
+      expect(() => runtimeMutateItem(view, key, { kind: "delete" }, v, meter)).toThrow(`'${kind}' object doesn't support item deletion`);
     }
   });
   it("binds dictionary/proxy read methods to their original live storage", () => {

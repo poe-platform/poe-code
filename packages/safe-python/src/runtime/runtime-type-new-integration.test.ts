@@ -43,6 +43,50 @@ it("constructs ordinary class statements through the concrete builtin builder", 
   expect(state.events).toEqual(["C"]); expect(state.globals.has("__slots__")).toBe(false);
 });
 
+it("dispatches ordinary subscription reads, writes, augmentation and deletion to guest slots", () => {
+  const state = fixture(), { v } = state;
+  state.run("class Mapping:\n def __getitem__(self,key):\n  visit('get:'+key)\n  return self.value\n def __setitem__(self,key,value):\n  visit('set:'+key)\n  self.value=value\n def __delitem__(self,key):\n  visit('del:'+key)\n  self.value=None\nmapping=Mapping()\nmapping['field']=7\nmapping['field']+=2\nresult=mapping['field']\ndel mapping['field']\nremoved=mapping.value\n");
+  expect(state.globals.get("result")).toEqual(v.integer(9)); expect(state.globals.get("removed")).toBe(v.none);
+  expect(state.events).toEqual(["set:field", "get:field", "set:field", "get:field", "del:field"]);
+});
+
+it("binds inherited class subscription and prioritizes the metaclass item slot", () => {
+  const state = fixture(), { v } = state;
+  state.run("class Base:\n def __class_getitem__(cls,key):\n  visit(key)\n  return cls\nclass Child(Base):\n pass\nselected=Child['class'] is Child\nclass Meta(type):\n def __getitem__(cls,key):\n  visit(key)\n  return 7\nclass C(Base,metaclass=Meta):\n pass\nresult=C['meta']\n");
+  expect(state.globals.get("selected")).toBe(v.true); expect(state.globals.get("result")).toEqual(v.integer(7));
+  expect(state.events).toEqual(["class", "meta"]);
+});
+
+it("passes tuple and slice keys unchanged and ignores instance method shadows", () => {
+  const state = fixture(), { v } = state;
+  state.run("class C:\n def __getitem__(self,key):\n  return key\ninstance=C()\ninstance.__getitem__=None\ntuple_key=instance[1,2]\nslice_key=instance[1:5:2]\n");
+  expect(state.globals.get("tuple_key")).toEqual(v.tuple([v.integer(1), v.integer(2)]));
+  expect(state.globals.get("slice_key")).toMatchObject({ kind: "slice", start: v.integer(1), stop: v.integer(5), step: v.integer(2) });
+});
+
+it("does not fall back past disabled metaclass subscription or class subscription", () => {
+  const state = fixture();
+  state.run("class C:\n __class_getitem__=None\nclass Meta(type):\n __getitem__=None\nclass D(metaclass=Meta):\n def __class_getitem__(cls,key):\n  visit('must not call')\n");
+  expect(() => state.run("C[1]\n")).toThrow("type 'C' is not subscriptable");
+  expect(() => state.run("D[1]\n")).toThrow("'NoneType' object is not callable"); expect(state.events).toEqual([]);
+});
+
+it("reports missing paired mutation slots separately from unsupported subscriptions", () => {
+  const state = fixture();
+  state.run("class Plain:\n pass\nclass SetOnly:\n def __setitem__(self,key,value):\n  pass\nclass DeleteOnly:\n def __delitem__(self,key):\n  pass\nplain=Plain()\nsetter=SetOnly()\ndeleter=DeleteOnly()\n");
+  expect(() => state.run("plain[1]\n")).toThrow("'Plain' object is not subscriptable");
+  expect(() => state.run("plain[1]=2\n")).toThrow("'Plain' object does not support item assignment");
+  expect(() => state.run("del plain[1]\n")).toThrow("'Plain' object doesn't support item deletion");
+  expect(() => state.run("del setter[1]\n")).toThrow("__delitem__");
+  expect(() => state.run("deleter[1]=2\n")).toThrow("__setitem__");
+});
+
+it("re-resolves the setter after an augmented read changes the class", () => {
+  const state = fixture(), { v } = state;
+  state.run("def replacement(self,key,value):\n visit('new setter')\n self.value=value\nclass C:\n def __getitem__(self,key):\n  C.__setitem__=replacement\n  return 7\n def __setitem__(self,key,value):\n  visit('old setter')\ninstance=C()\ninstance[1]+=2\nresult=instance.value\n");
+  expect(state.events).toEqual(["new setter"]); expect(state.globals.get("result")).toEqual(v.integer(9));
+});
+
 it("executes prepared class bodies without leaking locals and keeps class closure cells", () => {
   const state = fixture(), { v, registry } = state;
   state.builtins.set("__build_class__", v.builtinFunction({ name: "__build_class__", invoke(args, keywords, meter, invocation) {

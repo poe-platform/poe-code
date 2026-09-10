@@ -8300,6 +8300,22 @@ extension, integration, or validation requirement is missing or unverified.
   match. All 6,428 tests in 491 files, selected build, typecheck and scoped lint pass.
   Mutable bases/MRO invalidation, complete native constructors, guest exceptions,
   public execution assembly and packaging remain unfinished.
+- Added ordinary guest subscription dispatch for reads, writes, augmented
+  assignment and deletion. Live type slots receive original keys and slices;
+  class subscriptions prioritize metaclass __getitem__ before ordinary inherited
+  __class_getitem__ lookup. Disabled hooks, paired mutation-slot absence and
+  unsupported operations retain distinct diagnostics. References resolve receivers
+  and keys once but look up slots again at write-back. Prepared custom mappings now
+  share the same implementation. Eight added tests cover compiled operations,
+  descriptor precedence, key identity, reentrant setter changes and native errors.
+  Initial guest assignment and prepared-mapping paired-slot regressions failed.
+  Full-suite checks exposed three native tuple write-back regressions, fixed by
+  preserving exact-container dispatch without increasing budgets. CPython probes
+  also corrected set/view deletion wording and an older view-test expectation.
+  All 960 guest subscription cases and 72 concrete builder mapping traces match
+  CPython. All 6,436 tests in 491 files, selected build, typecheck and scoped lint pass.
+  Native generic aliases, complete constructors, mutable bases/MRO invalidation,
+  guest exceptions and public execution assembly remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

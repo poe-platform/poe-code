@@ -22,8 +22,8 @@ export function runtimeMutateItem(object: RuntimeValue, key: RuntimeValue, chang
   if (object.kind === "dict") { runtimeDictionaryAccess(object, key, change, meter); return; }
   if (object.kind !== "list") {
     const name = object.kind === "none" ? "NoneType" : object.kind === "not-implemented" ? "NotImplementedType" : object.kind;
-    const immutableSequence = object.kind === "tuple" || object.kind === "str" || object.kind === "bytes" || object.kind === "range";
-    const verb = change.kind === "delete" && immutableSequence ? "doesn't" : "does not";
+    const sequenceTable = object.kind === "tuple" || object.kind === "str" || object.kind === "bytes" || object.kind === "range" || object.kind === "set" || object.kind === "frozenset" || object.kind === "dict_keys" || object.kind === "dict_values" || object.kind === "dict_items";
+    const verb = change.kind === "delete" && sequenceTable ? "doesn't" : "does not";
     throw new PythonRuntimeError("TypeError", `'${name}' object ${verb} support item ${change.kind === "set" ? "assignment" : "deletion"}`);
   }
   if (key.kind === "slice") {

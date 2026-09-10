@@ -7865,6 +7865,20 @@ extension, integration, or validation requirement is missing or unverified.
   Default object attribute slots, intrinsic type names/qualified names, native
   type.__new__, complete class construction and suspended safe-fs effects remain
   unfinished.
+- Added intrinsic __name__/__qualname__ getsets and independent mutable name
+  storage. Two compiled regressions showed missing qualified names and namespace
+  writes leaving diagnostic names unchanged. Layouts now accept a prepared
+  qualifiedName; name updates retain assigned string identity without changing
+  namespaces or inheritance. Native getsets preserve immutable-type guards even
+  when called directly and reject deletion. A further failing Unicode regression
+  established UTF-8 surrogate rejection before null validation for __name__;
+  qualified names accept both. Thirteen tests cover caching, independent names,
+  shadowing, diagnostics, direct descriptor guards and atomic failure. All 264
+  mutation operations across 132 CPython cases and 96 compiled constructor cases
+  match. All 6,126 tests in 467 files, selected build, typecheck and scoped lint pass.
+  Class-construction extraction of qualified names, remaining type metadata,
+  default object attribute slots, native type.__new__, complete class construction
+  and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

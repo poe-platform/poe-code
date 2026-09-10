@@ -1759,6 +1759,22 @@ it("keeps getattr fallback outside explicit default type reads", () => {
   expect(() => state.run("type.__getattribute__(C,'missing')\n")).toThrow("type object 'C' has no attribute 'missing'");
 });
 
+it("reads intrinsic class names independently of namespace shadows", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner);
+  owner.value.namespace.items.set(state.v.string("__name__"), state.v.string("shadow"));
+  state.run("name=C.__name__\nqualified=C.__qualname__\n");
+  expect(state.globals.get("name")).toEqual(state.v.string("C")); expect(state.globals.get("qualified")).toEqual(state.v.string("C"));
+});
+
+it("renames intrinsic class metadata independently and updates runtime diagnostics", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner);
+  state.run("C.__name__='Renamed'\nC.__qualname__='Outer.Inner'\nname=C.__name__\nqualified=C.__qualname__\n");
+  expect(owner.value.name).toBe("Renamed"); expect(state.globals.get("name")).toEqual(state.v.string("Renamed")); expect(state.globals.get("qualified")).toEqual(state.v.string("Outer.Inner"));
+  expect(owner.value.namespace.items.lookup(state.v.string("__name__"))).toBeUndefined();
+  expect(owner.value.namespace.items.lookup(state.v.string("__qualname__"))).toBeUndefined();
+  expect(() => state.run("C.missing\n")).toThrow("type object 'Renamed' has no attribute 'missing'");
+});
+
 it("assigns and deletes class attributes without mutating inherited namespaces", () => {
   const state = fixture(), base = state.type("Base"), owner = state.type("C", base); state.globals.set("C", owner); state.globals.set("Base", base);
   base.value.namespace.items.set(state.v.string("value"), state.v.integer(1));

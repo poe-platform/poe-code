@@ -4,8 +4,11 @@ import { lookupMroAttribute } from "./class-attributes.js";
 import type { ClassAttribute } from "./instance-attributes.js";
 import { resolveRuntimeClassAttribute, type RuntimeDescriptorContext } from "./runtime-descriptor.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { RuntimeTypeNames } from "./runtime-type-names.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Prepared lexical name; class builders extract this from __qualname__. */
+  readonly qualifiedName?: string;
   /** Presence of the native sequence protocol table, not whether any slot is
    * implemented or whether the type is a Sequence. Heap types have a table even
    * when empty; static native types can omit it. This affects *= fallback. */
@@ -24,7 +27,7 @@ export interface RuntimeTypeLayoutOptions {
  * to class construction and the object layer.
  */
 export class RuntimeTypeLayout {
-  readonly name: string;
+  readonly names: RuntimeTypeNames;
   readonly bases: readonly RuntimeTypeLayout[];
   readonly mro: readonly RuntimeTypeLayout[];
   readonly namespace: DictionaryValue;
@@ -34,7 +37,7 @@ export class RuntimeTypeLayout {
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
     meter.checkpoint(1, 120 + 8 * bases.length);
-    this.name = name;
+    this.names = new RuntimeTypeNames(name, options.qualifiedName ?? name, meter);
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
     this.hasSequenceTable = options.sequenceTable ?? true;
@@ -45,6 +48,8 @@ export class RuntimeTypeLayout {
     this.mro = linearizeMro<RuntimeTypeLayout>(this, this.bases, base => base.mro, meter);
     Object.freeze(this);
   }
+
+  get name(): string { return this.names.name; }
 }
 
 /** Resolve only the winning MRO value's descriptor slots. No namespace cache is

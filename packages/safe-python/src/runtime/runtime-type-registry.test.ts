@@ -7,6 +7,7 @@ import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeHash } from "./runtime-hash.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { prepareClass } from "./class-preparation.js";
+import { readRuntimeGetsetDescriptor, mutateRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
 
 function fixture() {
   const budget = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }); let failAllocation = false;
@@ -19,6 +20,25 @@ function fixture() {
 }
 
 describe("canonical runtime type registry", () => {
+  it.each(["__name__", "__qualname__"] as const)("installs intrinsic %s getsets with immutable and deletion guards", name => {
+    const { registry, values, meter, layout } = fixture(), cls = registry.publish(layout("C"), registry.type);
+    const descriptor = registry.type.value.namespace.items.lookup(values.string(name))!.value;
+    if (descriptor.kind !== "getset_descriptor") throw Error("expected name getset");
+    expect(readRuntimeGetsetDescriptor(descriptor, cls, registry.type, meter)).toEqual(values.string("C"));
+    expect(() => mutateRuntimeGetsetDescriptor(descriptor, cls, { kind: "delete" }, meter)).toThrow(`cannot delete '${name}' attribute of immutable type 'C'`);
+    for (const builtin of [registry.type, registry.object]) for (const change of [{ kind: "set", value: values.string("new") }, { kind: "delete" }] as const) {
+      expect(() => mutateRuntimeGetsetDescriptor(descriptor, builtin, change, meter)).toThrow(`cannot set '${name}' attribute of immutable type '${builtin.value.name}'`);
+    }
+    const assigned = values.string("Changed"); mutateRuntimeGetsetDescriptor(descriptor, cls, { kind: "set", value: assigned }, meter);
+    expect(readRuntimeGetsetDescriptor(descriptor, cls, registry.type, meter)).toBe(assigned);
+  });
+  it("prepares qualified names independently of bases and namespace entries", () => {
+    const { registry, values, meter, layout } = fixture(), base = layout("Base"), baseType = registry.publish(base, registry.type), namespace = layout("unused").namespace;
+    const code = new RuntimeTypeLayout("C", [base], namespace, meter, { qualifiedName: "Outer.C" }), cls = registry.publish(code, registry.type);
+    base.names.set("__name__", values.string("RenamedBase"), meter);
+    expect(cls.value.name).toBe("C"); expect(code.names.get("__qualname__", values, meter)).toEqual(values.string("Outer.C"));
+    expect(registry.metadata(cls, "mro").items).toEqual([cls, baseType, registry.object]);
+  });
   it("bootstraps object and type with their canonical metaclass and inheritance identities", () => {
     const { registry } = fixture();
     expect(registry.type.metaclass).toBe(registry.type); expect(registry.object.metaclass).toBe(registry.type);

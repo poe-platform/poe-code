@@ -9,6 +9,7 @@ import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
+import { PythonRuntimeError } from "./error.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -65,6 +66,31 @@ export class RuntimeTypeRegistry {
         get: instance => entry.get(instance as TypeValue)
       });
       typeLayout.namespace.items.set(values.string(entry.name), descriptor);
+    }
+    for (const name of ["__name__", "__qualname__"] as const) {
+      meter.checkpoint(1, 128);
+      typeLayout.namespace.items.set(values.string(name), values.getsetDescriptor({
+        owner: this.type, name,
+        accepts: (instance, meter) => {
+          if (instance.kind !== "type") return false;
+          for (const ancestor of instance.metaclass.value.mro) { meter.checkpoint(); if (ancestor === this.type.value) return true; }
+          return false;
+        },
+        get: (instance, meter) => (instance as TypeValue).value.names.get(name, values, meter),
+        set: (instance, value, meter) => {
+          const type = instance as TypeValue;
+          if (type.immutable) {
+            meter.checkpoint(0, 128 + 2 * type.value.name.length);
+            throw new PythonRuntimeError("TypeError", `cannot set '${name}' attribute of immutable type '${type.value.name}'`);
+          }
+          type.value.names.set(name, value, meter);
+        },
+        delete: (instance, meter) => {
+          const type = instance as TypeValue;
+          meter.checkpoint(0, 128 + 2 * type.value.name.length);
+          throw new PythonRuntimeError("TypeError", `cannot ${type.immutable ? "set" : "delete"} '${name}' attribute of immutable type '${type.value.name}'`);
+        }
+      }));
     }
     Object.freeze(this);
   }

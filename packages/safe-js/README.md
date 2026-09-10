@@ -381,6 +381,11 @@ There are no runtime environment variables to set. `makeEnvModule({ allow, value
 
 `deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible.
 
+Native Promise imports accept genuine promises from other JavaScript realms,
+preserving aliases and copying fulfillment or rejection values. Imports remain
+settlement-only: own string and symbol properties are not copied, because they
+can contain private host async-context state. Property admission is unresolved.
+
 </details>
 
 <details>
@@ -918,8 +923,9 @@ supports compatible, earlier, later and reject disambiguation. Expanded-year par
 representable-range validation.
 PlainDate currently has construction, calendar/date getters, `from`, `compare`, `equals`, `add`, `subtract`, `until`, `since`, `with`, `withCalendar`, `toPlainDateTime`, `toZonedDateTime`, `toString`, `toJSON`, `toLocaleString`,
 and `valueOf`, with private data copying, host bindings, and heap/replay support.
-Its year-month/month-day conversions
-remain unfinished. `PlainDate.from` accepts ISO strings, calendar-based date bags
+Its local `toPlainYearMonth` and `toPlainMonthDay` conversions use private fields,
+with focused calendar and receiver-brand checks; public integration remains
+uncommitted. `PlainDate.from` accepts ISO strings, calendar-based date bags
 and owned date/date-time/zoned values, with ordered field/options reads and
 private-slot copies. `PlainDateTime.from` also accepts owned zoned local fields;
 both date types reject ZonedDateTime partial updates before reading public properties.

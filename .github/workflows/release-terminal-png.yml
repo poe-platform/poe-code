@@ -61,8 +61,6 @@ jobs:
         if: steps.release-admission.outputs.publish == 'true'
       - name: Publish terminal-png-mcp
         working-directory: packages/terminal-png-mcp
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if npm view "terminal-png-mcp@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
             echo "terminal-png-mcp@${{ steps.version.outputs.next }} is already published"

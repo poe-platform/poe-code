@@ -2,6 +2,7 @@ import { Shell, agentCommands, createAgentCommands, createMemoryFileSystem, eval
 import { checksumWorkflows, expectedAgentCommandNames, nullDeviceWorkflows, runNestedCommands, verifyCmpCommands, verifyFmtCommands, verifyShufCommands, verifyNumfmtCommands, verifyTruncateCommands, verifyZipCommands, verifyCsplitCommands, verifyPrCommands, verifyTsortCommands, verifyFactorCommands, verifyGetoptCommands, verifyHexdumpCommands, verifyNullDeviceView } from "./safe-packages-mixed-entry-runtime.mjs";
 import { FsError as CoreFsError, createDeviceFileSystem } from "@poe-platform/safe-fs/core";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs/core";
+import "./safe-packages-response-body-mode.mjs";
 
 if (FsError !== CoreFsError) throw new Error("Browser filesystem identity diverged");
 if (FsError !== CompatibilityFsError) throw new Error("Compatibility filesystem identity diverged");

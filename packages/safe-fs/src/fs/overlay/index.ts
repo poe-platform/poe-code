@@ -171,7 +171,7 @@ export class OverlayFileSystem implements FileSystem {
       ...(effectiveAppend === undefined ? {} : { append: effectiveAppend }),
       atomicRename: false, atomicRenameNoReplace: false,
       descriptorWriteStream: false,
-      retainedResize: false,
+      retainedResize: false, atomicResize: false,
       hardlinks: false,
       symlinks: writable && this.#upper.capabilities.symlinks === true
         && typeof this.#upper.symlink === "function" && typeof this.#upper.readlink === "function"

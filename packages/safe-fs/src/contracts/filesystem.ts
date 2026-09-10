@@ -60,6 +60,7 @@ export interface FileSystemCapabilities {
   readonly streamingRead?: boolean;
   readonly retainedRead?: boolean;
   readonly retainedResize?: boolean;
+  readonly atomicResize?: boolean;
   readonly streamingWrite?: boolean;
   readonly descriptorWriteStream?: boolean;
   readonly [capability: string]: boolean | undefined;
@@ -85,6 +86,24 @@ export interface FileReadHandle {
 }
 
 export interface OpenResizeFileOptions extends FsOptions {
+  readonly create?: boolean;
+  readonly mode?: number;
+}
+
+/** A single atomic read/compute/resize operation, never a caller-side stat/write pair.
+ * size and referenceSize use signed 64-bit byte integers (referenceSize is nonnegative).
+ * ioBlocks scales size by the target's preferred I/O block size before applying the
+ * modifier. Relative/min/max/round operations use referenceSize or the current size.
+ * Signed overflow rejects; negative final sizes clamp to zero. Providers enforce
+ * their size/quota/permission limits before allocation or publication. */
+export interface FileResizeOperation {
+  readonly size: bigint;
+  readonly modifier: "absolute" | "relative" | "minimum" | "maximum" | "down" | "up";
+  readonly referenceSize?: bigint;
+  readonly ioBlocks?: boolean;
+}
+
+export interface FileResizeOptions extends FsOptions {
   readonly create?: boolean;
   readonly mode?: number;
 }
@@ -148,6 +167,8 @@ export interface FileSystem {
   readonly capabilities: FileSystemCapabilities;
   openReadFile?(path: string, options?: OpenReadFileOptions): Promise<FileReadHandle>;
   openResizeFile?(path: string, options?: OpenResizeFileOptions): Promise<FileResizeHandle>;
+  /** Missing targets reject ENOENT unless create is true; existing bytes survive refusals. */
+  resizeFile?(path: string, operation: FileResizeOperation, options?: FileResizeOptions): Promise<void>;
   canonicalizeMissingTarget?(path: string, options?: FsOptions): string | undefined;
   capabilitiesFor?(path: string, options?: CapabilityQueryOptions): Promise<FileSystemCapabilities>;
   readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array>;

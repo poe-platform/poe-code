@@ -93,7 +93,7 @@ for (const stage of ["before", "acquired", "consumed"] as const) {
   });
 }
 
-for (const failure of [new FsError("EACCES"), new FsError("EROFS"), new FsError("EIO"), { code: "ENOTSUP" }]) {
+for (const failure of [new FsError("EACCES"), new FsError("EROFS"), new FsError("EIO"), new FsError("EACCES", { path: "/out", message: "This loaded file is read-only. Write to a new path instead.", cause: new Error("private backend detail") }), { code: "ENOTSUP" }, Object.assign(new Error("private backend detail"), { code: "EACCES" })]) {
   test(`curl preserves stream failure without replay: ${failure.code}`, async () => {
     const backing = createMemoryFileSystem();
     const fs: FileSystem = { ...buffered(backing), capabilities: {} };
@@ -105,7 +105,10 @@ for (const failure of [new FsError("EACCES"), new FsError("EROFS"), new FsError(
     try {
       const result = await shell.exec("curl https://example.invalid/file -o /out");
       assert.equal(result.exitCode, 23);
-      assert.equal(result.stderr, "curl: (23) Failed writing virtual output file\n");
+      assert.equal(result.stderr, failure instanceof FsError
+        ? `curl: (23) Failed writing virtual output file: ${failure.message}\n`
+        : "curl: (23) Failed writing virtual output file\n");
+      assert.doesNotMatch(result.stderr, /private backend detail/u);
       assert.equal(writes, 0);
       assert.equal(produced, 0);
       await assert.rejects(backing.readFile("/out"), { code: "ENOENT" });
@@ -221,7 +224,7 @@ test("curl does not retry failed buffered appends after a partial mounted write"
   try {
     const result = await shell.exec("curl https://example.invalid/file -o /scratch/out");
     assert.equal(result.exitCode, 23);
-    assert.equal(result.stderr, "curl: (23) Failed writing virtual output file\n");
+    assert.equal(result.stderr, "curl: (23) Failed writing virtual output file: EIO: input/output error, appendFile '/scratch/out'\n");
     assert.equal(appended, 2);
     assert.equal(produced, 2);
     assert.deepEqual(await backing.readFile("/out"), new Uint8Array([1]));

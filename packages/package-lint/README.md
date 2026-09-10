@@ -98,3 +98,5 @@ to the runtime path that must be present after build. Declarations are not
 suppressions: the declared runtime file or directory must still exist and be
 included by the package/root/bundled dependency artifact surfaces that can run
 the package.
+
+Installability checks cover stale concrete workspace ranges, runtime file assets, undeclared imports from root entrypoints, and bundled packages that retain unbundled private dependencies. These checks complement the package-local README and configuration documentation requirements.

@@ -201,6 +201,40 @@ writer's flags. Overlay declarations conservatively include upper staging and
 copy-up prerequisites; missing required declarations remain unknown. Wrappers
 must not manufacture support from delegated mandatory methods.
 
+## Atomic resize operations
+
+Backends that cannot retain a writable object across requests may instead offer
+`resizeFile(path, operation, { create?, mode?, signal? })` and declare
+`atomicResize: true`. This is one atomic target resolution, write-permission
+check, size computation and resize transaction. It must never be implemented as
+an unguarded pathname stat/read followed by a later whole-file write.
+
+`operation.size` is a signed 64-bit bigint. `modifier` is `absolute`, `relative`,
+`minimum` (at least), `maximum` (at most), `down` or `up` (round to a multiple).
+Only `relative` accepts a negative operand; rounding requires a positive divisor.
+`referenceSize`, when present, is a nonnegative signed 64-bit bigint snapshot
+supplied by the caller and replaces the current target size as the modifier base.
+`ioBlocks: true` multiplies the operand by the target's positive preferred I/O
+block size before applying the modifier; missing block metadata is unsupported.
+Signed overflow rejects, and a negative relative result clamps to zero. Providers
+validate the final logical length and storage quotas before allocation or mutation.
+The operation preserves the prefix and zero-fills extension. Refusals leave existing
+bytes unchanged; write permission is checked even for unchanged lengths.
+
+Creation defaults to false. Missing no-create targets reject with `ENOENT`;
+creation does not create parents, and `mode` affects new files only. The operation
+has a single linearization point against the target selected by the backend,
+not retained-handle identity after rename or unlink. Cancellation does not undo a
+committed resize; callers must await admitted work and must not replay blindly.
+
+`truncate` keeps its retained-handle path when available and otherwise uses this
+explicit atomic operation, passing the modifier rather than calculating from a
+stale target size. Its reference is sampled once before processing targets.
+Device and mount views forward supported operations, scoped views charge and
+check cancellation, and readonly views deny them. Quota and overlay views do
+not advertise atomic resize because their existing composition cannot preserve
+its transaction guarantee. The retained resizing contract remains unchanged.
+
 ## Retained writable resizing
 
 `openResizeFile(path, { create?, mode?, signal? })` is optional and requires

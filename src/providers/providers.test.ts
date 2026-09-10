@@ -2195,7 +2195,7 @@ describe("goose service", () => {
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
     expect(provider.headers).toBeUndefined();
-    expect(provider.models).toBeUndefined();
+    expect(provider.models).toEqual([]);
 
     const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
       string,
@@ -2225,6 +2225,18 @@ describe("goose service", () => {
     expect(
       ((config.extensions as Record<string, unknown>).custom as Record<string, unknown>).enabled
     ).toBe(true);
+  });
+
+  it("preserves an existing Goose provider model catalog", async () => {
+    const models = [{ name: "personal-model", context_limit: 64000 }];
+    await mockFsObj.mkdir(path.dirname(providerPath), { recursive: true });
+    await mockFsObj.writeFile(providerPath, JSON.stringify({ models, headers: { "X-Custom": "keep" } }), "utf8");
+
+    await configureGoose();
+
+    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8"));
+    expect(provider.models).toEqual(models);
+    expect(provider.headers).toEqual({ "X-Custom": "keep" });
   });
 
   it("uses provider.baseUrl when building the custom provider config", async () => {

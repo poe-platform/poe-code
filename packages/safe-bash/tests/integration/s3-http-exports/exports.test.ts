@@ -7,6 +7,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 await import(new URL("./archive-controls.test.mjs", import.meta.url).href);
+await import(new URL("./archive-parser.test.mjs", import.meta.url).href);
 const { cleanEnvironment } = await import(new URL("./committed-archive.mjs", import.meta.url).href);
 
 test("S3 HTTP root/subpath exports work from a clean packed revision without source fallback", { timeout: 300_000 }, () => {

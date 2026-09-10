@@ -38,6 +38,11 @@ This package does not introduce any new config keys.
 It discovers markdown plans from the shared plan directory. The default is
 `docs/plans`.
 
+YAML pipeline plans are discovered from the same directory. Plans in the `later/`
+subdirectory are listed after active plans and grouped as saved for later. Broken
+symlinks are skipped during discovery. Editor commands prefer `VISUAL` over `EDITOR`
+and keep escaped spaces inside command tokens.
+
 It respects the existing config option:
 
 - `plan.plan_directory`
@@ -55,6 +60,8 @@ It also respects the existing environment variable:
 - `discoverAllPlans()`
 - `runPlanBrowser()`
 - `loadPlanPreviewMarkdown()`
+- `savePlanForLater()`
+- `restorePlanFromLater()`
 - `archivePlan()`
 - `deletePlan()`
 - `editPlan()`
@@ -62,3 +69,5 @@ It also respects the existing environment variable:
 
 Archive and delete are marked as destructive explorer actions. The explorer owns
 the confirmation prompt before dispatching either file action.
+
+Press `s` to move an active plan into `later/` or restore a saved plan. A missing save reason is prompted and stored as `saved_for_later.reason`. This is separate from the existing `r` readiness toggle. Discovery also supports YAML pipeline plans and skips broken symlinks; editor selection prefers `VISUAL` over `EDITOR`.

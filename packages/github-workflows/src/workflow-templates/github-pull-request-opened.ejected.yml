@@ -1,7 +1,7 @@
 name: 'GitHub: Pull Request Opened'
 on:
   pull_request:
-    types: [opened, ready_for_review]
+    types: [ opened, ready_for_review ]
 
 jobs:
   guard:
@@ -104,7 +104,7 @@ jobs:
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
-      - run: poe-code github-workflows github-pull-request-opened --yes
+      - run: poe-code github-workflows github-pull-request-opened --yes --model "${POE_CODE_REVIEW_MODEL:-gpt-5.4}"
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
@@ -113,3 +113,4 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          POE_CODE_REVIEW_MODEL: ${{ vars.POE_CODE_REVIEW_MODEL }}

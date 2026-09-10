@@ -263,7 +263,7 @@ describe("configure command", () => {
     ) as Record<string, unknown>;
     expect(provider.name).toBe("custom_poe");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
-    expect(provider.models).toBeUndefined();
+    expect(provider.models).toEqual([]);
   });
 
   it("prompts for an agent when core.defaultAgent is configured without --yes", async () => {

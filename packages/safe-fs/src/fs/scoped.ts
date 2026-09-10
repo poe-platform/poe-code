@@ -9,7 +9,7 @@ const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: Abor
 const operations = new Set<keyof FileSystem>([
   "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
-  "readlink", "realpath", "rename", "rm", "rmdir", "stat", "symlink", "truncate", "utimes",
+  "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "stat", "symlink", "truncate", "utimes",
   "writeFile", "writeStream",
 ]);
 

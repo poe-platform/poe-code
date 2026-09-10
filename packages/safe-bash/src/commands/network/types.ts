@@ -7,6 +7,10 @@ export interface HttpRequest {
   readonly method: string;
   readonly headers: HttpHeaders;
   readonly body?: ByteSource;
+  /** Consumer body intent, independent of method. Omitted means "read".
+   * "omit" permits an empty body; "omit-on-http-error" permits it only for
+   * status >= 400. Neither changes the HTTP request or response status/headers. */
+  readonly responseBodyMode?: "omit" | "omit-on-http-error" | "read";
   readonly signal: AbortSignal;
   readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
   readonly denyPrivateNetworks?: true;

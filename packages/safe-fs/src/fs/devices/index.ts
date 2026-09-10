@@ -1,12 +1,12 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type {
-  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
+  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
-import { compareEntries, registerEntryView } from "../mount/comparison.js";
+import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
 import { deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities } from "../capabilities.js";
@@ -20,14 +20,14 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
   remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
   mkdir: false, recursiveMkdir: false, symlinks: false, hardlinks: false, readlink: false,
   permissions: false, timestamps: false, truncate: false, randomAccessWrite: false,
-  atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true,
+  atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true, atomicResize: false,
 });
 
 function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
     streamingRead: ["readStream"], streamingWrite: ["writeStream"], retainedRead: ["openReadFile"],
-    streamingAppend: ["writeStream"], descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"],
+    streamingAppend: ["writeStream"], descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
     symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"],
     timestamps: ["utimes"], readlink: ["readlink"], truncate: ["truncate"], removeDirectory: ["rmdir"],
   };
@@ -85,6 +85,8 @@ export class DeviceFileSystem implements FileSystem {
         stat: resolved === nullPath ? this.#nullStat : this.#directoryStat, readOnly: false };
       return { filesystem, path };
     });
+    // This internal view has no identity proof beyond its synthetic stats.
+    registerEntryAuthority(this, async () => "unknown");
     return view;
   }
 
@@ -136,6 +138,7 @@ export class DeviceFileSystem implements FileSystem {
       unavailable.descriptorWriteStream = false;
     }
     if (typeof this.#filesystem.openReadFile !== "function") unavailable.retainedRead = false;
+    if (observed.atomicResize === true && (typeof this.#filesystem.resizeFile !== "function" || observed.readOnly === true)) unavailable.atomicResize = false;
     const result = Object.keys(unavailable).some(key => capabilities[key] !== false)
       ? { ...capabilities, ...unavailable } : capabilities;
     options.signal?.throwIfAborted();
@@ -211,6 +214,18 @@ export class DeviceFileSystem implements FileSystem {
       async seekEnd(settings = {}) { check(settings); return 0n; },
       async close() { closed = true; },
     };
+  }
+
+  async resizeFile(path: string, operation: FileResizeOperation, options: FileResizeOptions = {}): Promise<void> {
+    await this.#mutable(path, options);
+    const capabilities = await this.capabilitiesFor(path, options);
+    options.signal?.throwIfAborted();
+    if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "resizeFile", path });
+    const resize = this.#filesystem.resizeFile;
+    options.signal?.throwIfAborted();
+    if (capabilities.atomicResize !== true || typeof resize !== "function") throw new FsError("ENOTSUP", { syscall: "resizeFile", path });
+    await Reflect.apply(resize, this.#filesystem, [path, operation, options]);
+    options.signal?.throwIfAborted();
   }
 
   async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {

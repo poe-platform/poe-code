@@ -1,4 +1,4 @@
-import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type FileReadHandle, type FileResizeHandle, type FileStat } from "../contracts/index.js";
+import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type FileReadHandle, type FileResizeHandle, type FileResizeOperation, type FileStat } from "../contracts/index.js";
 import { createOutputOperation } from "../contracts/output.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { yieldTurn } from "../contracts/yield.js";
@@ -324,7 +324,7 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
   const configured = metadataSettings(options);
   const argumentLimit = Math.min(65536, configured.limits.maxArgumentBytes);
   const outputMaximum = Math.min(bufferLimit, configured.limits.maxOutputBytes);
-  return { name: "truncate", filesystemRequirements: [{ id: "resize", description: "Resize retained writable VFS entries", capabilities: ["retainedResize"], mutates: true }], async execute(context) {
+  return { name: "truncate", filesystemRequirements: [{ id: "resize", description: "Resize writable VFS entries through retained handles or atomic operations", capabilities: [], anyOf: [["retainedResize"], ["atomicResize"]], mutates: true }], async execute(context) {
     context.signal.throwIfAborted();
     const root = createOutputOperation({ signal: context.signal, registerCleanup(cleanup) {
       let retirement: Promise<void> | undefined;
@@ -456,6 +456,18 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
             if (readOnly === true) throw new FsError("EROFS");
             const retainedResize = capabilities.retainedResize;
             signal.throwIfAborted();
+            if (retainedResize !== true && capabilities.atomicResize === true) {
+              signal.throwIfAborted();
+              const resize = filesystem.resizeFile;
+              signal.throwIfAborted();
+              if (typeof resize !== "function") throw new FsError("ENOTSUP");
+              const operation: FileResizeOperation = { size: settings.size ?? reference!, modifier: settings.modifier,
+                ...(reference === undefined ? {} : { referenceSize: reference }), ioBlocks: settings.blocks };
+              await root.acquire(signal => Reflect.apply(resize, filesystem, [path, operation,
+                { create: !settings.noCreate, mode: 0o666 & ~configured.umask, signal }]), () => {});
+              signal.throwIfAborted();
+              continue;
+            }
             if (retainedResize !== true) throw new FsError("ENOTSUP");
             const openResizeFile = filesystem.openResizeFile;
             signal.throwIfAborted();

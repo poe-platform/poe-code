@@ -232,7 +232,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         })();
         try {
         response = await operation.acquire(async () => {
-          const acquired = await transport({ url: current.href, method, headers, signal,
+          const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head ? "omit" : args.fail ? "omit-on-http-error" : "read",
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}) });
           let cleanup: Promise<void> | undefined;
           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };

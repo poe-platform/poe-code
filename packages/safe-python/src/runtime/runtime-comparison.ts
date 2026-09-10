@@ -131,8 +131,15 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
       continue;
     }
     if (a.kind === "method" && b.kind === "method" && (op === "==" || op === "!=")) {
-      const equal = a.value.function === b.value.function && a.value.instance === b.value.instance;
-      result = op === "==" ? equal : !equal; continue;
+      if (a.value.function === b.value.function) {
+        const equal = a.value.instance === b.value.instance;
+        result = op === "==" ? equal : !equal; continue;
+      }
+      if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
+      meter.checkpoint(0, 96);
+      work.push(() => { const equal = result && a.value.instance === b.value.instance; result = op === "==" ? equal : !equal; },
+        { operator: "==", left: a.value.function, right: b.value.function, depth: depth + 1, truth: true });
+      continue;
     }
     if (a.kind === "method-wrapper" && b.kind === "method-wrapper" && (op === "==" || op === "!=")) {
       const equal = a.value.descriptor === b.value.descriptor && a.value.instance === b.value.instance;

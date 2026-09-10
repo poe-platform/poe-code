@@ -7912,6 +7912,20 @@ extension, integration, or validation requirement is missing or unverified.
   automatic method wrapping, native object subclass hooks, full type.__new__
   integration, guest exception-note exposure and suspended safe-fs effects remain
   unfinished.
+- Generalized raw bound-method records beyond Python functions, as required by
+  classmethod's arbitrary wrapped values. Six initial regressions exposed native/
+  type/nested call dispatch and function-identity-only equality/hashing. Calls now
+  unwrap receiver chains iteratively and reenter ordinary call dispatch; equality
+  truth-converts wrapped-value equality before receiver identity, and hashing uses
+  an explicit method continuation to hash the wrapped value before receiver
+  identity. Added __func__/__self__ reads and corrected bound native names in
+  argument-collection diagnostics. Thirteen tests cover noncallables, native/type
+  calls, metadata, guest comparison/hash callbacks, depth limits and 2,000-level
+  binding chains. All 576 equality pairs, 24 hash cases, 54 compiled binding cases
+  and 96 compiled constructor cases match CPython. All 6,169 tests in 469 files,
+  selected build, typecheck and scoped lint pass. Public MethodType validation,
+  native classmethod/staticmethod wrappers, automatic class-body wrapping, full
+  type.__new__ integration and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

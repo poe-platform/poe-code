@@ -1833,6 +1833,43 @@ it("runs compiled set-name and inherited subclass hooks on an allocated class", 
   state.run("finish()\nresult=C.assigned\ninstance=C()\n"); expect(state.events).toEqual(["x", "subclass"]); expect(state.globals.get("result")).toEqual(state.v.string("x"));
 });
 
+it("calls bound native functions with nested receivers in binding order", () => {
+  const state = fixture(), first = state.v.list([]), second = state.v.list([]);
+  const native = state.v.builtinFunction({ name: "capture", invoke(args) { expect(args).toEqual([first, second, state.v.integer(7)]); return state.v.true; } });
+  state.globals.set("method", state.v.boundMethod(state.v.boundMethod(native, first), second));
+  state.run("result=method(7)\n"); expect(state.globals.get("result")).toBe(state.v.true);
+});
+
+it("calls bound type values through normal type inspection", () => {
+  const state = fixture(), owner = state.type("C"), instance = state.v.instance(owner);
+  state.globals.set("method", state.v.boundMethod(state.registry.type, instance));
+  state.run("result=method()\n"); expect(state.globals.get("result")).toBe(owner);
+});
+
+it("reports noncallable wrapped values through the normal call path", () => {
+  const state = fixture(); state.globals.set("method", state.v.boundMethod(state.v.none, state.v.true));
+  expect(() => state.run("method()\n")).toThrow("'NoneType' object is not callable");
+});
+
+it("unwraps deeply nested bound calls without recursive host invocation", () => {
+  const state = fixture(); let method: RuntimeValue = state.v.builtinFunction({ name: "count", invoke(args) { return state.v.integer(args.length); } });
+  for (let depth = 0; depth < 2000; depth++) method = state.v.boundMethod(method, state.v.true);
+  state.globals.set("method", method); state.run("result=method()\n"); expect(state.globals.get("result")).toEqual(state.v.integer(2000));
+});
+
+it("exposes bound method function and receiver identities without host payload fields", () => {
+  const state = fixture(), fn = state.v.builtinFunction({ name: "fn", invoke: () => state.v.none }), receiver = state.v.list([]);
+  state.globals.set("method", state.v.boundMethod(fn, receiver)); state.run("function=method.__func__\nreceiver=method.__self__\n");
+  expect(state.globals.get("function")).toBe(fn); expect(state.globals.get("receiver")).toBe(receiver);
+});
+
+it("uses the underlying native function name for duplicate bound-call keywords", () => {
+  const state = fixture(), fn = state.v.builtinFunction({ name: "capture", invoke() { throw Error("must not call"); } });
+  state.hooks.keywordName = value => value.kind === "str" ? String.fromCodePoint(...value.value) : "invalid";
+  state.globals.set("method", state.v.boundMethod(fn, state.v.true));
+  expect(() => state.run("method(x=1,**{'x':2})\n")).toThrow("capture() got multiple values for keyword argument 'x'");
+});
+
 it("assigns and deletes class attributes without mutating inherited namespaces", () => {
   const state = fixture(), base = state.type("Base"), owner = state.type("C", base); state.globals.set("C", owner); state.globals.set("Base", base);
   base.value.namespace.items.set(state.v.string("value"), state.v.integer(1));

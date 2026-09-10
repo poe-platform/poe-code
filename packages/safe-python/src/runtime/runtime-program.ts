@@ -88,9 +88,25 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const specialMethods = hooks.specialMethods?.(frame); meter.checkpoint();
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
       get iteration() { return getIteration(); },
-      values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : value.kind === "method_descriptor" || value.kind === "wrapper_descriptor" ? `${value.value.owner.value.name}.${value.value.name}()` : value.kind === "method-wrapper" ? `${value.value.descriptor.value.owner.value.name}.${value.value.descriptor.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
+      values, keys, name(value) {
+        while (value.kind === "method") { meter.checkpoint(); value = value.value.function; }
+        if (value.kind === "builtin_function_or_method") return `${value.value.name}()`;
+        if (value.kind === "method_descriptor" || value.kind === "wrapper_descriptor") return `${value.value.owner.value.name}.${value.value.name}()`;
+        if (value.kind === "method-wrapper") return `${value.value.descriptor.value.owner.value.name}.${value.value.descriptor.value.name}()`;
+        return hooks.name(value);
+      }, keywordName: hooks.keywordName.bind(hooks),
       callable: value => runtimeCallable(value, meter, hooks),
       invoke(value, positional, keywords) {
+        if (value.kind === "method") {
+          const receivers: RuntimeValue[] = [];
+          let callable: RuntimeValue = value;
+          while (callable.kind === "method") { meter.checkpoint(1, 8); receivers.push(callable.value.instance); callable = callable.value.function; }
+          meter.checkpoint(0, 32 + 8 * (receivers.length + positional.length));
+          const args: RuntimeValue[] = [];
+          for (let index = receivers.length - 1; index >= 0; index--) { meter.checkpoint(); args.push(receivers[index]); }
+          for (const item of positional) { meter.checkpoint(); args.push(item); }
+          return builtinCalls.call(callable, args, keywords);
+        }
         if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter, builtinCalls);
         if (value.kind === "method_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "method-wrapper") return callRuntimeMethodDescriptor(value, positional, keywords, meter, builtinCalls);
         if (value.kind === "type" && specialMethods !== undefined) {
@@ -98,13 +114,8 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           try { return callRuntimeType(value, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks)); }
           finally { leave(); }
         }
-        const fn = value.kind === "method" ? value.value.function : value;
-        let args = positional;
-        if (value.kind === "method") {
-          meter.checkpoint(1, 32 + 8 * (positional.length + 1));
-          args = Object.freeze([value.value.instance, ...positional]);
-        }
-        if (fn.kind !== "function") return hooks.invoke(fn, args, keywords, frame);
+        const fn = value;
+        if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
           values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null),
           classBody(code) {
@@ -124,7 +135,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           }
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
-        return invokeRuntimeFunction(fn, args, keywords, invocation, meter);
+        return invokeRuntimeFunction(fn, positional, keywords, invocation, meter);
       }
     }, meter);
     meter.checkpoint(0, 128);

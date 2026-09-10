@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { RuntimeValues } from "./runtime-values.js";
+import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
 import { ExecutionBudget } from "./execution-budget.js";
 import { createFunctionState } from "./function-state.js";
 import { compileProgram } from "./program-compilation.js";
@@ -50,5 +50,50 @@ describe("concrete bound Python methods", () => {
     expect(runtimeTruth(method, meter)).toBe(true);
     expect(() => runtimeIterate(method, v, meter)).toThrow("'method' object is not iterable");
     expect(runtimeBinary("+", method, v.integer(1), v, meter)).toBe(v.notImplemented);
+  });
+
+  it("compares wrapped values by equality but receivers only by identity", () => {
+    const { v, meter } = fixture(), receiver = v.list([]), other = v.list([]), a = v.list([v.integer(1)]), b = v.list([v.integer(1)]);
+    expect(runtimeComparison("==", v.boundMethod(a, receiver), v.boundMethod(b, receiver), v, meter)).toBe(v.true);
+    expect(runtimeComparison("!=", v.boundMethod(a, receiver), v.boundMethod(b, other), v, meter)).toBe(v.true);
+  });
+
+  it("truth-converts callable equality before applying receiver identity", () => {
+    const { v, meter } = fixture(), a = v.cell({}), b = v.cell({}), receiver = v.list([]), events: string[] = [];
+    const context = { equality(left: unknown, right: unknown) { expect(left).toBe(a); expect(right).toBe(b); events.push("eq"); return v.integer(7); }, truth(value: unknown) { expect(value).toEqual(v.integer(7)); events.push("truth"); return true; } };
+    expect(runtimeComparison("==", v.boundMethod(a, receiver), v.boundMethod(b, v.list([])), v, meter, 1000, context)).toBe(v.false);
+    expect(events).toEqual(["eq", "truth"]);
+  });
+
+  it("hashes the wrapped value rather than its identity and rejects unhashable wrapped values", () => {
+    const { v, meter } = fixture(), receiver = v.list([]), context = { none: v.none, identity: () => 33n, string: () => 0n, bytes: () => 0n };
+    expect(runtimeHash(v.boundMethod(v.integer(7), receiver), context, meter)).toBe(38n);
+    expect(() => runtimeHash(v.boundMethod(v.list([]), receiver), context, meter)).toThrow("unhashable type: 'list'");
+  });
+
+  it("hashes deeply nested method bindings without recursive host calls", () => {
+    const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
+    let method: RuntimeValue = v.integer(7);
+    for (let depth = 0; depth < 2000; depth++) method = v.boundMethod(method, v.true);
+    expect(runtimeHash(method, { none: v.none, identity: () => 33n, string: () => 0n, bytes: () => 0n }, meter)).toBe(7n);
+  });
+
+  it("skips callable equality for identical wrapped values", () => {
+    const { v, meter } = fixture(), fn = v.cell({}), receiver = v.list([]);
+    const context = { equality() { throw Error("must not compare identical callable"); } };
+    expect(runtimeComparison("==", v.boundMethod(fn, receiver), v.boundMethod(fn, receiver), v, meter, 1000, context)).toBe(v.true);
+  });
+
+  it("bounds recursive method equality with the comparison depth policy", () => {
+    const { v, meter } = fixture(); let a: RuntimeValue = v.list([]), b: RuntimeValue = v.list([]);
+    for (let depth = 0; depth < 20; depth++) { a = v.boundMethod(a, v.true); b = v.boundMethod(b, v.true); }
+    expect(() => runtimeComparison("==", a, b, v, meter, 10)).toThrow("maximum recursion depth exceeded in comparison");
+  });
+
+  it("runs the callable hash before the receiver identity hash", () => {
+    const { v, meter } = fixture(), fn = v.cell({}), receiver = v.list([]), events: string[] = [];
+    const guest = { lookupHash: () => () => { events.push("callable hash"); return v.integer(7); }, integer: (value: RuntimeValue) => value.kind === "int" ? value.value : undefined, typeName: () => "Callable" };
+    const context = { none: v.none, guestHash: (value: RuntimeValue) => value === fn ? guest : undefined, identity(value: RuntimeValue) { expect(value).toBe(receiver); events.push("receiver identity"); return 33n; }, string: () => 0n, bytes: () => 0n };
+    expect(runtimeHash(v.boundMethod(fn, receiver), context, meter)).toBe(38n); expect(events).toEqual(["callable hash", "receiver identity"]);
   });
 });

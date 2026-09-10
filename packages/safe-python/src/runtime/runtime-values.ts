@@ -128,7 +128,7 @@ export interface BuiltinFunctionValue {
 
 export interface BoundMethodValue {
   readonly kind: "method";
-  readonly value: { readonly function: FunctionValue; readonly instance: RuntimeValue };
+  readonly value: { readonly function: RuntimeValue; readonly instance: RuntimeValue };
 }
 
 export interface CellValue {
@@ -285,9 +285,9 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "builtin_function_or_method", value, binding: Object.freeze({ descriptor: binding.descriptor, implementation, instance: binding.instance }) });
   }
 
-  /** Exact Python-function binding. General MethodType callable inputs and
-   * descriptor __get__ argument handling belong to the later object layer. */
-  boundMethod(fn: FunctionValue, instance: RuntimeValue): BoundMethodValue {
+  /** Raw method binding, also used by classmethod for non-callable payloads.
+   * Public MethodType creation validates callability separately. */
+  boundMethod(fn: RuntimeValue, instance: RuntimeValue): BoundMethodValue {
     this.runtimeMeter.checkpoint();
     if (instance.kind === "none") throw new PythonRuntimeError("TypeError", "instance must not be None");
     this.runtimeMeter.checkpoint(0, 64);

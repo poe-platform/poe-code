@@ -68,7 +68,7 @@ function normalized(hash: bigint): bigint {
 export function runtimeHash(value: ConstantValue, context: ConstantHashContext, meter: ExecutionMeter): bigint;
 export function runtimeHash(value: RuntimeValue, context: RuntimeHashContext, meter: ExecutionMeter): bigint;
 export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | RuntimeHashContext, meter: ExecutionMeter): bigint {
-  const stack: Frame[] = [];
+  const stack: (Frame | { instance: RuntimeValue })[] = [];
   let current: RuntimeValue | undefined = value;
   let result = 0n;
   let rootGuest: HashProtocolContext<RuntimeValue> | undefined;
@@ -102,10 +102,9 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
           case "mappingproxy": current = current.value; continue;
           case "method": {
             if (!("none" in context)) throw new Error("runtime hash context is required for bound methods");
-            const fn = normalized(context.identity(current.value.function));
-            meter.checkpoint();
-            const instance = normalized(context.identity(current.value.instance));
-            result = normalized(fn ^ instance); break;
+            meter.checkpoint(0, 32);
+            stack.push({ instance: current.value.instance });
+            current = current.value.function; continue;
           }
           case "list": case "dict": case "set": case "cell": case "dict_keys": case "dict_items": throw new UnhashableRuntimeValueError(current.kind);
           case "builtin_function_or_method": {
@@ -145,6 +144,11 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
     }
     if (stack.length === 0) return result;
     const frame = stack[stack.length - 1];
+    if ("instance" in frame) {
+      if (!("none" in context)) throw new Error("runtime hash context is required for bound methods");
+      const identity = normalized(context.identity(frame.instance)); meter.checkpoint();
+      result = normalized(result ^ identity); stack.pop(); continue;
+    }
     let accumulator = BigInt.asUintN(64, frame.accumulator + result * prime2);
     accumulator = BigInt.asUintN(64, (accumulator << 31n) | (accumulator >> 33n));
     frame.accumulator = BigInt.asUintN(64, accumulator * prime1);

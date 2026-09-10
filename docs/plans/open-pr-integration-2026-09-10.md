@@ -29,4 +29,6 @@ Each original logical code change retains its own commit. Review historical fail
 
 ## Delivery
 
+The ancillary terminal-png release failed in run 34500155080 because its manual build order omitted toolcraft-schema before tiny-stdio-mcp-server (TS2307). Replace the three manual package builds with the maintained terminal-png-mcp workspace dependency closure. Validate with workflow lint and the selected workspace build before pushing the correction; monitor the replacement release through publication.
+
 PR 716 was closed as superseded by existing main fixes. Other PRs remain open until reviewed changes are verified on remote main. Final normal build, all 22 installed-consumer stages (scoped Node/Bun/types/browser, legacy, standalone FS and root Node/Bun), and final full guarded lint passed. Push, remaining PR dispositions and both release publications remain pending.

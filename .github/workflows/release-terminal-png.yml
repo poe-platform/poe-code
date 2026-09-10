@@ -36,15 +36,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
-      - name: Build tiny-stdio-mcp-server
-        working-directory: packages/tiny-stdio-mcp-server
-        run: npm run build
-      - name: Build terminal-png
-        working-directory: packages/terminal-png
-        run: npm run build
-      - name: Build terminal-png-mcp
-        working-directory: packages/terminal-png-mcp
-        run: npm run build
+      - name: Build terminal-png packages and dependencies
+        run: npm run build:workspaces -- --workspace=terminal-png-mcp
       - name: Compute next version
         id: version
         run: |

@@ -4,7 +4,8 @@ import { PythonRuntimeError } from "./error.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimeAddition } from "./runtime-addition.js";
 import { updateRuntimeDictionary } from "./runtime-dictionary-update.js";
-import { isRuntimeSet, type BuiltinInvocationContext, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { runtimeSetPayload } from "./runtime-set-payload.js";
+import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export type RuntimeInPlaceContext = Partial<Pick<ExpressionContext<RuntimeValue>, "binary" | "iterate">>;
 
@@ -22,17 +23,13 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
     updateRuntimeDictionary(left, right, values, meter, invocation);
     return left;
   }
-  if (left.kind === "set" && isRuntimeSet(right) && operator === "&") {
-    left.items.intersectKeysInPlace(right.items);
-    return left;
-  }
-  if (left.kind === "set" && isRuntimeSet(right) && operator === "-") {
-    left.items.subtractKeysInPlace(right.items);
-    return left;
-  }
-  if (left.kind === "set" && isRuntimeSet(right) && (operator === "|" || operator === "^")) {
-    left.items.mergeKeysInPlace(right.items, operator);
-    return left;
+  if (left.kind === "set") {
+    const source = runtimeSetPayload(right);
+    if (source !== undefined) {
+      if (operator === "&") { left.items.intersectKeysInPlace(source.items); return left; }
+      if (operator === "-") { left.items.subtractKeysInPlace(source.items); return left; }
+      if (operator === "|" || operator === "^") { left.items.mergeKeysInPlace(source.items, operator); return left; }
+    }
   }
   if (left.kind === "list") {
     if (operator === "+") {

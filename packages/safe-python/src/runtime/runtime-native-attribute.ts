@@ -233,7 +233,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (methods?.actualType !== undefined) {
       const type = methods.actualType(receiver); meter.checkpoint();
       const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
-      if (member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
+      if (member?.kind === "method_descriptor" || member?.kind === "wrapper_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
     }
     switch (name) {
       case "copy": case "isdisjoint": case "issubset": case "issuperset":

@@ -32,6 +32,7 @@ import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descr
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
+import { installRuntimeSetOperatorSlots } from "./runtime-set-operator-slots.js";
 import { createSetNewBuiltin } from "./builtin-set-new.js";
 import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
 import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
@@ -191,8 +192,7 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
-  /** Canonical set layouts and native protocol slots; the remaining mutation
-   * method catalog is installed separately from this publication path. */
+  /** Canonical set layouts, storage protocols, methods and numeric slots. */
   setType(kind: "set" | "frozenset"): TypeValue {
     this.meter.checkpoint();
     const existing = this.#sets.get(kind);
@@ -202,6 +202,7 @@ export class RuntimeTypeRegistry {
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeSetSlots(kind, type, this.values, this.meter);
     installRuntimeSetMethodDescriptors(kind, type, this.values, this.meter);
+    installRuntimeSetOperatorSlots(kind, type, this.values, this.meter);
     namespace.items.set(this.values.string("__new__"), createSetNewBuiltin(kind, type, this.values, this.keys, this.meter, requested => this.#entries.get(requested.value)?.type === requested));
     installRuntimeComparisonMethods(kind, type, this.values, this.meter);
     this.meter.checkpoint(1, 96);

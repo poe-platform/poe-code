@@ -8885,6 +8885,23 @@ extension, integration, or validation requirement is missing or unverified.
   files pass with two workers. Set operator-slot publication, remaining native
   catalogs and lifecycle auditing, and public interpreter/safe-fs integration
   remain unfinished. No push or release was requested.
+- Published canonical set/frozenset forward and reflected numeric wrappers and
+  mutable-set in-place wrappers for union, intersection, difference and xor.
+  Eight initial RED cases reproduced missing descriptors, failed mixed-subclass
+  augmented operations and lost native fallback after declining reflected
+  overrides. Mixed native/guest set pairs now participate in actual subtype
+  dispatch, while exact pairs retain native kernels. Wrappers reject non-set
+  operands with NotImplemented, preserve reflected operand order/result type,
+  and retain original subclass identity for in-place mutation. Exact set
+  in-place kernels consume subclass storage without invoking iteration hooks.
+  Ten added tests cover binding, validation, reflection priority, mutable
+  identity and non-mutating fallback after declined guest in-place overrides.
+  All 896 operator, 336 non-set/view/guest negotiation and 400 previous set-method
+  differential cases match CPython, including mutation state and callback events.
+  Workspace build, typecheck and focused lint pass; all 6,815 unit tests in 493
+  files pass with two workers. No push or release was requested.
+  Remaining native catalogs, lifecycle details, public interpreter integration,
+  guest exceptions and suspended safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

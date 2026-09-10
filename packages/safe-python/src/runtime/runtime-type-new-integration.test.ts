@@ -50,6 +50,39 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["set", "frozenset"] as const)("executes native %s operator descriptors with original binding and reversed orientation", kind => {
+  for (const [suffix, symbol] of [["or", "|"], ["and", "&"], ["sub", "-"], ["xor", "^"]]) {
+    const state = fixture(); state.globals.set("Base", state.registry.setType(kind)); state.globals.set("Other", state.registry.setType(kind === "set" ? "frozenset" : "set")); state.globals.set("NotImplemented", state.v.notImplemented);
+    state.run("class Child(Base):\n pass\na=Child([1])\nb=Other([2])\n");
+    state.run(`forward=a.__${suffix}__(b)\nreflected=a.__r${suffix}__(b)\ncorrect=type(forward) is Base and type(reflected) is Other\nbinding=a.__${suffix}__.__self__ is a\nowner=Base.__${suffix}__.__objclass__ is Base\nrejected=a.__${suffix}__([]) is NotImplemented\nequal=forward==Base([1])${symbol}b and reflected==b${symbol}Base([1])\n`);
+    for (const name of ["correct", "binding", "owner", "rejected", "equal"]) expect(state.globals.get(name), suffix + ":" + name).toBe(state.v.true);
+    expect(() => state.run(`a.__${suffix}__()\n`)).toThrow("expected 1 argument, got 0");
+    expect(() => state.run(`a.__${suffix}__(b,extra=1)\n`)).toThrow(`wrapper __${suffix}__() takes no keyword arguments`);
+  }
+});
+
+it.each([["or", "|", [1, 2]], ["and", "&", []], ["sub", "-", [1]], ["xor", "^", [1, 2]]] as const)("preserves set storage and identity through native in-place %s", (suffix, symbol, expected) => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType("set")); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("class Child(Base):\n pass\nsource=Child([2])\n");
+  for (const type of ["Base", "Child"]) {
+    state.run(`items=${type}([1])\noriginal=items\nitems${symbol}=source\nsame=items is original\ncorrect=items==Base([${expected.join(",")}])\nexplicit=items.__i${suffix}__(Base()) is items\nrejected=items.__i${suffix}__([]) is NotImplemented\n`);
+    for (const name of ["same", "correct", "explicit", "rejected"]) expect(state.globals.get(name), type + ":" + name).toBe(state.v.true);
+  }
+});
+
+it.each(["set", "frozenset"] as const)("negotiates reflected %s subclass overrides before native forward operations", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind)); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("class Child(Base):\n def __ror__(self,other):\n  visit('reflected')\n  return NotImplemented\nleft=Base([1])\nright=Child([2])\nresult=left|right\ncorrect=result==Base([1,2])\nexact=type(result) is Base\n");
+  expect(state.events).toEqual(["reflected"]); expect(state.globals.get("correct")).toBe(state.v.true); expect(state.globals.get("exact")).toBe(state.v.true);
+});
+
+it.each(["set", "frozenset"] as const)("falls back from declined %s in-place overrides without mutating old storage", kind => {
+  const state = fixture(); state.globals.set("Base", state.registry.setType(kind)); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("class Child(Base):\n def __ior__(self,other):\n  visit('inplace')\n  return NotImplemented\nitems=Child([1])\noriginal=items\nitems|=Base([2])\nfresh=items is not original\nexact=type(items) is Base\nunchanged=original==Base([1])\ncorrect=items==Base([1,2])\n");
+  expect(state.events).toEqual(["inplace"]);
+  for (const name of ["fresh", "exact", "unchanged", "correct"]) expect(state.globals.get(name), name).toBe(state.v.true);
+});
+
 it.each(["set", "frozenset"] as const)("publishes inherited %s read methods with canonical binding and exact results", kind => {
   const state = fixture(); state.globals.set("Base", state.registry.setType(kind));
   state.run("class Child(Base):\n pass\nitems=Child([1])\ncopy=items.copy()\nexact=type(copy) is Base\nbound=items.copy.__self__ is items\nowner=Base.copy.__objclass__ is Base\nsame=items.copy==items.copy\nunion=items.union([2])==Base([1,2])\nintersection=items.intersection([1,2])==Base([1])\ndifference=items.difference([1])==Base()\nxor=items.symmetric_difference([1,2])==Base([2])\nsubset=items.issubset([1,2])\nsuperset=items.issuperset([1])\ndisjoint=items.isdisjoint([2])\n");

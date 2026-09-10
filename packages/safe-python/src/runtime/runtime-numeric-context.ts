@@ -7,10 +7,11 @@ import { runtimeBinary } from "./runtime-binary.js";
 import { runtimePowerSlot } from "./runtime-power.js";
 import { runtimeDivmod } from "./runtime-divmod.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
-import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { isRuntimeSet, type BuiltinInvocationContext, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 
 /** Prepare one pair, keeping method lookup live until dispatch. Native pairs
- * retain kernel fast paths. Native numeric slots run before guest reflection;
+ * retain kernel fast paths. Canonical native types participate in subtype
+ * reflection priority; other native numeric slots precede guest reflection.
  * sequence concat/repeat remain caller-owned fallbacks. Native-subclass storage and
  * metaclass attribute overrides remain separate object-layer responsibilities. */
 export function createRuntimeNumericContext(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, special: RuntimeSpecialMethodContext, invocation: BuiltinInvocationContext, modulus: RuntimeValue = values.none): MultiplicationContext | undefined {
@@ -20,8 +21,8 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   const names = runtimeNumericMethods.get(operator);
   if (names === undefined) throw Error(`unsupported numeric operator: ${operator}`);
   const { forward: forwardName, reflected: reflectedName } = names;
-  const leftType = leftGuest ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
-  const rightType = rightGuest ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
+  const leftType = leftGuest || isRuntimeSet(left) ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest || isRuntimeSet(right) ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let relation: "same" | "right-subtype" | "other" = "other";
   if (leftType !== undefined && rightType !== undefined) {
     if (leftType === rightType) relation = "same";

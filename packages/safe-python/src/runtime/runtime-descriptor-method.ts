@@ -44,16 +44,16 @@ export function installRuntimeDescriptorMethods(kind: IntrinsicDescriptorKind, o
 /** Ordinary explicit protocol access, after any function dictionary shadow.
  * Native type publication/classification belongs to the execution's registry. */
 export function readRuntimeDescriptorMethod(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, context?: NativeMethodMetadataContext): RuntimeValue | undefined {
-  if (name !== "__get__" && name !== "__set__" && name !== "__delete__") return undefined;
+  if (name !== "__get__" && name !== "__set__" && name !== "__delete__" && name !== "__repr__" && name !== "__str__" && name !== "__format__") return undefined;
   if (receiver.kind !== "function" && receiver.kind !== "method_descriptor" && receiver.kind !== "classmethod_descriptor" && receiver.kind !== "wrapper_descriptor" && receiver.kind !== "getset_descriptor" && receiver.kind !== "member_descriptor") return undefined;
-  if (name !== "__get__" && receiver.kind !== "getset_descriptor" && receiver.kind !== "member_descriptor") return undefined;
+  if ((name === "__set__" || name === "__delete__") && receiver.kind !== "getset_descriptor" && receiver.kind !== "member_descriptor") return undefined;
   if (context?.actualType === undefined) throw Error("explicit descriptor methods require an actual type policy");
   const type = context.actualType(receiver); meter.checkpoint();
   for (const ancestor of type.value.mro) {
     meter.checkpoint();
     const found = ancestor.namespace.items.lookup(values.string(name));
     if (found === undefined) continue;
-    if (found.value.kind !== "wrapper_descriptor") throw Error("intrinsic descriptor protocol wrapper is unavailable");
+    if (found.value.kind !== "wrapper_descriptor" && !(name === "__format__" && found.value.kind === "method_descriptor")) throw Error("intrinsic descriptor protocol wrapper is unavailable");
     return getRuntimeMethodDescriptor(found.value, receiver, type, values, meter);
   }
   return undefined;

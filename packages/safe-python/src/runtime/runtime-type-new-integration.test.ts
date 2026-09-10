@@ -49,6 +49,40 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("represents functions with live qualified names and execution identities", () => {
+  const state = fixture(); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
+  state.run("def fn():\n pass\nfn.__qualname__='Outer.fn'\nfn.__name__='other'\nfn.__module__='ignored'\nresult=f'{fn!r}'\nexplicit=fn.__repr__()\ntext=fn.__str__()\nformatted=fn.__format__('')\naddress=id(fn)\n");
+  const address = state.globals.get("address"); if (address?.kind !== "int") throw Error("expected identity");
+  const expected = state.v.string(`<function Outer.fn at 0x${address.value.toString(16)}>`);
+  for (const name of ["result", "explicit", "text", "formatted"]) expect(state.globals.get(name)).toEqual(expected);
+  state.run("fn.__qualname__='changed'\nchanged=f'{fn!r}'\n"); expect(state.globals.get("changed")).toEqual(state.v.string(`<function changed at 0x${address.value.toString(16)}>`));
+});
+
+it("function dictionary repr shadows only explicit attribute access", () => {
+  const state = fixture(); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
+  state.run("def fn():\n pass\nfn.__repr__=lambda: 'shadow'\nexplicit=fn.__repr__()\nnormal=f'{fn!r}'\naddress=id(fn)\n");
+  const address = state.globals.get("address"); if (address?.kind !== "int") throw Error("expected identity");
+  expect(state.globals.get("explicit")).toEqual(state.v.string("shadow")); expect(state.globals.get("normal")).toEqual(state.v.string(`<function fn at 0x${address.value.toString(16)}>`));
+});
+
+it.each([
+  ["type([]).append", "<method 'append' of 'list' objects>"],
+  ["object.__dict__['__init_subclass__']", "<method '__init_subclass__' of 'object' objects>"],
+  ["object.__repr__", "<slot wrapper '__repr__' of 'object' objects>"],
+  ["object.__dict__['__class__']", "<attribute '__class__' of 'object' objects>"],
+  ["Value.slot", "<member 'slot' of 'Value' objects>"]
+])("represents native descriptor %s with canonical slot binding", (expression, expected) => {
+  const state = fixture(); state.run(`class Value:\n __slots__=('slot',)\nitem=${expression}\nresult=f'{item!r}'\nexplicit=item.__repr__()\ntext=item.__str__()\nformatted=item.__format__('')\nowner=item.__repr__.__objclass__ is type(item)\n`);
+  for (const name of ["result", "explicit", "text", "formatted"]) expect(state.globals.get(name)).toEqual(state.v.string(expected));
+  expect(state.globals.get("owner")).toBe(state.v.true);
+});
+
+it("validates specialized descriptor repr arguments", () => {
+  const state = fixture(); state.run("def fn():\n pass\nmethod=fn.__repr__\n");
+  expect(() => state.run("method(1)\n")).toThrow("expected 0 arguments, got 1");
+  expect(() => state.run("method(x=1)\n")).toThrow("wrapper __repr__() takes no keyword arguments");
+});
+
 it("shares an explicit execution identity policy between repr and default id", () => {
   const state = fixture({ id: () => 0xabcden }); state.builtins.set("id", createIdBuiltin(state.v, state.meter));
   state.run("item=object()\nresult=object.__repr__(item)\naddress=id(item)\n");

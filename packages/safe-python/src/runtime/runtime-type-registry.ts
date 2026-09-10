@@ -9,6 +9,7 @@ import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createObjectFormatDescriptor } from "./builtin-object-format.js";
 import { createObjectStrWrapper } from "./builtin-object-str.js";
 import { createObjectReprWrapper } from "./builtin-object-repr.js";
+import { createDescriptorReprWrapper } from "./runtime-descriptor-repr.js";
 import { createObjectHashWrapper } from "./builtin-object-hash.js";
 import { createObjectNeWrapper } from "./builtin-object-ne.js";
 import { createObjectEqWrapper } from "./builtin-object-eq.js";
@@ -162,6 +163,7 @@ export class RuntimeTypeRegistry {
     const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: kind === "function", objectLayout: false, subclassable: false, weakReferences: kind === "function" });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeDescriptorMethods(kind, type, this.values, this.meter);
+    namespace.items.set(this.values.string("__repr__"), createDescriptorReprWrapper(kind, type, this.values, this.meter));
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#descriptors.set(kind, type);
     return type;

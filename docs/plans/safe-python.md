@@ -8750,6 +8750,21 @@ extension, integration, or validation requirement is missing or unverified.
   files pass with two workers. All 244 differential cases above pass.
   Remaining specialized native representations, full catalogs, lifecycle audits,
   public execution assembly and safe-fs integration are still unfinished.
+- Published specialized function and native descriptor repr slots for all six
+  canonical descriptor families. Eight RED regressions reproduced generic
+  function text and missing explicit repr/str/format attributes. The wrappers
+  read live intrinsic function qualified names or defining-type short names;
+  function addresses share execution-local id policy. Explicit function
+  dictionary shadows remain separate from implicit type-slot dispatch. Descriptor
+  attribute binding now includes inherited object str/format without bypassing
+  canonical ownership or receiver validation. Added eight integration tests;
+  all 78 descriptor representation differential cases match CPython, including
+  qualified-name mutation, Unicode/embedded-null input and wrong receivers.
+  Earlier 81 object repr, 27 object str, 80 list representation and 56 object
+  format differential cases remain green. Bound-callable representations,
+  remaining native catalogs and full public interpreter assembly remain open.
+  Workspace build, typecheck and focused lint pass; all 6,726 unit tests in 493
+  files pass with two workers. All 322 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -41,7 +41,7 @@ it("validates strict keywords and truth before acquiring any inputs", () => {
   expect(() => call([v.none])).toThrow("NotImplemented should not be used in a boolean context");
 });
 it("converts guest strict truth then acquires input iterators left to right", () => {
-  const { v, call, keywords } = fixture(), a = v.cell({}), b = v.cell({}), strict = v.cell({}), events: string[] = [];
+  const { v, meter, keywords } = fixture(), a = v.cell({}), b = v.cell({}), strict = v.cell({}), events: string[] = [];
   keywords.items.set(v.string("strict"), strict);
   const iteration: IterationContext<RuntimeValue> = {
     lookupIter(source) { events.push(source === a ? "a" : "b"); return () => source; }, hasNext: () => true,
@@ -49,7 +49,10 @@ it("converts guest strict truth then acquires input iterators left to right", ()
     isStopIteration: () => false, isIndexError: () => false, typeName: () => "Custom"
   };
   const context = { iteration, truth(value: RuntimeValue) { expect(this).toBe(context); expect(value).toBe(strict); events.push("truth"); return true; } };
-  const cursor = call([a, b], context); expect(events).toEqual(["truth", "a", "b"]);
+  const unused = (): never => { throw Error("explicit policy must win"); };
+  const result = createZipBuiltin(v, meter, context).value.invoke([a, b], keywords, meter, { call: unused, isStopIteration: unused, truth: unused, iteration: { ...iteration, lookupIter: unused } });
+  if (result.kind !== "iterator") throw Error("expected iterator");
+  const cursor = result.value; expect(events).toEqual(["truth", "a", "b"]);
   expect(cursor.next().value).toEqual(v.tuple([a, b])); expect(events).toEqual(["truth", "a", "b", "next", "next"]);
 });
 it("stops acquisition at the first error without consuming prepared inputs", () => {
@@ -69,4 +72,11 @@ it("checks cancellation after strict truth even with no inputs", () => {
   const meter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
   const builtin = createZipBuiltin(v, meter, { truth: () => { cancelled = true; return false; } });
   expect(() => builtin.value.invoke([], keywords, meter)).toThrow(ExecutionLimitError);
+});
+it("checks cancellation after invocation strict truth even with no inputs", () => {
+  const { v, keywords, meter } = fixture(); keywords.items.set(v.string("strict"), v.none); let cancelled = false;
+  const builtin = createZipBuiltin(v, meter), unused = (): never => { throw Error("unexpected callback"); };
+  expect(() => builtin.value.invoke([], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } }, {
+    call: unused, isStopIteration: unused, truth() { cancelled = true; return false; }
+  })).toThrow(ExecutionLimitError);
 });

@@ -7124,6 +7124,17 @@ extension, integration, or validation requirement is missing or unverified.
   exception assembly, resumable safe-fs effects and public execution remain open.
   The existing IterationContext.hints capability can support the pending sorted
   advisory-hint dispatch; it is not yet consumed by sorted's invocation fallback.
+- Enumerate and zip now inherit invocation input iteration. Invocation context
+  also exposes the frame integer-index policy, used by enumerate start conversion
+  through the shared runtimeIntegerIndex helper. Zip strict truth uses invocation
+  truth and meter unless explicitly overridden. Two compiled regressions failed
+  first, then verified conversion-before-acquisition, tuple results, exhaustion
+  defaults and use after the creating function returns. Existing explicit-policy
+  tests now check override priority; a new invocation truth cancellation test
+  covers empty zip. All 5,352 tests in 444 files pass, plus selected build,
+  typecheck and scoped lint. Sentinel iter, sorted advisory hints, sum/reversed
+  dispatch, concrete native types, resumable effects and safe-fs execution remain
+  unfinished; this is not a full-interpreter completion claim.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

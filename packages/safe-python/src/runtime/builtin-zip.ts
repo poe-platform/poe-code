@@ -18,15 +18,20 @@ export interface ZipBuiltinContext {
  * remain separate from this explicitly registered capability. */
 export function createZipBuiltin(values: RuntimeValues, meter: ExecutionMeter, context?: ZipBuiltinContext): BuiltinFunctionValue {
   meter.checkpoint(1, 96);
-  const truth = { truth: context?.truth?.bind(context) ?? ((value: RuntimeValue) => runtimeTruth(value, meter)) };
   return values.builtinFunction({
     name: "zip",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
+      meter.checkpoint(0, 64);
+      const truth = { truth(value: RuntimeValue) {
+        if (context?.truth !== undefined) return context.truth(value);
+        if (invocation?.truth !== undefined) return invocation.truth(value);
+        return runtimeTruth(value, meter);
+      } };
       const strict = runtimeStrictOption("zip", keywords, truth, meter);
       meter.checkpoint(1, 64 + positional.length * 8);
       const sources = new Array<CompletionIterator<RuntimeValue>>(positional.length);
       for (let i = 0; i < positional.length; i++) {
-        meter.checkpoint(); sources[i] = runtimeIterate(positional[i], values, meter, context?.iteration);
+        meter.checkpoint(); sources[i] = runtimeIterate(positional[i], values, meter, context?.iteration ?? invocation?.iteration);
       }
       return values.iterator(new ZipIterator(sources, strict, row => values.tuple(row), meter));
     }

@@ -100,6 +100,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      integerIndex: expressionHooks.integerIndex,
       iteration: expressionHooks.iteration,
       truth: value => expressions.truth(value),
       compareTruth(operator, left, right) {

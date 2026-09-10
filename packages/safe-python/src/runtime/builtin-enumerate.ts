@@ -1,7 +1,7 @@
 import { EnumerateIterator } from "./enumerate-iterator.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { integerIndex, type IntegerIndexContext } from "./index-protocol.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
 import { runtimeIterate } from "./runtime-iteration.js";
@@ -19,7 +19,7 @@ export function createEnumerateBuiltin(values: RuntimeValues, meter: ExecutionMe
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "enumerate",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       const count = positional.length + keywords.items.size;
       if (positional.length === 0 && count !== 1 && count !== 2) throw new PythonRuntimeError("TypeError", "enumerate() missing required argument 'iterable'");
@@ -34,9 +34,9 @@ export function createEnumerateBuiltin(values: RuntimeValues, meter: ExecutionMe
         else throw new PythonRuntimeError("TypeError", `'${label}' is an invalid keyword argument for enumerate()`);
       }
       if (source === undefined) throw new PythonRuntimeError("TypeError", "enumerate() missing required argument 'iterable'");
-      const index = start === undefined ? 0n : start.kind === "int" || start.kind === "bool" || context?.index === undefined
-        ? runtimeIntegerIndex(start, meter) : integerIndex(start, context.index, meter);
-      const iterator = runtimeIterate(source, values, meter, context?.iteration);
+      const indexContext = context?.index ?? invocation?.integerIndex;
+      const index = start === undefined ? 0n : runtimeIntegerIndex(start, meter, indexContext);
+      const iterator = runtimeIterate(source, values, meter, context?.iteration ?? invocation?.iteration);
       meter.checkpoint(1, 64);
       return values.iterator(new EnumerateIterator(iterator, index, (index, value) => values.tuple(2, position => position === 0 ? values.integer(index) : value), meter));
     }

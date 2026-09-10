@@ -54,7 +54,7 @@ it("converts start before acquiring an iterator", () => {
   expect(() => call([v.none, v.integer(0)])).toThrow("'NoneType' object is not iterable");
 });
 it("uses guest index and iteration capabilities once, in Python order", () => {
-  const { v, call } = fixture(), source = v.cell({}), start = v.cell({}), target = v.cell({}), events: string[] = [];
+  const { v, meter, keywords } = fixture(), source = v.cell({}), start = v.cell({}), target = v.cell({}), events: string[] = [];
   const index: IntegerIndexContext<RuntimeValue> = {
     integer: value => value.kind === "int" ? value.value : undefined, isExactInteger: value => value.kind === "int",
     lookupIndex(value) { expect(value).toBe(start); events.push("index lookup"); return () => { events.push("index"); return v.integer(17); }; },
@@ -65,7 +65,10 @@ it("uses guest index and iteration capabilities once, in Python order", () => {
     hasNext: value => value === target, next: () => { events.push("next"); return v.true; },
     hasSequenceItem: () => false, getItem: () => v.none, isStopIteration: () => false, isIndexError: () => false, typeName: () => "Custom"
   };
-  const cursor = call([source, start], { index, iteration });
+  const unused = (): never => { throw Error("explicit policy must win"); };
+  const result = createEnumerateBuiltin(v, meter, { index, iteration }).value.invoke([source, start], keywords, meter, { call: unused, isStopIteration: unused, integerIndex: { ...index, lookupIndex: unused }, iteration: { ...iteration, lookupIter: unused } });
+  if (result.kind !== "iterator") throw Error("expected iterator");
+  const cursor = result.value;
   expect(events).toEqual(["index lookup", "index", "iter lookup", "iter"]);
   expect(cursor.next().value).toEqual(v.tuple([v.integer(17), v.true])); expect(events.at(-1)).toBe("next");
 });

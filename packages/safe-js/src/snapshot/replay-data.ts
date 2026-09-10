@@ -78,7 +78,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
-  | { kind: "settled-imported-promise"; status: "fulfilled" | "rejected"; outcome: Atom }
+  | { kind: "settled-imported-promise"; status: "fulfilled" | "rejected"; outcome: Atom; scheduleId?: number }
   | { kind: "module-namespace"; entries: Array<[string, Atom]> }
   | { kind: "raw-json"; text: string }
   | { kind: "regexp-iterator"; matcher: Atom; input: Atom; exhausted: boolean; global?: boolean; unicode?: boolean; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
@@ -134,6 +134,7 @@ export function encodeReplayData(
     identifyCapability?: (value: SandboxClosure, path: readonly ReplayPathSegment[]) => string | undefined;
     captureCapabilityProperties?: boolean;
     captureSettledImportedPromises?: boolean;
+    identifyScheduledPromise?: (value: SandboxPromise) => number | undefined;
     identifyImportedPromise?: (value: SandboxPromise) => { callId: string; node: number } | undefined;
     identifyPromise?: (value: SandboxPromise, path: readonly ReplayPathSegment[]) => string | undefined;
     context?: ReturnType<typeof createReplayEncodingContext>;
@@ -185,7 +186,9 @@ export function encodeReplayData(
         seen.set(entry, index);
         nodes.push(undefined as unknown as DataNode);
         options.onValueEncoded?.(index, entry);
+        const scheduleId = options.identifyScheduledPromise?.(entry);
         nodes[index] = { kind: "settled-imported-promise", status: state.status,
+          ...(scheduleId === undefined ? {} : { scheduleId }),
           outcome: encode(state.value, depth + 1, [...path, "<settlement>"]) };
         return { tag: "ref", id: index };
       }
@@ -406,7 +409,8 @@ export function decodeReplayData(
     resolveCapability?: (id: string) => SandboxClosure | undefined;
     resolvePromise?: (id: string) => SandboxPromise | undefined;
     onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void;
-    onImportedPromiseRestored?: (promise: SandboxPromise) => void;
+    onImportedPromiseRestored?: (promise: SandboxPromise, scheduleId?: number) => void;
+    restoreScheduledPromise?: (id: number, promise: Promise<SandboxValue>, value: SandboxPromise) => Promise<SandboxValue>;
     graphId?: string;
     importedPromiseMemo?: Map<string, Map<number, SandboxPromise>>;
     resolvePromiseGraph?: (id: string) => unknown;
@@ -512,6 +516,9 @@ export function decodeReplayData(
       }
       const child = (value: unknown) => decode(value, depth + 1);
       if (kind === "settled-imported-promise") {
+        const scheduleId = Object.hasOwn(node, "scheduleId") ? own(node, "scheduleId") : undefined;
+        if (scheduleId !== undefined && (typeof scheduleId !== "number" || !Number.isSafeInteger(scheduleId) || scheduleId < 1))
+          throw new TypeError("Invalid imported Promise scheduling identity.");
         const status = own(node, "status");
         if (status !== "fulfilled" && status !== "rejected")
           throw new TypeError("Invalid imported Promise settlement.");
@@ -539,7 +546,7 @@ export function decodeReplayData(
             if (registered.size === 0 && globalMemo.get(graphId) === registered) globalMemo.delete(graphId);
           });
         }
-        options.onImportedPromiseRestored?.(promise);
+        options.onImportedPromiseRestored?.(promise, scheduleId as number | undefined);
         initializeValues.push(() => {
           const value = child(own(node, "outcome"));
           if (status === "fulfilled" && isSandboxPromise(value))
@@ -550,8 +557,13 @@ export function decodeReplayData(
             });
           });
           work.settle.push(() => {
-            promiseStates.set(promise, { status, value });
-            if (status === "fulfilled") resolve(value); else reject(value);
+            if (scheduleId !== undefined && options.restoreScheduledPromise !== undefined) {
+              const settled = status === "fulfilled" ? Promise.resolve(value) : Promise.reject(value);
+              options.restoreScheduledPromise(scheduleId as number, settled, promise).then(resolve, reject);
+            } else {
+              promiseStates.set(promise, { status, value });
+              if (status === "fulfilled") resolve(value); else reject(value);
+            }
           });
         });
         return promise;

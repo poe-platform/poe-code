@@ -160,6 +160,7 @@ export class UnresolvedReplayCapabilityError extends TypeError {
 export class HostCallJournal {
   private disposed = false;
   private readonly pendingReconciliations = new Set<() => void>();
+  private readonly promiseReplay = promiseReplayContext.getStore();
   readonly runId: string;
   private nextCall = 1;
   private readonly records: HostCallRecord[];
@@ -225,12 +226,14 @@ export class HostCallJournal {
     try {
       this.recordedReplay = replay !== undefined;
       if (replay !== undefined) {
+        const reachableSchedulingIds = new Set<number>();
         const replayRecords = restoreReplayCalls(
           replay,
           this.encodedOutcomes,
           this.callbackSizes,
           this.requiredHostCapabilities,
-          compilation
+          compilation,
+          reachableSchedulingIds
         );
         const restoredRunId = replayRecords[0]?.runId ?? records[0]?.runId ?? randomUUID();
         validateRestoredRecords(records, restoredRunId, sourceHash);
@@ -249,6 +252,16 @@ export class HostCallJournal {
           }
         }
         records = replayRecords;
+        this.promiseReplay?.validateImportedPromises(reachableSchedulingIds);
+        for (const outcome of this.encodedOutcomes.values()) {
+          for (const node of outcome.data.nodes) {
+            if (node.kind === "settled-imported-promise" && node.scheduleId !== undefined) {
+              if (!reachableSchedulingIds.has(node.scheduleId))
+                throw new TypeError("Unreachable imported Promise scheduling identity.");
+              this.promiseReplay?.reserveImportedPromise(node.scheduleId);
+            }
+          }
+        }
       }
       this.runId = records[0]?.runId ?? randomUUID();
       this.records = records.map((record) => ({
@@ -750,6 +763,8 @@ export class HostCallJournal {
           encoded.data,
           { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, memo,
             graphId: record.id, importedPromiseMemo: this.importedPromiseMemo,
+            restoreScheduledPromise: this.promiseReplay === undefined ? undefined
+              : (id, promise, value) => this.promiseReplay!.restoreImportedPromise(id, promise, value),
             resolvePromiseGraph: id => this.encodedOutcomes.get(id)?.data },
           compilation
         );
@@ -820,7 +835,7 @@ export class HostCallJournal {
     const importedIdentities = new WeakMap<SandboxPromise, { callId: string; node: number }>();
     for (const [callId, entries] of this.importedPromiseMemo)
       for (const [node, promise] of entries) importedIdentities.set(promise, { callId, node });
-    return structuredClone({
+    const replay: HostCallReplay = structuredClone({
       version: this.records.some(record => record.callbacks?.some(callback => callback.hasReceiver)) ? 2 : 1,
       calls: this.records.map(({ outcome: ignoredOutcome, asynchronous, ...record }) => {
         void ignoredOutcome;
@@ -834,6 +849,7 @@ export class HostCallJournal {
         const data=outcome===undefined?undefined:encoded?.data??encodeReplayData(
           effects.length===0?outcomeValue:[outcomeValue,...effects],
           {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,captureSettledImportedPromises:true,
+            identifyScheduledPromise: value => this.promiseReplay?.identifyPromise(value),
             identifyImportedPromise: value => importedIdentities.get(value),onValueEncoded:(id,value)=>{
             if (isSandboxPromise(value)) importedIdentities.set(value, { callId: record.id, node: id });
             if (!isSandboxSharedArrayBuffer(value)) return;
@@ -860,6 +876,15 @@ export class HostCallJournal {
         };
       })
     });
+    const schedulingIds: number[] = [];
+    for (const call of replay.calls) {
+      for (const node of call.outcome?.data.nodes ?? []) {
+        if (node.kind === "settled-imported-promise" && node.scheduleId !== undefined)
+          schedulingIds.push(node.scheduleId);
+      }
+    }
+    this.promiseReplay?.recordSerializedImportedPromises(schedulingIds);
+    return replay;
   }
 
   private restoreSharedEffects(
@@ -925,7 +950,8 @@ function restoreReplayCalls(
   encodedOutcomes: Map<string, EncodedHostOutcome>,
   callbackSizes: Map<string, number>,
   requiredHostCapabilities = new Set<string>(),
-  compilation?: CompileScope
+  compilation?: CompileScope,
+  reachableSchedulingIds = new Set<number>()
 ): HostCallRecord[] {
   validateSnapshotData(input);
   if (
@@ -1049,7 +1075,10 @@ function restoreReplayCalls(
         resolveCapability, resolvePromise: id => inputPromises.get(id), memo,
         graphId: entry.id, importedPromiseMemo,
         resolvePromiseGraph: id => replayCalls.find(call => call?.id === id)?.outcome?.data,
-        onImportedPromiseRestored: promise => observeSandboxPromise(promise, true)
+        onImportedPromiseRestored: (promise, scheduleId) => {
+          observeSandboxPromise(promise, true);
+          if (scheduleId !== undefined) reachableSchedulingIds.add(scheduleId);
+        }
       }, compilation);
       const blocks=new Set<object>();
       const indices=new Set<number>();

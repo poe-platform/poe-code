@@ -46,21 +46,11 @@ describe("completed snapshot replay", () => {
     expect(read).not.toHaveBeenCalled();
   });
 
-  it.each([
-    {
-      kind: "native function",
-      value: () => () => 1,
-      source: "const value = await load(); return value();"
-    },
-    {
-      kind: "nested promise",
-      value: () => ({ pending: Promise.resolve(1) }),
-      source: "const value = await load(); return await value.pending;"
-    }
-  ])(
-    "keeps ordinary execution available but refuses incomplete $kind snapshots",
-    async ({ value, source }) => {
-      const load = vi.fn(async () => value());
+  it(
+    "keeps ordinary execution available but refuses incomplete native function snapshots",
+    async () => {
+      const source = "const value = await load(); return value();";
+      const load = vi.fn(async () => () => 1);
       const execution = run(source, { bindings: { load } });
       const original = await execution;
       expect(original).toMatchObject({ ok: true, returnValue: 1 });
@@ -75,6 +65,20 @@ describe("completed snapshot replay", () => {
       expect(load).toHaveBeenCalledOnce();
     }
   );
+
+  it.each(["snapshot", "result", "execution"] as const)("replays a newly imported settled nested Promise from the %s dump route", async route => {
+    const source = "const value = await load(); return await value.settled;";
+    const load = vi.fn(async () => ({ settled: Promise.resolve(1) }));
+    const execution = run(source, { bindings: { load } });
+    const original = await execution;
+    expect(original).toMatchObject({ ok: true, returnValue: 1 });
+    expect(original.snapshot.replayError).toBeUndefined();
+    const saved = route === "snapshot" ? serializeSafeJSSnapshot(original.snapshot)
+      : await dump(route === "result" ? original : execution);
+    const resumed = await run(source, { snapshot: restore(JSON.parse(saved), { source }), bindings: { load } });
+    expect(resumed).toMatchObject({ ok: true, returnValue: 1 });
+    expect(load).toHaveBeenCalledOnce();
+  });
 
   it.each([1, 16, 128])(
     "replays %i draws, original inputs, and completed host results",

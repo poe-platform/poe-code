@@ -13,6 +13,7 @@ export type PromiseReplaySnapshot = {
   steps: number;
   promises: number;
   settlements: Array<{ id: number; step: number }>;
+  importedPromises?: number[];
   events?: ReplayEvent[];
   executionTrace?: { start: number; nodes: number[] };
 };
@@ -29,6 +30,10 @@ export class PromiseReplay {
   private readonly callbackTasks = new Map<string, () => void>();
   private readonly completedCallbacks = new Set<string>();
   private readonly rejectors = new Map<number, (reason: unknown) => void>();
+  private readonly importedIds = new Set<number>();
+  private readonly restoredImportedIds = new Set<number>();
+  private readonly promiseIds = new WeakMap<object, number>();
+  private serializedImportedPromises: number[] = [];
   private failure?: { reason: unknown };
   private callbackCount = 0;
   private readonly waiting = new Set<() => void>();
@@ -48,6 +53,7 @@ export class PromiseReplay {
     this.restoredEvents =
       this.restored.events ??
       this.restored.settlements.map((entry) => ({ kind: "promise", ...entry }));
+    this.serializedImportedPromises = [...(this.restored.importedPromises ?? [])];
     this.events = [...this.restoredEvents];
     this.callbackCount = this.events.filter((entry) => entry.kind === "callback-start").length;
     this.executionTrace =
@@ -58,6 +64,51 @@ export class PromiseReplay {
 
   get currentStep(): number {
     return this.steps;
+  }
+
+  identifyPromise(value: object): number | undefined {
+    return this.promiseIds.get(value);
+  }
+
+  registerPromiseValue(value: object, promise: object): void {
+    const id = this.promiseIds.get(promise);
+    if (id !== undefined) this.promiseIds.set(value, id);
+  }
+
+  recordSerializedImportedPromises(ids: readonly number[]): void {
+    const count = Math.max(this.nextPromise - 1, this.restored.promises);
+    if (new Set(ids).size !== ids.length || ids.some(id => !Number.isSafeInteger(id) || id < 1 || id > count))
+      throw new TypeError("Invalid serialized imported Promise scheduling identities.");
+    this.budget?.setRetainedDataUsage(this, count * 3 + this.callbackCount * 4 +
+      (this.executionTrace?.nodes.length ?? 0) + ids.length);
+    this.serializedImportedPromises = [...ids];
+  }
+
+  validateImportedPromises(ids: ReadonlySet<number>): void {
+    const expected = this.restored.importedPromises ?? [];
+    if (expected.length !== ids.size || expected.some(id => !ids.has(id)))
+      throw new TypeError("Imported Promise scheduling identities disagree with the replay header.");
+  }
+
+  reserveImportedPromise(id: number): void {
+    if (!Number.isSafeInteger(id) || id < 1 || id > this.restored.promises || this.importedIds.has(id))
+      throw new TypeError("Invalid imported Promise scheduling identity.");
+    this.importedIds.add(id);
+  }
+
+  restoreImportedPromise<TValue>(id: number, promise: Promise<TValue>, value: object): Promise<TValue> {
+    if (this.failure !== undefined) {
+      void promise.catch(() => undefined);
+      return Promise.reject(this.failure.reason);
+    }
+    if (!this.importedIds.has(id) || this.restoredImportedIds.has(id)) {
+      void promise.catch(() => undefined);
+      throw new TypeError("Invalid restored imported Promise scheduling identity.");
+    }
+    this.restoredImportedIds.add(id);
+    while (this.restoredImportedIds.has(this.nextPromise)) this.nextPromise++;
+    this.promiseIds.set(value, id);
+    return this.trackAssigned(promise, id);
   }
 
   beforeNode(nodeId?: number): void | Promise<void> {
@@ -88,6 +139,7 @@ export class PromiseReplay {
           Math.max(this.nextPromise - 1, this.restored.promises) * 3 +
             this.callbackCount * 4 +
             this.executionTrace.nodes.length +
+            this.serializedImportedPromises.length +
             1
         );
         this.executionTrace.nodes.push(nodeId);
@@ -109,13 +161,19 @@ export class PromiseReplay {
         this,
         Math.max(this.nextPromise, this.restored.promises) * 3 +
           this.callbackCount * 4 +
-          (this.executionTrace?.nodes.length ?? 0)
+          (this.executionTrace?.nodes.length ?? 0) + this.serializedImportedPromises.length
       );
     } catch (error) {
       void promise.catch(() => undefined);
       throw error;
     }
+    while (this.importedIds.has(this.nextPromise)) this.nextPromise++;
     const id = this.nextPromise++;
+    while (this.importedIds.has(this.nextPromise)) this.nextPromise++;
+    return this.trackAssigned(promise, id, settlement);
+  }
+
+  private trackAssigned<TValue>(promise: Promise<TValue>, id: number, settlement?: (value: TValue) => TValue): Promise<TValue> {
     if (!this.replaying) {
       const settled = () => {
         if (this.failure !== undefined) return;
@@ -129,7 +187,9 @@ export class PromiseReplay {
           return;
         settled();
       });
-      return settlement===undefined?promise:promise.then(settlement,reason=>{throw settlement(reason as TValue);});
+      const tracked = settlement===undefined?promise:promise.then(settlement,reason=>{throw settlement(reason as TValue);});
+      this.promiseIds.set(tracked, id);
+      return tracked;
     }
     const tracked = new Promise<TValue>((resolve, reject) => {
       this.rejectors.set(id, reject);
@@ -163,6 +223,7 @@ export class PromiseReplay {
       );
     });
     this.drain();
+    this.promiseIds.set(tracked, id);
     return tracked;
   }
 
@@ -183,7 +244,7 @@ export class PromiseReplay {
       this,
       Math.max(this.nextPromise - 1, this.restored.promises) * 3 +
         (this.callbackCount + 1) * 4 +
-        (this.executionTrace?.nodes.length ?? 0)
+        (this.executionTrace?.nodes.length ?? 0) + this.serializedImportedPromises.length
     );
     this.callbackCount += 1;
     this.events.push({
@@ -276,6 +337,7 @@ export class PromiseReplay {
       settlements: this.events
         .filter((entry) => entry.kind === "promise")
         .map(({ id, step }) => ({ id, step })),
+      ...(this.serializedImportedPromises.length === 0 ? {} : { importedPromises: [...this.serializedImportedPromises] }),
       ...(this.callbackCount === 0 ? {} : { events: this.events.map((entry) => ({ ...entry })) }),
       ...(this.executionTrace === undefined
         ? {}
@@ -289,7 +351,7 @@ export class PromiseReplay {
       this,
       Math.max(this.nextPromise - 1, this.restored.promises) * 3 +
         this.callbackCount * 4 +
-        (this.executionTrace?.nodes.length ?? 0)
+        (this.executionTrace?.nodes.length ?? 0) + this.serializedImportedPromises.length
     );
     this.budget = budget;
   }
@@ -388,6 +450,14 @@ function validateReplay(value: unknown): PromiseReplaySnapshot {
   });
   const events =
     "events" in value ? validateEvents(value.events, steps, promises, settlements) : undefined;
+  let importedPromises: number[] | undefined;
+  if ("importedPromises" in value) {
+    if (!Array.isArray(value.importedPromises) ||
+        value.importedPromises.some(id => !isCounter(id) || id === 0 || id > promises) ||
+        new Set(value.importedPromises).size !== value.importedPromises.length)
+      throw new TypeError("Invalid imported Promise scheduling header.");
+    importedPromises = [...value.importedPromises];
+  }
   let executionTrace: PromiseReplaySnapshot["executionTrace"];
   if ("executionTrace" in value) {
     const trace = value.executionTrace;
@@ -409,6 +479,7 @@ function validateReplay(value: unknown): PromiseReplaySnapshot {
     steps,
     promises,
     settlements,
+    ...(importedPromises === undefined ? {} : { importedPromises }),
     ...(events === undefined ? {} : { events }),
     ...(executionTrace === undefined ? {} : { executionTrace })
   };

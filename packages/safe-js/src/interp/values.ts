@@ -415,6 +415,9 @@ export function createSandboxPromise(
     }
   } as SandboxPromise;
 
+  if (metadata.trackReplay !== false)
+    promiseReplayContext.getStore()?.registerPromiseValue(sandboxPromise, original);
+
   Object.defineProperty(sandboxPromise, sandboxPromiseBrand, {
     enumerable: false,
     value: true

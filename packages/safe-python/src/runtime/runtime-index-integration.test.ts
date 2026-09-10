@@ -45,7 +45,7 @@ it.each([
   executeRuntimeProgram(program, {
     values: v, globals, keys, builtins: new Map([["repr", createRepresentationBuiltin("repr", v, meter)]]), calls: new CallStack<object>(50, meter),
     hooks: {
-      specialMethods: () => ({ typeOf(value) { if (value.kind === "list") return registry.listType(); expect(value).toBe(index); lookups++; return derived; }, slots: unused }),
+      specialMethods: () => ({ typeOf(value) { if (value.kind === "list") return registry.listType(); if (value.kind === "int") return registry.integerType(); expect(value).toBe(index); lookups++; return derived; }, slots: unused }),
       expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
       callable: () => false, name: () => "index()", keywordName: unused, invoke: unused
     }

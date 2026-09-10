@@ -44,6 +44,7 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
       if (value.kind === "mappingproxy") return registry.mappingProxyType();
       if (value.kind === "slice") return registry.sliceType();
       if (value.kind === "range") return registry.rangeType();
+      if (value.kind === "int") return registry.integerType();
       if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
@@ -57,6 +58,30 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("allocates canonical integers and subclass-owned integer storage", () => {
+  const state = fixture(); state.globals.set("Int",state.registry.integerType());
+  state.run("x=10**30\nclass Child(Int):\n def __init__(self,value):\n  self.tag='child'\ny=Child(x)\ncorrect=Int(x) is x and type(y) is Child and y.tag=='child' and Int(y)==x and Int(y) is not y and Int.__new__.__self__ is Int\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("uses inherited integer arithmetic and conversion slots for owned subclasses", () => {
+  const state = fixture(); state.globals.set("Int",state.registry.integerType());
+  state.run("class Child(Int):\n pass\nx=Child(7)\ncorrect=x+2==9 and 2+x==9 and x*3==21 and 3*x==21 and x-2==5 and 20//x==2 and x%3==1 and (x<<2)==28 and -x==-7 and +x==7 and ~x==-8 and x>2 and x==7 and x.__bool__() and x.__int__()==7 and x.__index__()==7 and x.__float__()==7.0 and f'{x!r}'=='7'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("keeps explicit integer bitwise slots integer-valued for boolean receivers", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("correct=type(Int.__and__(True,True)) is Int and type(Int.__or__(False,True)) is Int and type(Int.__xor__(True,True)) is Int\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("bypasses owned integer index overrides when consuming integer payloads", () => {
+  const state = fixture(); state.globals.set("Int",state.registry.integerType());state.globals.set("Range",state.registry.rangeType());
+  state.run("class Child(Int):\n def __index__(self):\n  visit('wrong')\n  return 0\n def __int__(self):\n  visit('int')\n  return 9\nx=Child(3)\ncorrect=Range(x).stop==3 and [1,2,3,4][x]==4 and Int(x)==9\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["int"]);
+});
 
 it("constructs integers from exact values, floats and explicit-base text", () => {
   const state = fixture();
@@ -2183,7 +2208,7 @@ it("reports missing paired descriptor mutation methods", () => {
 });
 
 it("bounds descriptor-binding recursion before entering a function body", () => {
-  const state = fixture();
+  const state = fixture(undefined, 1000000);
   state.run("class Descriptor:\n pass\ndescriptor=Descriptor()\nDescriptor.__get__=descriptor\nclass C:\n __call__=descriptor\ninstance=C()\n");
   expect(() => state.run("instance()\n")).toThrow("maximum recursion depth exceeded"); expect(state.calls.depth).toBe(0);
 });

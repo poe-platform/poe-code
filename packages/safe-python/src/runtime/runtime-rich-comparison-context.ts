@@ -4,6 +4,7 @@ import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import type { RuntimeRichComparisonContext } from "./runtime-rich-comparison.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { runtimeTruth } from "./runtime-truth.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 const methods: ReadonlyMap<string, readonly [string, string]> = new Map([
@@ -11,7 +12,7 @@ const methods: ReadonlyMap<string, readonly [string, string]> = new Map([
   ["<", ["__lt__", ">"]], ["<=", ["__le__", ">="]], [">", ["__gt__", "<"]], [">=", ["__ge__", "<="]]
 ]);
 
-const nativeContainerKinds = new Set(["dict", "list", "tuple", "set", "frozenset"]);
+const nativeContainerKinds = new Set(["dict", "list", "tuple", "set", "frozenset", "int"]);
 
 /** Live type-MRO comparison dispatch. Strict subtypes reflect first even when
  * they inherit the method; same-type operands still get both attempts. Opaque
@@ -43,7 +44,7 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
     truth: invocation.truth?.bind(invocation)
   };
   const call = (op: string, receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined): RuntimeValue => {
-    if (type === undefined) return runtimeComparison(op, receiver, other, values, meter, 1000, native);
+    if (type === undefined) return runtimeComparison(op, receiver, runtimeIntegerPayload(other) ?? other, values, meter, 1000, native);
     const method = lookupRuntimeSpecialMethod(receiver, type, values.string(methods.get(op)![0]), special, values, meter);
     meter.checkpoint();
     if (method !== undefined) {

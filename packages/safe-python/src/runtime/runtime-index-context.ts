@@ -2,13 +2,17 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinInvocationContext, RuntimeValue } from "./runtime-values.js";
 import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 
 /** Frame-owned __index__ binding/calls and warnings. Native integer payloads
  * are inspected directly; __int__ is never an index fallback. */
 export function createRuntimeIndexContext(invocation: BuiltinInvocationContext, meter: ExecutionMeter): IntegerIndexContext<RuntimeValue> {
   meter.checkpoint(0, 320);
   return {
-    integer: value => value.kind === "int" ? value.value : value.kind === "bool" ? value.value ? 1n : 0n : undefined,
+    integer(value) {
+      const payload = runtimeIntegerPayload(value);
+      return payload?.kind === "int" ? payload.value : payload?.kind === "bool" ? payload.value ? 1n : 0n : undefined;
+    },
     isExactInteger: value => value.kind === "int",
     lookupIndex(value) {
       meter.checkpoint();

@@ -36,6 +36,8 @@ import { installRuntimeSliceSlots } from "./runtime-slice-slots.js";
 import { installRuntimeMappingProxySlots } from "./runtime-mapping-proxy-slots.js";
 import { createRangeNewBuiltin } from "./builtin-range-new.js";
 import { installRuntimeRangeSlots } from "./runtime-range-slots.js";
+import { createIntegerNewBuiltin } from "./builtin-integer-new.js";
+import { installRuntimeIntegerSlots } from "./runtime-integer-slots.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeSetSlots } from "./runtime-set-slots.js";
 import { installRuntimeSetMethodDescriptors } from "./runtime-set-method-descriptors.js";
@@ -84,6 +86,7 @@ export class RuntimeTypeRegistry {
   #mappingProxyType: TypeValue | undefined;
   #sliceType: TypeValue | undefined;
   #rangeType: TypeValue | undefined;
+  #integerType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
@@ -264,6 +267,20 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods("dict", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#dictionaryType = type;
+    return type;
+  }
+
+  integerType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#integerType !== undefined) return this.#integerType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("int", [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    namespace.items.set(this.values.string("__new__"), createIntegerNewBuiltin(type, this.values, this.meter, type => this.#entries.has(type.value)));
+    namespace.items.set(this.values.string("__doc__"), this.values.string("int([x]) -> integer\nint(x, base=10) -> integer\n\nConvert a number or string to an integer, or return 0 if no arguments\nare given.  If x is a number, return x.__int__().  For floating-point\nnumbers, this truncates towards zero.\n\nIf x is not a number or if base is given, then x must be a string,\nbytes, or bytearray instance representing an integer literal in the\ngiven base.  The literal can be preceded by '+' or '-' and be surrounded\nby whitespace.  The base defaults to 10.  Valid bases are 0 and 2-36.\nBase 0 means to interpret the base from the string as an integer\niteral.\n>>> int('0b100', base=0)\n4"));
+    installRuntimeIntegerSlots(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type }); this.#integerType = type;
     return type;
   }
 

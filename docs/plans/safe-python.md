@@ -9298,6 +9298,23 @@ extension, integration, or validation requirement is missing or unverified.
   the shared conversion operation, not completed canonical int/subclass
   allocation; scalar type integration, full interpreter and safe-fs execution
   remain unfinished. No push or release was requested.
+- Canonical integer allocation and core slots (2026-09-10): four new failing
+  integration tests drove exact/subclass allocation, inherited arithmetic,
+  payload-first index consumption and integer-valued explicit bitwise methods
+  on bool receivers. Added owned integer payloads, a registry allocator and core
+  unary/binary/comparison/hash/representation/conversion wrappers. Native numeric
+  dispatch now recognizes integer subtype priority and adapts owned integers for
+  mixed float/complex/bool fallback without invoking index overrides. Two older
+  integration classifiers now register canonical integers. A recursion-only
+  fixture needed a larger step budget after canonical registration; production
+  limits are unchanged. All 1,320 core descriptor cases and 420 canonical
+  conversion cases match CPython; 864 owned-operator cases pass with 1e-14 scaled
+  tolerance for complex components (one complex-power result differed in its
+  last few floating bits), with exact callback/error comparisons. Workspace
+  build, typecheck, focused lint and all 6,963 package tests in 495 files pass.
+  Remaining integer methods/data descriptors, bool hierarchy, owned-integer
+  protocol-consumer audits, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

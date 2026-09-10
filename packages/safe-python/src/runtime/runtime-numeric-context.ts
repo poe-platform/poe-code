@@ -8,6 +8,7 @@ import { runtimePowerSlot } from "./runtime-power.js";
 import { runtimeDivmod } from "./runtime-divmod.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
 import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
 import { isRuntimeSet, type BuiltinInvocationContext, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 
 /** Prepare one pair, keeping method lookup live until dispatch. Native pairs
@@ -22,8 +23,8 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   const names = runtimeNumericMethods.get(operator);
   if (names === undefined) throw Error(`unsupported numeric operator: ${operator}`);
   const { forward: forwardName, reflected: reflectedName } = names;
-  const leftType = leftGuest || isRuntimeSet(left) || left.kind === "dict" ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
-  const rightType = rightGuest || isRuntimeSet(right) || right.kind === "dict" ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
+  const leftType = leftGuest || isRuntimeSet(left) || left.kind === "dict" || left.kind === "int" ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest || isRuntimeSet(right) || right.kind === "dict" || right.kind === "int" ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let relation: "same" | "right-subtype" | "other" = "other";
   if (leftType !== undefined && rightType !== undefined) {
     if (leftType === rightType) relation = "same";
@@ -36,6 +37,12 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   const sequenceFallbacks = { left: !leftGuest || (runtimeListPayload(left) === undefined && runtimeTuplePayload(left) === undefined), right: !rightGuest || (runtimeListPayload(right) === undefined && runtimeTuplePayload(right) === undefined) };
   const call = (receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined, name: string): RuntimeValue => {
     if (type === undefined) {
+      if ((receiver.kind === "bool" || receiver.kind === "float" || receiver.kind === "complex") && other.kind === "instance" && runtimeIntegerPayload(other) !== undefined) {
+        const a = runtimeIntegerPayload(left) ?? left, b = runtimeIntegerPayload(right) ?? right;
+        if (operator === "divmod()") return runtimeDivmod(a, b, values, meter);
+        if (operator === "**") return runtimePowerSlot(receiver, a, b, runtimeIntegerPayload(modulus) ?? modulus, values, meter);
+        return runtimeBinary(operator, a, b, values, meter);
+      }
       if (operator === "divmod()") return runtimeDivmod(left, right, values, meter);
       if (operator === "**") return runtimePowerSlot(receiver, left, right, modulus, values, meter);
       if (operator === "+" || operator === "*") return values.notImplemented;

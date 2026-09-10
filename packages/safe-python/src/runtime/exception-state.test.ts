@@ -10,6 +10,68 @@ const links: ExceptionLinks<Fault> = { get: error => error.context, set: (error,
 const budget = (maxSteps = 10000) => new ExecutionBudget({ maxSteps, maxAllocatedBytes: 10000 });
 
 describe("handled exception state", () => {
+  it("inherits the current caller exception anew on each suspended-frame activation",()=>{
+    const state=new HandledExceptionState<Fault>(),frame=state.createFrame(budget()),first=fault("first"),second=fault("second");
+    const leaveFirst=state.enter(first),pauseFirst=state.activate(frame,budget());
+    expect(state.active).toBe(first);pauseFirst();leaveFirst();
+    const leaveSecond=state.enter(second),pauseSecond=state.activate(frame,budget());
+    expect(state.active).toBe(second);pauseSecond();expect(state.active).toBe(second);leaveSecond();
+    const pauseThird=state.activate(frame,budget());expect(state.active).toBeNull();pauseThird();
+  });
+
+  it("retains a suspended handler but restores the new caller rather than a captured old caller",()=>{
+    const state=new HandledExceptionState<Fault>(),frame=state.createFrame(budget()),first=fault("first"),second=fault("second"),local=fault("local");
+    const leaveFirst=state.enter(first),pauseFirst=state.activate(frame,budget()),leaveLocal=state.enter(local);
+    expect(state.active).toBe(local);pauseFirst();expect(state.active).toBe(first);leaveFirst();
+    const leaveSecond=state.enter(second),pauseSecond=state.activate(frame,budget());
+    expect(state.active).toBe(local);leaveLocal();expect(state.active).toBe(second);
+    pauseSecond();leaveSecond();expect(state.active).toBeNull();
+  });
+
+  it("keeps interleaved suspended handlers independent",()=>{
+    const state=new HandledExceptionState<Fault>(),left=state.createFrame(budget()),right=state.createFrame(budget()),a=fault("a"),b=fault("b");
+    let pause=state.activate(left,budget());const leaveA=state.enter(a);pause();
+    pause=state.activate(right,budget());expect(state.active).toBeNull();const leaveB=state.enter(b);pause();
+    pause=state.activate(left,budget());expect(state.active).toBe(a);leaveA();pause();
+    pause=state.activate(right,budget());expect(state.active).toBe(b);leaveB();pause();expect(state.active).toBeNull();
+  });
+
+  it("chains exceptions against the resumed handler without leaking it into the caller",()=>{
+    const state=new HandledExceptionState<Fault>(),frame=state.createFrame(budget()),local=fault("local"),outer=fault("outer"),raised=fault("raised");
+    const firstPause=state.activate(frame,budget());state.enter(local);firstPause();
+    const leaveOuter=state.enter(outer),pause=state.activate(frame,budget());
+    state.chain(raised,links,budget());expect(raised.context).toBe(local);pause();expect(state.active).toBe(outer);leaveOuter();
+  });
+
+  it("rejects foreign frames and active-frame reentry without changing active state",()=>{
+    const state=new HandledExceptionState<Fault>(),other=new HandledExceptionState<Fault>(),frame=state.createFrame(budget()),active=fault("active");
+    state.enter(active);
+    expect(()=>other.activate(frame,budget())).toThrow("another exception state");expect(other.active).toBeNull();
+    const pause=state.activate(frame,budget());
+    expect(()=>state.activate(frame,budget())).toThrow("already active");expect(state.active).toBe(active);pause();
+  });
+
+  it("validates activation cleanup order and keeps repeated cleanup inert",()=>{
+    const state=new HandledExceptionState<Fault>(),left=state.createFrame(budget()),right=state.createFrame(budget());
+    const pauseLeft=state.activate(left,budget()),pauseRight=state.activate(right,budget());
+    expect(()=>pauseLeft()).toThrow("LIFO");pauseRight();pauseLeft();pauseRight();pauseLeft();expect(state.active).toBeNull();
+  });
+
+  it("does not restore a suspended handler into an unrelated active frame",()=>{
+    const state=new HandledExceptionState<Fault>(),frame=state.createFrame(budget());
+    const pause=state.activate(frame,budget()),leave=state.enter(fault("local"));pause();
+    expect(()=>leave()).toThrow("inactive exception frame");expect(state.active).toBeNull();
+    const resumed=state.activate(frame,budget());leave();resumed();expect(state.active).toBeNull();
+  });
+
+  it("charges frame allocation and activation before changing state",()=>{
+    const state=new HandledExceptionState<Fault>(),active=fault("active");state.enter(active);
+    expect(()=>state.createFrame(budget(0))).toThrow("step limit");
+    const frame=state.createFrame(budget());expect(()=>state.activate(frame,budget(0))).toThrow("step limit");expect(state.active).toBe(active);
+    const pause=state.activate(frame,budget()),leave=state.enter(fault("local"));
+    expect(()=>budget(0).checkpoint()).toThrow();leave();pause();expect(state.active).toBe(active);
+  });
+
   it("restores nested handled exceptions and keeps independent executions isolated", () => {
     const state = new HandledExceptionState<Fault>(), other = new HandledExceptionState<Fault>();
     const first = fault("first"), second = fault("second");

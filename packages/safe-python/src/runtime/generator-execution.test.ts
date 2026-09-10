@@ -2,6 +2,7 @@ import { expect,it,vi } from "vitest";
 import { GeneratorExecution,type GeneratorRequest,type GeneratorExecutionContext } from "./generator-execution.js";
 import { PythonRuntimeError } from "./error.js";
 import { ExecutionBudget,ExecutionLimitError } from "./execution-budget.js";
+import { HandledExceptionState } from "./exception-state.js";
 
 type Value=number|null;
 class GuestExit extends Error {}
@@ -140,4 +141,21 @@ it("distinguishes an undefined return payload from the None used after completio
   const state=new GeneratorExecution<unknown>(()=>({done:true,value:undefined}),context(),budget());
   expect(state.resume({kind:"send",value:null})).toEqual({done:true,value:undefined});
   expect(state.resume({kind:"send",value:null})).toEqual({done:true,value:null});
+});
+
+it("switches saved handlers and fresh caller fallback through the generator lifecycle",()=>{
+  const handled=new HandledExceptionState<Error>(),meter=budget(),frame=handled.createFrame(meter),policy=context();
+  const callers=[Error("first"),Error("second"),Error("third")],local=Error("local");
+  policy.enter=()=>handled.activate(frame,meter);
+  let step=0,leaveLocal:()=>void;
+  const state=new GeneratorExecution<Value>(()=>{
+    if(step===0){expect(handled.active).toBe(callers[0]);step++;return {done:false,value:1};}
+    if(step===1){leaveLocal=handled.enter(local);expect(handled.active).toBe(local);step++;return {done:false,value:2};}
+    expect(handled.active).toBe(local);leaveLocal();expect(handled.active).toBe(callers[2]);return {done:true,value:3};
+  },policy,meter);
+  for(let index=0;index<callers.length;index++) {
+    const leave=handled.enter(callers[index]);
+    expect(state.resume({kind:"send",value:null})).toEqual({done:index===2,value:index+1});
+    expect(handled.active).toBe(callers[index]);leave();expect(handled.active).toBeNull();
+  }
 });

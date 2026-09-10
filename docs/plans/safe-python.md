@@ -10128,6 +10128,24 @@ extension, integration, or validation requirement is missing or unverified.
   generator-expression integration, exception-state switching, yield delegation,
   async suspension and finalization remain unfinished. This is not yet guest
   generator support or a complete interpreter. No push or release requested.
+- Suspended handled-exception frames (2026-09-10): eight failing regressions
+  drove execution-owned opaque frame slots, activation/deactivation and dynamic
+  caller fallback. Only a frame's own handler persists across suspension;
+  restoring it reveals the new caller's exception rather than an old captured
+  caller. Active lookup stays constant-time. Handler cleanup is bound to its
+  originating slot; foreign frames, active-frame reentry and invalid activation
+  cleanup order are rejected without changing state. Deactivation is unmetered
+  and idempotent. One integrated lifecycle regression covers saved handlers and
+  changing callers through GeneratorExecution. Root native exception storage is
+  now allocated after charging its expanded frame bookkeeping. Initial focused
+  verification passed 742 tests, and 243 paired trusted-body CPython traces pass;
+  selected workspace build, typecheck and focused lint pass. All 7,294 tests in
+  505 files pass in the uncached one-worker run (157.25s; bodies 9.39s), along
+  with 648 prior lifecycle and 167 native syntax-exception CPython comparisons.
+  Native generator descriptors and resumable AST
+  drivers still need to consume these pieces; full generator/async/traceback
+  support, public interpreter/stdlib/safe-fs and other runtime work remain
+  unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

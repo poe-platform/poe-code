@@ -8,26 +8,61 @@ export interface ExceptionLinks<Exception extends object> {
   set(error: Exception, context: Exception | null): void;
 }
 
-/** Dynamic handled-exception state for one synchronous execution context.
- * This is separate from the exception being propagated. Suspension/context
- * switching and concrete guest exception storage remain runtime responsibilities.
+declare const frameException: unique symbol;
+/** Opaque, execution-owned exception slot retained across suspension. */
+export interface HandledExceptionFrame<Exception extends object> {
+  readonly [frameException]:Exception;
+}
+
+interface ExceptionSlot<Exception> { value:Exception|null; active:boolean; }
+
+/** Dynamic handled-exception state, separate from the propagating exception.
+ * Each resumable frame retains its own handler, not its caller's inherited
+ * handler. Inheritance is refreshed at activation and read in constant time.
  */
 export class HandledExceptionState<Exception extends object> {
-  #active: Exception | null = null;
+  #current:{slot:ExceptionSlot<Exception>;inherited:Exception|null}={slot:{value:null,active:true},inherited:null};
+  #frames:WeakMap<HandledExceptionFrame<Exception>,ExceptionSlot<Exception>>|undefined;
 
-  get active(): Exception | null { return this.#active; }
+  get active(): Exception | null { return this.#current.slot.value??this.#current.inherited; }
+
+  createFrame(meter:ExecutionMeter):HandledExceptionFrame<Exception> {
+    meter.checkpoint(1,96+(this.#frames===undefined?48:0));
+    const frame=Object.freeze({}) as HandledExceptionFrame<Exception>;
+    this.#frames??=new WeakMap();this.#frames.set(frame,{value:null,active:false});
+    return frame;
+  }
+
+  /** Activate saved handler storage with this caller's fallback exception.
+   * Deactivation does not clear the saved handler and is unmetered, including
+   * after fatal termination. Active records must unwind in LIFO order. */
+  activate(frame:HandledExceptionFrame<Exception>,meter:ExecutionMeter):()=>void {
+    meter.checkpoint(1,96);
+    const slot=this.#frames?.get(frame);
+    if(slot===undefined)throw Error("frame belongs to another exception state");
+    if(slot.active)throw Error("exception frame is already active");
+    const previous=this.#current,current={slot,inherited:this.active};
+    slot.active=true;this.#current=current;
+    let open=true;
+    return ()=>{
+      if(!open)return;
+      if(this.#current!==current)throw Error("exception frames must restore in LIFO order");
+      open=false;slot.active=false;this.#current=previous;
+    };
+  }
 
   /** Host-only scope entry. Restore in LIFO order; repeated restores are inert.
    * Restoration is unmetered so fatal execution limits cannot strand this state.
    */
   enter(exception: Exception): () => void {
-    const previous = this.#active;
-    this.#active = exception;
+    const slot=this.#current.slot,previous=slot.value;
+    slot.value=exception;
     let open = true;
     return () => {
       if (!open) return;
+      if(this.#current.slot!==slot)throw Error("cannot restore an inactive exception frame");
       open = false;
-      this.#active = previous;
+      slot.value=previous;
     };
   }
 
@@ -38,7 +73,7 @@ export class HandledExceptionState<Exception extends object> {
    */
   chain(error: Exception, links: ExceptionLinks<Exception>, meter: ExecutionMeter): void {
     meter.checkpoint();
-    const active = this.#active;
+    const active = this.active;
     if (active === null || active === error) return;
     let current = active, slow = active, updateSlow = false;
     while (true) {

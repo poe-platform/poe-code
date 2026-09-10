@@ -33,9 +33,9 @@ export class RuntimeRaisedException {
  * Unknown native exception families and arbitrary host failures remain fatal.
  * Tracebacks, suspension and exception groups require separate capabilities. */
 export class RuntimeExceptionExecution {
-  readonly #handled=new HandledExceptionState<InstanceValue>();
+  readonly #handled:HandledExceptionState<InstanceValue>;
   constructor(private readonly registry:RuntimeTypeRegistry,private readonly values:RuntimeValues,private readonly meter:ExecutionMeter) {
-    meter.checkpoint(1,96);Object.freeze(this);
+    meter.checkpoint(1,160);this.#handled=new HandledExceptionState<InstanceValue>();Object.freeze(this);
   }
   get active():InstanceValue|null{return this.#handled.active;}
 

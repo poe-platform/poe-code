@@ -25,7 +25,7 @@ export function createDictionaryFromKeysBuiltin(values: RuntimeValues, keys: Key
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "fromkeys",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "dict.fromkeys() takes no keyword arguments");
       if (positional.length < 1) throw new PythonRuntimeError("TypeError", "fromkeys expected at least 1 argument, got 0");
@@ -37,7 +37,7 @@ export function createDictionaryFromKeysBuiltin(values: RuntimeValues, keys: Key
         meter.checkpoint(0, 16);
         result.items.update(source.items, undefined, { value });
       } else {
-        const iterator = runtimeIterate(source, values, meter);
+        const iterator = runtimeIterate(source, values, meter, invocation?.iteration);
         while (true) {
           meter.checkpoint();
           const item = iterator.next();

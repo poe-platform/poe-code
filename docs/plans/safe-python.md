@@ -8392,6 +8392,18 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,469 tests in 491 files, build, typecheck and scoped lint pass. Native constructor catalog and fromkeys
   guest-iteration integration remain unfinished, alongside guest exception
   rendering and public execution assembly.
+- Connected fromkeys to active guest iteration and exposed the native capability
+  through exact dictionary instance lookup (not mapping proxies). Regressions
+  first failed independently for rejected guest sequences and missing fromkeys
+  attributes. Four added compiled tests cover shared default identity, extracted
+  methods, fresh construction, argument validation, ignored length hints and
+  resumable guest cursors after an invalid key, without implicit close. All 120
+  compiled fromkeys cases match CPython, including dictionary contents and
+  validation order. The integration fixture now uses runtime hashing rather than
+  an always-accepting hash stub, so invalid-key checks exercise real semantics.
+  All 6,473 tests in 491 files, build, typecheck and scoped lint pass. Native type/classmethod descriptor
+  catalog integration, dictionary subclass storage, guest exception rendering
+  and public execution assembly remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

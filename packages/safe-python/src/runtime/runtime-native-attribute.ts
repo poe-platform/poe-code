@@ -10,6 +10,7 @@ import { createRuntimeNativeFormatMethod } from "./runtime-native-format-method.
 import type { ExecutionMeter } from "./execution-budget.js";
 import { createRuntimeDictionaryMethod } from "./runtime-dictionary-method.js";
 import { createRuntimeDictionaryMutationMethod } from "./runtime-dictionary-mutation-method.js";
+import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.js";
 import { readRuntimeDictionaryViewAttribute } from "./runtime-dictionary-view-attributes.js";
 import { createRuntimeSetAlgebraMethod } from "./runtime-set-algebra-method.js";
 import { createRuntimeSetMutationMethod } from "./runtime-set-mutation-method.js";
@@ -194,6 +195,12 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   }
   if (receiver.kind === "dict" || receiver.kind === "mappingproxy") {
     switch (name) {
+      case "fromkeys":
+        if (receiver.kind === "dict") {
+          if (methods?.dictionaryKeys === undefined) throw Error("dictionary fromkeys requires a key policy");
+          return createDictionaryFromKeysBuiltin(values, methods.dictionaryKeys, meter);
+        }
+        break;
       case "get": case "copy": case "keys": case "values": case "items": case "__reversed__":
         return createRuntimeDictionaryMethod(receiver, name, values, meter);
       case "clear": case "pop": case "popitem": case "setdefault": case "update":

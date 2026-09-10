@@ -14,10 +14,13 @@ import { createBuildClassBuiltin } from "./builtin-build-class.js";
 import { createCallableBuiltin } from "./builtin-callable.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
+import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.js";
+import { runtimeHash } from "./runtime-hash.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
-  const keys = { hash: () => 1n, equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, v, meter).value };
+  const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
+  const keys = { hash: (value: RuntimeValue) => runtimeHash(value, hash, meter), equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, v, meter).value };
   const registry = new RuntimeTypeRegistry(v, keys, meter), native = new Map<string, TypeValue>();
   const globals = new Map<string, RuntimeValue>([["type", registry.type], ["object", registry.object], ["__name__", v.string("example")]]), events: string[] = [];
   const builtins = new Map<string, RuntimeValue>([["visit", v.builtinFunction({ name: "visit", invoke(args) { const value = args[0]; if (value.kind !== "str") throw Error("expected string"); events.push(String.fromCodePoint(...value.value)); return v.none; } })]]);
@@ -94,6 +97,39 @@ it("updates dictionaries through native methods using guest mapping protocols", 
   const state = fixture();
   state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nresult={}\nreturned=result.update(Mapping(),right=9)\nleft=result['left']\nright=result['right']\n");
   expect(state.globals.get("returned")).toBe(state.v.none); expect(state.globals.get("left")).toEqual(state.v.integer(7)); expect(state.globals.get("right")).toEqual(state.v.integer(9)); expect(state.events).toEqual(["keys", "left", "right"]);
+});
+
+it("constructs dictionary keys from guest sequences without consulting length hints", () => {
+  const state = fixture();
+  state.builtins.set("fromkeys", createDictionaryFromKeysBuiltin(state.v, state.keys, state.meter));
+  state.run("class Source:\n def __getitem__(self,index):\n  visit('get')\n  return ('left','right','left')[index]\n def __len__(self):\n  visit('length')\n  return 3\npayload=[]\nresult=fromkeys(Source(),payload)\nleft=result['left']\nright=result['right']\n");
+  expect(state.globals.get("left")).toBe(state.globals.get("payload")); expect(state.globals.get("right")).toBe(state.globals.get("payload")); expect(state.events).toEqual(["get", "get", "get", "get"]);
+});
+
+it("exposes fromkeys on dictionary instances without copying their entries", () => {
+  const state = fixture();
+  state.run("original={'old':1}\nfromkeys=original.fromkeys\nresult=fromkeys(('left','right'),7)\nleft=result['left']\nright=result['right']\nold=original['old']\n");
+  expect(state.globals.get("left")).toEqual(state.v.integer(7)); expect(state.globals.get("right")).toEqual(state.v.integer(7)); expect(state.globals.get("old")).toEqual(state.v.integer(1));
+  expect(state.globals.get("result")).not.toBe(state.globals.get("original"));
+});
+
+it("stops fromkeys on an invalid key without closing or exhausting a guest cursor", () => {
+  const state = fixture();
+  state.builtins.set("finish", state.v.builtinFunction({ name: "finish", invoke() { throw new PythonRuntimeError("StopIteration", ""); } }));
+  state.run("class Source:\n def __init__(self):\n  self.index=0\n def __iter__(self):\n  visit('iter')\n  return self\n def __length_hint__(self):\n  visit('hint')\n  return 3\n def __next__(self):\n  visit('next')\n  if self.index==3:\n   finish()\n  key=('left',[],'right')[self.index]\n  self.index+=1\n  return key\n def close(self):\n  visit('close')\nsource=Source()\n");
+  expect(() => state.run("{}.fromkeys(source)\n")).toThrow("unhashable type: 'list'");
+  state.run("result={}.fromkeys(source,7)\nright=result['right']\n"); expect(state.globals.get("right")).toEqual(state.v.integer(7));
+  expect(state.events).toEqual(["iter", "next", "next", "iter", "next", "next"]);
+});
+
+it("validates fromkeys arguments before guest iteration and leaves proxies unchanged", () => {
+  const state = fixture();
+  state.run("class Source:\n def __getitem__(self,index):\n  visit('get')\n  return 'left'\nsource=Source()\noriginal={}\n");
+  expect(() => state.run("{}.fromkeys(source,None,None)\n")).toThrow("fromkeys expected at most 2 arguments, got 3");
+  expect(() => state.run("{}.fromkeys(source,value=7)\n")).toThrow("dict.fromkeys() takes no keyword arguments");
+  expect(state.events).toEqual([]);
+  const original = state.globals.get("original")!; if (original.kind !== "dict") throw Error("expected dictionary");
+  state.globals.set("proxy", state.v.mappingProxy(original)); expect(() => state.run("proxy.fromkeys\n")).toThrow("'mappingproxy' object has no attribute 'fromkeys'");
 });
 
 it("checks update arity before mapping effects but validates keywords after writes", () => {

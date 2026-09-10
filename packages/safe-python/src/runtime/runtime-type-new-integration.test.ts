@@ -23,7 +23,9 @@ import { createIdBuiltin, type IdentityContext } from "./builtin-id.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { constructRuntimeInteger } from "./runtime-integer-construction.js";
 
-function fixture(identity?: IdentityContext, maxSteps = 100000) {
+// Deliberately colliding hash policies make native namespace lookup unusually
+// expensive as catalogs grow; these integration tests are not step-limit tests.
+function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
   const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
   const calls = new CallStack<object>(50, meter), keys = new RuntimeExecutionKeys(v, hash, meter, calls);
@@ -59,6 +61,25 @@ function fixture(identity?: IdentityContext, maxSteps = 100000) {
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
+
+it("publishes integer numeric data descriptors over exact and owned values", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Child(Int):\n def __int__(self):\n  visit('wrong')\n  return 9\nx=10**30\ny=Child(x)\ncorrect=Int.real.__get__(x) is x and x.numerator is x and y.real==x and type(y.real) is Int and y.numerator==x and y.imag==0 and y.denominator==1 and True.real==1 and type(True.real) is Int and Int.real.__objclass__ is Int\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+  expect(()=>state.run("y.real=2\n")).toThrow("not writable");
+  expect(()=>state.run("del y.numerator\n")).toThrow("not writable");
+});
+
+it("publishes integer no-argument methods without invoking conversion overrides", () => {
+  const state = fixture();state.globals.set("Int",state.registry.integerType());
+  state.run("class Child(Int):\n def __int__(self):\n  visit('wrong')\n  return 9\nx=10**30\ny=Child(x)\ncorrect=Int.bit_length(y)==100 and y.bit_count()==37 and y.as_integer_ratio()==(x,1) and y.__getnewargs__()==(x,) and type(y.__getnewargs__()[0]) is Int and y.is_integer() and True.is_integer() and Int.bit_count.__objclass__ is Int and y.bit_count.__self__ is y\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  for(const name of ["conjugate","__trunc__","__floor__","__ceil__"]) {
+    state.run(`correct=x.${name}() is x and y.${name}()==x and type(y.${name}()) is Int and type(True.${name}()) is Int\n`);
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+  expect(state.events).toEqual([]);
+});
 
 it("constructs singleton booleans under the canonical integer hierarchy", () => {
   const state = fixture();state.globals.set("Bool",state.registry.booleanType());state.globals.set("Int",state.registry.integerType());

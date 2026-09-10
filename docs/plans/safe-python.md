@@ -9340,6 +9340,23 @@ extension, integration, or validation requirement is missing or unverified.
   6,968 package tests in 495 files pass. Remaining integer methods/data members,
   other canonical scalar types, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Integer numeric members (2026-09-10): two failing integration tests reproduced
+  missing canonical data and method descriptors. Added real/imag/numerator/
+  denominator getsets and nine no-argument methods: bit_length, bit_count,
+  as_integer_ratio, conjugate, __trunc__, __floor__, __ceil__, __getnewargs__ and
+  is_integer. Owned subclasses are normalized to plain integers without guest
+  conversions; exact integers retain identity where CPython does. Native
+  attribute lookup now binds getsets as well as members. All 771 integer member
+  CPython comparisons match. An initial broader 816-case audit also exposed 20
+  failures in existing float __trunc__/__floor__/__ceil__/__getnewargs__ access;
+  these remain pending with canonical float work (bound float operations were
+  excluded from the integer-only audit, not counted as passes). Expanded catalogs
+  exceeded four integration tests' deliberately all-colliding hash fixture step
+  budget; raised its default to one million, leaving production limits unchanged.
+  Workspace build, typecheck, focused lint and all 6,970 tests in 495 files pass.
+  Integer rounding, format and byte-conversion descriptors, other scalar types,
+  full interpreter and safe-fs execution remain unfinished. No push or release
+  was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

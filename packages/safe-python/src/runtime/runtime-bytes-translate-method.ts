@@ -1,8 +1,9 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeBytesTranslateMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeBytesTranslateMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, values: RuntimeValues, meter: ExecutionMeter, buffers?: RuntimeBufferContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "translate",
@@ -19,17 +20,34 @@ export function createRuntimeBytesTranslateMethod(receiver: Extract<RuntimeValue
         if (label !== "delete") throw new PythonRuntimeError("TypeError", `translate() got an unexpected keyword argument '${label}'`);
         deleted = value;
       }
-      const table = positional[0].kind === "none" ? null : translationBytesArgument(positional[0]).value;
-      if (table !== null && table.length !== 256) throw new PythonRuntimeError("ValueError", "translation table must be 256 characters long");
-      const deletion = deleted === undefined ? null : translationBytesArgument(deleted).value;
-      const result = receiver.value.translate(table, deletion, meter);
-      return result === receiver.value ? receiver : values.bytes(result, result.length === 0 ? "canonical" : "fresh");
+      const source = positional[0];
+      let tableLease: RuntimeBufferLease | undefined, deletionLease: RuntimeBufferLease | undefined;
+      try {
+        if (source.kind !== "none" && source.kind !== "bytes") {
+          tableLease = buffers?.acquireSimple(source); meter.checkpoint();
+          if (tableLease === undefined) translationBytesArgument(source);
+        }
+        const length = source.kind === "none" ? null : source.kind === "bytes" ? source.value.length : tableLease!.byteLength;
+        if (length !== null && length !== 256) throw new PythonRuntimeError("ValueError", "translation table must be 256 characters long");
+        if (deleted !== undefined && deleted.kind !== "bytes") {
+          deletionLease = buffers?.acquireSimple(deleted); meter.checkpoint();
+          if (deletionLease === undefined) translationBytesArgument(deleted);
+        }
+        const table = source.kind === "none" ? null : source.kind === "bytes" ? source.value : tableLease!.copy();
+        meter.checkpoint();
+        const deletion = deleted === undefined ? null : deleted.kind === "bytes" ? deleted.value : deletionLease!.copy();
+        meter.checkpoint();
+        const result = receiver.value.translate(table, deletion, meter);
+        return result === receiver.value ? receiver : values.bytes(result, result.length === 0 ? "canonical" : "fresh");
+      } finally {
+        try { tableLease?.release(); } finally { deletionLease?.release(); }
+        meter.checkpoint();
+      }
     }
   });
 }
 
-function translationBytesArgument(value: RuntimeValue): Extract<RuntimeValue, { kind: "bytes" }> {
-  if (value.kind === "bytes") return value;
+function translationBytesArgument(value: RuntimeValue): never {
   const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
   throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${type}'`);
 }

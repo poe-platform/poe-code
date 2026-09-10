@@ -39,6 +39,47 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("retains translation buffers until both inputs have been acquired", () => {
+    const state = fixture("result=b'ab'.translate(table,deleted)\n"), v = state.values, table = v.cell({}), deleted = v.cell({}), trace: string[] = [];
+    const data = Uint8Array.from({ length: 256 }, (_, index) => index);
+    state.globals.set("table", table); state.globals.set("deleted", deleted);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        const name = value === table ? "table" : "delete";
+        trace.push(`acquire ${name}`);
+        if (value === deleted) data[98] = 99;
+        return { byteLength: value === table ? 256 : 1,
+          copy: () => v.bytes(value === table ? data : Uint8Array.of(97)).value,
+          release() { trace.push(`release ${name}`); }
+        };
+      }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(Uint8Array.of(99)));
+    expect(trace).toEqual(["acquire table", "acquire delete", "release table", "release delete"]);
+  });
+  it("releases an acquired table when deletion buffer acquisition fails", () => {
+    const state = fixture("result=b'a'.translate(table,deleted)\n"), v = state.values, table = v.cell({}), deleted = v.cell({}), trace: string[] = [];
+    state.globals.set("table", table); state.globals.set("deleted", deleted);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        if (value === deleted) throw new PythonRuntimeError("BufferError", "not contiguous");
+        return { byteLength: 256, copy: () => v.bytes(new Uint8Array(256)).value, release() { trace.push("released"); } };
+      }
+    } });
+    expect(() => state.run()).toThrow("not contiguous"); expect(trace).toEqual(["released"]);
+  });
+  it("releases translation buffers when acquisition cancels execution", () => {
+    const controller = new AbortController(), state = fixture("result=b'a'.translate(table)\n", 100000, controller.signal), v = state.values;
+    let released = false;
+    state.globals.set("table", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() {
+        controller.abort();
+        return { byteLength: 256, copy() { throw Error("must not copy"); }, release() { released = true; } };
+      }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it.each(["lookup", "isLookupError", "integer", "string"] as const)("stops translation after cancellation in %s", stage => {
     const controller = new AbortController(), state = fixture("result='a'.translate(table)\n", 100000, controller.signal);
     const value = state.values.cell({}), missing = new Error("guest missing key"), calls: string[] = [];

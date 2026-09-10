@@ -55,6 +55,7 @@ import type { ExpressionContext } from "./expression-evaluation.js";
 import type { RuntimeBytesInputContext } from "./runtime-bytes-input.js";
 import { createRuntimeStringTranslateMethod, type RuntimeStringTranslationContext } from "./runtime-string-translate-method.js";
 import { createRuntimeStringMaketransMethod } from "./runtime-string-maketrans-method.js";
+import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
@@ -62,7 +63,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * Custom object policies can replace this operation in expression bindings.
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext }): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
     const context = formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
@@ -96,7 +97,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "fromhex") return createRuntimeBytesFromhexMethod(values, meter);
     if (name === "hex") return createRuntimeBytesHexMethod(receiver, values, meter, methods?.integerIndex);
     if (name === "maketrans") return createRuntimeBytesMaketransMethod(values, meter);
-    if (name === "translate") return createRuntimeBytesTranslateMethod(receiver, values, meter);
+    if (name === "translate") return createRuntimeBytesTranslateMethod(receiver, values, meter, methods?.buffers);
     if (name === "replace") return createRuntimeBytesReplaceMethod(receiver, values, meter, methods?.integerIndex);
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeBytesStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeBytesJoinMethod(receiver, values, meter, methods?.iterate);

@@ -32,7 +32,7 @@ export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
-  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation">;
+  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
 }
@@ -109,6 +109,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const expressions = createRuntimeExpressionContext(values, {
       bytes: expressionHooks.bytes,
       translation: expressionHooks.translation,
+      buffers: expressionHooks.buffers,
       integerIndex: expressionHooks.integerIndex,
       constants: literals?.folded,
       literal: literals === null ? undefined : node => {

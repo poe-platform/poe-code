@@ -6743,6 +6743,18 @@ extension, integration, or validation requirement is missing or unverified.
 - All 5,172 tests in 441 files pass; typecheck and scoped lint pass. This is a
   test-only increment. Concrete guest object assembly and remaining interpreter,
   SDK and safe-fs integration remain unfinished.
+- Added an explicit contiguous buffer lease capability and connected it to
+  bytes.translate through runtime frames. Table leases remain active while
+  deletion buffers are acquired; copies observe intervening mutations. Both
+  leases are released in Python order on success, errors and cancellation.
+  Providers own contiguity checks, metered copying and non-throwing cleanup;
+  the earlier copy-and-release conversion capability cannot express this lifetime.
+- Three failing compiled regressions now pass. All 5,175 tests in 441 files pass;
+  48 CPython comparisons match output/errors and acquisition/release traces,
+  including mutation during the second acquisition and invalid table lengths.
+  Typecheck, scoped lint and selected workspace build pass. Concrete buffer
+  exporters, automatic object assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

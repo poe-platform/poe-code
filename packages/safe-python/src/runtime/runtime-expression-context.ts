@@ -24,6 +24,7 @@ import type { IterationContext } from "./protocol-iterator.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import type { RuntimeBytesInputProtocol } from "./runtime-bytes-input.js";
 import type { RuntimeStringTranslationContext } from "./runtime-string-translate-method.js";
+import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
 
 /** Explicit scope/object capabilities, supplied by the surrounding runtime.
  * Attribute lookup defaults to implemented exact native container members;
@@ -42,6 +43,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
     readonly bytes?: RuntimeBytesInputProtocol;
     readonly translation?: RuntimeStringTranslationContext;
+    readonly buffers?: RuntimeBufferContext;
     readonly power?: RuntimePowerContext;
     readonly iteration?: IterationContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
@@ -118,7 +120,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
   const methods = {
     iterate: context.iterate.bind(context), compare: context.compare.bind(context),
     truth: context.truth.bind(context), integerIndex: bindings.integerIndex, bytes: bindings.bytes,
-    translation: bindings.translation
+    translation: bindings.translation, buffers: bindings.buffers
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
   context.formattedString = bindings.formattedString ?? createRuntimeFormattedStringContext(values, formatting, meter);

@@ -10285,6 +10285,32 @@ extension, integration, or validation requirement is missing or unverified.
   native generator-function wiring are next, with yield delegation, async execution
   and complete continuation accounting still unfinished. No push or release
   requested.
+- Native compiled generator functions (2026-09-10): default runtime wiring now
+  creates lazy generator bodies using the shared expression, statement and native
+  mutation continuations. Argument binding remains call-time; body preparation is
+  first-resume work. Originating code tables, globals and closure cells survive
+  later module compilations. Explicit suspended hooks retain precedence.
+  Shared function/class-definition and raise kernels retain decorator/default,
+  header and exception/cause operands without replay across yields. Native
+  lifecycle integration preserves saved handlers, pending returns/finalizers,
+  send/throw/close behavior and escaping StopIteration conversion. Six initial
+  definition/raise failures and five unsupported-generator failures drove the
+  implementation; native regressions cover generator lambdas, nested definitions,
+  call-time validation, created close, finally returns and illicit cleanup yields.
+  All 641 compiled-generator CPython comparisons pass. They exposed missing
+  canonical NoneType allocation, followed by an intrinsic descriptor bug that
+  confused actual None with an absent receiver. Native binding now uses host null
+  for absence and explicit __get__ converts its guest None sentinel at the boundary.
+  NoneType allocation and inherited method access have regression coverage; ten
+  additional None/descriptor CPython comparisons pass. Full NoneType slot/catalog
+  fidelity, yield delegation, async execution, generator metadata/finalization and
+  complete continuation allocation accounting remain unfinished. All 7,413 tests
+  in 507 files pass in the uncached one-worker run (228.55s; bodies 12.18s).
+  The 453 prior generator/throw/comprehension CPython comparisons also pass;
+  combined with the new comparisons, 1,104 cases match. Selected workspace build,
+  typecheck and focused lint pass. Full-suite failures exposed old internal
+  sentinel assumptions and an incomplete fixture type resolver; both fixtures now
+  exercise the canonical None/absent distinction. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

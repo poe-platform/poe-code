@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseModule } from "../module.js";
-import { executeRaise, type RaiseContext } from "./raise-execution.js";
+import { createRaiseContinuation, executeRaise, type RaiseContext } from "./raise-execution.js";
 import { ExecutionBudget } from "./execution-budget.js";
 
 function fixture(maxSteps = 1000) {
@@ -22,7 +22,16 @@ function fixture(maxSteps = 1000) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 10000 });
   return { C, D, value, cause, signal, events, inputs, constructors, types, context,
     active: (exception: unknown) => { active = { value: exception }; }, output: () => propagated, assignedCause: () => assignedCause,
-    run: (source: string) => { const statement = parseModule(source).body[0]; if (statement.kind !== "raise") throw new Error("fixture"); return executeRaise(statement, context, meter); }
+    run: (source: string) => { const statement = parseModule(source).body[0]; if (statement.kind !== "raise") throw new Error("fixture"); return executeRaise(statement, context, meter); },
+    continuation(source: string) {
+      const statement = parseModule(source).body[0]; if (statement.kind !== "raise") throw Error("expected raise");
+      return createRaiseContinuation(statement, { ...context,
+        *evaluate(expression) {
+          if (expression.kind === "yield" && expression.value !== null) return yield context.evaluate(expression.value);
+          return context.evaluate(expression);
+        }
+      }, meter);
+    }
   };
 }
 
@@ -121,5 +130,25 @@ describe("raise execution", () => {
     const state = fixture(2);
     expect(() => state.run("raise e from c")).toThrow("execution step limit exceeded");
     expect(state.events).toEqual(["eval:e", "eval:c"]);
+  });
+});
+
+describe("resumable raise execution", () => {
+  it("evaluates both yielded operands before constructing or assigning cause", () => {
+    const state = fixture(), cursor = state.continuation("raise (yield e) from (yield c)");
+    expect(state.events).toEqual([]);
+    expect(cursor.next()).toEqual({ done: false, value: state.C });
+    expect(cursor.next(state.C)).toEqual({ done: false, value: state.D });
+    expect(state.events).toEqual(["eval:e", "eval:c"]);
+    expect(() => cursor.next(state.D)).toThrow(state.signal);
+    expect(state.events).toEqual(["eval:e", "eval:c", "call:C", "call:D", "setCause", "raise"]);
+    expect(state.assignedCause()).toBe(state.cause);
+  });
+
+  it("propagates an injected cause failure without constructing either exception", () => {
+    const state = fixture(), cursor = state.continuation("raise e from (yield c)"), failure = Error("cause input");
+    expect(cursor.next()).toEqual({ done: false, value: state.D });
+    expect(() => cursor.throw(failure)).toThrow(failure);
+    expect(state.events).toEqual(["eval:e", "eval:c"]); expect(state.assignedCause()).toBe("unchanged");
   });
 });

@@ -47,14 +47,15 @@ export function callRuntimeMethodDescriptor(descriptor: NativeMethodDescriptorVa
   meter.checkpoint(); return result;
 }
 
-/** Intrinsic non-data __get__. Binding validates self but does not invoke the
- * native method. Bound calls retain the receiver and normal invocation context. */
+/** Intrinsic non-data binding. Only host null denotes an absent receiver;
+ * guest None is a real receiver. Explicit __get__ normalizes its sentinel first.
+ * Binding validates self without invoking the native method. */
 export function getRuntimeMethodDescriptor(descriptor: NativeMethodDescriptorValue | WrapperDescriptorValue, instance: RuntimeValue | null, owner: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, typeOf?: (value: RuntimeValue) => TypeValue): RuntimeValue {
   meter.checkpoint();
   if (descriptor.kind === "classmethod_descriptor") {
     if (owner.kind !== "none") instance = owner;
     else {
-      if (instance === null || instance.kind === "none") throw new PythonRuntimeError("TypeError", "__get__(None, None) is invalid");
+      if (instance === null) throw new PythonRuntimeError("TypeError", "__get__(None, None) is invalid");
       if (instance.kind === "type") instance = instance.metaclass;
       else if (hasRuntimeInstanceAttributes(instance)) instance = instance.type;
       else {
@@ -62,7 +63,7 @@ export function getRuntimeMethodDescriptor(descriptor: NativeMethodDescriptorVal
         instance = typeOf(instance); meter.checkpoint();
       }
     }
-  } else if (instance === null || instance.kind === "none") {
+  } else if (instance === null) {
     if (owner.kind === "none") throw new PythonRuntimeError("TypeError", "__get__(None, None) is invalid");
     return descriptor;
   }

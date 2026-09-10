@@ -74,6 +74,7 @@ import { createListNewBuiltin } from "./builtin-list-new.js";
 import { createListReprWrapper } from "./builtin-list-repr.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 import { installRuntimeGeneratorDescriptors } from "./runtime-generator-descriptors.js";
+import { createNoneNewBuiltin } from "./builtin-none-new.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -107,12 +108,13 @@ export class RuntimeTypeRegistry {
   #complexType: TypeValue | undefined;
   #baseExceptionType:TypeValue|undefined;
   #generatorType:TypeValue|undefined;
+  #noneType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
-    meter.checkpoint(1, 264);
+    meter.checkpoint(1, 272);
     this.#entries = new WeakMap();
     const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false, weakReferences: false });
     const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: true, objectLayout: false, variableSized: true });
@@ -441,6 +443,18 @@ export class RuntimeTypeRegistry {
     installRuntimeGeneratorDescriptors(type,this.values,this.meter);
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#generatorType=type;
+    return type;
+  }
+
+  noneType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#noneType!==undefined)return this.#noneType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("NoneType",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    namespace.items.set(this.values.string("__new__"),createNoneNewBuiltin(type,this.values,this.meter));
+    this.meter.checkpoint(1,64);
+    this.#entries.set(layout,{type});this.#noneType=type;
     return type;
   }
 

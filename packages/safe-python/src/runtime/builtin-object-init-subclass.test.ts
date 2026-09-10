@@ -36,7 +36,7 @@ it("uses the supplied class owner without inspecting the instance", () => {
   if (bound.kind !== "builtin_function_or_method") throw Error("expected native bound method");
   expect(bound.binding?.instance).toBe(cls); expect(bound.value.invoke([], keywords, meter)).toBe(v.none);
   expect(() => getRuntimeMethodDescriptor(descriptor, v.none, v.integer(1), v, meter)).toThrow("needs a type, not a 'int' as arg 2");
-  expect(() => getRuntimeMethodDescriptor(descriptor, v.none, v.none, v, meter)).toThrow("__get__(None, None) is invalid");
+  expect(() => getRuntimeMethodDescriptor(descriptor, null, v.none, v, meter)).toThrow("__get__(None, None) is invalid");
 });
 
 it("derives omitted owners from actual instance and metaclass identities", () => {
@@ -50,6 +50,10 @@ it("derives omitted owners from actual instance and metaclass identities", () =>
   const bound = getRuntimeMethodDescriptor(descriptor, opaque, v.none, v, meter, value => { calls++; expect(value).toBe(opaque); return cls; });
   if (bound.kind !== "builtin_function_or_method") throw Error("expected native bound method");
   expect(bound.binding?.instance).toBe(cls); expect(calls).toBe(1);
+  const noneOwner = registry.noneType();
+  const noneBound = getRuntimeMethodDescriptor(descriptor, v.none, v.none, v, meter, value => { expect(value).toBe(v.none); return noneOwner; });
+  if (noneBound.kind !== "builtin_function_or_method") throw Error("expected native bound method");
+  expect(noneBound.binding?.instance).toBe(noneOwner);
 });
 
 it("preserves intrinsic binding, callability, truth and native binding identity", () => {

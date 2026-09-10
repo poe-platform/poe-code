@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseModule } from "../module.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
-import { executeClassDefinition, type ClassDefinitionContext } from "./class-definition.js";
+import { createClassDefinitionContinuation, executeClassDefinition, type ClassDefinitionContext } from "./class-definition.js";
 
 function fixture(failure?: string) {
   const events: string[] = [], positional: unknown[] = [], keywords = new Map<string, unknown>();
@@ -32,8 +32,40 @@ function fixture(failure?: string) {
     executeClassDefinition(statement, context, new ExecutionBudget({ maxSteps, maxAllocatedBytes: 100000 }));
     return statement;
   };
-  return { context, events, positional, keywords, names, old, built, error, run };
+  return { context, events, positional, keywords, names, old, built, error, run,
+    continuation(source: string) {
+      const statement = parseModule(source).body[0]; if (statement.kind !== "class") throw Error("expected class");
+      return createClassDefinitionContinuation(statement, { ...context,
+        *evaluate(expression) {
+          if (expression.kind === "yield" && expression.value !== null) return yield context.evaluate(expression.value);
+          return context.evaluate(expression);
+        }
+      }, new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }));
+    }
+  };
 }
+
+describe("resumable class definitions", () => {
+  it("retains the builder collector and decorators across header yields", () => {
+    const state = fixture(), cursor = state.continuation("@(yield outer)\nclass C((yield base), flag=(yield keyword)): pass");
+    expect(state.events).toEqual([]);
+    expect(cursor.next()).toEqual({ done: false, value: "outer" });
+    expect(cursor.next("O")).toEqual({ done: false, value: "base" });
+    expect(state.positional).toHaveLength(2);
+    expect(cursor.next("B")).toEqual({ done: false, value: "keyword" });
+    expect(state.positional[2]).toBe("B"); expect(state.names.get("C")).toBe(state.old);
+    expect(cursor.next("K")).toEqual({ done: true, value: undefined });
+    expect(state.keywords.get("flag")).toBe("K");
+    expect(state.events).toEqual(["eval:outer", "builder", "body", "name", "eval:base", "eval:keyword", "keywords", "build", "apply:O", "store"]);
+  });
+
+  it("does not invoke the builder when a paused header receives an exception", () => {
+    const state = fixture(), cursor = state.continuation("class C(base, flag=(yield keyword)): pass");
+    expect(cursor.next()).toEqual({ done: false, value: "keyword" });
+    expect(() => cursor.throw(state.error)).toThrow(state.error);
+    expect(state.events).not.toContain("build"); expect(state.names.get("C")).toBe(state.old);
+  });
+});
 
 describe("class definition execution", () => {
   it("evaluates decorators, invokes the builtin builder, decorates and binds last", () => {

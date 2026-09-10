@@ -19,6 +19,14 @@ export interface ClassDefinitionContext<Value> {
   store(name: string, value: Value): void;
 }
 
+export interface ResumableClassDefinitionContext<Value> extends Omit<ClassDefinitionContext<Value>, "evaluate"> {
+  evaluate(expression: Expression): Generator<Value, Value, Value>;
+}
+
+type ClassDefinitionExecution<Value> =
+  | { kind: "synchronous"; context: ClassDefinitionContext<Value> }
+  | { kind: "resumable"; context: ResumableClassDefinitionContext<Value> };
+
 /** Execute a statically validated class definition in its containing scope.
  * Decorators are evaluated before builtin-builder lookup and header operands.
  * The builder receives the body callable and name before explicit arguments;
@@ -31,11 +39,24 @@ export interface ClassDefinitionContext<Value> {
 export function executeClassDefinition<Value>(
   statement: Extract<Statement, { kind: "class" }>, context: ClassDefinitionContext<Value>, meter: ExecutionMeter
 ): void {
-  meter.checkpoint();
+  meter.checkpoint(1, 224);
+  const result = definitionContinuation<Value>(statement, { kind: "synchronous", context }, meter).next();
+  if (!result.done) throw Error("synchronous class definition unexpectedly suspended");
+}
+
+/** Preserve decorators and the prepared builder call while header operands yield. */
+export function createClassDefinitionContinuation<Value>(statement: Extract<Statement, { kind: "class" }>, context: ResumableClassDefinitionContext<Value>, meter: ExecutionMeter): Generator<Value, void, Value> {
+  meter.checkpoint(1, 224);
+  return definitionContinuation<Value>(statement, { kind: "resumable", context }, meter);
+}
+
+function* definitionContinuation<Value>(statement: Extract<Statement, { kind: "class" }>, execution: ClassDefinitionExecution<Value>, meter: ExecutionMeter): Generator<Value, void, Value> {
+  meter.checkpoint(0);
+  const context = execution.context;
   const decorators: Value[] = [];
   for (const expression of statement.decorators) {
     meter.checkpoint();
-    decorators.push(context.evaluate(expression));
+    decorators.push(execution.kind === "synchronous" ? execution.context.evaluate(expression) : yield* execution.context.evaluate(expression));
   }
   meter.checkpoint();
   const builder = context.lookupBuilder();
@@ -53,7 +74,8 @@ export function executeClassDefinition<Value>(
   let step = evaluation.next();
   while (!step.done) {
     meter.checkpoint();
-    step = evaluation.next(context.evaluate(step.value));
+    const value = execution.kind === "synchronous" ? execution.context.evaluate(step.value) : yield* execution.context.evaluate(step.value);
+    step = evaluation.next(value);
   }
   let value = step.value;
   for (let index = decorators.length - 1; index >= 0; index--) {

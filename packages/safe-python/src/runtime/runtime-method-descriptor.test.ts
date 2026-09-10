@@ -23,8 +23,17 @@ function fixture(signal?: AbortSignal) {
 it("returns the descriptor on class access and rejects an empty get", () => {
   const { descriptor, v, meter } = fixture();
   expect(getRuntimeMethodDescriptor(descriptor, null, v.true, v, meter)).toBe(descriptor);
-  expect(getRuntimeMethodDescriptor(descriptor, v.none, v.true, v, meter)).toBe(descriptor);
-  expect(() => getRuntimeMethodDescriptor(descriptor, v.none, v.none, v, meter)).toThrow("__get__(None, None) is invalid");
+  expect(() => getRuntimeMethodDescriptor(descriptor, null, v.none, v, meter)).toThrow("__get__(None, None) is invalid");
+});
+
+it.each(["method", "wrapper"] as const)("binds actual None receivers for intrinsic %s slots", kind => {
+  const { v, meter, registry, keywords } = fixture();
+  const spec = { owner: registry.object, name: "method", accepts: (value: RuntimeValue) => value === v.none, invoke: (receiver: RuntimeValue) => receiver };
+  const descriptor = kind === "method" ? v.methodDescriptor(spec) : v.wrapperDescriptor(spec);
+  const bound = getRuntimeMethodDescriptor(descriptor, v.none, registry.noneType(), v, meter);
+  if (bound.kind === "method-wrapper") expect(callRuntimeMethodDescriptor(bound, [], keywords, meter)).toBe(v.none);
+  else if (bound.kind === "builtin_function_or_method") expect(bound.value.invoke([], keywords, meter)).toBe(v.none);
+  else throw Error("expected a bound native method");
 });
 
 it("binds without calling and forwards receiver, arguments and keywords", () => {

@@ -37,6 +37,7 @@ function fixture(signal?: AbortSignal) {
   const hooks: RuntimeProgramHooks = {
     specialMethods: () => ({ typeOf(value) {
       const type = types.get(value); if (type !== undefined) return type;
+      if (value.kind === "none") return registry.noneType();
       if (value.kind === "list") return registry.listType();
       if (value.kind === "dict") return registry.dictionaryType();
       if (value.kind === "int") return registry.integerType();

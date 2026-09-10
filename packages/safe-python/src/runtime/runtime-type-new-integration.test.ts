@@ -55,6 +55,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     expressions: () => ({ ...extensions, warn: extensions.warn ?? unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
+      if (value.kind === "none") return registry.noneType();
       if (value.kind === "list") return registry.listType();
       if (value.kind === "tuple") return registry.tupleType();
       if (value.kind === "dict") return registry.dictionaryType();
@@ -70,7 +71,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
       const existing = native.get(value.kind); if (existing !== undefined) return existing;
-      const type = registry.publish(new RuntimeTypeLayout(value.kind === "none" ? "NoneType" : value.kind, [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter, { objectLayout: false, instanceDictionary: false }), registry.type);
+      const type = registry.publish(new RuntimeTypeLayout(value.kind, [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter, { objectLayout: false, instanceDictionary: false }), registry.type);
       native.set(value.kind, type); return type;
     } })
   };
@@ -214,6 +215,98 @@ it("consumes native generators through guest iteration and forbids native constr
   state.globals.set("g",state.exceptions!.generator(()=>++count<=3?{done:false,value:v.integer(count)}:{done:true,value:v.none},{},state.calls));
   state.run("items=[x for x in g]\ncorrect=items==[1,2,3]\ntry:\n type(g)()\nexcept TypeError:\n construction=True\ntry:\n class Invalid(type(g)): pass\nexcept TypeError:\n subclassing=True\n");
   for(const name of ["correct","construction","subclassing"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("creates native generator functions without running their bodies and accepts sent return values",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def gen(x):\n visit('start')\n result = yield x\n return result\ng=gen(3)\n");
+  expect(state.events).toEqual([]);
+  state.run("first=g.__next__()\ntry:\n g.send(7)\nexcept StopIteration as error:\n result=error.value\n");
+  expect(state.events).toEqual(["start"]);expect(state.globals.get("first")).toEqual(v.integer(3));expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("retains native generator returns through yielding finalizers",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def gen():\n try:\n  return (yield 1)\n finally:\n  yield 2\ng=gen()\nfirst=g.__next__()\nsecond=g.send(7)\ntry:\n g.send(99)\nexcept StopIteration as error:\n result=error.value\n");
+  expect(state.globals.get("first")).toEqual(v.integer(1));expect(state.globals.get("second")).toEqual(v.integer(2));expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("resumes native nested function defaults and class bases in generator bodies",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def gen():\n def inner(a=(yield 1)):\n  return a\n yield inner()\n class C((yield 2)):\n  flag=9\n yield C.flag\ng=gen()\na=g.__next__()\nb=g.send(7)\nc=g.__next__()\nd=g.send(object)\n");
+  expect(["a","b","c","d"].map(name=>state.globals.get(name))).toEqual([v.integer(1),v.integer(7),v.integer(2),v.integer(9)]);
+});
+
+it("delays native exception construction until both yielded raise operands finish",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class E(Exception):\n def __init__(self):\n  visit('construct')\ndef gen():\n try:\n  raise (yield 1) from (yield 2)\n except E as error:\n  yield error.__cause__\ng=gen()\na=g.__next__()\nb=g.send(E)\n");
+  expect(state.events).toEqual([]);
+  state.run("cause=ValueError('cause')\nresult=g.send(cause)\nsame=result is cause\n");
+  expect(state.events).toEqual(["construct"]);expect(state.globals.get("same")).toBe(v.true);
+});
+
+it("returns the sent value from a native generator lambda",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("g=(lambda: (yield 1))()\nfirst=g.__next__()\ntry:\n g.send(7)\nexcept StopIteration as error:\n result=error.value\n");
+  expect(state.globals.get("first")).toEqual(v.integer(1));expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
+it("constructs canonical NoneType and rejects extra arguments before object allocation",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("T=type(None)\nsame=T() is None\ntry:\n T(1)\nexcept TypeError as error:\n args=error.args\ntry:\n class C(None):\n  pass\nexcept TypeError as error:\n base=error.args\n");
+  expect(state.globals.get("same")).toBe(v.true);
+  expect(state.globals.get("args")).toEqual(v.tuple([v.string("NoneType takes no arguments")]));
+  expect(state.globals.get("base")).toEqual(v.tuple([v.string("NoneType takes no arguments")]));
+});
+
+it("binds inherited None methods while explicit descriptor None remains class access",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("result=None.__init__()\nunbound=object.__init__.__get__(None,type(None)) is object.__init__\n");
+  expect(state.globals.get("result")).toBe(v.none);
+  expect(state.globals.get("unbound")).toBe(v.true);
+});
+
+it.each([
+  ["T(flag=1)", "NoneType takes no arguments"],
+  ["T.__new__()", "NoneType.__new__(): not enough arguments"],
+  ["T.__new__(None)", "NoneType.__new__(X): X is not a type object (NoneType)"],
+  ["T.__new__(object)", "NoneType.__new__(object): object is not a subtype of NoneType"],
+  ["T.__new__(T,1)", "NoneType takes no arguments"]
+])("validates NoneType allocator call %s",(expression,message)=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`T=type(None)\ntry:\n ${expression}\nexcept TypeError as error:\n result=error.args\n`);
+  expect(state.globals.get("result")).toEqual(v.tuple([v.string(message)]));
+});
+
+it("binds generator arguments at call time and keeps created close free of body effects",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def gen(required):\n visit('body')\n yield required\ntry:\n gen()\nexcept TypeError:\n rejected=True\ng=gen(1)\nclosed=g.close()\n");
+  expect(state.globals.get("rejected")).toBe(v.true);expect(state.globals.get("closed")).toBe(v.none);expect(state.events).toEqual([]);
+});
+
+it("returns a native finally result from close and retains an illicit cleanup yield",()=>{
+  const state=exceptionFixture({warn(){}}),{v}=state;
+  state.run("def finish():\n try:\n  yield 1\n finally:\n  visit('finish')\n  return 9\ng=finish()\ng.__next__()\nresult=g.close()\ndef pause():\n try:\n  yield 1\n finally:\n  yield 2\ng=pause()\ng.__next__()\ntry:\n g.close()\nexcept RuntimeError:\n rejected=True\nsuspended=g.gi_suspended\nclosed=g.close()\n");
+  expect(state.globals.get("result")).toEqual(v.integer(9));expect(state.globals.get("rejected")).toBe(v.true);expect(state.globals.get("suspended")).toBe(v.true);expect(state.globals.get("closed")).toBe(v.none);expect(state.events).toEqual(["finish"]);
+});
+
+it("restores saved native exception handlers independently of each caller",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def gen():\n try:\n  raise ValueError('own')\n except ValueError as own:\n  yield own\n  raise\ng=gen()\nfirst=g.__next__()\ntry:\n raise TypeError('caller')\nexcept TypeError as caller:\n try:\n  g.__next__()\n except ValueError as error:\n  same=error is first\n try:\n  raise\n except TypeError as error:\n  restored=error is caller\n");
+  expect(state.globals.get("same")).toBe(v.true);expect(state.globals.get("restored")).toBe(v.true);expect(state.calls.depth).toBe(0);expect(state.exceptions!.active).toBeNull();
+});
+
+it("injects throw into native handlers and wraps escaping StopIteration",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def gen():\n try:\n  yield 1\n except ValueError as error:\n  yield error\n raise StopIteration(7)\ng=gen()\ng.__next__()\nfailure=ValueError('injected')\nresult=g.throw(failure)\nsame=result is failure\ntry:\n g.__next__()\nexcept RuntimeError as error:\n wrapped=error.__cause__.value==7 and error.__context__ is error.__cause__\nclosed=not g.gi_suspended\n");
+  expect(state.globals.get("same")).toBe(v.true);expect(state.globals.get("wrapped")).toBe(v.true);expect(state.globals.get("closed")).toBe(v.true);
+});
+
+it("retains generator closure cells and originating nested-definition code across later modules",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def outer():\n x=3\n def gen():\n  nonlocal x\n  def inner():\n   return x\n  yield inner()\n  x=(yield x)\n  return inner()\n return gen()\ng=outer()\n");
+  state.run("def unrelated():\n return 99\na=g.__next__()\nb=g.__next__()\ntry:\n g.send(7)\nexcept StopIteration as error:\n result=error.value\n");
+  expect(state.globals.get("a")).toEqual(v.integer(3));expect(state.globals.get("b")).toEqual(v.integer(3));expect(state.globals.get("result")).toEqual(v.integer(7));
 });
 
 it("supports builtin iter identity and next defaults for native generator expressions",()=>{

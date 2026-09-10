@@ -1,6 +1,7 @@
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
+import type { Expression } from "../ast.js";
 import { PythonRuntimeError } from "./error.js";
-import { evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
+import { createExpressionContinuation, evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
@@ -16,9 +17,9 @@ import { RepresentationStack } from "./representation-stack.js";
 import { listRepresentation } from "./list-representation.js";
 import { runtimeSetRepresentation } from "./runtime-set-representation.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
-import { executeFunctionDefinition } from "./function-definition.js";
+import { createFunctionDefinitionContinuation, executeFunctionDefinition } from "./function-definition.js";
 import type { FunctionCreationContext } from "./function-state.js";
-import type { FunctionInvocationContext } from "./function-invocation.js";
+import { UnsupportedFunctionExecutionError, type FunctionInvocationContext } from "./function-invocation.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
 import type { ModuleFrame, ModuleNamespaces } from "./module-frame.js";
 import { executeModule } from "./module-execution.js";
@@ -34,14 +35,14 @@ import type { IntegerIndexContext } from "./index-protocol.js";
 import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "./runtime-expression-context.js";
 import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
-import { createRuntimeStatementContext, type RuntimeStatementBindings } from "./runtime-statement-context.js";
+import { createRuntimeStatementContext, type RuntimeStatementBindings, type RuntimeStatementContext } from "./runtime-statement-context.js";
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { ClassFrame } from "./class-frame.js";
 import { executeClassBody } from "./class-body.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
 import { RuntimeMappingNamespace } from "./runtime-mapping-namespace.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
-import { executeClassDefinition } from "./class-definition.js";
+import { createClassDefinitionContinuation, executeClassDefinition } from "./class-definition.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { callRuntimeType } from "./runtime-type-call.js";
@@ -56,7 +57,7 @@ import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
 import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js";
 import { ComprehensionCursor,executeComprehensionClauses } from "./comprehension-execution.js";
-import type { StatementContext } from "./statement-execution.js";
+import { createStatementContinuation } from "./statement-execution.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -106,7 +107,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
   const representationState: RuntimeRepresentationState = {};
   let defaultFormatting: FormatContext<RuntimeValue> | undefined;
   const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions):StatementContext<RuntimeValue> => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions):RuntimeStatementContext => {
     meter.checkpoint(1, 512);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -186,6 +187,22 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           }
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
+        else if (context.exceptions) invocation.suspended = (kind, child, code) => {
+          if (kind !== "generator") throw new UnsupportedFunctionExecutionError(kind);
+          meter.checkpoint(0, 288);
+          const origin = fn.value;
+          // Context preparation is delayed until the first resume. Binding the
+          // arguments above must not execute body hooks or guest instructions.
+          function* run(): Generator<RuntimeValue, RuntimeValue, RuntimeValue> {
+            const inner = body(child, origin, code.definitions ?? functions, code.classDefinitions ?? classFunctions, code.literals ?? null, code.comprehensions ?? comprehensions).suspend();
+            if (code.body.kind === "expression") return yield* inner.evaluate(code.body.expression);
+            if (code.body.kind !== "suite") throw Error("generator code must have an expression or suite body");
+            const result = yield* createStatementContinuation(code.body.statements, inner, meter);
+            return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : values.none;
+          }
+          const cursor = run();
+          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls);
+        };
         return invokeRuntimeFunction(fn, positional, keywords, invocation, meter);
       }
     }, meter);
@@ -443,6 +460,15 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);
         else if (statement.kind === "class") executeClassDefinition(statement, classDefinitions, meter);
         else if (statement.kind === "raise" && context.exceptions) context.exceptions.raise(statement,expression=>evaluateExpression(expression,expressions,meter),builtinCalls);
+        else statementHooks.executeUnhandled(statement);
+      },
+      *executeUnhandledContinuation(statement) {
+        meter.checkpoint(0, 192);
+        const evaluate = (expression: Expression) => createExpressionContinuation(expression, expressions, meter, values.none);
+        if (statement.kind === "function") yield* createFunctionDefinitionContinuation(statement, { ...definitions, evaluate }, meter);
+        else if (statement.kind === "class") yield* createClassDefinitionContinuation(statement, { ...classDefinitions, evaluate }, meter);
+        else if (statement.kind === "raise" && context.exceptions) yield* context.exceptions.raiseContinuation(statement, evaluate, builtinCalls);
+        else if (statementHooks.executeUnhandledContinuation) yield* statementHooks.executeUnhandledContinuation(statement);
         else statementHooks.executeUnhandled(statement);
       }
     }, values, meter);

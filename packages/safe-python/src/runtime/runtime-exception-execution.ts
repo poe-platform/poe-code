@@ -8,7 +8,7 @@ import { PythonDecodeError } from "./decode-error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { HandledExceptionState } from "./exception-state.js";
 import { matchExceptionType } from "./exception-matching.js";
-import { executeRaise } from "./raise-execution.js";
+import { createRaiseContinuation, executeRaise, type RaiseContext } from "./raise-execution.js";
 import { normalizeRaisedException } from "./raise-normalization.js";
 import { representationObject } from "./representation-protocol.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
@@ -241,8 +241,15 @@ export class RuntimeExceptionExecution {
     return new RuntimeRaisedException(normalized as InstanceValue,meter);
   }
   raise(statement:Extract<Statement,{kind:"raise"}>,evaluate:(expression:Expression)=>RuntimeValue,invocation:BuiltinInvocationContext):never {
+    return executeRaise(statement,this.raising(evaluate,invocation),this.meter);
+  }
+  raiseContinuation(statement:Extract<Statement,{kind:"raise"}>,evaluate:(expression:Expression)=>Generator<RuntimeValue,RuntimeValue,RuntimeValue>,invocation:BuiltinInvocationContext):Generator<RuntimeValue,never,RuntimeValue> {
+    return createRaiseContinuation(statement,this.raising(evaluate,invocation),this.meter);
+  }
+  private raising<Evaluate>(evaluate:Evaluate,invocation:BuiltinInvocationContext):Omit<RaiseContext<RuntimeValue>,"evaluate">&{evaluate:Evaluate} {
     const {meter,values}=this,normalization=this.normalization(invocation),{typeOf,repr,isInstance}=normalization;
-    return executeRaise(statement,{
+    meter.checkpoint(0,384);
+    return {
       evaluate,isClass:value=>this.exceptionClass(value)!==undefined,isInstance,isNone:value=>value.kind==="none",typeOf,
       call:type=>invocation.call(type,[]),repr,
       setCause:(exception,cause)=>runtimeExceptionPayload(exception)!.assignCause(cause===null?null:cause.value as InstanceValue,meter),
@@ -261,6 +268,6 @@ export class RuntimeExceptionExecution {
         },meter);
         throw this.chain(normalized as InstanceValue);
       }
-    },meter);
+    };
   }
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseModule } from "../module.js";
 import type { Statement } from "../statement-ast.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
-import { executeFunctionDefinition, type FunctionDefinitionContext } from "./function-definition.js";
+import { createFunctionDefinitionContinuation, executeFunctionDefinition, type FunctionDefinitionContext } from "./function-definition.js";
 
 function definition(source: string) {
   const statement = parseModule(source).body[0];
@@ -42,8 +42,40 @@ function fixture(failure?: string) {
   };
   const run = (statement = definition("@outer\n@inner\ndef f(a=first, /, b=second, *, c=third):\n  body"), maxSteps = 1000) =>
     executeFunctionDefinition(statement, context, new ExecutionBudget({ maxSteps, maxAllocatedBytes: 10000 }));
-  return { context, events, names, old, created, defaults, statements, fault, run };
+  return { context, events, names, old, created, defaults, statements, fault, run,
+    continuation(source: string) {
+      return createFunctionDefinitionContinuation(definition(source), { ...context,
+        *evaluate(expression) {
+          if (expression.kind === "yield" && expression.value !== null) return yield context.evaluate(expression.value);
+          return context.evaluate(expression);
+        }
+      }, new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 10000 }));
+    }
+  };
 }
+
+describe("resumable function definitions", () => {
+  it("retains decorators and defaults across yields and binds only after application", () => {
+    const state = fixture(), cursor = state.continuation("@(yield outer)\n@(yield inner)\ndef f(a=(yield first), *, b=(yield second)): pass");
+    expect(state.events).toEqual([]);
+    expect(cursor.next()).toEqual({ done: false, value: "outer" });
+    expect(cursor.next("O")).toEqual({ done: false, value: "inner" });
+    expect(cursor.next("I")).toEqual({ done: false, value: "first" });
+    const shared = {};
+    expect(cursor.next(shared)).toEqual({ done: false, value: "second" });
+    expect(state.names.get("f")).toBe(state.old); expect(state.defaults).toEqual([]);
+    expect(cursor.next(null)).toEqual({ done: true, value: undefined });
+    expect([...state.defaults[0]]).toEqual([["a", shared], ["b", null]]);
+    expect(state.events).toEqual(["outer", "inner", "first", "second", "create", "apply:I", "apply:O", "store"]);
+  });
+
+  it("does not construct or rebind after a paused default receives an error", () => {
+    const state = fixture(), cursor = state.continuation("@outer\ndef f(a=(yield first), b=second): pass");
+    expect(cursor.next()).toEqual({ done: false, value: "first" });
+    expect(() => cursor.throw(state.fault)).toThrow(state.fault);
+    expect(state.events).toEqual(["outer", "first"]); expect(state.names.get("f")).toBe(state.old);
+  });
+});
 
 describe("function definition execution", () => {
   it("evaluates decorators then defaults, applies inside-out and binds only the final value", () => {

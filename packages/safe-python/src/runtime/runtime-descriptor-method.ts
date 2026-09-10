@@ -26,7 +26,7 @@ export function installRuntimeDescriptorMethods(kind: IntrinsicDescriptorKind, o
           const receiver = positional[0], type = positional[1] ?? values.none;
           if (instance.kind === "function") return getRuntimeFunctionDescriptor(instance, receiver, type, values, meter);
           if (instance.kind === "getset_descriptor" || instance.kind === "member_descriptor") return readRuntimeGetsetDescriptor(instance, receiver, type, meter, invocation);
-          if (instance.kind === "method_descriptor" || instance.kind === "classmethod_descriptor" || instance.kind === "wrapper_descriptor") return getRuntimeMethodDescriptor(instance, receiver, type, values, meter, invocation?.actualType?.bind(invocation));
+          if (instance.kind === "method_descriptor" || instance.kind === "classmethod_descriptor" || instance.kind === "wrapper_descriptor") return getRuntimeMethodDescriptor(instance, receiver.kind === "none" ? null : receiver, type, values, meter, invocation?.actualType?.bind(invocation));
         } else {
           const count = name === "__set__" ? 2 : 1;
           if (positional.length !== count) throw new PythonRuntimeError("TypeError", name === "__set__" ? `__set__ expected 2 arguments, got ${positional.length}` : `expected 1 argument, got ${positional.length}`);

@@ -18,27 +18,48 @@ export interface FunctionDefinitionContext<Value> {
   store(name: string, value: Value): void;
 }
 
+export interface ResumableFunctionDefinitionContext<Value> extends Omit<FunctionDefinitionContext<Value>, "evaluate"> {
+  evaluate(expression: Expression): Generator<Value, Value, Value>;
+}
+
+type FunctionDefinitionExecution<Value> =
+  | { kind: "synchronous"; context: FunctionDefinitionContext<Value> }
+  | { kind: "resumable"; context: ResumableFunctionDefinitionContext<Value> };
+
 /** Execute a statically validated function definition in its containing scope.
  * Decorator expressions precede defaults; application reverses decorator order.
  * Only the fully decorated result is stored, including arbitrary non-functions.
  * Type expressions are absent from the executable AST and deliberately ignored.
  * Adapters own guest protocols/internal metering; complete temporary allocation
- * accounting and suspending evaluation require further runtime integration.
+ * accounting require further runtime integration. The resumable entry point
+ * retains evaluated decorators/defaults across source-expression yields.
  */
 export function executeFunctionDefinition<Value>(
   statement: Extract<Statement, { kind: "function" }>,
   context: FunctionDefinitionContext<Value>, meter: ExecutionMeter
 ): void {
-  meter.checkpoint();
+  meter.checkpoint(1, 224);
+  const result = definitionContinuation<Value>(statement, { kind: "synchronous", context }, meter).next();
+  if (!result.done) throw Error("synchronous function definition unexpectedly suspended");
+}
+
+export function createFunctionDefinitionContinuation<Value>(statement: Extract<Statement, { kind: "function" }>, context: ResumableFunctionDefinitionContext<Value>, meter: ExecutionMeter): Generator<Value, void, Value> {
+  meter.checkpoint(1, 224);
+  return definitionContinuation<Value>(statement, { kind: "resumable", context }, meter);
+}
+
+function* definitionContinuation<Value>(statement: Extract<Statement, { kind: "function" }>, execution: FunctionDefinitionExecution<Value>, meter: ExecutionMeter): Generator<Value, void, Value> {
+  meter.checkpoint(0);
+  const context = execution.context;
   const decorators: Value[] = [];
   for (const expression of statement.decorators) {
     meter.checkpoint();
-    decorators.push(context.evaluate(expression));
+    decorators.push(execution.kind === "synchronous" ? execution.context.evaluate(expression) : yield* execution.context.evaluate(expression));
   }
   const defaults = new Map<string, Value>();
   for (const parameter of statement.parameters) {
     meter.checkpoint();
-    if (parameter.default !== null) defaults.set(parameter.name, context.evaluate(parameter.default));
+    if (parameter.default !== null) defaults.set(parameter.name, execution.kind === "synchronous" ? execution.context.evaluate(parameter.default) : yield* execution.context.evaluate(parameter.default));
   }
   meter.checkpoint();
   let value = context.create(statement, defaults);

@@ -3,11 +3,14 @@
 ## Full package run
 
 Runtime 8cab804a9 includes the catch binding and import-attribute reflection
-repairs. The maintained full package test runs in session 52427, report
-`/tmp/safejs-post-catch-import-integration-results.json`. All 100 filesystem
-contracts passed (520959); unit tests are still running. Keep runtime and test
-sources unchanged and poll this same handle until terminal. Do not infer
-success from the earlier focused suites.
+repairs. The maintained full package test in session 52427 is terminal
+(be7bc0), report `/tmp/safejs-post-catch-import-integration-results.json`.
+All 100 filesystem contracts passed (520959). Unit results: 28,379 passed,
+14 failed, 47 skipped across 1,252 files (b17ffc). The failures are two host
+Promise-property cases and twelve ISO locale cases, matching the previous
+gate. No new failing tests appeared. This is not a passing full gate.
+Runtime and test sources remained unchanged during this run; the error-cause
+repair is subsequent work and is not covered by these totals.
 
 ## Enumeration audit
 

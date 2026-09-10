@@ -86,3 +86,30 @@ Candidate evidence:
 Transfer the checked candidate after the main integration gate terminates,
 then verify the main checkout and commit the runtime, tests and documentation
 together. The temporary candidate is not a delivered main-checkout fix.
+
+Four additional inherited-Proxy cases fail in unchanged main (fb7d6f) and pass
+in the candidate. They verify numeric-key normalization through prototype
+lookup while retaining the original receiver. The candidate's expanded file
+now passes all 29 cases (e67d26). The 25 skipped cases in the main baseline
+command were intentionally outside its name filter, not newly unsupported tests.
+Full-package session 94973 remains active (8d0f24); process inspection also
+confirmed its live Vitest PID 24908 consuming CPU (ae6518).
+
+## Entry-constructor qualification
+
+The isolated candidate also passed all 25 top-level Object/fromEntries
+fixtures and 28 top-level Map fixtures at the same Test262 revision (79f31f).
+Source, metadata and harness handling use the earlier strict in-memory
+procedure, with independent native VM contexts and no metadata exclusions.
+
+The original `Map/map.js` fixture fails in this adapter because it calls
+`verifyProperty(this, 'Map', ...)`: native script top-level this is the global
+object, whereas SafeJS's run entry point uses undefined this. Existing
+interpreter tests explicitly cover that entry-point behavior. An independent
+guest check of `globalThis.Map` gives the required writable/non-enumerable/
+configurable descriptor (295afa). This is not a demonstrated Map descriptor
+defect and is not counted as an original fixture pass.
+
+`Map/proto-from-ctor-realm.js` cannot run its native control without `$262` and
+remains unqualified. No new Map runtime change is inferred from these two
+adapter limitations. Full-package session 94973 was still active (b64662).

@@ -7023,6 +7023,15 @@ extension, integration, or validation requirement is missing or unverified.
   compiled example's output/result agrees with CPython. Native type objects,
   exception classes, remaining builtins, automatic policy assembly, resumable
   filesystem effects and complete public interpreter integration remain open.
+- Hardened namespace extension assembly: checkpoint before unpacking yielded
+  entries and in a finally boundary around iterator acquisition/advancement/
+  cleanup. Cancellation cannot be replaced by an iterator error or allow entry
+  getters to run after an aborted next call; ordinary errors retain identity.
+- Two failing regressions now pass, with an additional ordinary-error/cleanup
+  guard. All 5,313 tests in 444 files pass; the final focused tests, selected
+  build, typecheck and scoped lint pass. Full builtin/object assembly, callback
+  invocation integration, resumable filesystem effects and the public interpreter
+  remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -104,11 +104,18 @@ export function createRuntimeBuiltins(values: RuntimeValues, meter: ExecutionMet
   meter.checkpoint(1, 512);
   for (const [name, value] of [["None", values.none], ["True", values.true], ["False", values.false], ["Ellipsis", values.ellipsis], ["NotImplemented", values.notImplemented], ["__debug__", values.true]] as const) namespace.set(name, value);
   if (extensions !== undefined) {
-    for (const [name, value] of extensions) {
-      meter.checkpoint(1, 48 + name.length * 2);
-      namespace.set(name, value);
+    try {
+      for (const entry of extensions) {
+        meter.checkpoint();
+        const [name, value] = entry;
+        meter.checkpoint(1, 48 + name.length * 2);
+        namespace.set(name, value);
+      }
+    } finally {
+      // Iterator acquisition, next, entry access and iterator cleanup can all
+      // fail after cancellation. A cancelled assembly never publishes a map.
+      meter.checkpoint();
     }
-    meter.checkpoint();
   }
   return namespace;
 }

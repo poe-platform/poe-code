@@ -56,6 +56,27 @@ it("checks cancellation before allocating the namespace or reading extensions", 
   const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 10000, signal: controller.signal });
   expect(() => createRuntimeBuiltins(v, meter, context, { [Symbol.iterator]() { throw Error("must not iterate"); } })).toThrow(ExecutionLimitError);
 });
+it("preserves cancellation when an extension iterator throws", () => {
+  const { v, context } = fixture(), controller = new AbortController();
+  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal: controller.signal });
+  const extensions = { [Symbol.iterator]() { return { next(): IteratorResult<readonly [string, RuntimeValue]> { controller.abort(); throw Error("extension failed"); } }; } };
+  expect(() => createRuntimeBuiltins(v, meter, context, extensions)).toThrow(ExecutionLimitError);
+});
+it("checks cancellation before unpacking an extension entry", () => {
+  const { v, context } = fixture(), controller = new AbortController(); let read = false;
+  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal: controller.signal });
+  const pair: [string, RuntimeValue] = ["extra", v.true];
+  Object.defineProperty(pair, "0", { get() { read = true; return "extra"; } });
+  const extensions = { *[Symbol.iterator]() { controller.abort(); yield pair; } };
+  expect(() => createRuntimeBuiltins(v, meter, context, extensions)).toThrow(ExecutionLimitError); expect(read).toBe(false);
+});
+it("preserves ordinary extension failures and closes an iterator on cancellation", () => {
+  const { v, context, meter } = fixture(), fault = Error("extension failed");
+  expect(() => createRuntimeBuiltins(v, meter, context, { [Symbol.iterator](): Iterator<readonly [string, RuntimeValue]> { throw fault; } })).toThrow(fault);
+  const controller = new AbortController(), cancelled = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal: controller.signal }); let closed = false;
+  const extensions = { *[Symbol.iterator](): Generator<readonly [string, RuntimeValue]> { try { controller.abort(); yield ["extra", v.true]; } finally { closed = true; } } };
+  expect(() => createRuntimeBuiltins(v, cancelled, context, extensions)).toThrow(ExecutionLimitError); expect(closed).toBe(true);
+});
 it("executes a compiled module and nested function with the assembled namespace", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), chunks: string[] = [], unused = (): never => { throw Error("unexpected guest callback"); };
   context.print = { ...context.print, stdout: () => v.true, lookupWrite: () => value => { if (value.kind !== "str") throw Error("expected text"); chunks.push(String.fromCodePoint(...value.value)); } };

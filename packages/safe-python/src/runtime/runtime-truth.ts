@@ -17,7 +17,7 @@ export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter, invocat
     case "dict": case "set": case "frozenset": return value.items.size !== 0;
     case "mappingproxy": case "dict_keys": case "dict_values": case "dict_items": return value.value.items.size !== 0;
     case "range": return value.value.length !== 0n;
-    case "instance": case "iterator": case "function": case "builtin_function_or_method": case "method": case "cell": case "type": case "getset_descriptor": {
+    case "instance": case "iterator": case "function": case "builtin_function_or_method": case "method_descriptor": case "method": case "cell": case "type": case "getset_descriptor": {
       if (invocation === undefined) return true;
       const truth = optionalBooleanTruth(value, createRuntimeTruthContext(invocation, meter), meter);
       if (truth !== undefined) return truth;

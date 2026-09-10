@@ -12,7 +12,7 @@ export interface CallabilityContext {
  * guest inspection; the context owns remaining guest type classification. */
 export function runtimeCallable(value: RuntimeValue, meter: ExecutionMeter, context?: CallabilityContext): boolean {
   meter.checkpoint(0);
-  if (value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method" || value.kind === "type") return true;
+  if (value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method_descriptor" || value.kind === "method" || value.kind === "type") return true;
   const result = context?.callable(value) ?? false;
   meter.checkpoint(0);
   return result;

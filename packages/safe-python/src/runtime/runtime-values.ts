@@ -157,6 +157,20 @@ export interface GetsetDescriptorValue {
   readonly value: GetsetDescriptorCapability;
 }
 
+/** Native instance method: receiver applicability is separate from argument
+ * validation. The implementation receives an accepted receiver, not self in args. */
+export interface MethodDescriptorCapability {
+  readonly owner: TypeValue;
+  readonly name: string;
+  accepts(instance: RuntimeValue, meter: ExecutionMeter): boolean;
+  invoke(instance: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, meter: ExecutionMeter, context?: BuiltinInvocationContext): RuntimeValue;
+}
+
+export interface MethodDescriptorValue {
+  readonly kind: "method_descriptor";
+  readonly value: MethodDescriptorCapability;
+}
+
 /** Finish the self-reference before publishing the immutable record. */
 class RuntimeTypeRecord implements TypeValue {
   readonly kind = "type";
@@ -182,6 +196,7 @@ export type RuntimeValue =
   | InstanceValue
   | TypeValue
   | GetsetDescriptorValue
+  | MethodDescriptorValue
   | MappingProxyValue
   | DictionaryViewValue
   | SetValue
@@ -230,8 +245,8 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "function", value });
   }
 
-  /** Retain a prepared explicit capability; creation never invokes it. Bound
-   * method descriptors and their self/function equality remain separate work. */
+  /** Retain a prepared explicit capability; creation never invokes it. Native
+   * bound-method self/function equality remains separate work. */
   builtinFunction(value: BuiltinFunctionCapability): BuiltinFunctionValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "builtin_function_or_method", value });
@@ -272,6 +287,11 @@ export class RuntimeValues extends ConstantValues {
   getsetDescriptor(value: GetsetDescriptorCapability): GetsetDescriptorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "getset_descriptor", value });
+  }
+
+  methodDescriptor(value: MethodDescriptorCapability): MethodDescriptorValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "method_descriptor", value });
   }
 
   mappingProxy(value: DictionaryValue): MappingProxyValue {

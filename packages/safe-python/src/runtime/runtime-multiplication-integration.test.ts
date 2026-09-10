@@ -1524,3 +1524,34 @@ it("rejects constructor arguments when object new and init are both default", ()
   expect(() => state.run("C(1)\n")).toThrow("C() takes no arguments");
   expect(() => state.run("C(value=1)\n")).toThrow("C() takes no arguments");
 });
+
+it("calls native method descriptors through bound attributes and unbound calls", () => {
+  const state = fixture(), owner = state.type("C");
+  const descriptor = state.v.methodDescriptor({ owner, name: "native", accepts: value => value.kind === "instance" && value.type.value.mro.includes(owner.value), invoke(receiver, args, keywords) {
+    if (receiver.kind !== "instance") throw Error("expected receiver");
+    expect(args).toEqual([state.v.integer(3)]);
+    return keywords.items.lookup(state.v.string("value"))!.value;
+  } });
+  owner.value.namespace.items.set(state.v.string("native"), descriptor);
+  state.instance("instance", owner); state.globals.set("descriptor", descriptor);
+  state.run("a=instance.native(3,value=7)\nb=descriptor(instance,3,value=9)\n");
+  expect(state.globals.get("a")).toEqual(state.v.integer(7)); expect(state.globals.get("b")).toEqual(state.v.integer(9));
+  expect(() => state.run("descriptor(1)\n")).toThrow("doesn't apply to a 'int' object");
+  state.hooks.keywordName = key => { if (key.kind !== "str") throw Error("expected keyword"); return String.fromCodePoint(...key.value); };
+  expect(() => state.run("descriptor(instance,3,**{'value':1},**{'value':2})\n")).toThrow("C.native() got multiple values for keyword argument 'value'");
+});
+
+it("allows instance dictionaries to shadow native method descriptors", () => {
+  const state = fixture(), owner = state.type("C");
+  owner.value.namespace.items.set(state.v.string("native"), state.v.methodDescriptor({ owner, name: "native", accepts: () => true, invoke() { throw Error("shadowed method must not run"); } }));
+  state.instance("instance", owner);
+  state.run("instance.native=7\nresult=instance.native\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+});
+
+it("binds native descriptors used as implicit special methods", () => {
+  const state = fixture(), owner = state.type("C"), receiver = state.instance("instance", owner);
+  owner.value.namespace.items.set(state.v.string("__add__"), state.v.methodDescriptor({ owner, name: "__add__", accepts: value => value === receiver, invoke(value, args) { expect(value).toBe(receiver); return args[0]; } }));
+  state.run("result=instance+7\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+});

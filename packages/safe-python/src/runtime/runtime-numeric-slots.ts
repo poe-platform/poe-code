@@ -17,7 +17,7 @@ export const runtimeNumericMethods: ReadonlyMap<string, { readonly forward: stri
 export function usesRuntimeGuestNumericSlots(value: RuntimeValue): boolean {
   switch (value.kind) {
     case "instance": case "cell": case "type": case "function": case "method":
-    case "builtin_function_or_method": case "getset_descriptor": case "iterator": return true;
+    case "builtin_function_or_method": case "getset_descriptor": case "method_descriptor": case "iterator": return true;
     default: return false;
   }
 }

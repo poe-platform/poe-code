@@ -7728,6 +7728,20 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Default object initialization and
   metadata descriptors, abstract-class/native-layout validation, complete class
   bootstrap and suspended safe-fs effects remain unfinished.
+- Added native method-descriptor values, intrinsic non-data binding, and normal
+  frame dispatch for unbound calls. The initial tests failed because no native
+  descriptor implementation existed; later tests exposed callable classification,
+  Unicode diagnostic limits and qualified call-error names. Receiver validation
+  precedes native invocation, class access preserves descriptor identity, bound
+  calls retain receiver/keywords/context, and callback cancellation is observed.
+  Thirteen tests cover direct and compiled calls, shadowing, implicit arithmetic
+  methods, callability, identity hashing, diagnostics and cancellation. All 54
+  binding/invocation cases and 96 compiled type-call regressions match CPython.
+  All 5,984 tests in 458 files, selected build, typecheck and scoped lint pass.
+  Native bound-method equality/hash and
+  public metadata, wrapper descriptors, default object initialization and complete
+  object/type bootstrap remain unfinished; this increment supplies native method
+  binding, not the completed builtin object model.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

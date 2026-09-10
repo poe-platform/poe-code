@@ -37,3 +37,31 @@ reflection probe is recorded in [the integration gate](safejs-post-json-iterator
 At the final observation in this qualification, full-package session 94973 was
 still running (756711). Silence from its JSON reporter is not a passing result.
 No push, issue closure or release was performed.
+
+## Remaining Reflect method directories
+
+The same pinned, strict, in-memory procedure was applied to the remaining nine
+Reflect method directories on Node 22.23.2 while runtime sources stayed fixed.
+
+| Directory under test/built-ins/Reflect | Guest passes | Native passes |
+| --- | ---: | ---: |
+| defineProperty | 12 | 12 |
+| set | 18 | 18 |
+| setPrototypeOf | 14 | 14 |
+| preventExtensions | 10 | 10 |
+| get | 11 | 11 |
+| has | 10 | 10 |
+| isExtensible | 8 | 8 |
+| apply | 9 | 9 |
+| construct | 10 | 10 |
+
+All 102 additional cases passed unchanged (eb479b, 04cc17, b9b32b, d0376a).
+There were no metadata exclusions or failed native controls. Combined with
+the earlier four Reflect directories, this qualifies 149 selected top-level
+method fixtures across all 13 Reflect methods, plus the 54 separate Object
+accessor fixtures. It does not cover nested directories or other Test262
+areas that exercise Reflect, and is not full Reflect conformance.
+
+Full-package session 94973 remained running at the latest observation
+(211240). No second full-package process was started and no runtime source
+changed. These read-only passes do not supersede its eventual result.

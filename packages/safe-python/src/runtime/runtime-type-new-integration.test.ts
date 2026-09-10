@@ -48,6 +48,54 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["__add__", "__iadd__", "__mul__", "__rmul__", "__imul__"])("exposes list %s with native result identity and guest conversion", name => {
+  for (const direct of [false, true]) {
+    const state = fixture(), argument = name === "__add__" ? "[3]" : name === "__iadd__" ? "Extra()" : "Count()";
+    const call = direct ? `type(items).${name}(items,${argument})` : `items.${name}(${argument})`;
+    state.run(`class Count:\n def __index__(self):\n  visit('index')\n  return 2\nclass Extra:\n def __iter__(self):\n  visit('iterate')\n  return [3].__iter__()\nitems=[1,2]\nanswer=${call}\nsame=answer is items\nresult=0\nfor item in answer:\n result=result*10+item\n`);
+    expect(state.globals.get("same")).toBe(name === "__iadd__" || name === "__imul__" ? state.v.true : state.v.false);
+    expect(state.globals.get("result")).toEqual(state.v.integer(name === "__add__" || name === "__iadd__" ? 123 : 1212));
+    expect(state.events).toEqual(name === "__add__" ? [] : name === "__iadd__" ? ["iterate"] : ["index"]);
+  }
+});
+
+it.each(["__add__", "__iadd__", "__mul__", "__rmul__", "__imul__"])("publishes canonical list %s metadata and argument validation", name => {
+  const state = fixture(); state.run(`items=[]\nmethod=items.${name}\nreceiver=method.__self__ is items\n`);
+  expect(state.globals.get("receiver")).toBe(state.v.true);
+  expect(() => state.run("method()\n")).toThrow("expected 1 argument, got 0");
+  expect(() => state.run("method(x=1)\n")).toThrow(`wrapper ${name}() takes no keyword arguments`);
+});
+
+it.each(["__mul__", "__rmul__", "__imul__"])("reports original operand type for %s overflow", name => {
+  const state = fixture(); state.run("class Count:\n def __index__(self):\n  return 1<<100\nitems=[]\n");
+  expect(() => state.run(`items.${name}(Count())\n`)).toThrow("cannot fit 'Count' into an index-sized integer");
+});
+
+it("retains native addition diagnostics without an invocation type policy", () => {
+  const state = fixture(), slot = state.registry.listType().value.namespace.items.lookup(state.v.string("__add__"))?.value;
+  if (slot?.kind !== "wrapper_descriptor") throw Error("expected wrapper");
+  expect(() => slot.value.invoke(state.v.list([]), [state.v.none], state.v.dictionary(new OrderedKeyMap(state.keys, state.meter)), state.meter)).toThrow('can only concatenate list (not "NoneType") to list');
+});
+
+it.each(["__mul__", "__rmul__", "__imul__"])("preserves original guest index errors in %s", name => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Count:\n def __index__(self):\n  fail()\nitems=[1,2]\n");
+  let thrown: unknown;
+  try { state.run(`items.${name}(Count())\n`); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+});
+
+it("preserves partial list extension and the original iterator error through __iadd__", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Cursor:\n def __init__(self):\n  self.first=True\n def __iter__(self):\n  return self\n def __next__(self):\n  if self.first:\n   self.first=False\n   return 3\n  fail()\nitems=[1,2]\n");
+  let thrown: unknown;
+  try { state.run("type(items).__iadd__(items,Cursor())\n"); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+  state.run("result=items[0]*100+items[1]*10+items[2]\n"); expect(state.globals.get("result")).toEqual(state.v.integer(123));
+});
+
 it.each(["direct", "bound"])("reads list subscriptions through %s native descriptors and guest indices", mode => {
   const state = fixture(), call = mode === "direct" ? "type(items).__getitem__(items,index)" : "items.__getitem__(index)";
   state.run(`class Index:\n def __index__(self):\n  visit('index')\n  items.append(3)\n  return -1\nitems=[1,2]\nindex=Index()\nresult=${call}\n`);

@@ -26,6 +26,7 @@ import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from ".
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 import { installRuntimeListSequenceSlots } from "./runtime-list-sequence-slots.js";
 import { installRuntimeListSubscriptionSlots } from "./runtime-list-subscription-slots.js";
+import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slots.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 
 interface TypeEntry {
@@ -182,6 +183,7 @@ export class RuntimeTypeRegistry {
     installRuntimeListMethodDescriptors(type, this.values, this.meter);
     installRuntimeListSequenceSlots(type, this.values, this.meter);
     installRuntimeListSubscriptionSlots(type, this.values, this.meter);
+    installRuntimeListArithmeticSlots(type, this.values, this.meter);
     installRuntimeComparisonMethods("list", type, this.values, this.meter);
     namespace.items.set(this.values.string("__hash__"), this.values.none);
     this.meter.checkpoint(1, 64);

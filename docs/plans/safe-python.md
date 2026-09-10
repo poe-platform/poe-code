@@ -8635,6 +8635,22 @@ extension, integration, or validation requirement is missing or unverified.
   still pass. Selected build, typecheck, scoped lint and all 6,630 tests in 493
   files pass with two workers; the same full-suite process completed despite
   host scheduling delays (7.37 seconds of test execution).
+- Published canonical list __add__, __iadd__, __mul__, __rmul__ and __imul__
+  wrappers. Ten initial regressions reproduced missing arithmetic attributes.
+  Addition shares native concatenation/extension kernels without reflected
+  numeric negotiation; repetition performs guest integer conversion before
+  touching storage and retains descriptor-specific overflow/type diagnostics.
+  Eighteen added tests cover both call forms, binding/argument metadata, result
+  identity, guest iteration/index conversion, original callback exceptions,
+  overflow operand names, partial extension and native diagnostics without an
+  invocation type policy. The latter had a reproduced NoneType naming regression
+  that now retains the existing native diagnostic fallback. All 195 arithmetic
+  differential cases match CPython, including ordinary and augmented expressions.
+  List construction, remaining native catalogs, subclass storage, complete
+  public execution setup and other interpreter scope remain unfinished.
+  Prior 108 subscription and 96 sequence-slot differential cases still pass.
+  Final selected build, typecheck, scoped lint and all 6,648 tests in 493 files
+  pass with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

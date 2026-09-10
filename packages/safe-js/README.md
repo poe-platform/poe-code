@@ -885,6 +885,8 @@ revoked proxies. Other internal array-identity consumers still need integration.
 objects through key and descriptor traps, and invokes callable Proxy replacers
 and `toJSON` hooks. Focused native comparisons cover trap ordering, length
 coercion, mutation during enumeration, cycles, and revocation.
+Date serialization uses the current `toJSON` property: deleting the inherited
+hook or replacing the prototype no longer forces ISO date conversion.
 `structuredClone` rejects Proxy values with `DataCloneError`, including nested
 and revoked Proxies, without invoking traps or detaching transfer buffers.
 This follows native clone behavior; it is separate from Proxy checkpoint support.

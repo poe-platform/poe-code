@@ -12,8 +12,6 @@ import { readPropertyDescriptor } from "../accessors.js";
 import { createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { hostFunctionMetadata } from "../host-function-metadata.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { isSandboxDate } from "../date.js";
-import { dateToJSON } from "./date.js";
 import { boxedValue, isSandboxBox } from "../boxed.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { CompileScope } from "../regex/compile-guard.js";
@@ -246,9 +244,7 @@ async function stringifyProperty(
   let value: unknown = await getStringifyProperty(holder, key, state);
   const release = retainValues(state.budget, () => [holder, value]);
   try {
-    if (isSandboxDate(value) && getSandboxPropertyDescriptor(value, "toJSON", state.budget) === undefined) {
-      value = await dateToJSON(value, state.budget, state.context);
-    } else if (typeof value === "bigint" || isSandboxClosure(value) || isStringifyContainer(value)) {
+    if (typeof value === "bigint" || isSandboxClosure(value) || isStringifyContainer(value)) {
       const toJSON = await getStringifyProperty(value, "toJSON", state);
       if (isSandboxClosure(toJSON)) {
         value = await callStringifyClosure(toJSON, [key], value, state);

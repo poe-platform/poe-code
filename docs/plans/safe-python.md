@@ -8356,6 +8356,19 @@ extension, integration, or validation requirement is missing or unverified.
   and invalid keys results. All 96 compiled mapping cases match CPython. All 6,454
   tests in 491 files, selected build, typecheck and scoped lint pass. Generic dictionary update
   wiring, guest exception objects and public execution assembly remain unfinished.
+- Connected dictionary in-place updates and construction kernels to active guest
+  mapping and iteration protocols. Mapping detection performs the separate keys
+  lookup required by dict.update semantics; the shared merge retains live list
+  keys, overwrites repeated keys and preserves earlier writes on failure. Guest
+  pair sequences receive cursor preparation and length-hint validation. Compiled
+  dict |= Mapping() initially failed as a non-iterable instance. Five added tests
+  cover identity, construction keyword overrides, double lookup, repeated keys,
+  guest pair sequences and partial failure. All 6,459 tests in 491 files, selected
+  build, typecheck and scoped lint pass. Differential checks match 32 mapping cases (including
+  KeyError payloads, not unfinished exception rendering), 48 sequence/hint cases
+  and all 96 previous call-keyword cases. Native dict constructor/method catalog
+  registration, dictionary display unpacking and guest exception rendering remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

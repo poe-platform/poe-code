@@ -4,7 +4,7 @@ import { PythonRuntimeError } from "./error.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimeAddition } from "./runtime-addition.js";
 import { updateRuntimeDictionary } from "./runtime-dictionary-update.js";
-import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { isRuntimeSet, type BuiltinInvocationContext, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 export type RuntimeInPlaceContext = Partial<Pick<ExpressionContext<RuntimeValue>, "binary" | "iterate">>;
 
@@ -15,11 +15,11 @@ export type RuntimeInPlaceContext = Partial<Pick<ExpressionContext<RuntimeValue>
  * guest iteration/source hints and ordinary augmented binary fallback. Guest
  * in-place slots must run before this kernel; finalizers remain separate work.
  */
-export function runtimeInPlace(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeInPlaceContext = {}): RuntimeValue {
+export function runtimeInPlace(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeInPlaceContext = {}, invocation?: BuiltinInvocationContext): RuntimeValue {
   meter.checkpoint();
   if (left.kind === "mappingproxy" && operator === "|") throw new PythonRuntimeError("TypeError", "'|=' is not supported by mappingproxy; use '|' instead");
   if (left.kind === "dict" && operator === "|") {
-    updateRuntimeDictionary(left, right, values, meter);
+    updateRuntimeDictionary(left, right, values, meter, invocation);
     return left;
   }
   if (left.kind === "set" && isRuntimeSet(right) && operator === "&") {

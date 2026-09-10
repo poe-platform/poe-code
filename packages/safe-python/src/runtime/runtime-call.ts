@@ -9,7 +9,7 @@ import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type Dicti
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 import type { IterationContext } from "./protocol-iterator.js";
-import { mergeRuntimeKeywordMapping } from "./runtime-keyword-mapping.js";
+import { mergeRuntimeMapping } from "./runtime-mapping-merge.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
 
 export interface RuntimeCallContext {
@@ -70,7 +70,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
       try {
         if (value.kind === "dict") keywords.items.update(value.items, duplicate);
         else if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicate);
-        else mergeRuntimeKeywordMapping(keywords, value, context.values, meter, context.invocation, context.iteration, duplicate);
+        else mergeRuntimeMapping(keywords, value, context.values, meter, context.invocation, context.iteration, duplicate);
       } catch (error) {
         meter.checkpoint();
         if (error instanceof PythonKeyError) duplicate(error.args[0]);

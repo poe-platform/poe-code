@@ -13,6 +13,7 @@ import { PythonRuntimeError } from "./error.js";
 import { createBuildClassBuiltin } from "./builtin-build-class.js";
 import { createCallableBuiltin } from "./builtin-callable.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
+import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -37,7 +38,7 @@ function fixture() {
   function run(source: string) {
     executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls }, meter);
   }
-  return { v, meter, registry, globals, builtins, events, calls, run };
+  return { v, meter, keys, registry, globals, builtins, events, calls, run };
 }
 
 it("calls instance type slots and reflects callability without binding the descriptor", () => {
@@ -50,6 +51,40 @@ it("expands custom keyword mappings through keys and live item lookup", () => {
   const state = fixture(), { v } = state;
   state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\ndef target(*,left,right):\n return left+right\nresult=target(**Mapping())\n");
   expect(state.globals.get("result")).toEqual(v.integer(14)); expect(state.events).toEqual(["keys", "left", "right"]);
+});
+
+it("updates dictionaries in place from guest mappings and retains identity", () => {
+  const state = fixture();
+  state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nresult={'left':1}\nalias=result\nresult|=Mapping()\nleft=result['left']\nright=result['right']\n");
+  expect(state.globals.get("result")).toBe(state.globals.get("alias")); expect(state.globals.get("left")).toEqual(state.v.integer(7)); expect(state.globals.get("right")).toEqual(state.v.integer(7));
+  expect(state.events).toEqual(["keys", "left", "right"]);
+});
+
+it("passes guest protocols through dictionary construction before keyword overrides", () => {
+  const state = fixture();
+  state.builtins.set("make", state.v.builtinFunction({ name: "make", invoke(args, _keywords, meter, context) { return constructRuntimeDictionary(args, new Map([["left", state.v.integer(9)]]), state.v, state.keys, meter, context); } }));
+  state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nresult=make(Mapping())\nleft=result['left']\nright=result['right']\n");
+  expect(state.globals.get("left")).toEqual(state.v.integer(9)); expect(state.globals.get("right")).toEqual(state.v.integer(7)); expect(state.events).toEqual(["keys", "left", "right"]);
+});
+
+it("looks up mapping keys twice and overwrites repeated live keys", () => {
+  const state = fixture();
+  state.run("def names():\n visit('keys')\n return ['left','left']\nclass Descriptor:\n def __get__(self,instance,owner):\n  visit('bind')\n  return names\nclass Mapping:\n keys=Descriptor()\n def __init__(self):\n  self.count=0\n def __getitem__(self,key):\n  visit(key)\n  self.count+=1\n  return self.count\nresult={}\nresult|=Mapping()\nvalue=result['left']\n");
+  expect(state.events).toEqual(["bind", "bind", "keys", "left", "left"]); expect(state.globals.get("value")).toEqual(state.v.integer(2));
+});
+
+it("updates dictionaries from guest sequences containing guest pair sequences", () => {
+  const state = fixture();
+  state.builtins.set("finish", state.v.builtinFunction({ name: "finish", invoke() { throw new PythonRuntimeError("IndexError", ""); } }));
+  state.run("class Row:\n def __getitem__(self,index):\n  visit('row')\n  if index==0:\n   return 'left'\n  if index==1:\n   return 7\n  finish()\nclass Source:\n def __getitem__(self,index):\n  visit('source')\n  if index==0:\n   return Row()\n  finish()\nresult={}\nresult|=Source()\nvalue=result['left']\n");
+  expect(state.events).toEqual(["source", "row", "row", "row", "source"]); expect(state.globals.get("value")).toEqual(state.v.integer(7));
+});
+
+it("preserves prior mapping writes and the original exception on update failure", () => {
+  const state = fixture(), failure = new PythonRuntimeError("AttributeError", "lookup failed");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  expect(() => state.run("class Mapping:\n def keys(self):\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  if key=='right':\n   fail()\n  return 7\nresult={}\nresult|=Mapping()\n")).toThrow(failure);
+  state.run("value=result['left']\n"); expect(state.globals.get("value")).toEqual(state.v.integer(7)); expect(state.events).toEqual(["left", "right"]);
 });
 
 it("retains live list keys during custom keyword expansion", () => {

@@ -8,10 +8,11 @@ import { runtimeGetItem } from "./runtime-subscription.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-/** Call expansion calls keys once, materializes arbitrary key iterables, but
- * retains live exact-list keys. Duplicate checks precede each value lookup;
- * keyword-name validation belongs to the eventual callee, not this merge. */
-export function mergeRuntimeKeywordMapping(target: DictionaryValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, invocation: BuiltinInvocationContext | undefined, iteration: IterationContext<RuntimeValue> | undefined, duplicate: (key: RuntimeValue) => never): void {
+/** Call keys once and materialize arbitrary key iterables, retaining live exact
+ * list keys. Call expansion supplies a duplicate rejection policy; ordinary
+ * updates overwrite and retrieve repeated keys anew. Keyword-name validation
+ * and optional mapping detection belong to the caller. */
+export function mergeRuntimeMapping(target: DictionaryValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, invocation: BuiltinInvocationContext | undefined, iteration: IterationContext<RuntimeValue> | undefined, duplicate?: (key: RuntimeValue) => never): void {
   if (invocation?.attribute === undefined) throw new PythonRuntimeError("AttributeError", "keys");
   const keysMethod = invocation.attribute(source, "keys"); meter.checkpoint();
   const keys = invocation.call(keysMethod, []); meter.checkpoint();
@@ -34,7 +35,7 @@ export function mergeRuntimeKeywordMapping(target: DictionaryValue, source: Runt
   }
   for (let item = cursor.next(); !item.done; item = cursor.next()) {
     meter.checkpoint();
-    if (target.items.containsKey(item.value)) duplicate(item.value);
+    if (duplicate !== undefined && target.items.containsKey(item.value)) duplicate(item.value);
     const value = runtimeGetItem(source, item.value, values, meter, invocation); meter.checkpoint();
     target.items.set(item.value, value);
   }

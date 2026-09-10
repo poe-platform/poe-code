@@ -12,12 +12,13 @@ import { evaluateExpression, type ExpressionContext } from "./expression-evaluat
 import { runtimeInPlace } from "./runtime-inplace.js";
 import { resolveRuntimeReference, type RuntimeReferenceWrites } from "./runtime-reference.js";
 import { type LeafStatement, type StatementContext } from "./statement-execution.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expression-statement" | "assignment" | "annotated-assignment" | "augmented-assignment" | "delete" }>;
 
 export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
   Pick<StatementContext<RuntimeValue>, "assertions" | "managers" | "exceptions"> {
+  readonly invocation?: BuiltinInvocationContext;
   /** Invoke the left type's in-place slot, returning NotImplemented when absent
    * or declined. Do not perform ordinary binary fallback here. Disabled slots
    * raise through the adapter; mutations are not undone if fallback later fails. */
@@ -60,7 +61,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
       const result = bindings.inplace === undefined ? values.notImplemented : bindings.inplace(operator, left, right);
       meter.checkpoint();
       if (result !== values.notImplemented) return result;
-      return runtimeInPlace(operator, left, right, values, meter, expressions);
+      return runtimeInPlace(operator, left, right, values, meter, expressions, bindings.invocation);
     }
   };
   const deletion = { removeName: bindings.deleteName.bind(bindings), resolve };

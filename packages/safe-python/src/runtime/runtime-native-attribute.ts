@@ -119,7 +119,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     const type = methods.actualType(receiver); meter.checkpoint();
     const member = type.value.namespace.items.lookup(values.string(name))?.value;
     if (member?.kind === "member_descriptor") return readRuntimeGetsetDescriptor(member, receiver, type, meter);
-    if (member?.kind === "wrapper_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
+    if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }
   if ((receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();

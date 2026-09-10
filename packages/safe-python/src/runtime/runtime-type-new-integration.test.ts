@@ -77,6 +77,23 @@ it("publishes read-only slice component members", () => {
   expect(() => state.run("object.__delattr__(s,'stop')\n")).toThrow("readonly attribute");
 });
 
+it("normalizes slice indices with arbitrary precision and ordered guest coercion", () => {
+  const state = fixture(); state.globals.set("Slice", state.registry.sliceType());
+  state.run("class Index:\n def __init__(self,name,value):\n  self.name=name\n  self.value=value\n def __index__(self):\n  visit(self.name)\n  return self.value\ns=Slice(Index('start',-9),Index('stop',99),Index('step',2))\nresult=s.indices(Index('length',10))\nlarge=Slice(None,None,-1).indices(10**30)\n");
+  expect(state.globals.get("result")).toEqual(state.v.tuple([state.v.integer(1),state.v.integer(10),state.v.integer(2)]));
+  expect(state.globals.get("large")).toEqual(state.v.tuple([state.v.integer(10n**30n-1n),state.v.integer(-1),state.v.integer(-1)]));
+  expect(state.events).toEqual(["length","step","start","stop"]);
+  expect(() => state.run("s.indices(-1)\n")).toThrow("length should not be negative");
+  expect(state.events).toEqual(["length","step","start","stop"]);
+});
+
+it("publishes slice comparison, hash and reduction descriptors", () => {
+  const state = fixture(); state.globals.set("Slice", state.registry.sliceType());
+  state.builtins.set("hash",createHashBuiltin(state.v,state.meter,state.hash));
+  state.run("s=Slice(1,4,2)\nr=s.__reduce__()\ncorrect=Slice.__eq__(s,Slice(1,4,2)) and Slice.__lt__(s,Slice(2,4,2)) and s.__hash__()==hash(s) and r[0] is Slice and r[1]==(1,4,2) and Slice.indices.__objclass__ is Slice\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("represents slices using guest repr slots in component order", () => {
   const state = fixture();
   state.run("class Capture:\n def __getitem__(self,key):\n  return key\nclass Component:\n def __repr__(self):\n  visit('repr')\n  return 'part'\n def __str__(self):\n  visit('str')\n  return 'wrong'\ns=Capture()[Component():Component():Component()]\ntext=f'{s!r}'\nplain=f'{s!s}'\nexplicit=s.__repr__()\n");

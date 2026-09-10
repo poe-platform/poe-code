@@ -9217,6 +9217,18 @@ extension, integration, or validation requirement is missing or unverified.
   hash and reduce descriptors, the remaining native catalog, full interpreter
   execution and safe-fs integration remain unfinished. No push or release was
   requested.
+- Slice protocol descriptors (2026-09-10): two failing integration tests
+  reproduced missing indices and reduction methods. Published all six comparison
+  wrappers through the shared receiver-only dispatcher, a native hash wrapper,
+  indices and reduce methods. Indices retains arbitrary precision and checks
+  length before converting step/start/stop, reusing metered index conversion and
+  bounds normalization. Reduction retains original component identities and the
+  canonical slice constructor. All 3,692 index/descriptor cases and 882 slice
+  comparison cases match CPython, including guest effects, invalid index results,
+  non-boolean ordering results and argument diagnostics. Workspace build,
+  typecheck, focused lint and all 6,928 package tests in 493 files pass. The
+  broader native catalog, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

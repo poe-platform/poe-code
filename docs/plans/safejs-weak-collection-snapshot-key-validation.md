@@ -81,3 +81,26 @@ integration separately from a claim that all snapshot limitations are fixed.
 
 No runtime or test file changed during these probes; the full-gate fingerprint
 is unchanged by this documentation update. No fix, push or release is claimed.
+
+## Broader guest-data reference gap
+
+Read-only probe 0e02ea replaces an ordinary scope binding, or a nested array/
+object value in that binding, with references to the same valid aggregate
+records. All four combinations restore successfully. The restored aggregate
+exposes `method`, `remaining`, `size`, `iteration`, `values` and `capability`;
+the entry exposes `aggregate`, `index` and `called`.
+
+Consequently, weak-key validation alone is not a complete fix for this defect.
+`validateDumpReferences` currently protects scopes, construction environments,
+source records and thenable states using field-specific permissions, but not
+Promise aggregate records. Extend the same boundary to permit an aggregate
+reference only at `aggregate-entry.aggregate`, and an entry reference only at
+`aggregate-handler.entry`. References in ordinary bindings, nested data,
+properties and weak keys must be rejected. Do not reject the handler closures:
+custom Promise constructors can legitimately retain those callbacks.
+
+After session 15942 terminates, use failing whole-restore tests for both record
+kinds and all demonstrated guest-data positions. Retain unmodified snapshot
+controls and qualify escaped aggregate callbacks, partial results and shared
+called flags using the existing Promise aggregate tests. This broader boundary
+is the next fix; stricter weak-node-local validation remains a separate layer.

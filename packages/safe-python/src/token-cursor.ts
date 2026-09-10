@@ -46,7 +46,10 @@ export class TokenCursor {
         const next = this.tokens.next();
         if (next.done) throw new Error("token stream ended without an end marker");
         this.buffered.push(next.value);
-      } catch (error) { this.lexerFailure = error; throw error; }
+      } catch (error) {
+        if (error instanceof PythonSyntaxError) error.withSource(this.sourceText);
+        this.lexerFailure = error; throw error;
+      }
     }
     return this.buffered[this.offset];
   }
@@ -84,6 +87,7 @@ export class TokenCursor {
   }
 
   error(message = "invalid syntax"): PythonSyntaxError {
-    return new PythonSyntaxError(message, this.filename, this.peek().start);
+    const token = this.peek();
+    return new PythonSyntaxError(message, this.filename, token.start, token.end).withSource(this.sourceText, true);
   }
 }

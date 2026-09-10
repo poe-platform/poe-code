@@ -2,6 +2,25 @@ import { describe, expect, it } from "vitest";
 import { PythonSource, PythonSyntaxError } from "./source.js";
 
 describe("Python source cursor", () => {
+  it("captures only the diagnostic source line with normalized physical newlines", () => {
+    for (const newline of ["\n", "\r\n", "\r"]) {
+      const prefix = "first" + newline;
+      const error = new PythonSyntaxError("bad", "input.py", { offset: prefix.length + 2, line: 2, column: 1 });
+      expect(error.withSource(prefix + "𝒙 = nope" + newline + "last")).toBe(error);
+      expect(error.sourceLine).toBe("𝒙 = nope\n");
+      error.withSource("different");
+      expect(error.sourceLine).toBe("𝒙 = nope\n");
+    }
+  });
+
+  it("snapshots optional end positions independently from caller mutations", () => {
+    const end = { offset: 6, line: 1, column: 5 };
+    const error = new PythonSyntaxError("bad", "input.py", { offset: 2, line: 1, column: 1 }, end);
+    end.column = 99;
+    expect(error.endPosition).toEqual({ offset: 6, line: 1, column: 5 });
+    expect(error.sourceLine).toBeUndefined();
+  });
+
   it("normalizes physical newlines while preserving original source offsets", () => {
     const source = new PythonSource("a\r\nb\rc\nd", "example.py");
     const observations = [];

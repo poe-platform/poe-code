@@ -10055,6 +10055,22 @@ extension, integration, or validation requirement is missing or unverified.
   public compile/exec assembly and traceback rendering remain unfinished, as do
   the broader standard library, safe-fs and suspension work.
   No push or release requested.
+- Parser source-line/span enrichment (2026-09-10): failing regressions drove
+  diagnostic-line capture at lexer, parser and analysis boundaries, copied
+  optional token end positions, and native guest text/end-location fields.
+  Only the attributed physical line is retained; repeated boundaries preserve
+  it, Unicode columns remain code-point based, and physical newlines normalize
+  to LF. An 18-case CPython span comparison exposed the token-parser implicit
+  EOF newline distinction; two additional regressions drove its correction
+  without changing lexer EOF text. All 203 CPython comparisons pass (18 spans,
+  18 prior positions and 167 native syntax-exception cases), as do nine source
+  boundary probes. The initial full one-worker suite passed 7,244 tests in 503
+  files (164.08s; bodies 10.71s); after the EOF correction all 717 focused tests,
+  selected workspace rebuild, typecheck and focused lint pass. Missing end
+  spans remain unset. Exact parser/analysis diagnostic parity, parser resource
+  controls, public compile/exec and traceback rendering remain unfinished,
+  alongside specialized exception families, suspension, standard-library and
+  safe-fs assembly. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

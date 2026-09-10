@@ -8,12 +8,32 @@ export interface SourcePosition {
 export class PythonSyntaxError extends SyntaxError {
   readonly filename: string;
   readonly position: SourcePosition;
+  readonly endPosition: SourcePosition | undefined;
+  #sourceLine: string | undefined;
 
-  constructor(message: string, filename: string, position: SourcePosition) {
+  constructor(message: string, filename: string, position: SourcePosition, endPosition?: SourcePosition) {
     super(message);
     this.name = "SyntaxError";
     this.filename = filename;
     this.position = { ...position };
+    this.endPosition = endPosition === undefined ? undefined : { ...endPosition };
+  }
+
+  get sourceLine(): string | undefined { return this.#sourceLine; }
+
+  /** Retain only the physical diagnostic line, never the entire input. Repeated
+   * parser/analysis boundaries must not replace an already attributed line.
+   * Token-parser errors include the lexer's implicit final newline. */
+  withSource(text: string, implicitNewline = false): this {
+    if (this.#sourceLine !== undefined) return this;
+    const offset = this.position.offset;
+    if (!Number.isSafeInteger(offset) || offset < 0 || offset > text.length) return this;
+    let start = offset, end = offset;
+    while (start > 0 && text[start - 1] !== "\n" && text[start - 1] !== "\r") start--;
+    while (end < text.length && text[end] !== "\n" && text[end] !== "\r") end++;
+    if (start === 0 && text[0] === "\uFEFF") start++;
+    this.#sourceLine = text.slice(start, end) + (end < text.length || implicitNewline ? "\n" : "");
+    return this;
   }
 }
 
@@ -66,7 +86,7 @@ export class PythonSource {
   }
 
   error(message: string, position: SourcePosition = this.position): PythonSyntaxError {
-    return new PythonSyntaxError(message, this.filename, position);
+    return new PythonSyntaxError(message, this.filename, position).withSource(this.text);
   }
 
   private widthAt(offset: number): number {

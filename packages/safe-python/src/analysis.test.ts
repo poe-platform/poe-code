@@ -2,6 +2,25 @@ import { describe, expect, it, vi } from "vitest";
 import { analyzeModule, parseModule, PythonSyntaxError } from "./index.js";
 
 describe("public module analysis", () => {
+  it.each(["𝒙 = )\n", "x y\n", "return 1\n", "def f(): nonlocal missing\n"])("retains the diagnostic source line for %s", source => {
+    let failure: unknown;
+    try { analyzeModule(source, { filename: "input.py" }); } catch (error) { failure = error; }
+    expect(failure).toBeInstanceOf(PythonSyntaxError);
+    expect((failure as PythonSyntaxError).sourceLine).toBe(source);
+  });
+
+  it("retains the complete offending token span", () => {
+    let failure: unknown;
+    try { parseModule("x word\n"); } catch (error) { failure = error; }
+    expect(failure).toMatchObject({ position: { line: 1, column: 2 }, endPosition: { line: 1, column: 6 }, sourceLine: "x word\n" });
+  });
+
+  it.each([["x word", "x word\n"], ["x = )", "x = )"]])("preserves parser versus lexer EOF newline behavior for %s", (source, text) => {
+    let failure: unknown;
+    try { parseModule(source); } catch (error) { failure = error; }
+    expect(failure).toMatchObject({ sourceLine: text });
+  });
+
   it("returns the syntax tree and lexical owners without executing source", () => {
     const result = analyzeModule("def outer(x):\n def inner(): return x + missing\n return inner\nraise RuntimeError('not executed')");
     expect(result.module.kind).toBe("module");

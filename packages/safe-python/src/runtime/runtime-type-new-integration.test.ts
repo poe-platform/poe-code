@@ -82,6 +82,13 @@ function exceptionFixture() {
   return state;
 }
 
+it("preserves parser source text and available token end positions in guest errors",()=>{
+  const state=exceptionFixture();state.globals.set("SyntaxError",state.registry.exceptionType("SyntaxError"));
+  state.builtins.set("parse",state.v.builtinFunction({name:"parse",invoke(){analyzeModule("x word\r\n",{filename:"span.py"});return state.v.none;}}));
+  state.run("try:\n parse()\nexcept SyntaxError as error:\n correct=error.text=='x word\\n' and error.lineno==1 and error.offset==3 and error.end_lineno==1 and error.end_offset==7 and error.args[1]==('span.py',1,3,'x word\\n',1,7)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("converts structured parser diagnostics into native syntax exceptions",()=>{
   const position={offset:20,line:3,column:4};
   for(const error of [new PythonSyntaxError("bad","input.py",position),new PythonIndentationError("indent","input.py",position),new PythonTabError("input.py",position)]) {

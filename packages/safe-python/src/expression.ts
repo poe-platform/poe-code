@@ -9,6 +9,7 @@ import { readLambda } from "./lambda.js";
 import { validateExpression } from "./expression-validation.js";
 import { readStringExpression } from "./string-expressions.js";
 import { normalizeNfkc } from "./normalization.js";
+import { PythonSyntaxError } from "./source.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -18,24 +19,29 @@ const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "<>", "in", "is",
 
 /** Parse a single expression. Statement grammar and additional expression forms are still being implemented. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
-  const cursor = createTokenCursor(text, options);
-  let result = readExpression(cursor);
-  if (cursor.peek().text === ",") {
-    const items = [result];
-    let end = result.end;
-    while (cursor.peek().text === ",") {
-      end = cursor.take().end;
-      if (cursor.peek().kind === "newline" || cursor.peek().kind === "end") break;
-      const item = readExpression(cursor);
-      items.push(item);
-      end = item.end;
+  try {
+    const cursor = createTokenCursor(text, options);
+    let result = readExpression(cursor);
+    if (cursor.peek().text === ",") {
+      const items = [result];
+      let end = result.end;
+      while (cursor.peek().text === ",") {
+        end = cursor.take().end;
+        if (cursor.peek().kind === "newline" || cursor.peek().kind === "end") break;
+        const item = readExpression(cursor);
+        items.push(item);
+        end = item.end;
+      }
+      result = { kind: "tuple", items, start: result.start, end };
     }
-    result = { kind: "tuple", items, start: result.start, end };
+    while (cursor.peek().kind === "newline") cursor.take();
+    if (cursor.peek().kind !== "end") throw cursor.error("unexpected token after expression");
+    validateExpression(result, options.filename);
+    return result;
+  } catch (error) {
+    if (error instanceof PythonSyntaxError) error.withSource(text);
+    throw error;
   }
-  while (cursor.peek().kind === "newline") cursor.take();
-  if (cursor.peek().kind !== "end") throw cursor.error("unexpected token after expression");
-  validateExpression(result, options.filename);
-  return result;
 }
 
 /** Shared Pratt reader for expression-bearing grammar productions. */

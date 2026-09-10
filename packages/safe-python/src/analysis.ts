@@ -9,6 +9,7 @@ import type { FunctionExecutionKind, FunctionNode } from "./expression-context.j
 import type { SymbolScope } from "./symbol-collection.js";
 import { collectQualifiedNames } from "./qualified-names.js";
 import { collectStaticAttributes } from "./static-attributes.js";
+import { PythonSyntaxError } from "./source.js";
 
 export interface ModuleAnalysis {
   readonly module: Module;
@@ -27,11 +28,16 @@ export interface ModuleAnalysis {
  * the API contract; they are not an isolation boundary or frozen snapshots.
  */
 export function analyzeModule(text: string, options: LexerOptions = {}): ModuleAnalysis {
-  const module = parseModule(text, options);
-  const futureFeatures = validateFutureImports(module, options.filename);
-  const functionKinds = validateControlFlow(module, options.filename);
-  const scopes = resolveSymbols(collectSymbols(module), options.filename);
-  const qualifiedNames = collectQualifiedNames(scopes.scope);
-  const staticAttributes = collectStaticAttributes(scopes.scope);
-  return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
+  try {
+    const module = parseModule(text, options);
+    const futureFeatures = validateFutureImports(module, options.filename);
+    const functionKinds = validateControlFlow(module, options.filename);
+    const scopes = resolveSymbols(collectSymbols(module), options.filename);
+    const qualifiedNames = collectQualifiedNames(scopes.scope);
+    const staticAttributes = collectStaticAttributes(scopes.scope);
+    return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
+  } catch (error) {
+    if (error instanceof PythonSyntaxError) error.withSource(text);
+    throw error;
+  }
 }

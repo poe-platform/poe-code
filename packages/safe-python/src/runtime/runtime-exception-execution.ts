@@ -67,10 +67,13 @@ export class RuntimeExceptionExecution {
       const {values,meter}=this;
       meter.checkpoint(0,64);
       const message=values.string(error.message),filename=values.string(error.filename),line=values.integer(error.position.line),offset=values.integer(error.position.column+1);
-      const details=values.tuple([filename,line,offset,values.none]);
+      const text=error.sourceLine===undefined?values.none:values.string(error.sourceLine);
+      const endLine=error.endPosition===undefined?values.none:values.integer(error.endPosition.line),endOffset=error.endPosition===undefined?values.none:values.integer(error.endPosition.column+1);
+      const details=values.tuple(error.endPosition===undefined?[filename,line,offset,text]:[filename,line,offset,text,endLine,endOffset]);
       const value=this.native(this.parserType(error),[message,details]),storage=runtimeExceptionPayload(value)!;
       storage.assignMember("msg",message,meter);storage.assignMember("filename",filename,meter);
       storage.assignMember("lineno",line,meter);storage.assignMember("offset",offset,meter);
+      storage.assignMember("text",text,meter);storage.assignMember("end_lineno",endLine,meter);storage.assignMember("end_offset",endOffset,meter);
       return this.chain(value);
     }
     if(!(error instanceof PythonRuntimeError)||!Object.hasOwn(standardExceptionCatalog,error.name))return error;

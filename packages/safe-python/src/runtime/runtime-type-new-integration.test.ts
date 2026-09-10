@@ -49,6 +49,47 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["staticmethod", "classmethod"] as const)("represents %s payloads and subclasses through active guest repr", kind => {
+  const state = fixture(); state.globals.set(kind, state.registry.methodDecoratorType(kind));
+  state.run(`class Value:\n def __repr__(self):\n  visit('repr')\n  return 'guest'\nclass Child(${kind}):\n pass\nitem=${kind}(Value())\nchild=Child(Value())\nresult=f'{item!r}'\nexplicit=item.__repr__()\ntext=item.__str__()\nformatted=item.__format__('')\nsub=f'{child!r}'\nempty=${kind}.__new__(${kind})\nuninitialized=f'{empty!r}'\n`);
+  for (const name of ["result", "explicit", "text", "formatted", "sub"]) expect(state.globals.get(name)).toEqual(state.v.string(`<${kind}(guest)>`));
+  expect(state.globals.get("uninitialized")).toEqual(state.v.string(`<${kind}(None)>`)); expect(state.events).toEqual(Array(5).fill("repr"));
+});
+
+it.each(["staticmethod", "classmethod"] as const)("explicit %s repr bypasses only the outer subclass override", kind => {
+  const state = fixture(); state.globals.set(kind, state.registry.methodDecoratorType(kind));
+  state.run(`class Child(${kind}):\n def __repr__(self):\n  return 'override'\nitem=Child(1)\nresult=f'{item!r}'\nbase=${kind}.__repr__(item)\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string("override")); expect(state.globals.get("base")).toEqual(state.v.string(`<${kind}(1)>`));
+});
+
+it.each(["staticmethod", "classmethod"] as const)("preserves %s payload representation across reinitialization", kind => {
+  const state = fixture(); state.globals.set(kind, state.registry.methodDecoratorType(kind));
+  state.run(`class Value:\n def __repr__(self):\n  item.__init__(2)\n  return 'original'\nitem=${kind}(Value())\nresult=f'{item!r}'\nagain=f'{item!r}'\n`);
+  expect(state.globals.get("result")).toEqual(state.v.string(`<${kind}(original)>`)); expect(state.globals.get("again")).toEqual(state.v.string(`<${kind}(2)>`));
+});
+
+it.each(["staticmethod", "classmethod"] as const)("validates %s repr arguments and guest result types", kind => {
+  const state = fixture(); state.globals.set(kind, state.registry.methodDecoratorType(kind));
+  state.run(`class Value:\n def __repr__(self):\n  return 42\nitem=${kind}(Value())\n`);
+  expect(() => state.run("item.__repr__(1)\n")).toThrow("expected 0 arguments, got 1");
+  expect(() => state.run("item.__repr__(x=1)\n")).toThrow("wrapper __repr__() takes no keyword arguments");
+  expect(() => state.run("result=f'{item!r}'\n")).toThrow("__repr__ returned non-string (type int)");
+});
+
+it.each(["staticmethod", "classmethod"] as const)("limits recursive %s repr and restores the call stack", kind => {
+  const state = fixture(); state.globals.set(kind, state.registry.methodDecoratorType(kind));
+  state.run(`class Value:\n def __repr__(self):\n  return item.__repr__()\nitem=${kind}(Value())\n`);
+  expect(() => state.run("result=f'{item!r}'\n")).toThrow("maximum recursion depth exceeded"); expect(state.calls.depth).toBe(0);
+  state.run("item.__init__(1)\nresult=f'{item!r}'\n"); expect(state.globals.get("result")).toEqual(state.v.string(`<${kind}(1)>`));
+});
+
+it.each(["staticmethod", "classmethod"] as const)("limits direct native %s representation cycles", kind => {
+  const state = fixture(); state.globals.set(kind, state.registry.methodDecoratorType(kind));
+  state.run(`item=${kind}(None)\nitem.__init__(item)\n`);
+  expect(() => state.run("result=f'{item!r}'\n")).toThrow("maximum recursion depth exceeded"); expect(state.calls.depth).toBe(0);
+  state.run("item.__init__(1)\nresult=f'{item!r}'\n"); expect(state.globals.get("result")).toEqual(state.v.string(`<${kind}(1)>`));
+});
+
 it("represents bound guest methods through the receiver's active repr", () => {
   const state = fixture();
   state.run("class Value:\n def fn(self):\n  pass\n def __repr__(self):\n  visit('repr')\n  return 'guest'\nitem=Value().fn\nresult=f'{item!r}'\nexplicit=item.__repr__()\ntext=item.__str__()\nformatted=item.__format__('')\n");

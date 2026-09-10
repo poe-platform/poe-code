@@ -5,6 +5,8 @@ import { initializeRuntimeMethodDecorator } from "./runtime-method-decorator-ini
 import { getRuntimeMethodDecorator } from "./runtime-method-decorator.js";
 import { hasRuntimeInstanceAttributes, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 import type { KeyOperations } from "./ordered-key-map.js";
+import { representationObject } from "./representation-protocol.js";
+import { createRuntimeRepresentationContext } from "./runtime-representation.js";
 
 /** Install native allocation and initialization independently: direct __new__
  * ignores extra arguments and produces a None-backed, metadata-empty wrapper. */
@@ -16,6 +18,23 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
     for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
     return false;
   };
+  meter.checkpoint(1, 96);
+  owner.value.namespace.items.set(values.string("__repr__"), values.wrapperDescriptor({ owner, name: "__repr__", doc: "Return repr(self).", accepts,
+    invoke(instance, positional, keywords, meter, invocation) {
+      meter.checkpoint();
+      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "wrapper __repr__() takes no keyword arguments");
+      if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `expected 0 arguments, got ${positional.length}`);
+      if (instance.kind !== kind) throw Error("invalid method-decorator repr receiver");
+      const leave = invocation?.enterRecursiveCall?.();
+      try {
+        const context = invocation?.formatting ?? createRuntimeRepresentationContext(values, meter, { defaultRepr() { throw Error("method-decorator repr requires a representation policy"); } });
+        const result = representationObject(instance.value, "repr", context, meter), storage = context.string(result);
+        if (storage === undefined) throw Error("validated decorator payload repr lost string storage");
+        meter.checkpoint(0, 64);
+        return values.stringPoints(values.string("").value.join([values.string(`<${kind}(`).value, storage, values.string(")>").value], meter));
+      } finally { leave?.(); }
+    }
+  }));
   for (const name of ["__annotations__", "__annotate__"]) {
     meter.checkpoint(1, 128);
     owner.value.namespace.items.set(values.string(name), values.getsetDescriptor({ owner, name, accepts,

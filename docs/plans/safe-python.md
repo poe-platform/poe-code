@@ -8779,6 +8779,22 @@ extension, integration, or validation requirement is missing or unverified.
   objects, full catalogs and public interpreter/safe-fs assembly remain open.
   Workspace build, typecheck and focused lint pass; all 6,738 unit tests across
   493 files pass with two workers. All 344 differential cases above pass.
+- Published native staticmethod/classmethod repr using active payload repr and
+  fixed native labels even for subclasses. Ten initial RED cases reproduced
+  generic object text, missing payload callbacks and absent recursive behavior.
+  Reinitialization during repr retains the original payload result, while later
+  operations see the new value. Two additional RED tests exposed host stack
+  overflow for direct self-wrapping decorators. Native recursive operations now
+  have an invocation capability to enter the configured execution call limit;
+  decorator repr uses it with unmetered finally restoration. Twelve added tests
+  cover exact/subclass/explicit base behavior, uninitialized wrappers, invalid
+  results, mutation and direct/guest cycles with recovery. All 106 decorator,
+  105 bound-callable, 78 descriptor, 81 object and 80 list representation
+  differential cases match CPython. This does not complete native recursion
+  auditing, the stack-independent execution trampoline, full catalogs or public
+  interpreter/safe-fs integration.
+  Workspace build, typecheck and focused lint pass; all 6,750 unit tests in 493
+  files pass with two workers. All 450 differential cases above pass.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

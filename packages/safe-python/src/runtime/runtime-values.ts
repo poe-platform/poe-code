@@ -80,6 +80,9 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Account for recursive native operations that do not enter a guest body.
+   * Always invoke the returned unmetered restoration in a finally block. */
+  enterRecursiveCall?(): () => void;
   /** Execution-local object IDs, shared with id(); never host addresses. */
   readonly identity?: IdentityContext;
   /** Trusted signed 64-bit identity hash, with -1 remapped to -2; no guest slots. */

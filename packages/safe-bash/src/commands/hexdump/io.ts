@@ -17,7 +17,7 @@ export class Lifecycle {
   cleanup(action: () => Promise<void>): void { this.assertOpen(); this.cleanups.add(action); }
   forget(action: () => Promise<void>): void { this.cleanups.delete(action); }
   assertOpen(): void {
-    this.budget.signal.throwIfAborted();
+    this.budget.assertOpen();
     if (this.closing) throw new HexdumpError("command is closed");
   }
   private assertDiagnosticOpen(): void {
@@ -31,7 +31,7 @@ export class Lifecycle {
   async operation<Value>(action: () => Value | Promise<Value>, diagnostic = false): Promise<Value> {
     if (diagnostic) this.assertDiagnosticOpen();
     else this.assertOpen();
-    if (this.closing) throw new HexdumpError("command is closed");
+    if (this.closing || this.budget.admission.closed) throw new HexdumpError("command is closed");
     if (!diagnostic) this.budget.charge();
     const pending = Promise.resolve().then(() => {
       if (diagnostic) this.assertDiagnosticOpen();

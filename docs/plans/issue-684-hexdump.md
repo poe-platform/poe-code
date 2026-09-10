@@ -152,6 +152,26 @@ include these root/playground surfaces as well as the command-package catalogs.
 
 ## Validation and delivery
 
+The corrected inventory candidate `14e836c0f1dd10ff8b058abda6a8181e30d2bee2`
+passes full tests and lint. A separate six-case regression subsequently exposes
+another admission gap: invoking registered cleanup from an argument or iterator
+`done` getter allows a later getter before the deferred lifecycle callback runs.
+A true `done` value also drops the acquired iterator before its cooperative
+return. These failures remain in
+`/tmp/issue684-getter-close-review-ICysdG/red-v1.log`; the broad passing suite
+does not contain them and does not override that evidence.
+
+Capture a command-owned closed flag synchronously in the registered cleanup
+wrapper. Check it alongside the existing signal at argument/work checkpoints
+and fresh lifecycle operation admission. Do not introduce a synthetic abort
+reason or change shared output-operation code. Already-admitted diagnostics
+continue to use caller/destination cancellation and drain their actual promises.
+The new eight-case test preserves all six regression assertions and adds two
+admitted-diagnostic controls. All original 357 cases plus these eight pass in
+the source-only scratch qualification; focused types pass. Preserve that
+365-case result separately from the earlier full gate. Admit the new test into
+the maintained discovery witness, commit the correction, and rerun final gates.
+
 Run focused command/public/discovery/adjacent-byte and browser-source checks,
 then refresh the normal workspace build for the new public inventory. Commit
 the coherent candidate before the exact committed-archive gate. Run the full

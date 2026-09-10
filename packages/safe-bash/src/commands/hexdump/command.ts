@@ -99,11 +99,12 @@ async function execute(context: CommandContext, name: string, limits: HexdumpLim
     ...(capability ? { ownedOutput: { consumerClosed: consumer!, write } } : {}),
     ...(failureHandler ? { [outputFailure]: failureHandler } : {}),
   };
+  const admission = { closed: false };
   const output = createOutputOperation({ signal: caller, ...(registerCleanup ? { registerCleanup(cleanup) {
     caller.throwIfAborted();
-    Reflect.apply(registerCleanup, context, [cleanup]);
+    Reflect.apply(registerCleanup, context, [() => { admission.closed = true; return cleanup(); }]);
   } } : {}) }, captured);
-  const budget = new Budget(context, limits, output.signal, caller);
+  const budget = new Budget(context, limits, output.signal, caller, admission);
   let failure: { reason: unknown } | undefined;
   let primary: { reason: unknown } | undefined;
   let exitCode = 0;

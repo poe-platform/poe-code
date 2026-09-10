@@ -59,21 +59,25 @@ export class Budget {
   private input = 0;
   private output = 0;
   private diagnostics = 0;
-  constructor(readonly context: CommandContext, readonly limits: HexdumpLimits, readonly signal: AbortSignal, private readonly callerSignal: AbortSignal) {}
+  constructor(readonly context: CommandContext, readonly limits: HexdumpLimits, readonly signal: AbortSignal, private readonly callerSignal: AbortSignal, readonly admission: { readonly closed: boolean }) {}
+  assertOpen(): void {
+    this.signal.throwIfAborted();
+    if (this.admission.closed) throw new HexdumpError("command is closed");
+  }
   check(value: number, maximum: number, label: string): void {
     if (!Number.isSafeInteger(value) || value < 0 || value > maximum) throw new HexdumpError(`${label} limit exceeded`);
   }
   charge(amount = 1): void {
-    this.signal.throwIfAborted();
+    this.assertOpen();
     this.check(this.work + amount, this.limits.maxWork, "work");
     this.work += amount;
   }
   async checkpointWork(): Promise<void> {
-    this.signal.throwIfAborted();
+    this.assertOpen();
     if (this.work - this.checkpoint >= 4096) {
       this.checkpoint = this.work;
       await yieldTurn(this.callerSignal);
-      this.signal.throwIfAborted();
+      this.assertOpen();
     }
   }
   retain(amount: number): void {
@@ -95,20 +99,22 @@ export class Budget {
     }
   }
   arguments(): string[] {
+    this.assertOpen();
     const args = this.context.args;
-    this.signal.throwIfAborted();
+    this.assertOpen();
     const count = args.length;
-    this.signal.throwIfAborted();
+    this.assertOpen();
     this.check(count, this.limits.maxArguments, "argument count");
     const argumentValues = this.context.argumentValues;
-    this.signal.throwIfAborted();
+    this.assertOpen();
     const carrier = argumentValues === undefined ? undefined : getCommandArguments({ args, argumentValues });
+    this.assertOpen();
     this.retain(count * 64 + 128);
     const snapshot: string[] = [];
     let units = 0, total = 0;
     for (let index = 0; index < count; index++) {
       const argument = args[index]!;
-      this.signal.throwIfAborted();
+      this.assertOpen();
       if (typeof argument !== "string") throw new HexdumpError("arguments must be strings");
       units += argument.length;
       this.check(units, this.limits.maxArgumentBytes, "argument bytes");

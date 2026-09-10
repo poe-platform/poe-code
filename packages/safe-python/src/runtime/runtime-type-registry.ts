@@ -22,7 +22,7 @@ import { createObjectClassDescriptor } from "./builtin-object-class.js";
 import { PythonRuntimeError } from "./error.js";
 import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 import { installRuntimeDescriptorMethods, type IntrinsicDescriptorKind } from "./runtime-descriptor-method.js";
-import { installRuntimeBoundComparisonMethods, type NativeBoundCallableKind } from "./runtime-bound-comparison-method.js";
+import { installRuntimeComparisonMethods, type NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
 import { installRuntimeListMethodDescriptors } from "./runtime-list-method-descriptors.js";
 import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
 
@@ -164,7 +164,7 @@ export class RuntimeTypeRegistry {
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
     const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, subclassable: false, weakReferences: kind !== "method-wrapper" });
     const type = this.values.type(layout, this.type, { immutable: true });
-    installRuntimeBoundComparisonMethods(kind, type, this.values, this.meter);
+    installRuntimeComparisonMethods(kind, type, this.values, this.meter);
     namespace.items.set(this.values.string("__hash__"), createBoundCallableHashWrapper(kind, type, this.values, this.meter));
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#boundCallables.set(kind, type);
@@ -178,6 +178,8 @@ export class RuntimeTypeRegistry {
     const layout = new RuntimeTypeLayout("list", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeListMethodDescriptors(type, this.values, this.meter);
+    installRuntimeComparisonMethods("list", type, this.values, this.meter);
+    namespace.items.set(this.values.string("__hash__"), this.values.none);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#listType = type;
     return type;

@@ -1,7 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { RuntimeHashError } from "./runtime-hash-error.js";
-import type { NativeBoundCallableKind } from "./runtime-bound-comparison-method.js";
+import type { NativeBoundCallableKind } from "./runtime-native-comparison-method.js";
 import type { RuntimeValues, TypeValue, WrapperDescriptorValue } from "./runtime-values.js";
 
 /** Explicit callable hash slots use native binding storage, not object identity.

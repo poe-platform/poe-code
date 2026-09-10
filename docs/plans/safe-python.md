@@ -8579,6 +8579,18 @@ extension, integration, or validation requirement is missing or unverified.
   list members/slots and complete public execution assembly remain unfinished.
   Final selected build, typecheck, scoped lint and all 6,584 tests in 493 files
   pass with two workers.
+- Installed canonical list __eq__/__ne__/ordering wrappers and disabled the
+  list hash slot with None. Native comparison publication now shares one module
+  with callable comparison slots; ordinary native attribute lookup binds the
+  defining wrappers and exposes disabled hashing without invoking it. Six initial
+  regressions failed on missing ordinary list comparison attributes. Eleven added
+  cases cover direct/ordinary access, unsupported peers, raw guest ordering
+  results, member identity shortcuts, live list mutation and original callback
+  exceptions. All 756 list-slot differential cases match CPython; the prior 78
+  callable-hash and 66 canonical list-method cases still pass. List construction,
+  remaining list slots/sort binding and public runtime assembly remain unfinished.
+  Selected build, typecheck, scoped lint and all 6,595 tests in 493 files pass
+  with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -100,6 +100,33 @@ it("preserves nested hash exceptions through the native callable slot", () => {
   }
 });
 
+it.each([["__eq__", false], ["__ne__", true], ["__lt__", true], ["__le__", true], ["__gt__", false], ["__ge__", false]] as const)("exposes native list comparison %s through direct and ordinary access", (name, expected) => {
+  const state = fixture();
+  state.run(`left=[1,2]\nright=[1,3]\ndirect=type(left).${name}(left,right)\nbound=left.${name}(right)\ndeclined=left.${name}((1,2))\nhash_slot=left.__hash__\n`);
+  expect(state.globals.get("direct")).toBe(state.v.boolean(expected)); expect(state.globals.get("bound")).toBe(state.globals.get("direct"));
+  expect(state.globals.get("declined")).toBe(state.v.notImplemented); expect(state.globals.get("hash_slot")).toBe(state.v.none);
+});
+
+it("preserves raw guest ordering results and identity shortcuts in list slots", () => {
+  const state = fixture();
+  state.run("marker=[]\nclass Key:\n def __eq__(self,other):\n  visit('equal')\n  return False\n def __lt__(self,other):\n  visit('less')\n  return marker\nleft=Key()\nright=Key()\nresult=[left].__lt__([right])\nraw=result is marker\nidentity=[left].__eq__([left])\n");
+  expect(state.globals.get("raw")).toBe(state.v.true); expect(state.globals.get("identity")).toBe(state.v.true); expect(state.events).toEqual(["equal", "less"]);
+});
+
+it("observes live list mutation during explicit comparison", () => {
+  const state = fixture();
+  state.run("class Key:\n def __eq__(self,other):\n  visit('equal')\n  right.clear()\n  return True\nleft=[Key(),1]\nright=[Key(),2]\nresult=left.__eq__(right)\n");
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["equal"]);
+});
+
+it.each(["equal", "truth", "less"])("preserves %s exceptions in explicit list comparison", phase => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run(`class Truth:\n def __bool__(self):\n  fail()\nclass Key:\n def __eq__(self,other):\n  ${phase === "equal" ? "fail()" : phase === "truth" ? "return Truth()" : "return False"}\n def __lt__(self,other):\n  fail()\nleft=[Key()]\nright=[Key()]\n`);
+  let thrown: unknown; try { state.run("left.__lt__(right)\n"); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+});
+
 it.each(["append", "extend", "insert", "pop", "clear", "reverse", "copy", "count", "remove", "index", "__reversed__"])("retains canonical list %s binding metadata and key identity", name => {
   const state = fixture(); state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));
   state.run(`items=[]\nleft=items.${name}\nright=items.${name}\nresult={left:1,right:2}\nequal_hash=hash(left)==hash(right)\nreceiver=left.__self__ is items\nname=left.__name__\nqualified=left.__qualname__\n`);

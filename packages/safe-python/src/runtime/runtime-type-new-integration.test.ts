@@ -90,6 +90,33 @@ it("updates dictionaries in place from guest mappings and retains identity", () 
   expect(state.events).toEqual(["keys", "left", "right"]);
 });
 
+it("updates dictionaries through native methods using guest mapping protocols", () => {
+  const state = fixture();
+  state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nresult={}\nreturned=result.update(Mapping(),right=9)\nleft=result['left']\nright=result['right']\n");
+  expect(state.globals.get("returned")).toBe(state.v.none); expect(state.globals.get("left")).toEqual(state.v.integer(7)); expect(state.globals.get("right")).toEqual(state.v.integer(9)); expect(state.events).toEqual(["keys", "left", "right"]);
+});
+
+it("checks update arity before mapping effects but validates keywords after writes", () => {
+  const state = fixture();
+  state.run("class Mapping:\n def keys(self):\n  visit('keys')\n  return ['left']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nresult={}\n");
+  expect(() => state.run("result.update(Mapping(),None)\n")).toThrow("update expected at most 1 argument, got 2"); expect(state.events).toEqual([]);
+  expect(() => state.run("result.update(Mapping(),**{1:2})\n")).toThrow("keywords must be strings"); expect(state.events).toEqual(["keys", "left"]);
+  state.run("left=result['left']\n"); expect(state.globals.get("left")).toEqual(state.v.integer(7));
+});
+
+it("retains partial method updates and does not apply keywords after mapping failure", () => {
+  const state = fixture(), failure = new PythonRuntimeError("AttributeError", "mapping failed");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  expect(() => state.run("class Mapping:\n def keys(self):\n  return ['left','right']\n def __getitem__(self,key):\n  visit(key)\n  if key=='right':\n   fail()\n  return 7\nresult={}\nresult.update(Mapping(),left=9)\n")).toThrow(failure);
+  state.run("left=result['left']\n"); expect(state.globals.get("left")).toEqual(state.v.integer(7)); expect(state.events).toEqual(["left", "right"]);
+});
+
+it("allows extracted update methods to consume guest sequence pairs", () => {
+  const state = fixture();
+  state.run("class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (('left',7),('right',9))[index]\nresult={}\nupdate=result.update\nreturned=update(Source())\nleft=result['left']\nright=result['right']\n");
+  expect(state.globals.get("returned")).toBe(state.v.none); expect(state.globals.get("left")).toEqual(state.v.integer(7)); expect(state.globals.get("right")).toEqual(state.v.integer(9)); expect(state.events).toEqual(["get", "get", "get"]);
+});
+
 it("passes guest protocols through dictionary construction before keyword overrides", () => {
   const state = fixture();
   state.builtins.set("make", state.v.builtinFunction({ name: "make", invoke(args, _keywords, meter, context) { return constructRuntimeDictionary(args, new Map([["left", state.v.integer(9)]]), state.v, state.keys, meter, context); } }));

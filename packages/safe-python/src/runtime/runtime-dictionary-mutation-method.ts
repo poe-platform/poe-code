@@ -14,11 +14,11 @@ export function createRuntimeDictionaryMutationMethod(receiver: DictionaryValue,
   return values.builtinFunction({
     name,
     ...(name === "update" ? { keywordValidation: "callee" as const } : {}),
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, context) {
       meter.checkpoint();
       if (name === "update") {
         if (positional.length > 1) throw new PythonRuntimeError("TypeError", `update expected at most 1 argument, got ${positional.length}`);
-        if (positional.length === 1) updateRuntimeDictionary(receiver, positional[0], values, meter);
+        if (positional.length === 1) updateRuntimeDictionary(receiver, positional[0], values, meter, context);
         const keys = keywords.items.iterate(key => key);
         for (let item = keys.next(); !item.done; item = keys.next()) {
           meter.checkpoint();

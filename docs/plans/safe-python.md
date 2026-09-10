@@ -8382,6 +8382,16 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and scoped lint pass. Native dict
   update-method invocation still needs its active capability forwarded; full
   constructor catalog and guest exception rendering remain unfinished.
+- Forwarded the active invocation capabilities from native dict.update methods
+  to the dictionary kernel. The initial compiled mapping-method call failed as
+  a non-iterable instance. Four added tests exercise ordinary/extracted methods,
+  guest pair sequences, arity before effects, keyword validation after writes,
+  keyword override ordering and preservation of partial writes on failure.
+  All 128 mapping-method differential cases match CPython, including final
+  dictionary contents and exception payloads, as do 48 sequence/hint cases.
+  All 6,469 tests in 491 files, build, typecheck and scoped lint pass. Native constructor catalog and fromkeys
+  guest-iteration integration remain unfinished, alongside guest exception
+  rendering and public execution assembly.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -12,16 +12,26 @@ export interface AttributeMutationContext extends AttributeNameContext {
 
 /** Explicit positional-only setattr/delattr registration. Successful mutation
  * returns None regardless of the guest override's return value. */
-export function createAttributeMutationBuiltin(name: "setattr" | "delattr", values: RuntimeValues, meter: ExecutionMeter, context: AttributeMutationContext): BuiltinFunctionValue {
+export function createAttributeMutationBuiltin(name: "setattr" | "delattr", values: RuntimeValues, meter: ExecutionMeter, context?: AttributeMutationContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  return values.builtinFunction({ name, invoke(positional, keywords, meter) {
+  const names = context ?? {};
+  return values.builtinFunction({ name, invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${name}() takes no keyword arguments`);
     const required = name === "setattr" ? 3 : 2;
     if (positional.length !== required) throw new PythonRuntimeError("TypeError", `${name} expected ${required} arguments, got ${positional.length}`);
-    validateAttributeName(positional[1], context, meter);
-    if (name === "setattr") context.setAttribute(positional[0], positional[1], positional[2]);
-    else context.deleteAttribute(positional[0], positional[1]);
+    const key = positional[1];
+    validateAttributeName(key, names, meter);
+    if (context !== undefined) {
+      if (name === "setattr") context.setAttribute(positional[0], key, positional[2]);
+      else context.deleteAttribute(positional[0], key);
+    } else {
+      let attributeName = "";
+      if (key.kind === "str") for (const point of key.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); attributeName += String.fromCodePoint(point); }
+      if (name === "setattr" && invocation?.setAttribute !== undefined) invocation.setAttribute(positional[0], attributeName, positional[2]);
+      else if (name === "delattr" && invocation?.deleteAttribute !== undefined) invocation.deleteAttribute(positional[0], attributeName);
+      else throw new Error(`${name} requires an execution attribute mutation capability`);
+    }
     meter.checkpoint();
     return values.none;
   } });

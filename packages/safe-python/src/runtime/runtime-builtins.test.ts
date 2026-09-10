@@ -336,6 +336,19 @@ it("preserves dynamic attribute text through frame lookup", () => {
   }, meter);
   expect(globals.get("result")).toBe(member); expect(lookups).toBe(1);
 });
+it.each(["setattr", "delattr"])("routes %s through frame mutation without a preflight read", name => {
+  const { meter, v, context } = fixture(), guest = v.cell({}), member = v.cell({}), globals = new Map<string, RuntimeValue>([["guest",guest], ["member",member], ["name",v.string("x\0😀\ud800")]]), unused = (): never => { throw Error("unexpected read or mutation"); }; let mutations = 0;
+  delete context.attributeMutation;
+  const program = compileProgram<RuntimeValue>(analyzeModule(`def mutate(): return ${name}(guest,name${name === "setattr" ? ",member" : ""})\nresult=mutate()\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({
+      setAttribute(object, key, value) { expect(name).toBe("setattr"); expect(object).toBe(guest); expect(key).toBe("x\0😀\ud800"); expect(value).toBe(member); mutations++; },
+      deleteAttribute(object, key) { expect(name).toBe("delattr"); expect(object).toBe(guest); expect(key).toBe("x\0😀\ud800"); mutations++; }, executeUnhandled: unused
+    }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toBe(v.none); expect(mutations).toBe(1);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

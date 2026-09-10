@@ -7204,6 +7204,15 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. Unified guest-name/exception identity
   still requires explicit object policies; concrete guest type assembly, remaining
   builtin integrations and suspended safe-fs execution remain unfinished.
+- Setattr/delattr now inherit frame statement mutation hooks for exact string
+  names when no explicit mutation context is supplied. Explicit contexts retain
+  original guest string-subclass names and receivers. Two compiled regressions
+  failed first and now verify nested-frame mutation, dynamic Unicode/NUL names,
+  assigned-value identity, no preflight reads and None results. Extra coverage
+  preserves explicit priority, descriptor failures and completed mutations when
+  post-callback cancellation fires. All 5,395 tests in 444 files pass; selected
+  build, typecheck and scoped lint pass. Concrete guest object/descriptor wiring,
+  remaining builtin integrations and suspended safe-fs execution remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

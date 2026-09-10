@@ -100,6 +100,8 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
+      setAttribute: statementHooks.setAttribute.bind(statementHooks),
+      deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),
       attribute: (object, name) => expressions.attribute(object, name),
       power: expressionHooks.power,
       isCallable: value => runtimeCallable(value, meter, hooks),

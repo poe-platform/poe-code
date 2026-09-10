@@ -35,7 +35,7 @@ export interface RuntimeBuiltinContexts {
   abs?: Parameters<typeof createAbsBuiltin>[2];
   allAny?: Parameters<typeof createAllAnyBuiltin>[3];
   attributeLookup?: Parameters<typeof createAttributeLookupBuiltin>[3];
-  attributeMutation: Parameters<typeof createAttributeMutationBuiltin>[3];
+  attributeMutation?: Parameters<typeof createAttributeMutationBuiltin>[3];
   buildClass: Parameters<typeof createBuildClassBuiltin>[0];
   callable?: Parameters<typeof createCallableBuiltin>[2];
   integerIndex?: Parameters<typeof createChrBuiltin>[2];

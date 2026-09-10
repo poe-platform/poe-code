@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAttributeMutationBuiltin } from "./builtin-attribute-mutation.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
-import { ExecutionBudget } from "./execution-budget.js";
+import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 
@@ -20,7 +20,8 @@ describe("attribute mutation builtins", () => {
       deleteAttribute(receiver: RuntimeValue, attribute: RuntimeValue) { expect(this).toBe(context); expect(receiver).toBe(object); expect(attribute).toBe(key); events.push("delete"); return v.true; }
     };
     const builtin = createAttributeMutationBuiltin(name, v, meter, context);
-    expect(builtin.value.invoke(name === "setattr" ? [object, key, value] : [object, key], keywords, meter)).toBe(v.none);
+    const unused = (): never => { throw Error("explicit policy must win"); };
+    expect(builtin.value.invoke(name === "setattr" ? [object, key, value] : [object, key], keywords, meter, { call: unused, isStopIteration: unused, setAttribute: unused, deleteAttribute: unused })).toBe(v.none);
     expect(events).toEqual([name === "setattr" ? "set" : "delete"]);
   });
   it.each(["setattr", "delattr"] as const)("validates %s arguments before mutation", name => {
@@ -31,10 +32,18 @@ describe("attribute mutation builtins", () => {
     keywords.items.set(v.string("x"), v.none);
     expect(() => builtin.value.invoke([], keywords, meter)).toThrow(`${name}() takes no keyword arguments`);
   });
-  it.each(["setattr", "delattr"] as const)("preserves %s descriptor failures", name => {
+  it.each([["setattr", false], ["setattr", true], ["delattr", false], ["delattr", true]] as const)("preserves %s descriptor failures with explicit policy=%s", (name, explicit) => {
     const { meter, values: v, keywords } = fixture(), failure = new PythonRuntimeError("AttributeError", "read only");
     const fail = () => { throw failure; };
-    const builtin = createAttributeMutationBuiltin(name, v, meter, { setAttribute: fail, deleteAttribute: fail });
-    expect(() => builtin.value.invoke(name === "setattr" ? [v.none, v.string("x"), v.true] : [v.none, v.string("x")], keywords, meter)).toThrow(failure);
+    const builtin = createAttributeMutationBuiltin(name, v, meter, explicit ? { setAttribute: fail, deleteAttribute: fail } : undefined);
+    expect(() => builtin.value.invoke(name === "setattr" ? [v.none, v.string("x"), v.true] : [v.none, v.string("x")], keywords, meter, { call: fail, isStopIteration: fail, setAttribute: fail, deleteAttribute: fail })).toThrow(failure);
+  });
+  it.each(["setattr", "delattr"] as const)("observes post-%s cancellation without rolling back mutation", name => {
+    const { meter, values: v, keywords } = fixture(); let mutated = false;
+    const unused = (): never => { throw Error("unexpected callback"); }, mutate = () => { mutated = true; };
+    expect(() => createAttributeMutationBuiltin(name, v, meter).value.invoke(name === "setattr" ? [v.none, v.string("x"), v.true] : [v.none, v.string("x")], keywords, {
+      checkpoint() { if (mutated) throw new ExecutionLimitError("cancelled"); }
+    }, { call: unused, isStopIteration: unused, setAttribute: mutate, deleteAttribute: mutate })).toThrow(ExecutionLimitError);
+    expect(mutated).toBe(true);
   });
 });

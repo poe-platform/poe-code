@@ -8,7 +8,7 @@ describe("Float32Array camera workflows", () => {
     `${fixture.source.slice("export default ".length)}\nreturn cameraWorkflow;`
   )() as (input: (typeof fixture.cases)[number]["fixture"]) => unknown;
 
-  it.each(fixture.cases)("preserves the complete recorded native trace for $caseId", (entry) => {
+  it.each(fixture.cases.map(entry => [entry.caseId, entry] as const))("preserves the complete recorded native trace for %s", (_caseId, entry) => {
     expect(JSON.parse(JSON.stringify(native(entry.fixture)))).toEqual(entry.expected);
   });
 
@@ -39,7 +39,7 @@ describe("Float32Array camera workflows", () => {
     return entries;
   });
 
-  it.each(batches)("matches the complete native and recorded batch trace for $caseId", async (entry) => {
+  it.each(batches.map(entry => [entry.caseId, entry] as const))("matches the complete native and recorded batch trace for %s", async (_caseId, entry) => {
     const result = await run(fixture.source, {
       entryPointArgs: [entry.fixture],
       randomSeed: 827,

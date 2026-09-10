@@ -229,6 +229,15 @@ function callStringMethodBody(
       return budget.allocateString(value[methodName](args[0] as number, args[1] as number | undefined));
     return callStringRange(value, methodName, args, budget, context);
   }
+  if (methodName === "normalize") {
+    const form = args[0];
+    if (form === null || (typeof form !== "object" && typeof form !== "function"))
+      return budget.allocateString(value.normalize(form as string | undefined));
+    const converted = sandboxString(form, budget, context);
+    if (typeof converted === "string") return budget.allocateString(value.normalize(converted));
+    const release = retainValues(budget, () => [value, ...args]);
+    return converted.then(text => budget.allocateString(value.normalize(text))).finally(release);
+  }
   if (methodName === "repeat" || methodName === "at" || methodName === "charAt" || methodName === "charCodeAt" || methodName === "codePointAt") {
     const apply = (number: number) => {
       const result = value[methodName](number);
@@ -360,8 +369,6 @@ function callStringMethodBody(
     switch (methodName) {
       case "concat":
         return budget.allocateString(value.concat(...args.map(String)));
-      case "normalize":
-        return budget.allocateString(value.normalize(asStringOrUndefined(args[0])));
       case "padEnd":
         return budget.allocateString(value.padEnd(asNumber(args[0]), asStringOrUndefined(args[1])));
       case "padStart":

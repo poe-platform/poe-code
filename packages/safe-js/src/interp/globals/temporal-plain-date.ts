@@ -58,6 +58,34 @@ export function createTemporalPlainDateConstructor(budget: Budget): SandboxClosu
   });
   Object.defineProperty(materializeFunctionProperties(constructor), "from", { value: from, writable: true, configurable: true });
   methods.push(from);
+  const compare = createSandboxClosure({ guest: true, sandbox: true, name: "compare", length: 2,
+    call: async ([one, two], context) => {
+      let first: TemporalPlainDateFields | undefined;
+      let second: TemporalPlainDateFields | undefined;
+      const release = retainValues(budget, () => [one, two, first, second]);
+      try {
+        first = temporalPlainDateFields(await readTemporalPlainDate(one, undefined, budget, context));
+        second = temporalPlainDateFields(await readTemporalPlainDate(two, undefined, budget, context));
+        for (const name of temporalPlainDateNumericFields) {
+          if (first[name] !== second[name]) return first[name] < second[name] ? -1 : 1;
+        }
+        return 0;
+      } finally { release(); }
+    }
+  });
+  const equals = createSandboxClosure({ guest: true, sandbox: true, name: "equals", length: 1,
+    call: async ([input], context) => {
+      const fields = temporalPlainDateFields(context?.thisValue);
+      const release = retainValues(budget, () => [fields, input]);
+      try {
+        const other = temporalPlainDateFields(await readTemporalPlainDate(input, undefined, budget, context));
+        return fields.calendar === other.calendar && temporalPlainDateNumericFields.every(name => fields[name] === other[name]);
+      } finally { release(); }
+    }
+  });
+  Object.defineProperty(materializeFunctionProperties(constructor), "compare", { value: compare, writable: true, configurable: true });
+  Object.defineProperty(prototype, "equals", { value: equals, writable: true, configurable: true });
+  methods.push(compare, equals);
   for (const name of ["calendarId", "era", "eraYear", "year", "month", "monthCode", "day", "dayOfWeek", "dayOfYear", "weekOfYear", "yearOfWeek", "daysInWeek", "daysInMonth", "daysInYear", "monthsInYear", "inLeapYear"] as const) {
     const getter = createSandboxClosure({ guest: true, sandbox: true, name: `get ${name}`, length: 0,
       call: (_args, context) => {

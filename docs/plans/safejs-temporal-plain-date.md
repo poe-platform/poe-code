@@ -280,3 +280,36 @@ The built CLI screenshot (9568a6) was inspected: a calendar-based Buddhist bag
 and private copy preserve 2000-02-29/year 2543, and both date endpoints convert:
 `screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-from.ajs.png`.
 No push or release; other public integration remains uncommitted.
+
+## PlainDate comparisons
+
+Five regressions failed against the absent compare and equals methods (73f632).
+Compare converts left then right through the date reader and compares private
+ISO year/month/day; equals brands its receiver first, converts the other value,
+and requires both ISO date and calendar equality. Neither consults shadowed
+public fields of owned values. Both are registered for captured-method replay.
+The behavior follows Temporal's compare and equals algorithms:
+https://tc39.es/proposal-temporal/#sec-temporal.plaindate.compare
+https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.equals
+
+Nineteen focused comparison/from/construction tests passed (29f489), covering
+calendar differences, endpoints, argument conversion order, private date-time
+conversion, invalid receiver/input and replay. Upstream fixtures, minimum-Node,
+lint and maintained build checks are pending. This is not full conformance.
+
+All five comparison cases passed on Node 18.18.2 (2116c5). The unchanged pinned
+Test262 directories ran with parsed YAML frontmatter, declared helpers and
+normal/strict modes at revision 419d3e0a2273ba01a3bfcbec423f2801425b8e93:
+compare 78 passed/six failed; equals 76 passed/four failed; zero exclusions
+(fb7e59). Source inspection (6c8972) shows the zoned argument fixtures require
+absent ZonedDateTime; the calendar fixtures use checkToTemporalCalendarFastPath,
+whose missing-class construction was inspected in aa6abb. These are genuine
+remaining interoperability gaps, not passing or excluded cases.
+
+Scoped lint passed (96ccfb); the maintained build passed all 23 tasks and five
+fresh ESM import checks (0d8f39). The built CLI screenshot (24895c) was inspected:
+same ISO date compares as zero across calendars, equals returns false for the
+different calendar, ISO string equality returns true and chronological order is
+negative, despite a throwing public year getter:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-comparison.ajs.png`.
+No push or release, and no full-package conformance claim.

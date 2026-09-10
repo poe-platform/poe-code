@@ -150,7 +150,7 @@ import {
 import { hashSource } from "../parse/hash.js";
 import { getFunctionLength } from "../parse/bindings.js";
 import {
-  parseModule,
+  parseExecutableModule,
   type ArrowFunctionExpression,
   type FunctionDeclaration,
   type FunctionExpression,
@@ -277,7 +277,7 @@ export function restore(
       throw new SnapshotMismatchError(snapshot.sourceHash, currentSourceHash);
     }
 
-    const ast = parseModule(options.source, "<input>", operation.owner);
+    const ast = parseExecutableModule(options.source, "<input>", operation.owner);
     const nodeById = indexAstNodes(ast);
     const dynamicSources = new Map<number, DynamicSource>();
     validateInterpreterSnapshot(snapshot, nodeById, budget, dynamicSources, operation.owner);

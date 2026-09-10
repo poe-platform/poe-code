@@ -6,6 +6,7 @@ import { inMemoryRunSnapshots, serializeSafeJSSnapshot } from "./snapshot/dump-f
 import { assertSnapshotInactive } from "./interp/running-state.js";
 import { validateSnapshotMigration, type SnapshotMigration } from "./snapshot/migration.js";
 import { parseModule } from "./parse/parser.js";
+import { ParseError } from "./parse/format-error.js";
 import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "./parse/dynamic-source.js";
 import { validateGuestFunctionAst } from "./snapshot/guest-ast-validation.js";
 import { validateTemplateObjects } from "./snapshot/template-validation.js";
@@ -91,7 +92,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
               record.parameters as string, record.body as string, owner);
           dynamicSources.set(Number(id), compiled.source);
         } catch (error) {
-          if (!(error instanceof SyntaxError)) throw error;
+          if (!(error instanceof SyntaxError) && !(error instanceof ParseError)) throw error;
           throw new SnapshotValidationError("invalidValue", `$.heap[${JSON.stringify(id)}]`, error.message);
         }
       }

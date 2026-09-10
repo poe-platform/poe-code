@@ -6,6 +6,7 @@ import { types } from "node:util";
 import type { Budget, CompileOwner } from "../interp/budget.js";
 import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "../parse/dynamic-source.js";
 import type { ParseResult } from "../parse/parser.js";
+import { ParseError } from "../parse/format-error.js";
 import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS, inMemoryRunSnapshots } from "./dump-format.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { validateTypedArrayStorage } from "./typed-array.js";
@@ -490,7 +491,7 @@ export function validateInterpreterSnapshot(
             source.parameters as string, source.body as string, owner);
         dynamicSources.set(Number(key), compiled.source);
       } catch (error) {
-        if (!(error instanceof SyntaxError)) throw error;
+        if (!(error instanceof SyntaxError) && !(error instanceof ParseError)) throw error;
         fail("invalidValue", `$.heap${formatKey(key)}`, error.message);
       }
     }

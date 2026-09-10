@@ -7,6 +7,35 @@ import { restore as restoreRunSnapshot } from "../restore.js";
 import { dump } from "../dump.js";
 import { SnapshotValidationError } from "./validation.js";
 import { Budget, SandboxError } from "../interp/budget.js";
+import { parseModule } from "../parse/parser.js";
+import { interpret } from "../interp/interpreter.js";
+
+it.each(["function f(){return await 1}return f", "return ()=>await 1"])(
+  "rejects a restored root closure with invalid await: %s", async body => {
+    const source = `{${body}}`;
+    const ast = parseModule(source);
+    const original = await interpret(ast.body[0]);
+    if (!original.ok) throw new Error(original.error.message);
+    const saved = JSON.parse(JSON.stringify(serialize({ source, currentAstNodeId: ast.body[0].nodeId!,
+      scopeChain: [{ id: "module", bindings: { f: original.returnValue as RuntimeSnapshotValue } }],
+      callStack: [], pendingPromises: [], moduleBindings: {} })));
+    expect(() => restore(saved, { source })).toThrow();
+  }
+);
+
+it.each(["run", "interpreter"])("validates await context in restored module source: %s", async kind => {
+  const source = "return 0";
+  const saved = kind === "run"
+    ? JSON.parse(await dump(await run(source)))
+    : await captureDynamicFunction();
+  const id = 1 + Math.max(0, ...Object.keys(saved.heap).map(Number));
+  saved.heap[id] = { kind: "guest-source", functionKind: "module", parameters: "",
+    body: "async function f(){return await 1}" };
+  const invoke = () => kind === "run" ? restoreRunSnapshot(saved, { source }) : restore(saved, { source });
+  expect(invoke).not.toThrow();
+  saved.heap[id].body = "function f(){return await 1}";
+  expect(invoke).toThrow(SnapshotValidationError);
+});
 
 it.each([
   ["", "return (", false],
@@ -28,6 +57,25 @@ async function captureDynamicFunction() {
     scopeChain: [{id: "module", bindings: {f: result.returnValue as RuntimeSnapshotValue}}],
     callStack: [], pendingPromises: [], moduleBindings: {}})));
 }
+
+it.each(["run", "interpreter"])("preserves fatal module-source compilation errors in %s restore", async kind => {
+  const source = "return 0";
+  const saved = kind === "run" ? JSON.parse(await dump(await run(source))) : await captureDynamicFunction();
+  const id = 1 + Math.max(0, ...Object.keys(saved.heap).map(Number));
+  saved.heap[id] = { kind: "guest-source", functionKind: "module", parameters: "",
+    body: `return /${"a".repeat(2000)}/` };
+  const budget = new Budget({ maxSteps: 1000 });
+  const operation = budget.acquireCompileOwner();
+  try {
+    const invoke = () => kind === "run"
+      ? restoreRunSnapshot(saved, { source }, operation.owner)
+      : restore(saved, { source, budget }, operation.owner);
+    let failure: unknown;
+    try { invoke(); } catch (error) { failure = error; }
+    expect(failure).toBeInstanceOf(SandboxError);
+    expect(failure).toMatchObject({ code: "budgetExceeded", budget: "steps", limit: 1000 });
+  } finally { operation.release(); }
+});
 
 it.each(["run", "interpreter"])("preserves fatal dynamic-source compilation errors in %s restore", async kind => {
   const source = kind === "run" ? "const f=Function('return 3');await 0;return f()" : "return 0";

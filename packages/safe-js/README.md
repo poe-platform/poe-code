@@ -412,6 +412,9 @@ There are no runtime environment variables to set. `makeEnvModule({ allow, value
 | `fix`, `fixRanges` | Apply available fixes, optionally restricted to source ranges. |
 
 `parse(source, filename?)` parses a single statement/expression; `parseModule(source, filename?)` parses a module. `formatInterpreterError(error, { source?, filename?, hostCallName?, maxMessageLength? })` formats an error; `(source, diagnostic)` is also supported.
+Diagnostic module parsing retains missing-`async` forms so lint can report and
+autofix them. Executable parsing and restored-source compilation reject `await`
+inside non-async functions, including nested functions and template substitutions.
 
 `deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible.
 

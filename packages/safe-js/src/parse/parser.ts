@@ -710,7 +710,9 @@ export function parseExecutableModule(
       new Parser(
         tokenize(source, { allowRegexLiterals: true, compilation }),
         source,
-        compilation
+        compilation,
+        "top-level",
+        { ...ordinaryFunctionContext, newTarget: false, requireAsyncAwait: true }
       ).parseModule()
     );
     throwIfImportMetaAssignment(result);
@@ -819,6 +821,7 @@ type LexicalParseContext = {
   return: boolean;
   await: boolean;
   strictAwait?: boolean;
+  requireAsyncAwait?: boolean;
 };
 const ordinaryFunctionContext: LexicalParseContext = {
   newTarget: true, superProperty: false, superCall: false,
@@ -3021,6 +3024,11 @@ class Parser {
           `await is not valid in function parameters at line ${token.start.line}, column ${token.start.column}.`
         );
       }
+      if (this.functionContext === "normal" && this.lexicalContext.requireAsyncAwait) {
+        throw new SyntaxError(
+          `await is only valid at top level or inside an async function at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
       this.index += 1;
       const argument = this.parseUnaryExpression();
       return {
@@ -4371,6 +4379,8 @@ class Parser {
 
   private withLexicalContext<T>(context: LexicalParseContext, callback: () => T): T {
     const previous = this.lexicalContext;
+    if (previous.requireAsyncAwait && context.requireAsyncAwait === undefined)
+      context = { ...context, requireAsyncAwait: true };
     if (context.grammar === undefined && previous.grammar !== undefined)
       context = {...context, grammar: {...previous.grammar}};
     this.lexicalContext = context;

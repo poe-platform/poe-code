@@ -2,6 +2,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { ImmutableBytes } from "./immutable-bytes.js";
 import type { PercentFormatBindingContext } from "./percent-format-bind.js";
 import { runtimeIndex } from "./runtime-index.js";
+import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimePercentBindingHooks {
@@ -26,10 +27,11 @@ export function createRuntimePercentBindingContext(values: RuntimeValues, meter:
   return {
     tupleItems(value) {
       meter.checkpoint();
-      return value.kind === "tuple" ? value.items : hooks?.tupleItems?.(value);
+      return runtimeTuplePayload(value)?.items ?? hooks?.tupleItems?.(value);
     },
     isMapping(value, source) {
       meter.checkpoint();
+      if(runtimeTuplePayload(value)!==undefined)return false;
       switch (value.kind) {
         case "tuple": case "str": return false;
         case "bytes": return !(source instanceof ImmutableBytes);
@@ -42,8 +44,9 @@ export function createRuntimePercentBindingContext(values: RuntimeValues, meter:
       const key = source instanceof ImmutableBytes
         ? values.bytes(source.slice(BigInt(start), BigInt(end), null, meter))
         : values.stringPoints(source.slice(BigInt(start), BigInt(end), null, meter));
+      while(value.kind==="mappingproxy"){meter.checkpoint();value=value.value;}
       switch (value.kind) {
-        case "list": case "range": case "dict": case "mappingproxy": case "bytes":
+        case "list": case "range": case "dict": case "bytes":
           return runtimeIndex(value, key, values, meter);
         default: return hooks?.mapping ? hooks.mapping.get(value, key) : runtimeIndex(value, key, values, meter);
       }

@@ -67,6 +67,25 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("binds tuple subclass percent arguments from stored elements", () => {
+  const state=fixture();state.globals.set("Tuple",state.registry.tupleType());
+  state.run("class Args(Tuple):\n def __getitem__(self,key):\n  visit('wrong')\n  return 9\n def __iter__(self):\n  visit('wrong')\n  return None\n def __len__(self):\n  visit('wrong')\n  return 0\nx=Args((3,1.25))\ncorrect='%d %.2f'%x=='3 1.25' and b'%d %.2f'%x==b'3 1.25'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual([]);
+  expect(()=>state.run("'%(x)s'%x\n")).toThrow("format requires a mapping");
+});
+
+it("forwards percent mapping proxy lookups through wrapped guest mappings", () => {
+  const state=fixture();state.globals.set("Proxy",state.registry.mappingProxyType());state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class Child(Dict):\n def __getitem__(self,key):\n  visit('get')\n  return 7\nx=Proxy(Proxy(Child(x=1)))\ncorrect='%(x)d'%x=='7' and b'%(x)d'%x==b'7'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["get","get"]);
+});
+
+it("dispatches percent mapping keys through guest subscription", () => {
+  const state=fixture();state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class Mapping:\n def __getitem__(self,key):\n  if key=='x':\n   visit('text')\n  elif key==b'x':\n   visit('bytes')\n  return 3\nclass Child(Dict):\n def __getitem__(self,key):\n  visit('dict')\n  return 7\nx=Mapping()\ncorrect='%(x)d'%x=='3' and b'%(x)d'%x==b'3' and '%(x)d'%Child(x=1)=='7' and 'unchanged'%x=='unchanged'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["text","bytes","dict"]);
+});
+
 it("formats owned float percent operands without numeric override calls", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Child(Float):\n def __float__(self):\n  visit('wrong')\n  return 9.0\n def __int__(self):\n  visit('int')\n  return 7\nx=Child(1.25)\ncorrect='%.2f'%x=='1.25' and b'%.2f'%x==b'1.25' and '%d'%x=='7'\n");

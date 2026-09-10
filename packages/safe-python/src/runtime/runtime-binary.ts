@@ -13,6 +13,7 @@ import { createRuntimePercentBindingContext } from "./runtime-percent-binding.js
 import { createRuntimePercentConversionContext } from "./runtime-percent-conversion.js";
 import { createRuntimeRepresentationContext } from "./runtime-representation.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
+import { runtimeGetItem } from "./runtime-subscription.js";
 
 /** Exact runtime binary kernels, not guest reflected/subclass dispatch. Lists
  * always produce fresh slots; tuple operations preserve mutable member identity.
@@ -36,7 +37,10 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
       meter.checkpoint(0,64);return ()=>invocation!.call(method,[]);
     };
     const context = {
-      ...createRuntimePercentBindingContext(values, meter),
+      ...createRuntimePercentBindingContext(values, meter,invocation===undefined?undefined:{mapping:{
+        has:value=>invocation.hasSpecial?.(value,"__getitem__")??false,
+        get:(value,key)=>runtimeGetItem(value,key,values,meter,invocation,invocation.integerIndex)
+      }}),
       ...createRuntimePercentConversionContext(meter,invocation===undefined?undefined:{
         lookupFloat:value=>slot(value,"__float__"),lookupInt:value=>slot(value,"__int__"),lookupIndex:value=>slot(value,"__index__"),
         typeName:value=>invocation.typeName?.(value),warn:(category,message)=>invocation.warn?.(category,message)

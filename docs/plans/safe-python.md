@@ -9530,6 +9530,18 @@ extension, integration, or validation requirement is missing or unverified.
   in the uncached one-worker package run. Guest mapping and tuple-subclass
   percent binding remain to be integrated, as do remaining scalar consumers,
   full interpreter and safe-fs execution. No push or release was requested.
+- Percent argument binding integration (2026-09-10): failing integration tests
+  drove pure tuple-subclass argument storage and guest mapping subscriptions.
+  Tuple __iter__/__len__/__getitem__ overrides are bypassed and tuple subclasses
+  remain excluded from mapping formats. Guest mappings receive text/bytes keys
+  through normal subscription. An expanded audit reproduced a further failure
+  through mapping proxies; a third regression drove metered proxy unwrapping
+  before wrapped guest subscription. All 432 CPython binding comparisons match,
+  comparing retained KeyError arguments rather than internal host diagnostics.
+  Workspace build, typecheck, focused lint and all 7,040 tests in 498 files pass
+  in the uncached one-worker package run. Remaining scalar consumers, complete
+  guest exception rendering, full interpreter and safe-fs execution remain
+  unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

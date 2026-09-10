@@ -6,6 +6,7 @@ import { guestProxyStates } from "./guest-proxy.js";
 import { weakReferenceStates } from "./weak-reference.js";
 import { finalizationRegistryStates } from "./finalization-registry-state.js";
 import { weakCollectionStates } from "./weak-collection.js";
+import { wellKnownSymbols } from "./symbols.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { NativeSuppressedError } from "../error/native-suppressed-error.js";
 import { isSandboxModuleNamespace } from "./module-namespace.js";
@@ -716,6 +717,9 @@ export function measureSandboxData(
   const seenSymbols = new Set<symbol>();
   let usage = 0;
   const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];
+  type WeakContribution = { value: unknown; depth: number };
+  let waiting: Map<object | symbol, WeakContribution[]> | undefined;
+  let ready: WeakContribution[] | undefined;
 
   const visit = (value: unknown, depth = 0): void => {
     if (typeof value === "bigint") {
@@ -726,6 +730,12 @@ export function measureSandboxData(
       if (!seenSymbols.has(value)) {
         seenSymbols.add(value);
         usage += 1 + (value.description?.length ?? 0);
+        const unlocked = waiting?.get(value);
+        if (unlocked !== undefined) {
+          ready ??= [];
+          for (const contribution of unlocked) ready.push(contribution);
+          waiting!.delete(value);
+        }
       }
       return;
     }
@@ -756,8 +766,21 @@ export function measureSandboxData(
     assertSandboxDataDepth(depth);
     seen.add(value);
 
+    const unlocked = waiting?.get(value);
+    if (unlocked !== undefined) {
+      ready ??= [];
+      for (const contribution of unlocked) ready.push(contribution);
+      waiting!.delete(value);
+    }
+
     usage += 1;
     const proxyState = guestProxyStates.get(value);
+    const finalization = finalizationRegistryStates.get(value);
+    if (finalization !== undefined) {
+      visit(finalization.callback,depth + 1);
+      usage += finalization.state.cells.size * 3;
+      for (const cell of finalization.state.cells) visit(cell.heldValue,depth + 1);
+    }
     if (proxyState !== undefined) {
       if (proxyState.target !== null) visit(proxyState.target, depth + 1);
       if (proxyState.handler !== null) visit(proxyState.handler, depth + 1);
@@ -772,6 +795,26 @@ export function measureSandboxData(
     }
     const dynamicSource = dynamicValueSources.get(value);
     if (dynamicSource !== undefined) visit(dynamicSource, depth + 1);
+    const weakState = weakCollectionStates.get(value);
+    if (weakState !== undefined) {
+      for (const reference of weakState.references) {
+        const key = reference.deref();
+        if (key === undefined) {
+          weakState.references.delete(reference);
+          continue;
+        }
+        const entry = weakState.entries.get(key);
+        if (entry === undefined) continue;
+        const contribution = { value: weakState.kind === "map" ? entry.value : undefined, depth: depth + 1 };
+        if (typeof key === "symbol" ? seenSymbols.has(key) || Object.values(wellKnownSymbols).includes(key) : seen.has(key)) (ready ??= []).push(contribution);
+        else {
+          waiting ??= new Map();
+          const pending = waiting.get(key);
+          if (pending === undefined) waiting.set(key, [contribution]);
+          else pending.push(contribution);
+        }
+      }
+    }
     const disposableResources = disposableStackStates.get(value)?.resources.map(resource =>
       [resource.method, resource.receiver, ...resource.args]);
     const asyncDisposableResources = asyncDisposableStackStates.get(value)?.resources.map(resource =>
@@ -1138,6 +1181,13 @@ export function measureSandboxData(
   };
 
   for (const value of values) visit(value);
+  // Weak values may expose further keys or collections. Newly unlocked entries
+  // append to this worklist, so unrooted cycles never bootstrap themselves.
+  for (let index = 0; index < (ready?.length ?? 0); index++) {
+    const contribution = ready![index]!;
+    usage += 1;
+    visit(contribution.value, contribution.depth);
+  }
   for (const projection of projectedPrimitives) {
     if (seen.has(projection.target)) continue;
     for (const item of projection.values)

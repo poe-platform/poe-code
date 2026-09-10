@@ -5,6 +5,7 @@ import { installCollectionIteratorPrototypes } from "./globals/collection-protot
 import { createNumericTypedArrayGlobal, createNumericTypedArrayPrototypes } from "./globals/numeric-typed-array.js";
 import { numericTypedArrayConstructors } from "./typed-array.js";
 import type { SandboxClosure } from "./values.js";
+import { declareHostOperation, wrapCallerInjectedBindings } from "./host-bridge.js";
 import { createErrorGlobals, createErrorPrototypes } from "./globals/error.js";
 import { createMathGlobals } from "./globals/math.js";
 import { createRegexGlobals, installRegExpIteratorPrototype } from "./globals/regex.js";
@@ -17,6 +18,7 @@ import { createEvalGlobal } from "./globals/eval.js";
 import { createGeneratorPrototypes } from "./globals/generator.js";
 import { createPromiseGlobals } from "./promise.js";
 import { createDateGlobal } from "./globals/date.js";
+import { createTemporalGlobal } from "./globals/temporal.js";
 import { createIteratorGlobal } from "./globals/iterator.js";
 import { createDisposableStackGlobal } from "./globals/disposable-stack.js";
 import { createAsyncDisposableStackGlobal } from "./globals/async-disposable-stack.js";
@@ -43,6 +45,9 @@ export function createBuiltinBindings(
   const numericParsers = createNumericParsers(options.budget);
   const objectArrayGlobals = createObjectArrayGlobals({ ...options, numericParsers });
   const date = createDateGlobal(options);
+  const temporalZone = wrapCallerInjectedBindings({ timeZoneId: declareHostOperation(
+    () => new Intl.DateTimeFormat().resolvedOptions().timeZone, "re-issue"
+  ) }, { ...options, moduleId: "<Temporal.Now>" }).timeZoneId as SandboxClosure;
   const baseBindings = {
     eval: createEvalGlobal(options.budget),
     ...createConsoleJsonGlobals(options),
@@ -51,6 +56,7 @@ export function createBuiltinBindings(
     ...Object.fromEntries(Object.entries(numericTypedArrayConstructors).map(([name, Native]) =>
       [name, createNumericTypedArrayGlobal(options.budget, options.typedArrayPrototypes !== false, Native)])) as Record<keyof typeof numericTypedArrayConstructors, SandboxClosure>,
     Date: date,
+    Temporal: createTemporalGlobal(options.budget, date.properties!.now as SandboxClosure, temporalZone),
     Symbol: createSymbolGlobal(options.budget),
     BigInt: createBigIntGlobal(options.budget),
     ...createErrorGlobals({ ...options, errorPrototypes: options.errorPrototypes !== false }),

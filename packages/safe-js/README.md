@@ -916,8 +916,8 @@ Duration `total`, `compare`, and `round` also accept that zone form inside a
 `relativeTo` date bag, preserving the bag's date and calendar for DST arithmetic.
 Blank Duration totals return positive zero at both PlainDate range boundaries
 without constructing an out-of-range calendar interval.
-The Duration, PlainTime, PlainDateTime, PlainMonthDay, PlainYearMonth, and ZonedDateTime constructors and method adapters are committed locally but unreleased;
-public Temporal namespace and snapshot integration remain unfinished.
+The Temporal namespace, Now wiring, and all eight constructors and method adapters
+are committed locally but unreleased; snapshot integration remains unfinished.
 PlainMonthDay's current checks pass on Node 18.20.8 and 26.8.1, but three ISO
 month-name locale checks still fail on Node 22.23.2; local integration is not a
 claim of complete locale support or a green package gate.
@@ -931,7 +931,7 @@ PlainDate, PlainDateTime, ZonedDateTime and Duration relative-date conversion
 also use owned Temporal calendars before looking for an ordinary `calendar`
 property. Proxies do not inherit their targets' private Temporal brands.
 
-Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
+Temporal support is partial despite the local public integration. The runtime provides owned
 `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values
 with focused snapshot, replay and host-copy coverage. PlainTime currently has
 construction, subclassing, six field getters, `from`, `compare`, `equals`, `add`,

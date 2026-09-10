@@ -922,6 +922,10 @@ are not full-package or conformance results.
 
 ## Meaningful limitations
 
+The [September 10 completeness inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-10.md)
+separates locally implemented features from remaining defects, compatibility
+gaps and unverified conformance. The full package gate is not yet green.
+
 Instant string formatting accepts an owned ZonedDateTime as its `timeZone`
 option and reads its private zone without invoking public accessors.
 Duration `total`, `compare`, and `round` also accept that zone form inside a

@@ -7663,6 +7663,17 @@ extension, integration, or validation requirement is missing or unverified.
   cases match CPython. All 5,884 tests in 453 files, selected build, typecheck
   and scoped lint pass. Exact iterator type-name diagnostics, full class/storage ownership,
   native-subclass adapters and suspended safe-fs effects remain unfinished.
+- Added the default type-instantiation lifecycle as a separate protocol layer.
+  The initial test import failed before implementation. The allocator receives
+  the requested type and unchanged arguments; unrelated results bypass init,
+  while actual subtype results resolve their own live initializer. Non-None init
+  results raise using their actual type (including a returned class's metaclass).
+  Twenty-three tests cover ordering, mutation, original argument identity, missing
+  slots, non-None results, failures and cancellation. All 45 lifecycle comparisons
+  match CPython; all 5,907 tests in 454 files, selected build, typecheck and scoped
+  lint pass. This layer does not yet supply concrete instance allocation or
+  automatic frame call wiring. Metaclass __call__ routing, native layout policies,
+  full class/storage ownership and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

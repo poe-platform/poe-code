@@ -922,6 +922,9 @@ PlainDate conversions to MonthDay, YearMonth, and ZonedDateTime are also committ
 locally, preserving private calendar fields and destination-realm prototypes.
 MonthDay input conversion preserves an owned YearMonth's private calendar while
 still reading its public date fields; shadowing `calendar` does not override it.
+PlainDate, PlainDateTime, ZonedDateTime and Duration relative-date conversion
+also use owned Temporal calendars before looking for an ordinary `calendar`
+property. Proxies do not inherit their targets' private Temporal brands.
 
 Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
 `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values

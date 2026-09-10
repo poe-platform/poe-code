@@ -6,7 +6,7 @@ import { objectToPrimitive, sandboxNumber, sandboxString } from "../string-coerc
 import { validateTemporalStringOffsets } from "../temporal-offset-validation.js";
 import { createSandboxTemporalPlainDateTime, hostTemporalPlainDateTimeFields, isSandboxTemporalPlainDateTime, temporalPlainDateTimeFields, type SandboxTemporalPlainDateTime, type TemporalPlainDateTimeFields } from "../temporal-plain-date-time.js";
 import type { SandboxCallContext, SandboxValue } from "../values.js";
-import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
+import { readTemporalCalendarWithISODefault } from "./temporal-calendar-identifier.js";
 import { isSandboxTemporalPlainTime } from "../temporal-plain-time.js";
 import { isSandboxTemporalPlainMonthDay } from "../temporal-plain-month-day.js";
 import { isSandboxTemporalPlainYearMonth } from "../temporal-plain-year-month.js";
@@ -57,8 +57,7 @@ export async function readTemporalPlainDateTime(input: SandboxValue, options: Sa
       fields = originalYear === undefined ? parsed : { ...parsed, isoYear: originalYear };
     } else {
       if (input === null || typeof input !== "object") throw new TypeError("PlainDateTime input must be a string or object.");
-      current = baseFields === undefined ? await sandboxGetProperty(input, "calendar", input, budget, context) : undefined;
-      const calendarId = baseFields?.calendar ?? readTemporalCalendarIdentifier(current === undefined ? "iso8601" : current, budget);
+      const calendarId = baseFields?.calendar ?? await readTemporalCalendarWithISODefault(input, budget, context);
       const calendar = new Backend.PlainDate(2000, 1, 1, calendarId);
       if (baseFields === undefined) normalized.calendar = calendar.calendarId;
       const keys = ["day", ...(calendar.era === undefined ? [] : ["era", "eraYear"]), "hour", "microsecond", "millisecond", "minute", "month", "monthCode", "nanosecond", "second", "year"];

@@ -7,7 +7,7 @@ import { validateTemporalOffset, validateTemporalStringOffsets } from "../tempor
 import { parseTemporalTimeZoneString } from "../temporal-time-zone-string.js";
 import { createSandboxTemporalZonedDateTime, hostTemporalZonedDateTimeFields, isSandboxTemporalZonedDateTime, temporalZonedDateTimeFields, type TemporalZonedDateTimeFields } from "../temporal-zoned-date-time.js";
 import type { SandboxCallContext, SandboxValue } from "../values.js";
-import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
+import { readTemporalCalendarWithISODefault } from "./temporal-calendar-identifier.js";
 import { isSandboxTemporalPlainDate } from "../temporal-plain-date.js";
 import { isSandboxTemporalPlainDateTime } from "../temporal-plain-date-time.js";
 import { isSandboxTemporalPlainTime } from "../temporal-plain-time.js";
@@ -48,8 +48,7 @@ export async function readTemporalZonedDateTime(input: SandboxValue, options: Sa
       Backend.ZonedDateTime.from(source, { offset: "ignore", disambiguation: "compatible" });
     } else {
       if (input === null || typeof input !== "object") throw new TypeError("ZonedDateTime input must be a string or object.");
-      current = baseFields === undefined ? await sandboxGetProperty(input, "calendar", input, budget, context) : undefined;
-      const calendar = baseFields?.calendar ?? (current === undefined ? "iso8601" : readTemporalCalendarIdentifier(current, budget));
+      const calendar = baseFields?.calendar ?? await readTemporalCalendarWithISODefault(input, budget, context);
       if (baseFields === undefined) normalized.calendar = calendar;
       const hasEra = new Backend.PlainDate(2000, 1, 1, calendar).era !== undefined;
       for (const key of ["day", ...(hasEra ? ["era", "eraYear"] : []), "hour", "microsecond", "millisecond", "minute", "month", "monthCode", "nanosecond", "offset", "second", ...(baseFields === undefined ? ["timeZone"] : []), "year"]) {

@@ -6,7 +6,21 @@ import { isSandboxTemporalPlainMonthDay, temporalPlainMonthDayFields } from "../
 import { isSandboxTemporalPlainYearMonth, temporalPlainYearMonthFields } from "../temporal-plain-year-month.js";
 import { isSandboxTemporalZonedDateTime, temporalZonedDateTimeFields } from "../temporal-zoned-date-time.js";
 import { parseTemporalCalendarString } from "../temporal-time-zone-string.js";
-import type { SandboxValue } from "../values.js";
+import type { SandboxCallContext, SandboxValue } from "../values.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
+import { retainValues } from "../resources.js";
+
+export async function readTemporalCalendarWithISODefault(value: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<string> {
+  if (isSandboxTemporalPlainDate(value) || isSandboxTemporalPlainDateTime(value) ||
+      isSandboxTemporalPlainMonthDay(value) || isSandboxTemporalPlainYearMonth(value) ||
+      isSandboxTemporalZonedDateTime(value)) return readTemporalCalendarIdentifier(value, budget);
+  let calendar: SandboxValue;
+  const release = retainValues(budget, () => [value, calendar]);
+  try {
+    calendar = await sandboxGetProperty(value, "calendar", value, budget, context);
+    return calendar === undefined ? "iso8601" : readTemporalCalendarIdentifier(calendar, budget);
+  } finally { release(); }
+}
 
 export function readTemporalCalendarIdentifier(value: SandboxValue, budget: Budget): string {
   if (isSandboxTemporalPlainYearMonth(value)) return temporalPlainYearMonthFields(value).calendar;

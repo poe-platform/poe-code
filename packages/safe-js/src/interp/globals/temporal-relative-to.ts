@@ -9,7 +9,7 @@ import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { retainValues } from "../resources.js";
 import { objectToPrimitive, sandboxNumber, sandboxString } from "../string-coercion.js";
 import type { SandboxCallContext, SandboxValue } from "../values.js";
-import { readTemporalCalendarIdentifier } from "./temporal-calendar-identifier.js";
+import { readTemporalCalendarWithISODefault } from "./temporal-calendar-identifier.js";
 
 export async function readTemporalRelativeTo(value: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<Backend.PlainDate | Backend.ZonedDateTime | undefined> {
   if (value === undefined) return undefined;
@@ -36,8 +36,7 @@ export async function readTemporalRelativeTo(value: SandboxValue, budget: Budget
       const bag = current;
       const releaseBag = retainValues(budget, () => [bag]);
       try {
-        current = await sandboxGetProperty(bag, "calendar", bag, budget, context);
-        const calendarId = readTemporalCalendarIdentifier(current === undefined ? "iso8601" : current, budget);
+        const calendarId = await readTemporalCalendarWithISODefault(bag, budget, context);
         const calendar = new Backend.PlainDate(2000, 1, 1, calendarId);
         normalized.calendar = calendar.calendarId;
         const keys = ["day", ...(calendar.era === undefined ? [] : ["era", "eraYear"]), "hour", "microsecond", "millisecond", "minute", "month", "monthCode", "nanosecond", "offset", "second", "timeZone", "year"];

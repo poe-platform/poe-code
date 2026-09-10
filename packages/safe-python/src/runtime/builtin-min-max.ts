@@ -38,7 +38,7 @@ export function createMinMaxBuiltin(name: "min" | "max", values: RuntimeValues, 
       }
     }
     if (positional.length > 1 && fallback !== undefined) throw new PythonRuntimeError("TypeError", `Cannot specify a default for ${name}() with multiple positional arguments`);
-    const cursor = positional.length === 1 ? runtimeIterate(positional[0], values, meter, context.iteration) : undefined;
+    const cursor = positional.length === 1 ? runtimeIterate(positional[0], values, meter, context.iteration ?? invocation?.iteration) : undefined;
     let best: RuntimeValue | undefined, bestKey: RuntimeValue | undefined, index = 0;
     for (;;) {
       meter.checkpoint();

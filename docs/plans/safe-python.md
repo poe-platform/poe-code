@@ -7103,6 +7103,17 @@ extension, integration, or validation requirement is missing or unverified.
   CPython for 36 compiled map and 36 compiled filter cases. Other builtin
   iteration integrations, native type assembly, resumable effects and the full
   public interpreter remain unfinished.
+- Routed min/max and sorted guest input iteration through invocation policies
+  while preserving explicit min/max iteration and sorted materialization policy
+  priority. Three compiled guest-source regressions failed before implementation
+  and now pass with compiled key functions, exhaustion and result identity/order.
+  Existing tests also exercise override priority including sequence fallback and
+  sorted length hints. All 5,345 tests in 444 files pass; selected build, typecheck
+  and scoped lint pass. Rerun CPython checks match 96 compiled min/max and 64
+  compiled sorted cases. Sorted guest length hints still require its explicit
+  materialization policy; automatic hint dispatch, iter/next/enumerate/zip
+  invocation integrations, native type assembly and resumable safe-fs effects
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -85,7 +85,7 @@ it("checks cancellation after reverse truth before returning an empty list", () 
   expect(() => builtin.value.invoke([v.list([])], keywords, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } })).toThrow(ExecutionLimitError);
 });
 it("orders guest iterator acquisition, length hints, consumption and reverse truth", () => {
-  const { v, call, context, keywords } = fixture(), source = v.cell({}), events: string[] = [];
+  const { v, builtin, meter, context, keywords } = fixture(), source = v.cell({}), events: string[] = [];
   const stop = new PythonRuntimeError("StopIteration", "done"); let next = 3;
   context.extension = {
     exactList: () => undefined, lookupIter: () => { events.push("iter"); return () => source; }, hasNext: () => true,
@@ -97,6 +97,7 @@ it("orders guest iterator acquisition, length hints, consumption and reverse tru
   };
   context.truth = () => { events.push("reverse"); return false; };
   keywords.items.set(v.string("reverse"), v.true);
-  expect(call(source)).toEqual(v.list([v.integer(1), v.integer(2), v.integer(3)]));
+  const unused = (): never => { throw Error("explicit extension policy must win"); };
+  expect(builtin.value.invoke([source], keywords, meter, { call: unused, isStopIteration: unused, iteration: { ...context.extension, lookupIter: unused } })).toEqual(v.list([v.integer(1), v.integer(2), v.integer(3)]));
   expect(events).toEqual(["iter", "len", "hint", "next", "next", "next", "next", "reverse"]);
 });

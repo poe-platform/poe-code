@@ -78,14 +78,15 @@ it("checks cancellation after pulls, key calls and comparisons", () => {
   }
 });
 it("uses guest sequence fallback and consumes only iteration exhaustion", () => {
-  const { v, call, context, keywords } = fixture("min"), source = v.cell({}), visits: bigint[] = [];
+  const { v, call, builtin, meter, context, keywords } = fixture("min"), source = v.cell({}), visits: bigint[] = [];
   const stop = new PythonRuntimeError("IndexError", "end");
   context.iteration = {
     lookupIter: () => undefined, hasNext: () => false, next: () => { throw Error("must use sequence fallback"); },
     hasSequenceItem: value => value === source, getItem: (_value, index) => { visits.push(index); if (index === 3n) throw stop; return v.integer(3n - index); },
     isStopIteration: () => false, isIndexError: error => error === stop, typeName: () => "Sequence"
   };
-  expect(call(source)).toBe(v.integer(1)); expect(visits).toEqual([0n, 1n, 2n, 3n]);
+  const unused = (): never => { throw Error("explicit iteration policy must win"); };
+  expect(builtin.value.invoke([source], keywords, meter, { call: unused, isStopIteration: unused, iteration: { ...context.iteration, lookupIter: unused } })).toBe(v.integer(1)); expect(visits).toEqual([0n, 1n, 2n, 3n]);
   context.iteration.getItem = () => { throw stop; };
   keywords.items.set(v.string("default"), source);
   expect(call(source)).toBe(source);

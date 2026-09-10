@@ -178,6 +178,24 @@ it.each(["all", "any"])("routes %s input iteration and short-circuit truth throu
   }, meter);
   expect(globals.get("result")).toBe(v.boolean(name === "any")); expect(events).toEqual(["iter", "next", "truth"]);
 });
+it.each(["min", "max", "sorted"])("lets %s consume guest iteration through the frame", name => {
+  const { meter, v, context } = fixture(), source = v.cell({}), globals = new Map<string, RuntimeValue>([["source", source]]), events: string[] = [], unused = (): never => { throw Error("unexpected guest callback"); };
+  delete context.minMax; delete context.sorted;
+  const members = [4,1,3].map(value => v.integer(value)), stop = Error("guest exhaustion"); let index = 0;
+  const program = compileProgram<RuntimeValue>(analyzeModule(`result=${name}(source,key=lambda value:-value)\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, iteration: {
+      lookupIter(value) { expect(value).toBe(source); events.push("iter"); return () => source; }, hasNext: () => true,
+      next() { events.push("next"); if (index === members.length) throw stop; return members[index++]; },
+      hasSequenceItem: () => false, getItem: unused, isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+    } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  const result = globals.get("result");
+  if (name === "sorted") { if (result?.kind !== "list") throw Error("expected list"); expect(result.items.snapshot()).toEqual([members[0], members[2], members[1]]); }
+  else expect(result).toBe(members[name === "min" ? 0 : 1]);
+  expect(events).toEqual(["iter", "next", "next", "next", "next"]);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

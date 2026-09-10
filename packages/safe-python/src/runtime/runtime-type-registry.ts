@@ -106,7 +106,7 @@ export class RuntimeTypeRegistry {
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
     const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: true, objectLayout: false });
     const type = this.values.type(layout, this.type, { immutable: true });
-    installMethodDecoratorBuiltins(kind, type, this.values, this.meter, candidate => this.#entries.get(candidate.value)?.type === candidate);
+    installMethodDecoratorBuiltins(kind, type, this.values, this.meter, this.keys, candidate => this.#entries.get(candidate.value)?.type === candidate);
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#methodDecorators.set(kind, type);
     return type;

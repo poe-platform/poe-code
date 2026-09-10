@@ -8011,6 +8011,20 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,229 tests in 474 files, selected build, typecheck and scoped lint pass. Guest __dict__,
   __class__, lazy annotation/abstractness getsets, full native metadata and
   subclass call/descriptor-slot overrides remain unfinished.
+- Added reusable attribute storage that keeps unreflected string attributes
+  compact, then promotes them once to a live guest dictionary. Native wrapper
+  __dict__ getsets expose identity-preserving reads and replacement, reject
+  non-dictionaries and deletion, and preserve detached old dictionaries. Attribute
+  and reinitialization writes share the current dictionary, including ordinary
+  guest key matching and retained non-string keys. Four compiled regressions first
+  failed without __dict__; four storage tests cover promotion order, key matching,
+  failure preservation and dictionary replacement during metadata lookup.
+  All 20 dictionary mutation/identity traces, 160 wrapper attribute operations
+  and 96 compiled wrapper constructors match CPython. All 6,237 tests in 475 files,
+  selected build, typecheck and scoped lint pass. The 48 initializer and 96 ordinary
+  compiled-constructor cases still match CPython. General instance/function dictionaries,
+  __class__, lazy annotation/abstractness protocols, full native metadata and
+  subclass call/descriptor-slot overrides remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

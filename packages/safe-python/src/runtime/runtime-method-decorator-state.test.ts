@@ -41,7 +41,7 @@ it("keeps the nested initializer's payload while completing outer metadata copyi
     return v.false;
   }, meter);
   expect(wrapper.value).toBe(v.none);
-  expect([...wrapper.state.attributes.values()]).toEqual([v.false, v.false, v.false, v.false]);
+  expect(["__module__", "__name__", "__qualname__", "__doc__"].map(name => wrapper.state.attributes.get(name))).toEqual([v.false, v.false, v.false, v.false]);
 });
 
 it.each([false, true])("observes cancellation after metadata callbacks (throws: %s)", throws => {

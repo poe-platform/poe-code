@@ -3,11 +3,12 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { initializeRuntimeMethodDecorator } from "./runtime-method-decorator-initialization.js";
 import { getRuntimeMethodDecorator } from "./runtime-method-decorator.js";
-import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
+import type { KeyOperations } from "./ordered-key-map.js";
 
 /** Install native allocation and initialization independently: direct __new__
  * ignores extra arguments and produces a None-backed, metadata-empty wrapper. */
-export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmethod", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, owns: (type: TypeValue) => boolean): void {
+export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmethod", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, keys: KeyOperations<RuntimeValue>, owns: (type: TypeValue) => boolean): void {
   meter.checkpoint(1, 192);
   const accepts = (instance: RuntimeValue, meter: ExecutionMeter): boolean => {
     if (instance.kind !== kind) return false;
@@ -15,6 +16,22 @@ export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmeth
     for (const ancestor of instance.type.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
     return false;
   };
+  owner.value.namespace.items.set(values.string("__dict__"), values.getsetDescriptor({ owner, name: "__dict__", accepts,
+    get(instance) {
+      if (instance.kind !== kind) throw Error("invalid method-wrapper dictionary receiver");
+      return instance.state.attributes.dictionary(keys);
+    },
+    set(instance, value, meter) {
+      if (instance.kind !== kind) throw Error("invalid method-wrapper dictionary receiver");
+      if (value.kind !== "dict") {
+        const name = hasRuntimeInstanceAttributes(value) ? value.type.value.name : value.kind === "type" ? value.metaclass.value.name : value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
+        meter.checkpoint(0, 128 + 2 * name.length);
+        throw new PythonRuntimeError("TypeError", `__dict__ must be set to a dictionary, not a '${name}'`);
+      }
+      instance.state.attributes.replace(value);
+    },
+    delete() { throw new PythonRuntimeError("TypeError", "cannot delete __dict__"); }
+  }));
   for (const name of ["__func__", "__wrapped__"]) {
     meter.checkpoint(1, 64);
     owner.value.namespace.items.set(values.string(name), values.memberDescriptor({ owner, name, accepts,

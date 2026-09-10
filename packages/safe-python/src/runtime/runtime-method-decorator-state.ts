@@ -1,19 +1,21 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RuntimeValue } from "./runtime-values.js";
+import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 
-/** Internal storage, not a guest attribute dictionary. Initialization copies
+/** Wrapper payload and lazily reflected attribute storage. Initialization copies
  * metadata through ordinary attribute lookup; constructor argument validation
- * and guest dictionary exposure belong to the native descriptor layer. Python
+ * and dictionary assignment validation belong to the native descriptor layer. Python
  * 3.14 copies these four fields eagerly, not annotations. Missing fields retain
  * their previous values; failures and reentrant lookups do not roll back writes. */
 export class RuntimeMethodDecoratorState {
   #value: RuntimeValue;
-  readonly attributes = new Map<string, RuntimeValue>();
+  readonly attributes: RuntimeAttributeStorage;
 
-  constructor(value: RuntimeValue, meter: ExecutionMeter) {
+  constructor(value: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter) {
     meter.checkpoint(1, 64);
     this.#value = value;
+    this.attributes = new RuntimeAttributeStorage(values, meter);
     Object.freeze(this);
   }
 
@@ -31,7 +33,7 @@ export class RuntimeMethodDecoratorState {
         if (error instanceof PythonRuntimeError && error.name === "AttributeError") continue;
         throw error;
       }
-      meter.checkpoint(1, this.attributes.has(name) ? 0 : 48 + 2 * name.length);
+      meter.checkpoint();
       this.attributes.set(name, metadata);
     }
   }

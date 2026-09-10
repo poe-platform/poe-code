@@ -1990,6 +1990,24 @@ it.each(["staticmethod", "classmethod"] as const)("uses %s subclass attribute ov
   expect(state.globals.get("overridden")).toBe(state.v.false); expect(state.events).toEqual(["custom", "other"]);
 });
 
+it.each(["staticmethod", "classmethod"] as const)("exposes a live replaceable %s dictionary with non-string keys", kind => {
+  const state = fixture(); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  state.run("wrapped=factory(None)\nwrapped.x=True\noriginal=wrapped.__dict__\nsame=wrapped.__dict__ is original\noriginal['x']=False\nread=wrapped.x\noriginal[7]=True\nnumber=wrapped.__dict__[7]\nreplacement={'y':True}\nwrapped.__dict__=replacement\nreplaced=wrapped.__dict__ is replacement\nwrapped.y=False\nupdated=replacement['y']\nold=original['x']\n");
+  for (const name of ["same", "number", "replaced"]) expect(state.globals.get(name)).toBe(state.v.true);
+  for (const name of ["read", "updated", "old"]) expect(state.globals.get(name)).toBe(state.v.false);
+  expect(() => state.run("wrapped.x\n")).toThrow("has no attribute 'x'");
+  expect(() => state.run("wrapped.__dict__=None\n")).toThrow("__dict__ must be set to a dictionary, not a 'NoneType'");
+  expect(() => state.run("del wrapped.__dict__\n")).toThrow("cannot delete __dict__");
+  state.run("still=wrapped.__dict__ is replacement\n"); expect(state.globals.get("still")).toBe(state.v.true);
+});
+
+it.each(["staticmethod", "classmethod"] as const)("updates the replacement %s dictionary on reinitialization", kind => {
+  const state = fixture(), fn = state.method(state.type("Owner"), "f", "def f(): return 7\n");
+  state.globals.set("factory", state.registry.methodDecoratorType(kind)); state.globals.set("f", fn);
+  state.run("wrapped=factory(f)\nold=wrapped.__dict__\nreplacement={'custom':True}\nwrapped.__dict__=replacement\nwrapped.__init__(f)\nname=replacement['__name__']\ncustom=wrapped.custom\nreplacement['__func__']=None\noriginal=wrapped.__func__\n");
+  expect(state.globals.get("name")).toBe(fn.value.name); expect(state.globals.get("custom")).toBe(state.v.true); expect(state.globals.get("original")).toBe(fn);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

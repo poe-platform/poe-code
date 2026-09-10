@@ -61,7 +61,7 @@ export function runtimeMutateInstanceAttribute(instance: AttributeInstanceValue,
   const attribute = resolveRuntimeTypeAttribute(instance.type.value, key, special, values, meter)?.attribute;
   if (change.kind === "set") writeInstanceAttribute(instance, attribute, change.value, value => {
     if (instance.kind !== "instance") {
-      meter.checkpoint(1, instance.state.attributes.has(name) ? 0 : 48 + 2 * name.length);
+      meter.checkpoint();
       instance.state.attributes.set(name, value); return;
     }
     if (instance.dictionary === undefined) throw missingAttribute(instance, name, meter, attribute === undefined ? "no-dictionary" : "readonly");

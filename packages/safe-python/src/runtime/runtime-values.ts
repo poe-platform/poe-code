@@ -318,7 +318,7 @@ export class RuntimeValues extends ConstantValues {
    * metadata and support reinitialization; those policies are separate. */
   methodDecorator(kind: "staticmethod" | "classmethod", value: RuntimeValue, type?: TypeValue): MethodDecoratorValue {
     this.runtimeMeter.checkpoint(1, 32);
-    const state = new RuntimeMethodDecoratorState(value, this.runtimeMeter);
+    const state = new RuntimeMethodDecoratorState(value, this, this.runtimeMeter);
     return Object.freeze({ kind, state, type, get value() { return state.value; } });
   }
 

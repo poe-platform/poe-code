@@ -79,6 +79,42 @@ function exceptionFixture() {
   return state;
 }
 
+it("normalizes guest TypeError during join and slice iterator acquisition",()=>{
+  for(const binding of [false,true])for(const action of ["result=''.join(Item())","result=b''.join(Item())","target[:]=Item()","target[::2]=Item()"]) {
+    const state=exceptionFixture();
+    const body=binding?"class Hook:\n def __get__(self,instance,owner):\n  raise original\nclass Item:\n __iter__=Hook()\n":"class Item:\n def __iter__(self):\n  raise original\n";
+    const message=action.startsWith("target")?"must assign iterable to extended slice":"can only join an iterable";
+    state.run("class Failure(TypeError):\n pass\noriginal=Failure('failure')\ntarget=[1,2]\n"+body+`try:\n ${action}\nexcept BaseException as error:\n correct=type(error) is TypeError and error.args==('${message}',) and target==[1,2]\n`);
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("normalizes slice iterator errors through explicit and inherited list slots",()=>{
+  for(const action of ["target[:]=Item()","target.__setitem__(Slice(None),Item())","List.__setitem__(target,Slice(None),Item())"]) {
+    const state=exceptionFixture();state.globals.set("List",state.registry.listType());state.globals.set("Slice",state.registry.sliceType());
+    state.run("class Target(List):\n pass\nclass Item:\n def __iter__(self):\n  raise TypeError('original')\ntarget=Target([1,2])\ntry:\n "+action+"\nexcept TypeError as error:\n correct=error.args==('must assign iterable to extended slice',) and target==[1,2]\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("preserves later guest failures and callback effects during sequence materialization",()=>{
+  for(const action of ["result=''.join(Item())","result=b''.join(Item())","target[:]=Item()","target[::2]=Item()"])for(const stage of ["next","reacquire","hint"]) {
+    const state=exceptionFixture();
+    const cursor=stage==="reacquire"?"class Cursor:\n def __iter__(self):\n  target.append(3)\n  raise original\n def __next__(self):\n  return None\n":stage==="hint"?"class Cursor:\n def __iter__(self):\n  return self\n def __length_hint__(self):\n  target.append(3)\n  raise original\n def __next__(self):\n  return None\n":"class Cursor:\n def __iter__(self):\n  return self\n def __next__(self):\n  target.append(3)\n  raise original\n";
+    state.run(`original=${stage==="hint"?"ValueError":"TypeError"}('original')\ntarget=[1,2]\n`+cursor+"class Item:\n def __iter__(self):\n  return Cursor()\ntry:\n "+action+"\nexcept BaseException as error:\n correct=error is original and target==[1,2,3]\n");
+    expect(state.globals.get("correct")).toBe(state.v.true);
+  }
+});
+
+it("preserves host failures during join and slice iterator acquisition",()=>{
+  for(const action of ["result=''.join(Item())","result=b''.join(Item())","target[:]=Item()","target[::2]=Item()"])for(const failure of [Error("host"),Object.assign(Error("spoof"),{name:"TypeError"}),new ExecutionLimitError("cancelled")]) {
+    const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
+    let caught:unknown;
+    try{state.run("target=[1,2]\nclass Item:\n def __iter__(self):\n  fail()\ntry:\n "+action+"\nexcept BaseException:\n visit('caught')\n");}catch(error){caught=error;}
+    expect(caught).toBe(failure);expect(state.events).toEqual([]);expect(state.exceptions!.active).toBe(null);
+  }
+});
+
 it("reports missing guest hash descriptors as unhashable",()=>{
   const state=exceptionFixture();state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));state.builtins.set("hash",createHashBuiltin(state.v,state.meter,state.hash));
   state.run("class Missing(AttributeError):\n pass\nclass Hook:\n def __get__(self,instance,owner):\n  raise Missing('hash')\nclass Item:\n __hash__=Hook()\ntry:\n hash(Item())\nexcept BaseException as error:\n correct=type(error) is TypeError and error.args==(\"unhashable type: 'Item'\",)\n");

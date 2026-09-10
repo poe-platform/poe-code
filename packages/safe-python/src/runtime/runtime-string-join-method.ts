@@ -12,7 +12,7 @@ export function createRuntimeStringJoinMethod(receiver: Extract<RuntimeValue, { 
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "join",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "str.join() takes no keyword arguments");
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `str.join() takes exactly one argument (${positional.length} given)`);
@@ -21,7 +21,7 @@ export function createRuntimeStringJoinMethod(receiver: Extract<RuntimeValue, { 
       if (source.kind === "tuple") items = source.items;
       else if (source.kind === "list") items = source.items.snapshot();
       else {
-        const iterator = runtimeSequenceIterator(source, values, meter, "can only join an iterable", iterate);
+        const iterator = runtimeSequenceIterator(source, values, meter, "can only join an iterable", iterate, invocation);
         meter.checkpoint(1, 32);
         const collected: RuntimeValue[] = [];
         while (true) {

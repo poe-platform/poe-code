@@ -32,7 +32,7 @@ export function installRuntimeListSubscriptionSlots(owner: TypeValue, values: Ru
         const list = runtimeListPayload(receiver);
         if (list === undefined) throw Error("list subscription requires list storage");
         runtimeMutateItem(list, positional[0], name === "__setitem__" ? { kind: "set", value: positional[1] } : { kind: "delete" }, values, meter, invocation?.integerIndex,
-          (value, notIterable, hint) => runtimeIterate(value, values, meter, invocation?.iteration, notIterable, hint));
+          (value, notIterable, hint) => runtimeIterate(value, values, meter, invocation?.iteration, notIterable, hint), invocation);
         return values.none;
       }
     }));

@@ -9977,6 +9977,24 @@ extension, integration, or validation requirement is missing or unverified.
   match. Those eight cases are next work, not passing comparisons. The broader
   unfinished runtime/standard-library/safe-fs assembly remains under audit.
   No push or release requested.
+- Sequence consumer exception integration (2026-09-10): a failing regression
+  drove guest TypeError normalization during initial iterator acquisition for
+  string/bytes join and list slice assignment. The shared iterator helper now
+  receives the explicit invocation exception policy, including expression
+  mutation and explicit/inherited list subscription slots. Reacquisition,
+  advisory hints and element iteration remain outside diagnostic replacement.
+  Callback effects survive later failures; host errors, spoofed names and
+  execution limits remain fatal. All 54 targeted CPython comparisons, 48 prior
+  hash/containment comparisons and four focused integration regressions pass.
+  The selected workspace build, typecheck, focused lint and all 7,215 tests in
+  503 files pass in the uncached one-worker run (241.72s; test bodies 11.81s).
+  A separate eight-case read-only audit confirms three next mismatches: set
+  subclass probes whose hash raises guest TypeError must use equivalent frozen
+  contents for membership/discard/remove. Insertion and non-TypeError failures
+  already match. Those three cases are next work, not passing comparisons.
+  Remaining native exception boundaries, specialized exception families,
+  suspension and public interpreter/standard-library/safe-fs assembly remain
+  unfinished. No push or release requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

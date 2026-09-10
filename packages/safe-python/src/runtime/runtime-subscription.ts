@@ -40,7 +40,7 @@ export function runtimeGetItem(object: RuntimeValue, key: RuntimeValue, values: 
  * A successful mutation ignores the guest result and never rolls back effects. */
 export function runtimeMutateSubscription(object: RuntimeValue, key: RuntimeValue, change: ItemMutation, values: RuntimeValues, meter: ExecutionMeter, invocation?: BuiltinInvocationContext, index?: IntegerIndexContext<RuntimeValue>, iterate?: ExpressionContext<RuntimeValue>["iterate"]): void {
   if (object.kind === "dict" || object.kind === "list" || object.kind === "tuple" || object.kind === "str" || object.kind === "bytes" || object.kind === "range" || object.kind === "mappingproxy" || object.kind === "set" || object.kind === "frozenset" || object.kind === "dict_keys" || object.kind === "dict_values" || object.kind === "dict_items") {
-    runtimeMutateItem(object, key, change, values, meter, index, iterate); return;
+    runtimeMutateItem(object, key, change, values, meter, index, iterate, invocation); return;
   }
   meter.checkpoint();
   const name = change.kind === "set" ? "__setitem__" : "__delitem__", hook = invocation?.lookupSpecial?.(object, name); meter.checkpoint();
@@ -53,5 +53,5 @@ export function runtimeMutateSubscription(object: RuntimeValue, key: RuntimeValu
     meter.checkpoint(0, 128 + 2 * typeName.length);
     throw new PythonRuntimeError("TypeError", `'${typeName}' object ${verb} support item ${change.kind === "set" ? "assignment" : "deletion"}`);
   }
-  runtimeMutateItem(object, key, change, values, meter, index, iterate);
+  runtimeMutateItem(object, key, change, values, meter, index, iterate, invocation);
 }

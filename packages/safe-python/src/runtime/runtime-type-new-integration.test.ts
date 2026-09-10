@@ -218,6 +218,37 @@ it("constructs float subclasses through inherited fromhex after parsing", () => 
   expect(()=>state.run("Child.fromhex(string='0x1p0')\n")).toThrow("Child.fromhex() takes no keyword arguments");
 });
 
+it("converts complex from_number through numeric protocols and bypasses native subclass overrides",()=>{
+  const state=fixture();state.globals.set("Complex",state.registry.complexType());state.globals.set("Float",state.registry.floatType());
+  state.run("class Z(Complex):\n def __complex__(self):\n  visit('wrong')\n  return 9j\nclass F(Float):\n def __float__(self):\n  visit('wrong')\n  return 9.0\nclass Number:\n def __complex__(self):\n  visit('complex')\n  return 1+2j\nclass Index:\n def __index__(self):\n  visit('index')\n  return 4\nx=1+2j\ncorrect=Complex.from_number(x) is x and Complex.from_number(Z(1,2))==x and Complex.from_number(F(3))==3+0j and Complex.from_number(Number())==x and Complex.from_number(Index())==4+0j and Complex.from_number.__self__ is Complex\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["complex","index"]);
+  expect(()=>state.run("Complex.from_number('1')\n")).toThrow("must be real number, not str");
+  expect(()=>state.run("Complex.from_number(None)\n")).toThrow("must be real number, not NoneType");
+});
+
+it("calls the bound complex subclass constructor after from_number conversion",()=>{
+  const state=fixture();state.globals.set("Complex",state.registry.complexType());
+  state.run("class Z(Complex):\n def __init__(self,value):\n  self.tag='initialized'\nx=Z.from_number(2)\ncorrect=type(x) is Z and x==2+0j and x.tag=='initialized'\nclass Other(Complex):\n def __new__(cls,value):\n  return 'other'\nresult=Other.from_number(2)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.globals.get("result")).toEqual(state.v.string("other"));
+  expect(()=>state.run("Z.from_number()\n")).toThrow("Z.from_number() takes exactly one argument (0 given)");
+  expect(()=>state.run("Z.from_number(number=1)\n")).toThrow("Z.from_number() takes no keyword arguments");
+});
+
+it("shares complex result warnings and never requests buffers in from_number",()=>{
+  const state=fixture(),{v,meter}=state,owner=state.registry.complexType();state.globals.set("Complex",owner);
+  state.run("class Z(Complex):\n pass\nx=Z(1,2)\n");
+  const owned=state.globals.get("x")!,source=v.cell({}),warnings:string[]=[];
+  const method=owner.value.namespace.items.lookup(v.string("from_number"))?.value;
+  if(method?.kind!=="classmethod_descriptor")throw Error("expected complex from_number descriptor");
+  const keywords=v.dictionary(owner.value.namespace.items.emptyCopy());
+  const invocation={isStopIteration:()=>false,typeName:()=>"Z",lookupSpecial:(value:RuntimeValue,name:string)=>value===source&&name==="__complex__"?v.none:undefined,call:()=>owned,warn:(_category:string,message:string)=>warnings.push(message),buffers:{acquireSimple():never{throw Error("unexpected buffer acquisition");}}};
+  expect(method.value.invoke(owner,[source],keywords,meter,invocation)).toEqual(v.complex(1,2));
+  expect(warnings).toEqual(["__complex__ returned non-complex (type Z).  The ability to return an instance of a strict subclass of complex is deprecated, and may be removed in a future version of Python."]);
+  const fatal=new Error("warning filter");
+  expect(()=>method.value.invoke(owner,[source],keywords,meter,{...invocation,warn:()=>{throw fatal;}})).toThrow(fatal);
+  expect(()=>method.value.invoke(owner,[v.bytes([49])],keywords,meter,invocation)).toThrow("must be real number, not Z");
+});
+
 it("formats owned complex storage while preserving empty-spec string overrides",()=>{
   const state=fixture();state.globals.set("Complex",state.registry.complexType());
   state.run("class Z(Complex):\n def __str__(self):\n  visit('str')\n  return 'custom'\n def __complex__(self):\n  visit('wrong')\n  return 9j\nx=Z(1.25,2.5)\ncorrect=Complex.__format__(x,'')=='custom' and x.__format__('.1f')=='1.2+2.5j' and f'{x:.2f}'=='1.25+2.50j' and x.__format__('n')=='1.25+2.5j' and Complex.__format__.__objclass__ is Complex\n");

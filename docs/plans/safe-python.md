@@ -9627,6 +9627,23 @@ extension, integration, or validation requirement is missing or unverified.
   Complex from_number, remaining scalar type catalogs, full guest exceptions,
   interpreter assembly and safe-fs execution remain unfinished. No push or
   release was requested.
+- Complex numeric-only construction (2026-09-10): failing integration tests drove
+  the from_number classmethod, native complex/float subclass override bypasses,
+  numeric-only protocol conversion and bound-subclass construction. Extracted
+  shared __complex__ result validation for constructor and from_number paths.
+  Three integration tests cover conversion, identity, subclass initializers and
+  unrelated __new__ results, warning-filter failures, and exclusion of buffers.
+  All 90 focused CPython comparisons match, and all 1,806 constructor comparisons
+  still match after sharing validation. Workspace build, typecheck, focused lint
+  and all 7,109 tests in 501 files pass in the uncached one-worker package run.
+  The 31 complex namespace members now
+  match CPython's names and descriptor kinds with no extras; this is not proof
+  of complete numeric behavior. Three exploratory cases using guest raise hit
+  the known unimplemented statement-extension hook; arithmetic-generated
+  conversion failures were separately verified and propagate correctly.
+  Native exception types, guest raise/try wiring, remaining scalar catalogs,
+  public interpreter assembly and safe-fs execution remain unfinished. No push
+  or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

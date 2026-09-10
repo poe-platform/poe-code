@@ -1,5 +1,5 @@
 import { parseComplexText } from "./complex-text.js";
-import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { convertRuntimeComplexSpecial } from "./runtime-complex-special.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { convertRuntimeFloat,convertRuntimeFloatNumber } from "./runtime-float-construction.js";
@@ -39,14 +39,8 @@ export function constructRuntimeComplex(positional:readonly RuntimeValue[],keywo
   const complexMethod=(source:RuntimeValue):Extract<RuntimeValue,{kind:"complex"}>|undefined=>{
     meter.checkpoint();
     if(source.kind==="complex")return source;
-    const method=invocation?.lookupSpecial?.(source,"__complex__");meter.checkpoint();
-    if(method!==undefined) {
-      const result=invocation!.call(method,[]);meter.checkpoint();
-      const payload=runtimeComplexPayload(result);
-      if(payload===undefined)throw new PythonRuntimeError("TypeError",`__complex__ returned non-complex (type ${diagnosticTypeName(typeName(result),meter)})`);
-      if(result.kind!=="complex")invocation?.warn?.("DeprecationWarning",`__complex__ returned non-complex (type ${diagnosticTypeName(typeName(result),meter)}).  The ability to return an instance of a strict subclass of complex is deprecated, and may be removed in a future version of Python.`);
-      return values.complex(payload.real,payload.imaginary);
-    }
+    const converted=convertRuntimeComplexSpecial(source,values,meter,invocation);
+    if(converted!==undefined)return converted;
     const payload=runtimeComplexPayload(source);
     return payload===undefined?undefined:values.complex(payload.real,payload.imaginary);
   };

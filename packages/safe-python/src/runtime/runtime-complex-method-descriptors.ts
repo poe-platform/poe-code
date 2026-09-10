@@ -2,10 +2,12 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeComplexPayload } from "./runtime-complex-payload.js";
 import { createComplexFormatDescriptor } from "./builtin-complex-format.js";
+import { createComplexFromNumberDescriptor } from "./builtin-complex-from-number.js";
 import type { RuntimeValues,TypeValue } from "./runtime-values.js";
 
 export function installRuntimeComplexMethodDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
   owner.value.namespace.items.set(values.string("__format__"),createComplexFormatDescriptor(owner,values,meter));
+  owner.value.namespace.items.set(values.string("from_number"),createComplexFromNumberDescriptor(owner,values,meter));
   for(const [name,doc] of [["real","the real part of a complex number"],["imag","the imaginary part of a complex number"]] as const) {
     meter.checkpoint(0,96);
     owner.value.namespace.items.set(values.string(name),values.memberDescriptor({owner,name,doc,accepts:receiver=>runtimeComplexPayload(receiver)!==undefined,

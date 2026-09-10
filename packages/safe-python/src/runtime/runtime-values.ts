@@ -13,6 +13,7 @@ import type { IntegerIndexContext } from "./index-protocol.js";
 import type { RuntimePowerContext } from "./runtime-power-operation.js";
 import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 import type { FormatContext } from "./format-protocol.js";
+import { RuntimeMethodDecoratorState } from "./runtime-method-decorator-state.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -132,8 +133,8 @@ export interface BoundMethodValue {
 }
 
 export type MethodDecoratorValue =
-  | { readonly kind: "staticmethod"; readonly value: RuntimeValue }
-  | { readonly kind: "classmethod"; readonly value: RuntimeValue };
+  | { readonly kind: "staticmethod"; readonly value: RuntimeValue; readonly state: RuntimeMethodDecoratorState }
+  | { readonly kind: "classmethod"; readonly value: RuntimeValue; readonly state: RuntimeMethodDecoratorState };
 
 export interface CellValue {
   readonly kind: "cell";
@@ -303,7 +304,8 @@ export class RuntimeValues extends ConstantValues {
    * metadata and support reinitialization; those policies are separate. */
   methodDecorator(kind: "staticmethod" | "classmethod", value: RuntimeValue): MethodDecoratorValue {
     this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind, value });
+    const state = new RuntimeMethodDecoratorState(value, this.runtimeMeter);
+    return Object.freeze({ kind, state, get value() { return state.value; } });
   }
 
   /** Adopt prepared ordered storage sharing this execution's key policy/meter.

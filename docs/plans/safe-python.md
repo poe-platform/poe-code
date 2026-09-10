@@ -7941,6 +7941,19 @@ extension, integration, or validation requirement is missing or unverified.
   pass. Public wrapper constructors, metadata copying, mutable attributes and
   reinitialization, native object subclass hooks, full type.__new__ integration
   and suspended safe-fs effects remain unfinished.
+- Added mutable internal staticmethod/classmethod storage behind frozen wrapper
+  identities. Reinitialization replaces the payload before copying the four
+  eager Python 3.14 metadata fields, retains absent fields, preserves partial
+  updates on failure, and leaves reentrant payload replacement intact. Previously
+  bound methods retain their captured callable. Seven regression tests cover
+  both wrapper kinds, metadata failure order, reentrancy, cancellation and host
+  error provenance; the initial four tests failed against the frozen payload.
+  All 50 metadata failure/missing-field combinations match CPython. All 6,194
+  tests in 471 files, selected build, typecheck and scoped lint pass. The 160
+  descriptor binding and 96 compiled constructor cases still match CPython.
+  Public constructor
+  argument validation, automatic metadata initialization, guest dictionary
+  exposure and lazy annotation/abstractness protocols remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

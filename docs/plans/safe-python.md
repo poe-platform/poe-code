@@ -7674,6 +7674,21 @@ extension, integration, or validation requirement is missing or unverified.
   lint pass. This layer does not yet supply concrete instance allocation or
   automatic frame call wiring. Metaclass __call__ routing, native layout policies,
   full class/storage ownership and suspended safe-fs effects remain unfinished.
+- Wired runtime type calls through metaclass dispatch and the instantiation
+  lifecycle when an actual-type policy is available. Three compiled regressions
+  failed first. New/init calls reenter the normal function/keyword path; the
+  lifecycle now accepts the native keyword container without converting Python
+  string keys to host strings. Allocator lookup honors metaclass data descriptors,
+  __getattribute__/__getattr__ and explicit attribute policy, while implicit
+  __call__ uses metaclass MRO lookup. Related returned objects use their actual
+  live initializer; type-call stack entries bound recursive allocator objects.
+  Nineteen tests cover keywords, subtype/foreign results, inherited overrides,
+  disabled slots, descriptors, mutation, diagnostics, cancellation and recursion.
+  All 96 compiled type-call cases match CPython; all 5,926 tests in 454 files,
+  selected build, typecheck and scoped lint pass. Concrete instance allocation,
+  default object/type bootstrap (including native type.__call__ and type(x)),
+  native layout policies, complete class creation and suspended safe-fs effects
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -36,12 +36,14 @@ import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
 import { executeClassDefinition } from "./class-definition.js";
 import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
+import { callRuntimeType } from "./runtime-type-call.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
 /** Explicit extension points. Factories prepare hooks for an active frame; they
  * must not execute its body. Host objects/filesystem APIs are never discovered
- * implicitly. Non-function calls use the supplied guest object policy.
+ * implicitly. With an actual-type policy, type calls use the shared metaclass
+ * and instantiation lifecycle; other non-function calls use the supplied policy.
  */
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
@@ -87,6 +89,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       callable: value => runtimeCallable(value, meter, hooks),
       invoke(value, positional, keywords) {
         if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter, builtinCalls);
+        if (value.kind === "type" && specialMethods !== undefined) {
+          const leave = calls.enter(frame);
+          try { return callRuntimeType(value, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks)); }
+          finally { leave(); }
+        }
         const fn = value.kind === "method" ? value.value.function : value;
         let args = positional;
         if (value.kind === "method") {

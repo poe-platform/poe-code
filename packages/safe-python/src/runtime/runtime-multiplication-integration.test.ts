@@ -34,8 +34,8 @@ function fixture(signal?: AbortSignal) {
     expressions: () => ({ warn: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "method()", keywordName: unused, invoke: unused
   };
-  function type(name: string, base = registry.object, options: RuntimeTypeLayoutOptions = {}): TypeValue {
-    return registry.publish(new RuntimeTypeLayout(name, [base.value], v.dictionary(new OrderedKeyMap(keys, meter)), meter, options), registry.type);
+  function type(name: string, base = registry.object, options: RuntimeTypeLayoutOptions = {}, metaclass = registry.type): TypeValue {
+    return registry.publish(new RuntimeTypeLayout(name, [base.value], v.dictionary(new OrderedKeyMap(keys, meter)), meter, options), metaclass);
   }
   function method(owner: TypeValue, name: string, source: string) {
     const code = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter);
@@ -51,7 +51,7 @@ function fixture(signal?: AbortSignal) {
     const program = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter);
     executeRuntimeProgram(program, { values: v, globals, builtins, keys, hooks, calls: new CallStack<object>(50, meter) }, meter);
   }
-  return { v, meter, globals, events, hooks, type, method, guest, run };
+  return { v, meter, globals, events, hooks, type, method, guest, run, registry, types };
 }
 
 it.each([
@@ -1309,4 +1309,115 @@ it.each(["result=[]\nresult.extend(source)\n", "result=sorted(source)\n", "resul
   state.globals.set("source", state.v.range(createRange(0n, 1n << 70n)));
   state.globals.set("sorted", createSortedBuiltin(state.v, state.meter));
   expect(() => state.run(source)).toThrow("Python int too large to convert to C ssize_t");
+});
+
+it.each(["same", "subclass", "unrelated"])("executes compiled type allocation and %s initialization", relation => {
+  const state = fixture(), owner = state.type("A"), child = state.type("B", owner), foreign = state.type("Other");
+  const allocated = state.guest("allocated", relation === "same" ? owner : relation === "subclass" ? child : foreign);
+  state.method(owner, "__new__", "def allocate(cls, x, *, flag):\n visit('new')\n return allocated\n");
+  state.method(owner, "__init__", "def initialize(self, x, *, flag):\n visit('A.init')\n visit(flag)\n");
+  state.method(child, "__init__", "def initialize(self, x, *, flag):\n visit('B.init')\n visit(flag)\n");
+  state.globals.set("A", owner);
+  state.run("result=A(7,flag='keyword')\n");
+  expect(state.globals.get("result")).toBe(allocated);
+  expect(state.events).toEqual(["new", ...(relation === "unrelated" ? [] : [relation === "same" ? "A.init" : "B.init", "keyword"])]);
+});
+
+it("honors inherited metaclass call overrides before allocating", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), derivedMeta = state.type("DerivedMeta", meta), owner = state.type("C", undefined, {}, derivedMeta);
+  const result = state.guest("allocated", owner);
+  state.method(meta, "__call__", "def call(cls, *, flag):\n visit(flag)\n return allocated\n");
+  state.method(owner, "__new__", "def allocate(cls):\n visit('must not allocate')\n return allocated\n");
+  state.globals.set("C", owner); state.run("result=C(flag='meta')\n");
+  expect(state.globals.get("result")).toBe(result); expect(state.events).toEqual(["meta"]);
+});
+
+it.each([false, true])("honors metaclass new lookup with getattr fallback=%s", fallback => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", undefined, {}, meta);
+  const result = state.guest("allocated", owner);
+  state.method(owner, "__new__", "def allocate(cls):\n visit('new')\n return allocated\n");
+  state.globals.set("chosen", state.globals.get("allocate")!);
+  state.globals.set("missing", state.v.builtinFunction({ name: "missing", invoke() { throw new PythonRuntimeError("AttributeError", "missing allocator"); } }));
+  state.method(meta, "__getattribute__", fallback ? "def attribute(cls, name):\n visit('getattribute')\n return missing()\n" : "def attribute(cls, name):\n visit('getattribute')\n return chosen\n");
+  if (fallback) state.method(meta, "__getattr__", "def fallback(cls, name):\n visit('getattr')\n return chosen\n");
+  state.globals.set("C", owner); state.run("result=C()\n");
+  expect(state.globals.get("result")).toBe(result); expect(state.events).toEqual(["getattribute", ...(fallback ? ["getattr"] : []), "new"]);
+});
+
+it.each(["__call__", "__new__", "__init__"])("rejects disabled %s slots", slot => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", undefined, {}, meta);
+  state.guest("allocated", owner);
+  state.method(owner, "__new__", "def allocate(cls):\n return allocated\n");
+  (slot === "__call__" ? meta : owner).value.namespace.items.set(state.v.string(slot), state.v.none);
+  state.globals.set("C", owner);
+  expect(() => state.run("result=C()\n")).toThrow("'NoneType' object is not callable");
+});
+
+it("uses the actual result metaclass in bad initializer diagnostics", () => {
+  const state = fixture(), owner = state.type("C"); state.guest("allocated", owner); state.globals.set("C", owner);
+  state.method(owner, "__new__", "def allocate(cls):\n return allocated\n");
+  state.method(owner, "__init__", "def initialize(self):\n return C\n");
+  expect(() => state.run("result=C()\n")).toThrow("__init__() should return None, not 'type'");
+});
+
+it("bounds recursive type allocation without relying on a host stack overflow", () => {
+  const state = fixture(), owner = state.type("C"); state.globals.set("C", owner);
+  owner.value.namespace.items.set(state.v.string("__new__"), owner);
+  expect(() => state.run("result=C()\n")).toThrow("maximum recursion depth exceeded");
+});
+
+it("lets metaclass data descriptors replace the allocator", () => {
+  const state = fixture(), meta = state.type("Meta", state.registry.type), owner = state.type("C", undefined, {}, meta);
+  const allocated = state.guest("allocated", owner);
+  const allocator = state.method(owner, "__new__", "def allocate(cls):\n visit('new')\n return allocated\n");
+  const descriptor = state.v.cell({}); meta.value.namespace.items.set(state.v.string("__new__"), descriptor);
+  const original = state.hooks.specialMethods!;
+  state.hooks.specialMethods = frame => ({ ...original(frame), slots(value) {
+    return value === descriptor ? { get(instance, actual) { expect(instance).toBe(owner); expect(actual).toBe(meta); state.events.push("get"); return allocator; }, set() { throw Error("unused setter"); } } : undefined;
+  } });
+  state.globals.set("C", owner); state.run("result=C()\n");
+  expect(state.globals.get("result")).toBe(allocated); expect(state.events).toEqual(["get", "new"]);
+});
+
+it("preserves explicit ordinary attribute policy during allocator lookup", () => {
+  const state = fixture(), owner = state.type("C"), allocated = state.guest("allocated", owner);
+  const allocator = state.method(owner, "__new__", "def allocate(cls):\n return allocated\n");
+  const original = state.hooks.expressions;
+  state.hooks.expressions = frame => ({ ...original(frame), attribute(receiver, name) { expect(receiver).toBe(owner); expect(name).toBe("__new__"); state.events.push("attribute"); return allocator; } });
+  state.globals.set("C", owner); state.run("result=C()\n");
+  expect(state.globals.get("result")).toBe(allocated); expect(state.events).toEqual(["attribute"]);
+});
+
+it("skips initialization for an unrelated native allocator result", () => {
+  const state = fixture(), owner = state.type("C"), outside = state.v.integer(7);
+  state.types.set(outside, state.type("int", undefined, { sequenceTable: false })); state.globals.set("outside", outside);
+  state.method(owner, "__new__", "def allocate(cls):\n return outside\n");
+  state.method(owner, "__init__", "def initialize(self):\n visit('must not initialize')\n");
+  state.globals.set("C", owner); state.run("result=C()\n");
+  expect(state.globals.get("result")).toBe(outside); expect(state.events).toEqual([]);
+});
+
+it.each(["new", "init", "meta"])("honors cancellation from compiled %s during construction", stage => {
+  const controller = new AbortController(), state = fixture(controller.signal), meta = state.type("Meta", state.registry.type), owner = state.type("C", undefined, {}, meta);
+  state.guest("allocated", owner);
+  state.globals.set("stop", state.v.builtinFunction({ name: "stop", invoke() { controller.abort(); return state.v.none; } }));
+  state.method(owner, "__new__", stage === "new" ? "def allocate(cls):\n stop()\n return allocated\n" : "def allocate(cls):\n return allocated\n");
+  if (stage === "init") state.method(owner, "__init__", "def initialize(self):\n stop()\n");
+  if (stage === "meta") state.method(meta, "__call__", "def call(cls):\n stop()\n return allocated\n");
+  state.globals.set("C", owner);
+  expect(() => state.run("result=C()\n")).toThrow("execution cancelled"); expect(state.globals.has("result")).toBe(false);
+});
+
+it("resolves the live initializer after allocation mutates its namespace", () => {
+  const state = fixture(), owner = state.type("C"); state.guest("allocated", owner);
+  const replacement = state.method(owner, "replacement", "def replacement(self):\n visit('replacement')\n");
+  state.method(owner, "__init__", "def initialize(self):\n visit('old')\n");
+  state.globals.set("mutate", state.v.builtinFunction({ name: "mutate", invoke() { owner.value.namespace.items.set(state.v.string("__init__"), replacement); return state.v.none; } }));
+  state.method(owner, "__new__", "def allocate(cls):\n mutate()\n return allocated\n");
+  state.globals.set("C", owner); state.run("result=C()\n"); expect(state.events).toEqual(["replacement"]);
+});
+
+it("reports types with no allocator as non-instantiable", () => {
+  const state = fixture(); state.globals.set("C", state.type("C"));
+  expect(() => state.run("result=C()\n")).toThrow("cannot create 'C' instances");
 });

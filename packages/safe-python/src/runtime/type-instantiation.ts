@@ -2,18 +2,18 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 
-export interface TypeInstantiationContext<Value, Key = string> {
+export interface TypeInstantiationContext<Value, Keywords = ReadonlyMap<string, Value>> {
   /** Resolve the requested type's allocator. Descriptor binding, static __new__
    * handling and native allocation checks belong to this adapter. A disabled or
    * noncallable slot must raise on invocation, not be reported as absent. */
-  lookupNew(type: Value): ((type: Value, positional: readonly Value[], keywords: ReadonlyMap<Key, Value>) => Value) | undefined;
+  lookupNew(type: Value): ((type: Value, positional: readonly Value[], keywords: Keywords) => Value) | undefined;
   /** Actual runtime type and actual MRO relation, never __class__ attributes,
    * __instancecheck__ or __subclasscheck__. */
   typeOf(value: Value): Value;
   isSubtype(actual: Value, requested: Value): boolean;
   /** Resolve and bind the initializer on the result's actual type, after new
    * returns. Inherited methods and live mutations must remain observable. */
-  lookupInit(instance: Value, actual: Value): ((positional: readonly Value[], keywords: ReadonlyMap<Key, Value>) => Value) | undefined;
+  lookupInit(instance: Value, actual: Value): ((positional: readonly Value[], keywords: Keywords) => Value) | undefined;
   isNone(value: Value): boolean;
   /** Name of the supplied actual type, without guest conversions. */
   typeName(value: Value): string;
@@ -25,7 +25,7 @@ export interface TypeInstantiationContext<Value, Key = string> {
  * Failures never roll back allocator/initializer effects. Native special cases
  * such as one-argument type(), allocation/layout policies and recursion limits
  * remain with the surrounding call adapter. */
-export function instantiateType<Value, Key = string>(type: Value, positional: readonly Value[], keywords: ReadonlyMap<Key, Value>, context: TypeInstantiationContext<Value, Key>, meter: ExecutionMeter): Value {
+export function instantiateType<Value, Keywords = ReadonlyMap<string, Value>>(type: Value, positional: readonly Value[], keywords: Keywords, context: TypeInstantiationContext<Value, Keywords>, meter: ExecutionMeter): Value {
   meter.checkpoint();
   const allocate = context.lookupNew(type); meter.checkpoint();
   if (allocate === undefined) {

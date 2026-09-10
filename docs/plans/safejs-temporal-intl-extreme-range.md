@@ -55,14 +55,38 @@ the repair. Preserve non-ISO calendars, requested components, eras and locale
 ordering; clamping to Date's range or substituting Gregorian output is not a
 complete implementation. Keep invalid inputs rejected.
 
+## Locale-method boundary probes
+
+Six direct guest probes on Node 26.8.1 (c7ea7e) independently separate valid
+construction/ISO formatting from locale failures. Every value constructs and
+toString succeeds; toLocaleString('en', {calendar:'gregory'}) produces:
+
+| Private ISO value | Locale result |
+| --- | --- |
+| PlainDate -271821-04-19 | RangeError |
+| PlainDate +275760-09-13 | 9/13/275760 |
+| PlainDateTime -271821-04-19T00:00:00.000000001 | RangeError |
+| PlainDateTime +275760-09-13T23:59:59.999999999 | RangeError |
+| PlainYearMonth -271821-04, reference day 1 | RangeError |
+| PlainYearMonth +275760-09, reference day 1 | 9/275760 |
+
+These are four reproduced failures and two passing controls, not a claim that
+every endpoint fails. The guest catches the locale exception, so successful run
+completion is not counted as successful formatting. The first verbose probe's
+output was truncated; c7ea7e reran the same cases with only relevant results.
+Source inspection (b48c03) confirms these public locale methods call backend
+Temporal locale methods separately from direct Intl admission; a complete
+repair must cover both entry paths.
+
 ## Ongoing qualification
 
 The matching `formatRange` selection completed: 14 fixtures, 24 passing
 executions, four failures, zero unsupported (064b93). Both script modes fail
 temporal-objects-no-time-clip.js and temporal-objects-no-time-clip-weekday.js.
-The same-revision `formatRangeToParts` selection has 15 fixtures and is live in
-session 57322. It has emitted the same four failures (8b6774); no final totals
-are available yet. Do not count a started fixture or silent interval as a pass.
+The same-revision `formatRangeToParts` selection completed in session 57322:
+15 fixtures, 26 passing executions, four failures, zero unsupported (08e2ce).
+Both modes fail the same two no-time-clip fixtures (8b6774). These results cover
+only filenames containing `temporal`, not the complete Intl directories.
 
 Backend source inspection narrows the cause (23900c, 209b22, a2096c):
 chunks/classApi.js converts private Temporal values with

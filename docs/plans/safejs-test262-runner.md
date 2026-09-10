@@ -92,3 +92,16 @@ constructors for runtime throws, while `{name:"TypeError"}` still has the
 `Object` constructor and a primitive throw has none. Parse errors remain native
 SyntaxErrors at the host boundary. The result classifier must not equate a
 user-controlled `name` field with the expected exception constructor.
+
+## Result classification
+
+The Script reference-error repair is local commit 19ac58a3e. Result-classifier
+tests first failed because their module was absent (33944, terminal 1ce95c).
+They cover normal/uncaught outcomes, matching negative type and phase,
+wrong/missing throws, host-error rejection, spoofed `name` fields, primitive
+throws, and non-invocation of constructor getters during reporting.
+The candidate reads error-constructor data without executing guest accessors.
+It classifies only an already completed Script outcome: asynchronous completion
+and module resolution are not implicitly treated as done or passed. Combined
+conformance tests passed all 40 cases and scoped lint passed (56733, terminal
+7ec1f5); whitespace checks passed. This is ready for a local classifier commit.

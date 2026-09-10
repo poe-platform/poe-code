@@ -30,6 +30,29 @@ it("allocates fresh owned classes with default object bases and copied namespace
   first.value.namespace.items.set(v.string("other"), v.true); expect(second.value.namespace.items.lookup(v.string("other"))).toBeUndefined();
 });
 
+it("installs a dictionary descriptor only where the class introduces unshadowed storage", () => {
+  const { v, meter, registry, namespace, create } = fixture(), base = create(), key = v.string("__dict__");
+  const descriptor = base.value.namespace.items.lookup(key)?.value;
+  expect(descriptor?.kind).toBe("getset_descriptor");
+  if (descriptor?.kind !== "getset_descriptor") throw Error("expected dictionary descriptor");
+  expect(descriptor.value.owner).toBe(base); expect(namespace.items.lookup(key)).toBeUndefined();
+  const child = allocateRuntimeType(v.string("Child"), [base], namespace, registry.type, registry, v, meter);
+  expect(child.value.namespace.items.lookup(key)).toBeUndefined();
+  const slotted = allocateRuntimeType(v.string("Slotted"), [], namespace, registry.type, registry, v, meter, { layout: { instanceDictionary: false } });
+  expect(slotted.value.namespace.items.lookup(key)).toBeUndefined();
+  const restored = allocateRuntimeType(v.string("Restored"), [slotted], namespace, registry.type, registry, v, meter);
+  expect(restored.value.namespace.items.lookup(key)?.value.kind).toBe("getset_descriptor");
+  namespace.items.set(key, v.true); expect(create().value.namespace.items.lookup(key)?.value).toBe(v.true);
+});
+
+it("leaves native metaclass namespace reflection to the inherited type descriptor", () => {
+  const { v, meter, registry, namespace } = fixture();
+  const meta = allocateRuntimeType(v.string("Meta"), [registry.type], namespace, registry.type, registry, v, meter);
+  const cls = allocateRuntimeType(v.string("C"), [], namespace, meta, registry, v, meter);
+  expect(meta.value.namespace.items.lookup(v.string("__dict__"))).toBeUndefined();
+  expect(runtimeTypeAttribute(cls, "__dict__", v, meter, { typeOf: () => registry.type, slots: () => undefined }).kind).toBe("mappingproxy");
+});
+
 it("extracts qualified names without changing the source namespace or ordinary name shadow", () => {
   const { v, meter, namespace, create } = fixture(), qualified = v.string("Outer.C");
   namespace.items.set(v.string("__qualname__"), qualified); namespace.items.set(v.string("__name__"), v.string("shadow"));

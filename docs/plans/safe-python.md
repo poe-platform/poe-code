@@ -8082,6 +8082,22 @@ extension, integration, or validation requirement is missing or unverified.
   pass. General instance dictionaries, __class__, other
   function intrinsic fields and subclass call/descriptor-slot overrides remain
   unfinished.
+- Added owned instance dictionary replacement and deletion through a native
+  class-installed getset. Deletion publishes independent empty storage instead
+  of clearing detached aliases. Class allocation installs the descriptor only
+  when a plain-object layout introduces unshadowed dictionary storage; subclasses
+  inherit it, dictionary-less layouts omit it, and native metaclass layouts keep
+  their existing namespace mapping proxy. Ordinary attribute precedence remains
+  in the shared descriptor path. Two initial regressions reproduced missing
+  reflection/installation; a subsequent audit reproduced and fixed incorrect
+  descriptor installation on metaclasses. Focused tests cover owner validation,
+  invalid replacement preservation, repeated deletion and cancellation. Two
+  compiled tests cover live aliases and class shadows. All 6,279 tests in 479
+  files, selected build and typecheck pass. Twenty dictionary traces, 24 layout
+  and shadow cases, 640 class allocations, 240 finalizations and 96 compiled
+  constructors match CPython. Scoped lint passes.
+  Native payload dictionary introductions, __class__ mutation, remaining function
+  fields and the full class-construction pipeline remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

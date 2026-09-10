@@ -2119,6 +2119,28 @@ it("adopts a supplied function dictionary before any reflection", () => {
   expect(() => state.run("f.previous\n")).toThrow("'function' object has no attribute 'previous'");
 });
 
+it("reflects, replaces and deletes allocated instance dictionaries without clearing detached aliases", () => {
+  const state = fixture(), source = state.type("Source").value.namespace;
+  const cls = allocateRuntimeType(state.v.string("C"), [], source, state.registry.type, state.registry, state.v, state.meter);
+  state.globals.set("C", cls);
+  state.run("obj=C()\nobj.x=True\nold=obj.__dict__\nsame=obj.__dict__ is old\nreplacement={7:True,'current':False}\nobj.__dict__=replacement\ncurrent=obj.current\nreplaced=obj.__dict__ is replacement\nobj.y=True\ny=replacement['y']\ndel obj.__dict__\nfresh=obj.__dict__\nobj.z=True\nz=fresh['z']\nold_x=old['x']\nretained=replacement['y']\n");
+  for (const name of ["same", "replaced", "y", "z", "old_x", "retained"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(state.globals.get("current")).toBe(state.v.false);
+  expect(state.globals.get("fresh") === state.globals.get("replacement")).toBe(false);
+  expect(() => state.run("obj.current\n")).toThrow("'C' object has no attribute 'current'");
+  expect(() => state.run("obj.__dict__=None\n")).toThrow("__dict__ must be set to a dictionary, not a 'NoneType'");
+});
+
+it("respects class dictionary shadows instead of replacing hidden instance storage", () => {
+  const state = fixture(), source = state.type("Source").value.namespace;
+  source.items.set(state.v.string("__dict__"), state.v.true);
+  const cls = allocateRuntimeType(state.v.string("C"), [], source, state.registry.type, state.registry, state.v, state.meter);
+  state.globals.set("C", cls);
+  state.run("obj=C()\nobj.x=True\ninherited=obj.__dict__\nobj.__dict__=False\nown=obj.__dict__\nx=obj.x\ndel obj.__dict__\nrestored=obj.__dict__\n");
+  for (const name of ["inherited", "x", "restored"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(state.globals.get("own")).toBe(state.v.false);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

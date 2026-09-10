@@ -14,6 +14,7 @@ import type { RuntimePowerContext } from "./runtime-power-operation.js";
 import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
 import type { FormatContext } from "./format-protocol.js";
 import { RuntimeMethodDecoratorState } from "./runtime-method-decorator-state.js";
+import { RuntimeInstanceState } from "./runtime-instance-state.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -147,6 +148,7 @@ export interface InstanceValue {
   readonly kind: "instance";
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
+  readonly state: RuntimeInstanceState;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute
@@ -263,7 +265,8 @@ export class RuntimeValues extends ConstantValues {
    * Missing dictionary denotes a dictionary-less layout, not lazy allocation. */
   instance(type: TypeValue, dictionary?: DictionaryValue): InstanceValue {
     this.runtimeMeter.checkpoint(1, 48);
-    return Object.freeze({ kind: "instance", type, dictionary });
+    const state = new RuntimeInstanceState(dictionary, this.runtimeMeter);
+    return Object.freeze({ kind: "instance", type, state, get dictionary() { return state.dictionary; } });
   }
 
   /** Adopt trusted owned storage (for example, a slice) without a second copy. */

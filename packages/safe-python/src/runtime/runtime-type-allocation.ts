@@ -4,6 +4,7 @@ import { RuntimeTypeLayout, type RuntimeTypeLayoutOptions } from "./runtime-type
 import { RuntimeTypeNames } from "./runtime-type-names.js";
 import type { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import { createInstanceDictionaryDescriptor } from "./runtime-instance-dictionary-descriptor.js";
 
 export interface RuntimeTypeAllocationOptions {
   /** Defining frame's __name__, used only when the namespace omits __module__. */
@@ -58,6 +59,14 @@ export function allocateRuntimeType(name: Extract<RuntimeValue, { kind: "str" }>
     if (cell !== undefined) { meter.checkpoint(0, 16); cell.value.content = { value: result }; }
   } });
   if (result === undefined) throw Error("type allocation did not publish its layout");
+  let inheritedDictionary = false;
+  for (const base of baseLayouts) { meter.checkpoint(); inheritedDictionary ||= base.hasInstanceDictionary; }
+  const dictionaryKey = values.string("__dict__");
+  // Native payload layouts supply their own storage descriptors (notably type's
+  // class namespace mapping proxy); this getset accesses plain instance state.
+  if (result.value.hasObjectLayout && result.value.hasInstanceDictionary && !inheritedDictionary && namespace.items.lookup(dictionaryKey) === undefined) {
+    namespace.items.set(dictionaryKey, createInstanceDictionaryDescriptor(result, values, meter));
+  }
   if (namespace.items.lookup(docKey) === undefined) namespace.items.set(docKey, values.none);
   meter.checkpoint(); return result;
 }

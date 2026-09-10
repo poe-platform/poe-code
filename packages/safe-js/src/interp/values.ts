@@ -1227,6 +1227,10 @@ function copyToSandbox(
     throw new DOMException("Symbols cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && (isSandboxClosure(value) || isSandboxGenerator(value)))
     throw new DOMException("Executable values cannot be structured cloned.", "DataCloneError");
+  if (state.structuredClone && typeof value === "object" && value !== null &&
+      (isSandboxArguments(value) || iteratorHelperStates.has(value) || iteratorWrapperStates.has(value) ||
+       disposableStackStates.has(value) || asyncDisposableStackStates.has(value)))
+    throw new DOMException("Runtime state cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && (isSandboxArrayIterator(value) || isSandboxStringIterator(value) ||
       isSandboxCollectionIterator(value) || isSandboxRegExpIterator(value)))
     throw new DOMException("Iterators cannot be structured cloned.", "DataCloneError");

@@ -18,7 +18,15 @@ it.each([
   ["async function* f(){yield 0;yield 1};const g=f();await g.next();return async()=>(await g.next()).value",
     "const extra=0;async function* f(){yield 0;yield 2};const g=f();await g.next();return async()=>(await g.next()).value"],
   ["function* f(){try {yield 0}finally {yield 1}};const g=f();g.next();return ()=>g.next().value",
-    "const extra=0;function* f(){try {yield 0}finally {yield 2}};const g=f();g.next();return ()=>g.next().value"]
+    "const extra=0;function* f(){try {yield 0}finally {yield 2}};const g=f();g.next();return ()=>g.next().value"],
+  ["class Base {read(){return 1}}class Derived extends Base {read(){return super.read()}}return ()=>new Derived().read()",
+    "const extra=0;class Base {read(){return 2}}class Derived extends Base {read(){return super.read()}}return ()=>new Derived().read()"],
+  ["const value=1;const read=eval('()=>value');return ()=>read()",
+    "const extra=0;const value=2;const read=eval('()=>value');return ()=>read()"],
+  ["const read=Function('return 1');return ()=>read()",
+    "const extra=0;const read=Function('return 2');return ()=>read()"],
+  ["class Base {constructor(){this.value=1}}class Derived extends Base {constructor(){super()}}return ()=>new Derived().value",
+    "const extra=0;class Base {constructor(){this.value=2}}class Derived extends Base {constructor(){super()}}return ()=>new Derived().value"]
 ])("preserves distinct function bodies and captured state from %s", async (source, otherSource) => {
   const a = await run(source), b = await run(otherSource);
   if (!a.ok || !b.ok) throw new Error("Missing original functions");

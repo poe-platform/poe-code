@@ -7287,6 +7287,18 @@ extension, integration, or validation requirement is missing or unverified.
   type classification remains supplied; automatic representation conversion,
   string-subclass storage, generic object formatting, per-frame allocation
   optimization and suspended safe-fs effects remain unfinished.
+- Shared invocation formatting now resolves __str__/__repr__ through live MRO
+  binding and compiled calls, including f-string !s/!r/!a conversions and guest
+  members in native container representations. Nine compiled regressions failed
+  first, covering conversion-before-format ordering, str-to-repr fallback,
+  disabled methods and invalid results. Cancellation coverage now includes
+  lookup/calls for all representation modes; a default-policy test verifies
+  receiver ownership and lookup order. All 5,462 tests in 446 files pass;
+  selected build, typecheck and scoped lint pass. Forty-eight compiled guest
+  conversion cases match CPython, including Unicode, surrogates, padding and
+  nested containers. Standalone representation builtin integration, automatic
+  type/storage classification, generic object defaults, per-frame allocation
+  optimization and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -179,3 +179,28 @@ it.each(["method", "omitted", "f-string", "missing", "disabled", "invalid-result
   else if (mode === "invalid-result") expect(run).toThrow("__format__ must return a str, not Derived");
   else { run(); expect(globals.get("result")).toEqual(v.string(mode === "omitted" ? "" : "guest")); }
 });
+it.each([
+  ["str", 'f"{receiver!s:>3}"', "__str__", "  é"],
+  ["repr", 'f"{receiver!r}"', "__repr__", "é"],
+  ["ascii", 'f"{receiver!a}"', "__repr__", "\\xe9"],
+  ["str-fallback", 'f"{receiver!s}"', "__repr__", "é"],
+  ["nested", 'f"{[receiver]!r}"', "__repr__", "[é]"],
+  ["invalid-str", 'f"{receiver!s}"', "__str__", "__str__ returned non-string (type Derived)"],
+  ["invalid-repr", 'f"{receiver!r}"', "__repr__", "__repr__ returned non-string (type Derived)"],
+  ["disabled-str", 'f"{receiver!s}"', "__str__", "'NoneType' object is not callable"],
+  ["disabled-repr", 'f"{receiver!r}"', "__repr__", "'NoneType' object is not callable"]
+])("converts f-string values through MRO: %s", (mode, expression, slot, expected) => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), globals = new Map<string, RuntimeValue>([["receiver", receiver]]), unused = (): never => { throw Error("unexpected ordinary lookup or call"); };
+  const methods = compileProgram<RuntimeValue>(analyzeModule(`def special(self): return ${mode.startsWith("invalid") ? "self" : '"é"'}\n`), { stripDocstring: false }, v, meter);
+  const fn = v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter));
+  base.value.namespace.items.set(v.string(slot), mode.startsWith("disabled") ? v.none : fn);
+  // Conversion produces a string before __format__ dispatch on the result.
+  base.value.namespace.items.set(v.string("__format__"), v.none);
+  const program = compileProgram<RuntimeValue>(analyzeModule(`def render(): return ${expression}\nresult=render()\n`), { stripDocstring: false }, v, meter);
+  const run = () => executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map(), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  if (mode.startsWith("invalid") || mode.startsWith("disabled")) expect(run).toThrow(expected);
+  else { run(); expect(globals.get("result")).toEqual(v.string(expected)); }
+});

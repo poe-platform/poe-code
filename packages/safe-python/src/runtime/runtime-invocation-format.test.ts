@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { formatObject } from "./format-protocol.js";
+import { representationObject } from "./representation-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
@@ -34,12 +35,25 @@ it("propagates descriptor errors without falling back to native representation",
   expect(() => formatObject(v.cell({}), v.string(""), context, meter)).toThrow(failure);
 });
 
-it.each(["lookup", "call"])("checks cancellation after guest formatting %s", phase => {
-  const { v, fallback } = fixture(); let cancelled = false;
-  const meter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
+it.each(["format", "str", "repr", "ascii"] as const)("checks cancellation after guest %s lookup and call", operation => {
+  for (const phase of ["lookup", "call"]) {
+    const { v, fallback } = fixture(); let cancelled = false;
+    const meter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
+    const context = createRuntimeInvocationFormatContext(v, meter, {
+      lookupSpecial() { if (phase === "lookup") cancelled = true; return v.none; },
+      call() { if (phase === "lookup") throw Error("must stop before call"); cancelled = true; return v.string("result"); }, isStopIteration: () => false
+    }, fallback);
+    const run = () => operation === "format" ? formatObject(v.cell({}), v.string("spec"), context, meter) : representationObject(v.cell({}), operation, context, meter);
+    expect(run).toThrow(ExecutionLimitError);
+  }
+});
+
+it("uses the supplied default representation only after both str and repr are absent", () => {
+  const { meter, v, fallback } = fixture(), receiver = v.cell({}), names: string[] = [], result = v.string("default");
+  const defaults = { ...fallback, defaultRepr(value: RuntimeValue) { expect(this).toBe(defaults); expect(value).toBe(receiver); expect(names).toEqual(["__str__", "__repr__"]); return result; } };
   const context = createRuntimeInvocationFormatContext(v, meter, {
-    lookupSpecial() { if (phase === "lookup") cancelled = true; return v.none; },
-    call() { if (phase === "lookup") throw Error("must stop before call"); cancelled = true; return v.string("result"); }, isStopIteration: () => false
-  }, fallback);
-  expect(() => formatObject(v.cell({}), v.string("spec"), context, meter)).toThrow(ExecutionLimitError);
+    lookupSpecial(value, name) { expect(value).toBe(receiver); names.push(name); return undefined; },
+    call() { throw Error("must not call absent method"); }, isStopIteration: () => false
+  }, defaults);
+  expect(representationObject(receiver, "str", context, meter)).toBe(result);
 });

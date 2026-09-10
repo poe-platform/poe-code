@@ -7010,6 +7010,19 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. Guest exception-object construction,
   platform-policy assembly, resumable filesystem execution and full interpreter
   integration remain unfinished.
+- Added a shared builtin namespace assembler for all 35 currently implemented
+  global builtin function/constructor capabilities and canonical singleton names.
+  Function names come from factory results; context contracts derive from the
+  existing factory signatures. Required object/class/I/O policies stay explicit,
+  optional guest protocols preserve native fallbacks, and caller extensions can
+  supply or override entries without modifying another execution's namespace.
+- Five new tests cover registration, namespace isolation/extensions, protocol
+  forwarding, cancellation, and compiled module/nested-function execution using
+  the shared namespace. The missing-module regression failed before implementation.
+  All 5,310 tests in 444 files pass; build, typecheck and scoped lint pass. The
+  compiled example's output/result agrees with CPython. Native type objects,
+  exception classes, remaining builtins, automatic policy assembly, resumable
+  filesystem effects and complete public interpreter integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

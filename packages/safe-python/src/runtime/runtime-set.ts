@@ -6,6 +6,7 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { UnhashableRuntimeValueError } from "./runtime-hash.js";
 import { RuntimeHashError } from "./runtime-hash-error.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import type { IterationContext } from "./protocol-iterator.js";
 import type { DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
 export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains", values: ConstantValues, meter: ExecutionMeter): boolean;
@@ -28,14 +29,14 @@ export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeVal
 
 /** Exact set/dict sources retain cached hashes; general iterables stream and
  * retain prior insertions on failure. Set iteration order is not an API promise. */
-export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): void {
   meter.checkpoint();
   if (source.kind === "set" || source.kind === "frozenset") target.items.mergeKeysInPlace(source.items, "|");
   else if (source.kind === "dict") {
     meter.checkpoint(0, 16);
     target.items.mergeKeysInPlace(source.items, "|", { value: values.none });
   } else {
-    const iterator = runtimeIterate(source, values, meter);
+    const iterator = runtimeIterate(source, values, meter, iteration);
     while (true) {
       meter.checkpoint();
       const item = iterator.next();
@@ -50,11 +51,11 @@ export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values:
 /** Exact sets reuse cached hashes. Other difference-update sources stream and
  * retain completed removals; unlike remove/discard, iterated mutable-set keys
  * are not converted to equivalent frozen probes. */
-export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): void {
   meter.checkpoint();
   if (source.kind === "set" || source.kind === "frozenset") target.items.subtractKeysInPlace(source.items);
   else {
-    const iterator = runtimeIterate(source, values, meter);
+    const iterator = runtimeIterate(source, values, meter, iteration);
     while (true) {
       meter.checkpoint();
       const item = iterator.next();
@@ -73,7 +74,7 @@ export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, value
 
 /** Generic xor inputs are fully deduplicated before mutating the receiver.
  * Exact dictionaries/sets instead use their cached key hashes directly. */
-export function symmetricDifferenceUpdateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+export function symmetricDifferenceUpdateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, iteration?: IterationContext<RuntimeValue>): void {
   meter.checkpoint();
   if (source.kind === "set" || source.kind === "frozenset") target.items.mergeKeysInPlace(source.items, "^");
   else if (source.kind === "dict") {
@@ -81,7 +82,7 @@ export function symmetricDifferenceUpdateRuntimeSet(target: SetValue, source: Ru
     target.items.mergeKeysInPlace(source.items, "^", { value: values.none });
   } else {
     const prepared = values.set(target.items.emptyCopy());
-    updateRuntimeSet(prepared, source, values, meter);
+    updateRuntimeSet(prepared, source, values, meter, iteration);
     target.items.mergeKeysInPlace(prepared.items, "^");
   }
   meter.checkpoint();

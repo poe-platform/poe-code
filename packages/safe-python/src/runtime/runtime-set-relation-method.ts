@@ -12,7 +12,7 @@ export function createRuntimeSetRelationMethod(receiver: SetValue | FrozenSetVal
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${receiver.kind}.${name}() takes no keyword arguments`);
       if (name === "copy") {
@@ -26,10 +26,10 @@ export function createRuntimeSetRelationMethod(receiver: SetValue | FrozenSetVal
       }
       if (name === "issubset") {
         meter.checkpoint(1, 32);
-        const common = receiver.items.intersectKeysFrom(() => runtimeIterate(other, values, meter), values.none);
+        const common = receiver.items.intersectKeysFrom(() => runtimeIterate(other, values, meter, invocation?.iteration), values.none);
         return values.boolean(common.size === receiver.items.size);
       }
-      const iterator = runtimeIterate(other, values, meter);
+      const iterator = runtimeIterate(other, values, meter, invocation?.iteration);
       while (true) {
         meter.checkpoint();
         const item = iterator.next();

@@ -8404,6 +8404,17 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,473 tests in 491 files, build, typecheck and scoped lint pass. Native type/classmethod descriptor
   catalog integration, dictionary subclass storage, guest exception rendering
   and public execution assembly remain unfinished.
+- Connected set/frozenset algebra and relation methods, plus mutable-set update
+  methods, to active guest iteration. Exact set/dict fast paths remain native;
+  generic streams keep method-specific short circuiting and failure behavior.
+  Eleven initial compiled regressions rejected guest iterable instances. Twenty-
+  two added cases cover method results, frozen result kinds and receiver state
+  after iteration failures: update/difference_update retain prior mutations,
+  whereas intersection_update/symmetric_difference_update publish only completed
+  results. All 528 set and 336 frozenset compiled differential cases match
+  CPython, including receiver contents, results and iteration effects. All 6,495
+  tests in 491 files, build, typecheck and scoped lint pass. Set display/constructor guest-iteration wiring, native type
+  catalogs, guest exception rendering and public execution assembly remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

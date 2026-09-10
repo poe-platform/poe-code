@@ -106,6 +106,43 @@ it("constructs dictionary keys from guest sequences without consulting length hi
   expect(state.globals.get("left")).toBe(state.globals.get("payload")); expect(state.globals.get("right")).toBe(state.globals.get("payload")); expect(state.events).toEqual(["get", "get", "get", "get"]);
 });
 
+it.each([
+  ["update", [1, 2, 3]], ["intersection_update", [2]], ["difference_update", [1]], ["symmetric_difference_update", [1, 3]],
+  ["union", [1, 2, 3]], ["intersection", [2]], ["difference", [1]], ["symmetric_difference", [1, 3]]
+] as const)("runs set %s with guest iterable sources", (method, expected) => {
+  const state = fixture();
+  state.run(`class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,3)[index]\nreceiver={1,2}\nreturned=receiver.${method}(Source())\n`);
+  const returned = state.globals.get("returned")!, receiver = state.globals.get("receiver")!;
+  const result = returned.kind === "none" ? receiver : returned; if (result.kind !== "set") throw Error("expected set");
+  expect(result.items.snapshot().map(([key]) => Number((key as { value: bigint }).value)).sort()).toEqual(expected);
+  expect(state.events).toEqual(["get", "get", "get"]);
+});
+
+it.each(["isdisjoint", "issubset", "issuperset"])("runs set %s with guest iterable sources", method => {
+  const state = fixture();
+  state.run(`class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,3)[index]\nresult={1,2}.${method}(Source())\n`);
+  expect(state.globals.get("result")).toBe(state.v.false);
+});
+
+it.each([
+  ["update", 3, [1, 2, 3]], ["difference_update", 2, [1]], ["intersection_update", 2, [1, 2]], ["symmetric_difference_update", 3, [1, 2]]
+] as const)("preserves set %s failure semantics for guest iteration", (method, first, expected) => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "iteration failed");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  expect(() => state.run(`class Source:\n def __getitem__(self,index):\n  visit('get')\n  if index==1:\n   fail()\n  return ${first}\nreceiver={1,2}\nreceiver.${method}(Source())\n`)).toThrow(failure);
+  const receiver = state.globals.get("receiver")!; if (receiver.kind !== "set") throw Error("expected set");
+  expect(receiver.items.snapshot().map(([key]) => Number((key as { value: bigint }).value)).sort()).toEqual(expected); expect(state.events).toEqual(["get", "get"]);
+});
+
+it.each(["union", "intersection", "difference", "symmetric_difference", "isdisjoint", "issubset", "issuperset"])("retains frozenset receiver semantics for guest %s", method => {
+  const state = fixture();
+  state.run("class Source:\n def __getitem__(self,index):\n  visit('get')\n  return (2,3)[index]\noriginal={1,2}\n");
+  const original = state.globals.get("original")!; if (original.kind !== "set") throw Error("expected set");
+  state.globals.set("frozen", state.v.frozenSet(original.items));
+  state.run(`result=frozen.${method}(Source())\n`);
+  expect(state.globals.get("result")?.kind).toBe(method.startsWith("is") ? "bool" : "frozenset"); expect(original.items.size).toBe(2);
+});
+
 it("exposes fromkeys on dictionary instances without copying their entries", () => {
   const state = fixture();
   state.run("original={'old':1}\nfromkeys=original.fromkeys\nresult=fromkeys(('left','right'),7)\nleft=result['left']\nright=result['right']\nold=original['old']\n");

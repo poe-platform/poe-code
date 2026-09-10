@@ -12,27 +12,27 @@ export function createRuntimeSetMutationMethod(receiver: SetValue, name: "add" |
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `set.${name}() takes no keyword arguments`);
       if (name === "difference_update") {
-        for (const source of positional) subtractRuntimeSet(receiver, source, values, meter);
+        for (const source of positional) subtractRuntimeSet(receiver, source, values, meter, invocation?.iteration);
         meter.checkpoint();
         return values.none;
       }
       if (name === "symmetric_difference_update") {
         if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `set.${name}() takes exactly one argument (${positional.length} given)`);
-        symmetricDifferenceUpdateRuntimeSet(receiver, positional[0], values, meter);
+        symmetricDifferenceUpdateRuntimeSet(receiver, positional[0], values, meter, invocation?.iteration);
         return values.none;
       }
       if (name === "intersection_update") {
-        const result = intersectRuntimeSets(receiver, positional, values, meter);
+        const result = intersectRuntimeSets(receiver, positional, values, meter, invocation?.iteration);
         // These unchanged cases keep live cursors without restarting them.
         if (positional.length !== 0 && !(positional.length === 1 && positional[0] === receiver)) receiver.items.takeContents(result);
         return values.none;
       }
       if (name === "update") {
-        for (const source of positional) updateRuntimeSet(receiver, source, values, meter);
+        for (const source of positional) updateRuntimeSet(receiver, source, values, meter, invocation?.iteration);
         meter.checkpoint();
         return values.none;
       }

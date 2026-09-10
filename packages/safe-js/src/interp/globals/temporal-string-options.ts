@@ -50,7 +50,7 @@ export async function readTemporalStringOptions(options: SandboxValue, budget: B
       if (current !== undefined) {
         const text = await sandboxString(current, budget, context);
         const unit = text.endsWith("s") ? text.slice(0, -1) : text;
-        if (!(includeZone ? ["year", "month", "week", "day", "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"] : ["minute", "second", "millisecond", "microsecond", "nanosecond"]).includes(unit))
+        if (!(includeZone && text === "auto") && !(includeZone ? ["year", "month", "week", "day", "hour", "minute", "second", "millisecond", "microsecond", "nanosecond"] : ["minute", "second", "millisecond", "microsecond", "nanosecond"]).includes(unit))
           throw new RangeError("Invalid Temporal formatting unit.");
         normalized.smallestUnit = unit;
       }

@@ -192,6 +192,9 @@ export async function callArrayMethod(
   options: ArrayMethodOptions,
   stack: readonly string[] = []
 ): Promise<SandboxValue> {
+  if ((methodName === "sort" || methodName === "toSorted") && args[0] !== undefined) {
+    getRequiredCallback(methodName, args[0]);
+  }
   if (receiver === null || receiver === undefined)
     throw new TypeError("Array method requires a receiver.");
   if (typeof receiver !== "object") {

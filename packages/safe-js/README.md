@@ -632,7 +632,9 @@ Internal Proxy `for-in` now uses own-key, prototype, and descriptor operations,
 including virtual keys, inherited properties, deletion, and early loop exits.
 The saved key-list format is unchanged.
 Array methods now await Proxy membership and deletion traps on array-like
-receivers, with ordered writes and tested partial failures. Their internal view
+receivers. `sort` and `toSorted` reject invalid comparators before reading receiver
+length or elements. Array-like mutations use ordered writes and tested partial
+failures. Their internal view
 no longer reads a guest `then` property. Species selection recognizes wrapped
 arrays, including nested Proxies and array subclasses. Proxy-valued species
 results receive element definitions through `defineProperty` traps, with failures

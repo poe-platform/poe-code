@@ -39,8 +39,16 @@ afterEach(() => {
 });
 
 describe("independent ordered PPR2 fresh writer continuations", () => {
-  it.each(originalScenarios)(
-    "$id: native trace, public/signal/completed checkpoints and recapture",
+  it.each(
+    originalScenarios.flatMap((scenario) =>
+      ["public", "signal", "completed"].map((checkpoint, captureIndex) => ({
+        ...scenario,
+        checkpoint,
+        captureIndex
+      }))
+    )
+  )(
+    "$id / $checkpoint: native trace, checkpoint and recapture",
     async (scenario) => {
       const nativeHost = makeFixture(scenario.id, true, scenario.policy);
       const AsyncFunction = Object.getPrototypeOf(async () => undefined).constructor;
@@ -105,40 +113,40 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
       expect(original.returnValue).toEqual(native);
       expect(host.calls).toEqual(nativeHost.calls);
       captures.push(await dump(execution));
-      for (const [index, bytes] of captures.entries()) {
-        const snapshot = restore(JSON.parse(bytes), { source: scenario.source });
-        expect(snapshot.executionSemantics).toBe(expectedFresh);
-        expect(snapshot.version).toBe(2);
-        const before = JSON.stringify(snapshot);
-        const rebound = makeFixture(scenario.id, false, scenario.policy);
-        const requests: HostCallResumeRequest[] = [];
-        const resumed = await run(scenario.source, {
-          snapshot,
-          bindings: rebound.bindings,
-          budget: new Budget({ maxSteps: 150_000 }),
-          hostCallResumeProvider: receiptsProvider(original.snapshot.hostCalls ?? [], requests)
-        });
-        expect(resumed.ok).toBe(true);
-        if (!resumed.ok) throw Error(resumed.error.message);
-        expect(resumed.returnValue).toEqual(native);
-        expect(rebound.calls).toEqual(index === 2 ? [] : scenario.resumeCalls);
-        expect(requests).toHaveLength(index < 2 && scenario.policy === "read-side-effect" ? 1 : 0);
-        expect(JSON.stringify(snapshot)).toBe(before);
-        const recaptured = restore(JSON.parse(await dump(resumed)), { source: scenario.source });
-        expect(recaptured.executionSemantics).toBe(expectedFresh);
-        const finalHost = makeFixture(scenario.id, false, scenario.policy);
-        const finalProvider = vi.fn();
-        const final = await run(scenario.source, {
-          snapshot: recaptured,
-          bindings: finalHost.bindings,
-          hostCallResumeProvider: finalProvider
-        });
-        expect(final.ok).toBe(true);
-        if (!final.ok) throw Error(final.error.message);
-        expect(final.returnValue).toEqual(native);
-        expect(finalHost.calls).toEqual([]);
-        expect(finalProvider).not.toHaveBeenCalled();
-      }
+      const index = scenario.captureIndex;
+      const bytes = captures[index]!;
+      const snapshot = restore(JSON.parse(bytes), { source: scenario.source });
+      expect(snapshot.executionSemantics).toBe(expectedFresh);
+      expect(snapshot.version).toBe(2);
+      const before = JSON.stringify(snapshot);
+      const rebound = makeFixture(scenario.id, false, scenario.policy);
+      const requests: HostCallResumeRequest[] = [];
+      const resumed = await run(scenario.source, {
+        snapshot,
+        bindings: rebound.bindings,
+        budget: new Budget({ maxSteps: 150_000 }),
+        hostCallResumeProvider: receiptsProvider(original.snapshot.hostCalls ?? [], requests)
+      });
+      expect(resumed.ok).toBe(true);
+      if (!resumed.ok) throw Error(resumed.error.message);
+      expect(resumed.returnValue).toEqual(native);
+      expect(rebound.calls).toEqual(index === 2 ? [] : scenario.resumeCalls);
+      expect(requests).toHaveLength(index < 2 && scenario.policy === "read-side-effect" ? 1 : 0);
+      expect(JSON.stringify(snapshot)).toBe(before);
+      const recaptured = restore(JSON.parse(await dump(resumed)), { source: scenario.source });
+      expect(recaptured.executionSemantics).toBe(expectedFresh);
+      const finalHost = makeFixture(scenario.id, false, scenario.policy);
+      const finalProvider = vi.fn();
+      const final = await run(scenario.source, {
+        snapshot: recaptured,
+        bindings: finalHost.bindings,
+        hostCallResumeProvider: finalProvider
+      });
+      expect(final.ok).toBe(true);
+      if (!final.ok) throw Error(final.error.message);
+      expect(final.returnValue).toEqual(native);
+      expect(finalHost.calls).toEqual([]);
+      expect(finalProvider).not.toHaveBeenCalled();
     }
   );
 

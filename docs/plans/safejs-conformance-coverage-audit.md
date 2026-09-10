@@ -1,5 +1,19 @@
 # Conformance evidence gap
 
+## September 10 current-state correction
+
+Commit `0ac868671` replaced the obsolete Proxy/weak-reference skip with two
+executable cases. The current file checks Proxy trap dispatch/revocation and
+live weak-reference behavior without relying on garbage-collection timing.
+The placeholder description below is historical, not a remaining change to
+make. The file still contains hand-written Test262-style tests, rather than
+loading an upstream corpus. The current package scripts expose unit and
+adversarial checks but no maintained upstream Test262 route. Separate pinned
+upstream fixture experiments are recorded elsewhere; neither their existence
+nor these hand-written cases establishes full language conformance.
+
+## September 9 inspection
+
 Read-only review on September 9 found that
 `packages/safe-js/test/adversarial/test262-semantics.test.ts` contains seven
 hand-written passing cases and one skipped no-op placeholder. It labels itself

@@ -6795,6 +6795,16 @@ extension, integration, or validation requirement is missing or unverified.
   completely. Run dependency builds before unit checks, not concurrently.
   Concrete export-wrapper objects, remaining buffer consumers, automatic object
   assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.replace to contiguous buffer leases. Both buffers remain
+  acquired across guest count conversion; snapshots observe mutations performed
+  by __index__. Cleanup releases old then replacement on success, acquisition
+  failure, count errors and cancellation, without invoking __bytes__ coercion.
+- Four failing compiled regressions now pass. All 5,197 tests in 441 files pass;
+  36 CPython comparisons match output/errors and acquisition/index/release traces.
+  Typecheck, scoped lint and selected workspace build pass. The final unit run
+  followed build completion. Remaining native buffer consumers, concrete
+  exporters, automatic object assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

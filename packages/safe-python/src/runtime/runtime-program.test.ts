@@ -39,6 +39,39 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("copies replacement buffers after guest count conversion", () => {
+    const state = fixture("result=b'aaa'.replace(old,new,count)\n"), v = state.values, old = v.cell({}), replacement = v.cell({}), count = v.cell({}), trace: string[] = [];
+    const data = Uint8Array.of(98);
+    state.globals.set("old", old); state.globals.set("new", replacement); state.globals.set("count", count);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) { const name = value === old ? "old" : "new"; trace.push(`acquire ${name}`); return { byteLength: 1, copy: () => v.bytes(value === old ? Uint8Array.of(97) : data).value, release() { trace.push(`release ${name}`); } }; }
+    }, integerIndex: {
+      integer(value) { return value.kind === "int" ? value.value : undefined; },
+      lookupIndex(value) { expect(value).toBe(count); return () => { trace.push("index"); data[0] = 99; return v.integer(1); }; },
+      isExactInteger: value => value.kind === "int", warn() {},
+      typeName: () => "Count"
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(Uint8Array.of(99,97,97)));
+    expect(trace).toEqual(["acquire old", "acquire new", "index", "release old", "release new"]);
+  });
+  it.each(["acquisition", "count", "cancel"] as const)("releases replacement buffers after %s failure", mode => {
+    const controller = new AbortController(), state = fixture("result=b'a'.replace(old,new,count)\n", 100000, controller.signal), v = state.values;
+    const old = v.cell({}), replacement = v.cell({}), trace: string[] = [];
+    state.globals.set("old", old); state.globals.set("new", replacement); state.globals.set("count", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        if (value === replacement && mode === "acquisition") throw new PythonRuntimeError("BufferError", "bad buffer");
+        return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { trace.push(value === old ? "old" : "new"); } };
+      }
+    }, integerIndex: {
+      integer: () => undefined,
+      lookupIndex: () => () => { if (mode === "cancel") controller.abort(); throw new PythonRuntimeError("TypeError", "bad count"); },
+      isExactInteger: value => value.kind === "int", warn() {},
+      typeName: () => "Count"
+    } });
+    expect(() => state.run()).toThrow(mode === "acquisition" ? "bad buffer" : mode === "count" ? "bad count" : "execution cancelled");
+    expect(trace).toEqual(mode === "acquisition" ? ["old"] : ["old", "new"]);
+  });
   it.each([["partition", "", "ba"], ["rpartition", "ab", ""]])("partitions bytes using the export object with %s", (method, left, right) => {
     const state = fixture(`result=b'aba'.${method}(separator)\n`), v = state.values, separator = v.cell({}), exported = v.cell({});
     let released = false;

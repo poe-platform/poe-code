@@ -34,6 +34,15 @@ function fixture() {
   return { v, meter, registry, globals, events, run };
 }
 
+it("prepares independent namespaces through inherited native class-method binding", () => {
+  const state = fixture();
+  state.run("Meta=type('Meta',(type,),{})\nfirst=type.__prepare__()\nsecond=Meta.__prepare__(None,False,1,unexpected=True)\nfirst['field']=7\nC=type.__new__(Meta,'C',(),first)\nresult=C.field\nindependent=first is not second\nowner=Meta.__prepare__.__self__ is Meta\ndoc=Meta.__prepare__.__doc__\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+  expect(state.globals.get("independent")).toBe(state.v.true); expect(state.globals.get("owner")).toBe(state.v.true);
+  expect(state.globals.get("second")).toMatchObject({ kind: "dict", items: { size: 0 } });
+  expect(state.globals.get("doc")).toEqual(state.v.string("Create the namespace for the class statement"));
+});
+
 it("constructs slotted classes through explicit type.__new__ and ordinary type calls", () => {
   const state = fixture();
   state.run("C=type.__new__(type,'C',(),{'__slots__':('x',)})\nD=type('D',(C,),{})\ninstance=D()\ninstance.x=7\nresult=instance.x\nmodule=C.__module__\n");

@@ -8260,6 +8260,15 @@ extension, integration, or validation requirement is missing or unverified.
   selected build, typecheck and scoped lint pass. Public class-statement builder wiring,
   remaining native constructors, mutable bases and complete execution packaging
   remain unfinished.
+- Added native type.__prepare__ as an inherited class-method descriptor. It
+  returns independent metered dictionaries without inspecting class arguments or
+  mutating keyword inputs. Shared descriptor binding enforces metaclass receivers
+  and preserves native metadata. A compiled namespace preparation test initially
+  failed with missing __prepare__; four focused tests additionally cover receiver
+  precedence, dictionary isolation, binding and cancellation. All 180 binding/call
+  cases match CPython. All 6,409 tests in 489 files, selected build, typecheck and
+  scoped lint pass. Class-body execution against prepared custom mappings and the concrete
+  builtin class-builder adapter remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

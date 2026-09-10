@@ -40,3 +40,12 @@ full-suite reliability work in the current gap inventory.
 
 Only verification documentation changed during this qualification.
 `git diff --check` passes. No push or release was made.
+
+## Additional factory checks
+
+The same pinned strict-source procedure passes 25 Object/fromEntries cases
+and 15 Array/of cases on both guest and fresh native controls (4ac539).
+Array/of's `proto-from-ctor-realm.js` requires the unavailable `$262` realm
+adapter and is not counted as passed. No metadata exclusions were encountered.
+These probes run after the separately committed array-factory fixes and do
+not replace their regression tests or the pending full-package gate.

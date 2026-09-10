@@ -8331,6 +8331,20 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. Wrapper-subclass call/get overrides,
   complete native constructors, mutable bases and public execution assembly remain
   unfinished.
+- Added live call/get/data-descriptor dispatch for staticmethod/classmethod heap
+  subclasses. Native payload ownership distinguishes exact wrappers from classes
+  with their own slot tables. Exact wrappers retain native paths; subclasses use
+  ordinary type-slot lookup, including disabled methods and later class changes.
+  Nested staticmethod/bound-method calls stop unwrapping at subclass overrides.
+  Classmethod subclasses reflect their own call-slot presence. Explicit native
+  __get__ calls still enter the base implementation. A compiled regression first
+  failed because callable classmethod subclasses were rejected; four added tests
+  cover both wrapper families, inherited behavior, mutation and descriptor data
+  precedence. All 972 compiled wrapper-subclass cases, 96 wrapper constructions
+  and 42 callable-instance cases match CPython. All 6,447 tests in 491 files,
+  selected build, typecheck and scoped lint pass. Complete native
+  constructors, generic aliases, mutable bases/MRO invalidation, guest exceptions
+  and public execution assembly remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

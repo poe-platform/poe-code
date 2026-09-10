@@ -47,6 +47,7 @@ import { runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type
 import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
 import { runtimeObjectAttribute, runtimeMutateObjectAttribute } from "./runtime-object-attributes.js";
 import { runtimeOwnedDescriptorSlots } from "./runtime-owned-descriptor.js";
+import { isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -97,13 +98,13 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       typeOf: suppliedSpecialMethods.typeOf.bind(suppliedSpecialMethods),
       slots(value: RuntimeValue) {
         const supplied = suppliedSpecialMethods.slots(value);
-        if (supplied !== undefined || value.kind !== "instance") return supplied;
+        if (supplied !== undefined || !hasRuntimeInstanceAttributes(value)) return supplied;
         return runtimeOwnedDescriptorSlots(value, values, meter, builtinCalls, () => calls.enter(frame));
       },
       get invocation(): BuiltinInvocationContext { return builtinCalls; }
     });
     const callability = { callable(value: RuntimeValue) {
-      if (value.kind === "instance" && specialMethods !== undefined) return builtinCalls.hasSpecial!(value, "__call__");
+      if (hasRuntimeInstanceAttributes(value) && specialMethods !== undefined) return builtinCalls.hasSpecial!(value, "__call__");
       return hooks.callable(value);
     } };
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
@@ -117,10 +118,18 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       }, keywordName: hooks.keywordName.bind(hooks),
       callable: value => runtimeCallable(value, meter, callability),
       invoke(value, positional, keywords) {
+        if ((value.kind === "instance" || isRuntimeMethodDecoratorSubclass(value)) && specialMethods !== undefined) {
+          const leave = calls.enter(frame);
+          try {
+            const hook = builtinCalls.lookupSpecial!(value, "__call__"); meter.checkpoint();
+            if (hook === undefined) throw new PythonRuntimeError("TypeError", `'${value.type.value.name}' object is not callable`);
+            return builtinCalls.call(hook, positional, keywords);
+          } finally { leave(); }
+        }
         if (value.kind === "method" || value.kind === "staticmethod") {
           const receivers: RuntimeValue[] = [];
           let callable: RuntimeValue = value;
-          while (callable.kind === "method" || callable.kind === "staticmethod") {
+          while (callable.kind === "method" || (callable.kind === "staticmethod" && (specialMethods === undefined || !isRuntimeMethodDecoratorSubclass(callable)))) {
             meter.checkpoint();
             if (callable.kind === "method") { meter.checkpoint(0, 8); receivers.push(callable.value.instance); callable = callable.value.function; }
             else callable = callable.value;
@@ -139,14 +148,6 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           finally { leave(); }
         }
         const fn = value;
-        if (fn.kind === "instance" && specialMethods !== undefined) {
-          const leave = calls.enter(frame);
-          try {
-            const hook = builtinCalls.lookupSpecial!(fn, "__call__"); meter.checkpoint();
-            if (hook === undefined) throw new PythonRuntimeError("TypeError", `'${fn.type.value.name}' object is not callable`);
-            return builtinCalls.call(hook, positional, keywords);
-          } finally { leave(); }
-        }
         if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
           values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null),

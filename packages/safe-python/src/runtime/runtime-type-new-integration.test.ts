@@ -45,6 +45,39 @@ it("calls instance type slots and reflects callability without binding the descr
   expect(state.globals.get("recognized")).toBe(v.true); expect(state.globals.get("result")).toEqual(v.integer(9));
 });
 
+it("honors call and descriptor overrides on native method-wrapper subclasses", () => {
+  const state = fixture(), { v, registry } = state;
+  state.globals.set("staticmethod", registry.methodDecoratorType("staticmethod"));
+  state.globals.set("classmethod", registry.methodDecoratorType("classmethod"));
+  state.run("def target():\n return 1\nclass Static(staticmethod):\n def __call__(self):\n  return 7\n def __get__(self,instance,owner):\n  return 9\nclass Class(classmethod):\n def __call__(self):\n  return 11\n def __get__(self,instance,owner):\n  return 13\nstatic=Static(target)\nclassed=Class(target)\nstatic_result=static()\nclass_result=classed()\nrecognized=callable(classed)\nclass Owner:\n first=static\n second=classed\nfirst=Owner.first\nsecond=Owner().second\n");
+  expect(state.globals.get("static_result")).toEqual(v.integer(7)); expect(state.globals.get("class_result")).toEqual(v.integer(11)); expect(state.globals.get("recognized")).toBe(v.true);
+  expect(state.globals.get("first")).toEqual(v.integer(9)); expect(state.globals.get("second")).toEqual(v.integer(13));
+});
+
+it("retains inherited wrapper behavior while observing disabled and live overrides", () => {
+  const state = fixture(), { v, registry } = state;
+  state.globals.set("staticmethod", registry.methodDecoratorType("staticmethod")); state.globals.set("classmethod", registry.methodDecoratorType("classmethod"));
+  state.run("def target(*args):\n return 7\nclass Static(staticmethod):\n pass\nclass Class(classmethod):\n pass\nstatic=Static(target)\nclassed=Class(target)\nresult=static()\nclass_callable=callable(classed)\nclass Owner:\n first=static\n second=classed\nfirst=Owner.first()\nsecond=Owner.second()\nStatic.__call__=None\n");
+  expect(state.globals.get("result")).toEqual(v.integer(7)); expect(state.globals.get("first")).toEqual(v.integer(7)); expect(state.globals.get("second")).toEqual(v.integer(7)); expect(state.globals.get("class_callable")).toBe(v.false);
+  expect(() => state.run("static()\n")).toThrow("'NoneType' object is not callable");
+  state.run("Static.__get__=None\n"); expect(() => state.run("Owner.first\n")).toThrow("'NoneType' object is not callable");
+  state.run("del Static.__get__\ndel Static.__call__\nrestored=static()\n"); expect(state.globals.get("restored")).toEqual(v.integer(7));
+});
+
+it("does not unwrap subclass overrides inside staticmethod and bound-method calls", () => {
+  const state = fixture(), { v, registry } = state; state.globals.set("staticmethod", registry.methodDecoratorType("staticmethod"));
+  state.run("def target(*args):\n return 1\nclass Static(staticmethod):\n def __call__(self,*args):\n  return 9\nwrapped=Static(target)\nouter=staticmethod(wrapped)\nresult=outer()\nclass Owner:\n pass\n");
+  const wrapped = state.globals.get("wrapped")!, owner = state.globals.get("Owner")!;
+  state.globals.set("bound", v.boundMethod(wrapped, owner)); state.run("bound_result=bound()\n");
+  expect(state.globals.get("result")).toEqual(v.integer(9)); expect(state.globals.get("bound_result")).toEqual(v.integer(9));
+});
+
+it("honors data-descriptor slots added by a method-wrapper subclass", () => {
+  const state = fixture(), { v, registry } = state; state.globals.set("staticmethod", registry.methodDecoratorType("staticmethod"));
+  state.run("def target():\n return 1\nclass Static(staticmethod):\n def __get__(self,instance,owner):\n  return instance.value\n def __set__(self,instance,value):\n  instance.value=value\nclass Owner:\n field=Static(target)\ninstance=Owner()\ninstance.__dict__['field']=99\ninstance.field=7\nresult=instance.field\n");
+  expect(state.globals.get("result")).toEqual(v.integer(7));
+});
+
 it("distinguishes absent and disabled call slots and observes live class changes", () => {
   const state = fixture(), { v } = state;
   state.run("class C:\n pass\ninstance=C()\nabsent=callable(instance)\ninstance.__call__=None\nshadow=callable(instance)\nC.__call__=None\ndisabled=callable(instance)\n");

@@ -4,7 +4,7 @@ import type { ClassAttribute, DescriptorSlots } from "./instance-attributes.js";
 import type { BoundMethodValue, BuiltinInvocationContext, FunctionValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 import { readRuntimeGetsetDescriptor, mutateRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
 import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
-import { getRuntimeMethodDecorator } from "./runtime-method-decorator.js";
+import { getRuntimeMethodDecorator, isRuntimeMethodDecoratorSubclass } from "./runtime-method-decorator.js";
 
 export interface RuntimeDescriptorContext {
   /** Native accessors may reenter ordinary attribute/call/truth protocols. This
@@ -38,7 +38,7 @@ export function resolveRuntimeClassAttribute(value: RuntimeValue, context: Runti
   meter.checkpoint(1, value.kind === "function" || (value.kind === "method_descriptor" || value.kind === "classmethod_descriptor") || value.kind === "wrapper_descriptor" || value.kind === "staticmethod" || value.kind === "classmethod" ? 96 : value.kind === "getset_descriptor" || value.kind === "member_descriptor" ? 160 : 32);
   const slots = value.kind === "function"
     ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeFunctionDescriptor(value, instance, owner, values, meter) })
-    : value.kind === "staticmethod" || value.kind === "classmethod" ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeMethodDecorator(value, instance, owner, values, meter, context.typeOf?.bind(context)) })
+    : (value.kind === "staticmethod" || value.kind === "classmethod") && !isRuntimeMethodDecoratorSubclass(value) ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeMethodDecorator(value, instance, owner, values, meter, context.typeOf?.bind(context)) })
     : value.kind === "getset_descriptor" || value.kind === "member_descriptor" ? Object.freeze({
       get: (instance: RuntimeValue | null, owner: RuntimeValue) => readRuntimeGetsetDescriptor(value, instance, owner, meter, context.invocation),
       set: (instance: RuntimeValue, item: RuntimeValue) => mutateRuntimeGetsetDescriptor(value, instance, { kind: "set", value: item }, meter, context.invocation),

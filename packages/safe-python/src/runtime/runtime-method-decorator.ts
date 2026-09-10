@@ -2,6 +2,11 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { MethodDecoratorValue, RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
+/** Heap subclasses retain native payload storage but have their own slot table. */
+export function isRuntimeMethodDecoratorSubclass(value: RuntimeValue): value is MethodDecoratorValue & { readonly type: TypeValue } {
+  return (value.kind === "staticmethod" || value.kind === "classmethod") && value.type !== undefined && value.type.value !== value.type.value.nativeStorage;
+}
+
 /** Static methods return the payload itself. Class methods bind the effective
  * owner, not the defining ancestor, without chaining descriptor protocols into
  * the payload. An omitted owner uses intrinsic receiver ownership or the supplied

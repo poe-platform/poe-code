@@ -1,12 +1,12 @@
 import type { DescriptorSlots } from "./instance-attributes.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
-import type { BuiltinInvocationContext, InstanceValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { AttributeInstanceValue, BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Owned descriptor flags come from its actual type. Bind/call live special
  * methods only when a descriptor operation is performed, never during a flag
  * query. Assignment and deletion share the type's descriptor mutation slot. */
-export function runtimeOwnedDescriptorSlots(value: InstanceValue, values: RuntimeValues, meter: ExecutionMeter, invocation: BuiltinInvocationContext, enter: () => () => void): DescriptorSlots<RuntimeValue, RuntimeValue, RuntimeValue> | undefined {
+export function runtimeOwnedDescriptorSlots(value: AttributeInstanceValue, values: RuntimeValues, meter: ExecutionMeter, invocation: BuiltinInvocationContext, enter: () => () => void): DescriptorSlots<RuntimeValue, RuntimeValue, RuntimeValue> | undefined {
   const get = invocation.hasSpecial!(value, "__get__"), set = invocation.hasSpecial!(value, "__set__"), remove = invocation.hasSpecial!(value, "__delete__"); meter.checkpoint();
   if (!get && !set && !remove) return undefined;
   meter.checkpoint(0, 256);

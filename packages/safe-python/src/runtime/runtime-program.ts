@@ -16,6 +16,7 @@ import type { KeyOperations } from "./ordered-key-map.js";
 import type { CompiledProgram } from "./program-compilation.js";
 import { beginRuntimeCall, type RuntimeCallContext } from "./runtime-call.js";
 import { runtimeCallable } from "./runtime-callability.js";
+import { runtimeTruth } from "./runtime-truth.js";
 import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "./runtime-expression-context.js";
 import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
@@ -182,7 +183,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get formattedString() { return expressionHooks.formattedString; },
       addition: expressionHooks.addition?.bind(expressionHooks),
       power: expressionHooks.power,
-      truth: expressionHooks.truth?.bind(expressionHooks),
+      truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks),
       containment: expressionHooks.containment?.bind(expressionHooks),
       iteration: expressionHooks.iteration,

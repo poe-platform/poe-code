@@ -21,6 +21,7 @@ import { createFormatBuiltin } from "./builtin-format.js";
 import { createRepresentationBuiltin } from "./builtin-representation.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { createPrintBuiltin } from "./builtin-print.js";
+import { createAllAnyBuiltin } from "./builtin-all-any.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -254,4 +255,25 @@ it.each(["__str__", "__repr__"])("prints through compiled %s and invocation flus
   }, meter);
   expect(globals.get("result")).toBe(v.none);
   expect(events).toEqual(["truth", "stdout", "lookup", ...(slot === "__str__" ? ["special"] : ["special", "special"]), "guest", "lookup", "\n", "flush"]);
+});
+it.each([
+  ["bool-false", "False", false], ["bool-true", "True", true], ["length-zero", "0", false], ["length-positive", "2", true],
+  ["missing", "", true], ["invalid", "1", "__bool__ should return bool, returned int"],
+  ["disabled", "", "'Derived' cannot be interpreted as a boolean"], ["negative", "-1", "__len__() should return >= 0"]
+] as const)("uses MRO truth for conditions, not and any: %s", (mode, result, expected) => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), globals = new Map<string, RuntimeValue>([["receiver", receiver]]), unused = (): never => { throw Error("unexpected lookup or call"); };
+  const install = (name: string, expression: string) => {
+    const methods = compileProgram<RuntimeValue>(analyzeModule(`def special(self): return ${expression}\n`), { stripDocstring: false }, v, meter);
+    base.value.namespace.items.set(v.string(name), v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter)));
+  };
+  if (mode !== "missing" && mode !== "disabled") install(mode.startsWith("length") || mode === "negative" ? "__len__" : "__bool__", result);
+  if (mode.startsWith("bool")) install("__len__", "-1");
+  if (mode === "disabled") base.value.namespace.items.set(v.string("__bool__"), v.none);
+  const program = compileProgram<RuntimeValue>(analyzeModule('if receiver:\n condition=True\nelse:\n condition=False\nnegated=not receiver\nreduced=any([receiver])\nnative=not []\n'), { stripDocstring: false }, v, meter);
+  const run = () => executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map([["any", createAllAnyBuiltin("any", v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  if (typeof expected === "string") expect(run).toThrow(expected);
+  else { run(); expect(globals.get("condition")).toBe(v.boolean(expected)); expect(globals.get("negated")).toBe(v.boolean(!expected)); expect(globals.get("reduced")).toBe(v.boolean(expected)); expect(globals.get("native")).toBe(v.true); }
 });

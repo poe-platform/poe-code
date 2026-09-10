@@ -7365,6 +7365,18 @@ extension, integration, or validation requirement is missing or unverified.
   cases match CPython. Further allocation/performance audits, automatic
   type/storage classification, generic object defaults and suspended safe-fs
   effects remain unfinished.
+- Frame truth conversion now adapts MRO __bool__/__len__ and normal compiled
+  calls to the existing truth/length validators. Explicit truth policies still
+  win; exact native payloads retain allocation-free fast paths. Five compiled
+  cases failed before integration. CPython exposed a mistaken expectation for
+  __bool__=None; the corrected regression failed before mapping it to the
+  protocol's disabled-method state. Twelve added cases cover conditions/not/any,
+  bool precedence, slotless objects, invalid/negative results, native allocation,
+  guest length __index__ and cancellation. CPython confirms all eight compiled
+  truth scenarios. All 5,544 tests in 446 files pass; selected build, typecheck
+  and scoped lint pass. Guest truth currently allocates a length adapter even when __bool__ wins;
+  allocation optimization, automatic type/storage classification, generic object
+  defaults and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

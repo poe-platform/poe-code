@@ -12,6 +12,30 @@ function fixture() {
 }
 
 describe("exact runtime value truth", () => {
+  it("retains allocation-free native truth without reading invocation protocols", () => {
+    const { values } = fixture(), unused = (): never => { throw Error("must not inspect guest policy"); };
+    const invocation = { get integerIndex(): never { return unused(); }, lookupSpecial: unused, call: unused, isStopIteration: unused };
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0 });
+    expect([values.none, values.false, values.integer(0), values.float(1), values.string("x"), values.list([]), values.tuple([]), values.range(createRange(0n, 1n << 100n))].map(value => runtimeTruth(value, meter, invocation))).toEqual([false, false, false, true, true, false, false, true]);
+  });
+  it("converts guest length results through invocation index lookup", () => {
+    const { meter, values: v } = fixture(), receiver = v.cell({}), indexed = v.cell({}), length = v.cell({}), index = v.cell({}), trace: string[] = [];
+    const invocation = {
+      lookupSpecial(value: RuntimeValue, name: string) { expect(this).toBe(invocation); trace.push(name); if (value === receiver) return name === "__len__" ? length : undefined; expect(value).toBe(indexed); return index; },
+      call(method: RuntimeValue, args: readonly RuntimeValue[]) { expect(this).toBe(invocation); expect(args).toEqual([]); if (method === length) return indexed; expect(method).toBe(index); return v.integer(0); },
+      isStopIteration: () => false
+    };
+    expect(runtimeTruth(receiver, meter, invocation)).toBe(false);
+    expect(trace).toEqual(["__bool__", "__len__", "__index__"]);
+  });
+  it.each(["lookup", "call"])("checks cancellation after guest bool %s", phase => {
+    const { values: v } = fixture(); let cancelled = false;
+    const meter = { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } };
+    expect(() => runtimeTruth(v.cell({}), meter, {
+      lookupSpecial() { if (phase === "lookup") cancelled = true; return v.cell({}); },
+      call() { if (phase === "lookup") throw Error("must stop before call"); cancelled = true; return v.false; }, isStopIteration: () => false
+    })).toThrow(ExecutionLimitError);
+  });
   it("observes current list size without inspecting members or cycles", () => {
     const { meter, values } = fixture(), list = values.list([]);
     expect(runtimeTruth(list, meter)).toBe(false);

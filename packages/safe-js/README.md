@@ -920,6 +920,8 @@ The Duration, PlainTime, PlainDateTime, and ZonedDateTime constructors and metho
 public Temporal namespace and snapshot integration remain unfinished.
 PlainDate conversions to MonthDay, YearMonth, and ZonedDateTime are also committed
 locally, preserving private calendar fields and destination-realm prototypes.
+MonthDay input conversion preserves an owned YearMonth's private calendar while
+still reading its public date fields; shadowing `calendar` does not override it.
 
 Temporal support is partial, with public integration still uncommitted. The local runtime provides owned
 `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values

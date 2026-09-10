@@ -49,7 +49,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     readonly iteration?: IterationContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
-    addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext;
+    addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext | undefined;
     /** Numeric negotiation must precede the supplied index repetition policy. */
     multiplication?(left: RuntimeValue, right: RuntimeValue): MultiplicationContext | undefined;
     richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext;

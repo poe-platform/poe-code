@@ -7488,6 +7488,18 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 450 files pass; selected build, typecheck and scoped lint pass. Ordinary numeric
   MRO assembly outside multiplication, native-subclass storage, metaclass overrides
   and suspended safe-fs effects remain unfinished.
+- Shared the MRO numeric adapter between addition and multiplication, selecting
+  forward/reflected names declaratively and retaining native sequence fallbacks.
+  Frame addition now uses inherited compiled __add__/__radd__ by default while
+  preserving explicit hooks. Five compiled regressions failed first. Ten added
+  cases cover both operand orders, declined __iadd__, subtype/descriptor reflected
+  priority, same-type suppression, sum's ordinary addition and explicit policies.
+  All nine Python-semantic scenarios match CPython; 172 repetition comparisons
+  remain unchanged. All 5,677 tests in 450 files pass; selected build, typecheck
+  and scoped lint pass. CPython also confirms reflected addition must precede
+  native list += extension; the existing direct extension path still needs that
+  integration. Other binary families, native-subclass storage, metaclass overrides
+  and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

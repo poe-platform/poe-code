@@ -10,6 +10,7 @@ import { RuntimeTypeLayout, type RuntimeTypeLayoutOptions } from "./runtime-type
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { createRepresentationBuiltin } from "./builtin-representation.js";
+import { createSumBuiltin } from "./builtin-sum.js";
 import { CallStack } from "./call-stack.js";
 
 function fixture(signal?: AbortSignal) {
@@ -87,14 +88,15 @@ it("does not reflect declined multiplication for the same guest type", () => {
   expect(state.events).toEqual(["forward"]);
 });
 
-it.each([false, true])("binds class descriptors and compares their values for reflected priority (%s)", overridden => {
+it.each([["*", false], ["*", true], ["+", false], ["+", true]] as const)("binds class descriptors and compares their values for %s reflected priority (%s)", (operator, overridden) => {
   const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base), v = state.v;
-  state.method(base, "__mul__", "def multiply(self, other):\n visit('forward')\n return 'forward'\n");
-  const baseMethod = state.method(base, "__rmul__", "def reflect(self, other):\n return 'base'\n");
-  const derivedMethod = state.method(derived, "__rmul__", "def reflect(self, other):\n visit('reflected')\n return 'reflected'\n");
+  const forwardName = operator === "+" ? "__add__" : "__mul__", reflectedName = operator === "+" ? "__radd__" : "__rmul__";
+  state.method(base, forwardName, "def multiply(self, other):\n visit('forward')\n return 'forward'\n");
+  const baseMethod = state.method(base, reflectedName, "def reflect(self, other):\n return 'base'\n");
+  const derivedMethod = state.method(derived, reflectedName, "def reflect(self, other):\n visit('reflected')\n return 'reflected'\n");
   const a = v.cell({}), b = v.cell({}), descriptorA = v.cell({}), descriptorB = v.cell({});
-  base.value.namespace.items.set(v.string("__rmul__"), descriptorA);
-  derived.value.namespace.items.set(v.string("__rmul__"), descriptorB);
+  base.value.namespace.items.set(v.string(reflectedName), descriptorA);
+  derived.value.namespace.items.set(v.string(reflectedName), descriptorB);
   state.guest("left", base); state.guest("right", derived);
   const special = state.hooks.specialMethods!;
   state.hooks.specialMethods = frame => ({ ...special(frame), slots(value) {
@@ -109,7 +111,7 @@ it.each([false, true])("binds class descriptors and compares their values for re
     expect(operator).toBe("!="); expect(left).toBe(a); expect(right).toBe(b); state.events.push("compare");
     return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward: () => v.boolean(overridden), reflected: () => v.notImplemented } };
   } });
-  state.run("result=left * right\n");
+  state.run(`result=left ${operator} right\n`);
   expect(state.globals.get("result")).toEqual(v.string(overridden ? "reflected" : "forward"));
   expect(state.events).toEqual(["right-class", "left-class", "compare", ...(overridden ? ["right-instance", "reflected"] : ["forward"])]);
 });
@@ -386,4 +388,61 @@ it("does not undo in-place method effects after target write-back fails", () => 
   expect(() => state.run("container[0] *= 7\n")).toThrow("does not support item assignment");
   expect(state.events).toEqual(["mutation"]);
   expect(state.globals.get("guest")).toBe(guest);
+});
+
+it.each([false, true])("runs inherited addition methods before sequence concatenation (reflected=%s)", reflected => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base);
+  state.method(base, reflected ? "__radd__" : "__add__", "def add(self, other):\n visit('add')\n return False\n");
+  state.guest("guest", derived);
+  state.run(`result=${reflected ? "[True] + guest" : "guest + [True]"}\n`);
+  expect(state.globals.get("result")).toBe(state.v.false); expect(state.events).toEqual(["add"]);
+});
+
+it("uses ordinary MRO addition after a declining __iadd__", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__iadd__", "def inplace(self, other):\n visit('inplace')\n return NotImplemented\n");
+  state.method(owner, "__add__", "def add(self, other):\n visit('ordinary')\n return 42\n");
+  state.guest("guest", owner);
+  state.run("guest += 7\n");
+  expect(state.globals.get("guest")).toEqual(state.v.integer(42)); expect(state.events).toEqual(["inplace", "ordinary"]);
+});
+
+it.each([false, true])("prioritizes only overridden subtype reflected addition (%s)", overridden => {
+  const state = fixture(), base = state.type("Base"), derived = state.type("Derived", base);
+  state.method(base, "__add__", "def add(self, other):\n visit('forward')\n return 1\n");
+  state.method(base, "__radd__", "def add(self, other):\n visit('inherited')\n return 2\n");
+  if (overridden) state.method(derived, "__radd__", "def add(self, other):\n visit('override')\n return 3\n");
+  state.guest("left", base); state.guest("right", derived);
+  state.run("result=left + right\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(overridden ? 3 : 1));
+  expect(state.events).toEqual([overridden ? "override" : "forward"]);
+});
+
+it("shares MRO addition with sum without using in-place methods", () => {
+  const state = fixture(), owner = state.type("Guest"), guest = state.guest("guest", owner);
+  state.method(owner, "__add__", "def add(self, other):\n visit('add')\n return self\n");
+  state.method(owner, "__iadd__", "def inplace(self, other):\n visit('inplace')\n return self\n");
+  state.globals.set("sum", createSumBuiltin(state.v, state.meter));
+  state.run("result=sum([1,2],guest)\n");
+  expect(state.globals.get("result")).toBe(guest); expect(state.events).toEqual(["add", "add"]);
+});
+
+it("does not reflect same-type addition when the forward slot declines", () => {
+  const state = fixture(), owner = state.type("Guest");
+  state.method(owner, "__add__", "def add(self, other):\n visit('forward')\n return NotImplemented\n");
+  state.method(owner, "__radd__", "def add(self, other):\n visit('reflected')\n return 42\n");
+  state.guest("left", owner); state.guest("right", owner);
+  expect(() => state.run("result=left+right\n")).toThrow("unsupported operand type(s) for +: 'Guest' and 'Guest'");
+  expect(state.events).toEqual(["forward"]);
+});
+
+it("retains explicit addition policies ahead of default MRO lookup", () => {
+  const state = fixture(), owner = state.type("Guest"), v = state.v;
+  state.guest("guest", owner);
+  state.hooks.specialMethods = () => ({ typeOf(): never { throw Error("explicit addition must win"); }, slots: () => undefined });
+  state.hooks.expressions = () => ({ warn() {}, addition: () => ({ numeric: {
+    relation: "other", notImplemented: v.notImplemented, forward: () => v.false, reflected: () => v.notImplemented, reflectedIsOverridden: () => false
+  } }) });
+  state.run("result=guest+1\n");
+  expect(state.globals.get("result")).toBe(v.false);
 });

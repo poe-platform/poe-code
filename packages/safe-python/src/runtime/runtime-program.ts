@@ -4,7 +4,7 @@ import { evaluateExpression, UnsupportedExpressionError } from "./expression-eva
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
-import { createRuntimeMultiplicationContext } from "./runtime-multiplication-context.js";
+import { createRuntimeSequenceNumericContext } from "./runtime-sequence-numeric-context.js";
 import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
 import type { RuntimeRepresentationState } from "./runtime-representation.js";
 import { executeFunctionDefinition } from "./function-definition.js";
@@ -194,8 +194,8 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
       get formattedString() { return expressionHooks.formattedString; },
-      addition: expressionHooks.addition?.bind(expressionHooks),
-      multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeMultiplicationContext(left, right, values, meter, specialMethods, builtinCalls)),
+      addition: expressionHooks.addition?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeSequenceNumericContext("+", left, right, values, meter, specialMethods, builtinCalls)),
+      multiplication: expressionHooks.multiplication?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (left, right) => createRuntimeSequenceNumericContext("*", left, right, values, meter, specialMethods, builtinCalls)),
       power: expressionHooks.power,
       truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
       richComparison: expressionHooks.richComparison?.bind(expressionHooks),

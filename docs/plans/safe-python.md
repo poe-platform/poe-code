@@ -6725,6 +6725,16 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. str.maketrans, concrete object models, automatic
   builtin assembly and broader interpreter/SDK/safe-fs integration remain
   unfinished.
+- Implemented native static str.maketrans for dictionary input and paired Unicode
+  strings with optional deletion characters. Code-point keys, duplicate overwrite
+  order and deferred value validation match Python; fresh dictionary storage uses
+  the current call's hash-policy domain. Input/output iteration is metered.
+- Eleven compiled regressions cover translation composition, non-BMP strings,
+  validation order, shared values and unrestricted integer keys. All 5,164 tests
+  in 441 files pass; 258 CPython comparisons match tables and errors. Typecheck,
+  scoped lint and selected workspace build pass. Guest subclass payload handling,
+  type-level descriptor installation, automatic builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

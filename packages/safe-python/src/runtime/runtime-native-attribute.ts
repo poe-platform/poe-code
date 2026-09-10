@@ -54,6 +54,7 @@ import { createRuntimeStringClassificationMethod } from "./runtime-string-classi
 import type { ExpressionContext } from "./expression-evaluation.js";
 import type { RuntimeBytesInputContext } from "./runtime-bytes-input.js";
 import { createRuntimeStringTranslateMethod, type RuntimeStringTranslationContext } from "./runtime-string-translate-method.js";
+import { createRuntimeStringMaketransMethod } from "./runtime-string-maketrans-method.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
@@ -117,6 +118,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
         return createRuntimeStringClassificationMethod(receiver, name, values, meter);
     }
     if (name === "translate") return createRuntimeStringTranslateMethod(receiver, values, meter, methods?.translation);
+    if (name === "maketrans") return createRuntimeStringMaketransMethod(values, meter);
     if (name === "replace") return createRuntimeStringReplaceMethod(receiver, values, meter, methods?.integerIndex);
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeStringStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeStringJoinMethod(receiver, values, meter, methods?.iterate);

@@ -39,6 +39,37 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("copies maketrans dictionaries without validating values or integer ranges", () => {
+    const state = fixture("payload=[]\nsource={-1:payload,1 << 100:payload,True:payload}\nresult=''.maketrans(source)\nshared=result[-1] is payload\nseparate=result is not source\n");
+    state.hooks.expressions = () => ({ warn() {} });
+    state.run();
+    expect(state.globals.get("shared")).toEqual(state.values.boolean(true));
+    expect(state.globals.get("separate")).toEqual(state.values.boolean(true));
+    const result = state.globals.get("result");
+    expect(result?.kind === "dict" && result.items.size).toBe(3);
+  });
+  it.each([
+    ["'abé'.translate(''.maketrans('aé','xy','b'))", "xy"],
+    ["'ab'.translate(''.maketrans({'a':'XY','b':None}))", "XY"],
+    ["'a'.translate(''.maketrans('aa','xy'))", "y"],
+    ["'😀a'.translate(''.maketrans('😀a','éz'))", "éz"]
+  ])("builds Unicode translation tables: %s", (expression, expected) => {
+    const state = fixture(`result=${expression}\n`);
+    state.hooks.expressions = () => ({ warn() {} });
+    state.run(); expect(state.globals.get("result")).toEqual(state.values.string(expected));
+  });
+  it.each([
+    ["1", "if you give only one argument to maketrans it must be a dict"],
+    ["{'ab':1}", "string keys in translatetable must be of length 1"],
+    ["{None:1}", "keys in translate table mustbe strings or integers"],
+    ["1,2,3", "maketrans() argument 2 must be str, not int"],
+    ["'aa','b',None", "maketrans() argument 3 must be str, not None"],
+    ["'aa','b'", "the first two maketrans arguments must have equal length"]
+  ])("validates translation table inputs %s", (argumentsText, message) => {
+    const state = fixture(`result=''.maketrans(${argumentsText})\n`);
+    state.hooks.expressions = () => ({ warn() {} });
+    expect(() => state.run()).toThrow(message);
+  });
   it.each([
     ["[]", "character mapping must return integer, None or str"],
     ["-1", "character mapping must be in range(0x110000)"],

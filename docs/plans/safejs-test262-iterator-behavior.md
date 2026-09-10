@@ -52,3 +52,18 @@ contexts. No production fix followed from those harness failures.
 No runtime edits were made during this qualification. These results do not
 resolve ISO formatting, host Promise property admission, non-strict conformance,
 or the remaining broader goal. No push or release was made.
+
+## Additional early-exit consumers
+
+The same pinned strict-source procedure subsequently qualifies 98 additional
+cases without runtime changes:
+
+| Method | Guest passes | Native passes | Metadata skips |
+| --- | ---: | ---: | ---: |
+| some | 33 | 33 | 0 |
+| every | 33 | 33 | 0 |
+| find | 32 | 32 | 0 |
+
+The some result is d9ffac; every/find complete in d974b3. No guest or native
+failure was reported in these selections. The full-package gate was still
+running independently, and these results do not supersede its eventual result.

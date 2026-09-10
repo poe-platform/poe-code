@@ -29,7 +29,7 @@ it.each(["bin", "oct", "hex"] as const)("validates %s arguments before integer c
   keywords.items.set(v.string("number"), v.integer(1));
   expect(() => builtin.value.invoke([], keywords, meter)).toThrow(`${name}() takes no keyword arguments`);
 });
-it("uses guest index conversion and warning policy without int coercion", () => {
+it.each([false, true])("uses guest index conversion and warnings without int coercion with explicit policy=%s", explicit => {
   const { v, meter, keywords } = fixture("hex"), guest = v.cell({}), warnings: string[] = [];
   let result: RuntimeValue = v.integer(-255);
   const index: IntegerIndexContext<RuntimeValue> = {
@@ -37,7 +37,10 @@ it("uses guest index conversion and warning policy without int coercion", () => 
     isExactInteger: value => value.kind === "int", lookupIndex: value => value === guest ? () => result : undefined,
     typeName: value => value.kind, warn: (_category, message) => { warnings.push(message); }
   };
-  const builtin = createRadixBuiltin("hex", v, meter, index), call = () => builtin.value.invoke([guest], keywords, meter);
+  const unused = (): never => { throw Error("unexpected invocation callback"); };
+  const builtin = createRadixBuiltin("hex", v, meter, explicit ? index : undefined), call = () => builtin.value.invoke([guest], keywords, meter, {
+    call: unused, isStopIteration: unused, integerIndex: explicit ? { ...index, lookupIndex: unused } : index
+  });
   expect(call()).toEqual(v.string("-0xff"));
   result = v.true; expect(call()).toEqual(v.string("0x1")); expect(warnings[0]).toContain("strict subclass of int");
   result = v.float(1); expect(call).toThrow("__index__ returned non-int (type float)");

@@ -7176,6 +7176,14 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and scoped lint pass. Reversed still has explicit-only guest policy;
   remaining builtin integrations, concrete guest types, suspended effects and
   full safe-fs execution remain unfinished.
+- Chr/bin/oct/hex now inherit invocation integer-index policies unless explicitly
+  overridden. Four compiled nested-function regressions failed first and now
+  verify guest slot conversion exactly once. Existing chr/radix conversion tests
+  run with both inherited and explicit policies, retaining explicit priority,
+  strict-subclass warnings, invalid-result errors and original slot failures.
+  All 5,377 tests in 444 files pass; selected build, typecheck and scoped lint
+  pass. Remaining builtin frame integration, concrete guest type assembly,
+  suspended effects and full safe-fs execution remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

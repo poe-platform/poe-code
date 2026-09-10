@@ -35,7 +35,7 @@ it("checks keyword arguments and arity before converting the value", () => {
   keywords.items.set(v.string("i"), v.integer(65));
   expect(() => builtin.value.invoke([], keywords, meter)).toThrow("chr() takes no keyword arguments");
 });
-it("uses explicit guest index slots and their warning policy", () => {
+it.each([false, true])("uses guest index slots and warnings with explicit policy=%s", explicit => {
   const { v, meter, keywords } = fixture(), guest = v.cell({}), warnings: string[] = [];
   let result: RuntimeValue = v.integer(65);
   const context: IntegerIndexContext<RuntimeValue> = {
@@ -43,7 +43,10 @@ it("uses explicit guest index slots and their warning policy", () => {
     isExactInteger: value => value.kind === "int", lookupIndex: value => value === guest ? () => result : undefined,
     typeName: value => value.kind, warn: (_category, message) => { warnings.push(message); }
   };
-  const builtin = createChrBuiltin(v, meter, context), call = () => builtin.value.invoke([guest], keywords, meter);
+  const unused = (): never => { throw Error("unexpected invocation callback"); };
+  const builtin = createChrBuiltin(v, meter, explicit ? context : undefined), call = () => builtin.value.invoke([guest], keywords, meter, {
+    call: unused, isStopIteration: unused, integerIndex: explicit ? { ...context, lookupIndex: unused } : context
+  });
   expect(call()).toBe(v.string("A"));
   result = v.true; expect(call()).toBe(v.string("\x01")); expect(warnings[0]).toContain("strict subclass of int");
   result = v.string("65"); expect(() => call()).toThrow("__index__ returned non-int (type str)");

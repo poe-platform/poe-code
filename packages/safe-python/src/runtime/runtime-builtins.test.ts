@@ -286,6 +286,18 @@ it.each([false, true])("shares frame callability with callable builtin for guest
   }, meter);
   expect(globals.get("result")).toBe(v.boolean(eligible)); expect(globals.get("native")).toBe(v.true); expect(inspections).toBe(1);
 });
+it.each([["chr", "A"], ["bin", "0b1000001"], ["oct", "0o101"], ["hex", "0x41"]])("routes %s through the frame integer-index policy", (name, expected) => {
+  const { meter, v, context } = fixture(), guest = v.cell({}), globals = new Map<string, RuntimeValue>([["guest",guest]]), unused = (): never => { throw Error("unexpected callback"); }; let conversions = 0;
+  const program = compileProgram<RuntimeValue>(analyzeModule(`def convert(): return ${name}(guest)\nresult=convert()\n`), { stripDocstring: false }, v, meter);
+  executeRuntimeProgram(program, {
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { expressions: () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined, isExactInteger: value => value.kind === "int",
+      lookupIndex(value) { expect(value).toBe(guest); return () => { conversions++; return v.integer(65); }; }, typeName: () => "Guest", warn: unused
+    } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
+  }, meter);
+  expect(globals.get("result")).toEqual(v.string(expected)); expect(conversions).toBe(1);
+});
 it("lets sorted invoke compiled keys with stable reverse ordering", () => {
   const { meter, v, context } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw Error("unexpected guest callback"); };
   delete context.sorted;

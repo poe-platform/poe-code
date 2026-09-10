@@ -16,11 +16,12 @@ export function createRadixBuiltin(name: "bin" | "oct" | "hex", values: RuntimeV
     width: null, grouping: null, groupSize: 4, precision: null,
     fractionGrouping: null, type: { bin: 98, oct: 111, hex: 120 }[name]
   });
-  return values.builtinFunction({ name, invoke(positional, keywords, meter) {
+  return values.builtinFunction({ name, invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${name}() takes no keyword arguments`);
     if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `${name}() takes exactly one argument (${positional.length} given)`);
-    const integer = index === undefined ? runtimeIntegerIndex(positional[0], meter) : integerIndex(positional[0], index, meter);
+    const protocol = index ?? invocation?.integerIndex;
+    const integer = protocol === undefined ? runtimeIntegerIndex(positional[0], meter) : integerIndex(positional[0], protocol, meter);
     meter.checkpoint();
     return values.stringPoints(CodePointString.fromIntegerRadixFormat(integer, field, meter));
   } });

@@ -294,7 +294,7 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   // capabilities and methods without violating invariants on own properties.
   return new Proxy(Object.create(fs) as FileSystem, {
     get(_target, property) {
-      if (property === "canonicalizeMissingTarget") return undefined;
+      if (property === "canonicalizeMissingTarget" || property === "resizeFile") return undefined;
       if (property === "capabilities") return quotaCapabilities(retainedResizeCapabilities(fs, retainedReadCapabilities(fs)));
       if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) => {
         const capabilities = await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities;

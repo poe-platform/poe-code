@@ -1,7 +1,7 @@
 import { FsError, isFsError, toFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
-  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
+  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
@@ -136,7 +136,7 @@ export class MountFileSystem implements FileSystem {
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
-        descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"],
+        descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
       };
       const values = mounts.map(({ backend }) => {
         if (backend.capabilities.readOnly === true
@@ -152,7 +152,7 @@ export class MountFileSystem implements FileSystem {
       "read", "stat", "readdir", "realpath", "access",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
-      "streamingAppend", "randomAccessWrite", "descriptorWriteStream", "retainedResize", "symlinks", "hardlinks", "permissions", "timestamps",
+      "streamingAppend", "randomAccessWrite", "descriptorWriteStream", "retainedResize", "atomicResize", "symlinks", "hardlinks", "permissions", "timestamps",
     ].map(capability => [capability, common(capability)]).filter(([, value]) => value !== undefined));
     this.capabilities = Object.freeze({
       get snapshotRmdir() { return mounts.some(({ backend }) => backend.capabilities.snapshotRmdir === true); },
@@ -181,8 +181,10 @@ export class MountFileSystem implements FileSystem {
       const declared = observed.descriptorWriteStream === true
         && (typeof location.mount.backend.writeStream !== "function" || observed.readOnly === true || observed.streamingWrite === false)
         ? { ...observed, descriptorWriteStream: false } : observed;
-      const capabilities = location.synthetic ? { ...declared, retainedRead: false }
-        : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, declared));
+      const resize = declared.atomicResize === true && (typeof location.mount.backend.resizeFile !== "function" || declared.readOnly === true)
+        ? { ...declared, atomicResize: false } : declared;
+      const capabilities = location.synthetic ? { ...resize, retainedRead: false }
+        : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, resize));
       if (location.synthetic) return readOnlyCapabilities(capabilities);
       if (this.mounts.length === 1 || capabilities.readOnly === true) return Object.freeze({ ...capabilities });
       const { rename: ignoredRename, copy: ignoredCopy, exclusiveCopy: ignoredExclusiveCopy, ...selected } = capabilities;
@@ -208,6 +210,21 @@ export class MountFileSystem implements FileSystem {
     } catch (error) {
       throw error ? this.error(error, "openReadFile", path, options) : error;
     }
+  }
+
+  async resizeFile(path: string, operation: FileResizeOperation, options: FileResizeOptions = {}): Promise<void> {
+    return this.operation("resizeFile", path, options, async () => {
+      const location = await this.resolve(path, options, { allowMissing: options.create === true, resizeCreate: options.create ?? false });
+      if (location.synthetic) fail("EROFS");
+      const backend = location.mount.backend;
+      const capabilities = await backend.capabilitiesFor?.(location.local, options) ?? backend.capabilities;
+      options.signal?.throwIfAborted();
+      if (capabilities.readOnly === true) fail("EROFS");
+      const resize = backend.resizeFile;
+      options.signal?.throwIfAborted();
+      if (capabilities.atomicResize !== true || typeof resize !== "function") fail("ENOTSUP");
+      await Reflect.apply(resize!, backend, [location.local, operation, options]);
+    });
   }
 
   async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {

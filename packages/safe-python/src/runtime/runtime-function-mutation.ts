@@ -10,9 +10,16 @@ import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 export function runtimeMutateFunctionAttribute(fn: FunctionValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }, values: RuntimeValues, meter: ExecutionMeter): boolean {
   meter.checkpoint();
   switch (name) {
-    case "__class__": case "__code__": case "__defaults__": case "__kwdefaults__":
+    case "__class__": case "__code__":
     case "__globals__": case "__closure__": case "__builtins__": case "__annotate__": case "__type_params__":
       return false;
+    case "__defaults__": case "__kwdefaults__": {
+      const value = change.kind === "delete" ? values.none : change.value;
+      if (value.kind !== "none" && value.kind !== (name === "__defaults__" ? "tuple" : "dict")) throw new PythonRuntimeError("TypeError", `${name} must be set to a ${name === "__defaults__" ? "tuple" : "dict"} object`);
+      if (name === "__defaults__") fn.value.positionalDefaults = value;
+      else fn.value.keywordDefaults = value;
+      return true;
+    }
     case "__dict__": {
       if (change.kind === "delete") throw new PythonRuntimeError("TypeError", "cannot delete __dict__");
       const value = change.value;

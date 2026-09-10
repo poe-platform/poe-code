@@ -29,6 +29,9 @@ export interface FunctionState<Value> extends LexicalNamespaces<Value> {
   readonly code: CompiledFunction<Value>;
   readonly closure: ReadonlyMap<string, LexicalCell<Value>>;
   readonly defaults: ReadonlyMap<string, Value>;
+  /** Lazily reflected guest containers; None is distinct from unreflected. */
+  positionalDefaults?: Value;
+  keywordDefaults?: Value;
   attributes: FunctionAttributes<Value>;
   name: Value;
   qualifiedName: Value;

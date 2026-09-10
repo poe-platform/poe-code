@@ -2251,6 +2251,35 @@ it("uses metaclass lookup for native qualified names and retries failed descript
   expect(state.globals.get("live")).toEqual(state.v.string("R.__init_subclass__")); expect(state.events).toEqual(["qualname", "qualname", "qualname", "qualname"]);
 });
 
+it("reflects and replaces positional function defaults with live call behavior", () => {
+  const state = fixture();
+  state.run("def f(a,b=2): return (a,b)\ninitial=f.__defaults__\nreplacement=(10,20,30)\nf.__defaults__=replacement\nsame=f.__defaults__ is replacement\nresult=f()\nf.__defaults__=None\ncleared=f.__defaults__\n");
+  expect(state.globals.get("initial")).toEqual(state.v.tuple([state.v.integer(2)])); expect(state.globals.get("same")).toBe(state.v.true);
+  expect(state.globals.get("result")).toEqual(state.v.tuple([state.v.integer(20), state.v.integer(30)])); expect(state.globals.get("cleared")).toBe(state.v.none);
+  expect(() => state.run("f()\n")).toThrow("missing 2 required positional arguments");
+  expect(() => state.run("f.__defaults__=[]\n")).toThrow("__defaults__ must be set to a tuple object");
+});
+
+it("shares live keyword-default dictionaries with subsequent calls", () => {
+  const state = fixture();
+  state.run("def f(*,x=1): return x\ninitial=f.__kwdefaults__\ninitial['x']=2\nchanged=f()\nreplacement={'x':3,'unused':True}\nf.__kwdefaults__=replacement\nsame=f.__kwdefaults__ is replacement\nreplaced=f()\ndel f.__kwdefaults__\ncleared=f.__kwdefaults__\n");
+  expect(state.globals.get("changed")).toEqual(state.v.integer(2)); expect(state.globals.get("replaced")).toEqual(state.v.integer(3));
+  expect(state.globals.get("same")).toBe(state.v.true); expect(state.globals.get("cleared")).toBe(state.v.none);
+  expect(() => state.run("f()\n")).toThrow("missing 1 required keyword-only argument: 'x'");
+  expect(() => state.run("f.__kwdefaults__=[]\n")).toThrow("__kwdefaults__ must be set to a dict object");
+});
+
+it("retains empty default containers and clears defaults on deletion without reevaluation", () => {
+  const state = fixture();
+  state.run("payload=[]\nf=lambda a=payload: a\ninitial=f.__defaults__\nsame=f() is payload\nempty=()\nf.__defaults__=empty\nempty_same=f.__defaults__ is empty\ndel f.__defaults__\ncleared=f.__defaults__\ndef g(*,x=payload): return x\nkw={}\ng.__kwdefaults__=kw\nkw_same=g.__kwdefaults__ is kw\n");
+  for (const name of ["same", "empty_same", "kw_same"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(state.globals.get("cleared")).toBe(state.v.none);
+  expect(() => state.run("f()\n")).toThrow("missing 1 required positional argument: 'a'");
+  expect(() => state.run("g()\n")).toThrow("missing 1 required keyword-only argument: 'x'");
+  expect(() => state.run("g.__kwdefaults__=()\n")).toThrow("__kwdefaults__ must be set to a dict object");
+  state.run("preserved=g.__kwdefaults__ is kw\n"); expect(state.globals.get("preserved")).toBe(state.v.true);
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

@@ -8159,6 +8159,17 @@ extension, integration, or validation requirement is missing or unverified.
   CPython. All 6,324 tests in 483 files, selected build, typecheck and scoped lint
   pass. Complete native member/type publication, slot layouts, ModuleType class
   reassignment and full class construction remain unfinished.
+- Added live function __defaults__ and __kwdefaults__ reflection, replacement and
+  deletion. Lazy containers preserve captured value identity; subsequent calls
+  use the replacement tuple or current keyword dictionary. Positional defaults
+  align from the right even for overlong tuples. Keyword defaults are looked up
+  only for missing keyword-only arguments, after positional validation, matching
+  a CPython probe with observable dictionary-key equality. Two compiled cases
+  initially failed; additional coverage checks empty containers, lambda defaults,
+  deletion, rejected replacement preservation and lazy binding. All 6,329 tests
+  in 483 files, selected workspace build, typecheck and scoped lint pass. Full function
+  code/closure metadata, canonical native types and class construction remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

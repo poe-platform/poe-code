@@ -49,6 +49,21 @@ export function invokeRuntimeFunction(fn: FunctionValue, positional: readonly Ru
   if (context.classBody) invocation.classBody = context.classBody.bind(context);
   return invokeFunction(state.code, {
     name: stringText(state.qualifiedName, meter), positional, keywords: keywordValues, defaults: state.defaults,
+    defaultOverrides: state.positionalDefaults === undefined && state.keywordDefaults === undefined ? undefined : {
+      get positional() {
+        const value = state.positionalDefaults;
+        if (value === undefined) return undefined;
+        if (value.kind === "none") return null;
+        if (value.kind !== "tuple") throw Error("invalid positional default storage");
+        return value.items;
+      },
+      keyword: state.keywordDefaults === undefined ? undefined : name => {
+        const value = state.keywordDefaults;
+        if (value === undefined || value.kind === "none") return undefined;
+        if (value.kind !== "dict") throw Error("invalid keyword default storage");
+        return value.items.lookup(context.values.string(name));
+      }
+    },
     keywordNames: {
       parameter(key) {
         if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");

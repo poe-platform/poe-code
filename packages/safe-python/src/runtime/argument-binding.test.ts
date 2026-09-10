@@ -11,6 +11,27 @@ const parameters: readonly CallParameter[] = [
 ];
 
 describe("Python function argument binding", () => {
+  it("aligns replacement defaults from the right, including overlong tuples", () => {
+    const signature = parameters.slice(0, 2);
+    for (const positional of [[9], [8, 9], [7, 8, 9]]) {
+      const args = positional.length === 1 ? [1] : [];
+      const result = bindArguments("f", signature, args, new Map(), new Map([["b", 2]]), undefined, undefined, { positional });
+      expect([...result.values.values()]).toEqual(positional.length === 1 ? [1, 9] : [8, 9]);
+    }
+    expect(() => bindArguments("f", signature, [1, 2, 3], new Map(), new Map(), undefined, undefined, { positional: [7, 8, 9] })).toThrow("takes from -1 to 2 positional arguments");
+    expect(() => bindArguments("f", signature, [1], new Map(), new Map([["b", 2]]), undefined, undefined, { positional: null })).toThrow("missing 1 required positional argument: 'b'");
+  });
+
+  it("looks up keyword defaults lazily after positional validation", () => {
+    const names: string[] = [], defaults = { keyword(name: string) { names.push(name); return { value: undefined }; } };
+    expect(() => bindArguments("f", parameters, [], new Map(), new Map(), undefined, undefined, defaults)).toThrow("missing 2 required positional arguments");
+    expect(names).toEqual([]);
+    const result = bindArguments("f", parameters, [1, 2], new Map(), new Map(), undefined, undefined, defaults);
+    expect(result.values.has("c")).toBe(true); expect(result.values.get("c")).toBeUndefined(); expect(names).toEqual(["c"]);
+    bindArguments("f", parameters, [1, 2], new Map([["c", 3]]), new Map(), undefined, undefined, defaults);
+    expect(names).toEqual(["c"]);
+  });
+
   it("binds all parameter kinds and keeps positional-only names in kwargs", () => {
     const result = bindArguments("f", parameters, [1, 2, 3, 4], new Map([["a", 10], ["c", 5], ["args", 6]]));
     expect(result.values).toEqual(new Map([["a", 1], ["b", 2], ["c", 5]]));

@@ -47,7 +47,7 @@ export function invokeFunction<Value, Key = string>(
 ): Value {
   meter.checkpoint();
   if (code.body.kind === "class") {
-    bindArguments(call.name, [], call.positional, call.keywords, call.defaults, meter, call.keywordNames);
+    bindArguments(call.name, [], call.positional, call.keywords, call.defaults, meter, call.keywordNames, call.defaultOverrides);
     if (context.classBody === undefined) throw new Error("class-body function execution is unavailable");
     const result = context.classBody(code.body.code);
     meter.checkpoint();

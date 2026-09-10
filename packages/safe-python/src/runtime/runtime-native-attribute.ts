@@ -61,6 +61,7 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } from "./runtime-native-method-metadata.js";
+import { runtimeFunctionDefaults } from "./runtime-function-defaults.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
  * exposed; host payload fields and JavaScript prototypes are never inspected.
@@ -71,6 +72,7 @@ import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } fro
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & NativeMethodMetadataContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "function") {
+    if (name === "__defaults__" || name === "__kwdefaults__") return runtimeFunctionDefaults(receiver, name, values, meter, methods?.dictionaryKeys);
     if (name === "__dict__") {
       if (methods?.dictionaryKeys === undefined) throw Error("function attribute dictionaries require a key policy");
       const attributes = receiver.value.attributes;

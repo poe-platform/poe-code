@@ -5,6 +5,13 @@ import { suggestName } from "./name-suggestion.js";
 
 export type CallParameter = Pick<Parameter, "name" | "kind">;
 
+export interface FunctionDefaultOverrides<Value> {
+  /** Undefined uses definition-time defaults; null explicitly removes them. */
+  readonly positional?: readonly Value[] | null;
+  /** Called only for missing keyword-only arguments, after positional checks. */
+  keyword?(name: string): { readonly value: Value } | undefined;
+}
+
 export interface KeywordNames<Key> {
   /** Exact source-name spelling, or undefined if the key cannot equal a source
    * identifier. Never normalize caller keys or collapse surrogate sequences. */
@@ -29,7 +36,7 @@ export interface BoundArguments<Value, Key = string> {
 export function bindArguments<Value, Key = string>(
   functionName: string, parameters: readonly CallParameter[],
   positional: readonly Value[], keywords: ReadonlyMap<Key, Value>,
-  defaults: ReadonlyMap<string, Value> = new Map(), meter?: ExecutionMeter, names?: KeywordNames<Key>
+  defaults: ReadonlyMap<string, Value> = new Map(), meter?: ExecutionMeter, names?: KeywordNames<Key>, overrides?: FunctionDefaultOverrides<Value>
 ): BoundArguments<Value, Key> {
   meter?.checkpoint();
   const positionalParameters: CallParameter[] = [], keywordParameters = new Map<string, CallParameter>();
@@ -91,15 +98,28 @@ export function bindArguments<Value, Key = string>(
       if (!defaults.has(parameter.name)) required++;
     }
     const total = positionalParameters.length;
+    if (overrides?.positional !== undefined) required = total - (overrides.positional?.length ?? 0);
     const expected = required === total ? `${total} positional argument${total === 1 ? "" : "s"}` : `from ${required} to ${total} positional arguments`;
     const given = keywordOnlyGiven ? `${positional.length} positional argument${positional.length === 1 ? "" : "s"} (and ${keywordOnlyGiven} keyword-only argument${keywordOnlyGiven === 1 ? "" : "s"})` : String(positional.length);
     throw new PythonRuntimeError("TypeError", `${functionName}() takes ${expected} but ${given} ${positional.length === 1 && keywordOnlyGiven === 0 ? "was" : "were"} given`);
   }
   const missingPositional: string[] = [], missingKeyword: string[] = [];
+  let positionalIndex = 0;
   for (const parameter of parameters) {
     meter?.checkpoint();
-    if (parameter.kind === "var-positional" || parameter.kind === "var-keyword" || values.has(parameter.name)) continue;
-    if (defaults.has(parameter.name)) values.set(parameter.name, defaults.get(parameter.name)!);
+    if (parameter.kind === "var-positional" || parameter.kind === "var-keyword") continue;
+    const index = parameter.kind === "keyword-only" ? -1 : positionalIndex++;
+    if (values.has(parameter.name)) continue;
+    if (parameter.kind === "keyword-only" && missingPositional.length !== 0) continue;
+    let fallback: { readonly value: Value } | undefined;
+    const positionalDefaults = overrides?.positional;
+    if (parameter.kind !== "keyword-only" && positionalDefaults !== undefined) {
+      const offset = (positionalDefaults?.length ?? 0) - positionalParameters.length + index;
+      if (positionalDefaults !== null && offset >= 0) fallback = { value: positionalDefaults[offset] };
+    } else if (parameter.kind === "keyword-only" && overrides?.keyword !== undefined) {
+      fallback = overrides.keyword(parameter.name); meter?.checkpoint();
+    } else if (defaults.has(parameter.name)) fallback = { value: defaults.get(parameter.name)! };
+    if (fallback !== undefined) values.set(parameter.name, fallback.value);
     else (parameter.kind === "keyword-only" ? missingKeyword : missingPositional).push(parameter.name);
   }
   const missing = missingPositional.length ? missingPositional : missingKeyword;

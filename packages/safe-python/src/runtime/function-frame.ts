@@ -1,6 +1,6 @@
 import { manglePrivateName } from "../private-names.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
-import { bindArguments, type CallParameter, type KeywordNames } from "./argument-binding.js";
+import { bindArguments, type CallParameter, type KeywordNames, type FunctionDefaultOverrides } from "./argument-binding.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
 
@@ -14,6 +14,7 @@ export interface FunctionCallArguments<Value, Key = string> {
   readonly keywordNames?: KeywordNames<Key>;
   /** Already evaluated defaults, keyed by normalized source or mangled names. */
   readonly defaults: ReadonlyMap<string, Value>;
+  readonly defaultOverrides?: FunctionDefaultOverrides<Value>;
 }
 
 export interface FunctionFrameContext<Value, Key = string> extends LexicalNamespaces<Value> {
@@ -50,7 +51,7 @@ export function createFunctionFrame<Value, Key = string>(
     meter.checkpoint();
     defaults.set(manglePrivateName(name, scope.scope.privateName), value);
   }
-  const bound = bindArguments(call.name, parameters, call.positional, call.keywords, defaults, meter, call.keywordNames);
+  const bound = bindArguments(call.name, parameters, call.positional, call.keywords, defaults, meter, call.keywordNames, call.defaultOverrides);
   const frame = new LexicalFrame(scope, context, meter);
   for (const parameter of parameters) {
     meter.checkpoint();

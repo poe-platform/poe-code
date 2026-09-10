@@ -422,9 +422,17 @@ compilation retains its additional work charges.
 `deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible.
 
 Native Promise imports accept genuine promises from other JavaScript realms,
-preserving aliases and copying fulfillment or rejection values. Imports remain
-settlement-only: own string and symbol properties are not copied, because they
-can contain private host async-context state. Property admission is unresolved.
+preserving aliases and copying fulfillment or rejection values. Own string-keyed
+data properties are copied with their descriptors, aliases, cycles, and
+nonextensibility. Replay inputs retain these properties, including callable
+properties bound as host capabilities. Accessor metadata is omitted without
+invoking its getter; symbol properties are still omitted because they can carry
+private host async-context state. Accessor and user-symbol admission remain
+unresolved. Native Promise observation still follows native constructor/species
+hooks; importing a Promise does not promise to suppress those hooks.
+Newly encountered Promises returned by host calls still require further replay
+support when they carry own data properties: initial execution accepts them,
+but recording the host outcome for replay currently fails.
 Maps and Sets in imported Promise fulfillment values retain their collection
 behavior, cycles, and aliases through input conversion and completed replay.
 References to already imported Promises inside fulfillment data resolve to the

@@ -42,6 +42,7 @@ import {
   createSandboxClosure,
   createSandboxPromise,
   getPromiseProperties,
+  promiseProperties,
   createSandboxMap,
   createSandboxRegex,
   createSandboxSet,
@@ -78,6 +79,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "promise-capability"; id: string; properties: Atom }
   | { kind: "pending-imported-promise"; scheduleId?: number }
   | { kind: "settled-imported-promise"; status: "fulfilled" | "rejected"; outcome: Atom; scheduleId?: number }
   | { kind: "module-namespace"; entries: Array<[string, Atom]> }
@@ -173,7 +175,20 @@ export function encodeReplayData(
     }
     if (isSandboxPromise(entry)) {
       const id = options.identifyPromise?.(entry, path);
-      if (typeof id === "string" && id.length > 0) return { tag: "promise-capability", id };
+      if (typeof id === "string" && id.length > 0) {
+        const properties = getPromiseProperties(entry);
+        if (!options.captureCapabilityProperties || (Reflect.ownKeys(properties).length === 0 && Object.isExtensible(properties)))
+          return { tag: "promise-capability", id };
+        const existing = seen.get(entry);
+        if (existing !== undefined) return { tag: "ref", id: existing };
+        const index = nodes.length;
+        seen.set(entry, index);
+        nodes.push(undefined as unknown as DataNode);
+        options.onValueEncoded?.(index, entry);
+        nodes[index] = { kind: "promise-capability", id,
+          properties: encode(properties, depth + 1, [...path, "properties"], true) };
+        return { tag: "ref", id: index };
+      }
       const snapshot = importedPromiseSnapshots.get(entry);
       if (options.captureSettledImportedPromises && snapshot?.ok === false) throw snapshot.error;
       const state = snapshot?.ok ? snapshot.state : undefined;
@@ -613,6 +628,32 @@ export function decodeReplayData(
         } else symbol = Symbol(node.description);
         restored.set(id, symbol);
         return symbol;
+      }
+      if (kind === "promise-capability") {
+        const propertyReference = record(own(node, "properties"));
+        if (own(propertyReference, "tag") !== "ref" || typeof propertyReference.id !== "number" ||
+            !Number.isSafeInteger(propertyReference.id) || propertyReference.id < 0 || propertyReference.id >= nodes.length ||
+            own(record(nodes[propertyReference.id]), "kind") !== "object")
+          throw new TypeError("Invalid replay Promise capability properties.");
+        const capabilityId = own(node, "id");
+        if (typeof capabilityId !== "string" || capabilityId.length === 0)
+          throw new TypeError("Invalid replay Promise capability reference.");
+        const capability = options.resolvePromise?.(capabilityId);
+        if (!isSandboxPromise(capability)) throw new TypeError(`Missing replay Promise capability '${capabilityId}'.`);
+        restored.set(id, capability);
+        initializeValues.push(() => {
+          const properties = child(own(node, "properties"));
+          if (properties === null || typeof properties !== "object" ||
+              (Object.getPrototypeOf(properties) !== null && Object.getPrototypeOf(properties) !== Object.prototype))
+            throw new TypeError("Invalid replay Promise capability properties.");
+          const previous = promiseProperties.get(capability);
+          work.rollback.push(() => {
+            if (previous === undefined) promiseProperties.delete(capability);
+            else promiseProperties.set(capability, previous);
+          });
+          promiseProperties.set(capability, properties as Record<string, SandboxValue>);
+        });
+        return capability;
       }
       if (kind === "capability") {
         const capabilityId = own(node, "id");

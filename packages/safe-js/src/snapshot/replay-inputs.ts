@@ -7,6 +7,7 @@ import {
   isSandboxMap,
   isSandboxSet,
   isSandboxPromise,
+  getPromiseProperties,
   type SandboxClosure,
   type SandboxPromise,
   type SandboxValue
@@ -17,7 +18,6 @@ import { ownSerializableSymbolKeys } from "./symbols.js";
 import { isSandboxModuleNamespace } from "../interp/module-namespace.js";
 import { validateSnapshotData } from "./validation.js";
 
-const validationPromise = createSandboxPromise(Promise.resolve(undefined));
 
 export type ReplayInputs = {
   bindings: Record<string, SandboxValue>;
@@ -125,6 +125,10 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
         value = value.properties;
         continue;
       }
+      if (key === "properties" && isSandboxPromise(value)) {
+        value = getPromiseProperties(value);
+        continue;
+      }
       if (value === null || typeof value !== "object") return undefined;
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
       if (descriptor === undefined || !("value" in descriptor)) return undefined;
@@ -147,7 +151,7 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
     try {
       const validated = decodeReplayData(snapshot, {
         resolveCapability,
-        resolvePromise: id => { readCapability(id); return validationPromise; }
+        resolvePromise: id => { readCapability(id); return createSandboxPromise(Promise.resolve(undefined), { trackReplay: false }); }
       }, validationScope);
       assertReplayInputShape(validated, "namespace" in current);
       if (snapshot.namespaceRoots !== undefined) {
@@ -157,7 +161,7 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
         for (const root of Object.values(snapshot.namespaceRoots)) {
           const namespace = decodeReplayData({ root, nodes: snapshot.nodes }, {
             resolveCapability: id => { readCapability(id); return validationCapability; },
-            resolvePromise: id => { readCapability(id); return validationPromise; }
+            resolvePromise: id => { readCapability(id); return createSandboxPromise(Promise.resolve(undefined), { trackReplay: false }); }
           }, validationScope);
           if (!isSandboxModuleNamespace(namespace)) throw new TypeError("Invalid replay module namespace.");
         }

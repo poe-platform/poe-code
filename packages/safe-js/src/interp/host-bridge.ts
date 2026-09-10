@@ -1,4 +1,5 @@
 import { types } from "node:util";
+import { nativePromiseDataProperties } from "./native-promise-properties.js";
 import { readNativeRegExp } from "./native-regexp.js";
 import { importedPromises } from "./promise-state.js";
 import { guestProxyStates } from "./guest-proxy.js";
@@ -51,6 +52,7 @@ import {
   createSandboxClosure,
   createSandboxMap,
   createSandboxPromise,
+  getPromiseProperties,
   createSandboxRegex,
   getRegexProperties,
   isSandboxRegex,
@@ -1210,7 +1212,11 @@ export function copyHostValueToSandbox(
     const promiseIdentities = state.promiseIdentities ??= new WeakMap<object, SandboxValue>();
     const existing = state.seen.get(value) ?? promiseIdentities.get(value);
     if (existing !== undefined) return existing;
-    const promise = wrapHostPromiseWithSignal(Promise.resolve(value), options.signal).then(
+    const descriptors = types.isPromise(value) ? nativePromiseDataProperties(value) : [];
+    const observed = types.isPromise(value)
+      ? Reflect.apply(Promise.prototype.then, value, [(settled: unknown) => settled]) as Promise<unknown>
+      : Promise.resolve(value);
+    const promise = wrapHostPromiseWithSignal(observed, options.signal).then(
       (resolved) => {
         try {
           return copyHostValueToSandbox(
@@ -1243,6 +1249,15 @@ export function copyHostValueToSandbox(
     importedPromises.add(sandboxPromise);
     state.seen.set(value, sandboxPromise);
     promiseIdentities.set(value, sandboxPromise);
+    if (types.isPromise(value)) {
+      const properties = getPromiseProperties(sandboxPromise);
+      for (const [key, descriptor] of descriptors) {
+        Object.defineProperty(properties, key, { ...descriptor,
+          value: copyHostValueToSandbox(descriptor.value, stackFrames,
+            { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
+      }
+      if (!Object.isExtensible(value)) Object.preventExtensions(properties);
+    }
     const span = getBoundOtelSpan(value);
     if (span !== undefined) {
       bindOtelSpan(promise, span);

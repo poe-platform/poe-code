@@ -58,6 +58,7 @@ import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, native
 import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
+import { nativePromiseDataProperties } from "./native-promise-properties.js";
 import { CompileScope, RegexCompileGuard, regexCompiledData } from "./regex/compile-guard.js";
 import {
   type NumericTypedArray,
@@ -217,7 +218,7 @@ export type SandboxPromise = {
   readonly [sandboxPromiseBrand]: true;
 };
 
-const promiseProperties = new WeakMap<SandboxPromise, SandboxObject>();
+export const promiseProperties = new WeakMap<SandboxPromise, SandboxObject>();
 
 export function getPromiseProperties(value: SandboxPromise): SandboxObject {
   let properties = promiseProperties.get(value);
@@ -1594,14 +1595,21 @@ function copyToSandbox(
     const nativePromises = state.nativePromises ??= new WeakMap<object, SandboxPromise>();
     const existing = state.seen.get(value) ?? nativePromises.get(value);
     if (existing !== undefined) return existing;
-    const promise = Promise.resolve(value).then(
-      (resolved) => copyToSandbox(resolved, { seen: new WeakMap(), nativePromises, compilation: state.compilation }),
-      (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap(), nativePromises, compilation: state.compilation }))
-    );
+    const descriptors = nativePromiseDataProperties(value);
+    const promise = Reflect.apply(Promise.prototype.then, value, [
+      (resolved: unknown) => copyToSandbox(resolved, { seen: new WeakMap(), nativePromises, compilation: state.compilation }),
+      (reason: unknown) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap(), nativePromises, compilation: state.compilation }))
+    ]) as Promise<SandboxValue>;
     const sandboxPromise = createSandboxPromise(promise, { importCompileOwner: state.compilation?.owner });
     importedPromises.add(sandboxPromise);
     state.seen.set(value, sandboxPromise);
     nativePromises.set(value, sandboxPromise);
+    const properties = getPromiseProperties(sandboxPromise);
+    for (const [key, descriptor] of descriptors) {
+      Object.defineProperty(properties, key, { ...descriptor,
+        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(properties);
     const span = getBoundOtelSpan(value);
     if (span !== undefined) {
       bindOtelSpan(promise, span);

@@ -1763,7 +1763,8 @@ function restoreGuestGenerator(
   const blockScopes = new Map<number, Scope>();
   for (const [id, ref] of Object.entries(serialized.blockScopes ?? {})) {
     const blockScope = state.guestScopes.get((ref as SerializedReferenceValue).id);
-    if (blockScope === undefined || nodes.get(Number(id))?.type !== "BlockStatement")
+    const scopeNode: { type: string } | undefined = nodes.get(Number(id));
+    if (blockScope === undefined || (scopeNode?.type !== "BlockStatement" && scopeNode?.type !== "CatchClause"))
       throw new TypeError("Invalid generator block scope.");
     blockScopes.set(Number(id), blockScope);
   }

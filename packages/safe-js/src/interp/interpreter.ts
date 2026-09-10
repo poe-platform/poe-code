@@ -2938,7 +2938,8 @@ async function evaluateTryStatement(
     instantiateBlock: (block: BlockStatement, scope: Scope) => predeclareStatementListBindings(block.body, {...context, scope}),
     toPropertyKey: (value: SandboxValue) => toPropertyKey(value, context.budget, createCoercionContext(context)),
     getProperty: (value: SandboxValue, key: PropertyKey) => getPropertyValue(value, key, context)
-  }, evaluateNode);
+  }, evaluateNode, (pattern, value, catchContext) =>
+    bindPattern(pattern, value, { kind: "let" }, catchContext.scope, createPatternContext(catchContext)));
   if (!context.evalCompletion) return evaluation;
   const result = await evaluation;
   return context.evalCompletion && result.kind !== "error" && !result.hasValue

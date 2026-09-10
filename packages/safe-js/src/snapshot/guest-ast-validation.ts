@@ -166,8 +166,11 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
             member: kind === "call" && (node.callee as Record<string, unknown>)?.type === "MemberExpression" }]]) }));
         continue;
       }
-      pending.push({ value, blocks,
-        expressions: ((node.type === "VariableDeclarator" && key === "id" && node.init !== undefined) ||
+      pending.push({ value, blocks: node.type === "CatchClause" && key === "param" && typeof node.nodeId === "number"
+        ? new Set([...blocks, node.nodeId]) : blocks,
+        expressions: node.type === "CatchClause" && key === "param" && typeof node.nodeId === "number"
+          ? new Map([...frame.expressions, [node.nodeId, { kind: "pattern-source" }]])
+          : ((node.type === "VariableDeclarator" && key === "id" && node.init !== undefined) ||
           ((node.type === "AssignmentExpression" || node.type === "AssignmentPattern") && key === "left")) && typeof node.nodeId === "number" &&
           ["ArrayPattern", "ObjectPattern"].includes(String((value as Record<string, unknown>)?.type))
           ? new Map([...frame.expressions, [node.nodeId, { kind: "pattern-source" }]])

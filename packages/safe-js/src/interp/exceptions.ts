@@ -1,12 +1,10 @@
 import type {
   ArrayPattern,
   AssignmentPattern,
-  AssignmentProperty,
   BlockStatement,
   CatchClause,
   BreakStatement,
   ContinueStatement,
-  Expression,
   Identifier,
   MemberExpression,
   ObjectPattern,
@@ -32,17 +30,15 @@ import { HostCallResumabilityError } from "./host-call.js";
 import { withFatalPromiseCleanup } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
 import type { InterpreterError } from "./interpreter.js";
-import { deepCopyToSandbox, ownEnumerableSandboxKeys, type SandboxObject, type SandboxValue } from "./values.js";
-import { hasOwnSandboxProperty } from "./globals/object.js";
-import { retainValues } from "./resources.js";
+import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
 import { getSandboxDataProperty, setSandboxPrototype } from "./object-model.js";
 import { errorPrototypes } from "./error-prototypes.js";
-import { toPropertyKey } from "./property-key.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { containsResumeTarget } from "./resume-target.js";
 import { evaluateResourceScope, resourceSuspension } from "./resource-management.js";
 import type { AsyncSuspensionContext } from "./async.js";
 import { StatementCompletion } from "./statement-completion.js";
+import type { GeneratorExpressionState } from "./generator-expression-state.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
 export const referenceErrorDiagnostics = new WeakSet<object>();
@@ -103,6 +99,8 @@ type ExceptionContext = AsyncSuspensionContext & {
   generatorResume?: { yieldNodeId: number; completed?: boolean };
   generatorBlockScopes?: ReadonlyMap<number, Scope>;
   restoredGeneratorBlockScopes?: ReadonlyMap<number, Scope>;
+  generatorExpressionStates?: ReadonlyMap<number, GeneratorExpressionState>;
+  restoredGeneratorExpressionStates?: ReadonlyMap<number, GeneratorExpressionState>;
   finallyCompletions?: ReadonlyMap<number, CompletionResult>;
   restoredFinallyCompletions?: ReadonlyMap<number, CompletionResult>;
   toPropertyKey?: (value: SandboxValue) => string | symbol | Promise<string | symbol>;
@@ -117,6 +115,12 @@ type EvaluateExceptionNode<TContext, TError> = (
 type BlockExceptionContext = ExceptionContext & {
   instantiateBlock(node: BlockStatement, scope: Scope): void;
 };
+
+type BindCatchParameter<TContext, TError> = (
+  pattern: NonNullable<CatchClause["param"]>,
+  value: SandboxValue,
+  context: TContext
+) => Promise<PatternBindingResult<TError>>;
 
 export async function evaluateThrowStatement<TContext extends ExceptionContext, TError>(
   node: ThrowStatement,
@@ -140,13 +144,14 @@ export async function evaluateThrowStatement<TContext extends ExceptionContext, 
 export async function evaluateTryStatement<TContext extends BlockExceptionContext, TError>(
   node: TryStatement,
   context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
+  evaluateNode: EvaluateExceptionNode<TContext, TError>,
+  bindCatchParameter: BindCatchParameter<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
   let fatalBudgetError: SandboxError | undefined;
   let tryResult: EvaluationResult<TError>;
   const resume = context.generatorResume;
   const resumeInCatch = resume !== undefined && resume.completed !== true && node.handler !== undefined &&
-    containsResumeTarget(node.handler.body, new Set([resume.yieldNodeId]));
+    containsResumeTarget(node.handler, new Set([resume.yieldNodeId]));
   const resumeInFinally = resume !== undefined && resume.completed !== true && node.finalizer !== undefined &&
     containsResumeTarget(node.finalizer, new Set([resume.yieldNodeId]));
   const pendingCompletion = node.nodeId === undefined ? undefined : context.restoredFinallyCompletions?.get(node.nodeId);
@@ -173,7 +178,7 @@ export async function evaluateTryStatement<TContext extends BlockExceptionContex
   let catchFailure: CompletionResult | undefined;
   if (!resumeInFinally && fatalBudgetError === undefined && (resumeInCatch || tryResult.kind === "throw") && node.handler !== undefined) {
     try {
-      tryOrCatchResult = await evaluateCatchClause(node.handler, "value" in tryResult ? tryResult.value : undefined, context, evaluateNode);
+      tryOrCatchResult = await evaluateCatchClause(node.handler, "value" in tryResult ? tryResult.value : undefined, context, evaluateNode, bindCatchParameter);
     } catch (error) {
       if (isFatalSandboxError(error) || isInterpreterError(error) || error instanceof HostCallResumabilityError) {
         throw error;
@@ -572,23 +577,36 @@ async function evaluateCatchClause<TContext extends BlockExceptionContext, TErro
   node: CatchClause,
   thrownValue: SandboxValue,
   context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
+  evaluateNode: EvaluateExceptionNode<TContext, TError>,
+  bindCatchParameter: BindCatchParameter<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
-  if (context.generatorResume !== undefined && context.generatorResume.completed !== true &&
-      node.body.nodeId !== undefined && context.restoredGeneratorBlockScopes?.has(node.body.nodeId))
-    return evaluateBlockCompletion(node.body, context, evaluateNode);
-  const scope = context.scope.child({}, node.param?.type === "Identifier"
+  const resuming = context.generatorResume !== undefined && context.generatorResume.completed !== true;
+  const restoredScope = !resuming || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorBlockScopes?.get(node.nodeId);
+  const scope = restoredScope ?? context.scope.child({}, node.param?.type === "Identifier"
     ? {simpleCatchParameter: node.param.name} : {});
   const catchContext = {
     ...context,
     scope
   };
+  if (resuming && node.body.nodeId !== undefined && context.restoredGeneratorBlockScopes?.has(node.body.nodeId))
+    return evaluateBlockCompletion(node.body, catchContext, evaluateNode);
 
   if (node.param !== undefined) {
-    for (const name of getPatternBindingNames(node.param)) {
+    for (const name of restoredScope === undefined ? getPatternBindingNames(node.param) : []) {
       scope.predeclare(name, "let");
     }
-    const binding = await bindPattern(node.param, thrownValue, catchContext, evaluateNode);
+    const saved = !resuming || node.nodeId === undefined ? undefined
+      : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+    if (saved !== undefined && saved.kind !== "pattern-source") throw new TypeError("Invalid catch binding source.");
+    const value = saved === undefined ? thrownValue : saved.value;
+    const bindingContext = context.generatorYield === undefined || node.nodeId === undefined ? catchContext : {
+      ...catchContext,
+      generatorBlockScopes: new Map([...(context.generatorBlockScopes ?? []), [node.nodeId, scope]]),
+      generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+        [node.nodeId, {kind: "pattern-source" as const, value}]])
+    };
+    const binding = await bindCatchParameter(node.param, value, bindingContext);
     if (!binding.ok) {
       return binding.result;
     }
@@ -667,230 +685,5 @@ function getPatternBindingNames(
       );
     case "RestElement":
       return getPatternBindingNames(pattern.argument);
-  }
-}
-
-async function bindPattern<TContext extends ExceptionContext, TError>(
-  pattern:
-    | ArrayPattern
-    | AssignmentPattern
-    | Identifier
-    | MemberExpression
-    | ObjectPattern
-    | RestElement,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  switch (pattern.type) {
-    case "Identifier":
-      context.scope.declare(pattern.name, "let", value);
-      return { ok: true };
-    case "MemberExpression":
-      throw new TypeError("Catch bindings do not support member expressions.");
-    case "AssignmentPattern":
-      return bindAssignmentPattern(pattern, value, context, evaluateNode);
-    case "ArrayPattern":
-      return bindArrayPattern(pattern, value, context, evaluateNode);
-    case "ObjectPattern":
-      return bindObjectPattern(pattern, value, context, evaluateNode);
-    case "RestElement":
-      return bindPattern(pattern.argument, value, context, evaluateNode);
-  }
-}
-
-async function bindAssignmentPattern<TContext extends ExceptionContext, TError>(
-  pattern: AssignmentPattern,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  let nextValue = value;
-
-  if (nextValue === undefined) {
-    const defaultValue = await evaluateNode(pattern.right, {
-      ...context,
-      inferredName: pattern.left.type === "Identifier" ? pattern.left.name : undefined
-    });
-    if (defaultValue.kind !== "normal") {
-      return {
-        ok: false,
-        result: defaultValue
-      };
-    }
-
-    nextValue = defaultValue.value;
-  }
-
-  return bindPattern(pattern.left, nextValue, context, evaluateNode);
-}
-
-async function bindArrayPattern<TContext extends ExceptionContext, TError>(
-  pattern: ArrayPattern,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  if (!Array.isArray(value)) {
-    throw new TypeError("Array catch bindings require an array value.");
-  }
-
-  let cursor = 0;
-  let done = false;
-  const next = async (): Promise<IteratorResult<SandboxValue>> => {
-    if (done || cursor >= value.length) {
-      done = true;
-      return { done: true, value: undefined };
-    }
-    const key = cursor++;
-    return {
-      done: false,
-      value:
-        context.getProperty === undefined
-          ? getSandboxDataProperty(value, key, context.budget)
-          : await context.getProperty(value, key)
-    };
-  };
-
-  for (let index = 0; index < pattern.elements.length; index += 1) {
-    const element = pattern.elements[index];
-    if (element === null) {
-      await next();
-      continue;
-    }
-
-    let elementValue: SandboxValue;
-    if (element.type === "RestElement") {
-      const rest: SandboxValue[] = [];
-      for (let entry = await next(); !entry.done; entry = await next()) {
-        context.budget.allocateArrayLength(rest.length + 1);
-        rest.push(entry.value);
-      }
-      elementValue = rest;
-    } else elementValue = (await next()).value;
-    const binding = await bindPattern(element, elementValue, context, evaluateNode);
-    if (!binding.ok) {
-      return binding;
-    }
-  }
-
-  return { ok: true };
-}
-
-async function bindObjectPattern<TContext extends ExceptionContext, TError>(
-  pattern: ObjectPattern,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  if (value === null || value === undefined) {
-    throw new TypeError("Object catch bindings require a non-nullish value.");
-  }
-
-  const excludedKeys = new Set<PropertyKey>();
-
-  for (const property of pattern.properties) {
-    if (property.type === "RestElement") {
-      const restValue = await copyObjectRest(value, excludedKeys, context);
-      const binding = await bindPattern(property, restValue, context, evaluateNode);
-      if (!binding.ok) {
-        return binding;
-      }
-
-      continue;
-    }
-
-    const key = await resolvePatternPropertyKey(property, context, evaluateNode);
-    if (!key.ok) {
-      return key;
-    }
-
-    excludedKeys.add(typeof key.value === "symbol" ? key.value : String(key.value));
-    const binding = await bindPattern(
-      property.value,
-      context.getProperty === undefined
-        ? getSandboxDataProperty(value, key.value, context.budget)
-        : await context.getProperty(value, key.value),
-      context,
-      evaluateNode
-    );
-    if (!binding.ok) {
-      return binding;
-    }
-  }
-
-  return { ok: true };
-}
-
-async function resolvePatternPropertyKey<TContext extends ExceptionContext, TError>(
-  property: AssignmentProperty,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<
-  | {
-      ok: true;
-      value: PropertyKey;
-    }
-  | {
-      ok: false;
-      result: EvaluationResult<TError>;
-    }
-> {
-  if (!property.computed) {
-    return {
-      ok: true,
-      value: getStaticPropertyKey(property.key)
-    };
-  }
-
-  const computedKey = await evaluateNode(property.key as Expression, context);
-  if (computedKey.kind !== "normal") {
-    return {
-      ok: false,
-      result: computedKey
-    };
-  }
-
-  return {
-    ok: true,
-    value: await (context.toPropertyKey?.(computedKey.value) ?? toPropertyKey(
-      computedKey.value,
-      context.budget,
-      { stack: context.callStack, thisValue: undefined }
-    ))
-  };
-}
-
-function getStaticPropertyKey(property: AssignmentProperty["key"]): string | number {
-  switch (property.type) {
-    case "Identifier":
-      return property.name;
-    case "StringLiteral":
-    case "NumericLiteral":
-      return property.value;
-    default:
-      throw new TypeError(`Unsupported catch binding property key '${property.type}'.`);
-  }
-}
-
-async function copyObjectRest(
-  value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<PropertyKey>,
-  context: ExceptionContext
-): Promise<SandboxObject> {
-  const rest = Object.create(null) as SandboxObject;
-  const release = retainValues(context.budget, () => [value, rest]);
-  try {
-    for (const key of ownEnumerableSandboxKeys(value, true)) {
-      if (excludedKeys.has(key) || !hasOwnSandboxProperty(value, key, true)) continue;
-      rest[key] =
-        context.getProperty === undefined
-          ? getSandboxDataProperty(value, key, context.budget)
-          : await context.getProperty(value, key);
-    }
-
-    return rest;
-  } finally {
-    release();
   }
 }

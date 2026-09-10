@@ -1,5 +1,25 @@
 # Catch binding iterator protocol
 
+## Main integration status
+
+The prerequisite full gate completed: 28,319 passes, 14 known Promise/locale
+failures, 47 skips (e8fe9a). It did not include this repair. The new protocol
+file then reproduced 22 failures and two controls passing against unchanged
+main (44a6bb). The validated shared-binding and scope-recovery changes are now
+applied to main's worktree, with README updated, and verified for a local commit.
+
+Main's focused protocol/checkpoint/exception/AST-ownership selection passes
+73 tests across four files (90467a). Its chained lint/TypeScript checks passed
+(07bbf8). The full main snapshot selection completed: **2,193 passed, zero
+failed or skipped, 160 files** (48d872), report
+`/tmp/safejs-catch-main-snapshot-results.json`. Main runtime and tests stayed
+unchanged during that run. The maintained selected-workspace build passed 23
+build tasks and all five fresh-process import checks (be900f). Built Node18.18.2
+probes pass for Set catch destructuring, Proxy object rest and an async catch
+default (ac28bd). No visual CLI change requires screenshots. The full-package
+Promise/locale failures remain separate unresolved work.
+Historical isolated and live-gate observations below are not current blockers.
+
 ## Validated defect
 
 At runtime d4891dd09, public guest execution of array catch patterns only accepts
@@ -113,6 +133,21 @@ The symbol and primitive/prototype controls pass main and are not defects.
 A new Proxy regression is included in the isolated protocol file; all 24 tests
 in that file pass (c79b5d). The source change remains the shared binding repair,
 not a separate Proxy-specific workaround.
+
+Eight additional candidate probes match native sync/async behavior for injected
+generator `.throw()` and `.return()` while suspended in a catch-parameter
+default, including close success/failure and finally effect ordering (6b4dee).
+Main full gate 69114 remains active: PID 60496 was using 215.6% CPU after 13:18
+(8f32b9). Do not restart it. Candidate source is ready for main-worktree
+revalidation after that gate terminates; preserve unrelated staged safe-bash
+files and do not push during the release hold.
+
+A public async-function dump/restore probe suspends at an awaited catch default,
+then resumes with the original earlier binding and exactly one try-block side
+effect (332f55). It is now a maintained isolated regression; the complete catch
+checkpoint file passes 28 tests (46e8a1). This complements, rather than replaces,
+the sync/async generator checkpoint tests. Main full run 69114 is still live
+after 14:31 with PID 60496 actively running at 195.1% CPU (9c5ce2).
 
 ## Repair requirements
 

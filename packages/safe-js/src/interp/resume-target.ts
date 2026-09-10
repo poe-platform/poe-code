@@ -1,7 +1,7 @@
-import type { ParseResult } from "../parse.js";
+import type { CatchClause, ParseResult } from "../parse.js";
 
 // Without an explicit target, find any yield belonging to this function.
-export function containsResumeTarget(node: ParseResult, targetNodeIds?: ReadonlySet<number>): boolean {
+export function containsResumeTarget(node: ParseResult | CatchClause, targetNodeIds?: ReadonlySet<number>): boolean {
   if (targetNodeIds === undefined ? node.type === "YieldExpression" : node.nodeId !== undefined && targetNodeIds.has(node.nodeId)) {
     return true;
   }

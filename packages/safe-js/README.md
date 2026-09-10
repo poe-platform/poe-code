@@ -578,6 +578,11 @@ pass-through reactions. Bare unhandled missing names still return the public
 diagnostic envelope. Catch/finally normalization is also locally committed.
 The source-stack repair preserves the offending guest location through catch
 and Promise checkpoint recovery without copying private native host stacks.
+Catch destructuring uses the shared binding implementation: array patterns
+honor custom iterators and cleanup, and object rest observes Proxy reflection.
+Checkpoints inside catch-parameter defaults preserve earlier bindings and the
+original thrown value, including async suspension; existing catch-body
+checkpoints retain their previous scope-record shape.
 These checks do not establish that every error path is JavaScript-equivalent.
 
 A separate local performance fix avoids allocating empty intrinsic-retention

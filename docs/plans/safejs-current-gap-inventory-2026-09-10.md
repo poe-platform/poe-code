@@ -64,15 +64,14 @@ failure count. Legacy substr is also repaired; see
 
 ## Remaining verified gaps and verification work
 
-Newly validated: catch destructuring has a separate array-only binding path,
-omits Proxy object-rest reflection, and loses earlier catch bindings when a
-checkpoint resumes inside a parameter default. A shared-binding repair is
-isolated at `/tmp/safejs-catch-iterator.JFY5Sw`, not integrated into main.
-Its protocol suite passes 24 cases and checkpoint suite passes 28, including
-public async-function dump/restore. Old catch-body snapshot compatibility was
-checked independently. See [the evidence and candidate](safejs-catch-iterator-protocol.md).
-Main's post-parser full gate is still running in session 69114; do not substitute
-the isolated results for that gate or claim the catch gaps are fixed on main.
+Catch destructuring's array-only binding, omitted Proxy object-rest reflection
+and lost parameter-default checkpoint bindings are now repaired on local main
+using the shared binding implementation. Main validation passes 73 focused
+tests and all 2,193 snapshot tests, plus lint, TypeScript, the maintained build
+and three Node18 built-runtime probes. Public async-function dump/restore and
+old catch-body snapshot compatibility are covered. See
+[the repair record](safejs-catch-iterator-protocol.md). These results do not
+resolve the 14 Promise/locale failures in the completed post-parser full gate.
 
 The subsequently reproduced `sort`/`toSorted` comparator-order defect is fixed
 locally in `d8e21fdfb`: 614 focused array tests and 21 pinned Test262 `toSorted`

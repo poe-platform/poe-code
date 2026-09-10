@@ -43,6 +43,15 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
       }}),
       ...createRuntimePercentConversionContext(meter,invocation===undefined?undefined:{
         lookupFloat:value=>slot(value,"__float__"),lookupInt:value=>slot(value,"__int__"),lookupIndex:value=>slot(value,"__index__"),
+        lookupBytes:value=>invocation.bytes===undefined?slot(value,"__bytes__"):invocation.bytes.lookupBytes(value),
+        byteString:value=>invocation.bytes?.byteString(value),byteArray:value=>invocation.bytes?.byteArray?.(value),bufferBytes:value=>invocation.bytes?.bufferBytes?.(value),
+        bytes(value) {
+          const bytes=invocation.bytes?.byteString(value);meter.checkpoint();
+          if(bytes!==undefined){meter.checkpoint(0,32);return {kind:"bytes",value:bytes};}
+          const array=invocation.bytes?.byteArray?.(value);meter.checkpoint();
+          if(array!==undefined){meter.checkpoint(0,32);return {kind:"bytearray",value:array};}
+          return undefined;
+        },
         typeName:value=>invocation.typeName?.(value),warn:(category,message)=>invocation.warn?.(category,message)
       }),
       ...(invocation?.formatting??createRuntimeRepresentationContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("binary"); } }))

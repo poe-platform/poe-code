@@ -67,6 +67,14 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("invokes guest bytes conversion for bytes percent fields", () => {
+  const state=fixture();
+  state.run("class Data:\n def __bytes__(self):\n  visit('bytes')\n  return b'abc'\nx=Data()\ncorrect=b'%b'%x==b'abc' and b'%.2s'%(x,)==b'ab'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(state.events).toEqual(["bytes","bytes"]);
+  state.run("class Bad:\n def __bytes__(self):\n  return 'wrong'\n");
+  expect(()=>state.run("b'%b'%Bad()\n")).toThrow("__bytes__ returned non-bytes (type str)");
+});
+
 it("binds tuple subclass percent arguments from stored elements", () => {
   const state=fixture();state.globals.set("Tuple",state.registry.tupleType());
   state.run("class Args(Tuple):\n def __getitem__(self,key):\n  visit('wrong')\n  return 9\n def __iter__(self):\n  visit('wrong')\n  return None\n def __len__(self):\n  visit('wrong')\n  return 0\nx=Args((3,1.25))\ncorrect='%d %.2f'%x=='3 1.25' and b'%d %.2f'%x==b'3 1.25'\n");

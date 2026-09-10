@@ -9542,6 +9542,17 @@ extension, integration, or validation requirement is missing or unverified.
   in the uncached one-worker package run. Remaining scalar consumers, complete
   guest exception rendering, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Percent bytes capability integration (2026-09-10): three failing tests drove
+  guest __bytes__ dispatch and execution-owned bytes/bytearray/buffer capability
+  wiring. Native payloads bypass conversion; __bytes__ precedes buffer copying,
+  and callback ownership is preserved. Character fields accept single-byte
+  native payloads but never request arbitrary buffers. Added fault-identity
+  checks for host errors and execution-limit errors from buffer providers.
+  All 192 CPython bytes-format comparisons match. Workspace build, typecheck,
+  focused lint and all 7,044 tests in 499 files pass in the uncached one-worker
+  package run. General bytearray/bytes canonical types, remaining scalar
+  consumers, full guest exceptions, interpreter assembly and safe-fs execution
+  remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

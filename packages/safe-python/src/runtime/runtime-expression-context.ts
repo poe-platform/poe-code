@@ -51,7 +51,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
      * Native sequence fallback runs only after those slots decline. */
     addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext;
     /** Numeric negotiation must precede the supplied index repetition policy. */
-    multiplication?(left: RuntimeValue, right: RuntimeValue): MultiplicationContext;
+    multiplication?(left: RuntimeValue, right: RuntimeValue): MultiplicationContext | undefined;
     richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext;
     /** Return undefined to retain native container handling. */
     containment?(container: RuntimeValue): ContainmentContext<RuntimeValue> | undefined;

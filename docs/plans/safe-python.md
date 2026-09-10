@@ -7438,6 +7438,19 @@ extension, integration, or validation requirement is missing or unverified.
   guest in-place repetition remain unfinished, as do native classification and
   suspended safe-fs effects. Numeric/reflected protocol reference:
   https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types
+- Frame multiplication now assembles opaque guest __mul__/__rmul__ methods from
+  the actual type MRO and calls compiled methods normally, then uses the shared
+  frame index policy for sequence fallback. Exact native pairs avoid guest type
+  and index acquisition; explicit multiplication hooks retain precedence. Thirteen
+  compiled regressions failed first. Twenty-one added cases cover inherited index
+  conversion in both operand orders, nested frames, subtype reflected overrides,
+  same-type suppression, class descriptor access/comparison, late namespace
+  mutation, disabled slots, explicit policies, fast paths and cancellation.
+  CPython confirms thirteen core scenarios and both class-descriptor event orders;
+  all 96 prior repetition comparisons still match. All 5,622 tests in 450 files
+  pass; selected build, typecheck and scoped lint pass. Native-subclass storage adaptation,
+  metaclass attribute overrides, guest in-place multiplication, broader numeric
+  protocol assembly and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

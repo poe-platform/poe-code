@@ -93,6 +93,8 @@ export interface BuiltinInvocationContext {
   /** Base object slots, without guest attribute overrides or getattr fallback. */
   objectAttributeDefault?(object: RuntimeValue, name: string): RuntimeValue;
   mutateObjectAttributeDefault?(object: RuntimeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }): void;
+  /** Adopt a validated actual type for extension-owned native/opaque storage. */
+  assignClassDefault?(object: RuntimeValue, type: TypeValue): void;
   typeName?(value: RuntimeValue): string;
   setAttribute?(object: RuntimeValue, name: string, value: RuntimeValue): void;
   deleteAttribute?(object: RuntimeValue, name: string): void;
@@ -167,6 +169,8 @@ export interface TypeValue {
   readonly value: RuntimeTypeLayout;
   readonly metaclass: TypeValue;
   readonly immutable: boolean;
+  /** Trusted storage mutation after ownership and native layout validation. */
+  assignMetaclass(metaclass: TypeValue, meter: ExecutionMeter): void;
 }
 
 /** Explicit native descriptor capability. Accessors receive a receiver already
@@ -224,11 +228,17 @@ export interface MethodWrapperValue {
 /** Finish the self-reference before publishing the immutable record. */
 class RuntimeTypeRecord implements TypeValue {
   readonly kind = "type";
-  readonly metaclass: TypeValue;
+  #metaclass: TypeValue;
 
   constructor(readonly value: RuntimeTypeLayout, metaclass: TypeValue | "self", readonly immutable: boolean) {
-    this.metaclass = metaclass === "self" ? this : metaclass;
+    this.#metaclass = metaclass === "self" ? this : metaclass;
     Object.freeze(this);
+  }
+
+  get metaclass(): TypeValue { return this.#metaclass; }
+
+  assignMetaclass(metaclass: TypeValue, meter: ExecutionMeter): void {
+    meter.checkpoint(); this.#metaclass = metaclass;
   }
 }
 
@@ -276,8 +286,8 @@ export class RuntimeValues extends ConstantValues {
    * Missing dictionary denotes a dictionary-less layout, not lazy allocation. */
   instance(type: TypeValue, dictionary?: DictionaryValue): InstanceValue {
     this.runtimeMeter.checkpoint(1, 48);
-    const state = new RuntimeInstanceState(dictionary, this.runtimeMeter);
-    return Object.freeze({ kind: "instance", type, state, get dictionary() { return state.dictionary; } });
+    const state = new RuntimeInstanceState(type, dictionary, this.runtimeMeter);
+    return Object.freeze({ kind: "instance", state, get type() { return state.type; }, get dictionary() { return state.dictionary; } });
   }
 
   /** Adopt trusted owned storage (for example, a slice) without a second copy. */
@@ -332,8 +342,8 @@ export class RuntimeValues extends ConstantValues {
    * metadata and support reinitialization; those policies are separate. */
   methodDecorator(kind: "staticmethod" | "classmethod", value: RuntimeValue, type?: TypeValue): MethodDecoratorValue {
     this.runtimeMeter.checkpoint(1, 32);
-    const state = new RuntimeMethodDecoratorState(value, this, this.runtimeMeter);
-    return Object.freeze({ kind, state, type, get value() { return state.value; } });
+    const state = new RuntimeMethodDecoratorState(value, this, this.runtimeMeter, type);
+    return Object.freeze({ kind, state, get type() { return state.type; }, get value() { return state.value; } });
   }
 
   /** Adopt prepared ordered storage sharing this execution's key policy/meter.

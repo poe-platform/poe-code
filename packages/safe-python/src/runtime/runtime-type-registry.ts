@@ -11,6 +11,7 @@ import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
 import { createObjectAttributeWrapper } from "./builtin-object-attribute.js";
 import { createObjectInitSubclassDescriptor } from "./builtin-object-init-subclass.js";
+import { createObjectClassDescriptor } from "./builtin-object-class.js";
 import { PythonRuntimeError } from "./error.js";
 import { installMethodDecoratorBuiltins } from "./builtin-method-decorator.js";
 
@@ -52,6 +53,7 @@ export class RuntimeTypeRegistry {
       objectLayout.namespace.items.set(values.string(name), createObjectAttributeWrapper(name, values, meter, this.object));
       typeLayout.namespace.items.set(values.string(name), createTypeAttributeWrapper(name, values, meter, this.type));
     }
+    objectLayout.namespace.items.set(values.string("__class__"), createObjectClassDescriptor(values, meter, this));
     meter.checkpoint(1, 192);
     const descriptors = [
       { name: "__mro__", get: (instance: TypeValue) => instance.value.mro.length === 0 ? values.none : this.metadata(instance, "mro") },

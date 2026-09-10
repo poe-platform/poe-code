@@ -1642,8 +1642,10 @@ it("permits a custom metaclass initializer to override type initialization rules
 
 it("inspects actual types in compiled calls without running allocation or initialization", () => {
   const state = fixture(), owner = state.type("C"), native = state.type("int"), integer = state.v.integer(7);
-  state.instance("instance", owner); state.types.set(integer, native); state.globals.set("integer", integer); state.globals.set("type", state.registry.type); state.globals.set("C", owner);
-  state.run("instance.__class__=None\ninstance_type=type(instance)\nclass_type=type(C)\nnative_type=type(integer)\nroot_type=type(type)\n");
+  const instance = state.instance("instance", owner); instance.dictionary!.items.set(state.v.string("__class__"), state.v.none);
+  state.types.set(integer, native); state.globals.set("integer", integer); state.globals.set("type", state.registry.type); state.globals.set("C", owner);
+  state.run("instance_type=type(instance)\nvisible=instance.__class__\nclass_type=type(C)\nnative_type=type(integer)\nroot_type=type(type)\n");
+  expect(state.globals.get("visible")).toBe(owner);
   expect(state.globals.get("instance_type")).toBe(owner); expect(state.globals.get("class_type")).toBe(state.registry.type);
   expect(state.globals.get("native_type")).toBe(native); expect(state.globals.get("root_type")).toBe(state.registry.type);
 });
@@ -2196,6 +2198,36 @@ it("checks an unbound native class-method receiver before keyword names", () => 
   expect(() => state.run("hook(None,**{1:True})\n")).toThrow("descriptor '__init_subclass__' for type 'object' needs a type, not a 'NoneType' as arg 2");
   expect(() => state.run("hook(**{1:True})\n")).toThrow("descriptor '__init_subclass__' of 'object' object needs an argument");
   expect(() => state.run("hook(C,**{1:True})\n")).toThrow("keywords must be strings");
+});
+
+it("changes an instance's actual class without replacing its dictionary or captured methods", () => {
+  const state = fixture(), first = state.type("A"), second = state.type("B");
+  state.globals.set("A", first); state.globals.set("B", second);
+  state.method(first, "f", "def f(self): return 'A'\n"); state.method(second, "f", "def f(self): return 'B'\n");
+  const obj = state.instance("obj", first), dictionary = obj.dictionary;
+  state.run("before=obj.__class__ is A\nobj.x=True\ncaptured=obj.f\nobj.__class__=B\nafter=obj.__class__ is B\nold=captured()\nnew=obj.f()\nretained=obj.x\n");
+  for (const name of ["before", "after", "retained"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(state.globals.get("old")).toEqual(state.v.string("A")); expect(state.globals.get("new")).toEqual(state.v.string("B"));
+  expect(obj.type).toBe(second); expect(obj.dictionary).toBe(dictionary);
+});
+
+it("preserves actual class identity after invalid class changes", () => {
+  const state = fixture(), owner = state.type("A"), slots = state.type("S", state.registry.object, { instanceDictionary: false }), obj = state.instance("obj", owner);
+  state.globals.set("S", slots); state.globals.set("object", state.registry.object);
+  expect(() => state.run("obj.__class__=None\n")).toThrow("__class__ must be set to a class, not 'NoneType' object");
+  expect(() => state.run("obj.__class__=S\n")).toThrow("__class__ assignment: 'S' object layout differs from 'A'");
+  expect(() => state.run("obj.__class__=object\n")).toThrow("__class__ assignment only supported for mutable types or ModuleType subclasses");
+  expect(() => state.run("del obj.__class__\n")).toThrow("can't delete __class__ attribute");
+  expect(obj.type).toBe(owner);
+});
+
+it("changes compatible mutable metaclasses and wrapper classes while preserving payloads", () => {
+  const state = fixture(), meta = state.type("M", state.registry.type), nextMeta = state.type("N", state.registry.type), cls = state.type("C", state.registry.object, {}, meta);
+  const base = state.registry.methodDecoratorType("staticmethod"), first = state.type("S", base), second = state.type("T", base), wrapper = state.v.methodDecorator("staticmethod", state.v.true, first);
+  state.globals.set("C", cls); state.globals.set("N", nextMeta); state.globals.set("T", second); state.globals.set("wrapper", wrapper);
+  state.run("C.__class__=N\nmetaclass=C.__class__ is N\nwrapper.extra=True\nwrapper.__class__=T\nwrapper_class=wrapper.__class__ is T\npayload=wrapper.__func__\nextra=wrapper.extra\n");
+  for (const name of ["metaclass", "wrapper_class", "payload", "extra"]) expect(state.globals.get(name)).toBe(state.v.true);
+  expect(cls.metaclass).toBe(nextMeta); expect(wrapper.type).toBe(second);
 });
 
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {

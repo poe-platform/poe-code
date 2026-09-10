@@ -1,6 +1,6 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 
 /** Wrapper payload and lazily reflected attribute storage. Initialization copies
@@ -10,16 +10,24 @@ import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
  * their previous values; failures and reentrant lookups do not roll back writes. */
 export class RuntimeMethodDecoratorState {
   #value: RuntimeValue;
+  #type?: TypeValue;
   readonly attributes: RuntimeAttributeStorage;
 
-  constructor(value: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter) {
+  constructor(value: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, type?: TypeValue) {
     meter.checkpoint(1, 64);
     this.#value = value;
+    this.#type = type;
     this.attributes = new RuntimeAttributeStorage(values, meter);
     Object.freeze(this);
   }
 
   get value(): RuntimeValue { return this.#value; }
+  get type(): TypeValue | undefined { return this.#type; }
+
+  /** Payload kind and layout compatibility are checked by the object layer. */
+  assignType(type: TypeValue, meter: ExecutionMeter): void {
+    meter.checkpoint(); this.#type = type;
+  }
 
   initialize(value: RuntimeValue, attribute: (value: RuntimeValue, name: string) => RuntimeValue, meter: ExecutionMeter): void {
     meter.checkpoint();

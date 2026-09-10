@@ -8130,6 +8130,22 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. The complete
   native descriptor type/member catalog, __class__, native payload layouts and
   full class-construction pipeline remain unfinished.
+- Added object.__class__ reflection and validated reassignment for represented
+  heap layouts. Instance, wrapper and metaclass identities now live in metered
+  mutable storage behind frozen runtime records. Compatible changes preserve
+  dictionaries, native payloads and captured bound methods. Validation rejects
+  foreign execution types, immutable types, differing dictionary availability
+  and incompatible native payload ancestry; extension-owned storage receives an
+  explicit validated adoption capability. Three compiled regressions initially
+  failed. Five focused tests cover actual-type reflection, dictionary shadows,
+  foreign ownership, native layout distinctions, extension adoption and
+  cancellation. The old type-inspection fixture now creates its deliberate
+  __class__ shadow directly in the dictionary, since Python rejects assigning
+  None through the native descriptor. All 238 reassignment cases and both sets
+  of 96 ordinary/wrapper constructors match CPython. All 6,316 tests in 482
+  files, selected build, typecheck and scoped lint pass. Full slot signatures,
+  the ModuleType reassignment exception, canonical native type coverage and the
+  complete class-construction pipeline remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

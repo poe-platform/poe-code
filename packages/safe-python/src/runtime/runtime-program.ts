@@ -167,6 +167,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.name;
       },
       actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
+      assignClassDefault: (object, type) => statementHooks.setAttribute(object, "__class__", type),
       typeAttributeDefault: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods),
       mutateTypeAttributeDefault: specialMethods === undefined ? undefined : (type, name, change) => runtimeMutateTypeAttribute(type, name, change, values, meter, specialMethods),
       objectAttributeDefault: specialMethods === undefined ? undefined : (object, name) => runtimeObjectAttribute(object, name, values, meter, specialMethods, (object, name) => expressions.attribute(object, name)),

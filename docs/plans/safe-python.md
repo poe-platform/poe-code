@@ -6833,6 +6833,18 @@ extension, integration, or validation requirement is missing or unverified.
   patterns and bounds. Typecheck, scoped lint and selected workspace build pass.
   Remaining native buffer consumers, concrete exporters, automatic object
   assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.join to contiguous buffer elements. All member validation and
+  acquisitions precede copying, so later exports can mutate earlier buffers.
+  Leases remain live through output construction and release in input order,
+  including on invalid members, acquisition failures and cancellation. Guest
+  export failures become position-specific TypeErrors with bounded type names;
+  host failures and execution limits are not rewritten.
+- Four failing compiled regressions now pass. All 5,214 tests in 441 files pass;
+  24 CPython comparisons match output/errors and acquisition/release traces,
+  including shared mutable exports. Typecheck, scoped lint and selected workspace
+  build pass. Mutable source-list callback audits, remaining buffer consumers,
+  concrete exporters, automatic object assembly and broader interpreter/SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

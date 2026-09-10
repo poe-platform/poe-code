@@ -18,6 +18,8 @@ export interface RuntimeBufferLease {
 }
 
 export interface RuntimeBufferContext {
+  /** Pure guest type name for consumers that rewrite buffer acquisition errors. */
+  typeName?(value: RuntimeValue): string;
   /** Undefined means no buffer protocol; exporter errors propagate unchanged. */
   acquireSimple(value: RuntimeValue): RuntimeBufferLease | undefined;
 }

@@ -39,6 +39,49 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("rewrites guest join export failures with sequence position and type", () => {
+    const state = fixture("result=b''.join([source])\n"), v = state.values;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      typeName: () => "Exporter",
+      acquireSimple() { throw new PythonRuntimeError("BufferError", "bad export"); }
+    } });
+    expect(() => state.run()).toThrow("sequence item 0: expected a bytes-like object, Exporter found");
+  });
+  it("keeps joined buffers acquired until later exports finish", () => {
+    const state = fixture("result=b'-'.join([first,second])\n"), v = state.values, first = v.cell({}), second = v.cell({}), trace: string[] = [];
+    const data = Uint8Array.of(97);
+    state.globals.set("first", first); state.globals.set("second", second);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        const name = value === first ? "first" : "second"; trace.push(`acquire ${name}`);
+        if (value === second) data[0] = 99;
+        return { byteLength: 1, copy: () => v.bytes(value === first ? data : Uint8Array.of(98)).value, release() { trace.push(`release ${name}`); } };
+      }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(Uint8Array.of(99,45,98)));
+    expect(trace).toEqual(["acquire first", "acquire second", "release first", "release second"]);
+  });
+  it("releases earlier join exports before an invalid member error", () => {
+    const state = fixture("result=b''.join([first,None])\n"), v = state.values; let released = false;
+    state.globals.set("first", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) { return value.kind === "none" ? undefined : { byteLength: 1, copy() { throw Error("must not copy"); }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow("sequence item 1: expected a bytes-like object, NoneType found"); expect(released).toBe(true);
+  });
+  it("releases all join exports when the last acquisition cancels execution", () => {
+    const controller = new AbortController(), state = fixture("result=b''.join([first,second])\n", 100000, controller.signal), v = state.values;
+    const first = v.cell({}), second = v.cell({}), trace: string[] = [];
+    state.globals.set("first", first); state.globals.set("second", second);
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple(value) {
+        if (value === second) controller.abort();
+        return { byteLength: 1, copy() { throw Error("must not copy"); }, release() { trace.push(value === first ? "first" : "second"); } };
+      }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(trace).toEqual(["first", "second"]);
+  });
   it.each(["startswith", "endswith"])("releases each %s tuple buffer before trying the next", method => {
     const state = fixture(`result=b'aba'.${method}((first,second,None))\n`), v = state.values, first = v.cell({}), second = v.cell({}), trace: string[] = [];
     state.globals.set("first", first); state.globals.set("second", second);

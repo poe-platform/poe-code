@@ -995,6 +995,7 @@ export function measureSandboxData(
     if (isSandboxDateTimeFormat(value)) {
       const state = dateTimeFormatState(value);
       visit(state.options, depth + 1);
+      visit(state.requestedOptions, depth + 1);
       visit(state.format, depth + 1);
     }
     if (isSandboxCollator(value)) {

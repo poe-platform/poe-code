@@ -6994,6 +6994,22 @@ extension, integration, or validation requirement is missing or unverified.
   flush values and write failures. Selected workspace build, typecheck and
   scoped lint pass. Automatic builtin registration, concrete safe-fs streams,
   input, guest object assembly and the complete public interpreter remain open.
+- Inspected the safe-fs/print boundary: safe-fs operations are asynchronous while
+  current builtin invocation is synchronous. Direct callback wiring would return
+  before writes complete. Resumable host effects and concrete guest streams are
+  still required; no buffered-output substitute is presented as that integration.
+- Added opt-in safe-fs error translation through an explicit guest-platform errno
+  policy. Internal Python filesystem faults retain errno, strerror and both
+  filenames, select OSError subclasses by portable safe-fs code, and render paths
+  with Python repr. Without a policy the existing raw FsError contract remains;
+  unrelated host failures retain identity. Cancellation precedes translation.
+- Sixteen new tests cover classification, payloads, quoting, cancellation and
+  real in-memory safe-fs failures. The missing-module test and a subsequent
+  cancellation regression failed before implementation/fix. All 5,305 tests in
+  443 files pass; 180 CPython error payload comparisons match. Selected workspace
+  build, typecheck and scoped lint pass. Guest exception-object construction,
+  platform-policy assembly, resumable filesystem execution and full interpreter
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

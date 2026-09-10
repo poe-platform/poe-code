@@ -5,6 +5,7 @@ import { Utf8TextDecoder } from "./utf8-text-decoder.js";
 import { encodeUtf8Text, type Utf8TextEncodeOptions } from "./utf8-text-encode.js";
 import type { Utf8DecodeErrors } from "./utf8-decode.js";
 import type { CodePointString } from "./code-point-string.js";
+import { translateFileSystemError, type FileSystemErrorContext } from "./filesystem-error.js";
 
 export interface Utf8FileReadOptions {
   readonly newline?: string | null;
@@ -17,7 +18,7 @@ export interface Utf8FileWriteOptions extends Utf8TextEncodeOptions {
 
 /** Host boundary for whole-file operations, not guest file objects or descriptors.
  * The injected adapter owns path confinement and filesystem operation semantics.
- * FsError is preserved for the eventual guest OSError translation layer.
+ * FsError is preserved unless an explicit guest errno policy enables translation.
  */
 export class FileSystemAccess {
   readonly #filesystem: FileSystem;
@@ -26,7 +27,7 @@ export class FileSystemAccess {
   readonly #signal: AbortSignal | undefined;
   #cancelled: ExecutionLimitError | undefined;
 
-  constructor(filesystem: FileSystem, meter: ExecutionMeter, maxReadBytes: number, signal?: AbortSignal) {
+  constructor(filesystem: FileSystem, meter: ExecutionMeter, maxReadBytes: number, signal?: AbortSignal, private readonly errors?: FileSystemErrorContext) {
     if (!Number.isSafeInteger(maxReadBytes) || maxReadBytes < 0) throw new RangeError("maxReadBytes must be a nonnegative safe integer");
     this.#filesystem = filesystem;
     this.#meter = meter;
@@ -53,6 +54,12 @@ export class FileSystemAccess {
       if (capability !== "read" && (this.#filesystem.capabilities.readOnly || capabilities.readOnly)) throw new FsError("EROFS", { path });
       if (this.#filesystem.capabilities[capability] === false || capabilities[capability] === false) throw new FsError("ENOTSUP", { path });
       return await operation();
+    } catch (error) {
+      if (error instanceof FsError && this.errors !== undefined) {
+        this.#checkpoint();
+        throw translateFileSystemError(error, this.errors, this.#meter);
+      }
+      throw error;
     } finally {
       // Cancellation can race with an external mutation; this is deliberately
       // not a transaction and never attempts to undo adapter side effects.

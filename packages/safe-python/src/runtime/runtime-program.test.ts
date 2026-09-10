@@ -39,6 +39,30 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["", "61", "61 62"])("decodes fromhex buffer input %s", text => {
+    const state = fixture("result=b''.fromhex(source)\n"), v = state.values; let released = false;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: text.length, copy: () => v.bytes(new TextEncoder().encode(text)).value, release() { released = true; } }; }
+    } });
+    state.run(); expect(state.globals.get("result")).toEqual(v.bytes(text === "" ? new Uint8Array() : text === "61" ? Uint8Array.of(97) : Uint8Array.of(97,98))); expect(released).toBe(true);
+  });
+  it("releases malformed fromhex buffer input", () => {
+    const state = fixture("result=b''.fromhex(source)\n"), v = state.values; let released = false;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { return { byteLength: 2, copy: () => v.bytes(Uint8Array.of(54,103)).value, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow("non-hexadecimal number found in fromhex() arg at position 1"); expect(released).toBe(true);
+  });
+  it("releases fromhex buffers after acquisition cancellation", () => {
+    const controller = new AbortController(), state = fixture("result=b''.fromhex(source)\n", 100000, controller.signal), v = state.values; let released = false;
+    state.globals.set("source", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, buffers: {
+      acquireSimple() { controller.abort(); return { byteLength: 0, copy() { throw Error("must not copy"); }, release() { released = true; } }; }
+    } });
+    expect(() => state.run()).toThrow(ExecutionLimitError); expect(released).toBe(true);
+  });
   it.each([false,true])("negotiates reflected addition before byte buffers (handled=%s)", handled => {
     const state = fixture("result=b'a'+source\n"), v = state.values, trace: string[] = [];
     state.globals.set("source", v.cell({}));

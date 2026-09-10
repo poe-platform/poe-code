@@ -6885,6 +6885,16 @@ extension, integration, or validation requirement is missing or unverified.
   identity and lease traces. Typecheck, scoped lint and selected workspace build
   pass. Remaining native protocols, concrete exporters, automatic object assembly
   and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.fromhex to contiguous buffer inputs alongside existing exact
+  str/bytes paths. Acquisition errors propagate, decoding reuses the metered hex
+  kernel, and leases release after success, malformed input or cancellation.
+  Unsupported exporters use bounded guest type diagnostics.
+- Five failing compiled regressions now pass. All 5,237 tests in 441 files pass;
+  18 CPython comparisons match output/errors and lease traces for empty, valid,
+  malformed and non-ASCII inputs. Typecheck, scoped lint and selected workspace
+  build pass. Concrete exporters, subclass constructors, remaining native
+  protocols, automatic object assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

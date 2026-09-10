@@ -1054,6 +1054,10 @@ async function evaluateBinaryExpression(
       const hint = equality || node.operator === "+" ? "default" : "number";
       if (leftValue !== null && typeof leftValue === "object" && (!equality || (rightValue !== null && rightValue !== undefined && typeof rightValue !== "object")))
         leftValue = await toNumericPrimitive(leftValue, context, hint);
+      // Symbol is the only primitive whose ToNumeric conversion throws. Observe
+      // that abrupt completion before invoking the right operand's conversion.
+      if (typeof leftValue === "symbol" && ["**", "*", "/", "%", "-", "<<", ">>", ">>>", "&", "|", "^"].includes(node.operator))
+        throw new TypeError("Cannot convert a Symbol value to a number");
       if (rightValue !== null && typeof rightValue === "object" && (!equality || (left.value !== null && left.value !== undefined && typeof left.value !== "object")))
         rightValue = await toNumericPrimitive(rightValue, context, hint);
     }
@@ -4056,6 +4060,8 @@ async function applyCompoundAssignmentOperator(
   try {
     left = await toNumericPrimitive(left, context, operator === "+=" ? "default" : "number");
     if (convertingObject) convertedLeft = left;
+    if (operator !== "+=" && typeof left === "symbol")
+      throw new TypeError("Cannot convert a Symbol value to a number");
     right = await toNumericPrimitive(right, context, operator === "+=" ? "default" : "number");
     if (operator !== "+=" && (typeof left === "bigint" || typeof right === "bigint")) {
       if (typeof left !== "bigint" || typeof right !== "bigint") throw new TypeError("Cannot mix BigInt and other numeric types.");

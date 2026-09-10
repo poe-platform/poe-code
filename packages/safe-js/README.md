@@ -661,6 +661,9 @@ must parenthesize it, such as `1 + (yield 2)`. Non-strict `yield` identifiers
 outside generator bodies remain supported.
 An `await` expression on the left of `**` requires parentheses, as in
 `(await value) ** 2`; `await (value ** 2)` and right-side awaits remain valid.
+Numeric binary operators and compound assignments reject a left-hand Symbol
+before invoking right-hand coercion, including after generator restoration.
+Addition and comparisons retain their distinct primitive-conversion ordering.
 Non-strict statement-only bodies distinguish a `let` identifier followed by a
 newline from a lexical declaration; strict-mode and declaration restrictions
 still apply.

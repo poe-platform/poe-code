@@ -1,12 +1,19 @@
 import { expect, it } from "vitest";
 import { runInNewContext } from "node:vm";
 import { interpret } from "../interp/interpreter.js";
+import { Budget } from "../interp/budget.js";
+import { createBuiltinBindings } from "../interp/globals.js";
 import { isSandboxPromise } from "../interp/values.js";
 import { parseModule } from "../parse/parser.js";
 import { restore } from "./restore.js";
 import { serialize } from "./serialize.js";
 
 const bodies = [
+  ...["**", "*", "/", "%", "-", "<<", ">>", ">>>", "&", "|", "^"].flatMap(operator =>
+    [operator, `${operator}=`].map(operation =>
+      `const trace=[];let left={valueOf(){trace.push('left');return Symbol()}};
+       try{left ${operation} (yield 1,{valueOf(){trace.push('right');throw new Error('wrong error')}})}
+       catch(error){return [error.name,trace]}`)),
   "return (yield) ? yield : yield",
   "return false ? yield : yield",
   "return true ? (false ? yield : yield) : yield",
@@ -27,7 +34,9 @@ it.each([...bodies.map(body => ({ body, operation: "next" })),
   "resumes suspension inside yield arguments: $body (async=$async, operation=$operation)", async ({ body, async, operation }) => {
     const source = `{${async ? "async " : ""}function* values(){${body}}const iterator=values();await iterator.next();return iterator}`;
     const ast = parseModule(source);
-    const original = await interpret(ast.body[0]);
+    const budget = new Budget();
+    const globals = createBuiltinBindings({ budget });
+    const original = await interpret(ast.body[0], { budget, bindings: { Symbol: globals.Symbol, Error: globals.Error } });
     if (!original.ok) throw new Error(original.error.message);
     const native = await runInNewContext(`(async()=>${source})()`);
     let iterator = original.returnValue;

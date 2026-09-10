@@ -2,6 +2,14 @@
 
 ## Integration gate
 
+Completed update: session 69114 terminated with exit code 1 (144a71).
+The report contains **28,319 passed, 14 failed, 47 skipped, 1,249 files**
+(e8fe9a). All 100 filesystem contracts passed. Failures are the two host Promise
+property cases and twelve ISO/Temporal locale cases; the previous regex cursor
+runner failure did not recur. This covers runtime d4891dd09, including both loop
+parser fixes, and predates catch-binding integration. The following launch and
+live observations are historical; do not poll or restart the completed handle.
+
 Runtime d4891dd09 includes both literal-member assignment targets and sloppy
 `let` statement-body parsing. The maintained full package command is running
 in session 69114:

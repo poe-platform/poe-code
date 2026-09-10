@@ -6,6 +6,13 @@ focused test success, local commits, remote delivery and publication are separat
 
 ## Current local evidence
 
+Newest completed full gate, runtime d4891dd09: **28,319 passed, 14 failed,
+47 skipped across 1,249 files**, plus 100 filesystem type contracts passed.
+Session 69114 is terminal. The prior regex cursor failure did not recur;
+the two Promise-property and twelve locale failures remain. See
+[the completed post-parser gate](safejs-post-loop-parser-qualification.md).
+This supersedes the earlier broad totals below and predates the catch repair.
+
 Latest gate update at runtime 3cd9fad79: **28,271 passed, 15 failed, 47 skipped**
 across 1,247 files; all 100 filesystem type contracts passed. This supersedes
 the older full-gate counts and coverage statements below: template, optional

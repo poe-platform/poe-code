@@ -36,8 +36,9 @@ export function validateTemporalStringOffsets(input: string, allowTimeOnly = fal
     if (!annotation.includes("=")) canonicalizeIntlOffsetZone(annotation);
     bracket = input.indexOf("[", end + 1);
   }
-  // Standalone minute-precision zone identifiers, not signed expanded years.
-  if (body.length <= 6 && (body[0] === "+" || body[0] === "-" || body[0] === "−")) {
+  // Standalone minute-precision zone identifiers, not signed expanded years
+  // or the -- prefix of a yearless month-day (including basic --MMDD).
+  if (body.length <= 6 && !body.startsWith("--") && (body[0] === "+" || body[0] === "-" || body[0] === "−")) {
     canonicalizeIntlOffsetZone(body);
     return;
   }

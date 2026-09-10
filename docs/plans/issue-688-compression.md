@@ -131,6 +131,13 @@ restoring those overrides; all 12 cases then passed. The incoming isolated
 Vitest fixture check passed, as did focused strict typechecking of the merged
 permission fixture and new census helper/tests.
 
+The next full run exposed a scheduling race in the existing no-output gzip
+cancellation check: decoding could complete before a zero-delay timer became
+eligible. A focused reproduction observed that completion on its first attempt.
+The test now queues cancellation with `setImmediate`, preserving its task-yield,
+exact cancellation identity, and no-output assertions and the existing deadline.
+All 19 streaming checks pass; production behavior is unchanged.
+
 The maintained type route also exposed exact-optional-property and TextDecoder
 receiver type errors in two existing test files. Narrow corrections preserve
 the fixture behavior and passed focused strict typechecking and runtime tests;

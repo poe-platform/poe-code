@@ -70,8 +70,9 @@ test("no-output inflate work yields a task and preserves cancellation identity",
   const reason = new Error("cancel no-output codec work");
   const pending = run("gunzip", [], chunks(input), { signal: controller.signal, stdout: { async write() { assert.fail("empty members produce no output"); } } });
   const rejected = assert.rejects(pending, error => error === reason);
-  const timer = setTimeout(() => controller.abort(reason), 0);
-  try { await rejected; } finally { clearTimeout(timer); }
+  // Queue a task, not a timer whose minimum delay can outlast the whole decode.
+  const task = setImmediate(() => controller.abort(reason));
+  try { await rejected; } finally { clearImmediate(task); }
 });
 
 test("source cancellation returns the original reason and observes late next rejection", { timeout: 3_000 }, async () => {

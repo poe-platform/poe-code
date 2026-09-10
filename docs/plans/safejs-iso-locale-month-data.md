@@ -136,3 +136,18 @@ and all 18 pass unchanged on Node 26.8.1 (ae92db). Runtime code is unchanged.
 The next repair candidate must provide long-pattern selection and range
 partitioning, not only month-name lookup. The direct short-part replacement
 candidate is rejected.
+
+## Published formatter capability check
+
+The current FormatJS main-branch documentation advertises ISO calendar support,
+but registry latest `@formatjs/intl-datetimeformat@7.6.1` does not provide it.
+A read-only in-memory probe loaded its published engine with AST-resolved
+imports and JSON-parsed en/pl/ru/af locale registration arguments. No global
+Intl replacement, package installation or filesystem extraction was performed.
+Every ISO request resolved to Gregorian, and year/month ordering followed
+Gregorian patterns (f5301c, 4c406f). The published engine's `ToLocalTime`
+explicitly requires Gregorian (dd8e67). Therefore this version is not an
+ISO-preserving repair, irrespective of newer main-branch documentation.
+
+Range regressions now also assert `resolvedOptions().calendar === 'iso8601'`
+to reject a calendar-substitution implementation that merely restores names.

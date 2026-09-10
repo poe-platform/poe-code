@@ -174,6 +174,16 @@ export interface MethodDescriptorValue {
   readonly value: MethodDescriptorCapability;
 }
 
+export interface WrapperDescriptorValue {
+  readonly kind: "wrapper_descriptor";
+  readonly value: MethodDescriptorCapability;
+}
+
+export interface MethodWrapperValue {
+  readonly kind: "method-wrapper";
+  readonly value: { readonly descriptor: WrapperDescriptorValue; readonly instance: RuntimeValue };
+}
+
 /** Finish the self-reference before publishing the immutable record. */
 class RuntimeTypeRecord implements TypeValue {
   readonly kind = "type";
@@ -200,6 +210,8 @@ export type RuntimeValue =
   | TypeValue
   | GetsetDescriptorValue
   | MethodDescriptorValue
+  | WrapperDescriptorValue
+  | MethodWrapperValue
   | MappingProxyValue
   | DictionaryViewValue
   | SetValue
@@ -306,6 +318,17 @@ export class RuntimeValues extends ConstantValues {
   methodDescriptor(value: MethodDescriptorCapability): MethodDescriptorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "method_descriptor", value });
+  }
+
+  wrapperDescriptor(value: MethodDescriptorCapability): WrapperDescriptorValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "wrapper_descriptor", value });
+  }
+
+  /** Adopt a receiver already validated by the descriptor binding protocol. */
+  methodWrapper(descriptor: WrapperDescriptorValue, instance: RuntimeValue): MethodWrapperValue {
+    this.runtimeMeter.checkpoint(1, 64);
+    return Object.freeze({ kind: "method-wrapper", value: Object.freeze({ descriptor, instance }) });
   }
 
   mappingProxy(value: DictionaryValue): MappingProxyValue {

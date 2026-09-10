@@ -29,7 +29,7 @@ export function getRuntimeFunctionDescriptor(fn: FunctionValue, instance: Runtim
  * storage, __getattribute__ overrides and __getattr__ fallback remain separate.
  */
 export function resolveRuntimeClassAttribute(value: RuntimeValue, context: RuntimeDescriptorContext, values: RuntimeValues, meter: ExecutionMeter): ClassAttribute<RuntimeValue, RuntimeValue, RuntimeValue> {
-  meter.checkpoint(1, value.kind === "function" || value.kind === "method_descriptor" ? 96 : value.kind === "getset_descriptor" ? 160 : 32);
+  meter.checkpoint(1, value.kind === "function" || value.kind === "method_descriptor" || value.kind === "wrapper_descriptor" ? 96 : value.kind === "getset_descriptor" ? 160 : 32);
   const slots = value.kind === "function"
     ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeFunctionDescriptor(value, instance, owner, values, meter) })
     : value.kind === "getset_descriptor" ? Object.freeze({
@@ -37,7 +37,7 @@ export function resolveRuntimeClassAttribute(value: RuntimeValue, context: Runti
       set: (instance: RuntimeValue, item: RuntimeValue) => mutateRuntimeGetsetDescriptor(value, instance, { kind: "set", value: item }, meter),
       delete: (instance: RuntimeValue) => mutateRuntimeGetsetDescriptor(value, instance, { kind: "delete" }, meter)
     })
-    : value.kind === "method_descriptor" ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeMethodDescriptor(value, instance, owner, values, meter) })
+    : value.kind === "method_descriptor" || value.kind === "wrapper_descriptor" ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeMethodDescriptor(value, instance, owner, values, meter) })
     : context.slots(value);
   meter.checkpoint();
   return Object.freeze({ value, slots });

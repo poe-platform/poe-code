@@ -1578,3 +1578,21 @@ it("reads native method metadata through compiled attributes and getattr", () =>
   expect(state.globals.get("receiver")).toBe(instance); expect(state.globals.get("builtin_receiver")).toBe(instance);
   expect(state.globals.get("owner")).toBe(base); expect(state.globals.get("name")).toEqual(state.v.string("native"));
 });
+
+it("invokes native slot wrappers through construction, bound and unbound calls", () => {
+  const state = fixture(), owner = state.type("C");
+  const descriptor = state.v.wrapperDescriptor({ owner, name: "__init__", accepts: value => value.kind === "instance", invoke(receiver, args, keywords) {
+    if (receiver.kind !== "instance" || receiver.dictionary === undefined) throw Error("expected instance storage");
+    expect(args).toEqual([]); receiver.dictionary.items.set(state.v.string("value"), keywords.items.lookup(state.v.string("value"))!.value); return state.v.none;
+  } });
+  owner.value.namespace.items.set(state.v.string("__init__"), descriptor); state.globals.set("C", owner); state.globals.set("initialize", descriptor);
+  state.run("instance=C(value=4)\na=instance.value\ninstance.__init__(value=5)\nb=instance.value\ninitialize(instance,value=6)\nc=instance.value\n");
+  expect(state.globals.get("a")).toEqual(state.v.integer(4)); expect(state.globals.get("b")).toEqual(state.v.integer(5)); expect(state.globals.get("c")).toEqual(state.v.integer(6));
+});
+
+it("dispatches arithmetic slot wrappers without consulting instance dictionaries", () => {
+  const state = fixture(), owner = state.type("C");
+  owner.value.namespace.items.set(state.v.string("__add__"), state.v.wrapperDescriptor({ owner, name: "__add__", accepts: () => true, invoke: (_receiver, args) => args[0] }));
+  state.instance("instance", owner); state.run("instance.__add__=False\nresult=instance+7\n");
+  expect(state.globals.get("result")).toEqual(state.v.integer(7));
+});

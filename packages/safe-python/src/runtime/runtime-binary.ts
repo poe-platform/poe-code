@@ -68,7 +68,7 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
   if (isRuntimeSet(left) || isRuntimeSet(right)) return values.notImplemented;
   if (left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values" || right.kind === "dict_keys" || right.kind === "dict_items" || right.kind === "dict_values") return values.notImplemented;
   if (left.kind === "instance" || right.kind === "instance" || left.kind === "cell" || right.kind === "cell" || left.kind === "type" || right.kind === "type") return values.notImplemented;
-  if (left.kind === "getset_descriptor" || right.kind === "getset_descriptor" || left.kind === "method_descriptor" || right.kind === "method_descriptor") return values.notImplemented;
+  if (left.kind === "getset_descriptor" || right.kind === "getset_descriptor" || left.kind === "method_descriptor" || right.kind === "method_descriptor" || left.kind === "wrapper_descriptor" || right.kind === "wrapper_descriptor" || left.kind === "method-wrapper" || right.kind === "method-wrapper") return values.notImplemented;
   if (left.kind === "list" || right.kind === "list") {
     if (operator === "+" && left.kind === "list" && right.kind === "list") return values.list(left.items.concat(right.items));
     if (operator === "*") {

@@ -66,9 +66,14 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * supplier is acquired only for members that actually require that policy. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext }): RuntimeValue {
   meter.checkpoint();
-  if (receiver.kind === "method_descriptor" || receiver.kind === "getset_descriptor") {
+  if (receiver.kind === "method_descriptor" || receiver.kind === "wrapper_descriptor" || receiver.kind === "getset_descriptor") {
     if (name === "__name__") return values.string(receiver.value.name);
     if (name === "__objclass__") return receiver.value.owner;
+  }
+  if (receiver.kind === "method-wrapper") {
+    if (name === "__name__") return values.string(receiver.value.descriptor.value.name);
+    if (name === "__objclass__") return receiver.value.descriptor.value.owner;
+    if (name === "__self__") return receiver.value.instance;
   }
   if (receiver.kind === "builtin_function_or_method" && receiver.binding !== undefined) {
     if (name === "__name__") return values.string(receiver.binding.descriptor.value.name);

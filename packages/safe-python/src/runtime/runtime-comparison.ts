@@ -134,6 +134,10 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
       const equal = a.value.function === b.value.function && a.value.instance === b.value.instance;
       result = op === "==" ? equal : !equal; continue;
     }
+    if (a.kind === "method-wrapper" && b.kind === "method-wrapper" && (op === "==" || op === "!=")) {
+      const equal = a.value.descriptor === b.value.descriptor && a.value.instance === b.value.instance;
+      result = op === "==" ? equal : !equal; continue;
+    }
     if (a.kind === "builtin_function_or_method" && b.kind === "builtin_function_or_method" && (op === "==" || op === "!=")) {
       const equal = a === b || (a.binding !== undefined && b.binding !== undefined && a.binding.implementation === b.binding.implementation && a.binding.instance === b.binding.instance);
       result = op === "==" ? equal : !equal; continue;

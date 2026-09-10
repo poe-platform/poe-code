@@ -7765,6 +7765,20 @@ extension, integration, or validation requirement is missing or unverified.
   in 460 files, selected build, typecheck and scoped lint pass. Qualified names,
   doc/signature/module metadata, native attribute mutation diagnostics, wrapper
   descriptors and complete object/type bootstrap remain unfinished.
+- Added distinct wrapper_descriptor and method-wrapper values for native slots.
+  Six initial tests failed because slot-wrapper allocation did not exist. Shared
+  descriptor binding and call dispatch now preserve wrapper-specific receiver
+  diagnostics, immutable binding records, non-data precedence and callback
+  cancellation. Equality/hash use descriptor plus receiver identity (unlike
+  native method callback aliases). Callable/truth/numeric classification and
+  owner/name/self metadata include both wrapper families. Twelve tests cover
+  direct and bound calls, metadata, identity, cancellation, compiled constructor
+  initialization and arithmetic slot dispatch despite instance shadowing. All 54
+  binding cases and 1,014 observations over 169 identity pairs match CPython.
+  All 6,020 tests in 461 files, selected build, typecheck and scoped lint pass.
+  Default object initialization, slot wrapper argument conventions, qualified
+  names/doc metadata, complete object/type bootstrap and suspended safe-fs effects
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

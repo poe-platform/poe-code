@@ -48,6 +48,37 @@ function fixture() {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it.each(["", "[3,4]", "Source()"])("constructs exact native lists through the normal type lifecycle: %s", args => {
+  const state = fixture();
+  state.run(`class Source:\n def __iter__(self):\n  visit('iterate')\n  return [3,4].__iter__()\nlist_type=type([])\nitems=list_type(${args})\ncorrect_type=type(items) is list_type\nresult=0\nfor item in items:\n result=result*10+item\n`);
+  expect(state.globals.get("correct_type")).toBe(state.v.true); expect(state.globals.get("result")).toEqual(state.v.integer(args === "" ? 0 : 34)); expect(state.events).toEqual(args === "Source()" ? ["iterate"] : []);
+});
+
+it("allocates fresh empty lists without initializing supplied new arguments", () => {
+  const state = fixture();
+  state.run("list_type=type([])\nfirst=list_type.__new__(list_type,[1,2],3,x=4)\nsecond=list_type.__new__(list_type)\ndistinct=first is not second\nlength=first.__len__()\n");
+  expect(state.globals.get("distinct")).toBe(state.v.true); expect(state.globals.get("length")).toEqual(state.v.integer(0));
+});
+
+it.each([["", "list.__new__(): not enough arguments"], ["1", "list.__new__(X): X is not a type object (int)"], ["object", "list.__new__(object): object is not a subtype of list"]])("validates native list allocator receivers: %s", (args, message) => {
+  expect(() => fixture().run(`type([]).__new__(${args})\n`)).toThrow(message);
+});
+
+it("rejects foreign registry types at the list allocation boundary", () => {
+  const state = fixture(); state.globals.set("foreign", fixture().registry.listType());
+  expect(() => state.run("type([]).__new__(foreign)\n")).toThrow("type is not owned by this list allocator");
+  expect(state.calls.depth).toBe(0);
+});
+
+it("preserves original initializer failures through list type calls", () => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run("class Source:\n def __iter__(self):\n  fail()\n");
+  let thrown: unknown;
+  try { state.run("type([])(Source())\n"); } catch (error) { thrown = error; }
+  expect(thrown).toBe(failure); expect(state.calls.depth).toBe(0);
+});
+
 it.each(["", "items", "[3,4]"])("reinitializes list storage through direct and bound slots: %s", args => {
   for (const direct of [false, true]) {
     const state = fixture(), call = direct ? `type(items).__init__(items${args ? "," + args : ""})` : `items.__init__(${args})`;

@@ -8664,6 +8664,22 @@ extension, integration, or validation requirement is missing or unverified.
   subclass storage, remaining catalogs and full public execution remain open.
   Selected build, typecheck, scoped lint and all 6,659 tests in 493 files pass
   with two workers.
+- Added exact-list native allocation through list.__new__, enabling the existing
+  normal type-call lifecycle to initialize empty, native and guest iterable
+  sources. Seven initial regressions reproduced unsafe inherited object
+  allocation and incorrect receiver validation. New allocates fresh empty
+  storage without consuming additional init arguments; the normal type call
+  subsequently validates and consumes them. Nine added cases include allocation
+  identity, receiver errors, foreign-registry rejection and original initializer
+  failure propagation. All 42 allocation/type-call differential cases match
+  CPython; prior 58 initialization, 195 arithmetic and 186 object/callable equality
+  cases still pass. This is exact-list support, not complete native subclass
+  construction: list subclasses explicitly report an unimplemented host storage
+  boundary rather than silently returning an exact list. Native subclass payload,
+  state and overridden-slot integration remain required, along with remaining
+  catalogs and public execution setup.
+  Selected build, typecheck, scoped lint and all 6,668 tests in 493 files pass
+  with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

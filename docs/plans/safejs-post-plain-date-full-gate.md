@@ -9,8 +9,7 @@ while the release hold remains in effect.
 
 Command: `npm test --workspace=@poe-code/safe-js`.
 Log: `/tmp/safejs-full-gate.UzTtCJ/full-test.log`.
-Execution session: 29473, started in e5063d. Latest poll 8dd9ad confirms it is
-still running. Do not restart based on an observation timeout.
+Execution session: 29473, started in e5063d, terminated with exit 1 in 7bfe26.
 
 Pre-run fingerprint (ee5fa7): 1497 files, SHA256
 `509fab2a05186e8b8883790fa61e262b1f2e36e4b1a7fcea0bdcb89932da5178`.
@@ -20,10 +19,34 @@ and package-lock.json. Sort relative paths; hash each path, NUL, bytes, NUL.
 Keep source unchanged during the gate and repeat the same fingerprint at its
 end. Docs are outside this fingerprint.
 
-All 100 filesystem type contracts passed. Unit execution is active; progress
-markers are not final test counts or failure diagnoses. The earlier full gate
-had two native Promise property-import failures, but this run's final result
-must be read rather than inferred from that history.
+All 100 filesystem type contracts passed. Final report (411d47): 26,777 tests
+passed, four failed and 41 skipped, across 1,111 files (1,106 passed, three
+failed, two skipped), in 1073.19 seconds. This is a failing package gate.
+
+The post-run fingerprint matched the pre-run 1,497-file hash exactly (411d47).
+Saved log SHA256:
+`8bbb32efdf0d32e77c57be84d88e96a54118d073d442781179da6668d0ecc187`.
+
+Failures:
+
+- Both native Promise own-property import assertions in
+  `interp/promise-import-properties.test.ts` returned undefined instead of the
+  explicit string descriptor and user-symbol value. The admission-policy
+  decision remains unresolved; do not blind-copy private host metadata.
+- `run.completed-replay.test.ts`: the 128-draw completed replay case exceeded
+  its 5,000 ms timeout.
+- `test/ppr2-integration-adjudication.test.ts`: the `co` fresh-writer scenario
+  exceeded its 5,000 ms timeout.
+
+The timeout cases require isolated revalidation and cost investigation, not a
+larger timeout or an assumption that they are unrelated. The source freeze is
+now ended; later edits are outside this full-run qualification.
+
+An unchanged isolated rerun of both timeout files (session 13916, terminal
+268e30) passed all 27 tests in 11.92 seconds. This does not repair or dismiss
+the full-run timeouts. Their cumulative replay/serialization cost and behavior
+under suite contention remain to be investigated; no timeout was increased
+and no test was removed.
 
 ## Parallel read-only findings
 

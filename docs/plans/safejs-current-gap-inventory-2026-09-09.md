@@ -7,10 +7,13 @@ does not describe the published package or only committed sources.
 
 ## Latest verification update
 
-A fresh full package gate after PlainDate/Intl integration is running; see
+A fresh full package gate after PlainDate/Intl integration finished; see
 [the source fingerprint and live-run record](safejs-post-plain-date-full-gate.md).
-Its 100 filesystem type contracts passed; no final unit result is claimed yet.
-The source is held unchanged during that gate.
+Its 100 filesystem type contracts passed. Final results: 26,777 passed, four
+failed and 41 skipped; the source fingerprint matched before/after. Two
+failures concern native Promise property imports, and two are 5-second timeouts
+in the completed-replay 128-draw case and PPR2 `co` continuation scenario.
+This is a failing gate, not completed integration or JavaScript conformance.
 
 A source-runtime reflection check against Node 26.4.0 (153cde) now finds only
 three missing PlainDate conversion names, the zoned conversions on Instant and

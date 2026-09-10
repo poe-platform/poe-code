@@ -936,15 +936,14 @@ resolved options as a fallback.
 `PlainTime.toLocaleString`, `PlainDateTime.toLocaleString` and `PlainDate.toLocaleString` accept valid fixed-offset
 time zones on Node 18 and preserve their wall-clock fields. Fixed-offset numeric Date/Instant and direct
 Intl formatting on older hosts remain incomplete.
-The last full SafeJS run, including an earlier partial PlainDateTime integration,
-passed 26,614 tests, failed two, and skipped 41. Both failures were native
-Promise property-import expectations. The newer PlainDateTime field replacement,
-arithmetic, differences, locale/direct-Intl changes, and PlainDate integration
-postdate that run.
-The earlier timing failure did not recur.
-All 100 filesystem type contracts passed. No Temporal/Intl tests failed, but this is not a green package
-gate or complete JavaScript conformance; see the
-[current integration record](../../docs/plans/safejs-current-integration-gate.md).
+The latest full SafeJS run includes the working-tree PlainDateTime, PlainDate
+and direct-Intl integration: 26,777 tests passed, four failed and 41 were skipped.
+Two failures concern native Promise property-import expectations; two exceeded
+the 5-second timeout in completed replay and PPR2 continuation tests.
+All 100 filesystem type contracts passed, and the source fingerprint matched
+before and after the run. No Temporal/Intl tests failed, but this is not a green
+package gate or complete JavaScript conformance; see the
+[full-run record](../../docs/plans/safejs-post-plain-date-full-gate.md).
 Instant differences (`until`/`since`) return
 Durations, and Instant `toLocaleString` supports locale-aware formatting.
 `Temporal.PlainYearMonth`, `Temporal.PlainMonthDay`,

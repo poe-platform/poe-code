@@ -7451,6 +7451,19 @@ extension, integration, or validation requirement is missing or unverified.
   pass; selected build, typecheck and scoped lint pass. Native-subclass storage adaptation,
   metaclass attribute overrides, guest in-place multiplication, broader numeric
   protocol assembly and suspended safe-fs effects remain unfinished.
+- Augmented multiplication's left-list sequence fallback now repeats the original
+  slots in place after numeric methods decline. Five compiled regressions first
+  replaced the list, breaking aliases/cycles. Eleven new cases cover negative,
+  zero, unit and repeated counts, cyclic members, reflected numeric precedence,
+  native right-sequence fallback, index-method mutations/errors and failed target
+  write-back. CPython confirms all eleven scenarios; the 96 ordinary repetition
+  comparisons remain unchanged. Full suite: 5,633 tests in 450 files pass, with
+  the final corrected native-right-operand case also checked in the focused suite.
+  Build, typecheck and scoped lint pass. A separate CPython difference was identified: heap
+  guest types with only __index__ must not fall back to a right-hand sequence
+  for *= (unlike ordinary *); current assembly still allows that fallback. This
+  sequence-table eligibility gap, guest __imul__, native-subclass adaptation,
+  metaclass overrides and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

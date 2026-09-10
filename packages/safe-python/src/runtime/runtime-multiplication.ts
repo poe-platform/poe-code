@@ -14,8 +14,9 @@ export interface MultiplicationContext {
 }
 
 /** Numeric negotiation precedes exact native sequence repetition, including
- * index conversion for empty sequences. This operation never mutates a list;
- * in-place slots and subclass storage belong to the object-operation layer. */
+ * index conversion for empty sequences. Augmented fallback repeats a left-hand
+ * list in place; a right-hand list is never mutated. Guest in-place slots must
+ * run before this operation; subclass storage belongs to the object layer. */
 export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: MultiplicationContext = {}, augmented = false): RuntimeValue {
   meter.checkpoint();
   if (context.numeric !== undefined) {
@@ -42,6 +43,10 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
       const name = diagnosticTypeName(context.typeName?.(multiplier) ?? index?.typeName(multiplier) ?? (multiplier.kind === "none" ? "NoneType" : multiplier.kind === "not-implemented" ? "NotImplementedType" : multiplier.kind), meter);
       if (count === undefined) throw new PythonRuntimeError("TypeError", `can't multiply sequence by non-int of type '${name}'`);
       throw new PythonRuntimeError("OverflowError", `cannot fit '${name}' into an index-sized integer`);
+    }
+    if (augmented && left.kind === "list") {
+      left.items.repeatInPlace(count);
+      return left;
     }
     return runtimeBinary("*", source, values.integer(count), values, meter);
   }

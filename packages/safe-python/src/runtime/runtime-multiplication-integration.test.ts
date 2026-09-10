@@ -170,3 +170,75 @@ it.each(["type", "call"])("stops multiplication after cancellation during %s", s
   expect(() => state.run("result=guest * 'x'\n")).toThrow("execution cancelled");
   expect(state.globals.has("result")).toBe(false);
 });
+
+it.each([-2, 0, 1, 2])("preserves list aliases during augmented guest-index repetition (%s)", count => {
+  const state = fixture(), owner = state.type("Index"), items = state.v.list([state.v.true]);
+  state.method(owner, "__index__", `def index(self):\n visit('index')\n return ${count}\n`);
+  state.guest("guest", owner); state.globals.set("items", items);
+  state.run("alias=items\nitems *= guest\nsame=items is alias\n");
+  expect(state.globals.get("same")).toBe(state.v.true);
+  expect(state.globals.get("items")).toBe(items);
+  expect(items.items.snapshot()).toEqual(Array(Math.max(0, count)).fill(state.v.true));
+  expect(state.events).toEqual(["index"]);
+});
+
+it("allows reflected multiplication to win before native in-place repetition", () => {
+  const state = fixture(), owner = state.type("Guest"), items = state.v.list([state.v.true]);
+  state.method(owner, "__rmul__", "def reflect(self, other):\n visit('reflected')\n return False\n");
+  state.method(owner, "__index__", "def index(self):\n visit('index')\n return 2\n");
+  state.guest("guest", owner); state.globals.set("items", items);
+  state.run("alias=items\nitems *= guest\n");
+  expect(state.globals.get("items")).toBe(state.v.false);
+  expect(state.globals.get("alias")).toBe(items);
+  expect(items.items.snapshot()).toEqual([state.v.true]);
+  expect(state.events).toEqual(["reflected"]);
+});
+
+it("does not mutate the right-hand list during augmented repetition", () => {
+  const state = fixture(), items = state.v.list([state.v.true]);
+  state.globals.set("items", items);
+  state.run("count=2\ncount *= items\n");
+  const result = state.globals.get("count");
+  expect(result?.kind).toBe("list");
+  if (result?.kind !== "list") throw Error("expected list");
+  expect(result).not.toBe(items); expect(result.items.snapshot()).toEqual([state.v.true, state.v.true]);
+  expect(items.items.snapshot()).toEqual([state.v.true]);
+});
+
+it("preserves cyclic aliases when repeating a list through a guest index", () => {
+  const state = fixture(), owner = state.type("Index"), items = state.v.list([]);
+  items.items.append(items);
+  state.method(owner, "__index__", "def index(self):\n return 2\n");
+  state.guest("guest", owner); state.globals.set("items", items);
+  state.run("items *= guest\n");
+  expect(state.globals.get("items")).toBe(items);
+  expect(items.items.length).toBe(2);
+  expect(items.items.get(0n)).toBe(items); expect(items.items.get(1n)).toBe(items);
+});
+
+it.each(["valid", "invalid", "overflow"])("retains index-method mutations during augmented repetition (%s)", mode => {
+  const state = fixture(), owner = state.type("Index"), items = state.v.list([state.v.true]);
+  if (mode === "invalid") {
+    const stringType = state.type("str"), special = state.hooks.specialMethods!;
+    state.hooks.specialMethods = frame => {
+      const original = special(frame);
+      return { ...original, typeOf: value => value.kind === "str" ? stringType : original.typeOf(value) };
+    };
+  }
+  state.globals.set("mutate", state.v.builtinFunction({ name: "mutate", invoke() { items.items.append(state.v.false); return state.v.none; } }));
+  const result = mode === "valid" ? "2" : mode === "invalid" ? "'bad'" : "1267650600228229401496703205376";
+  state.method(owner, "__index__", `def index(self):\n mutate()\n return ${result}\n`);
+  state.guest("guest", owner); state.globals.set("items", items);
+  if (mode === "valid") state.run("items *= guest\n");
+  else expect(() => state.run("items *= guest\n")).toThrow(mode === "invalid" ? "__index__ returned non-int (type str)" : "cannot fit 'Index' into an index-sized integer");
+  expect(state.globals.get("items")).toBe(items);
+  expect(items.items.snapshot()).toEqual(mode === "valid" ? [state.v.true, state.v.false, state.v.true, state.v.false] : [state.v.true, state.v.false]);
+});
+
+it("retains repeated list slots when augmented target write-back fails", () => {
+  const state = fixture(), owner = state.type("Index"), items = state.v.list([state.v.true]);
+  state.method(owner, "__index__", "def index(self):\n return 2\n");
+  state.guest("guest", owner); state.globals.set("container", state.v.tuple([items]));
+  expect(() => state.run("container[0] *= guest\n")).toThrow("does not support item assignment");
+  expect(items.items.snapshot()).toEqual([state.v.true, state.v.true]);
+});

@@ -69,3 +69,26 @@ for a scoped local commit. Review also identified a candidate classification
 gap: an uncaught unbound identifier reaches the host as an interpreter
 diagnostic, unlike an explicit throw. Validate that separately before changing
 the interpreter or result classification.
+
+The host API addition is local commit 9074a1d20. Three new regressions then
+validated the reference classification gap (36589, terminal 558f85; 48 controls
+passed), report `/tmp/safejs-script-reference-errors-red.json`. Script mode
+returned the SDK's `UNBOUND_IDENTIFIER` diagnostic for an uncaught missing
+identifier or update, so the runner could not classify it as a runtime throw.
+The candidate converts only branded source-reference diagnostics in Script
+mode through the existing guest throw-completion constructor, before final
+data reconciliation. The SDK's diagnostic contract is unchanged. Focused
+Script/host/reference-error checks and scoped lint/build are running.
+
+The reference-error candidate passed all 266 tests across seven files (97007,
+terminal 2eb5d9), report `/tmp/safejs-script-reference-errors-fixed.json`.
+These include the SDK diagnostic-contract and reference-delivery regressions.
+Scoped lint passed; the maintained workspace build completed all 23 builds and
+five fresh-process imports (7738, terminal 949ee6). Whitespace checks passed.
+
+A read-only classifier probe (59351, terminal 6ad867) confirms that the
+existing sandbox data-property lookup recovers `ReferenceError` and `TypeError`
+constructors for runtime throws, while `{name:"TypeError"}` still has the
+`Object` constructor and a primitive throw has none. Parse errors remain native
+SyntaxErrors at the host boundary. The result classifier must not equate a
+user-controlled `name` field with the expected exception constructor.

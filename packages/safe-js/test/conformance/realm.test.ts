@@ -93,3 +93,10 @@ it("cancels work in child realms when their owning test realm is disposed", asyn
   await realm.dispose();
   expect(await outcome).toBe("rejected");
 });
+
+it.each(["missing", "missing++"])("classifies an uncaught reference failure as a runtime throw: %s", async source => {
+  const realm = createTest262Realm();
+  try {
+    expect(await realm.evaluate(source)).toMatchObject({ status: "throw", phase: "runtime" });
+  } finally { await realm.dispose(); }
+});

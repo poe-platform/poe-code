@@ -510,10 +510,13 @@ export async function interpret(
     const execute = () => node.type === "VariableDeclaration" && node.disposal !== undefined
       ? evaluateResourceScope(scope, budget, {...createCoercionContext(context), onSuspend: context.onSuspend, signal: context.signal}, () => evaluateNode(node, context))
       : evaluateNode(node, context);
-    const evaluation = await withCancellationSignal(options.signal, () =>
+    let evaluation = await withCancellationSignal(options.signal, () =>
       options.nested ? runAsyncPrefix(execute) : jobs.run(execute)
     );
     if (!options.nested) await jobs.drain();
+    if (options.script !== undefined && evaluation.kind === "error" && referenceErrorDiagnostics.has(evaluation.error)) {
+      evaluation = createThrowCompletion(evaluation.error, budget, context.callStack, evaluation.error.span);
+    }
     const snapshot = scope.snapshot();
     reconcileDataBudget(
       budget,

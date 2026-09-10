@@ -25,6 +25,13 @@ function realm(signal?: AbortSignal) {
   } };
 }
 
+it("surfaces an uncaught Script reference error instead of returning an SDK diagnostic", async () => {
+  const current = realm();
+  try {
+    await expect(current.evaluate("missing")).rejects.toMatchObject({ name: "ReferenceError" });
+  } finally { releaseObjectPrototype(current.budget); current.release(); }
+});
+
 it.each([false, true])("creates nondeletable global Script variables and functions (strict: %s)", async strict => {
   const current = realm();
   try {

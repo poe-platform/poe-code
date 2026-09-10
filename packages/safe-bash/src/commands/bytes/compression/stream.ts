@@ -3,6 +3,7 @@ import { FsError, readBytes, type ByteSource } from "../../../contracts/index.js
 import type { CompressionOptions } from "./options.js";
 import { gunzipMembers } from "./gunzip.js";
 import { codec, CodecReader } from "./codec.js";
+import { boundedCodec } from "./bounded-codec.js";
 
 export const chunkBytes = 64 * 1024;
 export const stagingLimit = 256 * 1024 * 1024;
@@ -66,9 +67,11 @@ export async function transform(
   };
   let prepared: ByteSource = split(typeof source === "function" ? source(signal) : source, signal, fail);
   let warned = false;
-  if (options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
-  const reader = options.decompress ? undefined : new CodecReader(prepared, signal);
-  const transformed = reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
+  if (options.format === "gzip" && options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
+  const reader = options.format === "gzip" && options.decompress ? undefined : new CodecReader(prepared, signal);
+  const transformed = options.format !== "gzip"
+    ? boundedCodec(reader!, { format: options.format, decompress: options.decompress, level: options.level, onFailure: fail }, signal)
+    : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
   let consumed = false;
   const output = (async function* (): AsyncGenerator<Uint8Array> {
     let size = 0;
@@ -76,7 +79,7 @@ export async function transform(
       for await (const chunk of readBytes(transformed, signal)) {
         if (chunk.length > maxOutput - size) throw new FsError("EFBIG", { message: `staged output exceeds ${maxOutput} bytes` });
         let bytes = chunk;
-        if (!options.decompress && size <= 9 && size + chunk.length > 9) {
+        if (options.format === "gzip" && !options.decompress && size <= 9 && size + chunk.length > 9) {
           bytes = chunk.slice();
           bytes[9 - size] = 255;
         }

@@ -297,7 +297,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
     assert.match(entry.oid, hashAlgorithm === "sha1" ? /^[a-f0-9]{40}$/u : /^[a-f0-9]{64}$/u);
     if (!admitted.has(path)) admitted.set(path, { path, oid: entry.oid, maximum });
   };
-  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs"];
+  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs"];
   assert.ok(tree.has("scripts/guard-package-dist.mjs"), "missing committed root output guard");
   admit("scripts/guard-package-dist.mjs");
   for (const path of reviewed) admit(`${packagePrefix}/${path}`, 300000);
@@ -345,7 +345,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.deepEqual(manifest.files, ["dist"]);
       assertArchiveDependencyContract(manifest);
       for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
-      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
+      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs", "unreviewed committed build command");
       assert.equal(rootManifest.name, "poe-code");
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
       for (const [path, conditions] of Object.entries(manifest.exports)) {

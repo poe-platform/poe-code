@@ -7,7 +7,12 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/commands/bytes/compression/native/generated/bz2.d.mts",
+    "src/commands/bytes/compression/native/generated/xz.d.mts",
+    "src/commands/bytes/compression/native/generated/zstd.d.mts"
+  ],
   "exclude": [
     "tests",
     "dist",

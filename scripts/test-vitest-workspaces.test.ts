@@ -18,6 +18,9 @@ vi.mock("vitest/node", () => ({
     printTestModule(module: unknown) {
       mocks.reportModule(module);
     }
+    onTestModuleEnd(module: unknown) {
+      this.printTestModule(module);
+    }
   }
 }));
 
@@ -310,6 +313,29 @@ describe("batched shared Vitest execution", () => {
     expect(mocks.reportFinished).toHaveBeenCalledTimes(3);
   });
 
+  it("native reporter retains normal module reports and final summary with immediate errors", async () => {
+    const { default: ImmediateReporter } = await import("./vitest-immediate-reporter.mjs");
+    const reporter = new ImmediateReporter();
+    const logger = { error: vi.fn(), printError: vi.fn() };
+    reporter.ctx = { logger };
+    expect(mocks.reporterOptions).toHaveBeenCalledWith({});
+    for (const state of ["passed", "skipped", "pending", "queued"]) {
+      const module = { state: () => state };
+      reporter.printTestModule(module);
+      expect(mocks.reportModule).toHaveBeenLastCalledWith(module);
+    }
+    const error = { message: "native failure", stack: "exact stack" };
+    const project = { name: "native" };
+    const module = { type: "module", relativeModuleId: "native.test.ts", project,
+      state: () => "failed", errors: () => [error],
+      children: { allSuites: () => [], allTests: () => [] } };
+    reporter.onTestModuleEnd(module);
+    expect(logger.printError).toHaveBeenCalledExactlyOnceWith(error, { project });
+    expect(mocks.reportFinished).not.toHaveBeenCalled();
+    reporter.onTestRunEnd([module], [], "failed");
+    expect(mocks.reportFinished).toHaveBeenCalledExactlyOnceWith([module], [], "failed");
+  });
+
   it("omits per-case progress and successful module output while retaining failed modules", async () => {
     contexts();
     await runSharedVitest("/repo", phases);
@@ -322,6 +348,45 @@ describe("batched shared Vitest execution", () => {
     const failed = { state: () => "failed" };
     reporter.printTestModule(failed);
     expect(mocks.reportModule).toHaveBeenCalledExactlyOnceWith(failed);
+  });
+
+  for (const kind of ["test", "suite", "module"]) it(`prints ${kind} failure details before the remaining queue finishes`, async () => {
+    const { execution } = contexts();
+    const error = { message: "failure sentinel", stack: "exact stack", diff: "expected versus actual" };
+    const project = { name: "alpha" };
+    const logger = { error: vi.fn(), printError: vi.fn() };
+    const entity = {
+      type: kind, fullName: "nested > failure", project,
+      result: () => ({ state: "failed", errors: [error] }), errors: () => [error]
+    };
+    const module = {
+      type: "module", relativeModuleId: "alpha.test.ts", project,
+      state: () => "failed", errors: () => kind === "module" ? [error] : [],
+      children: {
+        allSuites: () => kind === "suite" ? [entity] : [],
+        allTests: () => kind === "test" ? [entity] : []
+      }
+    };
+    let finish!: () => void;
+    execution.runTestSpecifications.mockImplementationOnce(() => new Promise(resolve => {
+      finish = () => resolve({ testModules: [{ ok: () => true }], unhandledErrors: [] });
+    }));
+    const running = runSharedVitest("/repo", phases);
+    try {
+      await vi.waitFor(() => expect(execution.runTestSpecifications).toHaveBeenCalledOnce());
+      const reporter = mocks.createVitest.mock.calls[1][1].reporters[0];
+      reporter.ctx = { ...execution, logger };
+      reporter.onTestModuleEnd(module);
+      expect(mocks.reportModule).toHaveBeenCalledExactlyOnceWith(module);
+      expect(logger.error).toHaveBeenCalledExactlyOnceWith(kind === "module"
+        ? "FAIL alpha.test.ts" : "FAIL alpha.test.ts > nested > failure");
+      expect(logger.printError).toHaveBeenCalledExactlyOnceWith(error, { project });
+      expect(execution.close).not.toHaveBeenCalled();
+      expect(mocks.reportFinished).not.toHaveBeenCalled();
+    } finally {
+      finish();
+      await running;
+    }
   });
 
   it("identifies every nonempty workspace before scheduling the queue", async () => {

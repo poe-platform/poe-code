@@ -113,7 +113,7 @@ async function collectEnvironment(env?: Record<string, string>, runner?: Runner)
     spec: {
       id: "env-child",
       command: process.execPath,
-      args: ["-e", "console.log(JSON.stringify({parent: process.env.POE_LAUNCHER_PARENT ?? null, extra: process.env.POE_LAUNCHER_EXTRA ?? null}))"],
+      args: ["-e", "process.stdout.write(JSON.stringify({parent: process.env.POE_LAUNCHER_PARENT ?? null, extra: process.env.POE_LAUNCHER_EXTRA ?? null}) + '\\n')"],
       env,
       restart: "never"
     },
@@ -127,7 +127,7 @@ async function collectEnvironment(env?: Record<string, string>, runner?: Runner)
     await supervisor.start();
     await vi.waitFor(() => expect(supervisor.getState().lastExitCode).toBe(0), { interval: 10 });
     expect(errors).toEqual([]);
-    expect(lines).toHaveLength(1);
+    expect(lines, JSON.stringify(lines)).toHaveLength(1);
     return JSON.parse(lines[0]);
   } finally {
     await supervisor.stop();

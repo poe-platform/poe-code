@@ -950,14 +950,14 @@ describe("interpret", () => {
       const assert = require("node:assert/strict");
       (async () => {
         const { interpret } = interpreterModule.exports;
-        const source = Array.from({ length: 150_000 }, (_, index) => index);
+        const source = Array.from({ length: 75_000 }, (_, index) => index);
         assert.throws(() => Reflect.apply(Array.prototype.push, [], source), RangeError);
         const result = await interpret(workerData.program, { bindings: { source } });
         parentPort.postMessage({ ok: result.ok, returnValue: result.returnValue });
       })().catch(error => { throw error; });
     `, {
       eval: true,
-      resourceLimits: { stackSizeMb: 1 },
+      resourceLimits: { stackSizeMb: 0.5 },
       workerData: {
         program: block(
           parse("const target = []"),
@@ -971,7 +971,7 @@ describe("interpret", () => {
       worker.once("message", resolve);
       worker.once("error", reject);
       worker.once("exit", code => reject(new Error(`Spread worker exited before reporting a result (${code})`)));
-    })).resolves.toEqual({ ok: true, returnValue: [150_000, 0, 149_999] });
+    })).resolves.toEqual({ ok: true, returnValue: [75_000, 0, 74_999] });
   });
 
   it("assigns a new value to a let binding", async () => {

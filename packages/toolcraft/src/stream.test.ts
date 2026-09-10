@@ -7,6 +7,12 @@ import {
   type ToolcraftStream
 } from "./index.js";
 
+async function collect<Value>(stream: AsyncIterable<Value>): Promise<Value[]> {
+  const values: Value[] = [];
+  for await (const value of stream) values.push(value);
+  return values;
+}
+
 describe("defineStreamCommand SDK lifecycle", () => {
   it("starts lazily and advances only when the consumer pulls", async () => {
     const produced: number[] = [];
@@ -78,7 +84,7 @@ describe("defineStreamCommand SDK lifecycle", () => {
 
     const stream = sdk.watch({}, { onStatus: (event) => statuses.push(event) });
 
-    await expect(Array.fromAsync(stream)).resolves.toEqual([{ state: "fresh-token" }]);
+    await expect(collect(stream)).resolves.toEqual([{ state: "fresh-token" }]);
     expect(statuses).toEqual([
       { type: "reconnecting", message: "Refreshing credentials" }
     ]);
@@ -95,7 +101,7 @@ describe("defineStreamCommand SDK lifecycle", () => {
     });
     const sdk = createSDK(defineGroup({ name: "devices", children: [watch] }));
 
-    await expect(Array.fromAsync(sdk.watch({}))).rejects.toThrow("state");
+    await expect(collect(sdk.watch({}))).rejects.toThrow("state");
   });
 
   it("propagates terminal errors and releases resources once", async () => {
@@ -115,7 +121,7 @@ describe("defineStreamCommand SDK lifecycle", () => {
     });
     const sdk = createSDK(defineGroup({ name: "devices", children: [watch] }));
 
-    await expect(Array.fromAsync(sdk.watch({}))).rejects.toThrow("connection lost");
+    await expect(collect(sdk.watch({}))).rejects.toThrow("connection lost");
     expect(cleanup).toHaveBeenCalledOnce();
   });
 });

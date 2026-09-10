@@ -12,7 +12,7 @@ vi.mock("./engine/index.js", async () => {
   const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
   const built = await buildBrowserEngine();
   return import(
-    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(built.code).toString("base64")}`
+    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-session.mjs`).toString("base64")}`
   );
 });
 
@@ -57,7 +57,10 @@ describe("PlaygroundSession", () => {
     expect(result.stdout).toContain("64 KiB");
     expect(result.stdout).toContain("5-second deadline terminates the dedicated shell worker");
     expect(result.stdout).toContain("not installed");
-    expect(result.stdout).toContain("All 98 agent commands");
+    expect(result.stdout).toContain("All 107 agent commands");
+    for (const name of ["bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd"]) {
+      expect(result.stdout).toContain(name);
+    }
     expect(result.stdout).toContain("Web Workers");
     expect(result.stdout).toContain("Regex/ERE workers use protocol work/byte budgets and timeouts.");
     expect(result.stdout).toContain("Node resourceLimits heap/stack caps are not enforced in browser workers.");

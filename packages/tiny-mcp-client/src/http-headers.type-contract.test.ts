@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const filename = join(directory, "internal.ts");
@@ -32,6 +32,15 @@ const cases = [
 ] as const;
 
 describe("HttpTransportOptions.headers public type", () => {
+  // Let TypeScript key reusable syntax trees by the compilation settings and
+  // implied module format. Every profile still builds and checks its own program.
+  const registry = ts.createDocumentRegistry();
+  const documents: Array<{ path: string; options: ts.CompilerOptions; format: ts.ResolutionMode }> = [];
+  afterAll(() => {
+    for (const { path, options, format } of documents) {
+      registry.releaseDocument(path, options, ts.ScriptKind.TS, format);
+    }
+  });
   for (const resolution of ["NodeNext", "Bundler"] as const) {
     for (const dom of [false, true]) {
       it(`${resolution} supports fetch headers (${dom ? "DOM" : "Node-only"})`, () => {
@@ -69,7 +78,12 @@ describe("HttpTransportOptions.headers public type", () => {
         host.fileExists = (path) => path === virtualConsumer || exists(path);
         host.getSourceFile = (path, version) => {
           const contents = host.readFile(path);
-          return contents === undefined ? undefined : ts.createSourceFile(path, contents, version);
+          if (contents === undefined) return undefined;
+          const parsed = registry.acquireDocument(
+            path, options, ts.ScriptSnapshot.fromString(contents), contents, ts.ScriptKind.TS, version
+          );
+          documents.push({ path, options, format: parsed.impliedNodeFormat });
+          return parsed;
         };
         const program = ts.createProgram([virtualConsumer], options, host);
         const diagnostics = ts.getPreEmitDiagnostics(program);

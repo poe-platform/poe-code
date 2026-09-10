@@ -29,7 +29,12 @@ for (const streaming of [true, false]) for (const profile of profiles) {
       writeFile: async (path, bytes, options) => { admission(options); await base.writeFile(path, bytes, options); },
       ...(streaming ? { writeStream: async (path, bytes, options) => { admission(options); await base.writeStream(path, bytes, options); } } : {}),
     };
-    const { shell } = await fixture({}, wrapped(base, overrides));
+    if (!streaming) Object.defineProperty(overrides, "writeStream", { value: undefined });
+    if (!profile.scoped) Object.defineProperty(overrides, "capabilitiesFor", { value: undefined });
+    const filesystem = wrapped(base, overrides);
+    if (!streaming) assert.equal(filesystem.writeStream, undefined);
+    if (!profile.scoped) assert.equal(filesystem.capabilitiesFor, undefined);
+    const { shell } = await fixture({}, filesystem);
     try {
       await base.writeFile("/work/image.bin", binary);
       const result = await shell.exec("tar -cf /photos.tar image.bin");

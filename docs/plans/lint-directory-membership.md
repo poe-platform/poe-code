@@ -1,0 +1,55 @@
+# Cache verified directory membership
+
+Two repository lint attempts during issue 688 reached the existing 600-second
+supervision limit without a result. A native sample attributed about 67% of
+sampled main-thread stacks to directory reads. Concurrent work prevents a clean
+comparison with the earlier 363.79-second completed run.
+
+Keep every fresh directory read and byte-equality comparison. Reuse the Set
+already constructed for duplicate-name validation alongside the bounded decoded
+directory cache, so exact-name checks no longer scan the entire string array.
+Preserve cache eviction, entry/byte bounds, canonical spelling, identity checks,
+receipt handling, and outward array copies. Do not add exclusions or raise caps.
+
+The failing regression observed 12 linear membership scans for 12 children.
+After the change, the same operation retains 148 metadata operations and 14
+directory reads while eliminating those scans. All 278 focused lint tests pass,
+including same-length name mutation controls. Independent review approved the
+cache lifecycle and unchanged observations.
+
+An isolated 30,000-name benchmark with 10,000 hit/miss queries measured arrays at
+1,434–1,640 ms and Set lookups at 0.52–1.31 ms. A complete 400-file in-memory
+guard traversal showed no clear gain: approximately 60–80 ms before and 60–66 ms
+after, with identical 4,416 metadata operations. This change does not establish
+that the repository lint timeout is solved. Full unit and maintained lint gates
+remain required before delivery.
+
+The first maintained run after the change completed in 407.58 seconds within
+the unchanged supervision limits. It linted all 10,543 configured files with
+3,243,665 metadata operations and complete receipt handling. It exited 1 for
+50 errors and one warning in the new compression implementation and generated
+artifacts; completion is not a clean gate. A two-second native sample still
+showed directory reads in about half of the main-thread stacks. This is evidence
+of completion under the limit, not an isolated end-to-end speedup measurement.
+
+A later private-root attempt also reached its unchanged deadline without a
+result. A second narrow optimization precomputes lowercase receipt paths and
+their descendant prefixes after the exact 25-record packet is authenticated.
+Protected policy-directory comparisons are likewise prepared when the policy
+is installed. The private derived records preserve original receipt spelling;
+no filesystem observations, receipt authorization, or caps are cached away.
+
+The new in-memory regression first failed with 350 repeated receipt-path folds
+while inspecting 12 children. It retains the same 148 metadata operations and
+14 directory reads and requires zero repeated receipt-path folds after loading.
+RED evidence: `/tmp/poe-688-receipt-fold-red.log`. All 279 focused guard tests
+pass in `/tmp/poe-688-receipt-fold-green.log`; a completed repository lint
+remains necessary, and this computation reduction alone does not prove a
+wall-clock improvement on the filesystem-heavy gate.
+
+The maintained repository lint on `f5358f19a` completed successfully in 473.03
+seconds with the same 600-second deadline and output/memory caps. All 10,588
+configured files were linted, all 25 receipts completed, and errors and warnings
+were zero. Root type checking and workflow lint also passed. Evidence:
+`/tmp/poe-688-csplit-lint.log` and `/tmp/poe-688-csplit-lint-result.json`.
+This establishes a clean gate, not an isolated end-to-end speedup measurement.

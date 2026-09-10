@@ -27,6 +27,7 @@ describe("real safe-bash browser kernel", () => {
           this.worker = source.text().then((code) => {
             const worker = new NodeWorker(
               `
+            const navigator = { language: 'en-US' };
             const { parentPort } = require('node:worker_threads');
             globalThis.addEventListener = (event, handler) => parentPort.on(event, data => handler({ data }));
             globalThis.postMessage = (value, transfer) => parentPort.postMessage(value, transfer);
@@ -63,7 +64,7 @@ describe("real safe-bash browser kernel", () => {
     engine = built;
     inputs = built.inputs;
     kernel = await import(
-      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`${built.code}\n//# sourceURL=safe-bash-browser-kernel.mjs`).toString("base64")}`
+      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-kernel.mjs`).toString("base64")}`
     );
   });
   afterAll(() => vi.unstubAllGlobals());
@@ -169,6 +170,9 @@ describe("real safe-bash browser kernel", () => {
       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824  -\n"
     ],
     ["printf hello | gzip | gunzip", "hello"],
+    ["printf hello | bzip2 -c | bzcat", "hello"],
+    ["printf hello | xz -c | xzcat", "hello"],
+    ["printf hello | zstd -c | zstdcat", "hello"],
     [
       "printf one | gzip > one.gz; printf two | gzip > two.gz; cat one.gz two.gz | gunzip",
       "onetwo"
@@ -460,6 +464,15 @@ describe("real safe-bash browser kernel", () => {
         "awk",
         "jq",
         "gzip",
+        "bzip2",
+        "bunzip2",
+        "bzcat",
+        "xz",
+        "unxz",
+        "xzcat",
+        "zstd",
+        "unzstd",
+        "zstdcat",
         "sha256sum",
         "apply_patch",
         "xq",
@@ -473,7 +486,7 @@ describe("real safe-bash browser kernel", () => {
         "hd"
       ])
     );
-    expect(kernel.supportedCommands).toHaveLength(98);
+    expect(kernel.supportedCommands).toHaveLength(107);
     expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum"]));
   });
 });

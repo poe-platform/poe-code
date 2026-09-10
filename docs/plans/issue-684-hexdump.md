@@ -200,6 +200,41 @@ Freeze current inputs and artifact inventories before push; preserve all
 failures and explicitly distinguish skips, unsupported cases and unavailable
 profiles. Push to main, verify remote commit, then close the validated issue.
 Monitor actual publication independently while continuing the next issue.
+
+## Remote-main integration
+
+The local candidate `62092d0895e952e4b2190415f92d3780d9dd4b87` passes
+full tests, lint, final build, types, the committed archive, package rules and
+all 22 fresh packed profiles/43 gate commands. Its push is rejected without
+delivery because remote main has advanced to
+`52a76cc880cbcc6088ccd5dc65b70e0a86c24b90`. Preserve every earlier receipt as
+qualification of the old candidate, not of the combined tree or a release.
+
+Merge the incoming independently committed portable-compression implementation
+and test/infrastructure improvements without replacing either implementation.
+Resolve the 19 overlapping current-inventory witnesses to 107 default commands
+and 108 with an extra custom command. Preserve both explicit name lists, the
+incoming nine compression names at their existing position, hexdump/hd at the
+tail, shifted stream-inspection slices, and the incoming one-build browser-test
+helper. Historical fixtures remain unchanged. The source factory independently
+confirms 107 unique names before broader verification.
+
+The newly introduced hexdump public test does not have a textual merge conflict,
+but its old 98-name expectation also needs the combined 107-name inventory.
+Reproduce the actual assertion failure before updating those two count literals;
+keep the family-only hexdump/hd limit loops and all saved-VFS assertions unchanged.
+The first attempt overlaps the refresh build and fails at a temporarily absent
+facade; the second sandbox attempt reports only file failure. Neither is counted
+as the actual inventory regression. The explicit per-case third replay records
+the 107-versus-98 assertion in `/tmp/issue684-merge-public-red-v3.log`.
+
+The merge must contain only the authenticated incoming changes and these
+explicit conflict resolutions; the worktree was clean before the merge.
+Refresh the maintained build for incoming codec assets and rerun the focused
+inventories, hexdump regressions and complete merged-candidate gates before
+another non-forced push. Issue 688 remains separately open; retaining its
+incoming implementation is not a claim of complete native parity or release.
+
 The preceding getopt milestone is delivered at
 `95bb5a1bc0839660eb6209a3e5efb8fb9ae119c3`; its ongoing release is not a
 hexdump release or a substitute for this candidate's gates.

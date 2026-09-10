@@ -628,7 +628,10 @@ describe("owned real npm lifecycle route", () => {
     try {
       fs.mkdirSync(path.join(owned.root, "scripts"));
       fs.copyFileSync(runnerFilename, path.join(owned.root, "scripts/build-workspaces.mjs"));
-      writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { build: "node scripts/build-workspaces.mjs && node step.cjs suffix", prepack: "npm run build" } });
+      const npmCli = process.env.npm_execpath;
+      if (!npmCli) throw new Error("Owned lifecycle controls require the invoking npm CLI path");
+      const npmCommand = [process.execPath, npmCli].map(value => "'" + value.replaceAll("'", "'\\''") + "'").join(" ");
+      writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { build: "node scripts/build-workspaces.mjs && node step.cjs suffix", prepack: `${npmCommand} run build` } });
       fs.writeFileSync(path.join(owned.root, "step.cjs"), 'const fs=require("node:fs");fs.appendFileSync(process.env.BUILD_EVENTS,JSON.stringify({name:process.env.npm_package_name,event:process.env.npm_lifecycle_event,custom:process.env.CUSTOM_TEST_VALUE,suffix:process.argv.includes("suffix")})+"\\n");if(process.argv.includes("fail"))process.exit(7);');
       if (mode === "suppress-lifecycle") fs.writeFileSync(path.join(owned.root, ".npmrc"), "ignore-scripts=true\n");
       if (mode === "include-root") fs.writeFileSync(path.join(owned.root, ".npmrc"), "include-workspace-root=true\n");
@@ -639,6 +642,7 @@ describe("owned real npm lifecycle route", () => {
         expect(fs.existsSync(path.join(owned.root, "events.jsonl"))).toBe(false);
         return;
       }
+      expect(fs.existsSync(path.join(owned.root, "events.jsonl")), result.output).toBe(true);
       const events = fs.readFileSync(path.join(owned.root, "events.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(line));
       expect(result.signal, result.output).toBeNull();
       expect(events.every(event => event.custom === "preserved")).toBe(true);

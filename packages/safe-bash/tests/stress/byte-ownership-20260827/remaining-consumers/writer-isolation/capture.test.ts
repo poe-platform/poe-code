@@ -208,10 +208,14 @@ for (const corrupt of [false, true]) {
       assert.match(readFileSync(join(captureDirectory, "raw.tap"), "utf8"), corrupt ? /# fail 1\n/ : /# pass 2\n/);
       if (corrupt) assert.notDeepEqual(observations[0].requests[1].bytes, observations[0].expectedSecond);
       assert.deepEqual(immutable(directory), before);
+      // Refusal must happen before loading capture-only admission dependencies.
+      rmSync(join(directory, "scripts"), { recursive: true });
       for (const options of [{ args: [captureDirectory], env: childEnv }, { args: [], env: { ...childEnv, TMPDIR: directory, TMP: directory, TEMP: directory } }]) {
         const refused = spawnSync(process.execPath, ["--unhandled-rejections=strict", driver, ...options.args], {
           cwd: directory, env: options.env, encoding: "utf8", timeout: 5_000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024,
         });
+        assert.equal(refused.error, undefined, `Refusal child error; signal=${refused.signal}: ${refused.stderr}`);
+        assert.equal(refused.signal, null);
         assert.equal(refused.status, 1);
         assert.match(refused.stderr, /Capture accepts no paths|temp root must be outside/);
       }

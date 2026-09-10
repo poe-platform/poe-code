@@ -125,18 +125,25 @@ describe("fixture operation observation retention", () => {
     state.guard.directory("src");
     const before = state.guard.snapshot().metadataOperations;
     const iterator = Array.prototype[Symbol.iterator];
+    const includes = Array.prototype.includes;
     let listingIterations = 0;
+    let membershipScans = 0;
     Array.prototype[Symbol.iterator] = function(this: unknown[]) {
       if (this.length === 12 && typeof this[0] === "string" && this[0].startsWith("allocation-")) listingIterations++;
       return iterator.call(this);
     };
+    Array.prototype.includes = function(this: unknown[], ...args: Parameters<typeof includes>) {
+      if (this.length === 12 && typeof this[0] === "string" && this[0].startsWith("allocation-")) membershipScans++;
+      return includes.apply(this, args);
+    };
     let result;
     try { result = state.guard.directory("src", true); }
-    finally { Array.prototype[Symbol.iterator] = iterator; }
+    finally { Array.prototype[Symbol.iterator] = iterator; Array.prototype.includes = includes; }
     expect(result.inspections.size).toBe(12);
     expect(state.guard.snapshot().metadataOperations - before).toBe(148);
     expect(state.operations.filter(operation => operation.method === "readdirSync" && operation.path === root + "/src")).toHaveLength(14);
     expect(listingIterations).toBe(2); // One outward copy and one traversal, never per-child copies.
+    expect(membershipScans).toBe(0); // Membership must not scan the complete cached listing for each child.
   });
 
   it("keeps raw-order cache entries private when callers sort or mutate listings", () => {
@@ -159,6 +166,27 @@ describe("fixture operation observation retention", () => {
     ancestors.splice(0, ancestors.length, "forged");
     expect(guard.fileSystem.readdirSync("/")).not.toContain("forged");
     expect(() => guard.inspect("src/forged.js")).toThrow("exact pathname spelling required");
+  });
+
+  it("reuses authenticated receipt comparisons without changing filesystem observations", () => {
+    const state = model(Object.fromEntries(Array.from({ length: 12 }, (_, index) => [`src/comparison-${index}.js`, ""])));
+    const records = state.guard.loadReceipts(state.binding);
+    const paths = new Set(records.map((record: { path: string }) => record.path));
+    state.guard.directory("src");
+    const before = state.guard.snapshot().metadataOperations;
+    const lower = String.prototype.toLowerCase;
+    let repeatedFolds = 0;
+    const spy = vi.spyOn(String.prototype, "toLowerCase").mockImplementation(function(this: string) {
+      if (paths.has(String(this))) repeatedFolds++;
+      return lower.call(this);
+    });
+    let result;
+    try { result = state.guard.directory("src", true); }
+    finally { spy.mockRestore(); }
+    expect(result.inspections.size).toBe(12);
+    expect(state.guard.snapshot().metadataOperations - before).toBe(148);
+    expect(state.operations.filter(operation => operation.method === "readdirSync" && operation.path === root + "/src")).toHaveLength(14);
+    expect(repeatedFolds).toBe(0);
   });
 
   it("does not expose or borrow cached directory observations", () => {
@@ -238,14 +266,17 @@ describe("fixture operation observation retention", () => {
   });
 
   it("revalidates changed and duplicate names after a cached listing", () => {
-    const state = model({ "src/one.js": "export {};" });
+    const state = model({ "src/one.js": "export {};", "src/two.js": "export {};" });
     let entries = [Buffer.from("one.js")];
     const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
       return absolute === root + "/src" ? entries : state.fileSystem.readdirSync(absolute, options as any);
     } } });
     expect(guard.directory("src").entries).toEqual(["one.js"]);
+    expect(() => guard.inspect("src/two.js")).toThrow("exact pathname spelling required");
     entries = [Buffer.from("two.js")];
     expect(guard.directory("src").entries).toEqual(["two.js"]);
+    expect(() => guard.inspect("src/two.js")).not.toThrow();
+    expect(() => guard.inspect("src/one.js")).toThrow("exact pathname spelling required");
     entries = [Buffer.from("two.js"), Buffer.from("two.js")];
     expect(() => guard.directory("src")).toThrow("duplicate directory entry");
   });

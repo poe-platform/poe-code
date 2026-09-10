@@ -30,7 +30,8 @@ export function instantiateType<Value, Keywords = ReadonlyMap<string, Value>>(ty
   const allocate = context.lookupNew(type); meter.checkpoint();
   if (allocate === undefined) {
     const name = context.typeName(type); meter.checkpoint();
-    throw new PythonRuntimeError("TypeError", `cannot create '${diagnosticTypeName(name, meter)}' instances`);
+    meter.checkpoint(0, 128 + 2 * name.length);
+    throw new PythonRuntimeError("TypeError", `cannot create '${name}' instances`);
   }
   const instance = allocate(type, positional, keywords); meter.checkpoint();
   const actual = context.typeOf(instance); meter.checkpoint();

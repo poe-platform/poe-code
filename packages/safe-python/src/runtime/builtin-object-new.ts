@@ -24,6 +24,10 @@ export function createObjectNewBuiltin(values: RuntimeValues, meter: ExecutionMe
     }
     const owned = owns(type); meter.checkpoint();
     if (!owned) throw Error("type is not owned by this object allocator");
+    if (type.value.mro.length === 0) {
+      meter.checkpoint(0, 128 + 2 * type.value.name.length);
+      throw new PythonRuntimeError("TypeError", `cannot create '${type.value.name}' instances`);
+    }
     if (!type.value.hasObjectLayout) {
       const name = type.value.name; meter.checkpoint(0, 128 + 4 * name.length);
       throw new PythonRuntimeError("TypeError", `object.__new__(${name}) is not safe, use ${name}.__new__()`);

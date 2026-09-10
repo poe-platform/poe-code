@@ -17,6 +17,18 @@ function fixture() {
 }
 
 describe("runtime type inheritance layouts", () => {
+  it("exposes frozen allocation metadata before MRO computation, then fills the MRO", () => {
+    const { namespace, meter, type } = fixture(), base = type("Base"); let observed: RuntimeTypeLayout | undefined;
+    const result = new RuntimeTypeLayout("C", [base], namespace(), meter, { beforeMro(layout) {
+      observed = layout; expect(Object.isFrozen(layout)).toBe(true); expect(layout.name).toBe("C"); expect(layout.bases).toEqual([base]); expect(layout.mro).toEqual([]);
+    } });
+    expect(observed).toBe(result); expect(result.mro).toEqual([result, base]);
+  });
+  it("retains the empty MRO when allocation callbacks terminate execution", () => {
+    const { namespace, meter } = fixture(); let observed: RuntimeTypeLayout | undefined;
+    expect(() => new RuntimeTypeLayout("C", [], namespace(), meter, { beforeMro(layout) { observed = layout; throw Error("stop allocation"); } })).toThrow("stop allocation");
+    expect(observed?.mro).toEqual([]);
+  });
   it("distinguishes absent native sequence tables from empty heap-type tables", () => {
     const { namespace, meter } = fixture();
     const native = new RuntimeTypeLayout("Native", [], namespace(), meter, { sequenceTable: false });

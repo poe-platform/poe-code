@@ -20,6 +20,7 @@ import { createSortedBuiltin } from "./builtin-sorted.js";
 import { createAttributeMutationBuiltin } from "./builtin-attribute-mutation.js";
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
 import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
+import { allocateRuntimeType } from "./runtime-type-allocation.js";
 
 function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000, signal }), v = new RuntimeValues(meter);
@@ -1773,6 +1774,35 @@ it("renames intrinsic class metadata independently and updates runtime diagnosti
   expect(owner.value.namespace.items.lookup(state.v.string("__name__"))).toBeUndefined();
   expect(owner.value.namespace.items.lookup(state.v.string("__qualname__"))).toBeUndefined();
   expect(() => state.run("C.missing\n")).toThrow("type object 'Renamed' has no attribute 'missing'");
+});
+
+it("executes classes produced by concrete allocation through normal constructor and attribute paths", () => {
+  const state = fixture(), source = state.type("NamespaceSource").value.namespace;
+  source.items.set(state.v.string("value"), state.v.integer(7));
+  const owner = allocateRuntimeType(state.v.string("Created"), [], source, state.registry.type, state.registry, state.v, state.meter);
+  state.globals.set("C", owner); state.run("instance=C()\nresult=instance.value\nname=C.__name__\n");
+  const instance = state.globals.get("instance"); expect(instance?.kind === "instance" && instance.type).toBe(owner);
+  expect(state.globals.get("result")).toEqual(state.v.integer(7)); expect(state.globals.get("name")).toEqual(state.v.string("Created"));
+});
+
+it("exposes failed class metadata but rejects ordinary construction without an MRO", () => {
+  const state = fixture(), source = state.type("NamespaceSource").value.namespace, cell = state.v.cell({});
+  source.items.set(state.v.string("__classcell__"), cell); source.items.set(state.v.string("value"), state.v.integer(7));
+  expect(() => allocateRuntimeType(state.v.string("Failed"), [state.registry.object, state.registry.object], source, state.registry.type, state.registry, state.v, state.meter)).toThrow("duplicate base class object");
+  const owner = cell.value.content?.value; if (owner?.kind !== "type") throw Error("expected failed class"); state.globals.set("C", owner);
+  state.run("mro=C.__mro__\nname=C.__name__\n"); expect(state.globals.get("mro")).toBe(state.v.none); expect(state.globals.get("name")).toEqual(state.v.string("Failed"));
+  expect(() => state.run("C.value\n")).toThrow("type object 'Failed' has no attribute 'value'");
+  expect(() => state.run("C()\n")).toThrow("cannot create 'Failed' instances");
+  state.globals.set("object", state.registry.object);
+  expect(() => state.run("object.__new__(C)\n")).toThrow("cannot create 'Failed' instances");
+});
+
+it("preserves full failed class names in constructor diagnostics", () => {
+  const state = fixture(), source = state.type("NamespaceSource").value.namespace, cell = state.v.cell({}), name = "é".repeat(300);
+  source.items.set(state.v.string("__classcell__"), cell);
+  expect(() => allocateRuntimeType(state.v.string(name), [state.registry.object, state.registry.object], source, state.registry.type, state.registry, state.v, state.meter)).toThrow("duplicate base class object");
+  const owner = cell.value.content?.value; if (owner?.kind !== "type") throw Error("expected failed class"); state.globals.set("C", owner);
+  expect(() => state.run("C()\n")).toThrow(`cannot create '${name}' instances`);
 });
 
 it("assigns and deletes class attributes without mutating inherited namespaces", () => {

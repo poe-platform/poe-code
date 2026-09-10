@@ -7,6 +7,9 @@ import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-val
 import { RuntimeTypeNames } from "./runtime-type-names.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Internal allocation boundary: publish metadata/class cells before C3 can
+   * fail. The layout has no MRO yet; callbacks must not treat it as ready. */
+  readonly beforeMro?: (layout: RuntimeTypeLayout) => void;
   /** Prepared lexical name; class builders extract this from __qualname__. */
   readonly qualifiedName?: string;
   /** Presence of the native sequence protocol table, not whether any slot is
@@ -29,14 +32,14 @@ export interface RuntimeTypeLayoutOptions {
 export class RuntimeTypeLayout {
   readonly names: RuntimeTypeNames;
   readonly bases: readonly RuntimeTypeLayout[];
-  readonly mro: readonly RuntimeTypeLayout[];
+  #mro: readonly RuntimeTypeLayout[] = Object.freeze([]);
   readonly namespace: DictionaryValue;
   readonly hasSequenceTable: boolean;
   readonly hasInstanceDictionary: boolean;
   readonly hasObjectLayout: boolean;
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
-    meter.checkpoint(1, 120 + 8 * bases.length);
+    meter.checkpoint(1, 144 + 8 * bases.length);
     this.names = new RuntimeTypeNames(name, options.qualifiedName ?? name, meter);
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
@@ -45,11 +48,13 @@ export class RuntimeTypeLayout {
     for (const base of bases) { meter.checkpoint(); dictionary ||= base.hasInstanceDictionary; objectLayout &&= base.hasObjectLayout; }
     this.hasInstanceDictionary = dictionary;
     this.hasObjectLayout = objectLayout;
-    this.mro = linearizeMro<RuntimeTypeLayout>(this, this.bases, base => base.mro, meter);
     Object.freeze(this);
+    options.beforeMro?.(this); meter.checkpoint();
+    this.#mro = linearizeMro<RuntimeTypeLayout>(this, this.bases, base => base.mro, meter);
   }
 
   get name(): string { return this.names.name; }
+  get mro(): readonly RuntimeTypeLayout[] { return this.#mro; }
 }
 
 /** Resolve only the winning MRO value's descriptor slots. No namespace cache is

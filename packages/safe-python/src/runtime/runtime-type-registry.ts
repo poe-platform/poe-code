@@ -48,7 +48,7 @@ export class RuntimeTypeRegistry {
     }
     meter.checkpoint(1, 192);
     const descriptors = [
-      { name: "__mro__", get: (instance: TypeValue) => this.metadata(instance, "mro") },
+      { name: "__mro__", get: (instance: TypeValue) => instance.value.mro.length === 0 ? values.none : this.metadata(instance, "mro") },
       { name: "__dict__", get: (instance: TypeValue) => values.mappingProxy(instance.value.namespace) }
     ];
     for (const entry of descriptors) {
@@ -124,6 +124,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     const entry = this.#entries.get(type.value);
     if (entry?.type !== type) throw new Error("type is not owned by this registry");
+    if (field === "mro" && type.value.mro.length === 0) throw new Error("type MRO is not initialized");
     const existing = entry[field];
     if (existing !== undefined) return existing;
     const layouts = type.value[field];

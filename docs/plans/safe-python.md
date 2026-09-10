@@ -7879,6 +7879,24 @@ extension, integration, or validation requirement is missing or unverified.
   Class-construction extraction of qualified names, remaining type metadata,
   default object attribute slots, native type.__new__, complete class construction
   and suspended safe-fs effects remain unfinished.
+- Added concrete class allocation with copied namespace storage, selected
+  metaclass/owned-base publication, default object bases, intrinsic qualified-name
+  extraction, module/doc defaults and class-cell propagation. This is an internal
+  allocation stage, not yet the guest type.__new__ lifecycle. CPython probes
+  disproved an initial empty-cell-on-MRO-failure assumption: class cells retain a
+  partially initialized class. Layouts now expose a frozen pre-MRO allocation
+  boundary, with empty internal MRO / guest __mro__ None on failure; registry
+  metadata refuses to cache an uninitialized MRO. A failing compiled regression
+  also showed object.__new__ could allocate failed classes; that path now rejects
+  them. Another regression corrected full-name cannot-create diagnostics.
+  Fourteen tests cover ownership, source isolation, metadata order, cell effects,
+  cancellation and successful/failed allocated classes in compiled execution.
+  All 640 allocation cases and 192 compiled constructor cases match CPython.
+  All 6,140 tests in 468 files, selected build, typecheck and scoped lint pass.
+  Automatic method wrapping, slot/native layout policy, metaclass new delegation,
+  descriptor set-name and subclass hooks must be connected before exposing this
+  as native type.__new__. Full class construction and suspended safe-fs effects
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

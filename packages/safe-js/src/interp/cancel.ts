@@ -3,6 +3,7 @@ import { collectionIteratorState, isSandboxCollectionIterator } from "./collecti
 import { regexpIteratorState, isSandboxRegExpIterator } from "./regexp-iterator.js";
 import { getSandboxPrototype } from "./object-model.js";
 import {
+  allocateProducedSandboxValue,
   createSandboxPromise,
   isSandboxClosure,
   isSandboxMap,
@@ -22,7 +23,7 @@ import {
 } from "./promise-tracker.js";
 import { replaceErrorStack } from "../error/shape.js";
 import { consumeSettledHostCall, prepareAwaitedPromise, resolveSandboxValue } from "./promise.js";
-import type { Budget } from "./budget.js";
+import { SandboxError, type Budget } from "./budget.js";
 
 export const activeCancellation = new AsyncLocalStorage<{ signal?: AbortSignal; host: boolean }>();
 const sandboxPromises = new WeakSet<SandboxPromise>();
@@ -156,6 +157,10 @@ export function awaitSandboxValue(
         detach?.();
         try {
           consumeSettledHostCall(value);
+          const preserveRejection = state === "rejected" &&
+            (result instanceof SandboxError || (signal?.aborted === true && result === signal.reason));
+          if (budget !== undefined && !preserveRejection)
+            allocateProducedSandboxValue(result as SandboxValue, budget);
           if (state === "fulfilled") resolve(result as SandboxValue);
           else reject(result);
         } catch (error) {

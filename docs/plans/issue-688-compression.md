@@ -114,6 +114,16 @@ must match their later source capture. Ordinary 1 MiB, aggregate 64 MiB, and
 census checks pass; the originally failing authorization suite passes all 56
 checks. Independent review approved the change.
 
+Committed-package verification also pinned the build command from before asset
+copying. Its current bootstrap now authenticates the exact copier alongside the
+compiler, admits only the maintained command, and explicitly runs the copier
+before capturing the dist baseline. Synthetic controls verify all eight copied
+asset hashes, three actual build/pack consumer profiles, and refusal of missing,
+changed, symlinked, or legacy build inputs before product source reads. All 191
+archive controls pass. The completed broader run's 40 failures belong to the
+repaired lifecycle, inventory, census, and build-verifier groups; a clean
+maintained rerun is still required.
+
 The maintained type route also exposed exact-optional-property and TextDecoder
 receiver type errors in two existing test files. Narrow corrections preserve
 the fixture behavior and passed focused strict typechecking and runtime tests;

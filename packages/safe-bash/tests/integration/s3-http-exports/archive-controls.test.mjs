@@ -1097,9 +1097,21 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
     for (const name of ["@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
-    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
+    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
       put(`${packagePrefix}/${path}`, readRegularInput(authority, path, 300000, undefined, boundaries));
     }
+    const native = "src/commands/bytes/compression/native";
+    const artifacts = [];
+    for (const name of ["bz2", "xz", "zstd"]) {
+      const path = `generated/${name}.mjs`;
+      const bytes = Buffer.from("export default function create() { throw new Error('synthetic codec must not execute'); }\n");
+      put(`${packagePrefix}/${native}/${path}`, bytes);
+      artifacts.push({ path, bytes: bytes.length, sha256: digest(bytes) });
+      put(`${packagePrefix}/${native}/generated/${name}.d.mts`, readRegularInput(authority, `${native}/generated/${name}.d.mts`, 32768));
+    }
+    put(`${packagePrefix}/${native}/types.ts`, readRegularInput(authority, `${native}/types.ts`, 32768));
+    put(`${packagePrefix}/${native}/sources.json`, JSON.stringify({ artifacts }));
+    put(`${packagePrefix}/${native}/LICENSES.txt`, "Synthetic archive admission fixtures; not native codec qualification.\n");
     put("scripts/guard-package-dist.mjs", readRegularInput(join(authority, "../.."), "scripts/guard-package-dist.mjs", 300000));
     put(`${packagePrefix}/README.md`, "Synthetic committed archive control, not a product qualification.\n");
     for (const path of boundaries.heldSourceFiles) put(`${packagePrefix}/${path}`, "SYNTHETIC_WITHHELD_SENTINEL\n");
@@ -1205,7 +1217,7 @@ test("committed admission batches exact object IDs while retaining raw admitted 
     };
     const candidate = inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute);
     assert.deepEqual(candidate.files.get(path), payload);
-    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs"].map(input => `${packagePrefix}/${input}`)]) {
+    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs"].map(input => `${packagePrefix}/${input}`)]) {
       const expected = readRegularInput(resolve(authority, "../.."), input, 300000);
       const actual = candidate.files.get(input);
       assert.ok(Buffer.isBuffer(actual) && Buffer.isBuffer(expected), input);
@@ -1243,20 +1255,22 @@ test("committed archive requires the committed output guard and matching workspa
   });
 });
 
-for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded build rejects ${defect} before execution`, async () => {
-  const entrypoint = `${packagePrefix}/scripts/build.mjs`;
+for (const script of ["build.mjs", "copy-compression-assets.mjs"]) for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded ${script} rejects ${defect} before execution`, async () => {
+  const entrypoint = `${packagePrefix}/scripts/${script}`;
   for (const mutation of defect === "drift" ? ["same-length", "short"] : ["short"]) await withRepository(fixture => {
     if (defect === "missing") {
       rmSync(join(fixture.repository, entrypoint));
       fixture.paths.splice(fixture.paths.indexOf(entrypoint), 1);
     } else if (defect === "drift") {
-      const bytes = mutation === "short" ? Buffer.from("throw new Error('unreviewed compiler must not execute');\n") : readRegularInput(authority, "scripts/build.mjs", 300000);
+      const bytes = mutation === "short" ? Buffer.from("throw new Error('unreviewed compiler must not execute');\n") : readRegularInput(authority, `scripts/${script}`, 300000);
       if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
       fixture.put(entrypoint, bytes);
     } else if (defect === "symlink") {
       rmSync(join(fixture.repository, entrypoint));
       symlinkSync("integration-inputs.mjs", join(fixture.repository, entrypoint));
-    } else fixture.manifest.scripts.build = "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json";
+    } else fixture.manifest.scripts.build = script === "build.mjs"
+      ? "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json"
+      : "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs";
   }, fixture => {
     const tree = fixture.git(["ls-tree", "-rz", "--full-tree", "HEAD"], { raw: true });
     assert.equal(tree.at(-1), 0);
@@ -1266,23 +1280,25 @@ for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`co
     else assert.ok(entry);
     if (defect === "symlink") { assert.ok(entry.startsWith("120000 blob ")); assert.ok(forbidden); }
     let admittedBlobReads = 0;
+    const sourceOids = new Set(fixture.git(["ls-tree", "-r", "--format=%(objectname)", "HEAD", "--", `${packagePrefix}/src`]).split("\n"));
     const execute = (command, args, options) => {
       for (const oid of requestedBodies(args, options)) {
         admittedBlobReads += 1;
         assert.notEqual(oid, forbidden, "nonregular compiler body must not be read");
+        assert.ok(!sourceOids.has(oid), "untrusted bootstrap must not request product source bodies");
       }
       return spawnSync(command, args, options);
     };
-    const expected = defect === "missing" ? /missing committed input: packages\/safe-bash\/scripts\/build.mjs/
-      : defect === "drift" ? /committed build input differs from reviewed authority: scripts\/build.mjs/
-        : defect === "symlink" ? /not a regular committed input: packages\/safe-bash\/scripts\/build.mjs/
-          : /unreviewed committed build command/;
+    const expected = defect === "missing" ? `missing committed input: ${entrypoint}`
+      : defect === "drift" ? `committed build input differs from reviewed authority: scripts/${script}`
+        : defect === "symlink" ? `not a regular committed input: ${entrypoint}`
+          : "unreviewed committed build command";
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), error => {
-      assert.match(error.message, expected);
+      assert.equal(defect === "legacy-command" ? error.message.split("\n")[0] : error.message, expected);
       if (defect === "drift") {
         assert.ok(error instanceof assert.AssertionError);
         assert.equal(error.code, "ERR_ASSERTION");
-        assert.equal(error.message, "committed build input differs from reviewed authority: scripts/build.mjs");
+        assert.equal(error.message, `committed build input differs from reviewed authority: scripts/${script}`);
       }
       return true;
     });
@@ -1431,6 +1447,18 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.deepEqual(build.args, ["scripts/build.mjs"]);
     assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/build.mjs`));
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/build.mjs`));
+    const copy = report.steps.find(step => step.label === "isolated committed codec asset copy");
+    assert.ok(copy);
+    assert.deepEqual(copy.args, ["scripts/copy-compression-assets.mjs"]);
+    assert.ok(report.steps.indexOf(copy) > report.steps.indexOf(build));
+    assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/copy-compression-assets.mjs`));
+    assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/copy-compression-assets.mjs`));
+    for (const path of ["sources.json", "LICENSES.txt", ...["bz2", "xz", "zstd"].flatMap(name => [`generated/${name}.mjs`, `generated/${name}.d.mts`])]) {
+      const local = `commands/bytes/compression/native/${path}`;
+      assert.ok(report.package.files.includes(`dist/${local}`), `missing copied codec artifact: ${path}`);
+      const expected = digest(readRegularInput(fixture.repository, `${packagePrefix}/src/${local}`, 65536));
+      assert.equal(report.distBaseline.files.find(entry => entry.path === `dist/${local}`)?.sha256, expected, `copied codec artifact differs: ${path}`);
+    }
     assert.equal(report.distBaseline.sourceCommit, report.sourceCommit);
     assert.equal(report.distBaseline.archiveSha256, report.archive.sha256);
     assert.deepEqual(report.distBaseline.files.map(entry => entry.path), report.package.files.filter(path => path.startsWith("dist/")));

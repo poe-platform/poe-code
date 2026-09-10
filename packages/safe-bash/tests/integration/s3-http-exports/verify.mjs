@@ -215,8 +215,10 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     run("TypeScript version", process.execPath, [compiler, "--version"], snapshot);
     run("committed output guard", process.execPath, [join(snapshotRoot, "scripts/guard-package-dist.mjs")], snapshot);
     run("committed boundary owner authentication", process.execPath, ["--input-type=module", "-e", "const {loadBoundaries}=await import(process.argv[1]); loadBoundaries(process.cwd());", pathToFileURL(join(snapshot, "scripts/integration-inputs.mjs")).href], snapshot);
-    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint; held filename census authenticated from Git tree metadata, never materialized" };
+    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint + committed codec asset copier; held filename census authenticated from Git tree metadata, never materialized" };
     run("isolated committed compiler build", process.execPath, ["scripts/build.mjs"], snapshot);
+    assertSnapshot(peer);
+    run("isolated committed codec asset copy", process.execPath, ["scripts/copy-compression-assets.mjs"], snapshot);
     const distIdentity = Object.freeze({ sourceCommit: candidate.sourceCommit, archiveSha256: report.archive.sha256 });
     const baseline = captureDistBaseline(snapshot, distIdentity);
     report.distBaseline = baseline;

@@ -912,7 +912,7 @@ PlainDateTime has construction, calendar/date/time getters, `from`, `compare`,
 focused copy and snapshot/replay coverage. Its `toZonedDateTime` conversion
 remains unfinished. Expanded-year parsing preserves option-read order before
 representable-range validation.
-PlainDate currently has construction, calendar/date getters, `toString`, `toJSON`,
+PlainDate currently has construction, calendar/date getters, `withCalendar`, `toString`, `toJSON`,
 and `valueOf`, with private data copying, host bindings, and heap/replay support.
 Its factories, arithmetic, field replacement, locale formatting, and conversions
 remain unfinished, as do private-date fast paths in related Temporal APIs.

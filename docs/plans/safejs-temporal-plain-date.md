@@ -204,3 +204,41 @@ screenshot was inspected (14a190):
 `screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-conversion.ajs.png`.
 It shows preserved Buddhist date/year and intrinsic prototype identity despite
 a throwing public year getter. Changes remain uncommitted; no push or release.
+
+## PlainDate.withCalendar
+
+The specification requires a fresh date with the same private ISO date and the
+converted calendar identifier:
+https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.withcalendar
+
+Five new tests failed against the absent method (796957). The implementation
+uses the shared calendar identifier adapter, retains its private inputs and
+result, assigns the captured intrinsic prototype and checkpoints the new date.
+Tests cover strings, calendar annotations, private date/date-time calendar
+inputs, throwing public getters, subclasses, invalid receiver/object input,
+fresh identity, captured methods and replay after namespace replacement.
+
+Twenty tests passed across the date construction, date/date-time calendar
+replacement and relative-date selections (601551). Minimum-Node, lint and build
+checks are pending; no full-package or complete conformance claim is made.
+
+The unchanged upstream withCalendar directory at Test262 revision
+419d3e0a2273ba01a3bfcbec423f2801425b8e93 ran with sta.js, assert.js and each
+declared helper, with YAML frontmatter respected and normal/strict modes.
+Result: 26 passed, eight failed, zero exclusions (c33c24). Source inspection
+(6c47ba) shows basic.js, calendar-time-string.js and missing-argument.js call
+the absent PlainDate.from before reaching withCalendar; calendar-temporal-object.js
+constructs the absent PlainMonthDay/PlainYearMonth/ZonedDateTime types first.
+Both modes fail for each fixture. These remain failures, not skipped passes;
+the full directory must be rerun once the missing APIs exist.
+All five focused cases passed on Node 18.18.2 (60de2f).
+
+Scoped lint passed (510e3e); the maintained build passed 23 tasks and five fresh
+ESM import checks (6fb5a0). The built CLI screenshot (faaf10) was inspected and
+shows 2000-02-29[u-ca=buddhist], year 2543, fresh identity and intrinsic prototype
+despite a throwing public year getter:
+`screenshots/node-packages-safe-js-dist-cli.js-tmp-safejs-template-qa.wECZDk-plain-date-calendar.ajs.png`.
+The public constructor module and construction tests were previously untracked;
+the local public-date commit captures that existing work with calendar replacement.
+Namespace, copying and snapshot wiring still include uncommitted integration.
+No push or release; the broader objective remains incomplete.

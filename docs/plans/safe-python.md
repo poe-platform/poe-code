@@ -9506,6 +9506,17 @@ extension, integration, or validation requirement is missing or unverified.
   Final workspace build, typecheck and focused lint pass. Float __getformat__,
   remaining scalar consumers, full interpreter and safe-fs execution remain
   unfinished. No push or release was requested.
+- Float storage-format introspection (2026-09-10): a failing integration test
+  drove __getformat__ class-method publication. The virtual platform reports
+  deterministic IEEE little-endian formats, consistent with its existing fixed
+  native-storage model. Strict UTF-8 validation precedes embedded-null rejection;
+  subclass binding and argument diagnostics match CPython. All 82 differential
+  cases pass. A namespace audit finds all 47 CPython float names with matching
+  descriptor kinds and no extras; this does not establish complete float
+  behavior or integration. Workspace build, typecheck, focused lint and all
+  7,035 tests in 498 files pass in the uncached one-worker package run. Remaining
+  scalar consumers (including owned float percent conversion), full interpreter
+  and safe-fs execution remain unfinished. No push or release was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

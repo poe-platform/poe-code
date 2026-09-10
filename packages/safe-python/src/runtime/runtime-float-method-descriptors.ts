@@ -9,11 +9,13 @@ import { runtimeIntegerIndex } from "./runtime-integer-index.js";
 import { createFloatFormatDescriptor } from "./builtin-float-format.js";
 import { createFloatFromhexDescriptor } from "./runtime-float-fromhex-method.js";
 import { createFloatFromNumberDescriptor } from "./builtin-float-from-number.js";
+import { createFloatGetformatDescriptor } from "./builtin-float-getformat.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Native float members inspect owned storage directly. Conversions produce
  * base values without invoking subclass overrides. */
 export function installRuntimeFloatMethodDescriptors(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+  owner.value.namespace.items.set(values.string("__getformat__"),createFloatGetformatDescriptor(owner,values,meter));
   owner.value.namespace.items.set(values.string("from_number"),createFloatFromNumberDescriptor(owner,values,meter));
   owner.value.namespace.items.set(values.string("fromhex"),createFloatFromhexDescriptor(owner,values,meter));
   owner.value.namespace.items.set(values.string("__format__"),createFloatFormatDescriptor(owner,values,meter));

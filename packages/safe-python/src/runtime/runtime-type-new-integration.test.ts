@@ -67,6 +67,17 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("reports virtual IEEE formats through the float class descriptor", () => {
+  const state=fixture();state.globals.set("Float",state.registry.floatType());
+  state.run("class Child(Float):\n pass\ncorrect=Float.__getformat__('float')=='IEEE, little-endian' and Child.__getformat__('double')=='IEEE, little-endian' and Child.__getformat__.__self__ is Child and (1.0).__getformat__.__self__ is Float\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(()=>state.run("Child.__getformat__()\n")).toThrow("Child.__getformat__() takes exactly one argument (0 given)");
+  expect(()=>state.run("Float.__getformat__(None)\n")).toThrow("__getformat__() argument must be str, not None");
+  expect(()=>state.run("Float.__getformat__('Float')\n")).toThrow("__getformat__() argument 1 must be 'double' or 'float'");
+  expect(()=>state.run("Float.__getformat__('f\\x00')\n")).toThrow("embedded null character");
+  expect(()=>state.run("Float.__getformat__('\\x00\\ud800')\n")).toThrow("surrogates not allowed");
+});
+
 it("bypasses float subclass conversion only for from_number", () => {
   const state=fixture();state.globals.set("Float",state.registry.floatType());
   state.run("class Stored(Float):\n def __float__(self):\n  visit('float')\n  return 9.0\nx=Stored(2.0)\ncorrect=Float.from_number(x)==2.0 and type(Float.from_number(x)) is Float and Stored.from_number(x)==2.0 and type(Stored.from_number(x)) is Stored and Float(x)==9.0\n");

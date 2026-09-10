@@ -1,0 +1,39 @@
+import { PythonRuntimeError } from "./error.js";
+import type { ExecutionMeter } from "./execution-budget.js";
+import type { FunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+
+/** Apply implemented native function writes. False preserves the extension
+ * boundary for unfinished intrinsic fields instead of creating a misleading
+ * ordinary attribute that would shadow their eventual data descriptors. */
+export function runtimeMutateFunctionAttribute(fn: FunctionValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }, values: RuntimeValues, meter: ExecutionMeter): boolean {
+  meter.checkpoint();
+  switch (name) {
+    case "__class__": case "__dict__": case "__code__": case "__defaults__": case "__kwdefaults__":
+    case "__globals__": case "__closure__": case "__builtins__": case "__annotate__": case "__type_params__":
+      return false;
+    case "__name__": case "__qualname__":
+      if (change.kind === "delete" || change.value.kind !== "str") throw new PythonRuntimeError("TypeError", `${name} must be set to a string object`);
+      if (name === "__name__") fn.value.name = change.value;
+      else fn.value.qualifiedName = change.value;
+      return true;
+    case "__module__": case "__doc__":
+      if (name === "__module__") fn.value.module = change.kind === "delete" ? values.none : change.value;
+      else fn.value.doc = change.kind === "delete" ? values.none : change.value;
+      return true;
+    case "__annotations__":
+      if (change.kind === "delete" || change.value.kind === "none") delete fn.value.annotations;
+      else {
+        if (change.value.kind !== "dict") throw new PythonRuntimeError("TypeError", "__annotations__ must be set to a dict object");
+        fn.value.annotations = change.value;
+      }
+      return true;
+  }
+  if (change.kind === "set") {
+    meter.checkpoint(1, fn.value.attributes.has(name) ? 0 : 48 + 2 * name.length);
+    fn.value.attributes.set(name, change.value);
+  } else if (!fn.value.attributes.delete(name)) {
+    meter.checkpoint(0, 128 + 2 * name.length);
+    throw new PythonRuntimeError("AttributeError", `'function' object has no attribute '${name}'`);
+  }
+  return true;
+}

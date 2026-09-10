@@ -8054,6 +8054,20 @@ extension, integration, or validation requirement is missing or unverified.
   All 6,260 tests in 477 files, selected build, typecheck and scoped lint pass.
   General instance/function dictionary mutation, __class__, full native metadata
   and subclass call/descriptor-slot overrides remain unfinished.
+- Added ordinary function attribute writes/deletion and native mutation of names,
+  qualified names, module/doc metadata and annotation dictionaries. Invalid name
+  writes preserve prior values; module/doc deletion resets to None; annotation
+  None/deletion resets lazy empty introspection without evaluating source types.
+  Unimplemented intrinsic code/default/closure fields retain the extension hook
+  boundary instead of being misrepresented as ordinary attributes. Four compiled
+  regressions initially failed; four focused tests cover failure preservation,
+  arbitrary attribute names, cancellation and extension dispatch. Metadata-writing
+  Python decorators now drive native wrapper abstractness. All 224 mutation/read
+  operations, 60 abstractness cases, 96 wrapper constructors and 96 ordinary
+  constructors match CPython. All 6,268 tests in 478 files, selected build,
+  typecheck and scoped lint pass. General instance/function dictionary replacement,
+  __class__, remaining function intrinsic fields and subclass call/descriptor-slot
+  overrides remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

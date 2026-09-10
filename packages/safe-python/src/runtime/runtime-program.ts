@@ -40,6 +40,7 @@ import { callRuntimeType } from "./runtime-type-call.js";
 import { callRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
 import { runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type-attributes.js";
+import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -173,11 +174,13 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         finally { leave(); }
       },
       setAttribute(object, name, value) {
+        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter)) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else statementHooks.setAttribute(object, name, value);
       },
       deleteAttribute(object, name) {
+        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "delete" }, values, meter)) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
         else statementHooks.deleteAttribute(object, name);

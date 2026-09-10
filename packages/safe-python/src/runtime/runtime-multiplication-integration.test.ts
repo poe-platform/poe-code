@@ -2068,6 +2068,33 @@ it.each(["staticmethod", "classmethod"] as const)("reports the None payload type
   expect(() => state.run("wrapped.__annotations__\n")).toThrow("'NoneType' object has no attribute '__annotations__'");
 });
 
+it.each(["staticmethod", "classmethod"] as const)("supports metadata-writing decorators inside %s", kind => {
+  const state = fixture(); state.globals.set("factory", state.registry.methodDecoratorType(kind));
+  state.run("def mark(fn):\n fn.__isabstractmethod__=True\n fn.custom=7\n return fn\n@factory\n@mark\ndef wrapped(x: Missing): return x\nabstract=wrapped.__isabstractmethod__\ncustom=wrapped.__func__.custom\nwrapped.__func__.__isabstractmethod__=False\nchanged=wrapped.__isabstractmethod__\ndel wrapped.__func__.custom\n");
+  expect(state.globals.get("abstract")).toBe(state.v.true); expect(state.globals.get("changed")).toBe(state.v.false); expect(state.globals.get("custom")).toEqual(state.v.integer(7));
+  expect(() => state.run("wrapped.__func__.custom\n")).toThrow("'function' object has no attribute 'custom'");
+});
+
+it("validates mutable function names and resets deleted module/doc metadata", () => {
+  const state = fixture();
+  state.run("def f(): pass\nf.__name__='renamed'\nf.__qualname__='Outer.renamed'\nname=f.__name__\nqualified=f.__qualname__\nf.__module__=7\nf.__doc__=False\nmodule=f.__module__\ndoc=f.__doc__\ndel f.__module__\ndel f.__doc__\nresetModule=f.__module__\nresetDoc=f.__doc__\n");
+  expect(state.globals.get("name")).toEqual(state.v.string("renamed")); expect(state.globals.get("qualified")).toEqual(state.v.string("Outer.renamed"));
+  expect(state.globals.get("module")).toEqual(state.v.integer(7)); expect(state.globals.get("doc")).toBe(state.v.false);
+  expect(state.globals.get("resetModule")).toBe(state.v.none); expect(state.globals.get("resetDoc")).toBe(state.v.none);
+  expect(() => state.run("f.__name__=None\n")).toThrow("__name__ must be set to a string object");
+  expect(() => state.run("del f.__qualname__\n")).toThrow("__qualname__ must be set to a string object");
+});
+
+it("replaces and resets function annotation dictionaries without evaluating source annotations", () => {
+  const state = fixture();
+  state.run("def f(x: Missing): pass\noriginal=f.__annotations__\nreplacement={'x':True}\nf.__annotations__=replacement\nsame=f.__annotations__ is replacement\nf.__annotations__=None\nreset=f.__annotations__\ndel f.__annotations__\ndeleted=f.__annotations__\n");
+  expect(state.globals.get("same")).toBe(state.v.true);
+  const reset = state.globals.get("reset")!, deleted = state.globals.get("deleted")!;
+  if (reset.kind !== "dict" || deleted.kind !== "dict") throw Error("expected empty annotation dictionaries");
+  expect(reset.items.size).toBe(0); expect(deleted.items.size).toBe(0); expect(reset === deleted).toBe(false);
+  expect(() => state.run("f.__annotations__=7\n")).toThrow("__annotations__ must be set to a dict object");
+});
+
 it("runs automatically class-bound subclass hooks with the newly allocated class", () => {
   const state = fixture(), source = state.type("Source");
   state.method(source, "__init_subclass__", "def initialize(cls,*,flag):\n cls.received=flag\n");

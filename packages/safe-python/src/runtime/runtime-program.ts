@@ -3,6 +3,7 @@ import { PythonRuntimeError } from "./error.js";
 import { evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
+import { createRuntimeInvocationFormatContext } from "./runtime-invocation-format.js";
 import { executeFunctionDefinition } from "./function-definition.js";
 import type { FunctionCreationContext } from "./function-state.js";
 import type { FunctionInvocationContext } from "./function-invocation.js";
@@ -61,7 +62,7 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, R
 export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
   meter.checkpoint(1, 192);
   const { values, keys, hooks, calls } = context;
-  const formatting = context.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } });
+  const defaultFormatting = context.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } });
   const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null) => {
     meter.checkpoint(1, 384);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
@@ -104,7 +105,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     const builtinCalls: BuiltinInvocationContext = {
-      formatting,
+      formatting: defaultFormatting,
       hasSpecial(value, name) {
         if (specialMethods === undefined) return false;
         const type = specialMethods.typeOf(value); meter.checkpoint();
@@ -144,6 +145,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         meter.checkpoint(); return result;
       }
     };
+    const formatting = context.formatting === undefined && specialMethods !== undefined
+      ? createRuntimeInvocationFormatContext(values, meter, builtinCalls, defaultFormatting)
+      : defaultFormatting;
+    builtinCalls.formatting = formatting;
     const definitionBindings: RuntimeFunctionDefinitionBindings = {
       globals: namespaces.globals, builtins: namespaces.builtins,
       capture: frame instanceof LexicalFrame || frame instanceof ClassFrame ? frame.capture.bind(frame) : undefined,

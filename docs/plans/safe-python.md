@@ -7275,6 +7275,18 @@ extension, integration, or validation requirement is missing or unverified.
   Forty-eight compiled format cases match CPython, including errors. Guest
   formatting still requires supplied capabilities: automatic MRO formatting,
   generic object representation and suspended safe-fs effects remain unfinished.
+- Added a frame-owned formatting adapter using MRO __format__ lookup and normal
+  bound compiled-call dispatch. Both format() and f-strings use it when a
+  special-method policy exists and no explicit formatting context overrides it.
+  Six compiled regressions failed first; ten new cases cover inherited methods,
+  omitted specs, f-strings, missing/disabled slots, invalid results, live slot
+  replacement, descriptor errors and cancellation. Existing parity tests now
+  also reject accidental MRO lookup when explicit formatting wins. All 5,450
+  tests in 446 files pass; selected build, typecheck and scoped lint pass.
+  Forty-eight compiled native format comparisons still match CPython. Actual
+  type classification remains supplied; automatic representation conversion,
+  string-subclass storage, generic object formatting, per-frame allocation
+  optimization and suspended safe-fs effects remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

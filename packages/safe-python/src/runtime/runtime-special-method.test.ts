@@ -17,6 +17,7 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { createLenBuiltin } from "./builtin-len.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { createNextBuiltin } from "./builtin-iteration.js";
+import { createFormatBuiltin } from "./builtin-format.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -159,4 +160,22 @@ it.each(["method", "sequence", "descriptor", "disabled"])("executes reversed wit
     else { expect(globals.get("first")).toEqual(v.integer(11)); expect(globals.get("second")).toEqual(v.integer(10)); expect(globals.get("last")).toEqual(v.integer(99)); }
   }
   expect(bindings).toBe(mode === "descriptor" ? 2 : 0);
+});
+it.each(["method", "omitted", "f-string", "missing", "disabled", "invalid-result"])("formats through MRO with %s", mode => {
+  const { meter, v, base, derived } = fixture(), receiver = v.cell({}), globals = new Map<string, RuntimeValue>([["receiver", receiver]]), unused = (): never => { throw Error("unexpected ordinary lookup or call"); };
+  if (mode !== "missing") {
+    const methods = compileProgram<RuntimeValue>(analyzeModule(`def special(self,spec): return ${mode === "invalid-result" ? "self" : "spec"}\n`), { stripDocstring: false }, v, meter);
+    const fn = v.function(createFunctionState(methods.functions.values().next().value!, new Map(), { globals: new Map(), builtins: new Map(), none: v.none }, meter));
+    base.value.namespace.items.set(v.string("__format__"), mode === "disabled" ? v.none : fn);
+  }
+  const expression = mode === "omitted" ? "format(receiver)" : mode === "f-string" ? 'f"{receiver:guest}"' : 'format(receiver,"guest")';
+  const program = compileProgram<RuntimeValue>(analyzeModule(`def render(): return ${expression}\nresult=render()\n`), { stripDocstring: false }, v, meter);
+  const run = () => executeRuntimeProgram(program, {
+    values: v, globals, builtins: new Map([["format", createFormatBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    hooks: { specialMethods: () => ({ typeOf(value) { expect(value).toBe(receiver); return derived; }, slots: () => undefined }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "special()", keywordName: unused, invoke: unused }
+  }, meter);
+  if (mode === "missing") expect(run).toThrow("Type Derived doesn't define __format__");
+  else if (mode === "disabled") expect(run).toThrow("'NoneType' object is not callable");
+  else if (mode === "invalid-result") expect(run).toThrow("__format__ must return a str, not Derived");
+  else { run(); expect(globals.get("result")).toEqual(v.string(mode === "omitted" ? "" : "guest")); }
 });

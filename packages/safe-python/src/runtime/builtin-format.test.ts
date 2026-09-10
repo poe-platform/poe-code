@@ -63,7 +63,7 @@ it.each([false, true])("shares compiled formatting policy with f-strings, guest=
   const program = compileProgram<RuntimeValue>(analyzeModule('def render(): return format(value,"04")\nresult=render()\ninterpolated=f"{value:04}"\n'), { stripDocstring: false }, v, meter);
   executeRuntimeProgram(program, {
     values: v, globals, formatting, builtins: new Map([["format", createFormatBuiltin(v, meter)]]), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
-    hooks: { expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "render()", keywordName: unused, invoke: unused }
+    hooks: { specialMethods: () => ({ typeOf: unused, slots: unused }), expressions: () => ({ warn() {}, attribute: unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "render()", keywordName: unused, invoke: unused }
   }, meter);
   expect(globals.get("result")).toEqual(v.string(guest ? "guest result" : "0012"));
   expect(globals.get("interpolated")).toEqual(globals.get("result"));

@@ -272,7 +272,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             clock: options.clock
           });
           const importMeta = convertInitialInput(
-            () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
+            () => deepCopyToSandbox(options.importMeta ?? {}, { compilation }) as Record<string, SandboxValue>
           );
           if (restoredSnapshot?.migration !== undefined) {
             if (Object.hasOwn(importMeta, "migration"))
@@ -325,7 +325,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               entryPointArgs: convertInitialInput(() =>
                 options.entryPointArgs === undefined
                   ? undefined
-                  : (deepCopyToSandbox([...options.entryPointArgs]) as SandboxValue[])
+                  : (deepCopyToSandbox([...options.entryPointArgs], { compilation }) as SandboxValue[])
               ),
               importMeta
             },

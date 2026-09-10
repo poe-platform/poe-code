@@ -1,4 +1,5 @@
 import { types } from "node:util";
+import { readNativeRegExp } from "./native-regexp.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
 import { sandboxGetProperty } from "./guest-proxy-get.js";
@@ -49,6 +50,9 @@ import {
   createSandboxClosure,
   createSandboxMap,
   createSandboxPromise,
+  createSandboxRegex,
+  getRegexProperties,
+  isSandboxRegex,
   createSandboxSet,
   deepCopyFromSandbox,
   deepCopyToSandbox,
@@ -1002,6 +1006,35 @@ export function copyHostValueToSandbox(
       throw new TypeError(`Unsupported proof value at ${path}: sandbox capability`);
     if (isSandboxPromise(value)) return options.promiseReplacements?.get(value) ?? value;
     return deepCopyToSandbox(value);
+  }
+
+  if (isSandboxRegex(value) || types.isRegExp(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const sandbox = isSandboxRegex(value);
+    const { source, flags } = sandbox ? value : readNativeRegExp(value);
+    const compilation = new CompileScope(options.compileOwner);
+    try {
+      const copy = createSandboxRegex(source, flags, 0, compilation);
+      state.seen.set(value, copy);
+      const properties = sandbox ? getRegexProperties(value) : value;
+      for (const key of Reflect.ownKeys(properties)) {
+        const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+        if (!("value" in descriptor)) throw new TypeError("Host RegExp accessors are not data.");
+        if (typeof key !== "string") throw new TypeError("Host RegExp symbol properties require an explicit capability path.");
+        Object.defineProperty(getRegexProperties(copy), budget.allocateString(key), {
+          ...descriptor,
+          value: copyHostValueToSandbox(descriptor.value, stackFrames,
+            { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state,
+            joinPath(path, key))
+        });
+      }
+      if (!Object.isExtensible(properties)) Object.preventExtensions(getRegexProperties(copy));
+      budget.chargeDataUsage(measureSandboxData([copy]));
+      return copy;
+    } finally {
+      compilation.dispose();
+    }
   }
 
   if (typeof value === "function") {

@@ -7,7 +7,7 @@ import { HostCallJournal } from "../host-call.js";
 import { PromiseReplay, promiseReplayContext } from "../promise-replay.js";
 import { encodeReplayData } from "../../snapshot/replay-data.js";
 
-async function completedObjectReplay() {
+async function completedRegexReplay() {
   const provider = vi.fn(async () => {
     const regex = createSandboxRegex("a", "g", 2);
     return { first: regex, second: regex };
@@ -25,8 +25,8 @@ async function completedObjectReplay() {
     outcome: { status: "fulfilled" }
   });
   const encoded = fresh.snapshot.replay?.calls[0].outcome?.data;
-  expect(encoded?.nodes.some((node) => node.kind === "regex")).toBe(false);
-  expect(encoded?.nodes.every((node) => node.kind === "object")).toBe(true);
+  expect(encoded?.nodes.some((node) => node.kind === "regex")).toBe(true);
+  expect(encoded?.nodes.every((node) => node.kind === "object" || node.kind === "regex")).toBe(true);
   expect(provider).toHaveBeenCalledTimes(1);
   const snapshotBytes = JSON.stringify(fresh.snapshot);
   const replayBudget = new Budget();
@@ -121,8 +121,8 @@ describe("compile preimage ownership", () => {
     await run("return 2", { budget });
     await expect(callback!()).rejects.toMatchObject({ code: "reentry" });
   });
-  it("CONTROL completed ordinary-object journal graph and zero provider reissues", async () => {
-    await completedObjectReplay();
+  it("CONTROL completed host-regex journal graph and zero provider reissues", async () => {
+    await completedRegexReplay();
   });
   it("RED genuine guest regex journal reconstruction charges 40 then 80 physical steps", async () => {
     const produced = await run("const regex = /a/g; regex.lastIndex = 2; return [regex, regex]");

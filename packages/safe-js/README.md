@@ -431,6 +431,12 @@ References to already imported Promises inside fulfillment data resolve to the
 same input wrappers, including self-references and completed replay. Ordinary
 settlement data remains separately copied, and independent imports stay isolated.
 
+Native RegExp values can be imported through bindings, host returns, Promise
+settlements, entry-point arguments, and `import.meta`. Matching uses the bounded
+guest engine, preserving source, flags, cursor state, and data-property aliases
+without advancing the host regex. Host-bridge accessor and symbol metadata is
+rejected rather than invoked or silently discarded.
+
 </details>
 
 <details>

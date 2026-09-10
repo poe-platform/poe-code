@@ -1,4 +1,5 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import { readNativeRegExp } from "./native-regexp.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
 import { getGeneratorOrigin } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
@@ -591,9 +592,10 @@ export function isSandboxRegex(value: unknown): value is SandboxRegex {
   return typeof value === "object" && value !== null && sandboxRegexBrand in value;
 }
 
-export function deepCopyToSandbox(value: unknown): SandboxValue {
+export function deepCopyToSandbox(value: unknown, options: { compilation?: CompileScope } = {}): SandboxValue {
   return copyToSandbox(value, {
-    seen: new WeakMap()
+    seen: new WeakMap(),
+    ...options
   });
 }
 
@@ -1351,15 +1353,17 @@ function copyToSandbox(
     return copy;
   }
 
-  if (isSandboxRegex(value)) {
-    if (!cloneSandboxCollections) return value;
+  if (isSandboxRegex(value) || nodeTypes.isRegExp(value)) {
+    const sandbox = isSandboxRegex(value);
+    if (sandbox && !cloneSandboxCollections) return value;
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
-    const copy = createSandboxRegex(value.source, value.flags, 0, state.compilation);
+    const { source, flags } = sandbox ? value : readNativeRegExp(value);
+    const copy = createSandboxRegex(source, flags, 0, state.compilation);
     state.seen.set(value, copy);
     if (!state.resetRegexLastIndex) copy.lastIndex = copyToSandbox(value.lastIndex, state, `${path}.lastIndex`, true, depth + 1);
     if (!state.structuredClone) {
-      const properties = getRegexProperties(value);
+      const properties = sandbox ? getRegexProperties(value) : value;
       for (const key of Reflect.ownKeys(properties)) {
         const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
         if (!("value" in descriptor)) throw new TypeError("RegExp accessor properties cannot be copied as data.");
@@ -1561,8 +1565,8 @@ function copyToSandbox(
     const existing = state.seen.get(value) ?? nativePromises.get(value);
     if (existing !== undefined) return existing;
     const promise = Promise.resolve(value).then(
-      (resolved) => copyToSandbox(resolved, { seen: new WeakMap(), nativePromises }),
-      (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap(), nativePromises }))
+      (resolved) => copyToSandbox(resolved, { seen: new WeakMap(), nativePromises, compilation: state.compilation }),
+      (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap(), nativePromises, compilation: state.compilation }))
     );
     const sandboxPromise = createSandboxPromise(promise);
     state.seen.set(value, sandboxPromise);

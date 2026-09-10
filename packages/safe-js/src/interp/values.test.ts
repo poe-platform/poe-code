@@ -392,11 +392,11 @@ describe("sandbox values", () => {
     );
   });
 
-  it("rejects unsupported scalar and built-in host values with clear errors", () => {
+  it("imports supported scalar and built-in host values", () => {
     expect(deepCopyToSandbox(1n)).toBe(1n);
-    expect(() => deepCopyToSandbox(/SafeJS/giu)).toThrowError(
-      "Unsupported sandbox value at <root>: RegExp"
-    );
+    expect(deepCopyToSandbox(/SafeJS/giu)).toMatchObject({
+      kind: "regex", source: "SafeJS", flags: "giu", lastIndex: 0
+    });
     expect(deepCopyToSandbox(new BigInt64Array([1n, 2n, 3n]))).toEqual(new BigInt64Array([1n, 2n, 3n]));
   });
 

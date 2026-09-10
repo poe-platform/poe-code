@@ -984,7 +984,35 @@ rejects an explicit `timeZone` option, and checks non-ISO calendar compatibility
 On Node 18, fixed-offset zone locale formatting remains unsupported by the
 current backend; named zones work in the focused checks.
 Method presence does not establish full Temporal conformance.
-`Temporal.PlainYearMonth`, `Temporal.PlainMonthDay`, and `Temporal.Now` are absent;
+`Temporal.Now` is absent. The local `Temporal.PlainYearMonth` implementation
+supports construction, `from`, `compare`, `equals`, `with`, calendar getters, `toString`, `toJSON`, and rejecting
+`valueOf`, with private-slot copying, host imports, and heap/replay preservation.
+Owned year-months also supply private calendars to calendar-bearing inputs and
+are rejected as partial field bags. `toPlainDate` selects a calendar day with
+constrained overflow, and `PlainDate.toPlainYearMonth` produces a canonical
+year-month. `add` and `subtract` support calendar years/months and reject nonzero
+smaller duration units. `until` and `since` return calendar-year/month differences
+with rounding and matching-calendar validation. `toLocaleString` validates guest
+locales/options and matching calendars, without shifting the year-month by an
+explicit time zone. Native ICU locale data can affect output order; the known
+missing-ISO-month issue on Node 22.23.2 also affects year-month formatting.
+Direct `Intl.DateTimeFormat` formatting, parts and same-type ranges accept
+owned year-months, with calendar/component compatibility checks.
+Extreme-range formatting remains incomplete: some valid `PlainDate`,
+`PlainDateTime` and `PlainYearMonth` values construct and format as ISO strings
+but throw `RangeError` from `toLocaleString` or direct Intl formatting. The
+backend's numeric-date formatting path does not cover the full Temporal range.
+See the [boundary verification record](../../docs/plans/safejs-temporal-intl-extreme-range.md).
+The local `Temporal.PlainMonthDay` implementation supports construction and
+`calendarId`, `monthCode`, and `day` getters, `from`, `with`, `equals`, `toString`, `toJSON`, and rejecting
+`valueOf`, with private-slot copying, host imports and snapshot/replay
+preservation. Owned month-days can also supply calendars without public field
+reads. `toPlainDate` selects a calendar year and constrains leap-day overflow;
+`PlainDate.toPlainMonthDay` converts private date fields to a canonical month-day.
+PlainMonthDay locale formatting validates calendar compatibility and guest
+options. ISO-calendar month names are missing on the tested Node 22.23.2 and
+26.4.0 runtimes due to an upstream ICU defect; the same focused tests pass on
+Node 18.18.2 and patched Node 26.8.1. See [Node's ICU fix](https://github.com/nodejs/node/pull/64678).
 Instant `toZonedDateTimeISO()` preserves the exact epoch in a selected zone and
 ISO calendar. Instant input operations accept owned ZonedDateTime epochs without
 consulting public coercion hooks.

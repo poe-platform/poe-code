@@ -39,6 +39,7 @@ pass unchanged; neither result supersedes the full-package failure count.
 | Area | Evidence and remaining work |
 | --- | --- |
 | JSON reviver traversal and writes | Locally repaired: 268 focused tests and all 77 pinned JSON/parse cases pass in the main checkout. See [the repair record](safejs-json-reviver-proxy-gap.md). This fix is not included in the latest full-package result. |
+| Date JSON hooks and primitive receivers | Removed-hook serialization repaired in `95a991445`; generic BigInt/Symbol receiver boxing separately validated and repaired. See [hook removal](safejs-json-date-hook-removal.md) and [primitive boxing](safejs-date-json-primitive-boxing.md). Neither repair is included in the latest full-package result. |
 | Full-suite reliability | The latest full gate reports no timeout failures. Prior buffer/camera timeouts were not reproduced; repeatability remains unproven. |
 | Host Promise properties | Two full-gate failures concern omitted own properties. Define safe admission without copying private async-hook symbols; do not equate arbitrary host metadata with guest data. |
 | ISO locale month names | Twelve full-gate failures concern standalone/range and PlainMonthDay/PlainYearMonth month names on Node 22.23.2. Preserve calendar semantics rather than substituting Gregorian output. |

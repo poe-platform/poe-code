@@ -187,7 +187,7 @@ async function coerceDateSetter(name: string, receiver: Date, args: readonly San
 
 export async function dateToJSON(receiver: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<SandboxValue> {
   if (receiver === null || receiver === undefined) throw new TypeError("Date JSON conversion requires a receiver.");
-  if (typeof receiver === "number" || typeof receiver === "string" || typeof receiver === "boolean") {
+  if (typeof receiver === "number" || typeof receiver === "string" || typeof receiver === "boolean" || typeof receiver === "bigint" || typeof receiver === "symbol") {
     const box = createSandboxBox(receiver);
     allocateProducedSandboxValue(box, budget);
     receiver = box;

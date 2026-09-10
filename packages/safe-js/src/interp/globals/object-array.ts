@@ -1045,8 +1045,15 @@ async function arrayFromSandboxValues(
       : getSandboxDataProperty(items, property, budget);
   // Observable iterator methods must be captured before construction but called
   // afterwards. Legacy low-level contexts can still use implicit built-in iteration.
-  const observableMethod = !asyncProtocol && context?.getProperty !== undefined && !isGuestHostObject(items) &&
-    getSandboxPropertyDescriptor(typeof items === "object" ? items : getBoxedPrototype(items, budget), Symbol.iterator, budget) !== undefined;
+  let observableMethod = false;
+  if (!asyncProtocol && context?.getProperty !== undefined && !isGuestHostObject(items)) {
+    let proxy = false;
+    const descriptor = getSandboxPropertyDescriptor(
+      typeof items === "object" ? items : getBoxedPrototype(items, budget),
+      Symbol.iterator, budget, () => { proxy = true; }
+    );
+    observableMethod = descriptor !== undefined || proxy;
+  }
   const iteratorMethod = observableMethod ? await context!.getProperty!(items, Symbol.iterator) : undefined;
   if (iteratorMethod !== null && iteratorMethod !== undefined &&
       !isSandboxClosure(iteratorMethod) && typeof iteratorMethod !== "function")

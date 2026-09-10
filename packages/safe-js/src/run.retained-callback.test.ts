@@ -241,7 +241,7 @@ const workflows = [
   }
 ];
 
-describe.each(workflows)("CBI-001 retained callback: $name", (workflow) => {
+describe.each(workflows.map(workflow => [workflow.name, workflow] as const))("CBI-001 retained callback: %s", (_name, workflow) => {
   it("delivers repeated events uninterrupted", async () => {
     const host = makeHost(workflow.rate);
     const { result } = await execute(workflow.source, host.bindings);

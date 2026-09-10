@@ -650,6 +650,10 @@ Closures captured in the RHS retain that behavior across generator checkpoints.
 Loop assignment targets and nested destructuring assignments accept member
 access on array/object literals, such as `[holder][0].x`. Optional-chain
 assignment targets remain invalid.
+Classic `for` initializers reject unparenthesized `in` expressions, including
+yield operands, assignment right sides and concise arrow bodies. Parentheses,
+destructuring defaults and other grammar-permitted nested expressions retain
+`in` support; loop conditions, updates and bodies are unaffected.
 Non-strict statement-only bodies distinguish a `let` identifier followed by a
 newline from a lexical declaration; strict-mode and declaration restrictions
 still apply.

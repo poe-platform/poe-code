@@ -86,6 +86,13 @@ failure count. Legacy substr is also repaired; see
 
 ## Remaining verified gaps and verification work
 
+Classic for initializer In grammar is repaired locally after a pinned
+yield-star parse-negative fixture exposed the gap. The 32 regressions preserve
+permitted nested expressions while rejecting forbidden initializer forms;
+1,591 parser tests pass with one opt-in skip. See
+[the repair record](safejs-for-initializer-no-in.md). This repair postdates the
+latest completed full-package gate and remains local-only.
+
 Dynamic import attribute reflection is repaired locally: Proxy key/descriptor/
 get traps and live enumerability now use the shared enumerable-property helper.
 Eight regressions failed before the fix; 1,285 related tests pass, with clean

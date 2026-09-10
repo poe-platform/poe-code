@@ -612,6 +612,7 @@ type ParsedExpression = {
 };
 
 type ExpressionParseOptions = {
+  allowIn?: boolean;
   allowSequence?: boolean;
 };
 
@@ -826,6 +827,7 @@ const ordinaryFunctionContext: LexicalParseContext = {
 
 class Parser {
   private index = 0;
+  private allowIn = true;
   private breakableDepth = 0;
   private conditionalExpressionDepth = 0;
   private ifStatementDepth = 0;
@@ -967,24 +969,30 @@ class Parser {
   }
 
   private parseExpression(options: ExpressionParseOptions = {}): ParsedExpression {
-    const first = this.parseAssignmentExpression();
-    if (options.allowSequence !== true || this.consumePunctuator(",") === undefined) {
-      return first;
+    const previousAllowIn = this.allowIn;
+    this.allowIn = options.allowIn ?? true;
+    try {
+      const first = this.parseAssignmentExpression();
+      if (options.allowSequence !== true || this.consumePunctuator(",") === undefined) {
+        return first;
+      }
+
+      const expressions = [first.node];
+      do {
+        expressions.push(this.parseAssignmentExpression().node);
+      } while (this.consumePunctuator(",") !== undefined);
+
+      return {
+        node: {
+          type: "SequenceExpression",
+          expressions,
+          span: createSpan(expressions[0]!.span.start, expressions[expressions.length - 1]!.span.end)
+        },
+        parenthesized: false
+      };
+    } finally {
+      this.allowIn = previousAllowIn;
     }
-
-    const expressions = [first.node];
-    do {
-      expressions.push(this.parseAssignmentExpression().node);
-    } while (this.consumePunctuator(",") !== undefined);
-
-    return {
-      node: {
-        type: "SequenceExpression",
-        expressions,
-        span: createSpan(expressions[0]!.span.start, expressions[expressions.length - 1]!.span.end)
-      },
-      parenthesized: false
-    };
   }
 
   private parseAssignmentExpression(): ParsedExpression {
@@ -1124,7 +1132,7 @@ class Parser {
       return this.withFunctionContext(async ? "async" : "normal", () => this.parseBlockStatement(params));
     }
 
-    return this.withFunctionContext(async ? "async" : "normal", () => this.parseExpression().node);
+    return this.withFunctionContext(async ? "async" : "normal", () => this.parseExpression({ allowIn: this.allowIn }).node);
   }
 
   private parseBlockStatement(
@@ -1641,10 +1649,10 @@ class Parser {
 
       let init: Expression | VariableDeclaration | undefined;
       if (this.consumePunctuator(";") === undefined) {
-        init = this.resourceDeclarationHint() !== undefined ? this.parseResourceDeclaration() :
+        init = this.resourceDeclarationHint() !== undefined ? this.parseResourceDeclaration(false, false) :
           this.isVariableDeclarationStart()
-            ? this.parseVariableDeclaration()
-            : this.parseExpression({ allowSequence: true }).node;
+            ? this.parseVariableDeclaration(false)
+            : this.parseExpression({ allowSequence: true, allowIn: false }).node;
         this.expectPunctuator(";");
       }
 
@@ -1968,7 +1976,7 @@ class Parser {
       (next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next)));
   }
 
-  private parseVariableDeclaration(): VariableDeclaration {
+  private parseVariableDeclaration(allowIn = true): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
       (kindToken.type !== "keyword" && kindToken.type !== "identifier") ||
@@ -1981,7 +1989,7 @@ class Parser {
     const declarations: VariableDeclaration["declarations"] = [];
 
     while (true) {
-      const declarator = this.parseVariableDeclarator(kindToken.value);
+      const declarator = this.parseVariableDeclarator(kindToken.value, allowIn);
       if (kindToken.value !== "var") {
         for (const identifier of boundIdentifiers(declarator.id))
           if (identifier.name === "let") throw unexpectedTokenError(kindToken);
@@ -2016,7 +2024,7 @@ class Parser {
     return offset === 1 ? "async" : "sync";
   }
 
-  private parseResourceDeclaration(iteration = false): VariableDeclaration {
+  private parseResourceDeclaration(iteration = false, allowIn = true): VariableDeclaration {
     const start = this.currentToken();
     const disposal = this.resourceDeclarationHint()!;
     if (disposal === "async") {
@@ -2032,7 +2040,7 @@ class Parser {
       if (id.name === "let" || (disposal === "async" && id.name === "await") ||
           (iteration && disposal === "sync" && id.name === "of")) throw new Error(`Invalid resource binding '${id.name}'.`);
       this.declarePatternBindings(id);
-      const init = iteration ? undefined : (this.expectPunctuator("="), this.parseExpression().node);
+      const init = iteration ? undefined : (this.expectPunctuator("="), this.parseExpression({ allowIn }).node);
       declarations.push({type: "VariableDeclarator", id, ...(init === undefined ? {} : {init}), span: createSpan(id.span.start, init?.span.end ?? id.span.end)});
     } while (!iteration && this.consumePunctuator(",") !== undefined);
     return {type: "VariableDeclaration", kind: "const", disposal, declarations, span: createSpan(start.start, declarations.at(-1)!.span.end)};
@@ -2213,12 +2221,12 @@ class Parser {
     return { type: "PropertyDefinition", key, computed, static: isStatic, value, span: createSpan(start.start, end) };
   }
 
-  private parseVariableDeclarator(kind: VariableDeclarationKind): VariableDeclarator {
+  private parseVariableDeclarator(kind: VariableDeclarationKind, allowIn = true): VariableDeclarator {
     const id = this.parseBindingTarget();
     let init: Expression | undefined;
 
     if (this.consumePunctuator("=") !== undefined) {
-      init = this.parseExpression().node;
+      init = this.parseExpression({ allowIn }).node;
     }
 
     if (kind === "const" && init === undefined) {
@@ -2593,7 +2601,7 @@ class Parser {
       return this.toPatternTarget(left);
     }
 
-    const right = this.parseAssignmentExpression().node;
+    const right = this.parseExpression().node;
     return {
       type: "AssignmentPattern",
       left: this.toPatternTarget(left),
@@ -2792,7 +2800,7 @@ class Parser {
         key;
       this.assertUnrestrictedTarget(key);
       if (this.consumePunctuator("=") !== undefined) {
-        const right = this.parseAssignmentExpression().node;
+        const right = this.parseExpression().node;
         value = {
           type: "AssignmentPattern",
           left: createIdentifier(token),
@@ -2890,6 +2898,7 @@ class Parser {
   private parseRelationalExpression(): ParsedExpression {
     if (this.currentToken().type === "private-identifier") {
       const left = this.parsePrivateIdentifier();
+      if (!this.allowIn) throw unexpectedTokenError(this.currentToken());
       this.expectKeyword("in");
       const right = this.parseShiftExpression();
       return this.parseBinaryExpression(() => this.parseShiftExpression(), RELATIONAL_OPERATORS,
@@ -3868,7 +3877,7 @@ class Parser {
 
     while (true) {
       const token = this.currentToken();
-      if (token === this.forInInitializerEnd || token.type === "escaped-keyword" || !operators.has(token.value as BinaryOperator)) {
+      if (token === this.forInInitializerEnd || (!this.allowIn && token.value === "in") || token.type === "escaped-keyword" || !operators.has(token.value as BinaryOperator)) {
         return left;
       }
 

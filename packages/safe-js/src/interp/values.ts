@@ -2227,8 +2227,10 @@ function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet
 
     seen.add(value);
     budget.allocateArrayLength(value.length);
-    for (let index = 0; index < value.length; index++) {
-      allocateSandboxValue(value[index], budget, seen);
+    for (const key of Object.getOwnPropertyNames(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (descriptor !== undefined && "value" in descriptor)
+        allocateSandboxValue(descriptor.value, budget, seen);
     }
 
     return;
@@ -2277,11 +2279,15 @@ function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet
   }
 
   seen.add(value);
-  const entries = isSandboxArguments(value)
-    ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
-    : Object.values(value);
-  for (const entry of entries) {
-    allocateSandboxValue(entry, budget, seen);
+  if (isSandboxArguments(value)) {
+    for (const [, entry] of getSandboxArgumentEntries(value))
+      allocateSandboxValue(entry, budget, seen);
+    return;
+  }
+  for (const key of Object.getOwnPropertyNames(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (descriptor !== undefined && "value" in descriptor)
+      allocateSandboxValue(descriptor.value, budget, seen);
   }
 }
 

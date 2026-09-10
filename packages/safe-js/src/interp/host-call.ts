@@ -10,6 +10,7 @@ import { restoreSharedHostValue } from "./shared-host-storage.js";
 import { dataViewBuffer, dataViewDataProperties, dataViewLayout, isSandboxDataView } from "./data-view.js";
 import { copyNativeDate, serializedDateTime } from "./date.js";
 import {
+  allocateProducedSandboxValue,
   cloneSandboxValue,
   createSandboxClosure,
   createSandboxPromise,
@@ -515,6 +516,9 @@ export class HostCallJournal {
     if (proof.callbackDisposition === "joined" && context !== undefined)
       await this.awaitReconciliation(context.waitForCallbacks());
     if (this.disposed) throw new TypeError("Host call journal is disposed.");
+    const budget = this.compileOwner?.budget ?? this.budget;
+    if (budget !== undefined)
+      allocateProducedSandboxValue(proof.outcome.status === "fulfilled" ? proof.outcome.value : proof.outcome.reason, budget);
     this.settle(record, proof.outcome);
     return proof.outcome;
   }

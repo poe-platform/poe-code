@@ -36,6 +36,7 @@ import { installRuntimeSetOperatorSlots } from "./runtime-set-operator-slots.js"
 import { installRuntimeTupleSlots } from "./runtime-tuple-slots.js";
 import { installRuntimeDictionaryMethodDescriptors } from "./runtime-dictionary-method-descriptors.js";
 import { installRuntimeDictionarySlots } from "./runtime-dictionary-slots.js";
+import { installRuntimeDictionaryOperatorSlots } from "./runtime-dictionary-operator-slots.js";
 import { installRuntimeTupleArithmeticSlots } from "./runtime-tuple-arithmetic-slots.js";
 import { createTupleNewBuiltin } from "./builtin-tuple-new.js";
 import { createSetNewBuiltin } from "./builtin-set-new.js";
@@ -242,6 +243,7 @@ export class RuntimeTypeRegistry {
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeDictionaryMethodDescriptors(type, this.values, this.meter);
     installRuntimeDictionarySlots(type, this.values, this.meter);
+    installRuntimeDictionaryOperatorSlots(type, this.values, this.meter);
     installRuntimeComparisonMethods("dict", type, this.values, this.meter);
     this.meter.checkpoint(1, 64);
     this.#entries.set(layout, { type }); this.#dictionaryType = type;

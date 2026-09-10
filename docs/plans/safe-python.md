@@ -9021,6 +9021,19 @@ extension, integration, or validation requirement is missing or unverified.
   pass with two workers. Dictionary construction, fromkeys, union operators and
   owned subclass storage remain unfinished, as does the broader interpreter goal.
   No push or release was requested.
+- Canonical dictionary union operators (2026-09-10): three failing integration
+  tests reproduced missing __or__, __ror__ and __ior__ descriptors. Installed
+  native wrappers with the correct operand orientation and receiver metadata.
+  Ordinary union declines non-dictionary operands without attempting mapping or
+  iterable conversion; in-place union accepts native update sources, retains
+  receiver identity and preserves partial writes on later pair-conversion errors.
+  Active invocation policies reach guest mapping and iterable callbacks. All
+  309 descriptor/argument cases and 126 guest-source/operator cases match CPython,
+  including callback order and storage after success or failure. Workspace build,
+  typecheck, focused lint and all 6,863 unit tests in 493 files pass with two
+  workers. Dictionary construction, fromkeys and owned subclass lifecycle remain
+  unfinished; the full interpreter objective remains active. No push or release
+  was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

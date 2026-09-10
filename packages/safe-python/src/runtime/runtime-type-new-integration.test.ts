@@ -52,6 +52,24 @@ function fixture(identity?: IdentityContext) {
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run };
 }
 
+it("publishes dictionary union wrappers with native operand orientation", () => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("Dict=type({})\nleft={'a':1,'b':2}\nright={'b':3,'c':4}\nforward=Dict.__or__(left,right)\nreverse=Dict.__ror__(left,right)\ndeclined=Dict.__or__(left,[]) is NotImplemented\nbound=left.__or__.__self__ is left\ncorrect=forward=={'a':1,'b':3,'c':4} and reverse=={'b':2,'c':4,'a':1} and forward is not left and reverse is not left and left=={'a':1,'b':2} and declined and bound\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it("retains dictionary in-place union identity and active guest mapping protocols", () => {
+  const state = fixture();
+  state.run("Dict=type({})\nclass Mapping:\n def keys(self):\n  visit('keys')\n  return ['a']\n def __getitem__(self,key):\n  visit(key)\n  return 7\nd={}\nresult=Dict.__ior__(d,Mapping())\ncorrect=result is d and d=={'a':7}\n");
+  expect(state.globals.get("correct")).toBe(state.v.true); expect(state.events).toEqual(["keys", "a"]);
+});
+
+it("retains partial writes from dictionary in-place union pair errors", () => {
+  const state = fixture(); state.run("Dict=type({})\nd={}\n");
+  expect(() => state.run("Dict.__ior__(d,[('a',1),('b',2,3)])\n")).toThrow("dictionary update sequence element #1 has length 3; 2 is required");
+  state.run("correct=d=={'a':1}\n"); expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it.each(["Dict.__len__(d,**{1:2})", "d.__len__(**{1:2})"])("lets native wrappers reject keyword dictionaries in %s", expression => {
   const state = fixture(); state.run("Dict=type({})\nd={}\n");
   expect(() => state.run(expression + "\n")).toThrow("wrapper __len__() takes no keyword arguments");

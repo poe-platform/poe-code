@@ -1,5 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
-import { importedPromises, importedPromiseSnapshots, promiseStates } from "../interp/promise-state.js";
+import { importedPromises, importedPromiseSnapshots, importedPromisePropertySnapshots, promiseStates } from "../interp/promise-state.js";
 import { Budget } from "../interp/budget.js";
 import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
 import { decodeSharedArrayBufferStorage, encodeSharedArrayBufferStorage, type SharedArrayBufferData } from "./shared-array-buffer.js";
@@ -80,8 +80,8 @@ type Properties = Record<
 >;
 type DataNode =
   | { kind: "promise-capability"; id: string; properties: Atom }
-  | { kind: "pending-imported-promise"; scheduleId?: number }
-  | { kind: "settled-imported-promise"; status: "fulfilled" | "rejected"; outcome: Atom; scheduleId?: number }
+  | { kind: "pending-imported-promise"; scheduleId?: number; properties?: Atom }
+  | { kind: "settled-imported-promise"; status: "fulfilled" | "rejected"; outcome: Atom; scheduleId?: number; properties?: Atom }
   | { kind: "module-namespace"; entries: Array<[string, Atom]> }
   | { kind: "raw-json"; text: string }
   | { kind: "regexp-iterator"; matcher: Atom; input: Atom; exhausted: boolean; global?: boolean; unicode?: boolean; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
@@ -195,7 +195,7 @@ export function encodeReplayData(
       const pending = options.capturePendingImportedPromises === true && promiseStates.get(entry)?.status === "pending";
       if (options.captureSettledImportedPromises && importedPromises.has(entry) &&
           (state !== undefined || pending) &&
-          !hasGuestObjectState(entry) && Reflect.ownKeys(getPromiseProperties(entry)).length === 0) {
+          !hasGuestObjectState(entry)) {
         const existing = seen.get(entry);
         if (existing !== undefined) return { tag: "ref", id: existing };
         const reference = options.identifyImportedPromise?.(entry);
@@ -205,9 +205,14 @@ export function encodeReplayData(
         nodes.push(undefined as unknown as DataNode);
         options.onValueEncoded?.(index, entry);
         const scheduleId = options.identifyScheduledPromise?.(entry);
+        const properties = importedPromisePropertySnapshots.get(entry) ?? getPromiseProperties(entry);
+        const propertyData = Reflect.ownKeys(properties as object).length === 0 && Object.isExtensible(properties)
+          ? {} : { properties: encode(properties, depth + 1, [...path, "properties"], true) };
         nodes[index] = state === undefined ? { kind: "pending-imported-promise",
+          ...propertyData,
           ...(scheduleId === undefined ? {} : { scheduleId }) } : { kind: "settled-imported-promise", status: state.status,
           ...(scheduleId === undefined ? {} : { scheduleId }),
+          ...propertyData,
           outcome: encode(state.value, depth + 1, [...path, "<settlement>"]) };
         return { tag: "ref", id: index };
       }
@@ -572,6 +577,22 @@ export function decodeReplayData(
           });
         }
         options.onImportedPromiseRestored?.(promise, scheduleId as number | undefined);
+        if (Object.hasOwn(node, "properties")) {
+          const reference = record(own(node, "properties"));
+          if (own(reference, "tag") !== "ref" || typeof reference.id !== "number" ||
+              !Number.isSafeInteger(reference.id) || reference.id < 0 || reference.id >= nodes.length ||
+              own(record(nodes[reference.id]), "kind") !== "object")
+            throw new TypeError("Invalid imported Promise properties.");
+          initializeValues.push(() => {
+            const properties = child(own(node, "properties"));
+            promiseProperties.set(promise, properties as Record<string, SandboxValue>);
+            work.rollback.push(() => { promiseProperties.delete(promise); });
+            captureImportedSettlements.push(() => {
+              cloneSandboxValue(promise, { compilation, captureImportedProperties: true });
+              work.rollback.push(() => { importedPromisePropertySnapshots.delete(promise); });
+            });
+          });
+        }
         if (pending) {
           work.settle.push(() => {
             try {

@@ -430,9 +430,13 @@ invoking its getter; symbol properties are still omitted because they can carry
 private host async-context state. Accessor and user-symbol admission remain
 unresolved. Native Promise observation still follows native constructor/species
 hooks; importing a Promise does not promise to suppress those hooks.
-Newly encountered Promises returned by host calls still require further replay
-support when they carry own data properties: initial execution accepts them,
-but recording the host outcome for replay currently fails.
+Newly encountered Promises returned by host calls retain original own data
+properties through replay, including non-enumerable descriptors and self-aliases.
+Later guest mutations do not replace the recorded host data. Pending Promise
+properties survive reconciliation and subsequent completed replay. Callable
+properties require an explicit resume capability, such as a function supplied
+in the run's input bindings; arbitrary new host functions are not serialized.
+Captured property data contributes to the retained-data budget.
 Maps and Sets in imported Promise fulfillment values retain their collection
 behavior, cycles, and aliases through input conversion and completed replay.
 References to already imported Promises inside fulfillment data resolve to the

@@ -21,7 +21,10 @@ it("does not discard custom Promise properties", async () => {
   if (!isSandboxPromise(value)) throw new Error("Expected imported Promise");
   await value.promise;
   getPromiseProperties(value).extra = 1;
-  expect(() => encodeReplayData(value, { captureSettledImportedPromises: true })).toThrow("resume capability");
+  const restored = decodeReplayData(encodeReplayData(value, { captureSettledImportedPromises: true }));
+  if (!isSandboxPromise(restored)) throw new Error("Expected restored Promise");
+  expect(getPromiseProperties(restored).extra).toBe(1);
+  await expect(restored.promise).resolves.toBe(7);
 });
 
 it.each(["pending", "unknown", null])("rejects invalid serialized settlement %s", status => {

@@ -71,7 +71,7 @@ import {
 import type { GeneratorChannel } from "./generator.js";
 import { SandboxError } from "./budget.js";
 import { observeSandboxPromise, trackSandboxPromise } from "./promise-tracker.js";
-import { importedPromises, importedPromiseSnapshots, promiseStates } from "./promise-state.js";
+import { importedPromises, importedPromiseSnapshots, importedPromisePropertySnapshots, promiseStates } from "./promise-state.js";
 import { promiseContinuations, promiseReactionResults, promiseProducers } from "./promise-continuations.js";
 import { atomicWaitStates } from "./atomic-wait-state.js";
 import { asyncGeneratorDrivers, asyncGeneratorRequestOwners } from "./async-generator-driver.js";
@@ -246,6 +246,7 @@ type CopyFromSandboxOptions = {
 };
 
 type CopyState<TValue> = {
+  importedPropertyCopies?: Map<SandboxPromise, SandboxValue>;
   nativePromises?: WeakMap<object, SandboxPromise>;
   float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
   sharedBufferSnapshots?: WeakMap<object, SharedArrayBuffer>;
@@ -455,7 +456,7 @@ export function createSandboxPromise(
     if (importedPromises.has(sandboxPromise) && !importedPromiseSnapshots.has(sandboxPromise)) {
       const compilation = new CompileScope(metadata.importCompileOwner);
       try {
-        const captured = cloneSandboxValue(value, { compilation, sharedBufferSnapshots: new WeakMap() });
+        const captured = cloneSandboxValue(value, { compilation, sharedBufferSnapshots: new WeakMap(), captureImportedProperties: true });
         metadata.importCompileOwner?.budget.chargeDataUsage(measureSandboxData([captured]));
         importedPromiseSnapshots.set(sandboxPromise, {
           ok: true, state: { status, value: captured }
@@ -625,19 +626,22 @@ export function deepCopyToSandbox(value: unknown, options: { compilation?: Compi
   });
 }
 
-export function cloneSandboxValue(value: SandboxValue, options: { compilation?: CompileScope; resetRegexLastIndex?: boolean; structuredClone?: boolean; float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>; sharedBufferSnapshots?: WeakMap<object, SharedArrayBuffer> } = {}): SandboxValue {
+export function cloneSandboxValue(value: SandboxValue, options: { compilation?: CompileScope; resetRegexLastIndex?: boolean; structuredClone?: boolean; float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>; sharedBufferSnapshots?: WeakMap<object, SharedArrayBuffer>; captureImportedProperties?: boolean } = {}): SandboxValue {
   const initializeIterators: Array<() => void> = [];
+  const importedPropertyCopies = options.captureImportedProperties ? new Map<SandboxPromise, SandboxValue>() : undefined;
   const copy = copyToSandbox(
     value,
     {
       seen: new WeakMap(),
       initializeIterators,
+      importedPropertyCopies,
       ...options
     },
     "<root>",
     true
   );
   for (const initialize of initializeIterators) initialize();
+  for (const [promise, properties] of importedPropertyCopies ?? []) importedPromisePropertySnapshots.set(promise, properties);
   return copy;
 }
 
@@ -1153,6 +1157,7 @@ export function measureSandboxData(
       if (settlement !== undefined && settlement.status !== "pending") visit(settlement.value, depth + 1);
       const importedSnapshot = importedPromiseSnapshots.get(value);
       if (importedSnapshot?.ok) visit(importedSnapshot.state.value, depth + 1);
+      visit(importedPromisePropertySnapshots.get(value), depth + 1);
       const continuation = promiseContinuations.get(value);
       if (continuation?.kind === "capability" && continuation.resolution !== undefined)
         visit(continuation.resolution.value, depth + 1);
@@ -1414,6 +1419,20 @@ function copyToSandbox(
     isSandboxGenerator(value) ||
     isSandboxPromise(value)
   ) {
+    if (isSandboxPromise(value) && importedPromises.has(value) && state.importedPropertyCopies !== undefined &&
+        !importedPromisePropertySnapshots.has(value) && !state.importedPropertyCopies.has(value)) {
+      const original = getPromiseProperties(value);
+      const properties: SandboxObject = Object.create(null);
+      state.importedPropertyCopies.set(value, properties);
+      state.seen.set(original, properties);
+      for (const key of Reflect.ownKeys(original)) {
+        const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
+        if (!("value" in descriptor)) throw new TypeError("Imported Promise property snapshots cannot contain accessors.");
+        Object.defineProperty(properties, key, { ...descriptor,
+          value: copyToSandbox(descriptor.value, state, joinPath(path, String(key)), true, depth + 1) });
+      }
+      if (!Object.isExtensible(original)) Object.preventExtensions(properties);
+    }
     return value;
   }
 

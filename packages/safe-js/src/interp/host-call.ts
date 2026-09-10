@@ -724,17 +724,19 @@ export class HostCallJournal {
   ): void {
     const included = new Set<CompileTicket>();
     const arguments_=recordedArguments??this.sharedArguments.get(record.id)??[];
-    const size = measureSandboxData(
-      [outcome.status === "fulfilled" ? outcome.value : outcome.reason,...arguments_],
-      { ignoreClosures: true, compileTickets: included }
-    );
-    const retainedSize = this.retainedSize + size - (this.outcomeSizes.get(record.id) ?? 0);
-    budget?.reconcileCompileData(retainedSize, included, included, this);
+    let size: number;
+    let retainedSize: number;
     let copied: HostCallOutcome;
     let effects:SharedArrayBuffer[];
     const snapshots=new WeakMap<object,SharedArrayBuffer>();
     try {
       copied = copyOutcome(outcome,snapshots);
+      size = measureSandboxData(
+        [outcome.status === "fulfilled" ? outcome.value : outcome.reason,...arguments_],
+        { ignoreClosures: true, compileTickets: included }
+      );
+      retainedSize = this.retainedSize + size - (this.outcomeSizes.get(record.id) ?? 0);
+      budget?.reconcileCompileData(retainedSize, included, included, this);
       effects=arguments_.map(argument=>snapshots.get(sharedArrayBufferStorage(argument).block)??
         snapshotSharedArrayBufferStorage(argument,snapshots));
     } catch (error) {
@@ -860,7 +862,7 @@ export class HostCallJournal {
     const encoded = this.encodedOutcomes.get(callId);
     if (encoded?.data.nodes[node]?.kind !== "pending-imported-promise")
       throw new TypeError("Missing pending imported Promise declaration.");
-    const scheduleId = encoded.data.nodes[node].scheduleId;
+    const { scheduleId, properties } = encoded.data.nodes[node];
     const value = outcome.status === "fulfilled" ? outcome.value : outcome.reason;
     const context = createReplayEncodingContext();
     context.nodes = [...encoded.data.nodes];
@@ -878,6 +880,7 @@ export class HostCallJournal {
       }
     });
     data.nodes[node] = { kind: "settled-imported-promise", status: outcome.status, outcome: data.root,
+      ...(properties === undefined ? {} : { properties }),
       ...(scheduleId === undefined ? {} : { scheduleId }) };
     encoded.data = { ...encoded.data, nodes: data.nodes };
     if (added.size > 0) {
@@ -985,8 +988,8 @@ export class HostCallJournal {
 
 function copyOutcome(outcome: HostCallOutcome, sharedBufferSnapshots=new WeakMap<object,SharedArrayBuffer>()): HostCallOutcome {
   return outcome.status === "fulfilled"
-    ? { status: "fulfilled", value: cloneSandboxValue(outcome.value, {sharedBufferSnapshots}) }
-    : { status: "rejected", reason: cloneSandboxValue(outcome.reason, {sharedBufferSnapshots}) };
+    ? { status: "fulfilled", value: cloneSandboxValue(outcome.value, {sharedBufferSnapshots, captureImportedProperties: true}) }
+    : { status: "rejected", reason: cloneSandboxValue(outcome.reason, {sharedBufferSnapshots, captureImportedProperties: true}) };
 }
 
 function decodeSharedPrefix(data:ReplayData, compilation?:CompileScope):SharedArrayBuffer[] {

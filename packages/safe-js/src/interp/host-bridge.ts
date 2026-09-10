@@ -2,6 +2,7 @@ import { types } from "node:util";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
 import { readNativeRegExp } from "./native-regexp.js";
 import { importedPromises } from "./promise-state.js";
+import { observeSandboxPromise } from "./promise-tracker.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
 import { sandboxGetProperty } from "./guest-proxy-get.js";
@@ -1007,7 +1008,28 @@ export function copyHostValueToSandbox(
   if (isSandboxClosure(value) || isSandboxPromise(value)) {
     if (options.proofFunctions !== undefined)
       throw new TypeError(`Unsupported proof value at ${path}: sandbox capability`);
-    if (isSandboxPromise(value)) return options.promiseReplacements?.get(value) ?? value;
+    if (isSandboxPromise(value)) {
+      const replacement = options.promiseReplacements?.get(value);
+      if (replacement !== undefined) return replacement;
+      if (options.promiseReplacements === undefined || !importedPromises.has(value)) return value;
+      const existing = state.seen.get(value) ?? state.promiseIdentities?.get(value);
+      if (existing !== undefined) return existing;
+      observeSandboxPromise(value);
+      const copied = copyHostValueToSandbox(value.promise, stackFrames, options, state, path);
+      if (!isSandboxPromise(copied)) throw new TypeError("Invalid copied imported Promise.");
+      options.promiseReplacements.set(value, copied);
+      state.seen.set(value, copied);
+      (state.promiseIdentities ??= new WeakMap()).set(value, copied);
+      const properties = getPromiseProperties(value);
+      for (const key of Reflect.ownKeys(properties)) {
+        const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+        if (!("value" in descriptor)) throw new TypeError("Imported Promise accessors require an explicit capability.");
+        Object.defineProperty(getPromiseProperties(copied), key, { ...descriptor,
+          value: copyHostValueToSandbox(descriptor.value, stackFrames, options, state, joinPath(path, String(key))) });
+      }
+      if (!Object.isExtensible(properties)) Object.preventExtensions(getPromiseProperties(copied));
+      return copied;
+    }
     return deepCopyToSandbox(value);
   }
 

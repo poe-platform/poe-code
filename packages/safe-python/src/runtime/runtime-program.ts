@@ -7,6 +7,7 @@ import { createRuntimeInvocationFormatContext } from "./runtime-invocation-forma
 import { createRuntimeNumericContext } from "./runtime-numeric-context.js";
 import { createRuntimePowerContext } from "./runtime-power-context.js";
 import { createRuntimeRichComparisonContext } from "./runtime-rich-comparison-context.js";
+import { runtimeReceiverComparison } from "./runtime-receiver-comparison.js";
 import { createRuntimeIterationContext } from "./runtime-iteration-context.js";
 import { createRuntimeContainmentPolicy } from "./runtime-containment-context.js";
 import { runtimeInPlaceSpecialMethod } from "./runtime-inplace-special-method.js";
@@ -253,6 +254,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get iteration() { return getIteration(); },
       truth: value => expressions.truth(value),
       compare: (operator, left, right) => expressions.compare(operator, left, right),
+      compareSlot: (operator, left, right) => runtimeReceiverComparison(operator, left, right, values, meter, richComparison?.(operator, left, right), builtinCalls),
       compareTruth(operator, left, right) {
         const result = expressions.compare(operator, left, right); meter.checkpoint();
         return expressions.truth(result);
@@ -270,6 +272,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         meter.checkpoint(); return result;
       }
     };
+    const richComparison = expressionHooks.richComparison?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator: string, left: RuntimeValue, right: RuntimeValue) => createRuntimeRichComparisonContext(operator, left, right, values, meter, specialMethods, builtinCalls));
     const power = expressionHooks.power ?? (specialMethods === undefined ? undefined : createRuntimePowerContext(values, meter, specialMethods, builtinCalls));
     let iteration = expressionHooks.iteration;
     const getIteration = () => {
@@ -328,7 +331,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       power,
       unary: expressionHooks.unary ?? (specialMethods === undefined ? undefined : builtinCalls),
       truth: expressionHooks.truth?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : value => runtimeTruth(value, meter, builtinCalls)),
-      richComparison: expressionHooks.richComparison?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeRichComparisonContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
+      richComparison,
       containment: expressionHooks.containment?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : createRuntimeContainmentPolicy(values, meter, builtinCalls)),
       get iteration() { return getIteration(); },
       get formatting() { return getFormatting(); },

@@ -55,6 +55,34 @@ it.each(["dict", "set"])("dispatches guest key protocols in ordinary %s displays
   expect(state.events).toEqual(["hash", "hash", "equal", "hash", "equal"]);
 });
 
+it("delegates object inequality only to receiver equality and preserves NotImplemented", () => {
+  const state = fixture(); state.globals.set("NotImplemented", state.v.notImplemented);
+  state.run("class Left:\n def __eq__(self,other):\n  visit('left')\n  return NotImplemented\nclass Right(Left):\n def __eq__(self,other):\n  visit('right')\n  return True\nleft=Left()\nright=Right()\ndirect=object.__ne__(left,right)\nbound=left.__ne__(right)\nnormal=left!=right\nnative=object.__ne__(1,2)\nunsupported=object.__ne__(1,'x')\n");
+  expect(state.globals.get("direct")).toBe(state.v.notImplemented); expect(state.globals.get("bound")).toBe(state.v.notImplemented);
+  expect(state.globals.get("normal")).toBe(state.v.false); expect(state.globals.get("native")).toBe(state.v.true); expect(state.globals.get("unsupported")).toBe(state.v.notImplemented);
+  expect(state.events).toEqual(["left", "left", "right"]);
+});
+
+it.each(["1,1.0", "True,1j", "1.0,1j"])("preserves one-sided native numeric comparison for %s", pair => {
+  const state = fixture();
+  state.run(`result=object.__ne__(${pair})\n`);
+  expect(state.globals.get("result")).toBe(state.v.notImplemented);
+});
+
+it("uses guest truth for object inequality and complete comparison for native members", () => {
+  const state = fixture();
+  state.run("class Truth:\n def __bool__(self):\n  visit('truth')\n  return False\nclass Key:\n def __eq__(self,other):\n  visit('equal')\n  return Truth()\n def __ne__(self,other):\n  visit('override')\n  return False\nleft=Key()\nright=Key()\ndirect=object.__ne__(left,right)\nnested=object.__ne__([left],[right])\n");
+  expect(state.globals.get("direct")).toBe(state.v.true); expect(state.globals.get("nested")).toBe(state.v.true);
+  expect(state.events).toEqual(["equal", "truth", "equal", "truth"]);
+});
+
+it.each(["equal", "truth"])("preserves errors from object inequality %s callbacks", phase => {
+  const state = fixture(), failure = new PythonRuntimeError("ValueError", "sentinel");
+  state.builtins.set("fail", state.v.builtinFunction({ name: "fail", invoke() { throw failure; } }));
+  state.run(`class Truth:\n def __bool__(self):\n  fail()\nclass Key:\n def __eq__(self,other):\n  ${phase === "equal" ? "fail()" : "return Truth()"}\nleft=Key()\n`);
+  expect(() => state.run("object.__ne__(left,left)\n")).toThrow(failure); expect(state.calls.depth).toBe(0);
+});
+
 it("exposes object identity hashing through direct, bound and inherited slots", () => {
   const state = fixture();
   state.builtins.set("hash", createHashBuiltin(state.v, state.meter, state.hash));

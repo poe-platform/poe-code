@@ -7,6 +7,7 @@ import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js
 import { createObjectNewBuiltin } from "./builtin-object-new.js";
 import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createObjectHashWrapper } from "./builtin-object-hash.js";
+import { createObjectNeWrapper } from "./builtin-object-ne.js";
 import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeNewBuiltin } from "./builtin-type-new.js";
 import { createTypePrepareDescriptor } from "./builtin-type-prepare.js";
@@ -55,6 +56,7 @@ export class RuntimeTypeRegistry {
     typeLayout.namespace.items.set(values.string("__repr__"), createTypeReprWrapper(values, meter, this.type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__hash__"), createObjectHashWrapper(values, meter, this.object));
+    objectLayout.namespace.items.set(values.string("__ne__"), createObjectNeWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__init_subclass__"), createObjectInitSubclassDescriptor(values, meter, this.object));
     typeLayout.namespace.items.set(values.string("__init__"), createTypeInitWrapper(values, meter, this.type));
     typeLayout.namespace.items.set(values.string("__call__"), createTypeCallWrapper(values, meter, this.type));

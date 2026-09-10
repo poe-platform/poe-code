@@ -8520,6 +8520,20 @@ extension, integration, or validation requirement is missing or unverified.
   setup and remaining native object/type slots are still unfinished. Selected
   workspace build, typecheck, scoped lint and all 6,548 tests in 493 files pass
   with two workers.
+- Installed native object.__ne__ with a receiver-only comparison capability.
+  Direct delegation preserves NotImplemented and calls guest truth only for an
+  accepted equality result; it does not reflect to a strict subtype or apply the
+  final identity fallback. Nested native container members still use full guest
+  comparison dispatch. The initial regression failed on the missing native slot.
+  Differential checking then exposed numeric widening that belongs to reflected
+  comparison: three additional failing regressions now ensure int/bool decline
+  float/complex and float declines complex at this single-slot boundary. Seven
+  added cases cover delegation, nested comparisons, truth, original errors and
+  numeric asymmetry. All 196 new differential cases match CPython. Canonical
+  object equality/ordering slots and complete native type catalogs remain pending.
+  Earlier comparison/collection differential suites also pass (560 guest, 2,028
+  native, 96 key cases). Final selected build, typecheck, scoped lint and all
+  6,555 tests in 493 files pass with two workers.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

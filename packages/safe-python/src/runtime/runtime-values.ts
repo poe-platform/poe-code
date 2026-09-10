@@ -124,6 +124,8 @@ export interface BuiltinInvocationContext {
   compareTruth?(operator: string, left: RuntimeValue, right: RuntimeValue): boolean;
   /** Raw rich comparison result, without a truth conversion. */
   compare?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
+  /** Receiver slot only: no reflection, identity fallback or truth conversion. */
+  compareSlot?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
 }
 
 export interface NativeDocumentation {

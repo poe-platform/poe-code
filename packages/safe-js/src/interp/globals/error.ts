@@ -4,6 +4,7 @@ import { sandboxErrorTypes } from "../../error/shape.js";
 import { errorPrototypes } from "../error-prototypes.js";
 import { createIntrinsicObject, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { getFunctionRealmPrototype } from "../function-realm.js";
+import { sandboxHasProperty } from "../guest-proxy-has.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
@@ -148,7 +149,7 @@ async function createNativeError(name: ErrorName, args: readonly SandboxValue[],
     const text = message === undefined ? undefined : await sandboxString(message, budget, context);
     error = createSubsetErrorValue(name, text, context?.stack ?? [], budget);
     setSandboxPrototype(error, prototype, budget);
-    if (options !== null && typeof options === "object" && getSandboxPropertyDescriptor(options, "cause", budget) !== undefined) {
+    if (options !== null && typeof options === "object" && await sandboxHasProperty(options, "cause", budget, context)) {
       const cause = await readErrorProperty(options, "cause", budget, context);
       Object.defineProperty(error, "cause", { value: cause, writable: true, configurable: true });
     }

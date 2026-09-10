@@ -13,6 +13,20 @@ the two Promise-property and twelve locale failures remain. See
 [the completed post-parser gate](safejs-post-loop-parser-qualification.md).
 This supersedes the earlier broad totals below and predates the catch repair.
 
+The newest completed gate, runtime 8cab804a9, reports 28,379 passed, 14 failed,
+47 skipped across 1,252 files; its 100 filesystem contracts passed. Session
+52427 is terminal. It covers the catch/import changes and has the same two
+Promise-property and twelve locale failures as the earlier gate. The separate
+snapshot selection passes 2,193 tests across 160 files. Earlier table statements that the latest
+full gate predates template, optional-chain, enumeration or loop-parser repairs
+are historical: the d4891dd09 gate above includes those repairs.
+
+Error cause Proxy reflection is now under main integration after isolated
+validation: 25 regressions cover public replay, cleanup and cross-realm cause
+identity. Main reproduced 22 failures and three passing controls before the
+repair. See [the repair record](safejs-error-cause-reflection.md). This change
+postdates the completed full gate and is not delivered remotely.
+
 Latest gate update at runtime 3cd9fad79: **28,271 passed, 15 failed, 47 skipped**
 across 1,247 files; all 100 filesystem type contracts passed. This supersedes
 the older full-gate counts and coverage statements below: template, optional

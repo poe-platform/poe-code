@@ -807,6 +807,10 @@ asynchronously implemented calls. Already-captured caller errors retain their
 identity and prototypes when propagated through those calls.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
+Error constructors check `options.cause` through guest property operations,
+including inherited Proxy `has`/`get` traps and their failures. Cause properties
+remain non-enumerable; message conversion precedes cause access, and
+`AggregateError` consumes its errors iterable afterward.
 Promise construction, async returns and `then` results retain their
 originating Promise prototype after cleanup.
 Promise construction honors foreign newTarget default prototypes, including

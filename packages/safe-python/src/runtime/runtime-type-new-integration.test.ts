@@ -11,6 +11,7 @@ import {substituteRuntimeTypeParameters} from "./runtime-type-substitution.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
+import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
 import {decodeRuntimeFileSystemName,runtimeFileSystemPath} from "./runtime-filesystem-path.js";
 import { compileProgram } from "./program-compilation.js";
@@ -101,6 +102,17 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("executes guest eval/exec through an explicitly supplied source execution backend",()=>{
+  const state=exceptionFixture();
+  for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,state.v,state.meter,{execute(request,invocation){
+    if(request.source.kind!=="str"||request.globals.kind!=="none"||request.locals.kind!=="none"||request.closure.kind!=="none")throw Error("fixture supports text in its module namespace only");
+    const source=runtimeCompilationSource(request.source,state.meter,invocation);if(typeof source!=="string")throw Error("expected text");
+    return state.run(source,undefined,undefined,undefined,request.mode)??state.v.none;
+  }}));
+  state.run("value=eval('6*7')\nstatus=exec('created=9')\ncorrect=value==42 and created==9 and status is None\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
 
 it.each([1,2] as const)("executes optimized nested code at level %s without assertion effects",optimize=>{
   const state=exceptionFixture();

@@ -12816,6 +12816,23 @@ extension, integration, or validation requirement is missing or unverified.
   checks pass. The uncached full thread-pool suite passes 9,004 tests in 595 files
   (74.00s; bodies 8.33s). General dead-code/constant optimization, complete guest code metadata,
   default builtin registration, AST/single modes and additional codecs remain open.
+- Guest eval/exec call adapters (2026-09-11): added one shared explicit-backend
+  factory after a missing-module red test established absent adapters. Binding
+  retains positional-only source, positional/keyword globals and locals, exec's
+  keyword-only closure, None defaults, count/duplicate/unknown-key precedence and
+  keyword spelling suggestions. Eval returns the backend value; exec discards it
+  and returns None. Neither adapter discovers host eval, ambient namespaces, nor
+  filesystem access. Backend inputs retain original guest identities and all work
+  shares the execution meter; cancellation during backend failure remains fatal.
+  Seventeen focused tests pass. A native integration supplies the real source
+  compiler/runtime for module-namespace text eval and exec, verifying values,
+  namespace writes and None return. All 1,884 direct CPython binding comparisons
+  match across counts and ordered keyword combinations. Build, typecheck and
+  scoped lint and whitespace checks pass. The uncached full thread-pool suite
+  passes 9,022 tests in 596 files (80.90s; bodies 8.62s). Full namespace admission,
+  default locals/builtin insertion, closure/code-object execution, eval whitespace
+  handling, and canonical default registration remain backend work, not claimed
+  by the call adapter or its explicitly restricted integration fixture.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

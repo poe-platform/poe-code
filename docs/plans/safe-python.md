@@ -12503,6 +12503,20 @@ extension, integration, or validation requirement is missing or unverified.
   8,754 tests in 580 files (77.60s; test bodies 9.07s).
   Structural lexer and string/interpolation storage remain
   before checked guest compilation ingress.
+- Structural lexer resource accounting (2026-09-11): nine failing tests
+  reproduced uncharged structural tokens and indentation-prefix copies while
+  isolating source positions and indentation output. The lexer now reserves
+  its delimiter array, pending indentation records/spelling, comment spans,
+  newline/indent/dedent/operator/end records, delimiter entries and bounded
+  prefix/operator/diagnostic strings. Prefix positions are read once instead of
+  allocating a discarded duplicate. Its initial checkpoint is inside the final
+  cancellation boundary. The recursion-option comment now includes patterns.
+  All nine focused tests pass. Seventy-five token/comment/warning/diagnostic
+  comparisons against 2ef945965 preserve behavior, and 75 CPython syntax cases
+  pass across LF/CRLF/CR, delimiters, prefixes and invalid input. Build, typecheck,
+  scoped lint and whitespace checks pass. The uncached full thread-pool suite
+  passes 8,763 tests in 581 files (109.74s; test bodies 12.72s).
+  String and interpolation storage remain to audit before guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

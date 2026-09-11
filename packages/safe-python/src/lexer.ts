@@ -24,7 +24,7 @@ export type Token = NameToken | NumberToken | StringToken | StructuralToken | In
 export interface LexerOptions {
   /** Accounts scanning, cursor work and expression validation, not all AST/analysis work. */
   readonly meter?:SourceMeter;
-  /** Host-owned expression recursion guard. Successful entry returns an
+  /** Host-owned expression/pattern recursion guard. Successful entry returns an
    * unmetered restoration; resource failures must not be syntax errors. */
   readonly enterRecursiveCall?:()=>()=>void;
   readonly filename?: string;
@@ -44,8 +44,8 @@ const interpolatedPrefixes = new Set(["f", "fr", "rf", "t", "tr", "rt"]);
 
 /** Lazily emits significant tokens; comments and non-logical newlines are omitted. */
 export function* lex(text: string, options: LexerOptions = {}): Generator<Token, void> {
-  options.meter?.checkpoint(1,96);
   try {
+  options.meter?.checkpoint(1,128);
   const source = new PythonSource(text, options.filename,options.meter);
   const indentation = new Indentation(options.meter);
   const interpolation = new Interpolation();
@@ -61,9 +61,12 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     if (lineStart) {
       const start = source.position;
       while (isSpace(source.peek())) source.advance();
-      pendingIndent = delimiters.length || interpolation.active ? undefined : {
-        text: text.slice(start.offset, source.position.offset), start, end: source.position
-      };
+      if(delimiters.length||interpolation.active)pendingIndent=undefined;
+      else{
+        const end=source.position;
+        options.meter?.checkpoint(1+end.offset-start.offset,96+2*(end.offset-start.offset));
+        pendingIndent={text:text.slice(start.offset,end.offset),start,end};
+      }
       lineStart = false;
       if (source.done) break;
     }
@@ -72,6 +75,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     if (character === "#") {
       const start = source.position;
       while (!source.done && source.peek() !== "\n") source.advance();
+      options.meter?.checkpoint(0,48);
       options.onComment?.({ start, end: source.position });
       continue;
     }
@@ -79,6 +83,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
       const start = source.position;
       source.advance();
       if (!delimiters.length && !interpolation.active && lineHasCode) {
+        options.meter?.checkpoint(0,64);
         yield { kind: "newline", text: "\n", start, end: source.position };
         lineHasCode = false;
       }
@@ -98,6 +103,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     // Only a real token makes the logical line's indentation significant.
     if (pendingIndent) {
       for (const kind of indentation.accept(pendingIndent.text, source,pendingIndent.start)) {
+        options.meter?.checkpoint(1,64);
         yield kind === "INDENT"
           ? { kind: "indent", ...pendingIndent }
           : { kind: "dedent", text: "", start: source.position, end: source.position };
@@ -125,35 +131,41 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
       yield readNumber(source, options.onWarning);
       continue;
     }
+    options.meter?.checkpoint(0,96);
     let operator = source.peek() + source.peek(1) + source.peek(2);
-    while (operator && !operators.has(operator)) operator = operator.slice(0, -1);
-    if (!operator) throw source.error(`invalid character ${JSON.stringify(character)}`);
+    while (operator && !operators.has(operator)) {options.meter?.checkpoint(1,32+2*operator.length);operator = operator.slice(0, -1);}
+    if (!operator) {options.meter?.checkpoint(0,128);throw source.error(`invalid character ${JSON.stringify(character)}`);}
     const start = source.position;
     if (operator === "(" || operator === "[" || operator === "{") {
       if(delimiters.length+interpolation.replacementDepth>=maximumDelimiterDepth)throw source.error("too many nested parentheses",start);
+      options.meter?.checkpoint(0,56);
       delimiters.push({ text: operator, start });
     }
     const opening = closingDelimiters[operator];
     if (opening) {
       if (interpolation.fieldDepth !== undefined && delimiters.length <= interpolation.fieldDepth) {
+        options.meter?.checkpoint(0,128);
         throw source.error(`unmatched '${operator}' in replacement field`, start);
       }
       const expected = delimiters.pop();
-      if (!expected) throw source.error(`unmatched '${operator}'`, start);
+      if (!expected) {options.meter?.checkpoint(0,96);throw source.error(`unmatched '${operator}'`, start);}
       if (expected.text !== opening) {
+        options.meter?.checkpoint(0,256);
         throw source.error(`closing parenthesis '${operator}' does not match opening parenthesis '${expected.text}'`, start);
       }
     }
     for (let index = 0; index < operator.length; index++) source.advance();
+    options.meter?.checkpoint(0,64);
     yield { kind: "operator", text: operator, start, end: source.position };
   }
   interpolation.assertClosed(source);
   const unclosed = delimiters[delimiters.length - 1];
-  if (unclosed) throw source.error(`'${unclosed.text}' was never closed`, unclosed.start);
+  if (unclosed) {options.meter?.checkpoint(0,96);throw source.error(`'${unclosed.text}' was never closed`, unclosed.start);}
   const end = source.position;
-  if (lineHasCode) yield { kind: "newline", text: "", start: end, end };
+  if (lineHasCode) {options.meter?.checkpoint(0,64);yield { kind: "newline", text: "", start: end, end };}
   const dedents = indentation.finish(options.meter).length;
-  for (let index = 0; index < dedents; index++) yield { kind: "dedent", text: "", start: end, end };
+  for (let index = 0; index < dedents; index++) {options.meter?.checkpoint(1,64);yield { kind: "dedent", text: "", start: end, end };}
+  options.meter?.checkpoint(0,64);
   yield { kind: "end", text: "", start: end, end };
   } finally {options.meter?.checkpoint();}
 }
@@ -166,6 +178,7 @@ function stringPrefix(source: PythonSource): "ordinary" | "interpolated" | undef
   if (source.peek() === "'" || source.peek() === '"') return "ordinary";
   let prefix = "";
   for (let length = 1; length <= 2; length++) {
+    source.meter?.checkpoint(0,80);
     prefix += source.peek(length - 1).toLowerCase();
     const next = source.peek(length);
     if (next === "'" || next === '"') {

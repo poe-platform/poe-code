@@ -12241,6 +12241,25 @@ extension, integration, or validation requirement is missing or unverified.
   11.66s). Loop-target allocation
   and validation, string/lambda and statement grammar still require auditing
   before guest eager compilation is enabled.
+- Metered iterative target validation (2026-09-11): seven failing tests reproduced
+  ignored validator entry limits/cancellation, uncharged loop-target storage and
+  cancellation hidden by a throwing child reader. The initial 10,000-level
+  nesting test passed on this host; a separate a1d59dd01 baseline probe at 50,000
+  levels reproduced host stack overflow, and the regression now uses that depth.
+  Validation uses metered active-path frames with borrowed item arrays and an
+  independent starred flag per collection, retaining depth-first diagnostic order.
+  Loop-target parsing charges temporary arrays, entries, unpack nodes and tuple
+  wrappers; both exported readers preserve cancellation in finally. Two additional
+  tests bound cyclic external graphs and nested frame allocation. The focused
+  two-file suite passes 38 tests. All 56 previous-validator diagnostic comparisons
+  and 84 CPython assignment/deletion/for-target acceptance comparisons pass.
+  The initial full run was stopped after typecheck caught an invalid Extract over
+  the grouped tuple/list/set AST union; frames now borrow item arrays directly.
+  Final build, typecheck, scoped lint and whitespace checks pass. The fresh
+  uncached one-worker full suite passes 8,538 tests in 564 files (182.22s; test
+  bodies 12.49s). String,
+  lambda and statement grammar allocation still require auditing before guest
+  eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

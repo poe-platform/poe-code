@@ -13,9 +13,8 @@ import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
 import {createRuntimeCompilation} from "./runtime-compilation.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
-import {createNamespaceBuiltin} from "./builtin-namespace.js";
 import {RuntimeCodePrograms} from "./runtime-code-programs.js";
-import {createRuntimeDynamicExecution,type RuntimeDynamicExecutionPolicy} from "./runtime-dynamic-execution.js";
+import {createRuntimeCodeBuiltins,type RuntimeCodeBuiltinPolicy} from "./runtime-code-builtins.js";
 import {prepareDynamicNamespaces} from "./dynamic-namespaces.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
 import { compileProgram } from "./program-compilation.js";
@@ -263,7 +262,7 @@ it("uses subclass global reads, intrinsic writes and deletes, and original frame
   state.run("class G(Dict):\n def __getitem__(self,key):\n  if key=='x':return 42\n  if key=='failure':raise ValueError('read failure')\n  return Dict.__getitem__(self,key)\n def __setitem__(self,key,value):raise RuntimeError('write override')\n def __delitem__(self,key):raise RuntimeError('delete override')\ng=G()\ncheck(g)\n");
 });
 
-function dynamicNamespaceFixture(policy:Partial<RuntimeDynamicExecutionPolicy>={}){
+function dynamicNamespaceFixture(policy:Partial<Pick<RuntimeCodeBuiltinPolicy,"compilation"|"resolveBuiltins">>={}){
   const state=exceptionFixture(),{v,meter}=state;
   const programs=new RuntimeCodePrograms(meter,v);
   state.hooks.code=state.registry.code.bind(state.registry);
@@ -273,16 +272,11 @@ function dynamicNamespaceFixture(policy:Partial<RuntimeDynamicExecutionPolicy>={
   for(const [name,value] of state.globals)globals.items.set(v.string(name),value);
   globals.items.set(v.string("B"),builtins);globals.items.set(v.string("SyntaxError"),state.registry.exceptionType("SyntaxError"));
   const currentFrame=()=>{const frame=state.calls.current;if(!(frame instanceof ModuleFrame||frame instanceof LexicalFrame||frame instanceof ClassFrame))throw Error("expected guest frame");return frame;};
-  state.builtins.set("locals",createNamespaceBuiltin("locals",v,meter,()=>state.registry.frameLocals(currentFrame())));
-  state.builtins.set("globals",createNamespaceBuiltin("globals",v,meter,()=>{const object=currentFrame().namespaces.globals.object;if(object===undefined)throw Error("expected original globals");return object;}));
-  state.builtins.set("compile",createCompileBuiltin(v,meter,createRuntimeCompilation(v,programs,{
-    compilation:()=>({stripDocstring:false,enterRecursiveCall:()=>state.calls.enter(globals)}),code:state.registry.code.bind(state.registry)
-  })));
-  const dynamic=createRuntimeDynamicExecution({objectType:state.registry.object,values:v,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},programs,{
-    globals:()=>currentFrame().namespaces.globals.object,locals:()=>state.registry.frameLocals(currentFrame()),builtins:()=>builtins,
-    compilation:()=>({stripDocstring:false,enterRecursiveCall:()=>state.calls.enter(globals)}),...policy
-  });
-  for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,v,meter,dynamic));
+  const codeBuiltins=createRuntimeCodeBuiltins({objectType:state.registry.object,values:v,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},programs,{
+    currentFrame,frameLocals:state.registry.frameLocals.bind(state.registry),builtins,
+    compilation:()=>({stripDocstring:false,enterRecursiveCall:()=>state.calls.enter(globals)}),code:state.registry.code.bind(state.registry),...policy
+  },meter);
+  for(const [name,builtin] of Object.entries(codeBuiltins))state.builtins.set(name,builtin);
   for(const [name,value] of state.builtins)builtins.items.set(v.string(name),value);
   return {state,v,meter,globals,builtins,programs};
 }
@@ -311,7 +305,7 @@ it("reads dynamic compilation policy only for admitted sources and retains optim
   const fixture=dynamicNamespaceFixture({compilation(){reads++;return {stripDocstring:false,optimize:1,enterRecursiveCall:()=>fixture.state.calls.enter(fixture.globals)};}});
   const {state,v,meter,globals,builtins}=fixture;
   state.run("compiled=compile('6*7','original.py','eval')\nvalue=eval(compiled)\ntry:eval(123)\nexcept TypeError:bad_source=True\ntry:exec('pass',closure=())\nexcept TypeError:bad_closure=True\noptimized=eval('__debug__')\nexec('assert missing()',{})\ncorrect=value==42 and bad_source and bad_closure and optimized is False\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
-  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(reads).toBe(2);
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(reads).toBe(3);
 });
 
 it.each([false,true])("preserves fatal dynamic compilation policy exhaustion (throws=%s)",throws=>{
@@ -335,6 +329,36 @@ it("resolves selected builtins with execution-owned policy and retains the origi
 it("compiles path-like filenames and future flags through the reusable dynamic code registry",()=>{
   const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
   state.run("class Path:\n def __fspath__(self):return b'child.py'\ncode=compile('6*7',Path(),'eval',flags=16777216)\nvalue=eval(code)\nname='\\ud800\\udc00'\nother=compile('pass',name,'exec')\ncorrect=value==42 and code.co_filename=='child.py' and code.co_flags==16777216 and other.co_filename is name\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("inherits calling-frame future flags through compile, eval and exec",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("source=\"def f():\\n value=eval('1 <> 2')\\n code=compile('3 <> 4','nested.py','eval')\\n plain=compile('1 != 2','plain.py','eval',dont_inherit=True)\\n env={}\\n exec('value=5 <> 6',env)\\n return value and eval(code) and eval(plain) and env['value'] and code.co_flags==4194304 and plain.co_flags==0\\n\"\nexec(compile(source,'future.py','exec',flags=4194304))\ncorrect=f()\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it.each([
+  "class C:\n value=eval('1 <> 2')\ncorrect=C.value",
+  "def gen():yield eval('1 <> 2')\ncorrect=gen().__next__()",
+  "g=(eval('1 <> 2') for x in (1,))\ncorrect=g.__next__()",
+  "def f():return [eval('1 <> 2') for x in (1,)]\ncorrect=f()[0]",
+  "async def f():return eval('1 <> 2')\nc=f()\ntry:c.send(None)\nexcept StopIteration as e:correct=e.value"
+])("inherits future flags from class, suspended and inlined frames: %s",source=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();globals.items.set(v.string("source"),v.string(source));
+  state.run("exec(compile(source,'future.py','exec',flags=4194304))",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("uses captured caller builtins when dynamic code supplies fresh globals",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("captured={'eval':eval,'exec':exec,'marker':7}\nenv={'__builtins__':captured}\nexec(\"def f():\\n g={}\\n exec('value=marker',g)\\n return eval('marker',{}),g['value'],g['__builtins__']\\n\",env)\nenv['__builtins__']={}\nresult=env['f']()\ncorrect=result[0]==7 and result[1]==7 and result[2] is captured\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("uses execution optimization defaults rather than the caller code optimization",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("exec(compile(\"def f():return __debug__,eval('__debug__'),eval(compile('__debug__','child.py','eval'))\",'optimized.py','exec',optimize=2))\ncorrect=f()==(False,True,True)\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 

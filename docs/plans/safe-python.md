@@ -13202,6 +13202,24 @@ extension, integration, or validation requirement is missing or unverified.
   suite passes 9,169 tests in 608 files (138.59s; bodies 16.56s). AST compilation,
   interactive/single and func_type modes, non-future flags, public interpreter
   assembly, imports, safe-fs and broad audits remain unfinished. No push/release.
+- Shared code-builtin family (2026-09-11): a failing native regression established
+  missing caller-future inheritance through nested compile/eval/exec. The new
+  runtime-code-builtins assembly creates compile, eval, exec, globals and locals
+  against one explicit execution/frame policy. It masks executable-only flags
+  before inheriting compiler futures, uses captured caller builtins for fresh
+  dynamic globals, preserves the existing frame-locals snapshot/live policy,
+  and takes optimization defaults from execution policy rather than caller code.
+  Native coverage includes normal functions, class bodies, generators, generator
+  expressions, inlined comprehensions and coroutines; dont_inherit, captured
+  builtins after globals mutation, and caller/default optimization separation are
+  also covered. Eight equivalent in-memory CPython probes pass. The existing
+  namespace/closure/backend integration tests now use this production assembly.
+  Build and typecheck pass. The full uncached thread-pool suite passes 9,177 tests
+  in 608 files (94.34s; bodies 14.05s). Removed the obsolete namespace-builtin
+  import identified by scoped lint after the full run; the 1,078-test focused
+  integration rerun, scoped lint and whitespace checks pass after cleanup. Public interpreter creation/execution
+  APIs, the rest of canonical builtin registration, AST/interactive compilation,
+  imports, safe-fs and broad audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

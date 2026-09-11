@@ -185,10 +185,10 @@ for (const entry of ["@poe-platform/safe-js", "@poe-platform/safe-js/core"]) {
     return [Counter.label, child.read(), child instanceof Child,
       child instanceof Counter, Counter.fn === Counter.prototype,
       child.constructor === Child, new Bound().read(), arrow.label,
-      denied, Counter.constructor, Array.constructor, Object.keys(Child.prototype).length];
+      denied, Counter.constructor === Function, Array.constructor === Function, Object.keys(Child.prototype).length];
   `, { budget: new EntryBudget({ maxSteps: 10_000, dataSize: 100_000 }) });
   assert.equal(functionResult.ok, true, entry);
-  assert.deepEqual(functionResult.returnValue, ["counter", 7, true, true, true, true, 9, "arrow", true, undefined, undefined, 0], entry);
+  assert.deepEqual(functionResult.returnValue, ["counter", 7, true, true, true, true, 9, "arrow", true, true, true, 0], entry);
 }
 for (const streaming of [true, false]) {
   const fs = createMemoryFileSystem();

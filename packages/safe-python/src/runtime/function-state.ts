@@ -55,6 +55,9 @@ export function createFunctionState<Value>(
   context: FunctionCreationContext<Value>, meter: ExecutionMeter
 ): FunctionState<Value> {
   meter.checkpoint();
+  try {
+  const module=lookupNamespace(context.globals,"__name__","intrinsic");
+  meter.checkpoint();
   let builtins = context.builtins;
   const selectedBuiltins=lookupNamespace(context.globals,"__builtins__","intrinsic");
   if (selectedBuiltins!==undefined) {
@@ -72,11 +75,11 @@ export function createFunctionState<Value>(
   const capturedDefaults = new Map<string, Value>();
   for (const [name, value] of defaults) { meter.checkpoint(); capturedDefaults.set(name, value); }
   meter.checkpoint();
-  const module=lookupNamespace(context.globals,"__name__");
   return {
     code, globals: context.globals, builtins, closure,
     defaults: capturedDefaults, attributes: new Map(),
     name: code.name, qualifiedName: code.qualifiedName, module:module===undefined?context.none:module.value,
     doc: code.docstring === undefined ? context.none : code.docstring.value
   };
+  } finally {meter.checkpoint();}
 }

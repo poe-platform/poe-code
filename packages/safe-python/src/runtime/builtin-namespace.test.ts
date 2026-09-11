@@ -3,7 +3,7 @@ import { analyzeModule } from "../analysis.js";
 import { LexicalFrame } from "./lexical-frame.js";
 import { ClassFrame } from "./class-frame.js";
 import { ModuleFrame } from "./module-frame.js";
-import { ExecutionBudget } from "./execution-budget.js";
+import { ExecutionBudget,ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { compileProgram } from "./program-compilation.js";
 import { createFunctionState } from "./function-state.js";
@@ -11,6 +11,21 @@ import { createFunctionState } from "./function-state.js";
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
 
 describe("builtin namespace protocols", () => {
+  it("reads function module metadata intrinsically before selecting builtins",()=>{
+    const program=compileProgram<unknown>(analyzeModule("def f():pass"),{stripDocstring:false},{string:value=>value,integer:value=>value,tuple:values=>values},budget());
+    const events:unknown[]=[],module={},builtins={};
+    const globals={lookup(name:string,access?:"intrinsic"){events.push([name,access]);return {value:name==="__name__"?module:builtins};},store(){},delete:()=>false};
+    const state=createFunctionState([...program.functions.values()][0],new Map(),{globals,builtins:new Map(),none:null,resolveBuiltins(value){events.push(value);return new Map();}},budget());
+    expect(state.module).toBe(module);
+    expect(events).toEqual([["__name__","intrinsic"],["__builtins__","intrinsic"],builtins]);
+  });
+  it.each([false,true])("preserves cancellation from module lookup before builtin selection (throws=%s)",throws=>{
+    const program=compileProgram<unknown>(analyzeModule("def f():pass"),{stripDocstring:false},{string:value=>value,integer:value=>value,tuple:values=>values},budget());
+    const controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal}),events:string[]=[];
+    const globals={lookup(name:string){events.push(name);if(name==="__name__"){controller.abort();if(throws)throw Error("module failed");}return undefined;},store(){},delete:()=>false};
+    expect(()=>createFunctionState([...program.functions.values()][0],new Map(),{globals,builtins:new Map(),none:null},meter)).toThrow(ExecutionLimitError);
+    expect(events).toEqual(["__name__"]);
+  });
   it.each(["module", "function", "class"])("supports builtin mapping lookup in %s frames", kind => {
     const analysis = analyzeModule(kind === "module" ? "x" : `${kind === "function" ? "def f():" : "class C:"}\n x\n missing`);
     const globals = new Map<string, unknown>(), values = new Map<string, unknown>([["x", undefined]]), events: string[] = [];

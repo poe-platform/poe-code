@@ -219,6 +219,13 @@ it("executes function code with shared closure cells and fresh argument binding"
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(cell.value.content).toBeUndefined();
 });
 
+it("captures function module metadata from intrinsic globals before overridden reads",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  globals.items.set(v.string("Dict"),state.registry.dictionaryType());
+  state.run("class G(Dict):\n def __getitem__(self,key):\n  if key=='__name__':raise RuntimeError('must bypass module override')\n  return Dict.__getitem__(self,key)\ng=G(__name__='stored')\nl={}\nexec('def f():return 7',g,l)\nf=l['f']\nvalue=eval(f.__code__,g)\ncorrect=f.__module__=='stored' and value==7\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
 it("uses fresh function locals and live module/class namespaces for dynamic execution",()=>{
   const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
   state.run("def snapshots():\n x=7\n first=locals()\n exec('x=99; created=1')\n seen=eval('x')\n second=locals()\n first['x']=42\n return x==7 and seen==7 and second['x']==7 and first is not second and 'created' not in second\ncorrect_snapshots=snapshots()\nmodule_identity=locals() is globals()\ncomprehension=[locals() for hidden in (1,)]\nclass C:\n x=8\n names=locals()\n exec('x=9')\n correct=names['x']==9 and eval('x')==9\ncorrect_class=C.correct\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));

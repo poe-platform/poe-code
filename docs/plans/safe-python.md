@@ -12954,6 +12954,18 @@ extension, integration, or validation requirement is missing or unverified.
   the default interpreter/backend registration and broader compatibility work.
   Build, typecheck, scoped lint and whitespace checks pass. The uncached full
   thread-pool suite passes 9,087 tests in 602 files (119.01s; bodies 13.61s).
+- Function creation namespace read ordering (2026-09-11): CPython source and
+  runtime probes confirmed that function module metadata is read intrinsically
+  from globals before builtin selection. Four failing regressions reproduced the
+  reversed order, dictionary-subclass __getitem__ invocation and missed fatal
+  cancellation when module lookup returned or threw. Function creation now reads
+  __name__ intrinsically first, checkpoints before builtin selection and checks
+  cancellation on every exit. The native scenario covers both a function definition
+  and subsequent direct code execution using subclass globals; it also passes
+  CPython 3.14.7. The focused run passes 1,054 tests. This repairs shared function
+  creation behavior rather than adding a special path for dynamic execution.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 9,091 tests in 602 files (127.17s; bodies 14.29s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

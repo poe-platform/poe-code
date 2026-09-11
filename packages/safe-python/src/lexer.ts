@@ -47,7 +47,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
   options.meter?.checkpoint(1,96);
   try {
   const source = new PythonSource(text, options.filename,options.meter);
-  const indentation = new Indentation();
+  const indentation = new Indentation(options.meter);
   const interpolation = new Interpolation();
   const delimiters: Array<{ text: string; start: SourcePosition }> = [];
   let lineStart = true;
@@ -152,7 +152,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
   if (unclosed) throw source.error(`'${unclosed.text}' was never closed`, unclosed.start);
   const end = source.position;
   if (lineHasCode) yield { kind: "newline", text: "", start: end, end };
-  const dedents = indentation.finish().length;
+  const dedents = indentation.finish(options.meter).length;
   for (let index = 0; index < dedents; index++) yield { kind: "dedent", text: "", start: end, end };
   yield { kind: "end", text: "", start: end, end };
   } finally {options.meter?.checkpoint();}

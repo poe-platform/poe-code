@@ -12485,6 +12485,24 @@ extension, integration, or validation requirement is missing or unverified.
   full suite passes 8,744 tests in 579 files (182.24s; test bodies 12.50s).
   Structural lexer, indentation and string/interpolation
   storage still require auditing; host numeric conversion remains indivisible.
+- Indentation resource accounting (2026-09-11): ten failing tests reproduced
+  uncharged initial/level/output storage, unbounded standalone whitespace scans
+  and cancellation lost during diagnostic construction. Indentation creation and
+  finalization accept optional source-compatible meters without changing host
+  arities; the lexer forwards its meter. Accept charges scanning, level search,
+  new records, dedent slots and diagnostic storage, with final cancellation checks.
+  Dedent arrays use fill instead of allocating Array.from callbacks and length
+  objects. All ten focused tests pass. All 729 state/output/diagnostic sequences
+  against 34658ec0d preserve behavior, including post-error state and repeated
+  finalization; 729 CPython compile-acceptance cases covering spaces/tabs/form feeds
+  also pass. Build, typecheck, scoped lint and whitespace checks pass. The first
+  full-suite run ended with 69 ENOSPC import failures (8,291 tests passed) because
+  the host data volume was full. Its temporary directory was already removed;
+  no unrelated files were deleted. The same uncached full suite passes with the
+  supported thread pool, which avoids fork-worker temporary module copies:
+  8,754 tests in 580 files (77.60s; test bodies 9.07s).
+  Structural lexer and string/interpolation storage remain
+  before checked guest compilation ingress.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

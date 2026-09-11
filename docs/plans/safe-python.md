@@ -11738,6 +11738,32 @@ extension, integration, or validation requirement is missing or unverified.
   remain unfinished; empty parameters are not a general typing implementation.
   References: https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c
   and https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/unionobject.c
+- Runtime parameter discovery (2026-09-11): seven failing kernel tests drove a
+  reusable, iterative parameter collector as a prerequisite for checked unions
+  and generic aliases. Bare type objects are skipped before ordinary lookup.
+  Presence of __typing_subst__ identifies a parameter even when its value is
+  None or false. Otherwise tuple-valued __parameters__ entries are merged by
+  identity; absent metadata recursively traverses lists/tuples, while explicit
+  non-tuple metadata suppresses recursion. Lists are materialized before child
+  metadata reads, using subclass iteration hooks; tuple subclass storage is
+  borrowed without guest iteration. Encounter order is preserved and guest
+  equality/hashing never participates in parameter deduplication. An explicit
+  frame stack and metered identity set bound deep/cyclic structures without
+  consuming the host stack. AttributeError alone permits fallback; cancellation
+  survives failing attribute callbacks. Union metadata now caches only successful
+  discovery and subscription initializes the same cache before diagnostics.
+  Tests cover a 10,000-level container, cycles, list mutation during lookup,
+  strict bare-class bypass, subclass protocols, lookup failures and cache retry
+  after failure/cancellation. The focused three-file suite passes 1,025 tests.
+  All 132 new scoped CPython comparisons pass (96 parameter/lookup combinations
+  and 36 sequence-subclass combinations), as do the 212 earlier union cases.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,186 tests in 537 files
+  (122.45s; test bodies 10.62s). Checked operand construction,
+  ForwardRef conversion, actual parameter substitution, generic aliases and
+  typing publication remain required work; this milestone does not expose a
+  complete generic subscription path or enable arbitrary union operands yet.
+  Reference: https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/genericaliasobject.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

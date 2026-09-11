@@ -3,12 +3,20 @@ import {validateAttributeName} from "./attribute-name.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import {representationObject} from "./representation-protocol.js";
 import {runtimeUnionPayload} from "./runtime-union-state.js";
-import type {MethodDescriptorCapability,RuntimeValues,TypeValue} from "./runtime-values.js";
+import {collectRuntimeTypeParameters} from "./runtime-type-parameters.js";
+import type {TupleConstant} from "./constant-values.js";
+import type {BuiltinInvocationContext,MethodDescriptorCapability,RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
-/** Current operator unions contain real types only: parameter collection skips
- * their __parameters__ attributes. Checked typing construction/generic aliases
- * must extend this policy when non-type arguments are introduced. */
+/** Successful parameter discovery is cached per union; failing or cancelled
+ * discovery leaves no partial result. Native type arguments bypass lookup. */
 export function installRuntimeUnionMetadata(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
+  meter.checkpoint(0,64);
+  const parameters=new WeakMap<RuntimeValue,TupleConstant<RuntimeValue>>();
+  const getParameters=(receiver:RuntimeValue,meter:ExecutionMeter,invocation?:BuiltinInvocationContext):TupleConstant<RuntimeValue>=>{
+    meter.checkpoint();const cached=parameters.get(receiver);if(cached)return cached;
+    const result=collectRuntimeTypeParameters(runtimeUnionPayload(receiver)!.args,values,meter,invocation);
+    meter.checkpoint(0,48);parameters.set(receiver,result);return result;
+  };
   meter.checkpoint(0,96);
   owner.value.namespace.items.set(values.string("__getattribute__"),values.wrapperDescriptor({owner,name:"__getattribute__",accepts:receiver=>runtimeUnionPayload(receiver)!==undefined,
     invoke(receiver,positional,keywords,meter,invocation){
@@ -25,7 +33,7 @@ export function installRuntimeUnionMetadata(owner:TypeValue,values:RuntimeValues
   for(const name of ["__name__","__qualname__","__origin__","__parameters__"] as const){
     meter.checkpoint(0,96);
     owner.value.namespace.items.set(values.string(name),values.getsetDescriptor({owner,name,accepts:receiver=>runtimeUnionPayload(receiver)!==undefined,
-      get(_receiver,meter){meter.checkpoint();return name==="__origin__"?owner:name==="__parameters__"?values.tuple([]):values.string("Union");}
+      get(receiver,meter,invocation){meter.checkpoint();return name==="__origin__"?owner:name==="__parameters__"?getParameters(receiver,meter,invocation):values.string("Union");}
     }));
   }
   for(const name of ["__getitem__","__mro_entries__"] as const){
@@ -35,6 +43,7 @@ export function installRuntimeUnionMetadata(owner:TypeValue,values:RuntimeValues
         meter.checkpoint();
         if(keywords.items.size)throw new PythonRuntimeError("TypeError",name==="__getitem__"?"wrapper __getitem__() takes no keyword arguments":"Union.__mro_entries__() takes no keyword arguments");
         if(positional.length!==1)throw new PythonRuntimeError("TypeError",name==="__getitem__"?`expected 1 argument, got ${positional.length}`:`Union.__mro_entries__() takes exactly one argument (${positional.length} given)`);
+        if(name==="__getitem__")getParameters(receiver,meter,invocation);
         if(!invocation?.formatting)throw Error("union diagnostics require formatting");
         try{
           const repr=representationObject(receiver,"repr",invocation.formatting,meter);let text="";

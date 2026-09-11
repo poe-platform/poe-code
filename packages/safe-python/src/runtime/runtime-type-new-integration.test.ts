@@ -6,6 +6,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { RuntimeValues, type RuntimeValue, type TypeValue } from "./runtime-values.js";
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
+import {collectRuntimeTypeParameters} from "./runtime-type-parameters.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
@@ -487,6 +488,20 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("discovers parameters through list subclass iteration but borrows tuple subclass storage",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("list",state.registry.listType());state.builtins.set("tuple",state.registry.tupleType());state.builtins.set("iter",createIterBuiltin(v,state.meter));
+  state.builtins.set("discover",v.builtinFunction({name:"discover",invoke(positional,_keywords,meter,invocation){return collectRuntimeTypeParameters(positional[0],v,meter,invocation);}}));
+  state.run("events=[]\nclass P:__typing_subst__=None\np=P()\nq=P()\nclass L(list):\n def __iter__(self):\n  events.append('list')\n  return iter((q,))\nclass T(tuple):\n def __iter__(self):raise AssertionError('tuple iteration')\nclass Meta(type):\n def __getattribute__(cls,name):raise AssertionError('bare class metadata')\nclass C(metaclass=Meta):pass\ncorrect=discover((L((p,)),T((p,)),C))==(q,p) and events==['list']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("propagates parameter lookup failures before visiting later nested arguments",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.builtins.set("discover",v.builtinFunction({name:"discover",invoke(positional,_keywords,meter,invocation){return collectRuntimeTypeParameters(positional[0],v,meter,invocation);}}));
+  state.run("events=[]\nclass P:\n def __getattribute__(self,name):\n  events.append(name)\n  if name=='__typing_subst__':raise AttributeError(name)\n  raise ValueError('parameters')\np=P()\ncorrect=False\ntry:discover(((p,),p))\nexcept ValueError as e:correct=e.args==('parameters',) and events==['__typing_subst__','__parameters__']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("exposes readonly union metadata without inspecting class parameter shadows",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("class Meta(type):\n def __getattribute__(cls,name):\n  if name=='__parameters__':raise AssertionError('class parameters')\n  return type.__getattribute__(cls,name)\nclass A(metaclass=Meta):pass\nclass B:pass\nu=A|B\ncorrect=u.__name__=='Union' and u.__qualname__=='Union' and u.__module__=='typing' and u.__origin__ is type(u) and u.__parameters__ is ()\ntry:u.__args__=()\nexcept Exception as e:correct=correct and type(e).__name__=='AttributeError'\n");

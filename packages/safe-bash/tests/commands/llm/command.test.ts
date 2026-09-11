@@ -3,6 +3,7 @@ import test from "node:test";
 import { createLlmCommands, llmCommands } from "../../../src/commands/llm/command.js";
 import type { LlmCommandsOptions, LlmProvider, LlmRequest } from "../../../src/commands/llm/types.js";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext, type ByteSource } from "../../../src/contracts/index.js";
+import { shellValueFromBytes } from "../../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
@@ -75,7 +76,7 @@ test("supports attached flag values and last-option-wins", async () => {
 
 test("raw argument bytes and stdin must be fatal UTF-8 before provider admission", async () => {
   for (const values of [[Uint8Array.of(255)], ["--system", Uint8Array.of(255)], ["--model=chat", Uint8Array.of(255)]]) {
-    const argumentValues = createCommandArguments(values);
+    const argumentValues = createCommandArguments(values.map(value => typeof value === "string" ? value : shellValueFromBytes(value)));
     const fake = provider();
     const run = await fixture(argumentValues.args, { provider: fake, context: { argumentValues } });
     assert.equal((await run.execute()).exitCode, 1);

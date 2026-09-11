@@ -1,10 +1,15 @@
 import type { ResolvedScope } from "../symbol-resolution.js";
 import type {SourceSpan} from "../ast.js";
+import type {CompiledModule} from "./program-compilation.js";
+import {FrameLocals} from "./frame-locals.js";
+import {compileCodeLocalLayout} from "./code-local-layout.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameNamespace } from "./namespace-lookup.js";
 
 export interface LocalNamespace<Value> {
+  /** Original guest mapping identity, when available for frame reflection. */
+  readonly object?:Value;
   /** Perform guest mapping lookup. Only a missing-key exception becomes undefined;
    * other failures propagate. A wrapper preserves null/undefined guest values.
    */
@@ -37,8 +42,9 @@ export class ModuleFrame<Value> {
   /** Last entered execution site, including a failing operation; host-only. */
   executionPosition:SourceSpan|undefined;
   readonly #explicitGlobals = new Set<string>();
+  #reflectiveLocals:FrameLocals<Value>|undefined;
 
-  constructor(scope: ResolvedScope, private readonly namespaces: ModuleNamespaces<Value>, private readonly meter: ExecutionMeter) {
+  constructor(readonly scope: ResolvedScope, readonly namespaces: ModuleNamespaces<Value>, private readonly meter: ExecutionMeter,readonly code?:CompiledModule<Value>) {
     meter.checkpoint();
     if (scope.scope.kind !== "module") throw new Error("module frames require a module scope");
     const pending = [scope];
@@ -51,6 +57,16 @@ export class ModuleFrame<Value> {
       }
       for (const child of current.children) { meter.checkpoint(); pending.push(child); }
     }
+  }
+
+  /** Explicit FrameLocalsProxy sees code slots, not the unoptimized namespace. */
+  reflectLocals():FrameLocals<Value> {
+    this.meter.checkpoint();
+    if(this.#reflectiveLocals===undefined){
+      this.meter.checkpoint(0,96);
+      this.#reflectiveLocals=new FrameLocals(compileCodeLocalLayout(this.scope,this.meter),new Map(),new Map(),this.meter);
+    }
+    return this.#reflectiveLocals;
   }
 
   load(name: string): Value {

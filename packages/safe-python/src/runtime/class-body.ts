@@ -25,7 +25,7 @@ export function executeClassBody<Value>(
   code: CompiledClassBody<Value>, context: ClassBodyContext<Value>, meter: ExecutionMeter
 ): LexicalCell<Value> | undefined {
   meter.checkpoint();
-  const frame = new ClassFrame(code.scope, context, meter);
+  const frame = new ClassFrame(code.scope, context, meter,code);
   const leave = context.calls.enter(frame);
   try {
     const body = context.body(frame);

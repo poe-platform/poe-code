@@ -1,10 +1,10 @@
 import {PythonRuntimeError} from "./error.js";
 import {runtimeQualifiedTypeName} from "./runtime-qualified-type-name.js";
 import type {ExecutionMeter} from "./execution-budget.js";
-import type {LexicalFrame} from "./lexical-frame.js";
+import type {RuntimeFrame} from "./runtime-program.js";
 import type {BuiltinFunctionValue,RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
-export function createFrameLocalsProxyNewBuiltin(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,create:(frame:LexicalFrame<RuntimeValue>)=>RuntimeValue):BuiltinFunctionValue {
+export function createFrameLocalsProxyNewBuiltin(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,create:(frame:RuntimeFrame)=>RuntimeValue):BuiltinFunctionValue {
   meter.checkpoint(0,96);
   return values.builtinFunction({name:"__new__",owner,keywordValidation:"callee",
     invoke(positional,keywords,meter,invocation){

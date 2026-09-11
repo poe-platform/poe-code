@@ -188,6 +188,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
             executeClassBody(code, {
               ...fn.value, calls,
               locals: {
+                object:globals.object,
                 lookup: name => lookupNamespace(globals,name),
                 store: (name, value) => { storeNamespace(globals,name,value); },
                 delete: name => globals.delete(name), isGuest: error => builtinCalls.isException?.(error,"BaseException")??false

@@ -95,6 +95,35 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("publishes native module frames with original namespace and code identities",()=>{
+  const state=exceptionFixture(),{v,meter}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(frame===undefined)throw Error("missing frame");return state.registry.frame(frame as RuntimeFrame);}}));
+  const globals=v.dictionary(new OrderedKeyMap(state.keys,meter)),builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));
+  for(const [key,value]of state.globals)globals.items.set(v.string(key),value);
+  for(const [key,value]of state.builtins)builtins.items.set(v.string(key),value);
+  globals.items.set(v.string("G"),globals);globals.items.set(v.string("B"),builtins);
+  const names=new RuntimeDictionaryNamespace(globals,v,meter);
+  state.run("frame=current_frame()\nframe.f_locals['x']=7\ncorrect=frame is current_frame() and frame.f_globals is G and frame.f_builtins is B and frame.f_locals is G and x==7 and frame.f_code.co_name=='<module>' and frame.f_code.co_nlocals==0 and frame.f_lineno==3",names,new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(names.lookup("correct")?.value).toBe(v.true);
+});
+
+it("shares class closure cells through explicit proxies and accepts all native frames in tracebacks",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("Traceback",state.registry.tracebackType());
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(frame===undefined)throw Error("missing frame");return state.registry.frame(frame as RuntimeFrame);}}));
+  state.run("module_frame=current_frame()\ndef proxy_type():return type(current_frame().f_locals)\nP=proxy_type()\nmodule_proxy=P(module_frame)\nmodule_proxy['extra']=9\ndef outer(z):\n class C:\n  frame=current_frame()\n  def method(self):return __class__,z\n return C\nC=outer(1)\np=P(C.frame)\np['z']=7\na=Traceback(None,module_frame,0,2)\nb=Traceback(a,C.frame,4,8)\ncorrect=C().method()==(C,7) and p['__class__'] is C and 'frame' not in p and P(module_frame)['extra']==9 and 'module_frame' not in module_proxy and b.tb_frame is C.frame and b.tb_next.tb_frame is module_frame and b.tb_lineno==8\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("retains a custom class frame locals mapping and separate explicit proxy extras",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("classmethod",state.registry.methodDecoratorType("classmethod"));
+  state.globals.set("dict",state.registry.dictionaryType());
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(frame===undefined)throw Error("missing frame");return state.registry.frame(frame as RuntimeFrame);}}));
+  state.run("data={}\nclass Namespace:\n def __getitem__(self,key):return data[key]\n def __setitem__(self,key,value):data[key]=value\n def keys(self):return data.keys()\nns=Namespace()\nclass Meta(type):\n @classmethod\n def __prepare__(m,name,bases):return ns\n def __new__(m,name,bases,namespace):return type.__new__(m,name,bases,dict(namespace))\nclass C(metaclass=Meta):\n frame=current_frame()\n frame.f_locals['x']=7\n same=frame.f_locals is ns\ndef proxy_type():return type(current_frame().f_locals)\nP=proxy_type()\np=P(C.frame)\np['extra']=9\nq=P(C.frame)\ncorrect=C.x==7 and C.same and C.frame.f_locals is ns and C.frame.f_code.co_name=='C' and C.frame.f_code.co_varnames==() and q['extra']==9 and 'extra' not in data\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it.each([false,true])("retains the failed name deletion line in native frames (suspended=%s)",suspended=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));

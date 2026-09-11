@@ -2,12 +2,12 @@ import {PythonRuntimeError} from "./error.js";
 import {diagnosticTypeName} from "./diagnostic-type-name.js";
 import {runtimeIntegerIndex} from "./runtime-integer-index.js";
 import type {ExecutionMeter} from "./execution-budget.js";
-import type {LexicalFrame} from "./lexical-frame.js";
+import type {RuntimeFrame} from "./runtime-program.js";
 import type {Traceback} from "./traceback.js";
 import type {BuiltinFunctionValue,RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 export function createTracebackNewBuiltin(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,
-  create:(next:Traceback<LexicalFrame<RuntimeValue>>|null,frame:LexicalFrame<RuntimeValue>,instruction:number,line:number)=>RuntimeValue):BuiltinFunctionValue {
+  create:(next:Traceback<RuntimeFrame>|null,frame:RuntimeFrame,instruction:number,line:number)=>RuntimeValue):BuiltinFunctionValue {
   meter.checkpoint(0,96);
   return values.builtinFunction({name:"__new__",owner,keywordValidation:"callee",
     invoke(positional,keywords,meter,invocation){
@@ -44,7 +44,7 @@ export function createTracebackNewBuiltin(owner:TypeValue,values:RuntimeValues,m
           numbers.push(Number(integer));
         }
         const next=args[0];
-        let nextTraceback:Traceback<LexicalFrame<RuntimeValue>>|null=null;
+        let nextTraceback:Traceback<RuntimeFrame>|null=null;
         if(next.kind!=="none"){
           if(next.kind!=="instance"||next.native?.kind!=="traceback"){
             const name=invocation?.typeName?.(next)??(next.kind==="instance"?next.type.value.name:next.kind==="not-implemented"?"NotImplementedType":next.kind);

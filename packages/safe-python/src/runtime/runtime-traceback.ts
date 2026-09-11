@@ -1,19 +1,19 @@
 import {PythonRuntimeError} from "./error.js";
 import type {ExecutionMeter} from "./execution-budget.js";
-import type {LexicalFrame} from "./lexical-frame.js";
+import type {RuntimeFrame} from "./runtime-program.js";
 import type {Traceback} from "./traceback.js";
 import type {RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 export interface RuntimeTracebackState {
   readonly kind:"traceback";
-  readonly traceback:Traceback<LexicalFrame<RuntimeValue>>;
+  readonly traceback:Traceback<RuntimeFrame>;
   /** Interpreter code-location capability, never a host stack inspection. */
-  readonly resolveLine:(frame:LexicalFrame<RuntimeValue>,instruction:number)=>number|null;
+  readonly resolveLine:(frame:RuntimeFrame,instruction:number)=>number|null;
 }
 
 export function installRuntimeTracebackDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,
-  frame:(frame:LexicalFrame<RuntimeValue>)=>RuntimeValue,
-  expose:(traceback:Traceback<LexicalFrame<RuntimeValue>>,resolveLine:RuntimeTracebackState["resolveLine"])=>RuntimeValue):void {
+  frame:(frame:RuntimeFrame)=>RuntimeValue,
+  expose:(traceback:Traceback<RuntimeFrame>,resolveLine:RuntimeTracebackState["resolveLine"])=>RuntimeValue):void {
   for(const name of ["tb_frame","tb_lasti","tb_lineno","tb_next"] as const){
     meter.checkpoint(0,96);
     const capability={owner,name,

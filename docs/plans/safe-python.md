@@ -11247,6 +11247,27 @@ extension, integration, or validation requirement is missing or unverified.
   package suite passes 7,924 tests in 527 files (129.74s; test bodies 9.23s).
   This prepares code publication; native module/class frame objects, complete
   instruction metadata, tracing and automatic traceback capture remain required.
+- Native module/class frames (2026-09-10): failing native publication cases
+  confirmed that frame reflection assumed optimized lexical storage. Module and
+  class activations now retain their compiled code and original namespace
+  capabilities; f_locals returns the actual unoptimized mapping (including custom
+  class namespaces), while f_globals/f_builtins/f_code retain canonical identities.
+  Frame, traceback and explicit FrameLocalsProxy publication accept all runtime
+  frame kinds. Explicit proxies on module/class frames expose only code/closure
+  slots plus shared proxy extras, not a copied namespace; class proxy writes share
+  original closure cells, including the completed __class__ cell. Reflection
+  remains lazy and metered, and legacy missing guest mapping identities fail
+  explicitly. Three integration cases cover live mappings, namespace/code identity,
+  explicit proxy isolation, closure writes and heterogeneous traceback chains.
+  The focused four-file suite passes 937 tests. All 64 frame-only CPython
+  comparisons match across ordinary/custom class mappings, outer closures,
+  source padding, proxy extras and traceback identity. An initial corpus's future
+  imports hit the deliberately absent fixture import adapter; those cases are not
+  counted as frame verification. Selected build, typecheck, scoped lint and
+  whitespace checks pass. The final uncached one-worker package suite passes
+  7,927 tests in 527 files (125.60s; test bodies 9.41s). This completes native
+  publication for the three frame kinds, not automatic traceback capture, f_back,
+  full instruction metadata, tracing, imports or the overall interpreter goal.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

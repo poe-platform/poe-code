@@ -1,6 +1,9 @@
 import { manglePrivateName } from "../private-names.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
 import type {SourceSpan} from "../ast.js";
+import type {CompiledClassBody} from "./class-compilation.js";
+import {FrameLocals} from "./frame-locals.js";
+import {compileCodeLocalLayout} from "./code-local-layout.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import type { LexicalCell, LexicalNamespaces } from "./lexical-frame.js";
@@ -26,8 +29,9 @@ export class ClassFrame<Value> {
   readonly #declarations = new Map<string, "global" | "nonlocal">();
   readonly #owned = new Map<string, LexicalCell<Value>>();
   readonly #free = new Map<string, LexicalCell<Value>>();
+  #reflectiveLocals:FrameLocals<Value>|undefined;
 
-  constructor(readonly scope: ResolvedScope, private readonly namespaces: ClassNamespaces<Value>, private readonly meter: ExecutionMeter) {
+  constructor(readonly scope: ResolvedScope, readonly namespaces: ClassNamespaces<Value>, private readonly meter: ExecutionMeter,readonly code?:CompiledClassBody<Value>) {
     meter.checkpoint();
     if (scope.scope.kind !== "class") throw new Error("class frames require a class scope");
     for (const event of scope.scope.events) {
@@ -44,6 +48,17 @@ export class ClassFrame<Value> {
       if (!cell || cell.owner !== owner) throw new Error(`missing or invalid closure cell: ${name}`);
       this.#free.set(name, cell);
     }
+  }
+
+  /** Explicit proxies share closure cells but do not mirror the class mapping. */
+  reflectLocals():FrameLocals<Value> {
+    this.meter.checkpoint();
+    if(this.#reflectiveLocals===undefined){
+      this.meter.checkpoint(0,96);const cells=new Map<string,LexicalCell<Value>>();
+      for(const source of [this.#owned,this.#free])for(const [name,cell]of source){this.meter.checkpoint(1,48);cells.set(name,cell);}
+      this.#reflectiveLocals=new FrameLocals(compileCodeLocalLayout(this.scope,this.meter),new Map(),cells,this.meter);
+    }
+    return this.#reflectiveLocals;
   }
 
   /** Host-only cell reference for class construction, not a guest attribute. */

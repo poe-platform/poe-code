@@ -1,5 +1,5 @@
 import type {FrameLocalsMapping} from "./frame-locals-mapping.js";
-import type {LexicalFrame} from "./lexical-frame.js";
+import type {RuntimeFrame} from "./runtime-program.js";
 import {OrderedKeyMap,type KeyOperations} from "./ordered-key-map.js";
 import {runtimeDictionaryStorage} from "./runtime-dictionary-storage.js";
 import {runtimeDictionaryPayload} from "./runtime-dictionary-payload.js";
@@ -21,7 +21,7 @@ import type {BuiltinInvocationContext,RuntimeValue,RuntimeValues,TypeValue} from
 export interface RuntimeFrameLocalsProxyState {
   readonly kind:"frame_locals_proxy";
   readonly mapping:FrameLocalsMapping<RuntimeValue,RuntimeValue>;
-  readonly frame:LexicalFrame<RuntimeValue>;
+  readonly frame:RuntimeFrame;
   readonly keys:KeyOperations<RuntimeValue>;
 }
 

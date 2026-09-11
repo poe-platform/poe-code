@@ -21,7 +21,7 @@ export function executeModule<Value>(
   code: CompiledModule<Value>, context: ModuleExecutionContext<Value>, meter: ExecutionMeter
 ): void {
   meter.checkpoint();
-  const frame = new ModuleFrame(code.scope, context, meter);
+  const frame = new ModuleFrame(code.scope, context, meter,code);
   const leave = context.calls.enter(frame);
   try {
     const body = context.body(frame);

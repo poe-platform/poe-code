@@ -1,16 +1,17 @@
-import type {LexicalFrame} from "./lexical-frame.js";
+import {LexicalFrame} from "./lexical-frame.js";
+import type {RuntimeFrame} from "./runtime-program.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
-import type {CompiledFunction} from "./function-compilation.js";
+import type {RuntimeCompiledCode} from "./runtime-code.js";
 import {PythonRuntimeError} from "./error.js";
 
 /** Native identity around an interpreter-owned activation, never a host stack. */
 export interface RuntimeFrameState {
   readonly kind:"frame";
-  readonly frame:LexicalFrame<RuntimeValue>;
+  readonly frame:RuntimeFrame;
 }
 
-export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,locals:(frame:LexicalFrame<RuntimeValue>)=>RuntimeValue,code:(code:CompiledFunction<RuntimeValue>)=>RuntimeValue):void {
+export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,locals:(frame:RuntimeFrame)=>RuntimeValue,code:(code:RuntimeCompiledCode)=>RuntimeValue):void {
   for(const name of ["f_locals","f_globals","f_builtins","f_code","f_lineno"] as const){
   meter.checkpoint(0,96);
   owner.value.namespace.items.set(values.string(name),values.getsetDescriptor({owner,name,
@@ -23,9 +24,15 @@ export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeVal
         if(name==="f_lineno"){
           if(frame.executionPosition!==undefined)return values.integer(frame.executionPosition.start.line);
           if(frame.code===undefined)throw Error("frame line reflection requires compiled function metadata before execution");
-          return frame.code.firstLine;
+          return "firstLine" in frame.code?frame.code.firstLine:values.integer(1);
         }
-        if(name==="f_locals")return locals(frame);
+        if(name==="f_locals"){
+          if(frame instanceof LexicalFrame)return locals(frame);
+          const object=(frame.namespaces.locals??frame.namespaces.globals).object;
+          meter.checkpoint();
+          if(object===undefined)throw Error("frame locals reflection requires an original guest mapping");
+          return object;
+        }
         if(name==="f_code"){
           if(frame.code===undefined)throw Error("frame code reflection requires compiled function metadata");
           return code(frame.code);

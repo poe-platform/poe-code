@@ -3,7 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import {FrameLocalsMapping} from "./frame-locals-mapping.js";
-import type {LexicalFrame} from "./lexical-frame.js";
+import type {RuntimeFrame} from "./runtime-program.js";
 import {installRuntimeFrameLocalsProxyDescriptors} from "./runtime-frame-locals-proxy.js";
 import {installRuntimeFrameDescriptors} from "./runtime-frame.js";
 import {installRuntimeTracebackDescriptors,type RuntimeTracebackState} from "./runtime-traceback.js";
@@ -118,9 +118,9 @@ export class RuntimeTypeRegistry {
   #tracebackType:TypeValue|undefined;
   #codeType:TypeValue|undefined;
   readonly #codes=new WeakMap<RuntimeCompiledCode,Extract<RuntimeValue,{kind:"instance"}>>();
-  readonly #tracebacks=new WeakMap<Traceback<LexicalFrame<RuntimeValue>>,Extract<RuntimeValue,{kind:"instance"}>>();
-  readonly #frames=new WeakMap<LexicalFrame<RuntimeValue>,Extract<RuntimeValue,{kind:"instance"}>>();
-  readonly #frameLocalsMappings=new WeakMap<LexicalFrame<RuntimeValue>,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
+  readonly #tracebacks=new WeakMap<Traceback<RuntimeFrame>,Extract<RuntimeValue,{kind:"instance"}>>();
+  readonly #frames=new WeakMap<RuntimeFrame,Extract<RuntimeValue,{kind:"instance"}>>();
+  readonly #frameLocalsMappings=new WeakMap<RuntimeFrame,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
   #sliceType: TypeValue | undefined;
   #rangeType: TypeValue | undefined;
   #integerType: TypeValue | undefined;
@@ -505,7 +505,7 @@ export class RuntimeTypeRegistry {
   }
 
   /** A traceback's initial publication fixes its interpreter line resolver. */
-  traceback(traceback:Traceback<LexicalFrame<RuntimeValue>>,resolveLine:RuntimeTracebackState["resolveLine"]):Extract<RuntimeValue,{kind:"instance"}> {
+  traceback(traceback:Traceback<RuntimeFrame>,resolveLine:RuntimeTracebackState["resolveLine"]):Extract<RuntimeValue,{kind:"instance"}> {
     this.meter.checkpoint();const existing=this.#tracebacks.get(traceback);if(existing!==undefined)return existing;
     const type=this.tracebackType();
     this.meter.checkpoint(0,96);
@@ -546,7 +546,7 @@ export class RuntimeTypeRegistry {
     this.#codes.set(code,result);return result;
   }
 
-  frame(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
+  frame(frame:RuntimeFrame):Extract<RuntimeValue,{kind:"instance"}> {
     this.meter.checkpoint();const existing=this.#frames.get(frame);if(existing!==undefined)return existing;
     if(this.#frameType===undefined){
       const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
@@ -560,7 +560,7 @@ export class RuntimeTypeRegistry {
     this.#frames.set(frame,result);return result;
   }
 
-  frameLocalsProxy(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
+  frameLocalsProxy(frame:RuntimeFrame):Extract<RuntimeValue,{kind:"instance"}> {
     this.meter.checkpoint();
     let mapping=this.#frameLocalsMappings.get(frame);
     if(mapping===undefined){

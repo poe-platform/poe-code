@@ -12189,6 +12189,24 @@ extension, integration, or validation requirement is missing or unverified.
   uncached one-worker full suite passes 8,455 tests in 560 files (138.95s; test
   bodies 12.12s). Remaining
   AST allocation accounting is still required before guest eager compilation.
+- Pratt expression AST allocation (2026-09-11): twenty failing tests isolated
+  pretokenized expression reads from lexer/cursor construction, reproducing
+  uncharged literal, unary, await, binary/boolean, conditional and comparison
+  AST storage, plus cancellation hidden by returning/throwing recursion-exit
+  callbacks. The reader now charges its own AST nodes, comparison operand/operator
+  arrays and entries, standalone tuple storage and name nodes before allocation.
+  Two per-call lookup arrays were replaced with direct comparisons. Recursion
+  entry and cleanup live inside final cancellation checks, including throwing
+  entry/exit callbacks. Six additional tests isolate composite storage from its
+  already charged literal operands; two preserve entry cancellation and ordinary
+  exit errors. The focused two-file suite passes 56 tests. All 218 complete AST
+  comparisons against ecf12de3d preserve nodes, spans, precedence and normalized
+  names across operator combinations, tuples and representative delegated forms.
+  These are baseline regressions, not independent CPython compatibility evidence.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,483 tests in 561 files (143.33s; test bodies
+  11.61s). Delegated primary/display/string/lambda and statement grammar
+  allocation still needs accounting; guest eager compilation remains gated.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -17,18 +17,20 @@ const binaryPrecedence: Readonly<Record<string, number>> = {
 };
 const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "<>", "in", "is", "not"]);
 
-/** Parse a single expression. Statement grammar and additional expression forms are still being implemented. */
+/** Parse a standalone expression, including comma-separated tuple forms. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
   try {
     const cursor = createTokenCursor(text, options);
     let result = readExpression(cursor);
     if (cursor.peek().text === ",") {
+      cursor.meter?.checkpoint(0,104);
       const items = [result];
       let end = result.end;
       while (cursor.peek().text === ",") {
         end = cursor.take().end;
         if (cursor.peek().kind === "newline" || cursor.peek().kind === "end") break;
         const item = readExpression(cursor);
+        cursor.meter?.checkpoint(0,8);
         items.push(item);
         end = item.end;
       }
@@ -46,8 +48,10 @@ export function parseExpression(text: string, options: LexerOptions = {}): Expre
 
 /** Shared Pratt reader for expression-bearing grammar productions. */
 export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
-  const restore=cursor.enterRecursiveCall?.();
+  let restore:(()=>void)|undefined;
   try {
+  cursor.meter?.checkpoint();
+  restore=cursor.enterRecursiveCall?.();
   let left = readPrefix(cursor, minimum);
   while (true) {
     const token = cursor.peek();
@@ -57,10 +61,12 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
       const condition = readExpression(cursor, 2);
       cursor.expect("else");
       const alternate = readExpression(cursor, 1);
+      cursor.meter?.checkpoint(0,96);
       left = { kind: "conditional", condition, consequent: left, alternate, start: left.start, end: alternate.end };
       continue;
     }
     if (comparisons.has(token.text) && minimum <= 5) {
+      cursor.meter?.checkpoint(0,144);
       const operands = [left];
       const operators: string[] = [];
       while (comparisons.has(cursor.peek().text)) {
@@ -70,7 +76,7 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
         if (operator === "<>") operator = "!=";
         if (operator === "not") { cursor.expect("in"); operator = "not in"; }
         else if (operator === "is" && cursor.peek().text === "not") { cursor.take(); operator = "is not"; }
-        operators.push(operator);
+        cursor.meter?.checkpoint(0,16);operators.push(operator);
         operands.push(readExpression(cursor, 6));
       }
       left = { kind: "comparison", operands, operators, start: left.start, end: operands[operands.length - 1].end };
@@ -80,13 +86,14 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
     if (precedence === undefined || precedence < minimum) break;
     cursor.take();
     const right = readExpression(cursor, token.text === "**" ? 12 : precedence + 1);
+    cursor.meter?.checkpoint(0,96);
     left = {
       kind: token.text === "and" || token.text === "or" ? "boolean" : "binary",
       operator: token.text, left, right, start: left.start, end: right.end
     };
   }
   return left;
-  } finally {restore?.();}
+  } finally {try{restore?.();}finally{cursor.meter?.checkpoint();}}
 }
 
 function readPrefix(cursor: TokenCursor, minimum: number): Expression {
@@ -95,11 +102,13 @@ function readPrefix(cursor: TokenCursor, minimum: number): Expression {
   if (token.text === "await") {
     cursor.take();
     const value = readTrailers(cursor, readAtom(cursor), readExpression);
+    cursor.meter?.checkpoint(0,64);
     return { kind: "await", value, start: token.start, end: value.end };
   }
-  if ((token.text === "not" && minimum <= 4) || ["+", "-", "~"].includes(token.text)) {
+  if ((token.text === "not" && minimum <= 4) || token.text === "+" || token.text === "-" || token.text === "~") {
     cursor.take();
     const operand = readExpression(cursor, token.text === "not" ? 4 : 12);
+    cursor.meter?.checkpoint(0,80);
     return { kind: "unary", operator: token.text, operand, start: token.start, end: operand.end };
   }
   return readTrailers(cursor, readAtom(cursor), readExpression);
@@ -108,13 +117,15 @@ function readPrefix(cursor: TokenCursor, minimum: number): Expression {
 function readAtom(cursor: TokenCursor): Expression {
   const token = cursor.peek();
   if (token.kind === "string" || token.kind === "bytes" || token.kind === "fstring-start" || token.kind === "tstring-start") return readStringExpression(cursor, readExpression);
-  if (["(", "[", "{"].includes(token.text)) return readDisplay(cursor, readExpression);
+  if (token.text === "(" || token.text === "[" || token.text === "{") return readDisplay(cursor, readExpression);
   if (token.kind === "integer" || token.kind === "float" || token.kind === "imaginary") {
     cursor.take();
+    cursor.meter?.checkpoint(0,80);
     return { kind: "literal", literalKind: token.kind, value: token.value, start: token.start, end: token.end };
   }
   if (token.text === "True" || token.text === "False" || token.text === "None" || token.text === "...") {
     cursor.take();
+    cursor.meter?.checkpoint(0,80);
     return {
       kind: "literal", literalKind: token.text === "None" ? "none" : token.text === "..." ? "ellipsis" : "boolean",
       value: token.text === "None" || token.text === "..." ? null : token.text === "True", start: token.start, end: token.end
@@ -122,6 +133,7 @@ function readAtom(cursor: TokenCursor): Expression {
   }
   if (token.kind === "name" && !reservedWords.has(token.text)) {
     cursor.take();
+    cursor.meter?.checkpoint(0,80);
     return { kind: "name", spelling: token.text, name: normalizeNfkc(token.text,cursor.meter), start: token.start, end: token.end };
   }
   throw cursor.error("expected expression");

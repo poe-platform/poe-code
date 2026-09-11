@@ -212,6 +212,21 @@ it("reports native search argument type names with CPython precision limits",()=
   state.run("C=type('X'*400,(),{})\nx=C()\ntry:str.find('a',x)\nexcept TypeError as e:search=str(e)==\"find() argument 1 must be str, not \"+'X'*50\ntry:str.startswith('a',x)\nexcept TypeError as e:affix=str(e)==\"startswith first arg must be str or a tuple of str, not \"+'X'*100\ntry:str.endswith('a',('z',x))\nexcept TypeError as e:member=str(e)==\"tuple for endswith must only contain str, not \"+'X'*100\n");
   for(const flag of ["search","affix","member"])expect(state.globals.get(flag)).toBe(v.true);
 });
+it.each([["strip","abc"],["lstrip","abcxx "],["rstrip"," xxabc"]] as const)("strips native string subtype character sets with exact result identity: %s",(name,expected)=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("expected",v.string(expected));
+  state.run(`class S(str):\n def __str__(self):raise AssertionError('conversion')\ns=S(' xxabcxx ')\ncorrect=s.${name}(S(' x'))==expected and str.${name}(s,S(' x'))==expected\nplain=S('abc')\na=plain.${name}()\nb=plain.${name}(S(''))\nidentity=type(a) is str and type(b) is str and a==b and a is not b\nempty=S('').${name}()\nempty_ok=empty is ''\nmetadata=s.${name}.__self__ is s and str.${name}.__objclass__ is str\ntry:s.${name}(1)\nexcept TypeError:argument=True\ntry:s.${name}(chars='x')\nexcept TypeError:keyword=True\n`);
+  for(const flag of ["correct","identity","empty_ok","metadata","argument","keyword"])expect(state.globals.get(flag)).toBe(v.true);
+});
+it.each([["removeprefix","abcxx"],["removesuffix","xxabc"]] as const)("removes native string subtype affixes while exactifying unchanged results: %s",(name,expected)=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("expected",v.string(expected));
+  state.run(`class S(str):\n def __str__(self):raise AssertionError('conversion')\ns=S('xxabcxx')\ncorrect=s.${name}(S('xx'))==expected\na=s.${name}(S(''))\nb=str.${name}(s,S('missing'))\nidentity=type(a) is str and a==b and a is not b\nexact='abc'\nshortcut=exact.${name}('missing') is exact\nempty=s.${name}(s) is ''\nmetadata=s.${name}.__self__ is s and str.${name}.__objclass__ is str\ntry:s.${name}()\nexcept TypeError:arity=True\n`);
+  for(const flag of ["correct","identity","shortcut","empty","metadata","arity"])expect(state.globals.get(flag)).toBe(v.true);
+});
+it.each([["partition","a","b-a",0],["rpartition","a-b","a",2]] as const)("partitions native string subtype receivers while retaining source and separator identities: %s",(name,left,right,missingIndex)=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("left",v.string(left));state.globals.set("right",v.string(right));
+  state.run(`class S(str):\n def __str__(self):raise AssertionError('conversion')\ns=S('a-b-a')\nsep=S('-')\nresult=s.${name}(sep)\ncorrect=result[0]==left and result[2]==right and result[1] is sep and type(result[0]) is str and type(result[2]) is str\nmissing=str.${name}(s,S('missing'))\nidentity=missing[${missingIndex}] is s\nempty=S('')\nempty_ok=empty.${name}('missing')[${missingIndex}] is empty\nwhole=s.${name}(s)\nwhole_ok=whole[0] is '' and whole[1] is s and whole[2] is ''\ntry:s.${name}(S(''))\nexcept ValueError:separator=True\nmetadata=s.${name}.__self__ is s and str.${name}.__objclass__ is str\n`);
+  for(const flag of ["correct","identity","empty_ok","whole_ok","separator","metadata"])expect(state.globals.get(flag)).toBe(v.true);
+});
 it.each(["not-implemented","ellipsis"] as const)("constructs canonical singleton types without creating instances: %s",kind=>{
   const state=exceptionFixture(),value=kind==="ellipsis"?state.v.ellipsis:state.v.notImplemented;
   state.globals.set("singleton",value);

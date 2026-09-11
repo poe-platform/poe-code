@@ -13490,6 +13490,25 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 616 files (87.72s; bodies 10.36s). Remaining string methods, codecs,
   public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
   No push or release.
+- Canonical string stripping/removal/partition descriptors (2026-09-11):
+  published strip, lstrip, rstrip, removeprefix, removesuffix, partition and
+  rpartition with native documentation. Shared kernels now accept owned receiver
+  and argument subtype storage without guest conversion calls. Stripping and
+  prefix/suffix removal exactify unchanged subtype results, while exact receivers
+  retain existing shortcuts. Partition misses retain the original receiver even
+  for empty subtypes; hits retain the supplied separator object, including its
+  subtype identity. Removal/partition argument diagnostics use CPython's distinct
+  None spelling and 50/100-byte type-name limits. The descriptor family dispatch
+  now uses a discriminated switch rather than a growing conditional expression.
+  Seven new source integration tests failed before publication and now pass,
+  covering subtype arguments, identity, Unicode/storage admission, metadata and
+  errors. CPython probes established the distinct identity policies; a 980-case
+  in-memory comparison has zero differences in values, types, source/separator
+  identity, repeated-result identity, diagnostics and documentation. Maintained
+  workspace build, typecheck, scoped lint and whitespace checks pass. The full
+  uncached thread-pool suite passes 9,358 tests in 616 files (95.13s; bodies 11.51s).
+  Remaining string methods, codecs, public interpreter assembly, imports, safe-fs
+  and broad audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

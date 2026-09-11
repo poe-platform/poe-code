@@ -4,7 +4,9 @@ import {createRuntimeStringCaseMethod} from "./runtime-string-case-method.js";
 import {createRuntimeStringClassificationMethod} from "./runtime-string-classification-method.js";
 import {createRuntimeStringSearchMethod} from "./runtime-string-search-method.js";
 import {createRuntimeStringAffixMethod} from "./runtime-string-affix-method.js";
-import type {RuntimeValues,TypeValue} from "./runtime-values.js";
+import {createRuntimeStringCutMethod} from "./runtime-string-cut-method.js";
+import {createRuntimeStringStripMethod} from "./runtime-string-strip-method.js";
+import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
   ["upper","Return a copy of the string converted to uppercase."],
@@ -39,8 +41,20 @@ const affixMethods=[
   ["startswith","Return True if the string starts with the specified prefix, False otherwise.\n\n  prefix\n    A string or a tuple of strings to try.\n  start\n    Optional start position. Default: start of the string.\n  end\n    Optional stop position. Default: end of the string."],
   ["endswith","Return True if the string ends with the specified suffix, False otherwise.\n\n  suffix\n    A string or a tuple of strings to try.\n  start\n    Optional start position. Default: start of the string.\n  end\n    Optional stop position. Default: end of the string."]
 ] as const;
+const stripMethods=[
+  ["strip","Return a copy of the string with leading and trailing whitespace removed.\n\nIf chars is given and not None, remove characters in chars instead."],
+  ["lstrip","Return a copy of the string with leading whitespace removed.\n\nIf chars is given and not None, remove characters in chars instead."],
+  ["rstrip","Return a copy of the string with trailing whitespace removed.\n\nIf chars is given and not None, remove characters in chars instead."]
+] as const;
+const cutMethods=[
+  ["removeprefix","Return a str with the given prefix string removed if present.\n\nIf the string starts with the prefix string, return\nstring[len(prefix):].  Otherwise, return a copy of the original\nstring."],
+  ["removesuffix","Return a str with the given suffix string removed if present.\n\nIf the string ends with the suffix string and that suffix is not\nempty, return string[:-len(suffix)].  Otherwise, return a copy of\nthe original string."],
+  ["partition","Partition the string into three parts using the given separator.\n\nThis will search for the separator in the string.  If the separator\nis found, returns a 3-tuple containing the part before the\nseparator, the separator itself, and the part after it.\n\nIf the separator is not found, returns a 3-tuple containing\nthe original string and two empty strings."],
+  ["rpartition","Partition the string into three parts using the given separator.\n\nThis will search for the separator in the string, starting at the\nend.  If the separator is found, returns a 3-tuple containing the\npart before the separator, the separator itself, and the part after\nit.\n\nIf the separator is not found, returns a 3-tuple containing two\nempty strings and the original string."]
+] as const;
 const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const})),...classificationMethods.map(([name,doc])=>({name,doc,kind:"classification" as const})),
-  ...searchMethods.map(([name,doc])=>({name,doc,kind:"search" as const})),...affixMethods.map(([name,doc])=>({name,doc,kind:"affix" as const}))];
+  ...searchMethods.map(([name,doc])=>({name,doc,kind:"search" as const})),...affixMethods.map(([name,doc])=>({name,doc,kind:"affix" as const})),
+  ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const}))];
 export const runtimeStringMethodNames:ReadonlySet<string>=new Set(methods.map(method=>method.name));
 
 /** Canonical descriptors adapt owned subtype storage to the shared Unicode
@@ -54,10 +68,15 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
         let fatal=false;
         try {
           const payload=runtimeStringPayload(receiver)!;
-          const bound=method.kind==="case"?createRuntimeStringCaseMethod(payload,method.name,values,meter)
-            :method.kind==="classification"?createRuntimeStringClassificationMethod(payload,method.name,values,meter)
-            :method.kind==="search"?createRuntimeStringSearchMethod(payload,method.name,values,meter,invocation?.integerIndex)
-            :createRuntimeStringAffixMethod(payload,method.name,values,meter,invocation?.integerIndex);
+          let bound:BuiltinFunctionValue;
+          switch(method.kind){
+            case "case":bound=createRuntimeStringCaseMethod(payload,method.name,values,meter);break;
+            case "classification":bound=createRuntimeStringClassificationMethod(payload,method.name,values,meter);break;
+            case "search":bound=createRuntimeStringSearchMethod(payload,method.name,values,meter,invocation?.integerIndex);break;
+            case "affix":bound=createRuntimeStringAffixMethod(payload,method.name,values,meter,invocation?.integerIndex);break;
+            case "strip":bound=createRuntimeStringStripMethod(receiver,method.name,values,meter);break;
+            case "cut":bound=createRuntimeStringCutMethod(receiver,method.name,values,meter);break;
+          }
           return bound.value.invoke(positional,keywords,meter,invocation);
         } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
         finally{if(!fatal)meter.checkpoint();}

@@ -1,11 +1,15 @@
 import { PythonRuntimeError } from "./error.js";
+import {diagnosticTypeName} from "./diagnostic-type-name.js";
+import {runtimeStringPayload} from "./runtime-string-payload.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-/** Exact boundary removal and single-separator partitioning. Unchanged text
- * retains receiver identity; partition results retain the supplied separator. */
-export function createRuntimeStringCutMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, name: "removeprefix" | "removesuffix" | "partition" | "rpartition", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+/** Boundary removal exactifies subtype results, including unchanged text.
+ * Partition misses retain the original receiver; hits retain the separator. */
+export function createRuntimeStringCutMethod(receiver: RuntimeValue, name: "removeprefix" | "removesuffix" | "partition" | "rpartition", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
+  const payload=runtimeStringPayload(receiver);
+  if(payload===undefined)throw Error("string cutting requires native string storage");
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {
@@ -13,13 +17,14 @@ export function createRuntimeStringCutMethod(receiver: Extract<RuntimeValue, { k
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `str.${name}() takes no keyword arguments`);
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `str.${name}() takes exactly one argument (${positional.length} given)`);
       const argument = positional[0], remove = name === "removeprefix" || name === "removesuffix";
-      if (argument.kind !== "str") {
-        const type = argument.kind === "none" ? (remove ? "None" : "NoneType") : argument.kind === "not-implemented" ? "NotImplementedType" : argument.kind;
+      const argumentPayload=runtimeStringPayload(argument);
+      if (argumentPayload===undefined) {
+        const type = diagnosticTypeName(argument.kind === "none" ? (remove ? "None" : "NoneType") : argument.kind === "not-implemented" ? "NotImplementedType" : argument.kind==="instance"?argument.type.value.diagnosticName:argument.kind,meter,remove?50:100);
         throw new PythonRuntimeError("TypeError", remove ? `${name}() argument must be str, not ${type}` : `must be str, not ${type}`);
       }
-      const text = receiver.value, separator = argument.value;
+      const text = payload.value, separator = argumentPayload.value;
       if (remove) {
-        if (separator.length === 0 || !text.hasAffix(separator, name === "removeprefix" ? "start" : "end", 0n, null, meter)) return receiver;
+        if (separator.length === 0 || !text.hasAffix(separator, name === "removeprefix" ? "start" : "end", 0n, null, meter)) return receiver.kind==="str"?receiver:values.stringPoints(text);
         const start = name === "removeprefix" ? BigInt(separator.length) : 0n;
         const stop = name === "removesuffix" ? BigInt(text.length - separator.length) : null;
         return values.stringPoints(text.slice(start, stop, null, meter), "canonical");

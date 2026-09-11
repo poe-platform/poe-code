@@ -12,6 +12,7 @@ import type {CompiledGeneratorExpression} from "./generator-expression-compilati
 
 /** Internal shared storage, never a guest-accessible JavaScript object. The
  * wrapper distinguishes an unbound cell from any valid Value, including undefined.
+ * Clear via assignment to undefined so ownership views retain their accessors.
  */
 export interface CellStorage<Value> {
   content?: { readonly value: Value };
@@ -148,7 +149,7 @@ export class LexicalFrame<Value> extends ExecutionFrame {
     } else {
       const cell = this.#cells.get(key);
       if (cell) {
-        if (cell.content !== undefined) { delete cell.content; return; }
+        if (cell.content !== undefined) { cell.content = undefined; return; }
       } else if (this.#locals.delete(key)) return;
     }
     this.#missing(key, binding.kind);

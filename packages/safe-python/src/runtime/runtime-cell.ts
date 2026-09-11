@@ -14,6 +14,6 @@ export function readRuntimeCell(cell: CellValue, meter: ExecutionMeter): Runtime
  * deleting an unbound lexical variable is a distinct frame operation. */
 export function mutateRuntimeCell(cell: CellValue, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }, meter: ExecutionMeter): void {
   meter.checkpoint(1, change.kind === "set" ? 16 : 0);
-  if (change.kind === "delete") delete cell.value.content;
+  if (change.kind === "delete") cell.value.content = undefined;
   else cell.value.content = { value: change.value };
 }

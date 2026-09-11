@@ -22,6 +22,7 @@ import type { FunctionCreationContext } from "./function-state.js";
 import type { FunctionInvocationContext } from "./function-invocation.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
 import type { ModuleFrame, ModuleNamespaces } from "./module-frame.js";
+import {mutateRuntimeCell} from "./runtime-cell.js";
 import { executeModule } from "./module-execution.js";
 import type { CallStack } from "./call-stack.js";
 import type { KeyOperations } from "./ordered-key-map.js";
@@ -310,6 +311,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         finally { leave(); }
       },
       setAttribute(object, name, value) {
+        if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"set",value},meter);return;}
         if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter)) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
@@ -319,6 +321,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         else statementHooks.setAttribute(object, name, value);
       },
       deleteAttribute(object, name) {
+        if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"delete"},meter);return;}
         if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "delete" }, values, meter)) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);

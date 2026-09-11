@@ -12934,6 +12934,26 @@ extension, integration, or validation requirement is missing or unverified.
   binding to compiler-owned closure slots; this change validates admission only.
   Build, typecheck, scoped lint and whitespace checks pass. The uncached full
   thread-pool suite passes 9,077 tests in 600 files (64.27s; bodies 7.81s).
+- Shared closure binding and function-code execution (2026-09-11): added
+  compiler-owned views over validated guest cell storage after missing-module
+  regressions. Names bind in compiler free-variable order, retaining aliasing
+  without copying contents or changing original cell owners. Three deletion
+  regressions demonstrated that deleting accessor properties broke shared views;
+  function/class/cell clearing now assigns an unbound content value through the
+  view. A fresh zero-argument function-code execution adapter uses ordinary call
+  binding, preserves function results and suspended generator kinds, and does not
+  inherit definition-time defaults. Native integration exposed missing guest cell
+  attribute routing; a separate failing read/write/delete scenario preceded wiring
+  cell_contents through the existing cell operations. End-to-end tests verify
+  closure writes/deletes, empty cells, argument errors, eval returns and generator
+  resumption. Both native closure/cell scenarios also pass CPython 3.14.7. Five
+  binding tests and three execution-policy tests cover aliasing, rejected host
+  shapes, fresh activations and fatal cancellation; the focused run passes 1,050
+  tests. Direct class-code/generator-expression-code execution, canonical CellType
+  publication and function __closure__ introspection remain unfinished, along with
+  the default interpreter/backend registration and broader compatibility work.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 9,087 tests in 602 files (119.01s; bodies 13.61s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

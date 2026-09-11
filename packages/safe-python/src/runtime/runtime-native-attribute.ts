@@ -64,6 +64,7 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } from "./runtime-native-method-metadata.js";
 import { runtimeFunctionDefaults } from "./runtime-function-defaults.js";
+import {readRuntimeCell} from "./runtime-cell.js";
 import type {CompiledFunction} from "./function-compilation.js";
 import { readRuntimeDescriptorMethod } from "./runtime-descriptor-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
@@ -77,6 +78,7 @@ import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
  * supplier is acquired only for members that actually require that policy. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & NativeMethodMetadataContext & { readonly code?:(code:CompiledFunction<RuntimeValue>)=>RuntimeValue; readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
   meter.checkpoint();
+  if(receiver.kind==="cell"&&name==="cell_contents")return readRuntimeCell(receiver,meter);
   if(name==="__class__"){
     if(methods?.actualType===undefined)throw Error("class reflection requires an actual type policy");
     try{return methods.actualType(receiver);}finally{meter.checkpoint();}

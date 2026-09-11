@@ -101,7 +101,7 @@ export class ClassFrame<Value> extends ExecutionFrame {
     if (declaration === "nonlocal") {
       const cell = this.#free.get(key)!;
       if (cell.content === undefined) this.#missingFree(key);
-      delete cell.content;
+      cell.content = undefined;
       return;
     }
     if (declaration === "global") {

@@ -15,6 +15,7 @@ import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
 import {createNamespaceBuiltin} from "./builtin-namespace.js";
 import {RuntimeCodePrograms} from "./runtime-code-programs.js";
 import {prepareDynamicCodeClosure} from "./dynamic-code-closure.js";
+import {executeRuntimeFunctionCode} from "./runtime-code-execution.js";
 import {prepareDynamicNamespaces} from "./dynamic-namespaces.js";
 import {RuntimeMappingNamespace} from "./runtime-mapping-namespace.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
@@ -167,12 +168,12 @@ function dynamicNamespaceFixture(){
     const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>currentFrame().namespaces.globals.object,locals:()=>state.registry.frameLocals(currentFrame()),builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
     const code=request.source.kind==="instance"&&request.source.native?.kind==="code"?request.source.native.code:undefined;
     const closure=prepareDynamicCodeClosure(request,code,meter);
-    if(closure!==undefined)throw Error("fixture does not execute nested closure code yet");
     const program=code===undefined?compileSourceProgram(runtimeCompilationSource(request.source,meter,invocation,request.mode),{stripDocstring:false,mode:request.mode,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter):programs.lookup(code);
-    if(program===undefined||code!==undefined&&code!==program.module)throw Error("fixture requires registered module code");
     const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
     const localNames=selected.locals.kind==="dict"?new RuntimeDictionaryNamespace(selected.locals,v,meter,invocation):new RuntimeMappingNamespace(selected.locals,v,meter,invocation);
     const builtinNames=selected.builtins.kind==="dict"?new RuntimeDictionaryNamespace(selected.builtins,v,meter,invocation):new RuntimeMappingNamespace(selected.builtins,v,meter,invocation);
+    if(code!==undefined&&"body" in code&&code.body.kind!=="class")return executeRuntimeFunctionCode(code,closure,{globals:globalNames,builtins:builtinNames,none:v.none,resolveBuiltins:()=>builtinNames},v,meter,invocation);
+    if(program===undefined||code!==undefined&&code!==program.module)throw Error("fixture requires registered module or function code");
     return executeRuntimeProgram(program,{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
   }}));
   for(const [name,value] of state.builtins)builtins.items.set(v.string(name),value);
@@ -203,6 +204,19 @@ it("validates guest dynamic closures after namespaces and before source conversi
   globals.items.set(v.string("Tuple"),state.registry.tupleType());globals.items.set(v.string("cell"),v.cell({}));
   state.run("g={}\ntry:exec(123,g,closure=())\nexcept TypeError:source_error=True\ncode=compile('pass','child.py','exec')\ntry:exec(code,closure=())\nexcept TypeError:empty_error=True\ndef outer():\n x=1\n def inner():return x\n return inner\nf=outer()\ntry:eval(f.__code__)\nexcept TypeError:eval_error=True\nclass T(Tuple):pass\nerrors=0\nfor closure in (None,(),[cell],(1,),T((cell,))):\n try:exec(f.__code__,closure=closure)\n except TypeError:errors+=1\ncorrect=source_error and empty_error and eval_error and errors==5 and '__builtins__' in g\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("exposes guest reads, writes and deletion of cell contents",()=>{
+  const state=exceptionFixture(),cell=state.v.cell({});state.globals.set("cell",cell);
+  state.run("cell.cell_contents=7\nvalue=cell.cell_contents\ndel cell.cell_contents\ndel cell.cell_contents\ntry:cell.cell_contents\nexcept ValueError:empty=True\ncorrect=value==7 and empty\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);expect(cell.value.content).toBeUndefined();
+});
+
+it("executes function code with shared closure cells and fresh argument binding",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture(),cell=v.cell({content:{value:v.integer(7)}});
+  globals.items.set(v.string("cell"),cell);
+  state.run("def outer():\n x=0\n def change():\n  nonlocal x\n  x+=3\n def erase():\n  nonlocal x\n  del x\n return change,erase\nchange,erase=outer()\nexec(change.__code__,closure=(cell,))\nupdated=cell.cell_contents==10\nexec(erase.__code__,closure=(cell,))\ntry:cell.cell_contents\nexcept ValueError:empty=True\ndef result():return 42\nvalue=eval(result.__code__)\ndef required(x=7):return x\ntry:eval(required.__code__)\nexcept TypeError:no_defaults=True\ndef gen():yield 9\ng=eval(gen.__code__)\ncorrect=updated and empty and value==42 and no_defaults and g.__next__()==9\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(cell.value.content).toBeUndefined();
 });
 
 it("uses fresh function locals and live module/class namespaces for dynamic execution",()=>{

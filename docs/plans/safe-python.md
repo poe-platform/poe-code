@@ -12572,6 +12572,23 @@ extension, integration, or validation requirement is missing or unverified.
   metadata and the native integration fixture separately calls unmetered analysis.
   Next integration work is a source compilation entry sharing the execution meter
   and recursion guard across analysis and code preparation; this is not yet wired.
+- Shared source-program compiler (2026-09-11): ten failing public-entry tests
+  established source compilation requirements, then compileSourceProgram was
+  added with explicit constants/options and a required host recursion guard.
+  It snapshots diagnostic/compiler settings, reserves the settings record and
+  shares one cumulative meter through analysis and code preparation, preserving
+  cancellation in finally. The public index exposes compiler contracts without
+  adding filesystem or execution side effects. A separate failing native-runtime
+  regression proved comment scanning previously bypassed the execution budget;
+  the runtime integration fixture now uses this compiler and its call-depth
+  policy. All 1,031 focused compiler/runtime tests pass. Fifty deep compiled
+  metadata comparisons with the prior analyze-then-compile route pass across
+  nested scopes, generators, comprehensions, types and docstring stripping.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 8,824 tests in 586 files (69.33s; bodies 7.83s).
+  This exposes source compilation, not a complete interpreter API or guest
+  compile/eval/exec builtins. Constant adapters remain responsible for their own
+  guest allocations, and indivisible host operations remain cooperative limits.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -9,6 +9,7 @@ import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import {collectRuntimeTypeParameters} from "./runtime-type-parameters.js";
 import {substituteRuntimeTypeParameters} from "./runtime-type-substitution.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
+import { compileSourceProgram } from "./source-program-compilation.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
@@ -87,7 +88,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     } })
   };
   function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins,filename?:string) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false,filename }, v, meter), { objectType:registry.object,values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
+    executeRuntimeProgram(compileSourceProgram<RuntimeValue>(source, { stripDocstring: false,filename,enterRecursiveCall:()=>calls.enter(globals) }, v, meter), { objectType:registry.object,values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
@@ -97,6 +98,12 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("charges source compilation to the running execution budget",()=>{
+  const state=fixture();
+  state.meter.checkpoint(999000-state.meter.usage.steps);
+  expect(()=>state.run("#"+"x".repeat(2000)+"\n")).toThrow(ExecutionLimitError);
+});
 
 it("publishes native module frames with original namespace and code identities",()=>{
   const state=exceptionFixture(),{v,meter}=state;

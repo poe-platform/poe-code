@@ -12920,6 +12920,20 @@ extension, integration, or validation requirement is missing or unverified.
   registration remain unfinished and are not claimed by this module-code test.
   Build, typecheck, scoped lint and whitespace checks pass. The uncached full
   thread-pool suite passes 9,071 tests in 599 files (89.92s; bodies 11.21s).
+- Dynamic code closure admission (2026-09-11): added a metered validator after
+  a missing-module red test. Eval rejects code containing free variables; exec
+  distinguishes non-code source, closure-free code, missing/wrong-length closure
+  tuples and non-cell entries. Exact tuple identity and cell aliasing are retained,
+  including empty cells; no iteration protocols or cell-content reads are used.
+  Validation follows namespace selection/builtin insertion and precedes source
+  conversion. Five unit tests and native guest rejection cases pass, including
+  tuple-subclass rejection and invalid-source/closure precedence. All 115 direct
+  CPython comparisons match across zero through four free variables and malformed
+  tuple/list contents, with exact TypeError messages. The public exec documentation
+  was checked against these probes. Accepted cells still require execution-time
+  binding to compiler-owned closure slots; this change validates admission only.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 9,077 tests in 600 files (64.27s; bodies 7.81s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

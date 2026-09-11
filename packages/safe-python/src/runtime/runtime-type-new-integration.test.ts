@@ -14,6 +14,7 @@ import {createCompileBuiltin} from "./builtin-compile.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
 import {createNamespaceBuiltin} from "./builtin-namespace.js";
 import {RuntimeCodePrograms} from "./runtime-code-programs.js";
+import {prepareDynamicCodeClosure} from "./dynamic-code-closure.js";
 import {prepareDynamicNamespaces} from "./dynamic-namespaces.js";
 import {RuntimeMappingNamespace} from "./runtime-mapping-namespace.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
@@ -164,8 +165,9 @@ function dynamicNamespaceFixture(){
   for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,v,meter,{execute(request,invocation){
     if(invocation===undefined)throw Error("expected invocation");
     const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>currentFrame().namespaces.globals.object,locals:()=>state.registry.frameLocals(currentFrame()),builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
-    if(request.closure.kind!=="none")throw Error("fixture does not support closure");
     const code=request.source.kind==="instance"&&request.source.native?.kind==="code"?request.source.native.code:undefined;
+    const closure=prepareDynamicCodeClosure(request,code,meter);
+    if(closure!==undefined)throw Error("fixture does not execute nested closure code yet");
     const program=code===undefined?compileSourceProgram(runtimeCompilationSource(request.source,meter,invocation,request.mode),{stripDocstring:false,mode:request.mode,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter):programs.lookup(code);
     if(program===undefined||code!==undefined&&code!==program.module)throw Error("fixture requires registered module code");
     const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
@@ -193,6 +195,13 @@ it("selects dynamic execution globals, locals and builtins before compiling sour
 it("executes registered compiled module code in fresh namespaces without recompilation",()=>{
   const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
   state.run("expression=compile('x+y','child.py','eval')\na=eval(expression,{'x':2,'y':3})\nb=eval(expression,{'x':7,'y':8})\nstatement=compile(\"def f():return 'child'\\ncreated=f()\",'nested.py','exec')\nenv={}\nresult=eval(statement,env)\nstatus=exec(expression,{'x':1,'y':2})\ncorrect=a==5 and b==15 and result is None and status is None and env['created']=='child' and env['f'].__code__.co_filename=='nested.py' and expression.co_filename=='child.py'\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("validates guest dynamic closures after namespaces and before source conversion",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  globals.items.set(v.string("Tuple"),state.registry.tupleType());globals.items.set(v.string("cell"),v.cell({}));
+  state.run("g={}\ntry:exec(123,g,closure=())\nexcept TypeError:source_error=True\ncode=compile('pass','child.py','exec')\ntry:exec(code,closure=())\nexcept TypeError:empty_error=True\ndef outer():\n x=1\n def inner():return x\n return inner\nf=outer()\ntry:eval(f.__code__)\nexcept TypeError:eval_error=True\nclass T(Tuple):pass\nerrors=0\nfor closure in (None,(),[cell],(1,),T((cell,))):\n try:exec(f.__code__,closure=closure)\n except TypeError:errors+=1\ncorrect=source_error and empty_error and eval_error and errors==5 and '__builtins__' in g\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 

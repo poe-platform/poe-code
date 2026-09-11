@@ -13337,6 +13337,23 @@ extension, integration, or validation requirement is missing or unverified.
   passes 9,237 tests in 613 files (83.98s; bodies 10.40s). Default codec catalog,
   canonical str/subtype allocation, public interpreter assembly, imports, safe-fs
   and broad audits remain unfinished. No push or release.
+- Native UTF-8 text codec adapter (2026-09-11): added createRuntimeUtf8Decoder,
+  reusing the existing metered UTF-8 engine and connecting it to string
+  construction/buffer decoding. Supports CPython UTF-8 aliases and normalized
+  codec names, the six implemented decode error modes, lazy unknown-handler
+  lookup, empty-input codec-lookup bypass, and an explicit fallback for other
+  codecs/custom error handling. Added LookupError to the internal fault name
+  union. Twenty focused tests cover aliases, error modes, construction composition,
+  lookup errors, fallback admission and cancellation. A failing normalization
+  regression for punctuation followed by a non-ASCII alphanumeric was corrected
+  against the local CPython normalization implementation. An in-memory 576-case
+  differential matrix matches CPython returned code points and diagnostics across
+  aliases, malformed sequences, empty input and nine error modes. Build,
+  typecheck, scoped lint and whitespace checks pass; the full uncached thread-pool
+  suite passes 9,257 tests in 614 files (94.48s; bodies 10.96s). Additional codecs,
+  native Unicode exception object identity coverage, canonical str/subtype
+  allocation, public interpreter assembly, imports, safe-fs and broad audits
+  remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

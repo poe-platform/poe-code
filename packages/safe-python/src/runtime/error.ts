@@ -5,7 +5,7 @@ export type PythonOSErrorName = "OSError" | "FileNotFoundError" | "FileExistsErr
 
 export class PythonRuntimeError extends Error {
   #notes?: string[];
-  constructor(name: PythonOSErrorName | "ZeroDivisionError" | "OverflowError" | "ValueError" | "IndexError" | "KeyError" | "UnicodeDecodeError" | "UnicodeEncodeError" | "MemoryError" | "BufferError" | "TypeError" | "AttributeError" | "RuntimeError" | "NameError" | "UnboundLocalError" | "RecursionError" | "StopIteration" | "SystemError", message: string) {
+  constructor(name: PythonOSErrorName | "ZeroDivisionError" | "OverflowError" | "ValueError" | "IndexError" | "KeyError" | "LookupError" | "UnicodeDecodeError" | "UnicodeEncodeError" | "MemoryError" | "BufferError" | "TypeError" | "AttributeError" | "RuntimeError" | "NameError" | "UnboundLocalError" | "RecursionError" | "StopIteration" | "SystemError", message: string) {
     super(message);
     this.name = name;
   }

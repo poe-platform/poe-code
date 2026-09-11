@@ -59,7 +59,7 @@ export function createCompileBuiltin(values:RuntimeValues,meter:ExecutionMeter,c
       }
       const filename=context.filename(args[1]!,invocation,meter);
       meter.checkpoint(1+filename.length);
-      if(filename.includes("\0"))throw new PythonRuntimeError("ValueError","embedded null byte");
+      if(filename.includes("\0"))throw new PythonRuntimeError("ValueError","embedded null character");
       const modeValue=args[2]!;
       if(modeValue.kind!=="str"){
         const name=modeValue.kind==="none"?"None":invocation?.typeName?.(modeValue)??(modeValue.kind==="not-implemented"?"NotImplementedType":modeValue.kind);

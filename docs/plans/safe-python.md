@@ -12661,6 +12661,24 @@ extension, integration, or validation requirement is missing or unverified.
   not completed default backend publication: byte/buffer/AST source handling,
   filesystem-name policy, single/func_type implementation, non-future flags,
   optimization policy, caller extraction and guest eval/exec remain unfinished.
+- Filesystem path/name protocols (2026-09-11): new reusable primitives preserve
+  native str/bytes identity, invoke type-level __fspath__ once, reject invalid
+  results without recursive coercion, and decode bytes using UTF-8/surrogateescape
+  or an explicit decoder capability. They return code-point storage, preserving
+  lone and distinct paired surrogates, and perform no path normalization, NUL
+  rejection, authorization or I/O. Fatal failures propagate without re-metering;
+  callback-masked cancellation and decoder allocation remain checked. Fifteen
+  focused primitive tests pass after correcting an initial parameterized-test row
+  shape. Two failing compiler integration tests then established byte/path-like
+  filename support and CPython's embedded-null-character diagnostic. The explicit
+  native fixture now uses the decoder and compiles guest Path/bytes filenames.
+  All 1,062 focused tests pass. All 69,893 byte decodes match CPython fsdecode,
+  including every one/two-byte input, sampled triples and four-byte boundaries.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 8,906 tests in 590 files (75.25s; bodies 8.32s).
+  The compiler's existing UTF-16 filename bridge still needs rich code-point
+  identity support for distinct surrogate pairs. This is not completed safe-fs
+  authorization/file-object integration or default backend publication.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

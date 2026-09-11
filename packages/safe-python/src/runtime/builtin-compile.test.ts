@@ -78,3 +78,6 @@ it("forwards func_type only when AST compilation is requested",()=>{
 it("includes func_type in mode diagnostics when AST output is enabled",()=>{
   const state=fixture();expect(()=>state.call([state.v.string("1"),state.v.string("x"),state.v.string("bad"),state.v.integer(0x400)])).toThrow("compile() mode must be 'exec', 'eval', 'single' or 'func_type'");
 });
+it("rejects embedded NUL filenames with filesystem decoder diagnostics",()=>{
+  const state=fixture();expect(()=>state.call([state.v.string("1"),state.v.string("x\0"),state.v.string("eval")])).toThrow("embedded null character");
+});

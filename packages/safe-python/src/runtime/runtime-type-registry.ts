@@ -93,6 +93,9 @@ import { installRuntimeGeneratorDescriptors } from "./runtime-generator-descript
 import { installRuntimeAsyncGeneratorDescriptors } from "./runtime-async-generator-descriptors.js";
 import { installRuntimeAnextAwaitableDescriptors } from "./runtime-anext-awaitable.js";
 import { createNoneNewBuiltin } from "./builtin-none-new.js";
+import {createCellNewBuiltin} from "./builtin-cell-new.js";
+import {readRuntimeCell,mutateRuntimeCell} from "./runtime-cell.js";
+import type {CellValue} from "./runtime-values.js";
 
 interface TypeEntry {
   readonly type: TypeValue;
@@ -139,6 +142,7 @@ export class RuntimeTypeRegistry {
   #asyncGeneratorTypes=new Map<"async_generator"|"async_generator_asend"|"async_generator_athrow",TypeValue>();
   #anextAwaitableType:TypeValue|undefined;
   #noneType:TypeValue|undefined;
+  #cellType:TypeValue|undefined;
   #unionType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
@@ -635,6 +639,22 @@ export class RuntimeTypeRegistry {
     installRuntimeUnionSlots(type,this.values,this.meter,this.keys,this.noneType.bind(this),this.unionType.bind(this));
     installRuntimeUnionMetadata(type,this.values,this.meter);
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#unionType=type;return type;
+  }
+
+  cellType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#cellType!==undefined)return this.#cellType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("cell",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    namespace.items.set(this.values.string("__new__"),createCellNewBuiltin(type,this.values,this.meter));
+    namespace.items.set(this.values.string("__hash__"),this.values.none);
+    namespace.items.set(this.values.string("cell_contents"),this.values.getsetDescriptor({owner:type,name:"cell_contents",accepts:receiver=>receiver.kind==="cell",
+      get:(receiver,meter)=>readRuntimeCell(receiver as CellValue,meter),
+      set:(receiver,value,meter)=>mutateRuntimeCell(receiver as CellValue,{kind:"set",value},meter),
+      delete:(receiver,meter)=>mutateRuntimeCell(receiver as CellValue,{kind:"delete"},meter)
+    }));
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#cellType=type;return type;
   }
 
   noneType():TypeValue {

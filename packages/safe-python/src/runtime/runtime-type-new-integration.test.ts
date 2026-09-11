@@ -79,6 +79,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "none") return registry.noneType();
+      if (value.kind === "cell") return registry.cellType();
       if (value.kind === "list") return registry.listType();
       if (value.kind === "tuple") return registry.tupleType();
       if (value.kind === "dict") return registry.dictionaryType();
@@ -109,6 +110,14 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("constructs canonical cells and exposes mutable cell contents descriptors",()=>{
+  const state=exceptionFixture(),{v,registry,globals}=state;
+  globals.set("Cell",registry.cellType());
+  state.run("a=Cell()\nb=Cell(None)\ntry:a.cell_contents\nexcept ValueError:empty=True\nd=Cell.cell_contents\nd.__set__(a,7)\nread=d.__get__(a,Cell)==7\nd.__delete__(a)\nd.__delete__(a)\ntry:d.__get__(a,Cell)\nexcept ValueError:deleted=True\ncorrect=empty and read and deleted and b.cell_contents is None and type(b) is Cell and Cell is type(Cell(1))\ntry:Cell(1,2)\nexcept TypeError:arity=True\ntry:Cell(contents=1)\nexcept TypeError:keyword=True\ntry:\n class Bad(Cell):pass\nexcept TypeError:sealed=True\n");
+  expect(globals.get("correct")).toBe(v.true);expect(globals.get("arity")).toBe(v.true);
+  expect(globals.get("keyword")).toBe(v.true);expect(globals.get("sealed")).toBe(v.true);
+});
 
 it.each(["eval","exec"] as const)("retains %s dictionary-subclass namespace identity and bypasses item overrides",mode=>{
   const state=exceptionFixture(),{v,meter}=state,builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));

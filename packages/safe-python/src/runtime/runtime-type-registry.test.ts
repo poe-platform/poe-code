@@ -20,6 +20,28 @@ function fixture() {
 }
 
 describe("canonical runtime type registry", () => {
+  it("publishes canonical cell types only after successful initialization",()=>{
+    const state=fixture();state.fail(true);
+    expect(()=>state.registry.cellType()).toThrow(ExecutionLimitError);state.fail(false);
+    const type=state.registry.cellType();expect(state.registry.cellType()).toBe(type);
+    expect(type.value.namespace.items.lookup(state.values.string("__hash__"))?.value).toBe(state.values.none);
+    expect(type.value.namespace.items.lookup(state.values.string("cell_contents"))?.value.kind).toBe("getset_descriptor");
+  });
+  it("validates direct cell allocation arguments before allocating independent storage",()=>{
+    const {registry,values:v,meter}=fixture(),type=registry.cellType();
+    const builtin=type.value.namespace.items.lookup(v.string("__new__"))!.value;
+    if(builtin.kind!=="builtin_function_or_method")throw Error("expected constructor");
+    const keywords=v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>({hash:()=>1n,equal:(a,b)=>a===b},meter));
+    const call=(args:RuntimeValue[])=>builtin.value.invoke(args,keywords,meter);
+    expect(()=>call([])).toThrow("cell.__new__(): not enough arguments");
+    expect(()=>call([v.integer(1)])).toThrow("cell.__new__(X): X is not a type object (int)");
+    expect(()=>call([registry.object])).toThrow("cell.__new__(object): object is not a subtype of cell");
+    expect(()=>call([type,v.none,v.true])).toThrow("cell expected at most 1 argument, got 2");
+    const first=call([type,v.none]),second=call([type,v.none]);expect(first).not.toBe(second);
+    keywords.items.set(v.string("contents"),v.true);
+    expect(()=>call([type,v.none,v.true])).toThrow("cell() takes no keyword arguments");
+    expect(()=>call([])).toThrow("cell.__new__(): not enough arguments");
+  });
   it("does not publish partially initialized descriptor types on allocation failure", () => {
     const state = fixture(); state.fail(true);
     expect(() => state.registry.descriptorType("member_descriptor")).toThrow(ExecutionLimitError);

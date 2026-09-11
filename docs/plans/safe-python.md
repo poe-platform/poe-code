@@ -12999,6 +12999,22 @@ extension, integration, or validation requirement is missing or unverified.
   integration and compatibility work. Build, typecheck, scoped lint and whitespace
   checks pass. The uncached full thread-pool suite passes 9,107 tests in 604 files
   (126.93s; bodies 12.64s).
+- Canonical cell construction and contents descriptor (2026-09-11): a failing
+  native integration test established the absent registry type. Added execution-owned
+  immutable, non-subclassable cell type publication, independent empty/occupied
+  storage allocation, an unhashable marker and the regular mutable cell_contents
+  getset descriptor. Constructor validation distinguishes omitted contents from
+  explicit None, rejects keywords before excessive positional arguments, and
+  validates direct __new__ receiver types first. Native integration exercises
+  construction, type identity, descriptor reads/writes/deletion, repeated deletion,
+  arity/keyword rejection and subclass rejection; the same scenario passes CPython.
+  Direct CPython probes also confirmed exact constructor error messages and getset
+  descriptor kind. Registry tests cover cache identity, allocation failure recovery,
+  independent storage and direct __new__ validation precedence. Cell rich-comparison
+  and representation wrapper publication remain separate unfinished work, as do
+  default interpreter registration and the types module. Build, typecheck, scoped
+  lint and whitespace checks pass. The uncached full thread-pool suite passes
+  9,110 tests in 604 files (149.01s; bodies 15.82s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

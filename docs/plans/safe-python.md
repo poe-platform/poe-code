@@ -13015,6 +13015,20 @@ extension, integration, or validation requirement is missing or unverified.
   default interpreter registration and the types module. Build, typecheck, scoped
   lint and whitespace checks pass. The uncached full thread-pool suite passes
   9,110 tests in 604 files (149.01s; bodies 15.82s).
+- Cell rich-comparison descriptor publication (2026-09-11): failing registry and
+  native integration regressions established absent cell-owned comparison slots.
+  Extended the existing comparison descriptor installer to publish all six cell
+  operators, reusing the bounded shared comparison implementation. A subsequent
+  native failure identified missing cell method binding in native attribute lookup;
+  cells now participate in the existing canonical MRO method lookup path. Tests
+  cover empty-before-occupied ordering, content equality/inequality, unsupported
+  operand NotImplemented, raw guest-defined comparison result identity and
+  explicit-method argument validation. The exact native scenario also passes
+  CPython; direct probes confirm the wrapper arity/keyword errors. Focused checks
+  pass 1,062 tests. Cell representation publication and broader interpreter/types
+  module integration remain unfinished. Build, typecheck, scoped lint and whitespace
+  checks pass. The uncached full thread-pool suite passes 9,112 tests in 604 files
+  (103.04s; bodies 12.26s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

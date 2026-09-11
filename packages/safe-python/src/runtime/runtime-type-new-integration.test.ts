@@ -111,6 +111,13 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("publishes cell comparison slots preserving raw guest results",()=>{
+  const state=exceptionFixture(),{v,registry,globals}=state;
+  globals.set("Cell",registry.cellType());globals.set("NotImplemented",v.notImplemented);
+  state.run("empty=Cell()\na=Cell(1)\nb=Cell(2)\nordered=empty.__lt__(a) and a.__le__(b) and b.__gt__(a) and b.__ge__(a) and a.__eq__(Cell(1)) and a.__ne__(b)\nunsupported=a.__eq__(1) is NotImplemented and a.__lt__(1) is NotImplemented\nmarker=[]\nclass V:\n def __eq__(self,other):return marker\n def __ne__(self,other):return marker\n def __lt__(self,other):return marker\nx=Cell(V())\ny=Cell(V())\nraw=x.__eq__(y) is marker and x.__ne__(y) is marker and x.__lt__(y) is marker and (x==y) is marker\ntry:a.__eq__()\nexcept TypeError:arity=True\ntry:a.__eq__(b,x=1)\nexcept TypeError:keyword=True\n");
+  for(const name of ["ordered","unsupported","raw","arity","keyword"])expect(globals.get(name)).toBe(v.true);
+});
+
 it("constructs canonical cells and exposes mutable cell contents descriptors",()=>{
   const state=exceptionFixture(),{v,registry,globals}=state;
   globals.set("Cell",registry.cellType());

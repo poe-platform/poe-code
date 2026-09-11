@@ -20,6 +20,13 @@ function fixture() {
 }
 
 describe("canonical runtime type registry", () => {
+  it("owns all six cell rich comparison descriptors",()=>{
+    const {registry,values:v}=fixture(),owner=registry.cellType();
+    for(const name of ["__eq__","__ne__","__lt__","__le__","__gt__","__ge__"]){
+      const slot=owner.value.namespace.items.lookup(v.string(name))?.value;
+      expect(slot?.kind).toBe("wrapper_descriptor");
+    }
+  });
   it("publishes canonical cell types only after successful initialization",()=>{
     const state=fixture();state.fail(true);
     expect(()=>state.registry.cellType()).toThrow(ExecutionLimitError);state.fail(false);

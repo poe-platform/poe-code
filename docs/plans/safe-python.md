@@ -13220,6 +13220,19 @@ extension, integration, or validation requirement is missing or unverified.
   integration rerun, scoped lint and whitespace checks pass after cleanup. Public interpreter creation/execution
   APIs, the rest of canonical builtin registration, AST/interactive compilation,
   imports, safe-fs and broad audits remain unfinished. No push or release.
+- Code-builtin host-boundary audit (2026-09-11): eight direct assembly tests
+  verify compile and explicit-globals eval/exec without an active guest frame,
+  registration before publication, explicit fallback builtins identity, rejection
+  of implicit globals without a frame, and cancellation from frame/policy reads.
+  A failing regression proved that a host policy getter could abort assembly and
+  then hide cancellation by throwing an ordinary error. Assembly now retains fatal
+  execution-limit precedence across policy reads and final publication. Build,
+  typecheck, scoped lint and whitespace checks pass; the full uncached thread-pool
+  suite passes 9,185 tests in 609 files (87.84s; bodies 11.66s). This verifies a
+  cooperative cancellation boundary, not hard preemption or full sandbox safety.
+  Public interpreter assembly, canonical builtin coverage, imports, safe-fs and
+  broader compatibility/security/performance audits remain unfinished. No push
+  or release was requested or performed.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

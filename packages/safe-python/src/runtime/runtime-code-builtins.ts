@@ -1,7 +1,7 @@
 import {createCompileBuiltin} from "./builtin-compile.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
 import {createNamespaceBuiltin} from "./builtin-namespace.js";
-import type {ExecutionMeter} from "./execution-budget.js";
+import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeCodePrograms} from "./runtime-code-programs.js";
 import {createRuntimeCompilation,type RuntimeCompilationPolicy} from "./runtime-compilation.js";
 import {createRuntimeDynamicExecution,type RuntimeDynamicExecutionPolicy} from "./runtime-dynamic-execution.js";
@@ -20,6 +20,8 @@ export interface RuntimeCodeBuiltinPolicy extends Omit<RuntimeCompilationPolicy,
  * Caller future bits follow the active guest frame; optimization is an execution
  * default, not inherited from the caller's optimization at compile time. */
 export function createRuntimeCodeBuiltins(context:RuntimeExecutionContext,programs:RuntimeCodePrograms,policy:RuntimeCodeBuiltinPolicy,meter:ExecutionMeter):Readonly<Record<"compile"|"eval"|"exec"|"globals"|"locals",BuiltinFunctionValue>> {
+  let fatal=false;
+  try {
   meter.checkpoint(1,512);
   const values=context.values;
   const globals=()=>{const frame=policy.currentFrame();meter.checkpoint();return frame?.namespaces.globals.object;};
@@ -51,4 +53,6 @@ export function createRuntimeCodeBuiltins(context:RuntimeExecutionContext,progra
     globals:createNamespaceBuiltin("globals",values,meter,()=>{const object=globals();if(object===undefined)throw Error("globals require an original guest dictionary");return object;}),
     locals:createNamespaceBuiltin("locals",values,meter,locals)
   });
+  } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
+  finally{if(!fatal)meter.checkpoint();}
 }

@@ -379,6 +379,32 @@ it("clears native locals repr guards after errors and renders the pre-callback c
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("retains native caller identities across function return and class execution",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("module=current_frame()\ndef outer():\n parent=current_frame()\n def inner():return current_frame()\n class C:\n  frame=current_frame()\n return parent,inner(),C.frame\nparent,child,klass=outer()\ncorrect=module.f_back is None and parent.f_back is module and child.f_back is parent and klass.f_back is parent\ntry:child.f_back=None\nexcept AttributeError:readonly=True\ntry:del child.f_back\nexcept AttributeError:protected=True\n");
+  for(const name of ["correct","readonly","protected"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it.each(["generator","coroutine","async-generator"].flatMap(kind=>["return","throw","close"].map(finish=>({kind,finish}))))("detaches native $kind callers after suspension and $finish",({kind,finish})=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  const next=kind==="async-generator"?"gen.__anext__().send(None)":"gen.send(None)";
+  const ending=finish==="return"?next:finish==="throw"?(kind==="async-generator"?"gen.athrow(ValueError('stop')).send(None)":"gen.throw(ValueError('stop'))"):(kind==="async-generator"?"gen.aclose().send(None)":"gen.close()");
+  const prefix=kind==="generator"?"":"async ",suspend=kind==="coroutine"?"await Pause(frame)":"yield frame";
+  state.run(`class Pause:\n def __init__(self,frame):self.frame=frame\n def __await__(self):yield self.frame\nseen=[]\n${prefix}def g():\n frame=current_frame()\n try:\n  seen.append(frame.f_back)\n  ${suspend}\n  seen.append(frame.f_back)\n  ${suspend}\n finally:seen.append(frame.f_back)\ndef first():\n caller=current_frame()\n try:return caller,${next}\n except StopIteration as e:return caller,e.value\ndef second():\n caller=current_frame()\n try:return caller,${next}\n except StopIteration as e:return caller,e.value\ndef finish():\n caller=current_frame()\n try:${ending}\n except (StopIteration,StopAsyncIteration,ValueError):pass\n return caller\ngen=g()\na,frame=first()\npaused=frame.f_back is None\nb,same=second()\npaused=paused and frame.f_back is None\nc=finish()\ncorrect=paused and same is frame and frame.f_back is None and seen==[a,b,c]\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each([false,true].flatMap(asynchronous=>["close","throw"].map(operation=>({asynchronous,operation}))))("preserves delegated native caller rules: $operation coroutine $asynchronous",({asynchronous,operation})=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  const prefix=asynchronous?"async ":"",suspend=asynchronous?"await Pause(frame)":"yield frame";
+  state.run(`class Pause:\n def __init__(self,frame):self.frame=frame\n def __await__(self):yield self.frame\nseen=[]\n${prefix}def g():\n frame=current_frame()\n try:\n  seen.append(frame.f_back.f_code.co_name)\n  ${suspend}\n finally:seen.append(frame.f_back.f_code.co_name)\n${prefix}def wrapper():${asynchronous?"await g()":"yield from g()"}\ndef finish():\n try:gen.${operation}(${operation==="throw"?"ValueError('stop')":""})\n except ValueError:pass\ngen=wrapper()\nframe=gen.send(None)\npaused=frame.f_back is None\nfinish()\ncorrect=paused and frame.f_back is None and seen==['wrapper','${operation==="close"?"finish":"wrapper"}']\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("reflects native frame line numbers during calls and after return",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));

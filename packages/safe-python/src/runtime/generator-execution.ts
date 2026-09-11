@@ -16,7 +16,7 @@ export interface GeneratorDelegation<Value> {
   readonly target?:Value;
   /** Throw lookup runs before body activation; callbacks selectively enter the
    * owning frame for operations whose Python semantics require it. */
-  resume(input:GeneratorInput<Value>,run:<Result>(operation:()=>Result,preserveCallerException?:boolean)=>Result):
+  resume(input:GeneratorInput<Value>,run:<Result>(operation:()=>Result,preserveCallerException?:boolean,activateFrame?:boolean)=>Result):
     {readonly kind:"yield";readonly value:Value}|{readonly kind:"reject";readonly error:unknown}|{readonly kind:"resume";readonly input:GeneratorInput<Value>};
 }
 
@@ -28,9 +28,9 @@ export interface GeneratorExecutionContext<Value> {
    * partial entry; successful entry returns unmetered, non-throwing cleanup.
    * This hook must not run guest code. */
   enter():()=>void;
-  /** Delegated throw/close calls link the frame but retain caller exception
-   * state, unlike normal body/send activation. */
-  enterDelegated?():()=>void;
+  /** Delegated throw/close retains caller exception state. Close also skips
+   * activation of the suspended delegating frame while retaining depth guards. */
+  enterDelegated?(activateFrame:boolean):()=>void;
   generatorExit():unknown;
   isGeneratorExit(error:unknown):boolean;
   isStopIteration(error:unknown):boolean;
@@ -60,12 +60,12 @@ export class GeneratorExecution<Value> {
   get delegating():boolean{return this.#phase==="suspended"&&this.#context?.delegation?.active===true;}
   get yieldFrom():Value{return this.delegating?this.#context!.delegation!.target??this.#none:this.#none;}
 
-  #runDelegated<Result>(operation:()=>Result,context:GeneratorExecutionContext<Value>,preserveCallerException=false):Result {
+  #runDelegated<Result>(operation:()=>Result,context:GeneratorExecutionContext<Value>,preserveCallerException=false,activateFrame=true):Result {
     const previous=this.#phase;
     if(previous==="running")throw new PythonRuntimeError("ValueError",`${this.#kind} already executing`);
     this.#phase="running";
     let restore:()=>void;
-    try {restore=preserveCallerException&&context.enterDelegated!==undefined?context.enterDelegated():context.enter();}
+    try {restore=preserveCallerException&&context.enterDelegated!==undefined?context.enterDelegated(activateFrame):context.enter();}
     catch(error){this.#phase=previous;throw error;}
     try {this.meter.checkpoint();const result=operation();this.meter.checkpoint();return result;}
     finally {this.#phase=previous;restore();}
@@ -93,7 +93,7 @@ export class GeneratorExecution<Value> {
       let delegated:ReturnType<GeneratorDelegation<Value>["resume"]>;
       try {
         meter.checkpoint(0,64);
-        delegated=context.delegation!.resume(input,(operation,preserve)=>this.#runDelegated(operation,context,preserve));
+        delegated=context.delegation!.resume(input,(operation,preserve,activate)=>this.#runDelegated(operation,context,preserve,activate));
         meter.checkpoint();
       } catch(error){this.#finish();throw error;}
       if(delegated.kind==="reject")throw delegated.error;

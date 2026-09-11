@@ -393,7 +393,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         return context.exceptions.generator(input=>input.kind==="throw"?cursor.throw(input.error):cursor.next(input.value),child,calls,delegation,"async-generator");
       }
       const outer=expressions.iterate(source);
-      const leave=calls.enter(child);
+      const leave=calls.enter(child,{retainCaller:false});
       try {
         const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
         const cursor=new ComprehensionCursor(node.clauses,outer,inner,()=>inner.evaluate(node.element),meter);

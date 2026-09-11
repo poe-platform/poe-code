@@ -84,10 +84,10 @@ export class RuntimeExceptionExecution {
       }
       catch(error){throw this.prepare(error);}
     },{
-      none:values.none,kind:executionKind,delegation,enterDelegated:calls.enter.bind(calls,frame),
+      none:values.none,kind:executionKind,delegation,enterDelegated:activate=>calls.enter(frame,{activate,retainCaller:false}),
       enter:()=>{
         meter.checkpoint(0,64);
-        const leave=calls.enter(frame);
+        const leave=calls.enter(frame,{retainCaller:false});
         let restore:()=>void;
         try {restore=this.#handled.activate(handled,meter);}
         catch(error){leave();throw error;}

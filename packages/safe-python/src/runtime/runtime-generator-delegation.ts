@@ -16,8 +16,8 @@ import {diagnosticTypeName} from "./diagnostic-type-name.js";
 export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeValue> {
   #current:YieldDelegation<RuntimeValue,RuntimeValue,RuntimeValue>|undefined;
   #pending:YieldDelegationResult<RuntimeValue>|undefined;
-  #run:(<Result>(operation:()=>Result,preserveCallerException?:boolean)=>Result)|undefined;
-  #throwing=false;
+  #run:Parameters<GeneratorDelegation<RuntimeValue>["resume"]>[1]|undefined;
+  #throwing:false|"throw"|"close"=false;
   #closeDelegate=true;
   constructor(private readonly values:RuntimeValues,private readonly exceptions:RuntimeExceptionExecution,private readonly meter:ExecutionMeter,private readonly report?:(error:unknown,iterator:RuntimeValue)=>void) {
     meter.checkpoint(1,136);
@@ -28,7 +28,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
   #owned<Result>(operation:()=>Result,bodyActive=false):Result {
     const prepared=()=>{try{return operation();}catch(error){throw this.exceptions.prepare(error);}};
     this.meter.checkpoint(0,64);
-    return bodyActive||this.#run===undefined?prepared():this.#run(prepared,this.#throwing);
+    return bodyActive||this.#run===undefined?prepared():this.#run(prepared,this.#throwing!==false,this.#throwing!=="close");
   }
 
   *delegate(source:RuntimeValue,invocation:BuiltinInvocationContext,awaiting:boolean|"anext"|"aenter"|"aexit"=false):Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
@@ -122,10 +122,14 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
     throw step.error;
   }
 
-  resume(input:GeneratorInput<RuntimeValue>,run:<Result>(operation:()=>Result,preserveCallerException?:boolean)=>Result):ReturnType<GeneratorDelegation<RuntimeValue>["resume"]> {
+  resume(input:GeneratorInput<RuntimeValue>,run:Parameters<GeneratorDelegation<RuntimeValue>["resume"]>[1]):ReturnType<GeneratorDelegation<RuntimeValue>["resume"]> {
     if(this.#current===undefined)throw Error("no active native delegation");
     const current=this.#current,previousRun=this.#run,previousThrowing=this.#throwing,previousCloseDelegate=this.#closeDelegate;
-    this.#run=run;this.#throwing=input.kind==="throw";this.#closeDelegate=input.kind!=="throw"||input.closeDelegate!==false;
+    const closeDelegate=input.kind!=="throw"||input.closeDelegate!==false;
+    const closing=input.kind==="throw"&&closeDelegate&&(input.error instanceof RuntimeGeneratorThrowRequest
+      ?this.exceptions.matchesThrowTarget(input.error.arguments[0],"GeneratorExit")
+      :this.exceptions.matches(input.error,"GeneratorExit"));
+    this.#run=run;this.#throwing=input.kind==="throw"?(closing?"close":"throw"):false;this.#closeDelegate=closeDelegate;
     let step:YieldDelegationResult<RuntimeValue>;
     try {step=current.resume(input);}finally {this.#run=previousRun;this.#throwing=previousThrowing;this.#closeDelegate=previousCloseDelegate;}
     if(step.kind==="yield")return {kind:"yield",value:step.value};

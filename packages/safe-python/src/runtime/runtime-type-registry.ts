@@ -552,7 +552,7 @@ export class RuntimeTypeRegistry {
       const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
       const layout=new RuntimeTypeLayout("frame",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
       const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
-      installRuntimeFrameDescriptors(type,this.values,this.meter,this.frameLocalsProxy.bind(this),this.code.bind(this));
+      installRuntimeFrameDescriptors(type,this.values,this.meter,this.frameLocalsProxy.bind(this),this.code.bind(this),this.frame.bind(this));
       this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#frameType=type;
     }
     this.meter.checkpoint(0,96);

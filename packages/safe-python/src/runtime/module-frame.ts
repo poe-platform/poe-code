@@ -1,5 +1,5 @@
 import type { ResolvedScope } from "../symbol-resolution.js";
-import type {SourceSpan} from "../ast.js";
+import { ExecutionFrame } from "./execution-frame.js";
 import type {CompiledModule} from "./program-compilation.js";
 import {FrameLocals} from "./frame-locals.js";
 import {compileCodeLocalLayout} from "./code-local-layout.js";
@@ -38,13 +38,12 @@ export interface ModuleNamespaces<Value> {
  * Guest exec/auditing, builtin selection/insertion and full heap accounting remain
  * runtime responsibilities; this does not invoke host eval or exec.
  */
-export class ModuleFrame<Value> {
-  /** Last entered execution site, including a failing operation; host-only. */
-  executionPosition:SourceSpan|undefined;
+export class ModuleFrame<Value> extends ExecutionFrame {
   readonly #explicitGlobals = new Set<string>();
   #reflectiveLocals:FrameLocals<Value>|undefined;
 
   constructor(readonly scope: ResolvedScope, readonly namespaces: ModuleNamespaces<Value>, private readonly meter: ExecutionMeter,readonly code?:CompiledModule<Value>) {
+    super();
     meter.checkpoint();
     if (scope.scope.kind !== "module") throw new Error("module frames require a module scope");
     const pending = [scope];

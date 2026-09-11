@@ -11268,6 +11268,27 @@ extension, integration, or validation requirement is missing or unverified.
   7,927 tests in 527 files (125.60s; test bodies 9.41s). This completes native
   publication for the three frame kinds, not automatic traceback capture, f_back,
   full instruction metadata, tracing, imports or the overall interpreter goal.
+- Native caller-frame lifecycle (2026-09-10): failing stack and native reflection
+  cases confirmed absent f_back links. Shared ExecutionFrame metadata now holds
+  caller identity and retained source position for module, class and lexical
+  activations. CallStack preserves ordinary returned callers, avoids cycles from
+  repeated/native reentry, and detaches suspended bodies on every exit, including
+  fatal cancellation. Native f_back is read-only and publishes canonical frame
+  identities. Generator, coroutine and async-generator resumes acquire their
+  current caller rather than retaining a previous resumer. A CPython differential
+  caught distinct delegated close/throw behavior: close skips the suspended
+  delegating activation, while throw retains it. Delegation now carries that
+  distinction separately from handled-exception state; invisible cleanup entries
+  still enforce recursion depth and restore in LIFO order. Six stack and fourteen
+  native regressions cover lifecycle, module/class/function identity, mutation
+  rejection, completion, throw, close and delegated cleanup. The focused three-file
+  suite passes 940 tests. All 128 CPython comparisons match across direct/delegated
+  suspension, the three suspended body kinds, completion/throw/close, ValueError
+  and GeneratorExit, and source padding. Selected workspace build, typecheck,
+  scoped lint and whitespace checks pass. The final uncached one-worker package
+  suite passes 7,947 tests in 527 files (220.36s; test bodies 12.52s).
+  Automatic tracebacks, instruction metadata, tracing and overall interpreter
+  completion remain separate unfinished requirements. No push was requested.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

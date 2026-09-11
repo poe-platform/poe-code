@@ -1,10 +1,77 @@
 import { describe, expect, it } from "vitest";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { CallStack } from "./call-stack.js";
+import { ExecutionFrame } from "./execution-frame.js";
 
 const budget = (maxSteps = 1000) => new ExecutionBudget({ maxSteps, maxAllocatedBytes: 100000 });
 
 describe("execution call stack", () => {
+  it("retains ordinary callers while ignoring repeated native entries", () => {
+    const calls = new CallStack(8, budget()), outer = new ExecutionFrame(), inner = new ExecutionFrame();
+    const leaveOuter = calls.enter(outer), leaveNative = calls.enter(outer);
+    expect(outer.caller).toBeUndefined();
+    const leaveInner = calls.enter(inner), leaveInnerNative = calls.enter(inner);
+    expect(inner.caller).toBe(outer);
+    leaveInnerNative(); leaveInner(); leaveNative(); leaveOuter();
+    expect(inner.caller).toBe(outer);
+    expect(outer.caller).toBeUndefined();
+  });
+
+  it("detaches suspended bodies and links each resume to its new caller", () => {
+    const calls = new CallStack(8, budget()), first = new ExecutionFrame(), second = new ExecutionFrame(), suspended = new ExecutionFrame();
+    for (const caller of [first, second]) {
+      const leaveCaller = calls.enter(caller), leaveBody = calls.enter(suspended, { retainCaller: false });
+      expect(suspended.caller).toBe(caller);
+      const leaveNative = calls.enter(suspended);
+      leaveNative();
+      expect(suspended.caller).toBe(caller);
+      leaveBody();
+      expect(suspended.caller).toBeUndefined();
+      leaveCaller();
+    }
+  });
+
+  it("does not mutate caller links on rejected entry or out-of-order cleanup", () => {
+    const calls = new CallStack(2, budget()), outer = new ExecutionFrame(), inner = new ExecutionFrame(), rejected = new ExecutionFrame();
+    const leaveOuter = calls.enter(outer), leaveInner = calls.enter(inner, { retainCaller: false });
+    expect(() => calls.enter(rejected)).toThrow(expect.objectContaining({ name: "RecursionError" }));
+    expect(rejected.caller).toBeUndefined();
+    expect(() => leaveOuter()).toThrow("call frames must be restored in LIFO order");
+    expect(inner.caller).toBe(outer);
+    leaveInner(); leaveOuter();
+    expect(inner.caller).toBeUndefined();
+  });
+
+  it("detaches a suspended caller after fatal cancellation without checkpoints", () => {
+    const meter = budget(2), calls = new CallStack(3, meter), outer = new ExecutionFrame(), inner = new ExecutionFrame();
+    const leaveOuter = calls.enter(outer), leaveInner = calls.enter(inner, { retainCaller: false });
+    expect(() => calls.enter({})).toThrow(ExecutionLimitError);
+    leaveInner(); leaveOuter();
+    expect(inner.caller).toBeUndefined();
+    expect(calls.depth).toBe(0);
+  });
+
+  it("preserves active links when a native callback reenters an earlier frame", () => {
+    const calls = new CallStack(4, budget()), outer = new ExecutionFrame(), inner = new ExecutionFrame();
+    const leaveOuter = calls.enter(outer), leaveInner = calls.enter(inner), leaveCallback = calls.enter(outer);
+    expect(outer.caller).toBeUndefined();
+    expect(inner.caller).toBe(outer);
+    leaveCallback(); leaveInner(); leaveOuter();
+  });
+
+  it("counts delegated cleanup without activating the suspended delegating frame", () => {
+    const calls = new CallStack(3, budget()), caller = new ExecutionFrame(), delegating = new ExecutionFrame(), child = new ExecutionFrame();
+    const leaveCaller = calls.enter(caller), leaveDelegating = calls.enter(delegating, { activate: false });
+    expect(calls.current).toBe(caller);
+    expect(delegating.caller).toBeUndefined();
+    expect(calls.depth).toBe(2);
+    const leaveChild = calls.enter(child, { retainCaller: false });
+    expect(child.caller).toBe(caller);
+    expect(() => calls.enter({})).toThrow(expect.objectContaining({ name: "RecursionError" }));
+    leaveChild(); leaveDelegating(); leaveCaller();
+    expect(calls.current).toBeUndefined();
+  });
+
   it("tracks the innermost frame and restores callers in LIFO order", () => {
     const calls = new CallStack(3, budget());
     const outer = {}, inner = {};

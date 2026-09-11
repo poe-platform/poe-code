@@ -1,6 +1,6 @@
 import { manglePrivateName } from "../private-names.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
-import type {SourceSpan} from "../ast.js";
+import { ExecutionFrame } from "./execution-frame.js";
 import type {CompiledClassBody} from "./class-compilation.js";
 import {FrameLocals} from "./frame-locals.js";
 import {compileCodeLocalLayout} from "./code-local-layout.js";
@@ -23,15 +23,14 @@ export interface ClassNamespaces<Value> extends LexicalNamespaces<Value> {
  * the owned cell and implement metadata/__classcell__ validation separately.
  * Guest mappings own internal metering; complete heap accounting remains pending.
  */
-export class ClassFrame<Value> {
-  /** Last entered execution site, including a failing operation; host-only. */
-  executionPosition:SourceSpan|undefined;
+export class ClassFrame<Value> extends ExecutionFrame {
   readonly #declarations = new Map<string, "global" | "nonlocal">();
   readonly #owned = new Map<string, LexicalCell<Value>>();
   readonly #free = new Map<string, LexicalCell<Value>>();
   #reflectiveLocals:FrameLocals<Value>|undefined;
 
   constructor(readonly scope: ResolvedScope, readonly namespaces: ClassNamespaces<Value>, private readonly meter: ExecutionMeter,readonly code?:CompiledClassBody<Value>) {
+    super();
     meter.checkpoint();
     if (scope.scope.kind !== "class") throw new Error("class frames require a class scope");
     for (const event of scope.scope.events) {

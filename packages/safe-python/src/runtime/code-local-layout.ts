@@ -20,13 +20,15 @@ export interface CodeLocalLayout {
 export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter):CodeLocalLayout {
   meter.checkpoint();
   const node=scope.scope.node;
-  if(node.kind!=="function"&&node.kind!=="lambda"&&node.kind!=="module"&&node.kind!=="class")throw Error("local layout requires function, lambda, module or class code");
-  const optimized=node.kind==="function"||node.kind==="lambda";
+  const generator=node.kind==="comprehension"&&node.collection==="generator";
+  if(node.kind!=="function"&&node.kind!=="lambda"&&node.kind!=="module"&&node.kind!=="class"&&!generator)throw Error("local layout requires a code-owning scope");
+  const optimized=node.kind==="function"||node.kind==="lambda"||generator;
   meter.checkpoint(0,320);
   const variables:string[]=[],capturedParameters:string[]=[],cells:string[]=[],free:string[]=[],seen=new Set<string>();
   let positionalCount=0,positionalOnlyCount=0,keywordOnlyCount=0,varPositional=false,varKeyword=false;
+  if(generator){meter.checkpoint(0,48);variables.push(".0");seen.add(".0");positionalCount=1;}
   // Keyword-only parameters precede variadic slots, regardless of source order.
-  for(const group of ["ordinary","var-positional","var-keyword"] as const)for(const parameter of optimized?node.parameters:[]){
+  for(const group of ["ordinary","var-positional","var-keyword"] as const)for(const parameter of node.kind==="function"||node.kind==="lambda"?node.parameters:[]){
     meter.checkpoint();
     const kind=parameter.kind;
     if((kind==="var-positional"||kind==="var-keyword"?kind:"ordinary")!==group)continue;

@@ -11314,6 +11314,30 @@ extension, integration, or validation requirement is missing or unverified.
   Generator-expression compiled code metadata, automatic finalization,
   traceback capture, imports, library coverage and safe-fs integration remain
   unfinished; this change does not establish complete generator introspection.
+- Generator-expression compiled code (2026-09-10): failing layout, whole-program
+  compilation and native publication tests confirmed that generator expressions
+  lacked their own code records. A dedicated compiler now retains analyzed scope,
+  qualified name, source identity, first line, synchronous/asynchronous kind and
+  code-local layout with the implicit .0 argument. Whole-program compilation
+  shares a generator-expression catalog through function/class code and nested
+  runtime bodies, preserving the originating compilation across later calls.
+  Native lexical frames and suspended code publication accept these code records;
+  generator expressions share canonical code identity, expose closure slots and
+  retain code after frame release. The compiler does not create native code for
+  materialized comprehensions. A CPython differential exposed the missing
+  class-scope CO_METHOD flag; a failing regression preceded the fix. Three more
+  failing tests established cancellation boundaries after constant callbacks.
+  All 256 compiler comparisons now match across eight expression forms, four
+  nesting contexts, source padding and future annotations. The focused six-file
+  suite passes 1,271 tests; workspace build, typecheck, scoped lint and whitespace
+  checks pass. The final uncached one-worker full package suite passes 7,981 tests
+  in 528 files (129.60s; test bodies 9.00s).
+  Separate read-only probes retain two explicit failures, not counted as passes:
+  the native .0 iterator slot is absent, and a generator expression containing an
+  inlined list comprehension reports (.0,x) instead of CPython's (.0,x,y).
+  Binding/honoring the live iterator slot and shared inlined-comprehension
+  activation/layout semantics remain required, alongside full instruction
+  metadata, automatic tracebacks, imports, library coverage and safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -10,6 +10,7 @@ import { compileLiteralPool, type LiteralExpression, type LiteralPool } from "./
 import type { ComprehensionNode } from "./comprehension-execution.js";
 import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
 import {compileCodeScopeFlags} from "./code-scope-flags.js";
+import {compileGeneratorExpression,type CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
 export interface CompiledModule<Value> {
   readonly flags?:number;
@@ -21,6 +22,7 @@ export interface CompiledModule<Value> {
 
 export interface CompiledProgram<Value> {
   readonly comprehensions?: ReadonlyMap<ComprehensionNode,ResolvedScope>;
+  readonly generatorExpressions?:ReadonlyMap<ComprehensionNode,CompiledGeneratorExpression<Value>>;
   readonly literals?: LiteralPool<Value>;
   readonly module: CompiledModule<Value>;
   readonly functions: ReadonlyMap<FunctionNode, CompiledFunction<Value>>;
@@ -50,6 +52,8 @@ export function compileProgram<Value>(
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
   meter.checkpoint(0,48);
   const comprehensions = new Map<ComprehensionNode,ResolvedScope>();
+  meter.checkpoint(0,48);
+  const generatorExpressions=new Map<ComprehensionNode,CompiledGeneratorExpression<Value>>();
   const classes = new Map<Extract<Statement, { kind: "class" }>, CompiledClassBody<Value>>();
   const classFunctions = new Map<Extract<Statement, { kind: "class" }>, CompiledFunction<Value>>();
   const pending = [analysis.scopes];
@@ -59,7 +63,7 @@ export function compileProgram<Value>(
     if (node.kind === "function" || node.kind === "lambda") {
       const code = compileFunction(scope, analysis, options, constants, meter,source,scopeFlags.get(scope.scope));
       meter.checkpoint(0, 104);
-      functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions, comprehensions, literals });
+      functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions, comprehensions, generatorExpressions, literals });
     }
     else if (node.kind === "class") {
       const code = compileClassBody(scope, analysis, options, constants, meter,source,scopeFlags.get(scope.scope));
@@ -69,13 +73,17 @@ export function compileProgram<Value>(
         flags:code.flags,source,scope, kind: "function", name: constants.string(node.name.name),
         qualifiedName: code.qualifiedName, firstLine: code.firstLine,
         docstring: undefined, body: { kind: "class", code },
-        definitions: functions, classDefinitions: classFunctions, comprehensions, literals
+        definitions: functions, classDefinitions: classFunctions, comprehensions, generatorExpressions, literals
       });
     }
     else if(node.kind==="comprehension"||node.kind==="dictionary-comprehension") {
       meter.checkpoint(0,48);comprehensions.set(node,scope);
+      if(node.kind==="comprehension"&&node.collection==="generator"){
+        const code=compileGeneratorExpression(scope,analysis,source,scopeFlags.get(scope.scope),constants,meter);
+        meter.checkpoint(0,48);generatorExpressions.set(node,code);
+      }
     }
     for (let index = scope.children.length - 1; index >= 0; index--) { meter.checkpoint(); pending.push(scope.children[index]); }
   }
-  return { module, functions, classes, classFunctions, comprehensions, literals };
+  return { module, functions, classes, classFunctions, comprehensions, generatorExpressions, literals };
 }

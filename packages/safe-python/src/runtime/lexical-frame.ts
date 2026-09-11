@@ -8,6 +8,7 @@ import {compileCodeLocalLayout,type CodeLocalLayout} from "./code-local-layout.j
 import {FrameLocals} from "./frame-locals.js";
 import type {CompiledFunction} from "./function-compilation.js";
 import { ExecutionFrame } from "./execution-frame.js";
+import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
 /** Internal shared storage, never a guest-accessible JavaScript object. The
  * wrapper distinguishes an unbound cell from any valid Value, including undefined.
@@ -49,7 +50,7 @@ export class LexicalFrame<Value> extends ExecutionFrame {
     readonly namespaces: LexicalNamespaces<Value>,
     private readonly meter: ExecutionMeter,
     private readonly localLayout?:CodeLocalLayout,
-    readonly code?:CompiledFunction<Value>
+    readonly code?:CompiledFunction<Value>|CompiledGeneratorExpression<Value>
   ) {
     super();
     meter.checkpoint();

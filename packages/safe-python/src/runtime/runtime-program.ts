@@ -119,7 +119,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
   const representationState: RuntimeRepresentationState = {};
   let defaultFormatting: FormatContext<RuntimeValue> | undefined;
   const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions, suspension?:RuntimeGeneratorDelegation):RuntimeStatementContext => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions, suspension?:RuntimeGeneratorDelegation,generatorExpressions=program.generatorExpressions):RuntimeStatementContext => {
     meter.checkpoint(1, 512);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -181,7 +181,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const fn = value;
         if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
-          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions),
+          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions),
           classBody(code) {
             let result: RuntimeValue = values.none;
             const globals = fn.value.globals;
@@ -194,7 +194,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
                 delete: name => globals.delete(name), isGuest: error => builtinCalls.isException?.(error,"BaseException")??false
               },
               cell: cell => { result = values.cell(cell); return result; },
-              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions)
+              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions)
             }, meter);
             return result;
           }
@@ -207,7 +207,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           // Context preparation is delayed until the first resume. Binding the
           // arguments above must not execute body hooks or guest instructions.
           function* run(): Generator<RuntimeValue, RuntimeValue, RuntimeValue> {
-            const inner = body(child, origin, code.definitions ?? functions, code.classDefinitions ?? classFunctions, code.literals ?? null, code.comprehensions ?? comprehensions,delegation).suspend();
+            const inner = body(child, origin, code.definitions ?? functions, code.classDefinitions ?? classFunctions, code.literals ?? null, code.comprehensions ?? comprehensions,delegation,code.generatorExpressions??generatorExpressions).suspend();
             if (code.body.kind === "expression") return yield* inner.evaluate(code.body.expression);
             if (code.body.kind !== "suite") throw Error("generator code must have an expression or suite body");
             const result = yield* createStatementContinuation(code.body.statements, inner, meter);
@@ -268,7 +268,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           : new RuntimeMappingNamespace(namespace, values, meter, builtinCalls);
         return executeClassBody(fn.value.code.body.code, {
           ...fn.value, calls, locals, cell: cell => values.cell(cell),
-          body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions)
+          body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions)
         }, meter);
       },
       finalizeType: specialMethods === undefined ? undefined : (type, keywords) => finalizeRuntimeType(type, keywords, specialMethods, values, meter, {
@@ -385,7 +385,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>delegation.delegate(value,builtinCalls,"anext"),values,meter)}
           :{kind:"sync",value:expressions.iterate(source)};
         function* run():Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
-          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,delegation).suspend();
+          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,delegation,generatorExpressions).suspend();
           yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){yield yield* inner.evaluate(node.element);},meter);
           return values.none;
         }
@@ -395,7 +395,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       const outer=expressions.iterate(source);
       const leave=calls.enter(child,{retainCaller:false});
       try {
-        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
+        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions);
         const cursor=new ComprehensionCursor(node.clauses,outer,inner,()=>inner.evaluate(node.element),meter);
         return context.exceptions.generator(input=>{
           if(input.kind==="throw")throw input.error;
@@ -460,11 +460,12 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           const source=evaluateExpression(node.clauses[0].iterable,expressions,meter);
           meter.checkpoint(0,192);
           const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
-          const child=new LexicalFrame(scope,{...namespaces,closure},meter);
+          const code=generatorExpressions?.get(node);
+          const child=new LexicalFrame(scope,{...namespaces,closure},meter,code?.localLayout,code);
           if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
           const outer=expressions.iterate(source);
           leave();leave=calls.enter(child);
-          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions);
+          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions);
           if(node.kind==="dictionary-comprehension") {
             const result=expressions.beginDictionary([]);
             executeComprehensionClauses(node.clauses,outer,inner,()=>{const key=inner.evaluate(node.key),value=inner.evaluate(node.value);result.set(key,value);},meter);
@@ -493,14 +494,15 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const source=yield* createExpressionContinuation(node.clauses[0].iterable,expressions,meter,values.none);
         meter.checkpoint(0,256);
         const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
-        const child=new LexicalFrame(scope,{...namespaces,closure},meter);
+        const code=generatorExpressions?.get(node);
+        const child=new LexicalFrame(scope,{...namespaces,closure},meter,code?.localLayout,code);
         if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
         const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
           ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>suspension.delegate(value,builtinCalls,"anext"),values,meter)}
           :{kind:"sync",value:expressions.iterate(source)};
         // Comprehension locals are isolated, but their awaits belong to the
         // enclosing coroutine's active frame and handled-exception state.
-        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,suspension).suspend();
+        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,suspension,generatorExpressions).suspend();
         if(node.kind==="dictionary-comprehension") {
           const result=expressions.beginDictionary([]);
           yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){

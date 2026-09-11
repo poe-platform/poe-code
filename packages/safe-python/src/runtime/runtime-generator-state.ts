@@ -4,6 +4,7 @@ import type { RuntimeValue,InstanceValue } from "./runtime-values.js";
 import type { AsyncGeneratorActivity,AsyncGeneratorSend } from "./async-generator-send.js";
 import type { AsyncGeneratorThrow } from "./async-generator-throw.js";
 import type { CompiledFunction } from "./function-compilation.js";
+import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
 /** Native storage, never a guest attribute namespace. The lifecycle drops its
  * body/frame references on termination; exception services remain execution-owned. */
@@ -12,7 +13,7 @@ export interface RuntimeGeneratorState {
   readonly execution:GeneratorExecution<RuntimeValue>;
   readonly exceptions:RuntimeExceptionExecution;
   /** Code survives termination; the execution alone retains a live frame. */
-  readonly code?:CompiledFunction<RuntimeValue>;
+  readonly code?:CompiledFunction<RuntimeValue>|CompiledGeneratorExpression<RuntimeValue>;
 }
 
 export interface RuntimeCoroutineWrapperState {

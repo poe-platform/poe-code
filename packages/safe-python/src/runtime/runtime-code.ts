@@ -1,5 +1,6 @@
 import {compileCodeLocalLayout} from "./code-local-layout.js";
 import type {CompiledFunction} from "./function-compilation.js";
+import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 import type {CompiledModule} from "./program-compilation.js";
 import type {CompiledClassBody} from "./class-compilation.js";
 import type {ExecutionMeter} from "./execution-budget.js";
@@ -8,7 +9,7 @@ import type {RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 const members=["co_name","co_qualname","co_filename","co_flags","co_firstlineno","co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals"] as const;
 const tuples=["co_varnames","co_cellvars","co_freevars"] as const;
 
-export type RuntimeCompiledCode=CompiledFunction<RuntimeValue>|CompiledModule<RuntimeValue>|CompiledClassBody<RuntimeValue>;
+export type RuntimeCompiledCode=CompiledFunction<RuntimeValue>|CompiledModule<RuntimeValue>|CompiledClassBody<RuntimeValue>|CompiledGeneratorExpression<RuntimeValue>;
 
 /** Compiler identity and immutable reflected metadata, not a host function. */
 export interface RuntimeCodeState {

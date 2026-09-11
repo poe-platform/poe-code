@@ -12,6 +12,7 @@ import type { ComprehensionNode } from "./comprehension-execution.js";
 import {compileCodeLocalLayout,type CodeLocalLayout} from "./code-local-layout.js";
 import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
 import {compileCodeScopeFlags} from "./code-scope-flags.js";
+import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
 export interface CompiledFunction<Value> {
   readonly flags?:number;
@@ -19,6 +20,7 @@ export interface CompiledFunction<Value> {
   /** Real function/lambda code owns this layout; synthetic class code does not. */
   readonly localLayout?:CodeLocalLayout;
   readonly comprehensions?: ReadonlyMap<ComprehensionNode,ResolvedScope>;
+  readonly generatorExpressions?:ReadonlyMap<ComprehensionNode,CompiledGeneratorExpression<Value>>;
   /** Literal objects belong to the originating compilation, not each call. */
   readonly literals?: LiteralPool<Value>;
   /** Originating program's code registry. Nested definitions follow their code,

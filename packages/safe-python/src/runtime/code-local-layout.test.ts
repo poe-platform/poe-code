@@ -20,7 +20,16 @@ it("retains interpreter-owned comprehension activation boundaries",()=>{
 });
 it("rejects comprehension activations without pretending they are native code",()=>{
   const scope=analyzeModule("[x for x in xs]").scopes.children[0];
-  expect(()=>compileCodeLocalLayout(scope,budget())).toThrow("local layout requires function, lambda, module or class code");
+  expect(()=>compileCodeLocalLayout(scope,budget())).toThrow("local layout requires a code-owning scope");
+});
+it.each([
+  ["(x+y for x in xs for y in ys)",[".0","x","y"],[]],
+  ["(lambda:x for x in xs)",[".0"],["x"]]
+] as const)("lays out generator-expression iterator arguments and captures: %s",(source,variables,cells)=>{
+  const layout=compileCodeLocalLayout(analyzeModule(source).scopes.children[0],budget());
+  expect(layout.variableNames).toEqual(variables);expect(layout.cellNames).toEqual(cells);
+  expect(layout.positionalCount).toBe(1);expect(layout.positionalOnlyCount).toBe(0);
+  expect(layout.keywordOnlyCount).toBe(0);expect(layout.varPositional).toBe(false);expect(layout.varKeyword).toBe(false);
 });
 it("checks cancellation before publishing a large layout",()=>{
   const scope=analyzeModule("def f("+Array.from({length:500},(_,i)=>"x"+i).join(",")+"):pass").scopes.children[0];

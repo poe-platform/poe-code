@@ -7,6 +7,18 @@ const budget = (maxSteps = 10000) => new ExecutionBudget({ maxSteps, maxAllocate
 const constants = { string: (value: string): unknown => value, integer: (value: number): unknown => value, tuple: (values: readonly unknown[]): unknown => [...values] };
 
 describe("whole-program code preparation", () => {
+  it("compiles generator-expression metadata without inventing code for inlined comprehensions",()=>{
+    const analysis=analyzeModule("def outer(z):\n return [(x+z for x in ys),(x async for x in ys),[x for x in ys]]"),program=compileProgram(analysis,{stripDocstring:false,filename:"gen.py"},constants,budget());
+    const codes=[...program.generatorExpressions!.values()];
+    expect(codes).toHaveLength(2);
+    expect(codes.map(code=>[code.name,code.qualifiedName,code.kind,code.flags,code.firstLine])).toEqual([
+      ["<genexpr>","outer.<locals>.<genexpr>","generator",51,2],
+      ["<genexpr>","outer.<locals>.<genexpr>","async-generator",531,2]
+    ]);
+    expect(codes[0].localLayout.freeNames).toEqual(["z"]);
+    for(const code of codes)expect(code.source).toBe(program.module.source);
+    for(const code of program.functions.values())expect(code.generatorExpressions).toBe(program.generatorExpressions);
+  });
   it("shares one literal source identity across all nested code",()=>{
     const analysis=analyzeModule("def outer():\n class C:\n  def method(self):return lambda:1\n return C"),filename="../folder/🐍.py",allocated:string[]=[];
     const program=compileProgram(analysis,{stripDocstring:false,filename},{...constants,string(value){allocated.push(value);return {value};}},budget());

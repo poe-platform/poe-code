@@ -428,6 +428,19 @@ it.each(["generator","coroutine","async-generator"])("retains native %s frame ow
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it.each([false,true])("publishes compiler-owned generator-expression code: asynchronous %s",asynchronous=>{
+  const state=exceptionFixture(),{v}=state,prefix=asynchronous?"ag":"gi";
+  state.run(`class A:\n def __aiter__(self):return self\n async def __anext__(self):raise StopAsyncIteration\ndef outer(z):return (x+z ${asynchronous?"async for x in A()":"for x in [1]"})\na=outer(3)\nb=outer(7)\ncode=a.${prefix}_code\nframe=a.${prefix}_frame\ncorrect=code is b.${prefix}_code and frame.f_code is code and frame.f_generator is a and code.co_name=='<genexpr>' and code.co_qualname=='outer.<locals>.<genexpr>' and code.co_filename=='genexpr.py' and code.co_firstlineno==4 and code.co_argcount==1 and code.co_posonlyargcount==0 and code.co_varnames==('.0','x') and code.co_freevars==('z',) and code.co_flags==${asynchronous?531:51}\nframe.f_locals['z']=9\n${asynchronous?"":"value=a.__next__()\ncorrect=correct and value==10\n"}try:a.${asynchronous?"aclose().send(None)":"close()"}\nexcept StopIteration:pass\ntry:b.${asynchronous?"aclose().send(None)":"close()"}\nexcept StopIteration:pass\ncorrect=correct and a.${prefix}_frame is None and a.${prefix}_code is code and frame.f_generator is None\n`,undefined,undefined,"genexpr.py");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("keeps generator-expression code with its originating compilation across later calls",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def make():\n class C:\n  def method(self):return ((y for y in [x]) for x in [7])\n return C\nasync def delayed():return (x for x in [9])\n",undefined,undefined,"origin.py");
+  state.run("a=make()().method()\nb=a.__next__()\ntry:delayed().send(None)\nexcept StopIteration as e:c=e.value\ncorrect=a.gi_code.co_filename=='origin.py' and b.gi_code.co_filename=='origin.py' and c.gi_code.co_filename=='origin.py' and b.__next__()==7 and c.__next__()==9\na.close()\nb.close()\nc.close()\n",undefined,undefined,"caller.py");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("reflects native frame line numbers during calls and after return",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));

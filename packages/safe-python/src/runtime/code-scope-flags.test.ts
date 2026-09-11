@@ -13,7 +13,8 @@ it.each([
   ["def outer():\n global f\n def f():pass",[["<module>",0],["outer",3],["f",19]]],
   ["def outer():\n class C:\n  def f(self):pass",[["<module>",0],["outer",3],["outer.<locals>.C",0],["outer.<locals>.C.f",0x8000013]]],
   ["class C:\n f=lambda:1",[["<module>",0],["C",0],["C.<lambda>",0x8000003]]],
-  ["class C:\n xs=[lambda:1 for x in []]",[["<module>",0],["C",0],["C.<lambda>",19]]]
+  ["class C:\n xs=[lambda:1 for x in []]",[["<module>",0],["C",0],["C.<lambda>",19]]],
+  ["class C:\n xs=(x for x in [])",[["<module>",0],["C",0],["C.<genexpr>",0x8000003]]]
 ] as const)("derives scope flags from lexical ancestry: %s",(source,expected)=>{
   const analysis=analyzeModule(source),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000});
   const flags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter);

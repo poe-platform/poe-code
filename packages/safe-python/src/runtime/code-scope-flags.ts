@@ -14,7 +14,7 @@ export function compileCodeScopeFlags(root:SymbolScope,features:ReadonlySet<stri
     const {scope,parent,nested}=pending.pop()!,functionLike=scope.kind==="function"||scope.kind==="lambda"||scope.kind==="comprehension";
     let flags=future;
     if(functionLike){flags|=3;if(nested)flags|=0x10;}
-    if((scope.kind==="function"||scope.kind==="lambda")&&parent?.kind==="class")flags|=0x8000000;
+    if((scope.kind==="function"||scope.kind==="lambda"||scope.node.kind==="comprehension"&&scope.node.collection==="generator")&&parent?.kind==="class")flags|=0x8000000;
     result.set(scope,flags);
     for(let index=scope.children.length-1;index>=0;index--){
       meter.checkpoint(1,64);pending.push({scope:scope.children[index],parent:scope,nested:nested||functionLike});

@@ -79,7 +79,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
       const existing = native.get(value.kind); if (existing !== undefined) return existing;
-      const type = registry.publish(new RuntimeTypeLayout(value.kind, [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter, { objectLayout: false, instanceDictionary: false }), registry.type);
+      const type = registry.publish(new RuntimeTypeLayout(value.kind, [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter, { matchSelf:value.kind==="str"||value.kind==="bytes"||value.kind==="bytearray",objectLayout: false, instanceDictionary: false }), registry.type);
       native.set(value.kind, type); return type;
     } })
   };
@@ -486,6 +486,56 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("matches positional and keyword class attributes with nested patterns",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class C:\n __match_args__=('x','y')\n def __init__(self):\n  self.x=[1,2]\n  self.y=3\nmatch C():\n case C([a,b],y=c):result=(a,b,c)\n case _:result=None\ncorrect=result==(1,2,3)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("rejects nonclass patterns and treats missing class attributes as failed matches",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("C=1\ncorrect=False\ntry:\n match 1:\n  case C():pass\nexcept TypeError as e:correct=e.args==('called match pattern must be a class',)\nclass D:pass\nmatch D():\n case D(missing=x):correct=False\n case _:pass\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("honors virtual instance checks while retaining exact-type identity shortcuts",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Meta(type):\n def __instancecheck__(cls,value):\n  events.append(value)\n  return False\nclass C(metaclass=Meta):pass\nc=C()\nmatch c:\n case C():a=True\n case _:a=False\nmatch 7:\n case C():b=True\n case _:b=False\ncorrect=a and not b and events==[7]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it.each(["True","7","2.5","[]","()","{}","{1}","'text'","b'bytes'"])("matches the whole native %s subject in a positional class pattern",source=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`subject=${source}\nC=type(subject)\nmatch subject:\n case C(x):correct=x is subject\n case _:correct=False\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it.each(["True","7","2.5","[]","()","{}","{1}","'text'","b'bytes'"])("reads native %s class identity through ordinary attributes and class patterns",source=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run(`subject=${source}\nC=type(subject)\nmatch subject:\n case C(__class__=x):correct=x is C and subject.__class__ is C\n case _:correct=False\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("supports inherited builtin self patterns but lets explicit match args disable them",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("list",state.registry.listType());
+  state.run("class L(list):pass\nsubject=L([1,2])\nmatch subject:\n case L(x):correct=x is subject\nL.__match_args__=()\ntry:\n match subject:\n  case L(x):correct=False\nexcept TypeError as e:correct=correct and e.args==('L() accepts 0 positional sub-patterns (1 given)',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("acquires all class attributes before comparisons and preserves literal private keywords",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass V:\n def __eq__(self,other):\n  events.append('eq')\n  return False\nclass A:\n __match_args__=('a',)\n def __getattr__(self,name):\n  events.append(name)\n  return V()\nclass C:\n def f(self):\n  match A():\n   case A(0,__x=x):return True\n  return False\ncorrect=C().f() is False and events==['a','__x','eq']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("uses apparent class inheritance only after actual and virtual instance checks",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class C:pass\nclass D(C):pass\nclass Proxy:\n def __getattribute__(self,name):\n  if name=='__class__':return D\n  raise AssertionError(name)\nmatch Proxy():\n case C():correct=True\n case _:correct=False\nclass Meta(type):\n def __instancecheck__(cls,value):return False\nclass V(metaclass=Meta):pass\nclass W(V):pass\nmatch W():\n case V():correct=False\n case _:pass\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("validates only consumed match args and diagnoses duplicate class attributes",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class C:\n __match_args__=('a',1)\n a=7\nmatch C():\n case C(x):correct=x==7\nerrors=[]\ntry:\n match C():\n  case C(x,y):pass\nexcept TypeError as e:errors.append(e.args[0])\ntry:\n match C():\n  case C(x,a=y):pass\nexcept TypeError as e:errors.append(e.args[0])\nC.__match_args__=['a']\ntry:\n match C():\n  case C(x):pass\nexcept TypeError as e:errors.append(e.args[0])\ncorrect=correct and errors==['__match_args__ elements must be strings (got int)',\"C() got multiple sub-patterns for attribute 'a'\",'C.__match_args__ must be a tuple (got list)']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("propagates class attribute failures other than AttributeError without publishing captures",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class C:\n __match_args__=('a','b')\n a=7\n def __getattr__(self,name):raise ValueError(name)\nx=99\ntry:\n match C():\n  case C(x,y):pass\nexcept ValueError as e:correct=e.args==('b',) and x==99\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("uses one plain-object mapping sentinel and get without missing-key creation",()=>{
   const state=exceptionFixture(),{v}=state;state.builtins.set("dict",state.registry.dictionaryType());
   state.run("events=[]\nseen=[]\nbase_object=object\nclass M(dict):\n def get(self,key,default):\n  events.append(key)\n  seen.append(default)\n  return dict.get(self,key,default)\n def __missing__(self,key):raise AssertionError('missing')\nobject=99\nmatch M({'a':None,'b':2}):\n case {'a':None,'b':x}:result=x\n case _:result=0\ncorrect=result==2 and events==['a','b'] and seen[0] is seen[1] and type(seen[0]) is base_object\nmatch M({'b':2}):\n case {'a':x}:correct=False\n case _:pass\ncorrect=correct and events==['a','b','a'] and seen[0] is not seen[2]\n");

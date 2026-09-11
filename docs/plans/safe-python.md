@@ -11585,6 +11585,40 @@ extension, integration, or validation requirement is missing or unverified.
   (134.68s; test bodies 11.19s).
   Protocol references: https://peps.python.org/pep-0634/ and
   https://raw.githubusercontent.com/python/cpython/v3.14.0/Python/ceval.c
+- Class match execution (2026-09-11): three failing integration tests reproduced
+  the remaining UnsupportedPatternError for class patterns. A separate class
+  adapter now evaluates the class expression once, rejects nonclasses, performs
+  class-only instance checks and eagerly extracts positional/keyword attributes
+  before matching children through the existing iterative pattern machine.
+  Exact actual-type identity precedes virtual metaclass __instancecheck__;
+  ordinary __class__ inheritance is considered only after actual inheritance
+  fails. Missing attributes suppress only AttributeError, while guest errors
+  propagate without publishing pending captures. __match_args__ must be an exact
+  tuple; only consumed names are validated, cardinality precedes element checks,
+  and duplicate attributes retain ordered access and repr-based diagnostics.
+  Keyword attribute names remain literal, including private-looking names.
+  Trusted matchSelf layout metadata inherits through the selected layout base;
+  explicit __match_args__ disables native self matching. Canonical bool/int,
+  float, list, tuple, dictionary and set/frozenset layouts now supply this policy.
+  String/bytes/bytearray catalog assembly remains external to the native registry;
+  the integration host supplies matching metadata, not name-based runtime rules.
+  Nine additional red native __class__ tests exposed missing ordinary reflection;
+  exact-value attribute lookup now uses the actual-type policy for __class__,
+  while guest instance overrides remain in the object attribute dispatcher.
+  New metadata, attribute names, child storage and adapters are metered; class
+  extraction cancellation tests verify termination before captures publish.
+  The focused four-file suite passes 1,048 tests. All 1,670 scoped CPython
+  comparisons match: 192 class argument/attribute cases, 120 virtual-check cases,
+  104 native-type cases, 42 metadata/Unicode diagnostic cases and the earlier
+  1,212 core, sequence, mapping and suspended-guard comparisons.
+  Workspace build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker full suite passes 8,121 tests in 531 files
+  (133.42s; test bodies 10.64s). This completes extraction for all parsed pattern forms,
+  not full Python: ABC registration, builtin isinstance/issubclass argument
+  policies, default type instance/subclass-check descriptors, native catalog
+  assembly, modules and the other runtime/integration work remain unfinished.
+  Protocol references: https://peps.python.org/pep-0634/ and
+  https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/abstract.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

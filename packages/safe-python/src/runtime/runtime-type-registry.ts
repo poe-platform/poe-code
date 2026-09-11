@@ -281,7 +281,7 @@ export class RuntimeTypeRegistry {
     const existing = this.#sets.get(kind);
     if (existing !== undefined) return existing;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: true });
+    const layout = new RuntimeTypeLayout(kind, [this.object.value], namespace, this.meter, { matchSelf:true,sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: true });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeSetSlots(kind, type, this.values, this.meter);
     installRuntimeSetMethodDescriptors(kind, type, this.values, this.meter);
@@ -298,7 +298,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#tupleType !== undefined) return this.#tupleType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("tuple", [this.object.value], namespace, this.meter, { patternKind:"sequence",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
+    const layout = new RuntimeTypeLayout("tuple", [this.object.value], namespace, this.meter, { matchSelf:true,patternKind:"sequence",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeTupleSlots(type, this.values, this.meter);
     installRuntimeTupleArithmeticSlots(type, this.values, this.meter);
@@ -314,7 +314,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#dictionaryType !== undefined) return this.#dictionaryType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("dict", [this.object.value], namespace, this.meter, { patternKind:"mapping",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const layout = new RuntimeTypeLayout("dict", [this.object.value], namespace, this.meter, { matchSelf:true,patternKind:"mapping",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeDictionaryMethodDescriptors(type, this.values, this.meter);
     installRuntimeDictionarySlots(type, this.values, this.meter);
@@ -392,7 +392,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#floatType !== undefined) return this.#floatType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("float", [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: false });
+    const layout = new RuntimeTypeLayout("float", [this.object.value], namespace, this.meter, { matchSelf:true,sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     namespace.items.set(this.values.string("__new__"), createFloatNewBuiltin(type, this.values, this.meter, type => this.#entries.has(type.value)));
     namespace.items.set(this.values.string("__doc__"), this.values.string("Convert a string or number to a floating-point number, if possible."));
@@ -407,7 +407,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#integerType !== undefined) return this.#integerType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("int", [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
+    const layout = new RuntimeTypeLayout("int", [this.object.value], namespace, this.meter, { matchSelf:true,sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
     const type = this.values.type(layout, this.type, { immutable: true });
     namespace.items.set(this.values.string("__new__"), createIntegerNewBuiltin(type, this.values, this.meter, type => this.#entries.has(type.value)));
     namespace.items.set(this.values.string("__doc__"), this.values.string("int([x]) -> integer\nint(x, base=10) -> integer\n\nConvert a number or string to an integer, or return 0 if no arguments\nare given.  If x is a number, return x.__int__().  For floating-point\nnumbers, this truncates towards zero.\n\nIf x is not a number or if base is given, then x must be a string,\nbytes, or bytearray instance representing an integer literal in the\ngiven base.  The literal can be preceded by '+' or '-' and be surrounded\nby whitespace.  The base defaults to 10.  Valid bases are 0 and 2-36.\nBase 0 means to interpret the base from the string as an integer\niteral.\n>>> int('0b100', base=0)\n4"));
@@ -626,7 +626,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#listType !== undefined) return this.#listType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("list", [this.object.value], namespace, this.meter, { patternKind:"sequence",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const layout = new RuntimeTypeLayout("list", [this.object.value], namespace, this.meter, { matchSelf:true,patternKind:"sequence",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeListMethodDescriptors(type, this.values, this.meter);
     installRuntimeListSequenceSlots(type, this.values, this.meter);

@@ -47,6 +47,13 @@ it("checks cancellation when sequence extraction throws before captures publish"
   expect(()=>matchPattern(parsePattern("[x]"),[],state.context,new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:100000,signal:controller.signal}))).toThrow(ExecutionLimitError);
   expect(state.names.size).toBe(0);
 });
+it.each(["prepare","next"])("preserves cancellation during class extraction %s before publishing captures",operation=>{
+  const state=fixture(),controller=new AbortController();
+  const fail=():never=>{controller.abort();throw Error("class extraction");};
+  state.context.class=()=>operation==="prepare"?fail():{next:fail};
+  expect(()=>matchPattern(parsePattern("C(x)"),{},state.context,new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:100000,signal:controller.signal}))).toThrow(ExecutionLimitError);
+  expect(state.names.size).toBe(0);
+});
 it.each(["position","evaluate","equal","identical","store"] as const)("preserves cancellation over %s callback faults",operation=>{
   const state=fixture(),controller=new AbortController();
   state.context[operation]=()=>{controller.abort();throw Error("callback");};

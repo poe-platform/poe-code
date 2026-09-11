@@ -77,6 +77,10 @@ import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
  * supplier is acquired only for members that actually require that policy. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & NativeMethodMetadataContext & { readonly code?:(code:CompiledFunction<RuntimeValue>)=>RuntimeValue; readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
   meter.checkpoint();
+  if(name==="__class__"){
+    if(methods?.actualType===undefined)throw Error("class reflection requires an actual type policy");
+    try{return methods.actualType(receiver);}finally{meter.checkpoint();}
+  }
   if (receiver.kind === "function") {
     if(name==="__code__"){
       if(methods?.code===undefined)throw Error("function code reflection requires a code publication policy");

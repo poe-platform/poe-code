@@ -12,6 +12,7 @@ export interface PatternContext<Value> {
    * subpatterns in order and owns extraction, never guest iterator cleanup. */
   sequence?(pattern:Extract<Pattern,{kind:"sequence"}>,subject:Value):Iterator<{pattern:Pattern;value:Value}>|undefined;
   mapping?(pattern:Extract<Pattern,{kind:"mapping"}>,subject:Value):Iterator<{pattern:Pattern;value:Value}>|undefined;
+  class?(pattern:Extract<Pattern,{kind:"class"}>,subject:Value):Iterator<{pattern:Pattern;value:Value}>|undefined;
 }
 
 export class UnsupportedPatternError extends Error {
@@ -22,8 +23,7 @@ export class UnsupportedPatternError extends Error {
  * until success, then published before the guard; a false guard does not undo
  * them. Failed alternatives discard only their own pending captures. Guest
  * protocol failures propagate instead of selecting another alternative.
- * Native container extraction is supplied separately; class protocols remain
- * an explicit gap.
+ * Native container and class extraction policies are supplied separately.
  */
 export function matchPattern<Value>(pattern:Pattern,subject:Value,context:PatternContext<Value>,meter:ExecutionMeter):boolean {
   type Task={kind:"pattern";pattern:Pattern;value:Value}|{kind:"bind";name:string;value:Value}|{kind:"choice-end"}|{kind:"children";iterator:Iterator<{pattern:Pattern;value:Value}>};
@@ -59,15 +59,14 @@ export function matchPattern<Value>(pattern:Pattern,subject:Value,context:Patter
         try{accepted=node.kind==="singleton"?context.identical(value,expected):context.equal(value,expected);}finally{meter.checkpoint();}
         break;
       }
-      case "sequence":case "mapping":{
-        if(node.kind==="sequence"?context.sequence===undefined:context.mapping===undefined)throw new UnsupportedPatternError(node.kind);
+      case "sequence":case "mapping":case "class":{
+        if(context[node.kind]===undefined)throw new UnsupportedPatternError(node.kind);
         let iterator:Iterator<{pattern:Pattern;value:Value}>|undefined;
-        try{iterator=node.kind==="sequence"?context.sequence!(node,value):context.mapping!(node,value);}finally{meter.checkpoint();}
+        try{iterator=node.kind==="sequence"?context.sequence!(node,value):node.kind==="mapping"?context.mapping!(node,value):context.class!(node,value);}finally{meter.checkpoint();}
         if(iterator===undefined)accepted=false;
         else {meter.checkpoint(0,40);work.push({kind:"children",iterator});}
         break;
       }
-      default:throw new UnsupportedPatternError(node.kind);
     }
     if(accepted)continue;
     let retry=false;

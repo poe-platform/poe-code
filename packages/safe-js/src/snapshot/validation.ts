@@ -137,6 +137,7 @@ export function validateDumpEnvelope(
     limits,
     validateTaggedPayloads: false
   };
+  if (canPreflightRunSnapshotScalars(root)) validateRunSnapshotScalars(root);
   validateGenericValue(root, "$", 0, state);
   validateRunSnapshotState(root, state);
   validateDumpHeap(root, state);
@@ -312,7 +313,25 @@ function validateDumpReferences(
   }
 }
 
-function validateRunSnapshotState(root: Record<string, unknown>, state: ValidationState): void {
+function hasPlainDataFields(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  if (value === null || typeof value !== "object" || types.isProxy(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== null && prototype !== Object.prototype) return false;
+  return keys.every(key => {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    return descriptor === undefined
+      ? prototype === null || Object.getOwnPropertyDescriptor(prototype, key) === undefined
+      : Object.hasOwn(descriptor, "value");
+  });
+}
+
+function canPreflightRunSnapshotScalars(root: Record<string, unknown>): boolean {
+  if (!hasPlainDataFields(root, ["clock", "random"])) return false;
+  return (root.clock === undefined || hasPlainDataFields(root.clock, ["next"])) &&
+    (root.random === undefined || hasPlainDataFields(root.random, ["seed", "state", "initialState", "resumeState"]));
+}
+
+function validateRunSnapshotScalars(root: Record<string, unknown>): void {
   if (root.clock !== undefined) {
     const clock = requireRecord(root.clock, "$.clock");
     requireSafeInteger(clock.next, "$.clock.next", 0);
@@ -325,6 +344,10 @@ function validateRunSnapshotState(root: Record<string, unknown>, state: Validati
       if (random[field] !== undefined) requireSafeInteger(random[field], `$.random.${field}`, 0);
     }
   }
+}
+
+function validateRunSnapshotState(root: Record<string, unknown>, state: ValidationState): void {
+  validateRunSnapshotScalars(root);
   if (root.loopIterations !== undefined) {
     const iterations = requireRecord(root.loopIterations, "$.loopIterations");
     for (const [nodeId, value] of Object.entries(iterations)) {

@@ -11,6 +11,21 @@ function compile(source: string, stripDocstring = false) {
 }
 
 describe("function code metadata compilation", () => {
+  it("orders positional/keyword-only/variadic locals and captured parameters",()=>{
+    const code=compile("def f(z,a,/,b=1,*args,k=2,**kw):\n y=1\n x=2\n def g():return z,a,x,y\n return g");
+    expect(code.localLayout).toEqual({variableNames:["z","a","b","k","args","kw","g"],cellNames:["z","a","x","y"],freeNames:[],positionalCount:3,positionalOnlyCount:2,keywordOnlyCount:1,varPositional:true,varKeyword:true});
+  });
+  it("excludes annotation-only locals and retains first executable name order",()=>{
+    const code=compile("def f():\n x: int\n unused: int\n y=1\n print(x)\n return 1\n z=2");
+    expect(code.localLayout?.variableNames).toEqual(["y","x","z"]);
+  });
+  it("sorts forwarded closure names and mangles private parameter names",()=>{
+    const analysis=analyzeModule("class C:\n def f(__z,__a):\n  def middle():\n   return lambda:__z+__a\n  return middle"),outer=analysis.scopes.children[0].children[0];
+    const code=compileFunction<unknown>(outer,analysis,{stripDocstring:false},constants,budget());
+    expect(code.localLayout?.cellNames).toEqual(["_C__z","_C__a"]);
+    const nested=compileFunction<unknown>(outer.children[0],analysis,{stripDocstring:false},constants,budget());
+    expect(nested.localLayout?.freeNames).toEqual(["_C__a","_C__z"]);
+  });
   it("compiles normalized names, decorator line, cleaned docs and executable statements", () => {
     const code = compile('\n@decorate\ndef K():\n """  head\n\ttext\n """\n return 1');
     expect(code.name).toEqual({ text: "K" });

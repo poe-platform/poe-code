@@ -10659,6 +10659,26 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker suite passes 7,651 tests in 515 files (286.12s; test bodies 17.58s).
   This hardens shared acquisition used by await, async iteration
   and anext; it does not complete native frame/code or generator-coroutine flags.
+- Function local-layout metadata (2026-09-10): function/lambda compilation now
+  retains immutable ordered variable, cell and free-name arrays plus positional,
+  positional-only, keyword-only and variadic argument metadata. Captured
+  parameters keep their parameter slots and precede sorted nonparameter cells;
+  keyword-only slots precede variadic slots. Annotation-only declarations do not
+  allocate fast-local slots, and executable name occurrences retain order even
+  in unreachable code. Private-name mangling and metered Unicode code-point
+  sorting apply; nested functions retain independently sorted forwarded closures.
+  Three failing compilation tests drove integration; five storage/layout tests
+  cover immutability, scope validation, Unicode, cancellation and the existing
+  interpreter-owned separate comprehension activation boundary. All 1,280
+  ordinary-function/closure and 640 parameter-capture comparisons match CPython
+  (1,920 total). CPython's inlined
+  comprehension optimization is not this interpreter's current activation model;
+  this metadata describes actual local storage, not CPython bytecode layouts.
+  Native frame/code objects, locals reflection and traceback integration remain
+  unfinished. Selected build, typecheck and scoped lint pass. Focused compiler
+  checks pass 28 tests; the earlier native integration route passed 834 tests.
+  The final uncached one-worker package suite passes 7,659 tests in 516 files
+  (144.02s; test bodies 9.60s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

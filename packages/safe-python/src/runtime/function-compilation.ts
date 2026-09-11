@@ -9,8 +9,11 @@ import { compileSuite } from "./suite-compilation.js";
 import type { CompiledClassBody } from "./class-compilation.js";
 import type { LiteralPool } from "./literal-pool.js";
 import type { ComprehensionNode } from "./comprehension-execution.js";
+import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
 
 export interface CompiledFunction<Value> {
+  /** Real function/lambda code owns this layout; synthetic class code does not. */
+  readonly localLayout?:FunctionLocalLayout;
   readonly comprehensions?: ReadonlyMap<ComprehensionNode,ResolvedScope>;
   /** Literal objects belong to the originating compilation, not each call. */
   readonly literals?: LiteralPool<Value>;
@@ -51,7 +54,8 @@ export function compileFunction<Value>(
   const qualifiedName = constants.string(qualified);
   meter.checkpoint();
   const firstLine = constants.integer(node.kind === "function" ? node.decorators[0]?.start.line ?? node.start.line : node.start.line);
-  if (node.kind === "lambda") return { scope, kind, name, qualifiedName, firstLine, docstring: undefined, body: { kind: "expression", expression: node.body } };
+  const localLayout=compileFunctionLocalLayout(scope,meter);
+  if (node.kind === "lambda") return { scope, kind, name, qualifiedName, firstLine, localLayout, docstring: undefined, body: { kind: "expression", expression: node.body } };
   const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
-  return { scope, kind, name, qualifiedName, firstLine, docstring: suite.docstring, body: { kind: "suite", statements: suite.statements } };
+  return { scope, kind, name, qualifiedName, firstLine, localLayout, docstring: suite.docstring, body: { kind: "suite", statements: suite.statements } };
 }

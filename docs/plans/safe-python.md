@@ -12589,6 +12589,21 @@ extension, integration, or validation requirement is missing or unverified.
   This exposes source compilation, not a complete interpreter API or guest
   compile/eval/exec builtins. Constant adapters remain responsible for their own
   guest allocations, and indivisible host operations remain cooperative limits.
+- Standalone expression analysis (2026-09-11): twelve failing public-entry tests
+  established eval-context and scope requirements. analyzeExpression now parses
+  expression grammar, creates a metered synthetic module scope, and shares the
+  existing future/context/symbol/qualified-name/static-attribute analysis pipeline.
+  The original expression identity is retained alongside its analysis; the
+  synthetic module is explicitly not a docstring/execution suite. Top-level
+  yield/await and invalid comprehension assignments are rejected, while lambda
+  generators, async generator expressions and comprehension outer assignments
+  retain their scopes. All 35 focused analysis tests pass. Sixty-six acceptance
+  comparisons match CPython eval compilation, and 36 complete module-analysis
+  result/diagnostic baselines against c339db731 preserve the refactored path.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 8,836 tests in 587 files (88.38s; bodies 9.48s).
+  Expression-mode code preparation and value-returning runtime execution are
+  next prerequisites for guest eval; this analysis API alone does not evaluate.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

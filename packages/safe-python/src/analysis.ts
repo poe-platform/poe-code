@@ -1,6 +1,8 @@
 import type { LexerOptions } from "./lexer.js";
 import type { Module } from "./statement-ast.js";
 import { parseModule } from "./module.js";
+import { parseExpression } from "./expression.js";
+import type { Expression } from "./ast.js";
 import { validateFutureImports } from "./future-imports.js";
 import { validateControlFlow } from "./control-flow-validation.js";
 import { collectSymbols } from "./symbol-collection.js";
@@ -23,6 +25,29 @@ export interface ModuleAnalysis {
   readonly staticAttributes: ReadonlyMap<SymbolScope, readonly string[]>;
 }
 
+export interface ExpressionAnalysis extends ModuleAnalysis {
+  /** Original expression, shared with the synthetic module's sole statement. */
+  readonly expression:Expression;
+}
+
+/** Analyze eval grammar and its nested scopes without evaluating the expression.
+ * A synthetic module supplies the global namespace for shared scope analysis;
+ * it is not a statement-mode parse and must not be executed as a docstring suite.
+ */
+export function analyzeExpression(text:string,options:LexerOptions={}):ExpressionAnalysis {
+  try {
+    const expression=parseExpression(text,options);
+    options.meter?.checkpoint(1,176);
+    const module:Module={kind:"module",start:expression.start,end:expression.end,body:[{kind:"expression-statement",expression,start:expression.start,end:expression.end}]};
+    const analysis=analyzeTree(module,options);
+    options.meter?.checkpoint(1,112);
+    return {...analysis,expression};
+  } catch(error) {
+    if(error instanceof PythonSyntaxError)error.withSource(text,false,options.meter);
+    throw error;
+  } finally {options.meter?.checkpoint();}
+}
+
 /** Parse and statically validate source without executing it or loading imports.
  * Returned scopes reference the same syntax tree. Readonly collections describe
  * the API contract; they are not an isolation boundary or frozen snapshots.
@@ -30,6 +55,14 @@ export interface ModuleAnalysis {
 export function analyzeModule(text: string, options: LexerOptions = {}): ModuleAnalysis {
   try {
     const module = parseModule(text, options);
+    return analyzeTree(module,options);
+  } catch (error) {
+    if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);
+    throw error;
+  } finally {options.meter?.checkpoint();}
+}
+
+function analyzeTree(module:Module,options:LexerOptions):ModuleAnalysis {
     const futureFeatures = validateFutureImports(module, options.filename,options.meter);
     const functionKinds = validateControlFlow(module, options.filename,options.meter);
     const scopes = resolveSymbols(collectSymbols(module,options.meter), options.filename,options.meter);
@@ -37,8 +70,4 @@ export function analyzeModule(text: string, options: LexerOptions = {}): ModuleA
     const staticAttributes = collectStaticAttributes(scopes.scope,options.meter);
     options.meter?.checkpoint(1,96);
     return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
-  } catch (error) {
-    if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);
-    throw error;
-  } finally {options.meter?.checkpoint();}
 }

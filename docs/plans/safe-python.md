@@ -13262,6 +13262,19 @@ extension, integration, or validation requirement is missing or unverified.
   Remaining native descriptor/type coverage, public interpreter assembly, imports,
   safe-fs and broader compatibility/security/performance audits remain unfinished.
   No push or release was requested or performed.
+- NoneType comparison ownership (2026-09-11): six failing native regressions
+  established that comparisons were inherited from object instead of published
+  as NoneType-owned descriptors, allowing invalid receivers and exposing the
+  wrong __objclass__. Extended the existing native comparison installer to None
+  and publish all six slots from its canonical registry type; no new comparison
+  engine was introduced. Tests verify ownership, bound/unbound receiver checks,
+  same-None equality/inequality, ordering and foreign-operand NotImplemented,
+  and positional/keyword diagnostics. CPython probes confirm ownership semantics,
+  return values and wrong-receiver errors. Build, typecheck, scoped lint and
+  whitespace checks pass; the full uncached thread-pool suite passes 9,205 tests
+  in 610 files (112.50s; bodies 12.23s). NoneType hashing policy/publication remains
+  a separate follow-up, along with canonical type coverage, public interpreter
+  assembly, imports, safe-fs and broad audits. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

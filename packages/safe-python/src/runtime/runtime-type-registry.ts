@@ -672,6 +672,7 @@ export class RuntimeTypeRegistry {
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     namespace.items.set(this.values.string("__new__"),createSingletonNewBuiltin(type,this.values.none,this.values,this.meter));
     installRuntimeSingletonSlots("none",type,this.values,this.meter);
+    installRuntimeComparisonMethods("none",type,this.values,this.meter);
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#noneType=type;
     return type;

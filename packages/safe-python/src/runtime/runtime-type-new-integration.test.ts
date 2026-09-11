@@ -165,6 +165,17 @@ it.each(["none","not-implemented","ellipsis"] as const)("validates singleton des
   }
 });
 
+it.each(["__eq__","__ne__","__lt__","__le__","__gt__","__ge__"])("publishes NoneType-owned comparison descriptor %s",method=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("NotImplemented",v.notImplemented);
+  state.run(`T=type(None)\nowned=T.${method}.__objclass__ is T\nother=None.${method}(1) is NotImplemented\ntry:T.${method}(1,None)\nexcept TypeError:rejected=True\n`);
+  for(const name of ["owned","other","rejected"])expect(state.globals.get(name)).toBe(v.true);
+  const expected=method==="__eq__"?"True":method==="__ne__"?"False":"NotImplemented";
+  state.run(`same=None.${method}(None) is ${expected}\ntry:None.${method}()\nexcept TypeError as e:missing=e.args\ntry:None.${method}(None,x=1)\nexcept TypeError as e:keyword=e.args\n`);
+  expect(state.globals.get("same")).toBe(v.true);
+  expect(state.globals.get("missing")).toEqual(v.tuple([v.string("expected 1 argument, got 0")]));
+  expect(state.globals.get("keyword")).toEqual(v.tuple([v.string(`wrapper ${method}() takes no keyword arguments`)]));
+});
+
 it("distinguishes function names from assigned and natural generator-expression code names",()=>{
   const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
   const program=compileSourceProgram("g=(x for x in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);

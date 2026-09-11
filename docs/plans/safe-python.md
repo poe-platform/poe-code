@@ -12107,6 +12107,21 @@ extension, integration, or validation requirement is missing or unverified.
   AST construction and remaining
   downstream compilation still require safety accounting/audit before guest
   eager compilation is enabled.
+- Literal-pool traversal/callback safety (2026-09-11): three failing tests
+  reproduced cancellation hidden by throwing literal/tuple factories and
+  unmetered scans of 10,000 defaultless parameters. Compilation now forwards
+  its meter into statement-expression, expression-child and statement-child
+  traversal, reserves helper iterator storage, and checks termination in a
+  finally block. Two additional regressions retain ordinary factory errors
+  when cancellation is absent. The original focused two-file run passes
+  14 tests; build, typecheck and scoped lint pass. All 19 in-memory comparisons
+  against cfac316ac preserve literal/folded maps and values, including nested
+  tuples, signed zero, Unicode, docstring stripping, patterns and comprehensions.
+  These are baseline regressions, not additional CPython compatibility evidence.
+  The final uncached one-worker full suite passes 8,423 tests in 555 files
+  (254.51s; test bodies 13.82s). This fixes these demonstrated boundaries, not
+  all remaining AST/compiler allocation accounting. Suite compilation still
+  needs statement-copy allocation and docstring callback termination auditing.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

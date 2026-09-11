@@ -19,6 +19,7 @@ interface TuplePool<Value> { readonly children: Map<ConstantRecord<Value>, Tuple
  * displays can share the same pool without guest equality or AST mutation.
  * General folding and metadata/docstring pooling remain separate compiler work. */
 export function compileLiteralPool<Value>(body: readonly Statement[], literal: (node: LiteralExpression) => Value, meter: ExecutionMeter, tuple?: (values: readonly Value[]) => Value): LiteralPool<Value> {
+  try {
   meter.checkpoint(1, 352 + body.length * 8);
   const folded = new Map<Expression, Value>(), records = new Map<Expression, ConstantRecord<Value>>();
   const result = Object.assign(new Map<LiteralExpression, Value>(), { folded });
@@ -40,9 +41,9 @@ export function compileLiteralPool<Value>(body: readonly Statement[], literal: (
   while (statements.length) {
     meter.checkpoint(); const statement = statements.pop()!;
     if (statement === first && isDocstring(statement)) continue;
-    meter.checkpoint(1, 32);
+    meter.checkpoint(1, 160);
     const expressions: { node: Expression; after: boolean }[] = [];
-    for (const node of statementExpressions(statement, false)) { meter.checkpoint(1, 40); expressions.push({ node, after: false }); }
+    for (const node of statementExpressions(statement, false, meter)) { meter.checkpoint(1, 40); expressions.push({ node, after: false }); }
     while (expressions.length) {
       meter.checkpoint(); const { node: expression, after } = expressions.pop()!;
       if (records.has(expression)) continue;
@@ -52,7 +53,8 @@ export function compileLiteralPool<Value>(body: readonly Statement[], literal: (
         meter.checkpoint(1, 48); result.set(expression, record.value);
       } else if (!after) {
         meter.checkpoint(0, 40); expressions.push({ node: expression, after: true });
-        for (const child of expressionChildren(expression)) { meter.checkpoint(1, 40); expressions.push({ node: child, after: false }); }
+        meter.checkpoint(0, 128);
+        for (const child of expressionChildren(expression, meter)) { meter.checkpoint(1, 40); expressions.push({ node: child, after: false }); }
         continue;
       } else if (expression.kind === "unary") {
         const operand = records.get(expression.operand)?.literal;
@@ -82,12 +84,14 @@ export function compileLiteralPool<Value>(body: readonly Statement[], literal: (
         if (expression.kind !== "literal") { meter.checkpoint(0, 48); folded.set(expression, record.value); }
       }
     }
-    for (const child of statementChildren(statement)) {
+    meter.checkpoint(0, 128);
+    for (const child of statementChildren(statement, meter)) {
       if ((statement.kind === "function" || statement.kind === "class") && child === statement.body[0] && isDocstring(child)) continue;
       meter.checkpoint(1, 8); statements.push(child);
     }
   }
   return result;
+  } finally { meter.checkpoint(); }
 }
 
 function foldUnary(node: Extract<Expression, { kind: "unary" }>, operand: LiteralExpression, meter: ExecutionMeter): LiteralExpression | undefined {

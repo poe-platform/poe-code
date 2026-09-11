@@ -7,6 +7,7 @@ import type { CallStack } from "./call-stack.js";
 import type { CompiledFunction } from "./function-compilation.js";
 import type { CompiledClassBody } from "./class-compilation.js";
 import { bindArguments } from "./argument-binding.js";
+import type {CompiledProgram} from "./program-compilation.js";
 
 export interface FunctionInvocationContext<Value, Key = string> extends FunctionFrameContext<Value, Key> {
   readonly none: Value;
@@ -20,6 +21,8 @@ export interface FunctionInvocationContext<Value, Key = string> extends Function
   /** Ordinary invocation of class-body code uses its defining globals as locals,
    * not the prepared namespace used by __build_class__. */
   classBody?(code: CompiledClassBody<Value>): Value;
+  /** Unoptimized module/expression code uses the function's globals as locals. */
+  moduleBody?(program:CompiledProgram<Value>):Value;
   /** Allocate an unstarted generator/coroutine/async-generator object retaining
    * the frame. This must not run the body. Resumption and lifecycle protocols are
    * supplied by the suspension backend, not synchronous statement execution.
@@ -46,6 +49,11 @@ export function invokeFunction<Value, Key = string>(
   context: FunctionInvocationContext<Value, Key>, meter: ExecutionMeter
 ): Value {
   meter.checkpoint();
+  if(code.body.kind==="module"){
+    bindArguments(call.name,[],call.positional,call.keywords,call.defaults,meter,call.keywordNames,call.defaultOverrides);
+    if(context.moduleBody===undefined)throw Error("module-code function execution is unavailable");
+    try{return context.moduleBody(code.body.program);}finally{meter.checkpoint();}
+  }
   if (code.body.kind === "class") {
     bindArguments(call.name, [], call.positional, call.keywords, call.defaults, meter, call.keywordNames, call.defaultOverrides);
     if (context.classBody === undefined) throw new Error("class-body function execution is unavailable");

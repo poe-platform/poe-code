@@ -9,6 +9,7 @@ import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
 import { createFunctionState } from "./function-state.js";
 import { CallStack } from "./call-stack.js";
+import {RuntimeCodePrograms} from "./runtime-code-programs.js";
 
 function fixture(source: string, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000, signal }), values = new RuntimeValues(meter);
@@ -23,6 +24,14 @@ function fixture(source: string, signal?: AbortSignal) {
 }
 
 describe("prepared builder body execution", () => {
+  it("runs assigned module code in prepared locals with its originating program",()=>{
+    const state=fixture("def f():pass"),program=compileProgram(analyzeModule("created=7\ndef nested():return 9"),{stripDocstring:false},state.values,state.meter);
+    const programs=new RuntimeCodePrograms(state.meter,state.values);programs.register(program);
+    state.fn.value.code=programs.functionCode(program.module)!;
+    expect(state.run()).toBeUndefined();expect(state.globals.has("created")).toBe(false);
+    expect(state.namespace.items.lookup(state.values.string("created"))?.value).toEqual(state.values.integer(7));
+    expect(state.namespace.items.lookup(state.values.string("nested"))?.value.kind).toBe("function");
+  });
   it("executes class code against prepared locals and returns the published cell storage", () => {
     const state = fixture("class C:\n x = 7\n def f(): return __class__\n"), cell = state.run();
     const published = state.namespace.items.lookup(state.values.string("__classcell__"))?.value;

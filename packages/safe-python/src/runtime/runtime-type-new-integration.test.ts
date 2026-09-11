@@ -111,6 +111,18 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("uses prepared class locals when a builder function contains module code",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("def f():pass\nf.__code__=compile('created=7','builder.py','exec')\nC=__build_class__(f,'C')\ncorrect=C.created==7 and 'created' not in globals()\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("assigns compiled module and expression code to functions with original globals",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("def f():pass\noriginal=f.__name__\ncode=compile('x=7\\nidentity=locals() is globals()\\ndef nested():return x','module.py','exec')\nf.__code__=code\nresult=f()\ncorrect=result is None and x==7 and identity and nested()==7 and f.__code__ is code and f.__name__ is original\nexpression=compile('x+2','expression.py','eval')\nf.__code__=expression\nevaluated=f()==9 and f.__code__ is expression\ntry:f(1)\nexcept TypeError:arity=True\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  for(const name of ["correct","evaluated","arity"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+});
+
 it("executes closure-bearing class code through custom locals mapping protocols",()=>{
   const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
   const program=compileSourceProgram("def outer(x):\n class C:\n  y=x\n  def method(self):return x,__class__\n return C\n",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
@@ -215,7 +227,7 @@ it("uses subclass global reads, intrinsic writes and deletes, and original frame
 
 function dynamicNamespaceFixture(){
   const state=exceptionFixture(),{v,meter}=state;
-  const programs=new RuntimeCodePrograms(meter);
+  const programs=new RuntimeCodePrograms(meter,v);
   state.hooks.code=state.registry.code.bind(state.registry);
   state.hooks.functionCode=programs.functionCode.bind(programs);
   state.hooks.resolveBuiltins=value=>new RuntimeDictionaryNamespace(value,v,meter);
@@ -243,7 +255,7 @@ function dynamicNamespaceFixture(){
     const localNames=selected.locals.kind==="dict"?new RuntimeDictionaryNamespace(selected.locals,v,meter,invocation):new RuntimeMappingNamespace(selected.locals,v,meter,invocation);
     const builtinNames=selected.builtins.kind==="dict"?new RuntimeDictionaryNamespace(selected.builtins,v,meter,invocation):new RuntimeMappingNamespace(selected.builtins,v,meter,invocation);
     const callableCode=code===undefined?undefined:programs.functionCode(code);
-    if(callableCode!==undefined)return executeRuntimeFunctionCode(callableCode,closure,{globals:globalNames,builtins:builtinNames,none:v.none,resolveBuiltins:()=>builtinNames},v,meter,invocation,selected.locals);
+    if(callableCode!==undefined&&callableCode.body.kind!=="module")return executeRuntimeFunctionCode(callableCode,closure,{globals:globalNames,builtins:builtinNames,none:v.none,resolveBuiltins:()=>builtinNames},v,meter,invocation,selected.locals);
     if(program===undefined||code!==undefined&&code!==program.module)throw Error("fixture requires registered module or function code");
     return executeRuntimeProgram(program,{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
   }}));

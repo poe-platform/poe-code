@@ -14,6 +14,7 @@ import {createCompilationSource,type CompilationSource,type CodeCompilationOptio
 import {compileCodeScopeFlags} from "./code-scope-flags.js";
 import {compilationOptimization} from "./compilation-optimization.js";
 import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
+import type {CompiledProgram} from "./program-compilation.js";
 
 export interface CompiledFunction<Value> {
   readonly flags?:number;
@@ -37,7 +38,8 @@ export interface CompiledFunction<Value> {
   readonly docstring: { readonly value: Value } | undefined;
   readonly body: { readonly kind: "suite"; readonly statements: readonly Statement[] }
     | { readonly kind: "expression"; readonly expression: Expression }
-    | { readonly kind: "class"; readonly code: CompiledClassBody<Value> };
+    | { readonly kind: "class"; readonly code: CompiledClassBody<Value> }
+    | { readonly kind: "module"; readonly program: CompiledProgram<Value> };
 }
 
 /** Compile function/lambda metadata using exact analyzed identities. Defaults and

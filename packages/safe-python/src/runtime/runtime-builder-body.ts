@@ -7,7 +7,7 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import type { CompiledProgram } from "./program-compilation.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
 import { invokeRuntimeFunction } from "./runtime-function-call.js";
-import { createRuntimeFrameBody, type RuntimeExecutionContext } from "./runtime-program.js";
+import { createRuntimeFrameBody,executeRuntimeProgram, type RuntimeExecutionContext } from "./runtime-program.js";
 import type { FunctionValue, RuntimeValue } from "./runtime-values.js";
 
 export interface RuntimeBuilderBodyContext extends RuntimeExecutionContext {
@@ -30,11 +30,15 @@ export function executeRuntimeBuilderBody(
   const { values, keys, calls, hooks } = context, code = fn.value.code;
   const body = createRuntimeFrameBody(program, context, meter);
   const bindBody = (frame: Parameters<typeof body>[0]) => body(frame, fn.value, code.definitions ?? program.functions, code.classDefinitions ?? program.classFunctions);
-  if (code.body.kind === "class") {
+  if (code.body.kind === "class"||code.body.kind==="module") {
     if(namespace.kind==="dict")meter.checkpoint(0,96);
     const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter,{isException:context.exceptions?.matches.bind(context.exceptions)}) : context.namespace?.(namespace);
     meter.checkpoint();
     if (locals === undefined) throw new Error("prepared class namespace mapping adapter is unavailable");
+    if(code.body.kind==="module"){
+      const result=executeRuntimeProgram(code.body.program,{...context,globals:fn.value.globals,builtins:fn.value.builtins,locals},meter);
+      meter.checkpoint();return result?.kind==="cell"?result.value:undefined;
+    }
     const result = executeClassBody(code.body.code, {
       globals: fn.value.globals, builtins: fn.value.builtins, closure: fn.value.closure,
       locals, calls, cell: values.cell.bind(values), body: bindBody

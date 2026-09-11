@@ -1,7 +1,7 @@
 import type {ExecutionMeter} from "./execution-budget.js";
 import type {CompiledProgram} from "./program-compilation.js";
 import type {RuntimeCompiledCode} from "./runtime-code.js";
-import type {RuntimeValue} from "./runtime-values.js";
+import type {RuntimeValue,RuntimeValues} from "./runtime-values.js";
 import type {CompiledFunction} from "./function-compilation.js";
 
 /** Execution-owned association, keyed by compiler identity rather than source
@@ -9,7 +9,8 @@ import type {CompiledFunction} from "./function-compilation.js";
  * environment. This is trusted compiler metadata, not a guest security boundary. */
 export class RuntimeCodePrograms {
   readonly #programs=new WeakMap<RuntimeCompiledCode,CompiledProgram<RuntimeValue>>();
-  constructor(private readonly meter:ExecutionMeter){meter.checkpoint(1,96);Object.freeze(this);}
+  readonly #moduleFunctions=new WeakMap<RuntimeCompiledCode,CompiledFunction<RuntimeValue>>();
+  constructor(private readonly meter:ExecutionMeter,private readonly values:RuntimeValues){meter.checkpoint(1,160);Object.freeze(this);}
 
   register(program:CompiledProgram<RuntimeValue>):void {
     this.meter.checkpoint(1,256);
@@ -39,9 +40,17 @@ export class RuntimeCodePrograms {
   functionCode(code:RuntimeCompiledCode):CompiledFunction<RuntimeValue>|undefined {
     this.meter.checkpoint();
     if("body" in code)return code;
+    const program=this.#programs.get(code);
+    if(program?.module===code){
+      const existing=this.#moduleFunctions.get(code);if(existing!==undefined)return existing;
+      this.meter.checkpoint(1,240);
+      const name=this.values.string("<module>"),firstLine=this.values.integer(1);
+      const result:CompiledFunction<RuntimeValue>={scope:code.scope,source:code.source,flags:code.flags,kind:"function",name,qualifiedName:name,firstLine,docstring:code.docstring,body:{kind:"module",program}};
+      this.meter.checkpoint(1,48);this.#moduleFunctions.set(code,result);return result;
+    }
     const node=code.scope.scope.node;
     if(node.kind!=="class")return undefined;
-    const wrapper=this.#programs.get(code)?.classFunctions.get(node);
+    const wrapper=program?.classFunctions.get(node);
     this.meter.checkpoint();
     return wrapper?.body.kind==="class"&&wrapper.body.code===code?wrapper:undefined;
   }

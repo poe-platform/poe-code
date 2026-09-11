@@ -5,7 +5,7 @@ import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import type { DictionaryValue, FunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export interface RuntimeFunctionContext extends Pick<FunctionInvocationContext<RuntimeValue, RuntimeValue>, "calls" | "body" | "suspended" | "classBody"> {
+export interface RuntimeFunctionContext extends Pick<FunctionInvocationContext<RuntimeValue, RuntimeValue>, "calls" | "body" | "suspended" | "classBody" | "moduleBody"> {
   readonly values: RuntimeValues;
   readonly keys: KeyOperations<RuntimeValue>;
 }
@@ -47,6 +47,7 @@ export function invokeRuntimeFunction(fn: FunctionValue, positional: readonly Ru
   };
   if (context.suspended) invocation.suspended = context.suspended.bind(context);
   if (context.classBody) invocation.classBody = context.classBody.bind(context);
+  if (context.moduleBody) invocation.moduleBody = context.moduleBody.bind(context);
   return invokeFunction(state.code, {
     name: stringText(state.qualifiedName, meter), positional, keywords: keywordValues, defaults: state.defaults,
     defaultOverrides: state.positionalDefaults === undefined && state.keywordDefaults === undefined ? undefined : {

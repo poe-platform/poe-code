@@ -13094,6 +13094,25 @@ extension, integration, or validation requirement is missing or unverified.
   events remain unfinished. Build, typecheck, scoped lint and whitespace checks
   pass. The uncached full thread-pool suite passes 9,135 tests in 606 files
   (98.95s; bodies 11.17s).
+- Module/expression code assignment (2026-09-11): a failing native test
+  established that functions could not receive registered compiled module code.
+  Added cached compiler-owned module callable adapters retaining the original
+  program and canonical module code identity. Ordinary invocation binds zero
+  parameters and runs the original program with function globals as module locals;
+  eval-compiled expressions return their value. Existing function metadata remains
+  unchanged. Direct eval/exec keeps its separate namespace-aware module route.
+  A CPython probe and two failing builder regressions exposed the distinction for
+  __build_class__: assigned module code must use prepared class locals. Both native
+  and standalone builder entry points now honor that namespace, retaining original
+  nested definitions and globals. Registry tests cover stable adapter identity,
+  unregistered/cloned code rejection and recovery after allocation failure. Native
+  tests cover expression results, nested functions, original name/code identity,
+  zero-argument binding and prepared class namespace isolation; both scenarios
+  also pass CPython. Focused checks pass 1,075 tests. Generator-expression callable
+  adapters, complete public interpreter/backend registration and audit events
+  remain unfinished. Build, typecheck, scoped lint and whitespace checks pass.
+  The uncached full thread-pool suite passes 9,140 tests in 606 files (86.15s;
+  bodies 9.86s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

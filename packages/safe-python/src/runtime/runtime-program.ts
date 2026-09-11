@@ -195,6 +195,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const fn = value;
         if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
+          moduleBody(program){return executeRuntimeProgram(program,{...context,globals:fn.value.globals,builtins:fn.value.builtins,locals:undefined},meter)??values.none;},
           values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions),
           classBody(code) {
             let result: RuntimeValue = values.none;
@@ -278,12 +279,16 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get moduleName() { return lookupNamespace(namespaces.globals,"__name__")?.value; },
       executeClassBody(fn, namespace) {
         meter.checkpoint();
-        if (fn.value.code.body.kind !== "class") {
+        if (fn.value.code.body.kind !== "class"&&fn.value.code.body.kind!=="module") {
           const result = builtinCalls.call(fn, []); meter.checkpoint();
           return result.kind === "cell" ? result.value : undefined;
         }
         const locals = namespace.kind === "dict" ? new RuntimeDictionaryNamespace(namespace, values, meter, builtinCalls)
           : new RuntimeMappingNamespace(namespace, values, meter, builtinCalls);
+        if(fn.value.code.body.kind==="module"){
+          const result=executeRuntimeProgram(fn.value.code.body.program,{...context,globals:fn.value.globals,builtins:fn.value.builtins,locals},meter);
+          meter.checkpoint();return result?.kind==="cell"?result.value:undefined;
+        }
         return executeClassBody(fn.value.code.body.code, {
           ...fn.value, calls, locals, cell: cell => values.cell(cell),
           body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions)

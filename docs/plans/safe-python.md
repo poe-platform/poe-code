@@ -10936,6 +10936,23 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,769 tests in 522 files (210.34s;
   test bodies 21.36s).
+- Supplied tracebacks in suspension throws (2026-09-10): four failing native
+  regressions reproduced obsolete rejection of every non-None third argument
+  in generator/coroutine/async-generator throw paths. Shared exception throw
+  normalization now validates native traceback identity, attaches an explicitly
+  supplied traceback after successful normalization, preserves existing storage
+  for omitted/None arguments, and retains a normalization failure's own traceback.
+  Delegated custom throw methods still receive raw arguments and traceback
+  identity before validation; native delegation and async operations use the
+  shared selection policy. Nine native tests cover the four suspension paths,
+  existing/supplied/failure selection, and raw custom delegation. The focused
+  two-file suite passes 850 tests. All 320 CPython comparisons match for supplied
+  traceback marker retention, exception values, constructor events and validation
+  errors across the four paths. These comparisons deliberately do not claim
+  automatic frame insertion parity, which still requires code/location metadata.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,778 tests in 522 files (150.82s;
+  test bodies 9.68s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

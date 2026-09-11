@@ -256,24 +256,35 @@ export class RuntimeExceptionExecution {
   }
   /** Validation failures stay outside the generator; normalization failures
    * become the exception injected by a subsequent lifecycle resume. */
-  throwError(requested:RuntimeValue,value:RuntimeValue,invocation:BuiltinInvocationContext):RuntimeRaisedException {
+  throwError(requested:RuntimeValue,value:RuntimeValue,invocation:BuiltinInvocationContext,traceback?:RuntimeValue):RuntimeRaisedException {
+    this.meter.checkpoint();
+    if(traceback!==undefined&&traceback.kind!=="none"&&(traceback.kind!=="instance"||traceback.native?.kind!=="traceback"))throw new PythonRuntimeError("TypeError","throw() third argument must be a traceback object");
     const context=this.normalization(invocation),{meter}=this;
-    if(this.exceptionClass(requested)===undefined) {
-      if(!context.isInstance(requested))throw new PythonRuntimeError("TypeError",`exceptions must be classes or instances deriving from BaseException, not ${context.typeOf(requested).value.name}`);
-      if(value.kind!=="none")throw new PythonRuntimeError("TypeError","instance exception may not have a separate value");
-      return new RuntimeRaisedException(requested as InstanceValue,meter);
-    }
-    meter.checkpoint(0,384);
-    const normalized=normalizeThrownException(requested,value,{
-      ...context,isNone:value=>value.kind==="none",tupleItems:value=>runtimeTuplePayload(value)?.items,
-      call:(type,args)=>invocation.call(type,args),
-      failure:error=>{
-        const prepared=this.prepare(error);
-        if(!(prepared instanceof RuntimeRaisedException))throw prepared;
-        return prepared.value;
+    let normalized:RuntimeValue,failed=false;
+    try {
+      if(this.exceptionClass(requested)===undefined) {
+        if(!context.isInstance(requested))throw new PythonRuntimeError("TypeError",`exceptions must be classes or instances deriving from BaseException, not ${context.typeOf(requested).value.name}`);
+        if(value.kind!=="none")throw new PythonRuntimeError("TypeError","instance exception may not have a separate value");
+        normalized=requested;
+      } else {
+        meter.checkpoint(0,384);
+        normalized=normalizeThrownException(requested,value,{
+          ...context,isNone:value=>value.kind==="none",tupleItems:value=>runtimeTuplePayload(value)?.items,
+          call:(type,args)=>invocation.call(type,args),
+          failure:error=>{
+            const prepared=this.prepare(error);
+            if(!(prepared instanceof RuntimeRaisedException))throw prepared;
+            failed=true;
+            return prepared.value;
+          }
+        },meter);
       }
-    },meter);
-    return new RuntimeRaisedException(normalized as InstanceValue,meter);
+      const result=new RuntimeRaisedException(normalized as InstanceValue,meter);
+      // Normalization failures retain their own traceback; None preserves an
+      // existing exception traceback rather than explicitly clearing it.
+      if(!failed&&traceback?.kind==="instance")runtimeExceptionPayload(result.value)!.assignTraceback(traceback,meter);
+      return result;
+    }finally{meter.checkpoint();}
   }
   raise(statement:Extract<Statement,{kind:"raise"}>,evaluate:(expression:Expression)=>RuntimeValue,invocation:BuiltinInvocationContext):never {
     return executeRaise(statement,this.raising(evaluate,invocation),this.meter);

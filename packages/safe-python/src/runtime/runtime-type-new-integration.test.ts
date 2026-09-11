@@ -204,6 +204,43 @@ it("shares exact Python dictionary globals across module, function and class exe
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
+it.each(["generator","delegated","coroutine","async_generator"])("accepts an explicit traceback when throwing into a %s",kind=>{
+  const state=exceptionFixture({warn(){}}),{v,meter,registry}=state;
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);
+  state.globals.set("tb",registry.traceback(new Traceback(null,frame,0,1,meter),()=>null));
+  let source="def source():\n try:yield 1\n except ValueError as e:yield e\n";
+  if(kind==="delegated")source+="def outer():yield from source()\ng=outer()\n";
+  else if(kind==="generator")source+="g=source()\n";
+  else if(kind==="coroutine")source="class A:\n def __await__(self):yield 1\nasync def source():\n try:await A()\n except ValueError as e:return e\ng=source()\n";
+  else source="async def source():\n try:yield 1\n except ValueError as e:yield e\ng=source()\n";
+  if(kind==="async_generator")source+="try:g.__anext__().send(None)\nexcept StopIteration:pass\ntry:g.athrow(ValueError,None,tb).send(None)\nexcept StopIteration as done:e=done.value\n";
+  else if(kind==="coroutine")source+="g.send(None)\ntry:g.throw(ValueError,None,tb)\nexcept StopIteration as done:e=done.value\n";
+  else source+="g.__next__()\ne=g.throw(ValueError,None,tb)\n";
+  source+="tail=e.__traceback__\nwhile tail.tb_next is not None:tail=tail.tb_next\ncorrect=tail is tb\n";
+  state.run(source);expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each([
+  ["ValueError().with_traceback(old),None,None","old"],
+  ["ValueError,ValueError().with_traceback(old),None","old"],
+  ["ValueError().with_traceback(old),None,tb","tb"],
+  ["Fail,None,tb","old"]
+])("selects supplied and existing throw tracebacks for %s",(args,expected)=>{
+  const state=exceptionFixture({warn(){}}),{v,meter,registry}=state;
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);
+  for(const name of ["old","tb"])state.globals.set(name,registry.traceback(new Traceback(null,frame,0,1,meter),()=>null));
+  state.run("replacement=ValueError('replacement').with_traceback(old)\nclass Fail(Exception):\n def __init__(self):raise replacement\ndef source():\n try:yield 1\n except BaseException as e:yield e\ng=source()\ng.__next__()\ne=g.throw("+args+")\ntail=e.__traceback__\nwhile tail.tb_next is not None:tail=tail.tb_next\ncorrect=tail is "+expected+"\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("forwards explicit traceback identity to custom delegated throw methods before normalization",()=>{
+  const state=exceptionFixture({warn(){}}),{v,meter,registry}=state;
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);
+  state.globals.set("tb",registry.traceback(new Traceback(null,frame,0,1,meter),()=>null));
+  state.run("class Iterator:\n def __iter__(self):return self\n def __next__(self):return 1\n def throw(self,*args):return args\ndef source():yield from Iterator()\ng=source()\ng.__next__()\nargs=g.throw(42,None,tb)\ncorrect=args[0]==42 and args[1] is None and args[2] is tb\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("stores native exception tracebacks and returns self without invoking attribute overrides",()=>{
   const state=exceptionFixture(),{v,meter,registry}=state;
   const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);

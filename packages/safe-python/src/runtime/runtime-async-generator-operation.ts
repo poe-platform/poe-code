@@ -23,8 +23,7 @@ export function createRuntimeAsyncGeneratorOperation(state:RuntimeAsyncGenerator
         if(args.length>1&&input.error.warnLegacy)invocation.warn?.("DeprecationWarning","the (type, exc, tb) signature of throw() is deprecated, use the single-arg signature instead.");
         meter.checkpoint();
         if(!execution.delegating) {
-          if(args.length===3&&args[2].kind!=="none")throw new PythonRuntimeError("TypeError","throw() third argument must be a traceback object");
-          input={...input,error:exceptions.throwError(args[0],args[1]??values.none,invocation)};
+          input={...input,error:exceptions.throwError(args[0],args[1]??values.none,invocation,args[2])};
         }
       }
       return execution.resume(input);

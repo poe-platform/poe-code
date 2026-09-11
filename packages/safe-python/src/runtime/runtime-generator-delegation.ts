@@ -99,8 +99,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
       normalizeThrow:error=>{
         if(!(error instanceof RuntimeGeneratorThrowRequest))return error;
         const args=error.arguments;
-        if(args.length===3&&args[2].kind!=="none")throw new PythonRuntimeError("TypeError","throw() third argument must be a traceback object");
-        return exceptions.throwError(args[0],args[1]??values.none,error.invocation);
+        return exceptions.throwError(args[0],args[1]??values.none,error.invocation,args[2]);
       },
       unraisable:(error,iterator)=>{this.report?.(error,iterator);}
     },meter);

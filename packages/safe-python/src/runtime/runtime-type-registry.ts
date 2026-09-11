@@ -314,7 +314,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#dictionaryType !== undefined) return this.#dictionaryType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("dict", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const layout = new RuntimeTypeLayout("dict", [this.object.value], namespace, this.meter, { patternKind:"mapping",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeDictionaryMethodDescriptors(type, this.values, this.meter);
     installRuntimeDictionarySlots(type, this.values, this.meter);

@@ -3,6 +3,7 @@ import type {UnpackedAssignment} from "./assignment-unpacking.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import {runtimeLength} from "./runtime-length.js";
 import {runtimeGetItem} from "./runtime-subscription.js";
+import {runtimePatternKind} from "./runtime-pattern-kind.js";
 import type {BuiltinInvocationContext,RuntimeValue,RuntimeValues} from "./runtime-values.js";
 
 /** Type classification precedes all guest protocols. Slot duck typing must not
@@ -13,14 +14,7 @@ import type {BuiltinInvocationContext,RuntimeValue,RuntimeValues} from "./runtim
 export function prepareRuntimeSequencePattern(pattern:Extract<Pattern,{kind:"sequence"}>,subject:RuntimeValue,
   unpack:(value:RuntimeValue,before:number,after:number|null)=>UnpackedAssignment<RuntimeValue>,
   values:RuntimeValues,meter:ExecutionMeter,invocation?:BuiltinInvocationContext):Iterator<{pattern:Pattern;value:RuntimeValue}>|undefined {
-  meter.checkpoint();let eligible=subject.kind==="list"||subject.kind==="tuple"||subject.kind==="range";
-  if(!eligible){
-    const type=subject.kind==="instance"?subject.type:invocation?.actualType?.(subject);meter.checkpoint();
-    for(const base of type?.value.mro??[]){
-      meter.checkpoint();if(base.patternKind!==undefined){eligible=base.patternKind==="sequence";break;}
-    }
-  }
-  if(!eligible)return undefined;
+  if(runtimePatternKind(subject,meter,invocation)!=="sequence")return undefined;
   let star=-1,allWild=true;
   for(let index=0;index<pattern.items.length;index++){
     meter.checkpoint();const item=pattern.items[index];

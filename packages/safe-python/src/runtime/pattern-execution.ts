@@ -11,6 +11,7 @@ export interface PatternContext<Value> {
   /** Undefined means ineligible or wrong length. Iteration supplies selected
    * subpatterns in order and owns extraction, never guest iterator cleanup. */
   sequence?(pattern:Extract<Pattern,{kind:"sequence"}>,subject:Value):Iterator<{pattern:Pattern;value:Value}>|undefined;
+  mapping?(pattern:Extract<Pattern,{kind:"mapping"}>,subject:Value):Iterator<{pattern:Pattern;value:Value}>|undefined;
 }
 
 export class UnsupportedPatternError extends Error {
@@ -21,11 +22,11 @@ export class UnsupportedPatternError extends Error {
  * until success, then published before the guard; a false guard does not undo
  * them. Failed alternatives discard only their own pending captures. Guest
  * protocol failures propagate instead of selecting another alternative.
- * Native sequence extraction is supplied separately; mapping/class protocols
- * remain an explicit gap.
+ * Native container extraction is supplied separately; class protocols remain
+ * an explicit gap.
  */
 export function matchPattern<Value>(pattern:Pattern,subject:Value,context:PatternContext<Value>,meter:ExecutionMeter):boolean {
-  type Task={kind:"pattern";pattern:Pattern;value:Value}|{kind:"bind";name:string;value:Value}|{kind:"choice-end"}|{kind:"sequence";iterator:Iterator<{pattern:Pattern;value:Value}>};
+  type Task={kind:"pattern";pattern:Pattern;value:Value}|{kind:"bind";name:string;value:Value}|{kind:"choice-end"}|{kind:"children";iterator:Iterator<{pattern:Pattern;value:Value}>};
   type Choice={patterns:readonly Pattern[];index:number;value:Value;depth:number;captures:number};
   meter.checkpoint(1,256);
   const work:Task[]=[{kind:"pattern",pattern,value:subject}],choices:Choice[]=[],captures:Array<{name:string;value:Value}>=[];
@@ -33,7 +34,7 @@ export function matchPattern<Value>(pattern:Pattern,subject:Value,context:Patter
     meter.checkpoint();const task=work.pop()!;
     if(task.kind==="choice-end"){choices.pop();continue;}
     if(task.kind==="bind"){meter.checkpoint(0,40);captures.push(task);continue;}
-    if(task.kind==="sequence"){
+    if(task.kind==="children"){
       let next:IteratorResult<{pattern:Pattern;value:Value}>;
       try{next=task.iterator.next();}finally{meter.checkpoint();}
       if(!next.done){meter.checkpoint(0,48);work.push(task,{kind:"pattern",...next.value});}
@@ -58,12 +59,12 @@ export function matchPattern<Value>(pattern:Pattern,subject:Value,context:Patter
         try{accepted=node.kind==="singleton"?context.identical(value,expected):context.equal(value,expected);}finally{meter.checkpoint();}
         break;
       }
-      case "sequence":{
-        if(context.sequence===undefined)throw new UnsupportedPatternError(node.kind);
+      case "sequence":case "mapping":{
+        if(node.kind==="sequence"?context.sequence===undefined:context.mapping===undefined)throw new UnsupportedPatternError(node.kind);
         let iterator:Iterator<{pattern:Pattern;value:Value}>|undefined;
-        try{iterator=context.sequence(node,value);}finally{meter.checkpoint();}
+        try{iterator=node.kind==="sequence"?context.sequence!(node,value):context.mapping!(node,value);}finally{meter.checkpoint();}
         if(iterator===undefined)accepted=false;
-        else {meter.checkpoint(0,40);work.push({kind:"sequence",iterator});}
+        else {meter.checkpoint(0,40);work.push({kind:"children",iterator});}
         break;
       }
       default:throw new UnsupportedPatternError(node.kind);

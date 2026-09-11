@@ -95,6 +95,8 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Execution-owned canonical base object type for native sentinel allocation. */
+  readonly objectType?:TypeValue;
   /** Replace a guest protocol failure while retaining explicit cause/context. */
   causeException?(error:unknown,name:"SystemError",message:string):unknown;
   wrapAnext?(awaitable:RuntimeValue,defaultValue:RuntimeValue):RuntimeValue;

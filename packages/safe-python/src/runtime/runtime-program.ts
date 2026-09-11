@@ -36,7 +36,7 @@ import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "
 import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
 import { createRuntimeStatementContext, type RuntimeStatementBindings, type RuntimeStatementContext } from "./runtime-statement-context.js";
-import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues, type TypeValue } from "./runtime-values.js";
 import { ClassFrame } from "./class-frame.js";
 import {compileInlineLocalLayout} from "./inline-local-layout.js";
 import type {CodeLocalLayout} from "./code-local-layout.js";
@@ -91,6 +91,9 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
 }
 
 export interface RuntimeExecutionContext {
+  /** Canonical registry object type; custom mapping patterns expose fresh
+   * plain-object sentinels without looking up a shadowable guest builtin. */
+  readonly objectType?:TypeValue;
   readonly exceptions?: RuntimeExceptionExecution;
   /** Host diagnostic sink for failures that cannot propagate, such as a
    * delegated close attribute lookup. Absent sinks discard these diagnostics. */
@@ -227,7 +230,9 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       }
     }, meter);
     meter.checkpoint(0, 128);
+    meter.checkpoint(0,8);
     const builtinCalls: BuiltinInvocationContext = {
+      objectType:context.objectType,
       causeException:context.exceptions?.caused.bind(context.exceptions),
       wrapAnext:context.exceptions?.wrapAnext.bind(context.exceptions),
       enterRecursiveCall: () => calls.enter(frame),

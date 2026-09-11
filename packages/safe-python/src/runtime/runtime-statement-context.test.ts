@@ -24,7 +24,7 @@ function fixture(source: string, maxSteps = 100000) {
     body(frame: { load(name: string): RuntimeValue; store(name: string, value: RuntimeValue): void; delete(name: string): void }) {
       const expressions = createRuntimeExpressionContext(v, {
         load: frame.load.bind(frame), store: frame.store.bind(frame), attribute: unused,
-        beginCall: unused, beginSet: unused, dictionaryKeys, warn: unused
+        beginCall: unused, dictionaryKeys, warn: unused
       }, meter);
       return createRuntimeStatementContext(expressions, {
         deleteName: frame.delete.bind(frame), setAttribute: unused, deleteAttribute: unused,
@@ -44,6 +44,17 @@ function fixture(source: string, maxSteps = 100000) {
 }
 
 describe("native pattern control flow",()=>{
+  it("matches mapping keys and nested values and copies remaining entries",()=>{
+    const state=fixture("subject={'a':[1,2],'b':3,'c':4}\nmatch subject:\n case {'a':[x,y],'b':z,**rest}:result=(x,y,z,rest)\n case _:result=None\n");
+    state.run();const result=state.globals.get("result");if(result?.kind!=="tuple")throw Error("expected tuple");
+    expect(result.items.slice(0,3)).toEqual([state.v.integer(1),state.v.integer(2),state.v.integer(3)]);
+    const rest=result.items[3];if(rest.kind!=="dict")throw Error("expected dict");
+    expect(rest.items.size).toBe(1);expect(rest.items.lookup(state.v.string("c"))?.value).toEqual(state.v.integer(4));
+    expect(rest).not.toBe(state.globals.get("subject"));
+  });
+  it.each(["[]","'abc'","{'b':1}"])("rejects missing mapping keys and ineligible subjects: %s",subject=>{
+    const state=fixture("match "+subject+":\n case {'a':x}:result=True\n case _:result=False\n");state.run();expect(state.globals.get("result")).toBe(state.v.false);
+  });
   it("matches nested sequences and produces fresh starred capture lists",()=>{
     const state=fixture("subject=[1,[2,3],4,5]\nmatch subject:\n case [1,[a,b],*middle,last]:result=(a,b,middle,last)\n case _:result=None\n");
     state.run();const value=state.globals.get("result");

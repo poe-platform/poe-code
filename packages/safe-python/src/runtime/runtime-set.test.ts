@@ -9,7 +9,7 @@ import { runtimeTruth } from "./runtime-truth.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeIndex } from "./runtime-index.js";
 import { createLenBuiltin } from "./builtin-len.js";
-import { beginRuntimeSet, constructRuntimeSet, updateRuntimeSet } from "./runtime-set.js";
+import { beginRuntimeSet, constructRuntimeSet, updateRuntimeSet, runtimeSetAccess } from "./runtime-set.js";
 import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
@@ -25,6 +25,11 @@ function fixture() {
 }
 
 describe("concrete mutable set runtime", () => {
+  it("keeps native strict membership distinct from guest mutable-set probes",()=>{
+    const {set,v,meter}=fixture(),source=set(),key=set();
+    expect(runtimeSetAccess(source,key,"contains",v,meter)).toBe(false);
+    expect(()=>runtimeSetAccess(source,key,"contains-exact",v,meter)).toThrow("cannot use 'set' as a set element");
+  });
   it("deduplicates by Python hash/equality, retains first members and has live size/truth", () => {
     const { meter, v, set, dictionary } = fixture(), one = v.integer(1), source = set([one, v.true, v.string("x")]);
     expect(Object.isFrozen(source)).toBe(true); expect(source.items.size).toBe(2);

@@ -11554,6 +11554,37 @@ extension, integration, or validation requirement is missing or unverified.
   Workspace build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker full suite passes 8,083 tests in 531 files
   (132.80s; test bodies 10.10s).
+- Mapping match execution (2026-09-11): four failing native statement tests
+  reproduced missing keyed/rest mapping patterns. A shared actual-type/MRO
+  classifier now serves sequence and mapping adapters; exact dictionaries and
+  mapping proxies qualify, while native dictionary metadata propagates through
+  subclass MROs. Slot duck typing and guest __class__ shadows do not grant flags.
+  The mapping adapter checks cardinality before evaluating keys, binds get once,
+  checks dynamic duplicates with strict set membership and acquires all keyed
+  values before matching their subpatterns. Missing keys fail without invoking
+  __missing__; stored None remains a value. Custom get methods receive one fresh
+  plain-object sentinel per keyed attempt. RuntimeExecutionContext.objectType is
+  explicit canonical-registry metadata for this native allocation, forwarded to
+  invocation contexts without reading shadowable guest builtins.
+  Rest dictionary copying waits until keyed subpatterns succeed, reuses the
+  existing mapping-copy protocols and removes matched keys through normal dict
+  deletion. Extracted subpatterns use the shared iterative work machine. Native
+  strict set membership is distinct from guest mutable-set probe coercion; both
+  policies have regression coverage. Sentinel/key/extraction bookkeeping remains
+  metered and introduces no filesystem/host-discovery capability.
+  The focused four-file suite passes 1,019 tests. Native coverage includes
+  sentinel identity and shadowed object, missing-versus-None, dynamic duplicate
+  diagnostics, unhashable set keys, eager get ordering, delayed rest copies and
+  mapping-proxy independence. Class patterns remain explicitly unsupported;
+  ABC registrations and additional library mapping types remain module work.
+  All 1,212 scoped CPython comparisons match: 192 mapping subject/pattern cases,
+  96 custom protocol/copy cases, 72 dynamic-key/error cases and the earlier
+  852 core, sequence and suspended-guard comparisons.
+  Workspace build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker full suite passes 8,093 tests in 531 files
+  (134.68s; test bodies 11.19s).
+  Protocol references: https://peps.python.org/pep-0634/ and
+  https://raw.githubusercontent.com/python/cpython/v3.14.0/Python/ceval.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

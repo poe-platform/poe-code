@@ -84,7 +84,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     } })
   };
   function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins,filename?:string) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false,filename }, v, meter), { values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false,filename }, v, meter), { objectType:registry.object,values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
@@ -486,6 +486,31 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("uses one plain-object mapping sentinel and get without missing-key creation",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("dict",state.registry.dictionaryType());
+  state.run("events=[]\nseen=[]\nbase_object=object\nclass M(dict):\n def get(self,key,default):\n  events.append(key)\n  seen.append(default)\n  return dict.get(self,key,default)\n def __missing__(self,key):raise AssertionError('missing')\nobject=99\nmatch M({'a':None,'b':2}):\n case {'a':None,'b':x}:result=x\n case _:result=0\ncorrect=result==2 and events==['a','b'] and seen[0] is seen[1] and type(seen[0]) is base_object\nmatch M({'b':2}):\n case {'a':x}:correct=False\n case _:pass\ncorrect=correct and events==['a','b','a'] and seen[0] is not seen[2]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("checks dynamic duplicate mapping keys after cardinality and earlier lookups",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class K:a=1;b=1\ncorrect=False\nmatch {1:2}:\n case {K.a:x,K.b:y}:pass\n case _:correct=True\ntry:\n match {1:2,3:4}:\n  case {K.a:x,K.b:y}:pass\nexcept ValueError as e:correct=correct and e.args==('mapping pattern checks duplicate key (1)',)\nmatch {2:3,3:4}:\n case {K.a:x,K.b:y}:correct=False\n case _:pass\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("uses strict set membership when validating mapping-pattern keys",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class K:a={1}\ncorrect=False\ntry:\n match {1:2}:\n  case {K.a:x}:pass\nexcept TypeError as e:correct=e.args==(\"cannot use 'set' as a set element (unhashable type: 'set')\",)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("fetches mapping values before comparing subpatterns and defers rest copying",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("dict",state.registry.dictionaryType());
+  state.run("events=[]\nclass V:\n def __eq__(self,other):\n  events.append('eq')\n  return False\nclass M(dict):\n def get(self,key,default):\n  events.append(key)\n  return dict.get(self,key,default)\n def __iter__(self):return dict.__iter__(self)\n def keys(self):raise AssertionError('early copy')\nmatch M({'a':V(),'b':2}):\n case {'a':0,'b':x,**rest}:result=True\n case _:result=False\ncorrect=result is False and events==['a','b','eq']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("matches native mapping proxies and creates an independent rest dictionary",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("P",state.registry.mappingProxyType());
+  state.run("data={'a':None,'b':2}\nmatch P(data):\n case {'a':None,**rest}:rest['b']=3\ncorrect=rest=={'b':3} and data=={'a':None,'b':2}\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("matches sequence subclasses with length, indexed wildcard and unpacking protocols",()=>{
   const state=exceptionFixture(),{v}=state;state.builtins.set("list",state.registry.listType());
   state.run("events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 3\n def __iter__(self):\n  events.append('iter')\n  return [1,2,3].__iter__()\n def __getitem__(self,key):\n  events.append(key)\n  return [1,2,3][key]\ns=S()\nmatch s:\n case [a,*_,z]:first=(a,z)\nmatch s:\n case [x,*middle,y]:second=(x,middle,y)\ncorrect=first==(1,3) and second==(1,[2],3) and events==['len',0,'len',2,'len','iter']\n");

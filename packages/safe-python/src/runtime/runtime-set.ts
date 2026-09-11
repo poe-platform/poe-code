@@ -11,21 +11,23 @@ import { runtimeSetPayload } from "./runtime-set-payload.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import type { BuiltinInvocationContext, DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
-export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean;
+export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains"|"contains-exact", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean;
 export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "add", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): void;
 export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "discard", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean;
 /** Exact set key operations. Mutable-set lookup probes use equivalent frozen
- * hashes without allocating replacement keys; insertion remains unhashable. */
-export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains" | "add" | "discard", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean | void {
+ * hashes without allocating replacement keys; insertion remains unhashable.
+ * contains-exact is the native PySet_Contains policy: no mutable-set coercion. */
+export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains" | "contains-exact" | "add" | "discard", values: ConstantValues, meter: ExecutionMeter, invocation?: Pick<BuiltinInvocationContext, "isException">): boolean | void {
   meter.checkpoint();
   try {
     if (operation === "contains") return set.items.containsKey(key, key.kind === "set" ? key.items.keySetHash() : undefined);
+    if (operation === "contains-exact") return set.items.containsKey(key);
     if (operation === "discard") return set.items.delete(key, key.kind === "set" ? key.items.keySetHash() : undefined);
     set.items.set(key, values.none);
   } catch (error) {
     const probe = key.kind === "instance" ? runtimeSetPayload(key) : undefined;
     const typeError = runtimeExceptionMatches(error instanceof RuntimeHashError ? error.original : error, "TypeError", invocation);
-    if (operation !== "add" && probe?.kind === "set" && typeError) {
+    if (operation !== "add" && operation!=="contains-exact" && probe?.kind === "set" && typeError) {
       return operation === "contains" ? set.items.containsKey(probe, probe.items.keySetHash()) : set.items.delete(probe, probe.items.keySetHash());
     }
     if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;

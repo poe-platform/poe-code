@@ -32,7 +32,7 @@ export interface CompiledClassBody<Value> {
  */
 export function compileClassBody<Value>(
   scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "staticAttributes"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures"|"futureFlags">>,
-  options: CodeCompilationOptions, constants: ClassConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,flags?:number
+  options: CodeCompilationOptions<Value>, constants: ClassConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,flags?:number
 ): CompiledClassBody<Value> {
   try {
   meter.checkpoint(1, 160);

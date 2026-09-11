@@ -11,7 +11,7 @@ import {substituteRuntimeTypeParameters} from "./runtime-type-substitution.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
-import {decodeRuntimeFileSystemName} from "./runtime-filesystem-path.js";
+import {decodeRuntimeFileSystemName,runtimeFileSystemPath} from "./runtime-filesystem-path.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
@@ -104,7 +104,10 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
 it("calls compile from guest code and publishes compiler metadata",()=>{
   const state=exceptionFixture(),{v,meter}=state;
   state.builtins.set("compile",createCompileBuiltin(v,meter,{
-    filename(value,invocation,meter){return Array.from(decodeRuntimeFileSystemName(value,meter,invocation),p=>String.fromCodePoint(p)).join("");},
+    filename(value,invocation,meter){
+      const path=runtimeFileSystemPath(value,meter,invocation),name=path.kind==="str"?path:v.stringPoints(decodeRuntimeFileSystemName(path,meter));
+      return {displayName:Array.from(name.value,p=>String.fromCodePoint(p)).join(""),value:name};
+    },
     inheritedFlags:()=>0x1000000,
     compile(request){
       if(request.source.kind!=="str"||(request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires string exec/eval with future flags only");
@@ -113,7 +116,7 @@ it("calls compile from guest code and publishes compiler metadata",()=>{
       return state.registry.code(program.module);
     }
   }));
-  state.run("class Path:\n def __fspath__(self):return b'child.py'\na=compile('1+2',Path(),'eval')\nb=compile(source='pass',filename=b'other.py',mode='exec',dont_inherit=True,optimize=2)\nc=compile('1',b'\\xff','eval')\ncorrect=a.co_filename=='child.py' and a.co_name=='<module>' and a.co_flags==16777216 and b.co_filename=='other.py' and b.co_flags==0 and c.co_filename=='\\udcff'");
+  state.run("class Path:\n def __fspath__(self):return b'child.py'\na=compile('1+2',Path(),'eval')\nb=compile(source='pass',filename=b'other.py',mode='exec',dont_inherit=True,optimize=2)\nc=compile('1',b'\\xff','eval')\nname='\\ud800\\udc00'\nd=compile('1',name,'eval')\ncorrect=a.co_filename=='child.py' and a.co_name=='<module>' and a.co_flags==16777216 and b.co_filename=='other.py' and b.co_flags==0 and c.co_filename=='\\udcff' and d.co_filename is name");
   expect(state.globals.get("correct")).toBe(v.true);
 });
 

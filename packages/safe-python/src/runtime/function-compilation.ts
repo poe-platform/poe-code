@@ -47,7 +47,7 @@ export interface CompiledFunction<Value> {
  */
 export function compileFunction<Value>(
   scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "functionKinds"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures"|"futureFlags">>,
-  options: CodeCompilationOptions, constants: CodeConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,scopeFlags?:number
+  options: CodeCompilationOptions<Value>, constants: CodeConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,scopeFlags?:number
 ): CompiledFunction<Value> {
   try {
   meter.checkpoint(1, 192);

@@ -81,3 +81,9 @@ it("includes func_type in mode diagnostics when AST output is enabled",()=>{
 it("rejects embedded NUL filenames with filesystem decoder diagnostics",()=>{
   const state=fixture();expect(()=>state.call([state.v.string("1"),state.v.string("x\0"),state.v.string("eval")])).toThrow("embedded null character");
 });
+it("retains rich filename values and snapshots them before conversion callbacks",()=>{
+  const state=fixture(),original=state.v.stringPoints(new Uint32Array([0xd800,0xdc00])),filename={displayName:"shown.py",value:original},requests:CompileRequest[]=[];
+  const builtin=createCompileBuiltin(state.v,state.meter,{filename:()=>filename,compile(request){requests.push(request);return state.v.none;}});
+  builtin.value.invoke([...state.args(),state.v.integer(0),state.v.cell({})],state.keywords,state.meter,{truth(){filename.value=state.v.string("changed");return true;}} as BuiltinInvocationContext);
+  expect(requests[0].filename).toEqual({displayName:"shown.py",value:original});expect(Object.isFrozen(requests[0].filename)).toBe(true);
+});

@@ -5,11 +5,12 @@ import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
 import {runtimeIntegerIndex} from "./runtime-integer-index.js";
 import {runtimeTruth} from "./runtime-truth.js";
 import {suggestName} from "./name-suggestion.js";
+import {snapshotCompilationFilename,type CompilationFilename} from "./compilation-source.js";
 import type {BuiltinFunctionValue,BuiltinInvocationContext,RuntimeValue,RuntimeValues} from "./runtime-values.js";
 
 export interface CompileRequest {
   readonly source:RuntimeValue;
-  readonly filename:string;
+  readonly filename:string|CompilationFilename<RuntimeValue>;
   readonly mode:"exec"|"eval"|"single"|"func_type";
   /** Explicit flags combined with caller futures unless dont_inherit was true. */
   readonly flags:number;
@@ -18,7 +19,7 @@ export interface CompileRequest {
 }
 export interface CompileContext {
   /** Explicit filesystem-name conversion policy; this must not load the file. */
-  filename(value:RuntimeValue,invocation:BuiltinInvocationContext|undefined,meter:ExecutionMeter):string;
+  filename(value:RuntimeValue,invocation:BuiltinInvocationContext|undefined,meter:ExecutionMeter):string|CompilationFilename<RuntimeValue>;
   /** Calling frame's future bits only; queried after argument validation. */
   inheritedFlags?(invocation:BuiltinInvocationContext|undefined,meter:ExecutionMeter):number;
   /** Own source decoding/AST handling, compiler options and guest code publication.
@@ -57,9 +58,10 @@ export function createCompileBuiltin(values:RuntimeValues,meter:ExecutionMeter,c
         meter.checkpoint(1,160+2*unexpected.length);
         throw new PythonRuntimeError("TypeError",`compile() got an unexpected keyword argument '${unexpected}'${suggestion===undefined?"":`. Did you mean '${suggestion}'?`}`);
       }
-      const filename=context.filename(args[1]!,invocation,meter);
-      meter.checkpoint(1+filename.length);
-      if(filename.includes("\0"))throw new PythonRuntimeError("ValueError","embedded null character");
+      const filename=snapshotCompilationFilename(context.filename(args[1]!,invocation,meter),meter);
+      const displayName=typeof filename==="string"?filename:filename.displayName;
+      meter.checkpoint(1+displayName.length);
+      if(displayName.includes("\0"))throw new PythonRuntimeError("ValueError","embedded null character");
       const modeValue=args[2]!;
       if(modeValue.kind!=="str"){
         const name=modeValue.kind==="none"?"None":invocation?.typeName?.(modeValue)??(modeValue.kind==="not-implemented"?"NotImplementedType":modeValue.kind);

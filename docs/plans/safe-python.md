@@ -12679,6 +12679,24 @@ extension, integration, or validation requirement is missing or unverified.
   The compiler's existing UTF-16 filename bridge still needs rich code-point
   identity support for distinct surrogate pairs. This is not completed safe-fs
   authorization/file-object integration or default backend publication.
+- Retained compiler filename values (2026-09-11): six failing compiler tests
+  established the rich filename contract, followed by two failing builtin/native
+  tests reproducing descriptor rejection and lost guest filename identity.
+  CompilationFilename now separates host diagnostic displayName from an already
+  allocated generic guest value. Source options snapshot/freeze descriptors before
+  callbacks; module/function/class/generator metadata shares the retained value
+  without converting it through UTF-16 or allocating it again. Explicit undefined
+  constants remain distinct from absent source metadata. The guest compile adapter
+  accepts and snapshots the same descriptor, and its native fixture preserves
+  original str identity or decodes byte paths into code-point strings. All 1,082
+  focused tests pass. Filename identity and exact code-point contents match CPython
+  across 157 nested code graphs including adjacent surrogate pairs, lone surrogates
+  and supplementary characters. Legacy string options and diagnostic display names
+  remain supported. Build, typecheck, scoped lint and whitespace checks pass.
+  The uncached full thread-pool suite passes 8,913 tests in 591 files (65.61s;
+  bodies 7.89s). Guest syntax-exception filename publication still needs to retain
+  the original value rather than relying solely on the host diagnostic spelling;
+  default compilation/eval/exec and safe-fs publication remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

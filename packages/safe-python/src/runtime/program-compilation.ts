@@ -42,7 +42,7 @@ export interface CompiledProgram<Value> {
  * accounting remain unfinished; this is not a standalone Python execution API.
  */
 export function compileProgram<Value>(
-  analysis: ModuleAnalysis|ExpressionAnalysis, options: CodeCompilationOptions,
+  analysis: ModuleAnalysis|ExpressionAnalysis, options: CodeCompilationOptions<Value>,
   constants: ClassConstants<Value> & { literal?(node: LiteralExpression): Value }, meter: ExecutionMeter
 ): CompiledProgram<Value> {
   try {

@@ -95,6 +95,44 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("executes native context managers with cached type-level methods and exception identity",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass C:\n def __enter__(self):\n  events.append('enter')\n  C.__exit__=None\n  return 7\n def __exit__(self,t,e,tb):\n  events.append((t is ValueError,e is error,tb is e.__traceback__))\n  return True\nc=C()\nc.__enter__=None\nc.__exit__=None\nerror=ValueError('body')\nwith c as x:\n events.append(x)\n raise error\ncorrect=events==['enter',7,(True,True,True)]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("unwinds native context managers in reverse and ignores truth on return",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Truth:\n def __bool__(self):raise ValueError('unexpected truth')\nclass C:\n def __init__(self,n):self.n=n\n def __enter__(self):\n  events.append(self.n)\n  return self\n def __exit__(self,t,e,tb):\n  events.append((self.n,t,e,tb))\n  return Truth()\ndef f():\n with C(1),C(2):return 7\ncorrect=f()==7 and events==[1,2,(2,None,None,None),(1,None,None,None)]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("binds native context-manager descriptors exit first without binding async hints",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass D:\n def __init__(self,n):self.n=n\n def __get__(self,obj,owner):\n  events.append(self.n)\n  return lambda *args:None\nclass C:\n __enter__=D('enter')\n __exit__=D('exit')\nwith C():pass\nclass A:\n __aenter__=D('aenter')\n __aexit__=D('aexit')\ntry:\n with A():pass\nexcept TypeError as e:hint='Did you mean' in e.args[0]\ncorrect=events==['exit','enter'] and hint\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("passes stored native tracebacks and retains active errors through exit truth",()=>{
+  const state=exceptionFixture(),{v,meter,registry}=state;
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);
+  state.globals.set("tb",registry.traceback(new Traceback(null,frame,0,1,meter),()=>null));
+  state.run("events=[]\nerror=ValueError('body').with_traceback(tb)\nclass Truth:\n def __bool__(self):raise\nclass C:\n def __enter__(self):pass\n def __exit__(self,t,e,trace):\n  events.append((t is ValueError,e is error,trace is tb))\n  return Truth()\ntry:\n with C():raise error\nexcept ValueError as e:same=e is error\ncorrect=events==[(True,True,True)] and same\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("allows outer native context managers to suppress assignment and exit failures",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Outer:\n def __enter__(self):return []\n def __exit__(self,t,e,tb):\n  events.append((t.__name__,e.args))\n  return True\nclass Inner:\n def __enter__(self):pass\n def __exit__(self,*args):raise TypeError('exit')\nwith Outer() as (x,):pass\nwith Outer(),Inner():raise ValueError('body')\ncorrect=events==[('ValueError',('not enough values to unpack (expected 1, got 0)',)),('TypeError',('exit',))]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("retains native context-manager cleanup across generator suspension and close",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass C:\n def __enter__(self):events.append('enter')\n def __exit__(self,t,e,tb):events.append(t.__name__)\ndef f():\n with C():yield 7\ng=f()\ncorrect=g.__next__()==7 and events==['enter']\ng.close()\ncorrect=correct and events==['enter','GeneratorExit']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("exposes fresh native locals proxies sharing slots and extra keys",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("frame_locals",v.builtinFunction({name:"frame_locals",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frameLocalsProxy(frame);}}));

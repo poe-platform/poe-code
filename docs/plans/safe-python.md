@@ -11018,6 +11018,24 @@ extension, integration, or validation requirement is missing or unverified.
   This does not implement code replacement, dynamically
   marked iterable coroutines, instruction/location tables, native comprehension
   code objects or automatic traceback capture.
+- Native synchronous context managers (2026-09-10): a native regression
+  reproduced unconditional rejection of with statements. The runtime now
+  supplies a modular default adapter when type-level protocol capabilities are
+  available, preserving explicit host manager overrides. It binds __exit__ before
+  __enter__, caches both before entry, ignores instance shadows, passes native
+  exception type/value/stored-traceback identities and uses the existing metered
+  statement unwinder for reverse cleanup, suppression and active exception state.
+  Missing-method diagnostics use qualified type names and inspect asynchronous
+  descriptor availability without binding those descriptors. Thirteen new tests
+  cover normal exits, return, descriptor ordering, assignment/exit failures,
+  generator suspension/close, stored tracebacks, active bare raise and cancellation.
+  An additional failing cancellation regression caught entry callbacks executing
+  after abort; entry now checks before invoking guest code. The focused three-file
+  suite passes 871 tests. All 144 cleanup/control-flow and 192 diagnostic/descriptor
+  comparisons match CPython. This does not claim automatic traceback frame
+  insertion or native async-with adapters; both remain required. Selected build,
+  typecheck, scoped lint and whitespace checks pass. The final uncached one-worker
+  package suite passes 7,837 tests in 526 files (459.34s; test bodies 39.52s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

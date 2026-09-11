@@ -13370,6 +13370,19 @@ extension, integration, or validation requirement is missing or unverified.
   More codecs, canonical str/subtype allocation, native Unicode error identity,
   public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
   No push or release was requested or performed.
+- Empty-input string decoding boundary (2026-09-11): enforced the codec-lookup
+  shortcut in createRuntimeStringDecoder itself, including custom codec policies.
+  Empty buffer leases skip copying and still release exactly once; empty immutable
+  bytes return an execution-owned empty string without calling the codec. The
+  regression failed before the fix. Existing codec-failure and cancellation tests
+  now use nonempty buffers so they continue exercising those callback paths.
+  A fresh in-memory CPython probe confirms empty bytes, bytearray and memoryview
+  skip registered codec lookup, while nonempty bytes invoke it. All 30 focused
+  tests pass; maintained workspace build, typecheck, scoped lint and whitespace
+  checks pass. The full uncached thread-pool suite passes 9,281 tests in 615 files
+  (139.87s; bodies 13.41s). Canonical str/subtype allocation, additional codecs,
+  public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
+  No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

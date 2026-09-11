@@ -29,7 +29,7 @@ it("skips all codec lookup for empty input",()=>{
 });
 it("composes native UTF-8 decoding with string construction and buffer admission",()=>{
   const {meter,v,decode}=fixture(),keywords=v.dictionary(new OrderedKeyMap({hash:()=>1n,equal:(a,b)=>a===b},meter));
-  expect(constructRuntimeString([v.bytes(new Uint8Array([0xc3,0xa9])),v.string("UTF-8")],keywords,v,meter,{decode:createRuntimeStringDecoder(decode)})).toEqual(v.string("é"));
+  expect(constructRuntimeString([v.bytes(new Uint8Array([0xc3,0xa9])),v.string("UTF-8")],keywords,v,meter,{decode:createRuntimeStringDecoder(decode,v)})).toEqual(v.string("é"));
 });
 it("reports unknown codecs instead of attempting UTF-8",()=>{
   const {meter,v,decode}=fixture();expect(()=>decode(v.bytes(new Uint8Array([120])).value,"UTF.8","strict",meter,undefined)).toThrow("unknown encoding: UTF.8");

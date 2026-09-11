@@ -92,6 +92,35 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("exposes fresh native locals proxies sharing slots and extra keys",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("frame_locals",v.builtinFunction({name:"frame_locals",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frameLocalsProxy(frame);}}));
+  state.run("def f(x):\n p=frame_locals()\n q=frame_locals()\n p['x']=7\n p['extra']=9\n p[3]=4\n snap=p.copy()\n q['extra']=10\n del q[3]\n return p,q,x,snap\np,q,x,snap=f(1)\ncorrect=p is not q and p==q and x==7 and p['extra']==10 and snap['extra']==9 and snap[3]==4 and 3 not in p\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("provides native locals snapshots, key diagnostics and dictionary-subclass comparison",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f(x,y):return x+y").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  frame.store("x",v.integer(1));state.globals.set("p",state.registry.frameLocalsProxy(frame));state.globals.set("Dict",state.registry.dictionaryType());
+  state.run("class D(Dict):pass\ni=p.__iter__()\np['extra']=3\nkeys=[x for x in i]\ncorrect=keys==['x'] and p.keys()==['x','extra'] and p.values()==[1,3] and p.items()==[('x',1),('extra',3)] and p.__reversed__()==['extra','x'] and p==D(x=1,extra=3)\ntry:p['missing']\nexcept KeyError as error:missing=error.args==(\"local variable ''missing'' is not defined\",)\ntry:p.__getitem__()\nexcept TypeError as error:arity=error.args==('FrameLocalsProxy.__getitem__() takes exactly one argument (0 given)',)\ntry:del p['y']\nexcept ValueError:unbound=True\n");
+  for(const name of ["correct","missing","arity","unbound"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("preserves native locals hash errors and catches KeyError callbacks only in get",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f(x):return x").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  frame.store("x",v.integer(1));state.globals.set("p",state.registry.frameLocalsProxy(frame));
+  state.run("class K:\n def __hash__(self):raise KeyError('callback')\nclass R:\n def __hash__(self):return 71\n def __repr__(self):raise KeyError('representation')\ncorrect=p.get(K(),9)==9 and p.get(R(),8)==8 and p.get('missing') is None\ntry:p[K()]\nexcept KeyError as error:callback=error.args==('callback',)\ntry:p.get([])\nexcept TypeError as error:unhashable=error.args==(\"unhashable type: 'list'\",)\ntry:del p['missing']\nexcept KeyError as error:deletion=error.args==('missing',)\ntry:p.get()\nexcept TypeError as error:arity=error.args==('get expected 1 or 2 arguments',)\n");
+  for(const name of ["correct","callback","unhashable","deletion","arity"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("compares native locals proxies by frame identity rather than equal contents",()=>{
+  const state=exceptionFixture(),{v}=state,scope=analyzeModule("def f(x):return x").scopes.children[0];
+  state.globals.set("NotImplemented",v.notImplemented);
+  for(const name of ["p","q"]){const frame=new LexicalFrame(scope,{globals:new Map(),builtins:new Map()},state.meter);frame.store("x",v.integer(1));state.globals.set(name,state.registry.frameLocalsProxy(frame));}
+  state.run("correct=p!=q and not (p==q) and p=={'x':1} and {'x':1}==p and not (p!={'x':1}) and p!=[] and p.__eq__([]) is NotImplemented\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("reflects live locals through compiled calls, suspension and retained closures",()=>{
   const state=exceptionFixture(),{v}=state,snapshots:Map<string,RuntimeValue>[]=[];
   state.builtins.set("reflect",v.builtinFunction({name:"reflect",invoke(args){

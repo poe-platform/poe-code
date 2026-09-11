@@ -2,6 +2,10 @@ import type { TupleConstant } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
+import {FrameLocalsMapping} from "./frame-locals-mapping.js";
+import type {LexicalFrame} from "./lexical-frame.js";
+import {installRuntimeFrameLocalsProxyDescriptors} from "./runtime-frame-locals-proxy.js";
+import {RuntimeHashError} from "./runtime-hash-error.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 import { createObjectNewBuiltin } from "./builtin-object-new.js";
@@ -103,6 +107,8 @@ export class RuntimeTypeRegistry {
   #dictionaryType: TypeValue | undefined;
   readonly #dictionaryViews = new Map<"dict_keys" | "dict_values" | "dict_items", TypeValue>();
   #mappingProxyType: TypeValue | undefined;
+  #frameLocalsProxyType:TypeValue|undefined;
+  readonly #frameLocalsMappings=new WeakMap<LexicalFrame<RuntimeValue>,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
   #sliceType: TypeValue | undefined;
   #rangeType: TypeValue | undefined;
   #integerType: TypeValue | undefined;
@@ -482,6 +488,25 @@ export class RuntimeTypeRegistry {
     installRuntimeAnextAwaitableDescriptors(type,this.values,this.meter);
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#anextAwaitableType=type;
     return type;
+  }
+
+  frameLocalsProxy(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
+    this.meter.checkpoint();
+    let mapping=this.#frameLocalsMappings.get(frame);
+    if(mapping===undefined){
+      this.meter.checkpoint(0,192);
+      mapping=new FrameLocalsMapping(frame.reflectLocals(),{name:this.values.string.bind(this.values),hash:key=>{try{return this.keys.hash(key);}catch(error){throw error instanceof RuntimeHashError?error.original:error;}},equal:this.keys.equal.bind(this.keys)},this.meter);
+      this.#frameLocalsMappings.set(frame,mapping);
+    }
+    if(this.#frameLocalsProxyType===undefined){
+      const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+      const layout=new RuntimeTypeLayout("FrameLocalsProxy",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+      const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+      installRuntimeFrameLocalsProxyDescriptors(type,this.values,this.meter);
+      this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#frameLocalsProxyType=type;
+    }
+    this.meter.checkpoint(0,64);
+    return this.values.instance(this.#frameLocalsProxyType,undefined,Object.freeze({kind:"frame_locals_proxy",frame,mapping,keys:this.keys}));
   }
 
   noneType():TypeValue {

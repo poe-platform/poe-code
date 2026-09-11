@@ -10715,6 +10715,27 @@ extension, integration, or validation requirement is missing or unverified.
   Native frame/proxy factories must share one mapping state per frame and still
   need descriptors, bulk methods, missing-key diagnostics and guest exposure;
   this generic mapping kernel alone is not a completed FrameLocalsProxy API.
+- Native frame-locals proxy core (2026-09-10): registry factories now return
+  fresh native proxies while sharing one execution-owned mapping per lexical
+  frame. Descriptors implement item lookup/write/delete, membership, length,
+  snapshot iteration, keys/values/items, reverse keys, copy, get and equality.
+  Same-frame proxies compare equal by frame identity; distinct frames do not,
+  even with equal contents. Dictionary/subclass comparisons use independent
+  copies with live lookups after the key snapshot. Missing item diagnostics
+  retain CPython's formatted local-name KeyError, while missing deletion keeps
+  the original key. Initial hash failures do not acquire dictionary-key context;
+  get catches KeyError from hashing/representation callbacks as CPython does.
+  Native integration tests cover write-through function slots, shared extras,
+  independent copies, unbound deletion, snapshots, arity and callback errors.
+  The focused three-file route passes 836 tests. All 110 operation/argument and
+  1,000 mutation-sequence comparisons match CPython (1,110 total). The oracle
+  checks iterator contents and NotImplemented values directly because the
+  integration fixture's fallback type lookup does not publish those native
+  type names. Selected workspace build, typecheck and scoped lint pass.
+  The final uncached one-worker suite passes 7,684 tests in 518 files (144.79s;
+  test bodies 11.46s). Bulk methods/operators, repr recursion,
+  native frame construction/public exposure and callback-boundary hardening
+  remain required; this core is not the complete FrameLocalsProxy API.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -10679,6 +10679,26 @@ extension, integration, or validation requirement is missing or unverified.
   checks pass 28 tests; the earlier native integration route passed 834 tests.
   The final uncached one-worker package suite passes 7,659 tests in 516 files
   (144.02s; test bodies 9.60s).
+- Reflective optimized-local storage (2026-09-10): lexical function/lambda
+  activations now lazily expose an execution-owned FrameLocals slot view.
+  Invocation passes the existing compiled layout through argument binding, so
+  reflection need not reconstruct metadata for normally compiled functions.
+  Literal name lookup/write-through reaches fast locals and shared closure cells,
+  including forwarded cells and bound None/undefined host values. Independent
+  ordered snapshots omit unbound slots and never write changes back. Deleting a
+  known slot rejects with CPython's ValueError even when unbound; unknown names
+  fall through for the future native adapter's arbitrary-key extra dictionary.
+  Global names, unmangled spellings and annotation-only non-slots never redirect
+  reflective writes into globals or unrelated lexical bindings. Allocation and
+  cancellation rejection precede publication/mutation. Eight storage tests and a
+  native call/generator/retained-closure test cover these boundaries; the focused
+  five-file route passes 876 tests. All 512 CPython get/set/delete/snapshot and
+  729 nonlocal/unbound-slot sequences match (1,241 comparisons total). Selected
+  build, typecheck and scoped lint pass. The final uncached one-worker suite
+  passes 7,668 tests in 517 files (138.08s; test bodies 9.53s).
+  Guest FrameLocalsProxy methods/extra-key storage,
+  locals/globals builtins, comprehension reflection, frame/code objects and
+  traceback/native context-manager integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

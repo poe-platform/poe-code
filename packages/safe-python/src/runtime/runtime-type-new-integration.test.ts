@@ -40,6 +40,7 @@ import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.j
 import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.js";
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
 import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
+import {LexicalFrame} from "./lexical-frame.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -90,6 +91,17 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("reflects live locals through compiled calls, suspension and retained closures",()=>{
+  const state=exceptionFixture(),{v}=state,snapshots:Map<string,RuntimeValue>[]=[];
+  state.builtins.set("reflect",v.builtinFunction({name:"reflect",invoke(args){
+    const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");
+    const view=frame.reflectLocals();snapshots.push(view.snapshot());
+    expect(view.store("x",args[0])).toBe(true);return v.none;
+  }}));
+  state.run("def f(x):\n def read():return x\n reflect(7)\n return x,read\nvalue,read=f(1)\ndef g(x):\n yield x\n reflect(9)\n yield x\na=g(2)\nfirst=a.__next__()\nsecond=a.__next__()\ncorrect=value==7 and read()==7 and first==2 and second==9\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(snapshots.map(snapshot=>snapshot.get("x"))).toEqual([v.integer(1),v.integer(2)]);
+});
 
 it("returns anext results immediately and defers default-awaitable validation",()=>{
   const state=exceptionFixture(),{v}=state;state.builtins.set("anext",createAnextBuiltin(v,state.meter));

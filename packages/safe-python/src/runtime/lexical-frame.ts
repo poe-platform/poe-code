@@ -4,6 +4,8 @@ import type { ResolvedBinding, ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { lookupNamespace, type NameNamespace } from "./namespace-lookup.js";
 import { PythonRuntimeError } from "./error.js";
+import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
+import {FrameLocals} from "./frame-locals.js";
 
 /** Internal shared storage, never a guest-accessible JavaScript object. The
  * wrapper distinguishes an unbound cell from any valid Value, including undefined.
@@ -37,11 +39,13 @@ export interface LexicalNamespaces<Value> {
 export class LexicalFrame<Value> {
   readonly #locals = new Map<string, Value>();
   readonly #cells = new Map<string, LexicalCell<Value>>();
+  #reflectiveLocals:FrameLocals<Value>|undefined;
 
   constructor(
     readonly scope: ResolvedScope,
     private readonly namespaces: LexicalNamespaces<Value>,
-    private readonly meter: ExecutionMeter
+    private readonly meter: ExecutionMeter,
+    private readonly localLayout?:FunctionLocalLayout
   ) {
     meter.checkpoint();
     if (scope.scope.kind !== "function" && scope.scope.kind !== "lambda" && scope.scope.kind !== "comprehension")
@@ -56,6 +60,14 @@ export class LexicalFrame<Value> {
       if (!cell || cell.owner !== owner) throw new Error(`missing or invalid closure cell: ${name}`);
       this.#cells.set(name, cell);
     }
+  }
+
+  /** Shared internal storage, not a cached guest f_locals proxy. Reflection is
+   * lazy and normal name access does not pay its indexing/allocation costs. */
+  reflectLocals():FrameLocals<Value> {
+    this.meter.checkpoint();
+    if(this.#reflectiveLocals===undefined)this.#reflectiveLocals=new FrameLocals(this.localLayout??compileFunctionLocalLayout(this.scope,this.meter),this.#locals,this.#cells,this.meter);
+    return this.#reflectiveLocals;
   }
 
   #resolve(name: string): readonly [string, ResolvedBinding] {

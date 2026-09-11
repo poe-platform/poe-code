@@ -53,7 +53,7 @@ export function invokeFunction<Value, Key = string>(
     meter.checkpoint();
     return result;
   }
-  const frame = createFunctionFrame(code.scope, call, context, meter);
+  const frame = createFunctionFrame(code.scope, call, context, meter,code.localLayout);
   meter.checkpoint();
   if (code.kind !== "function") {
     if (!context.suspended) throw new UnsupportedFunctionExecutionError(code.kind);

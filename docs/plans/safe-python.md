@@ -13354,6 +13354,22 @@ extension, integration, or validation requirement is missing or unverified.
   native Unicode exception object identity coverage, canonical str/subtype
   allocation, public interpreter assembly, imports, safe-fs and broad audits
   remain unfinished. No push or release.
+- ASCII/Latin-1 core text decoding (2026-09-11): added createRuntimeTextDecoder
+  with ASCII and Latin-1 native paths and the existing UTF-8 adapter. Extracted
+  codec-name normalization into a shared module. Native aliases come from the
+  local CPython codec alias catalog; other encodings/custom error handling remain
+  explicit fallback capabilities. ASCII supports strict, ignore, replace,
+  surrogateescape, backslashreplace and strict failure under surrogatepass;
+  Latin-1 maps all bytes directly and never consults error handlers. Twenty-three
+  focused tests cover aliases, all Latin-1 byte values, ASCII error metadata,
+  lazy custom handling, UTF-8/fallback composition, output allocation and fatal
+  cancellation. A 432-case in-memory comparison against CPython matches returned
+  code points and diagnostics across aliases, all byte values and nine error
+  modes. Build, typecheck, scoped lint and whitespace checks pass; the full
+  uncached thread-pool suite passes 9,280 tests in 615 files (70.27s; bodies 9.39s).
+  More codecs, canonical str/subtype allocation, native Unicode error identity,
+  public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
+  No push or release was requested or performed.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

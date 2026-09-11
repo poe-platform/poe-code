@@ -1,9 +1,9 @@
 import {PythonDecodeError} from "./decode-error.js";
 import {PythonRuntimeError} from "./error.js";
-import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
+import {ExecutionLimitError} from "./execution-budget.js";
 import type {RuntimeTextDecoder} from "./runtime-string-decoding.js";
 import type {RuntimeValues} from "./runtime-values.js";
-import {isUnicodeCharacter} from "./unicode-character-classification.js";
+import {normalizeRuntimeEncodingName} from "./runtime-encoding-name.js";
 import {decodeUtf8,type Utf8DecodeErrors} from "./utf8-decode.js";
 
 const aliases=new Set(["utf8","utf_8","u8","utf","utf8_ucs2","utf8_ucs4","cp65001"]);
@@ -18,7 +18,7 @@ export function createRuntimeUtf8Decoder(values:RuntimeValues,fallback?:RuntimeT
     try {
       meter.checkpoint(1,96);
       if(bytes.length===0)return values.string("");
-      if(!aliases.has(normalizeName(encoding,meter))){
+      if(!aliases.has(normalizeRuntimeEncodingName(encoding,meter))){
         if(fallback!==undefined)return fallback(bytes,encoding,errors,meter,invocation);
         meter.checkpoint(0,160+2*encoding.length);
         throw new PythonRuntimeError("LookupError",`unknown encoding: ${encoding}`);
@@ -35,18 +35,4 @@ export function createRuntimeUtf8Decoder(values:RuntimeValues,fallback?:RuntimeT
     } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
     finally{if(!fatal)meter.checkpoint();}
   };
-}
-
-function normalizeName(name:string,meter:ExecutionMeter):string {
-  let normalized="",separator=false;
-  for(const character of name){
-    const point=character.codePointAt(0)!;meter.checkpoint(1,64);
-    const asciiLetter=point>=65&&point<=90||point>=97&&point<=122,asciiDigit=point>=48&&point<=57;
-    if(asciiLetter||asciiDigit||point===46){
-      if(separator&&normalized.length)normalized+="_";
-      normalized+=point>=65&&point<=90?String.fromCharCode(point+32):character;separator=false;
-    }else if(point>127&&(isUnicodeCharacter(point,"isalpha",meter)||isUnicodeCharacter(point,"isnumeric",meter))){if(separator&&normalized.length)normalized+="_";separator=false;}
-    else separator=true;
-  }
-  return normalized;
 }

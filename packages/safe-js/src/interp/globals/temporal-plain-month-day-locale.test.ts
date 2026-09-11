@@ -2,10 +2,15 @@ import { expect, it } from "vitest";
 import { run } from "../../run.js";
 import { dump } from "../../dump.js";
 
-it.each(["UTC", "Pacific/Honolulu", "+05:30"])("formats month/day without shifting for %s", async zone => {
+it.each(["UTC", "Pacific/Honolulu", "+05:30"])("formats numeric month/day without shifting for %s", async zone => {
+  const formatter = new Intl.DateTimeFormat("en-US", {calendar:"iso8601",month:"numeric",day:"numeric",timeZone:"UTC"});
+  const expected = formatter.format(Date.UTC(2000,1,29));
+  expect(Object.fromEntries(formatter.formatToParts(Date.UTC(2000,1,29))
+    .filter(part => part.type !== "literal").map(part => [part.type, Number(part.value)])))
+    .toEqual({ month: 2, day: 29 });
   expect(await run(`return new Temporal.PlainMonthDay(2,29).toLocaleString('en-US',{
-    calendar:'iso8601',month:'long',day:'numeric',timeZone:${JSON.stringify(zone)}})`))
-    .toMatchObject({ok:true,returnValue:"February 29"});
+    calendar:'iso8601',month:'numeric',day:'numeric',timeZone:${JSON.stringify(zone)}})`))
+    .toMatchObject({ok:true,returnValue:expected});
 });
 
 it("requires matching calendars even for ISO month-days", async () => {

@@ -11,3 +11,9 @@ Keep calendar matching, receiver validation and captured-method replay checks.
 This narrows the fixture to timezone invariance; it does not establish that ISO
 long-month names work. Existing untracked ISO completeness tests and the gap
 inventory continue to record that unresolved formatting limitation.
+
+The full run subsequently reproduced the same locale-data limitation in the
+three month/day timezone cases (` 29` rather than `February 29`). Apply the same
+numeric oracle with explicit month 2/day 29 parts. The Buddhist-calendar
+long-month replay checks remain unchanged and passing. A search of the other
+Temporal locale fixtures found no further hard-coded ISO long-month assertion.

@@ -2975,6 +2975,10 @@ export class Runtime {
 
   async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
     const terminal = originalIO.terminal?.target === command ? originalIO.terminal : undefined;
+    originalIO.descriptors ??= new Map<number, Descriptor>([
+      [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
+      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
+    ]);
     originalIO = { ...originalIO, terminal: undefined };
     state = trackState(state, this.budget, originalIO[invocationScope]);
     if (originalIO.asyncDefaultInput) {
@@ -2985,10 +2989,6 @@ export class Runtime {
       } else originalIO = { ...originalIO, asyncDefaultInput: undefined };
     }
     originalIO = activeIO(originalIO);
-    originalIO.descriptors ??= new Map<number, Descriptor>([
-      [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
-      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
-    ]);
     const diagnosticLine = originalIO.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
     originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };
     const references = new PipeDescriptorFrame(originalIO[invocationScope]);

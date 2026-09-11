@@ -236,9 +236,9 @@ function wrapped(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
   } });
 }
 
-for (const reason of [undefined, null, false, 0, ""]) test(`unzip cleans staging after falsey append failure ${String(reason)}`, async () => {
+for (const reason of [undefined, null, false, 0, ""]) test(`unzip cleans staging after falsey publication failure ${String(reason)}`, async () => {
   const fs = await fixture([{ name: "file", body: "hello" }]); await fs.writeFile("/work/file", Buffer.from("keep"));
-  const faulty = wrapped(fs, { async appendFile() { throw reason; } });
+  const faulty = wrapped(fs, { async publishStagedFile() { throw reason; } });
   assert.equal((await run(faulty, ["-o", "sample.zip"])).exitCode, 2);
   assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), "keep");
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["file", "sample.zip"]);
@@ -247,9 +247,10 @@ for (const reason of [undefined, null, false, 0, ""]) test(`unzip cleans staging
 test("unzip waits for staging cleanup after abort during exclusive acquisition", async () => {
   const fs = await fixture([{ name: "file", body: "hello" }]);
   const controller = new AbortController();
-  const faulty = wrapped(fs, { async writeFile(path, bytes, options) {
-    await fs.writeFile(path, bytes, options);
-    if (path.includes(".unzip-")) controller.abort(false);
+  const faulty = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    controller.abort(false);
+    return receipt;
   } });
   await assert.rejects(run(faulty, ["sample.zip"], "", {}, { signal: controller.signal }), reason => reason === false);
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
@@ -327,9 +328,10 @@ test("unzip registered cleanup waits for admitted publication and removes stagin
   const enteredPromise = new Promise<void>(resolve => { entered = resolve; });
   const blocked = new Promise<void>(resolve => { unblock = resolve; });
   let cleanup: (() => void | Promise<void>) | undefined;
-  const delayed = wrapped(fs, { async writeFile(path, bytes, options) {
-    await fs.writeFile(path, bytes, options);
-    if (path.includes(".unzip-")) { entered(); await blocked; }
+  const delayed = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    entered(); await blocked;
+    return receipt;
   } });
   const result = run(delayed, ["sample.zip"], "", {}, { registerCleanup(handler) { cleanup = handler; } });
   await enteredPromise;
@@ -342,11 +344,12 @@ test("unzip registered cleanup waits for admitted publication and removes stagin
 
 test("unzip never removes a replacement at its failed staging name", async () => {
   const fs = await fixture([{ name: "file", body: "hello" }]);
-  const faulty = wrapped(fs, { async appendFile(path) {
+  const faulty = wrapped(fs, { async publishStagedFile(staging) {
+    const path = staging.file.path;
     await fs.rm(path); await fs.writeFile(path, Buffer.from("not ours")); throw false;
   } });
   assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
-  assert.equal(Buffer.from(await fs.readFile("/work/.unzip-1")).toString(), "not ours");
+  assert.equal(Buffer.from(await fs.readFile("/work/.unzip-1/entry")).toString(), "not ours");
 });
 
 for (const streaming of [false, true]) test(`unzip cleanup waits for admitted ${streaming ? "stream" : "buffered"} archive reads`, async () => {
@@ -382,7 +385,7 @@ test("unzip bounds archive-stream pulls, not only nonempty bytes", async () => {
   assert.ok(pulls <= 51, String(pulls));
 });
 
-for (const after of ["append", "chmod"]) test(`unzip rejects staging symlink replacement after ${after} before metadata mutation`, async () => {
+for (const after of ["creation", "publication"]) test(`unzip rejects staging symlink replacement at ${after}`, async () => {
   const fs = await fixture([{ name: "file", body: "hello", mode: 0o100640 }]);
   await fs.writeFile("/outside", Buffer.from("keep"), { mode: 0o604 });
   await fs.utimes!("/outside", 946684800000, 946684800000);
@@ -392,13 +395,14 @@ for (const after of ["append", "chmod"]) test(`unzip rejects staging symlink rep
     await fs.symlink!("/outside", path);
   };
   const faulty = wrapped(fs, {
-    async appendFile(path, bytes, options) {
-      await fs.appendFile(path, bytes, options);
-      if (after === "append") await replace(path);
+    async createStagedFile(path, name, content, options) {
+      const receipt = await fs.createStagedFile!(path, name, content, options);
+      if (after === "creation") await replace(receipt.file.path);
+      return receipt;
     },
-    async chmod(path, mode, options) {
-      await fs.chmod!(path, mode, options);
-      if (after === "chmod") await replace(path);
+    async publishStagedFile(staging, destination, options) {
+      if (after === "publication") await replace(staging.file.path);
+      return fs.publishStagedFile!(staging, destination, options);
     },
   });
   assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
@@ -406,7 +410,7 @@ for (const after of ["append", "chmod"]) test(`unzip rejects staging symlink rep
   assert.equal(outside.mode, before.mode);
   assert.equal(outside.mtimeMs, before.mtimeMs);
   assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "keep");
-  assert.equal(await fs.readlink!("/work/.unzip-1"), "/outside");
+  assert.equal(await fs.readlink!("/work/.unzip-1/entry"), "/outside");
 });
 
 test("unzip checks staging parents before later mutation and cleanup", async () => {
@@ -414,10 +418,11 @@ test("unzip checks staging parents before later mutation and cleanup", async () 
   await fs.mkdir("/outside");
   await fs.writeFile("/outside/.unzip-1", Buffer.from("keep"), { mode: 0o604 });
   const before = await fs.stat("/outside/.unzip-1");
-  const faulty = wrapped(fs, { async appendFile(path, bytes, options) {
-    await fs.appendFile(path, bytes, options);
+  const faulty = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
     await fs.rename("/work/dir", "/work/held-dir");
     await fs.symlink!("/outside", "/work/dir");
+    return receipt;
   } });
   assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
   const outside = await fs.stat("/outside/.unzip-1");
@@ -426,13 +431,13 @@ test("unzip checks staging parents before later mutation and cleanup", async () 
   assert.equal(Buffer.from(await fs.readFile("/outside/.unzip-1")).toString(), "keep");
 });
 
-test("unzip checks directory identity between chmod and timestamp restoration", async () => {
+test("unzip checks directory identity atomically before metadata restoration", async () => {
   const fs = await fixture([{ name: "dir/", mode: 0o40750 }]);
   await fs.mkdir("/outside"); await fs.utimes!("/outside", 946684800000, 946684800000);
   const before = await fs.stat("/outside");
-  const faulty = wrapped(fs, { async chmod(path, mode, options) {
-    await fs.chmod!(path, mode, options);
-    if (path === "/work/dir") { await fs.rename(path, "/work/held-dir"); await fs.symlink!("/outside", path); }
+  const faulty = wrapped(fs, { async prepareDirectory(path, options) {
+    if (path === "/work/dir" && options.expected) { await fs.rename(path, "/work/held-dir"); await fs.symlink!("/outside", path); }
+    return fs.prepareDirectory!(path, options);
   } });
   assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
   assert.equal((await fs.stat("/outside")).mtimeMs, before.mtimeMs);
@@ -459,14 +464,15 @@ for (const operand of ["archive", "selection", "destination"]) test(`unzip Shell
   } finally { await shell.dispose(); }
 });
 
-test("unzip actual Shell drains retained staging cleanup after append abort", async () => {
+test("unzip actual Shell drains retained staging cleanup after creation abort", async () => {
   const fs = await fixture([{ name: "file", body: "x".repeat(4096), method: 8 }]);
   await fs.writeFile("/work/file", Buffer.from("keep"));
   const archive = await fs.readFile("/work/sample.zip");
   const controller = new AbortController();
-  const dynamic = wrapped(fs, { async appendFile(path, bytes, options) {
-    await fs.appendFile(path, bytes, options);
-    if (path.startsWith("/work/.unzip-")) controller.abort(false);
+  const dynamic = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    controller.abort(false);
+    return receipt;
   } });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });
   shell.use({ name: "test-unzip", setup(host) { host.commands.register(createUnzipCommand()); } });
@@ -484,8 +490,8 @@ test("unzip preserves both publication and falsey retained-cleanup failures", as
   const original = new Error("publication failed");
   const observed: unknown[] = [];
   const faulty = wrapped(fs, {
-    async appendFile() { throw original; },
-    async rm() { throw false; },
+    async publishStagedFile() { throw original; },
+    async removeStagedFile() { throw false; },
   });
   const result = await run(faulty, ["sample.zip"], "", {}, { onInternalError(error) { observed.push(error); } });
   assert.equal(result.exitCode, 2);
@@ -498,13 +504,13 @@ test("unzip handled missing staging file does not replace the publication failur
   const fs = await fixture([{ name: "file", body: "hello" }]);
   const original = new Error("publication failed after removal");
   const observed: unknown[] = [];
-  const faulty = wrapped(fs, { async appendFile(path) { await fs.rm(path); throw original; } });
+  const faulty = wrapped(fs, { async publishStagedFile(staging) { await fs.rm(staging.file.path); throw original; } });
   assert.equal((await run(faulty, ["sample.zip"], "", {}, { onInternalError(error) { observed.push(error); } })).exitCode, 2);
   assert.deepEqual(observed, [original]);
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
 });
 
-for (const replacement of [false, true]) test(`unzip acquisition-abort limitation: ${replacement ? "refuses foreign replacement cleanup" : "unverified temporary may remain"}`, async () => {
+for (const replacement of [false, true]) test(`unzip atomic acquisition abort: ${replacement ? "refuses foreign replacement cleanup" : "removes owned staging"}`, async () => {
   const fs = await fixture([{ name: "file", body: "hello" }]);
   await fs.writeFile("/work/file", Buffer.from("keep"));
   await fs.writeFile("/outside", Buffer.from("outside sentinel"), { mode: 0o604 });
@@ -513,31 +519,33 @@ for (const replacement of [false, true]) test(`unzip acquisition-abort limitatio
   const outside = await fs.stat("/outside");
   const controller = new AbortController();
   let allocation: { path: string; stat: FileStat } | undefined;
-  const dynamic = wrapped(fs, { async writeFile(path, bytes, options) {
-    await fs.writeFile(path, bytes, options);
-    if (path.startsWith("/work/.unzip-")) {
-      allocation = { path, stat: await fs.lstat(path) };
+  const dynamic = wrapped(fs, { async createStagedFile(directory, name, content, options) {
+    const receipt = await fs.createStagedFile!(directory, name, content, options);
+    const path = receipt.file.path;
+    if (directory.startsWith("/work/.unzip-")) {
+      allocation = { path, stat: receipt.file.stat };
       if (replacement) {
         await fs.rename(path, "/work/held-stage");
         await fs.symlink!("/outside", path);
       }
       controller.abort(false);
     }
+    return receipt;
   } });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });
   shell.use({ name: "test-unzip", setup(host) { host.commands.register(createUnzipCommand()); } });
   try {
     await assert.rejects(shell.exec("unzip -o sample.zip", { signal: controller.signal }), reason => reason === false);
     assert.ok(allocation);
-    const retained = await fs.lstat(replacement ? "/work/held-stage" : allocation.path);
-    assert.equal(retained.type, "file");
-    assert.equal(retained.ino, allocation.stat.ino);
-    assert.equal(retained.mode & 0o777, 0o600);
-    assert.equal(retained.size, 0);
     if (replacement) {
+      const retained = await fs.lstat("/work/held-stage");
+      assert.equal(retained.type, "file");
+      assert.equal(retained.ino, allocation.stat.ino);
+      assert.equal(retained.mode, allocation.stat.mode);
+      assert.equal(retained.size, 5);
       assert.equal((await fs.lstat(allocation.path)).type, "symlink");
       assert.equal(await fs.readlink!(allocation.path), "/outside");
-    }
+    } else await assert.rejects(fs.lstat(allocation.path));
     assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), "keep");
     assert.deepEqual(await fs.readFile("/work/sample.zip"), archive);
     assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "outside sentinel");

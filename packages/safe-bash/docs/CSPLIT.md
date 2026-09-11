@@ -102,6 +102,27 @@ The default portable regex provider has an additional 65536-byte subject limit,
 so a larger `maxLineBytes` alone does not permit regex matching on longer lines.
 Provider-level limits and the command's limits both apply.
 
+`maxBufferedBytes` includes twice the admitted input payload, 128 accounting
+units for each retained line or partial-line reference, 256 units plus twice the
+path's character count for each retained output receipt, and the active output
+buffer (at most 65536 bytes). Finishing an output releases its buffer; cleanup
+releases its receipt reservation. Only the immediate parent snapshot remains
+retained after output creation. Admission checks run before payload allocation.
+These limits apply together, so reaching one configured maximum does not promise
+that every other maximum can be reached simultaneously; fragmented input and
+retained outputs also consume the allowance.
+Non-streaming reads additionally reserve the complete returned file array before
+requesting it, pass its admitted size as the read bound, and retain that separate
+charge until cleanup. Streaming avoids this extra retained-array allowance.
+
+Output uses a bounded 65536-byte buffer. A full buffer and a completed output
+flush before byte counts are printed. Ordinary input or pattern errors flush
+pending bytes before the `-k` retention decision. Cancellation discards pending
+bytes; `-k` retains only the already committed prefix. This follows GNU's stdio
+error-versus-signal policy, but does not promise GNU's platform-dependent buffer
+threshold (the GNU 9.11 macOS comparison used 8192 bytes). A refused atomic flush
+commits no prefix and prints no byte count for that output.
+
 ## Environment and compatibility boundaries
 
 `LC_ALL`, `LC_CTYPE`, `LC_COLLATE`, and `LANG` select the supported C/POSIX or
@@ -115,6 +136,15 @@ UTF-8, and command arguments cannot contain NUL. Input/output alias checks and
 bounded resource refusals intentionally protect the virtual input rather than
 copying unsafe or unbounded native effects. Filesystem identity and cleanup
 guarantees remain limited by the injected provider's declared capabilities.
+Output requires the `atomicFileMutation` capability and both
+`writeFileConditional` and `removeFileConditional`. Directories require stable,
+scoped device/inode identity; output entries additionally require a revision.
+Opening, appending, and removing an output atomically compare the captured
+parent and file snapshots. Completed writes return their original committed
+snapshot even if cancellation arrives before the response. Cleanup cannot adopt
+or remove a replacement entry. Providers without these methods refuse output
+mutation; checking a path before an ordinary write is not a fallback.
+
 Output directories and entries require stable, scoped device/inode identity;
 symlink output parents and existing symlink outputs are refused. Existing outputs
 are also refused when known input metadata cannot establish its identity. A

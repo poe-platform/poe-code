@@ -1,6 +1,6 @@
-import { readBytes, type ByteSource, type CommandContext, type FileStat } from "../../../contracts/index.js";
+import { readBytes, type ByteSource, type CommandContext, type FileStat, type FileStaging } from "../../../contracts/index.js";
 import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
-import { checkPath, fail, hasIdentity, sameIdentity, type ArchiveLimits } from "../internal.js";
+import { checkPath, fail, type ArchiveLimits } from "../internal.js";
 
 export class ZipScope {
   readonly context: CommandContext;
@@ -84,50 +84,33 @@ export interface ZipPublication {
   readonly parent: string;
   readonly parentName: string;
   readonly existing: FileStat | undefined;
+  readonly parentStat: FileStat;
   readonly bytes: Uint8Array;
 }
 
 export async function publishZip(scope: ZipScope, prepared: ZipPublication): Promise<void> {
   const { fs, signal } = scope.context;
   const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.output, { signal }) ?? fs.capabilities);
-  if (capabilities.atomicRename !== true || capabilities.exclusiveCreate !== true || capabilities.explicitDirectories !== true
-    || capabilities.permissions !== true || !fs.rmdir || (prepared.existing ? !fs.chmod : capabilities.atomicRenameNoReplace !== true)) fail("ZIP publication requires atomic rename, exclusive creation, private directories and mode preservation");
-  let directory: { path: string; stat: FileStat } | undefined;
-  let temporary = "";
-  let identity: FileStat | undefined;
-  let published = false;
-  let collision = false;
+  if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("ZIP publication requires atomic owned file staging");
+  let staging: FileStaging | undefined;
   let failure: { reason: unknown } | undefined;
-  const checkOwner = async (): Promise<void> => {
-    const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
-    const owner = directory && await scope.stat(directory.path);
-    if (parent !== prepared.parent || !owner || owner.type !== "directory" || !sameIdentity(owner, directory!.stat)) fail("ZIP temporary ownership changed before mutation");
-  };
   const close = retainFileSystemCleanup(fs, async cleanup => {
-    if (!directory || !hasIdentity(directory.stat)) return;
-    const parent = await cleanup.realpath(prepared.parentName);
-    const owner = await cleanup.lstat(directory.path);
-    if (parent !== prepared.parent || owner.type !== "directory" || !sameIdentity(owner, directory.stat)) fail("ZIP temporary ownership changed before cleanup");
-    if (temporary && !published && !collision) {
-      let current: FileStat | undefined;
-      try { current = await cleanup.lstat(temporary); }
-      catch (error) { if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error; }
-      if (current) {
-        if (!identity || !sameIdentity(current, identity) || current.type !== "file" || current.nlink !== 1) fail("ZIP temporary file changed before cleanup");
-        await cleanup.rm(temporary);
-      }
+    if (staging) {
+      if (!cleanup.removeStagedFile) fail("ZIP atomic cleanup unavailable");
+      await cleanup.removeStagedFile(staging);
     }
-    await cleanup.rmdir!(directory.path);
   }, { maxOperations: 16 });
   try {
     for (let attempt = 0; attempt < Math.min(64, scope.limits.maxMembers); attempt++) {
       const path = `${prepared.parent === "/" ? "" : prepared.parent}/.zip-${attempt + 1}`;
       checkPath(path, scope.limits);
+      checkPath(`${path}/archive.zip`, scope.limits);
       if (path === prepared.output) continue;
       try {
         await scope.operation(async () => {
-          await fs.mkdir(path, { signal, mode: 0o700 });
-          directory = { path, stat: await fs.lstat(path) };
+          staging = await fs.createStagedFile!(path, "archive.zip", { type: "file", data: prepared.bytes }, {
+            signal, parent: prepared.parentStat, ...(prepared.existing ? { mode: prepared.existing.mode & 0o7777 } : {}),
+          });
         });
         break;
       } catch (error) {
@@ -135,43 +118,12 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
         if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "EEXIST") throw error;
       }
     }
-    if (!directory) fail("ZIP temporary directory attempt limit exceeded");
-    if (directory.stat.type !== "directory" || !hasIdentity(directory.stat) || (directory.stat.mode & 0o777) !== 0o700) fail("ZIP temporary directory ownership unavailable");
-    temporary = `${directory.path}/archive.zip`;
-    checkPath(temporary, scope.limits);
-    await checkOwner();
-    await scope.operation(async () => {
-      let writeFailure: { reason: unknown } | undefined;
-      try { await fs.writeFile(temporary, prepared.bytes, { signal, flag: "wx", ...(prepared.existing ? { mode: prepared.existing.mode & 0o7777 } : {}) }); }
-      catch (error) {
-        collision = typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
-        writeFailure = { reason: error };
-      }
-      if (!collision) {
-        await checkOwner();
-        try { identity = await fs.lstat(temporary); }
-        catch (error) { if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error; }
-      }
-      if (writeFailure) throw writeFailure.reason;
-    });
-    if (!identity || !hasIdentity(identity) || identity.type !== "file" || identity.nlink !== 1 || identity.size !== prepared.bytes.length) fail("ZIP staged archive identity or size changed");
-    if (prepared.existing) {
-      await checkOwner();
-      await scope.operation(() => fs.chmod!(temporary, prepared.existing!.mode & 0o7777, { signal }));
-    }
+    if (!staging) fail("ZIP temporary directory attempt limit exceeded");
     const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
-    const current = await scope.stat(prepared.output);
-    if (parent !== prepared.parent || (prepared.existing ? !current || !sameIdentity(prepared.existing, current)
-      || current.type !== "file" || current.nlink !== 1 || current.size !== prepared.existing.size
-      || current.mode !== prepared.existing.mode || current.mtimeMs !== prepared.existing.mtimeMs || current.ctimeMs !== prepared.existing.ctimeMs : current !== undefined)) fail("archive backing entry changed before publication");
-    const staging = await scope.stat(temporary);
-    const owner = await scope.stat(directory.path);
-    if (!staging || !sameIdentity(staging, identity) || staging.type !== "file" || staging.nlink !== 1 || staging.size !== prepared.bytes.length
-      || !owner || !sameIdentity(owner, directory.stat) || owner.type !== "directory") fail("ZIP temporary ownership changed before publication");
-    await scope.operation(async () => {
-      await fs.rename(temporary, prepared.output, { signal, ...(!prepared.existing ? { noReplace: true } : {}) });
-      published = true;
-    });
+    if (parent !== prepared.parent) fail("archive parent changed before publication");
+    await scope.operation(() => fs.publishStagedFile!(staging!, prepared.output, {
+      signal, parent: prepared.parentStat, destination: prepared.existing ?? null,
+    }));
   } catch (error) { failure = { reason: error }; }
   try { await close(); }
   catch (error) {

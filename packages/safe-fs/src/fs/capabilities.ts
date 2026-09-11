@@ -1,4 +1,4 @@
-import type { FileReadHandle, FileResizeHandle, FileSystem, FileSystemCapabilities, OpenReadFileOptions, OpenResizeFileOptions } from "../contracts/filesystem.js";
+import type { FsOptions, FileReadHandle, FileResizeHandle, FileSystem, FileSystemCapabilities, OpenReadFileOptions, OpenResizeFileOptions } from "../contracts/filesystem.js";
 import { FsError } from "../contracts/errors.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 
@@ -107,7 +107,7 @@ export function readOnlyCapabilities(capabilities: FileSystemCapabilities): File
     mkdir: false, recursiveMkdir: false, remove: false, removeDirectory: false, recursiveRemove: false,
     rename: false, copy: false, exclusiveCopy: false, truncate: false, streamingAppend: false,
     randomAccessWrite: false, hardlinks: false, permissions: false, timestamps: false,
-    descriptorWriteStream: false, retainedResize: false, atomicResize: false,
+    descriptorWriteStream: false, atomicResize: false, retainedResize: false, atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
     atomicRename: false, atomicRenameNoReplace: false, streamingWrite: false,
   });
 }
@@ -116,8 +116,25 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, !capabilities.readOnly);
   const streamingAppend = requireCapabilities(capabilities.append, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
-  return Object.freeze({ ...rest, descriptorWriteStream: false, atomicResize: false,
+  return Object.freeze({ ...rest, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),
     ...(streamingAppend === undefined ? {} : { streamingAppend }),
   });
+}
+
+export function ownedMutationCapabilities(filesystem: FileSystem, capabilities = filesystem.capabilities): FileSystemCapabilities {
+  const unavailable: Record<string, false> = {};
+  if (capabilities.atomicFileMutation === true && (capabilities.readOnly === true || typeof filesystem.writeFileConditional !== "function" || typeof filesystem.removeFileConditional !== "function")) unavailable.atomicFileMutation = false;
+  if (capabilities.atomicFileStaging === true && (capabilities.readOnly === true
+    || typeof filesystem.createStagedFile !== "function" || typeof filesystem.publishStagedFile !== "function" || typeof filesystem.removeStagedFile !== "function")) unavailable.atomicFileStaging = false;
+  if (capabilities.atomicDirectoryMetadata === true && (capabilities.readOnly === true || typeof filesystem.prepareDirectory !== "function")) unavailable.atomicDirectoryMetadata = false;
+  return Object.keys(unavailable).length ? { ...capabilities, ...unavailable } : capabilities;
+}
+
+export async function requireOwnedMutation(filesystem: FileSystem, path: string,
+  capability: "atomicFileMutation" | "atomicFileStaging" | "atomicDirectoryMetadata", options: FsOptions): Promise<void> {
+  options.signal?.throwIfAborted();
+  const capabilities = ownedMutationCapabilities(filesystem, await filesystem.capabilitiesFor?.(path, options) ?? filesystem.capabilities);
+  options.signal?.throwIfAborted();
+  if (capabilities[capability] !== true) throw new FsError("ENOTSUP", { path, syscall: capability });
 }

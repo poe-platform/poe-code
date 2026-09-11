@@ -4,6 +4,10 @@ import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
 import { Budget, CsplitError, fsDetail, missing, pathText } from "./internal.js";
 import type { Options } from "./options.js";
 
+const retainedLineUnits = 128;
+const retainedOutputUnits = 256;
+const outputBufferBytes = 65_536;
+
 export function sameIdentity(first: FileStat, second: FileStat): boolean {
   return ((typeof first.identityScope === "object" && first.identityScope !== null) || typeof first.identityScope === "symbol")
     && first.identityScope === second.identityScope && Number.isSafeInteger(first.dev) && Number.isSafeInteger(first.ino)
@@ -12,12 +16,14 @@ export function sameIdentity(first: FileStat, second: FileStat): boolean {
 
 export class Lifecycle {
   private readonly pending = new Set<Promise<unknown>>();
-  private readonly cleanups: (() => Promise<void>)[] = [];
+  private readonly cleanups = new Set<() => Promise<void>>();
   private closing: Promise<void> | undefined;
   constructor(readonly budget: Budget) { budget.context.registerCleanup?.(() => this.close()); }
-  cleanup(action: () => Promise<void>): void {
+  cleanup(action: () => Promise<void>): () => Promise<void> {
     this.assertOpen();
-    this.cleanups.push(action);
+    const owned = async () => { try { await action(); } finally { this.cleanups.delete(owned); } };
+    this.cleanups.add(owned);
+    return owned;
   }
   assertOpen(): void {
     this.budget.context.signal.throwIfAborted();
@@ -46,6 +52,7 @@ export class Lifecycle {
 }
 
 export class Lines {
+  private readonly fallbackAllocation = {};
   private readonly lines: Uint8Array[] = [];
   private partial: Uint8Array[] = [];
   private partialBytes = 0;
@@ -56,7 +63,17 @@ export class Lines {
   private path: string | undefined;
   identity: FileStat | undefined;
   constructor(readonly lifecycle: Lifecycle) {
-    lifecycle.cleanup(async () => { if (!this.ended) await this.iterator?.return?.(); });
+    lifecycle.cleanup(async () => {
+      try { if (!this.ended) await this.iterator?.return?.(); }
+      finally {
+        this.lines.length = 0; this.partial = [];
+        lifecycle.budget.reserveBuffered(this, 0);
+        lifecycle.budget.reserveBuffered(this.fallbackAllocation, 0);
+      }
+    });
+  }
+  private reserve(extraLines = 0, extraParts = 0): void {
+    this.lifecycle.budget.reserveBuffered(this, this.total * 2 + (this.lines.length + extraLines + this.partial.length + extraParts) * retainedLineUnits);
   }
   async open(name: string): Promise<void> {
     if (name === "-") { this.identity = this.lifecycle.budget.context.stdinInput?.stat; return; }
@@ -77,18 +94,24 @@ export class Lines {
     const capabilities = await this.lifecycle.operation(async () => await fs.capabilitiesFor?.(this.path!, { signal }) ?? fs.capabilities);
     if (fs.readStream && capabilities.streamingRead !== false) return fs.readStream(this.path, { signal, chunkSize: 65_536 });
     if (this.identity!.size > Math.min(limits.maxInputBytes, limits.maxBufferedBytes / 2)) throw new CsplitError("buffered input bytes limit exceeded");
-    const value = await this.lifecycle.operation(() => fs.readFile(this.path!, { signal, maxBytes: limits.maxInputBytes }));
+    const admittedBytes = this.identity!.size;
+    this.lifecycle.budget.reserveBuffered(this.fallbackAllocation, admittedBytes);
+    this.lifecycle.budget.reserveBuffered(this, admittedBytes * 2);
+    const value = await this.lifecycle.operation(() => fs.readFile(this.path!, { signal, maxBytes: admittedBytes }));
+    this.lifecycle.budget.check(value.length, admittedBytes, "input bytes");
     return { async *[Symbol.asyncIterator]() { yield value; } };
   }
   private appendLine(): void {
     const { budget } = this.lifecycle;
     budget.check(this.lines.length + 1, budget.limits.maxLines, "line count");
+    this.reserve(1);
     const line = new Uint8Array(this.partialBytes);
     let offset = 0;
     for (const part of this.partial) { line.set(part, offset); offset += part.length; }
     this.lines.push(line);
     this.partial = [];
     this.partialBytes = 0;
+    this.reserve();
   }
   async get(number: number): Promise<Uint8Array | undefined> {
     const { budget } = this.lifecycle;
@@ -107,7 +130,7 @@ export class Lines {
       if (!(chunk instanceof Uint8Array)) throw new CsplitError("input produced a non-byte chunk");
       this.total += chunk.length;
       budget.check(this.total, budget.limits.maxInputBytes, "input bytes");
-      budget.check(this.total * 2, budget.limits.maxBufferedBytes, "buffered bytes");
+      this.reserve();
       if (!chunk.length) budget.check(++this.emptyChunks, budget.limits.maxEmptyChunks, "empty input chunks");
       budget.charge(chunk.length);
       const owned = Uint8Array.from(chunk);
@@ -116,6 +139,7 @@ export class Lines {
         if (owned[offset] === 10) {
           this.partialBytes += offset + 1 - start;
           budget.check(this.partialBytes, budget.limits.maxLineBytes, "line bytes");
+          this.reserve(0, 1);
           this.partial.push(owned.subarray(start, offset + 1));
           this.appendLine(); start = offset + 1;
         }
@@ -127,6 +151,7 @@ export class Lines {
       if (start < owned.length) {
         this.partialBytes += owned.length - start;
         budget.check(this.partialBytes, budget.limits.maxLineBytes, "line bytes");
+        this.reserve(0, 1);
         this.partial.push(owned.subarray(start));
       }
       await budget.checkpointWork();
@@ -137,14 +162,16 @@ export class Lines {
 
 interface Output {
   readonly path: string;
-  readonly name: string;
-  readonly parents: readonly { path: string; identity: FileStat }[];
+  readonly parent: FileStat;
+  readonly metadataBytes: number;
   identity?: FileStat;
   created: boolean;
   removed: boolean;
   elided: boolean;
   failed: boolean;
   size: number;
+  buffer?: Uint8Array;
+  buffered: number;
   cleanup(): Promise<void>;
 }
 
@@ -164,19 +191,13 @@ export class Outputs {
     let current = "/";
     for (const component of ["", ...components]) {
       if (component) current = resolvePath(current, component);
-      const identity = await this.lifecycle.operation(() => context.fs.lstat(current, { signal: context.signal }));
+      const identity = Object.freeze({ ...await this.lifecycle.operation(() => context.fs.lstat(current, { signal: context.signal })) });
       if (identity.type !== "directory" || !sameIdentity(identity, identity)) throw new CsplitError("unsafe output directory identity");
       parents.push({ path: current, identity });
     }
     return parents;
   }
-  private async checked(output: Output): Promise<void> {
-    await this.checkedParents(output.parents);
-    const { context } = this.lifecycle.budget;
-    const current = await this.lifecycle.operation(() => context.fs.lstat(output.path, { signal: context.signal }));
-    if (!output.identity || current.type !== "file" || !sameIdentity(current, output.identity)) throw new CsplitError("output changed before mutation");
-  }
-  private async checkedParents(parents: Output["parents"]): Promise<void> {
+  private async checkedParents(parents: readonly { path: string; identity: FileStat }[]): Promise<void> {
     const { context } = this.lifecycle.budget;
     for (const parent of parents) {
       const current = await this.lifecycle.operation(() => context.fs.lstat(parent.path, { signal: context.signal }));
@@ -192,42 +213,37 @@ export class Outputs {
     budget.check(name.length, limits.maxPathBytes, "output filename bytes");
     const path = resolvePath(context.cwd, pathText(name));
     try {
+    const capabilities = await this.lifecycle.operation(async () => await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+    if (capabilities.atomicFileMutation !== true || !context.fs.writeFileConditional || !context.fs.removeFileConditional) throw new CsplitError("atomic output mutations are not supported");
     const parents = await this.parents(path);
     let existing: FileStat | undefined;
-    try { existing = await this.lifecycle.operation(() => context.fs.lstat(path, { signal: context.signal })); }
+    try { existing = Object.freeze({ ...await this.lifecycle.operation(() => context.fs.lstat(path, { signal: context.signal })) }); }
     catch (error) { context.signal.throwIfAborted(); if (!missing(error)) throw error; }
     if (existing && (existing.type !== "file" || !sameIdentity(existing, existing))) throw new CsplitError(`unsafe output file ${budget.quote(name)}`);
     this.input.assertOutput(path, existing);
-    const output: Output = { path, name, parents, created: false, removed: false, elided: false, failed: false, size: 0, cleanup: async () => {} };
-    output.cleanup = retainFileSystemCleanup(context.fs, async view => {
+    const metadataBytes = retainedOutputUnits + path.length * 2;
+    const output: Output = { path, parent: parents.at(-1)!.identity, metadataBytes, created: false, removed: false, elided: false, failed: false, size: 0, buffered: 0, cleanup: async () => {} };
+    budget.reserveBuffered(output, metadataBytes);
+    output.cleanup = this.lifecycle.cleanup(retainFileSystemCleanup(context.fs, async view => {
+      delete output.buffer;
+      output.buffered = 0;
+      budget.reserveBuffered(output, 0);
       if (!output.created || !output.identity || !output.elided && (this.succeeded || this.options.keep || this.preserve)) return;
       try {
-        for (const parent of parents) {
-          const current = await view.lstat(parent.path);
-          if (current.type !== "directory" || !sameIdentity(current, parent.identity)) return;
-        }
-        const current = await view.lstat(path);
-        if (current.type === "file" && sameIdentity(current, output.identity)) {
-          await view.rm(path);
-          output.removed = true;
-        }
-      } catch (error) { if (!missing(error)) throw error; }
-    }, { maxOperations: limits.maxPathDepth + 3 });
-    this.lifecycle.cleanup(output.cleanup);
-    await this.checkedParents(parents);
-    let admitted: FileStat | undefined;
-    try { admitted = await this.lifecycle.operation(() => context.fs.lstat(path, { signal: context.signal })); }
-    catch (error) { context.signal.throwIfAborted(); if (!missing(error)) throw error; }
-    if (admitted ? !existing || admitted.type !== "file" || !sameIdentity(admitted, existing) : existing !== undefined) throw new CsplitError("output changed before creation");
-    await this.checkedParents(parents);
-    await this.lifecycle.operation(async () => {
-      await context.fs.writeFile(path, new Uint8Array(), { signal: context.signal, flag: existing ? "w" : "wx" });
-      output.created = true;
-      if (existing) output.identity = existing;
-      const identity = await context.fs.lstat(path, { signal: context.signal });
-      if (identity.type !== "file" || !sameIdentity(identity, identity) || existing && !sameIdentity(existing, identity)) throw new CsplitError("output creation identity unavailable");
-      output.identity = identity;
-    });
+        if (!view.removeFileConditional) throw new FsError("ENOTSUP");
+        await view.removeFileConditional(path, { expected: output.identity, parent: output.parent });
+        output.removed = true;
+      } catch (error) { if (!missing(error) && !(error instanceof FsError && error.code === "EAGAIN")) throw error; }
+    }, { maxOperations: 1 }));
+    try {
+      await this.checkedParents(parents);
+      await this.lifecycle.operation(async () => {
+        output.identity = Object.freeze({ ...await context.fs.writeFileConditional!(path, new Uint8Array(), {
+          signal: context.signal, expected: existing ?? null, parent: output.parent,
+        }) });
+        output.created = true;
+      });
+    } finally { parents.length = 0; }
     this.index++;
     this.current = output;
     } catch (error) {
@@ -235,24 +251,47 @@ export class Outputs {
       throw error;
     }
   }
+  private async flush(output: Output): Promise<void> {
+    if (!output.buffered) return;
+    const { context } = this.lifecycle.budget;
+    try {
+      await this.lifecycle.operation(() => writeFileOutput(context, output.buffer!.subarray(0, output.buffered), async chunk => {
+        output.identity = Object.freeze({ ...await context.fs.writeFileConditional!(output.path, chunk, {
+          signal: context.signal, expected: output.identity!, parent: output.parent, append: true,
+        }) });
+        output.buffered = 0;
+      }));
+    } catch (error) { output.failed = true; throw error; }
+  }
   async write(value: Uint8Array): Promise<void> {
     const output = this.current;
     if (!output) throw new CsplitError("output is not open");
     const { budget } = this.lifecycle;
     budget.fileBytes(value.length);
-    try {
-      await this.checked(output);
-      await this.lifecycle.operation(() => writeFileOutput(budget.context, value, chunk => budget.context.fs.appendFile(output.path, chunk, { signal: budget.context.signal })));
-      output.size += value.length;
-    } catch (error) { output.failed = true; throw error; }
+    if (!output.buffer) {
+      const capacity = Math.min(outputBufferBytes, budget.limits.maxBufferedBytes);
+      budget.reserveBuffered(output, output.metadataBytes + capacity);
+      output.buffer = new Uint8Array(capacity);
+    }
+    for (let offset = 0; offset < value.length;) {
+      this.lifecycle.assertOpen();
+      const count = Math.min(value.length - offset, output.buffer.length - output.buffered);
+      output.buffer.set(value.subarray(offset, offset + count), output.buffered);
+      output.buffered += count;
+      output.size += count;
+      offset += count;
+      if (output.buffered === output.buffer.length) await this.flush(output);
+    }
   }
   async finish(): Promise<void> {
     const output = this.current;
     if (!output) return;
     this.current = undefined;
     if (output.failed) return;
+    await this.flush(output);
+    delete output.buffer;
+    this.lifecycle.budget.reserveBuffered(output, output.metadataBytes);
     if (!output.size && this.options.elide) {
-      await this.checked(output);
       output.elided = true;
       await output.cleanup();
       if (!output.removed) throw new CsplitError("output changed before empty-file removal");

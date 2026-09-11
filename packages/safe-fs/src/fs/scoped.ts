@@ -1,12 +1,13 @@
-import type { FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { FileStaging, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, RenameOptions } from "../contracts/filesystem.js";
 import { FsError } from "../contracts/errors.js";
 import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
-import { openRetainedResizeFile, retainedResizeCapabilities } from "./capabilities.js";
+import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void }>();
 const operations = new Set<keyof FileSystem>([
+  "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
   "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "stat", "symlink", "truncate", "utimes",
@@ -127,7 +128,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return Reflect.set(original, property, value, original);
     },
     get(_target, property) {
-      if (property === "capabilities") return retainedResizeCapabilities(original);
+      if (property === "capabilities") return ownedMutationCapabilities(original, retainedResizeCapabilities(original));
       const method: unknown = Reflect.get(original, property, original);
       if (typeof method !== "function") return method;
       const cached = methods.get(property);
@@ -137,6 +138,13 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const options = args.at(-1);
           admit(options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
         }
+        if (["writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
+          const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
+          const options = args[property === "createStagedFile" ? 3 : property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1] as FsOptions | undefined;
+          await requireOwnedMutation(original, path, property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {});
+          assertOpen(options);
+          return Reflect.apply(method, original, args);
+        })();
         if (property === "compareEntry") {
           const peer = args[1] as FileSystem;
           args[1] = originals.get(peer)?.filesystem ?? peer;
@@ -159,7 +167,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           return wrapResizeHandle(await openRetainedResizeFile(original, path, resizeOptions(options)));
         }
         : property === "capabilitiesFor"
-          ? async (...args: unknown[]) => retainedResizeCapabilities(original, await dispatch(...args) as FileSystem["capabilities"])
+          ? async (...args: unknown[]) => ownedMutationCapabilities(original, retainedResizeCapabilities(original, await dispatch(...args) as FileSystem["capabilities"]))
           : property === "openReadFile"
             ? async (...args: unknown[]) => wrapHandle(await dispatch(...args) as FileReadHandle)
             : property === "readStream"
@@ -180,6 +188,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
 }
 
 export interface RetainedFileSystemCleanupView {
+  readonly removeFileConditional?: NonNullable<FileSystem["removeFileConditional"]>;
+  readonly removeStagedFile?: NonNullable<FileSystem["removeStagedFile"]>;
   readonly lstat: FileSystem["lstat"];
   readonly realpath: FileSystem["realpath"];
   readonly rm: (path: string, options?: FsOptions) => Promise<void>;
@@ -205,7 +215,8 @@ export function retainFileSystemCleanup(
   let operations = 0;
   let active = false;
   let closing: Promise<void> | undefined;
-  const invoke = (method: keyof RetainedFileSystemCleanupView, path: string, settings?: FsOptions): Promise<unknown> => {
+  const invoke = (method: keyof RetainedFileSystemCleanupView, input: string | FileStaging, settings?: FsOptions): Promise<unknown> => {
+    const path = typeof input === "string" ? input : input.directory.path;
     if (!active) {
       const rejected = Promise.reject(new FsError("EBADF", { syscall: method, path, message: "cleanup callback is not active" }));
       void rejected.catch(() => {});
@@ -221,7 +232,9 @@ export function retainFileSystemCleanup(
       const operation = backing[method];
       if (typeof operation !== "function") throw new FsError("ENOTSUP", { syscall: method, path });
       const parameters = method === "rm" ? { ...settings, recursive: false, force: false } : settings;
-      result = Promise.resolve(Reflect.apply(operation, backing, [path, parameters]));
+      result = method === "removeStagedFile" || method === "removeFileConditional"
+        ? requireOwnedMutation(backing, path, method === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", settings ?? {}).then(() => Reflect.apply(operation, backing, [input, parameters]))
+        : Promise.resolve(Reflect.apply(operation, backing, [input, parameters]));
     } catch (error) {
       result = Promise.reject(error);
       void result.catch(() => {});
@@ -235,6 +248,8 @@ export function retainFileSystemCleanup(
     return result;
   };
   const view: RetainedFileSystemCleanupView = Object.freeze(Object.assign(Object.create(null) as RetainedFileSystemCleanupView, {
+    ...(typeof backing.removeFileConditional === "function" ? { removeFileConditional: invoke.bind(undefined, "removeFileConditional") as NonNullable<RetainedFileSystemCleanupView["removeFileConditional"]> } : {}),
+    ...(typeof backing.removeStagedFile === "function" ? { removeStagedFile: invoke.bind(undefined, "removeStagedFile") as NonNullable<RetainedFileSystemCleanupView["removeStagedFile"]> } : {}),
     lstat: invoke.bind(undefined, "lstat") as RetainedFileSystemCleanupView["lstat"],
     realpath: invoke.bind(undefined, "realpath") as RetainedFileSystemCleanupView["realpath"],
     rm: invoke.bind(undefined, "rm") as RetainedFileSystemCleanupView["rm"],

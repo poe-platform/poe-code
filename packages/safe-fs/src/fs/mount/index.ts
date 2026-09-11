@@ -4,11 +4,12 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
-import { openRetainedReadFile, openRetainedResizeFile, readOnlyCapabilities, retainedReadCapabilities, retainedResizeCapabilities } from "../capabilities.js";
+import { requireOwnedMutation, ownedMutationCapabilities, openRetainedReadFile, openRetainedResizeFile, readOnlyCapabilities, retainedReadCapabilities, retainedResizeCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { pathNamespace } from "../path-namespace.js";
@@ -65,9 +66,10 @@ function fail(code: ErrnoCode): never {
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
+    ...(revision === undefined ? {} : { revision }),
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
     ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
@@ -135,6 +137,7 @@ export class MountFileSystem implements FileSystem {
       : mounts.every(({ backend }) => backend.capabilities.append === false) ? false : undefined;
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
+        atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
         descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
       };
@@ -149,7 +152,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "read", "stat", "readdir", "realpath", "access",
+      "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
       "streamingAppend", "randomAccessWrite", "descriptorWriteStream", "retainedResize", "atomicResize", "symlinks", "hardlinks", "permissions", "timestamps",
@@ -176,8 +179,8 @@ export class MountFileSystem implements FileSystem {
         allowMissing: options.create ?? true,
         ...(options.create === undefined ? {} : { resizeCreate: options.create }),
       });
-      const observed = await location.mount.backend.capabilitiesFor?.(location.local, options)
-        ?? location.mount.backend.capabilities;
+      const observed = ownedMutationCapabilities(location.mount.backend, await location.mount.backend.capabilitiesFor?.(location.local, options)
+        ?? location.mount.backend.capabilities);
       const declared = observed.descriptorWriteStream === true
         && (typeof location.mount.backend.writeStream !== "function" || observed.readOnly === true || observed.streamingWrite === false)
         ? { ...observed, descriptorWriteStream: false } : observed;
@@ -258,12 +261,12 @@ export class MountFileSystem implements FileSystem {
 
   private async operation<Result>(
     syscall: string, path: string, options: FsOptions,
-    action: () => Promise<Result>, dest?: string,
+    action: () => Promise<Result>, dest?: string, preserveReceipt = false,
   ): Promise<Result> {
     try {
       options.signal?.throwIfAborted();
       const result = await action();
-      options.signal?.throwIfAborted();
+      if (!preserveReceipt) options.signal?.throwIfAborted();
       return result;
     } catch (error) {
       throw this.error(error, syscall, path, options, dest);
@@ -531,6 +534,94 @@ export class MountFileSystem implements FileSystem {
       this.entryPath(path);
       await location.mount.backend.rm(location.local, options);
     });
+  }
+
+  private async localStaging(staging: FileStaging, options: FsOptions): Promise<{ mount: Mount; staging: FileStaging }> {
+    const parent = await this.resolve(staging.parent.path, options, { followFinal: false, entry: true });
+    const directory = await this.resolve(staging.directory.path, options, { followFinal: false, entry: true });
+    const file = await this.resolve(staging.file.path, options, { followFinal: false, entry: true, allowMissing: true });
+    if (parent.mount !== directory.mount || directory.mount !== file.mount) fail("EXDEV");
+    if (this.protected(directory.path) || this.protected(file.path)) fail("EBUSY");
+    for (const location of [directory, file]) this.mutable(location);
+    return { mount: directory.mount, staging: {
+      parent: { path: parent.local, stat: staging.parent.stat },
+      directory: { path: directory.local, stat: staging.directory.stat },
+      file: { path: file.local, stat: staging.file.stat },
+    } };
+  }
+
+  writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
+    return this.operation("writeFileConditional", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      const backend = location.mount.backend;
+      await requireOwnedMutation(backend, location.local, "atomicFileMutation", options);
+      if (!backend.writeFileConditional) fail("ENOTSUP");
+      return snapshotStat(await backend.writeFileConditional(location.local, data, options));
+    }, undefined, true);
+  }
+
+  removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
+    return this.operation("removeFileConditional", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      const backend = location.mount.backend;
+      await requireOwnedMutation(backend, location.local, "atomicFileMutation", options);
+      if (!backend.removeFileConditional) fail("ENOTSUP");
+      await backend.removeFileConditional(location.local, options);
+    });
+  }
+
+  createStagedFile(path: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    return this.operation("createStagedFile", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true, missingDirectory: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      const backend = location.mount.backend;
+      await requireOwnedMutation(backend, location.local, "atomicFileStaging", options);
+      if (!backend.createStagedFile) fail("ENOTSUP");
+      const receipt = await backend.createStagedFile(location.local, name, content, options);
+      const map = (entry: FileStagingEntry): FileStagingEntry => Object.freeze({
+        path: location.mount.path === "/" ? entry.path : `${location.mount.path}${entry.path === "/" ? "" : entry.path}`,
+        stat: Object.freeze(snapshotStat(entry.stat)),
+      });
+      return Object.freeze({ parent: map(receipt.parent), directory: map(receipt.directory), file: map(receipt.file) });
+    }, undefined, true);
+  }
+
+  publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+    return this.operation("publishStagedFile", staging.file.path, options, async () => {
+      const local = await this.localStaging(staging, options);
+      const target = await this.resolve(destination, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(target.path)) fail("EBUSY");
+      if (local.mount !== target.mount) fail("EXDEV");
+      this.mutable(target);
+      await requireOwnedMutation(local.mount.backend, local.staging.directory.path, "atomicFileStaging", options);
+      if (!local.mount.backend.publishStagedFile) fail("ENOTSUP");
+      await local.mount.backend.publishStagedFile(local.staging, target.local, options);
+    }, destination);
+  }
+
+  removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {
+    return this.operation("removeStagedFile", staging.directory.path, options, async () => {
+      const local = await this.localStaging(staging, options);
+      await requireOwnedMutation(local.mount.backend, local.staging.directory.path, "atomicFileStaging", options);
+      if (!local.mount.backend.removeStagedFile) fail("ENOTSUP");
+      await local.mount.backend.removeStagedFile(local.staging, options);
+    });
+  }
+
+  prepareDirectory(path: string, options: PrepareDirectoryOptions): Promise<FileStat> {
+    return this.operation("prepareDirectory", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true, missingDirectory: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      await requireOwnedMutation(location.mount.backend, location.local, "atomicDirectoryMetadata", options);
+      if (!location.mount.backend.prepareDirectory) fail("ENOTSUP");
+      return snapshotStat(await location.mount.backend.prepareDirectory(location.local, options));
+    }, undefined, true);
   }
 
   rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {

@@ -84,11 +84,19 @@ export function missing(error: unknown): boolean {
 }
 
 export class Budget {
+  private readonly buffers = new Map<object, number>();
   private work = 0;
   private checkpoint = 0;
   private diagnostics = 0;
   private output = 0;
   constructor(readonly context: CommandContext, readonly limits: CsplitLimits) {}
+  reserveBuffered(owner: object, bytes: number): void {
+    let total = bytes;
+    for (const [key, value] of this.buffers) if (key !== owner) total += value;
+    this.check(total, this.limits.maxBufferedBytes, "buffered bytes");
+    if (bytes) this.buffers.set(owner, bytes);
+    else this.buffers.delete(owner);
+  }
   quote(value: string): string {
     const locale = this.context.env.LC_ALL || this.context.env.LC_CTYPE || this.context.env.LANG || "C";
     this.charge(value.length);

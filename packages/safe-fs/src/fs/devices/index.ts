@@ -3,13 +3,14 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
 import { deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
-import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
 
 const views = new WeakMap<FileSystem, DeviceFileSystem>();
@@ -20,12 +21,14 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
   remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
   mkdir: false, recursiveMkdir: false, symlinks: false, hardlinks: false, readlink: false,
   permissions: false, timestamps: false, truncate: false, randomAccessWrite: false,
+  atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
   atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true, atomicResize: false,
 });
 
 function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
+    atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
     streamingRead: ["readStream"], streamingWrite: ["writeStream"], retainedRead: ["openReadFile"],
     streamingAppend: ["writeStream"], descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
     symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"],
@@ -127,7 +130,7 @@ export class DeviceFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
     const selected = query === undefined || query === null ? undefined : await Reflect.apply(query, this.#filesystem, [path, options]);
     options.signal?.throwIfAborted();
-    const observed = selected ?? this.#filesystem.capabilities;
+    const observed = ownedMutationCapabilities(this.#filesystem, selected ?? this.#filesystem.capabilities);
     options.signal?.throwIfAborted();
     const capabilities = observed.retainedResize === true ? retainedResizeCapabilities(this.#filesystem, observed) : observed;
     const unavailable: Record<string, false> = {};
@@ -329,6 +332,48 @@ export class DeviceFileSystem implements FileSystem {
     if (reserved(resolved)) throw new FsError("EBUSY", { path });
     if (!this.#filesystem.rmdir) throw new FsError("ENOTSUP", { path });
     await this.#filesystem.rmdir(path, options);
+  }
+
+  async writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicFileMutation", options);
+    if (!this.#filesystem.writeFileConditional) throw new FsError("ENOTSUP", { path });
+    return this.#filesystem.writeFileConditional(path, data, options);
+  }
+
+  async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicFileMutation", options);
+    if (!this.#filesystem.removeFileConditional) throw new FsError("ENOTSUP", { path });
+    await this.#filesystem.removeFileConditional(path, options);
+  }
+
+  async createStagedFile(path: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicFileStaging", options);
+    if (!this.#filesystem.createStagedFile) throw new FsError("ENOTSUP", { path });
+    return this.#filesystem.createStagedFile(path, name, content, options);
+  }
+
+  async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+    for (const path of [staging.directory.path, staging.file.path, destination]) await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, staging.directory.path, "atomicFileStaging", options);
+    if (!this.#filesystem.publishStagedFile) throw new FsError("ENOTSUP", { path: destination });
+    await this.#filesystem.publishStagedFile(staging, destination, options);
+  }
+
+  async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {
+    for (const path of [staging.directory.path, staging.file.path]) await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, staging.directory.path, "atomicFileStaging", options);
+    if (!this.#filesystem.removeStagedFile) throw new FsError("ENOTSUP", { path: staging.directory.path });
+    await this.#filesystem.removeStagedFile(staging, options);
+  }
+
+  async prepareDirectory(path: string, options: PrepareDirectoryOptions): Promise<FileStat> {
+    await this.#mutable(path, options, false);
+    await requireOwnedMutation(this.#filesystem, path, "atomicDirectoryMetadata", options);
+    if (!this.#filesystem.prepareDirectory) throw new FsError("ENOTSUP", { path });
+    return this.#filesystem.prepareDirectory(path, options);
   }
 
   async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {

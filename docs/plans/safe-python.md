@@ -13616,6 +13616,20 @@ extension, integration, or validation requirement is missing or unverified.
   uncached suite passes 9,392 tests in 616 files (121.68s; bodies 15.71s).
   Encoding, remaining native type surfaces, public interpreter assembly, imports,
   safe-fs and broad audits remain unfinished. No push or release.
+- UTF-8 encoding codec adapter: added `createRuntimeUtf8Encoder` over the metered
+  low-level encoder, with normalized codec aliases, eight standard error handlers,
+  lazy unknown-error-handler lookup and an explicit extension callback for other
+  codecs/custom handlers. Unlike decoding, encoding resolves unknown codec names
+  even for empty input, verified against CPython. Extension callbacks receive
+  original input/names and preserve fatal cancellation whether returning or
+  throwing. Eighteen new tests initially failed for the missing adapter and now
+  pass. A 486-case in-memory CPython comparison matches encoded bytes, error
+  classes/messages and encode-error spans. Maintained workspace build, typecheck,
+  scoped lint and whitespace checks pass. Full uncached suite passes 9,410 tests
+  in 617 files (177.81s; bodies 23.42s). This is the encoding backend, not yet the
+  `str.encode` binding; additional codecs, guest codec registry/error handlers,
+  public assembly, imports, safe-fs and broad audits remain unfinished.
+  No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -11955,6 +11955,25 @@ extension, integration, or validation requirement is missing or unverified.
   (155.80s; test bodies 12.46s).
   Symbol analysis, derived metadata, annotation-target allocation and AST
   construction remain unfinished accounting work before guest compilation.
+- Annotation-target allocation and close accounting (2026-09-11): five failing
+  tests reproduced uncharged iterator/frame/diagnostic allocation and lost
+  cancellation when consumers return or throw into a suspended traversal. The
+  shared analysis/runtime walker now uses structural SourceMeter, charges entry,
+  tuple frames and starred-target diagnostics before allocation, and checkpoints
+  in finally. Slice bounds are selected by index without a temporary array.
+  Existing deep-key and evaluation-order behavior remains covered, including a
+  10,000-level tuple traversal. One older runtime test had competing step and
+  allocation limits; the new accounting correctly exhausted allocation first.
+  It now independently verifies both limits and unchanged receiver-evaluation
+  effects. The initial full run was interrupted after that focused failure;
+  final verification uses a new uncached run after the test correction.
+  The focused three-file suite passes 36 tests. All eight CPython side-effect
+  comparisons agree on attribute receivers, flattened tuple keys and slice-bound
+  evaluation order with annotation expressions left unevaluated. Build and
+  typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,360 tests in 548 files
+  (226.00s; test bodies 15.80s). Symbol analysis,
+  derived metadata and AST construction remain unfinished accounting work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

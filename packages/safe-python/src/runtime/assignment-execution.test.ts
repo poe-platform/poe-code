@@ -19,14 +19,14 @@ function fixture() {
 }
 
 describe("ordinary and annotated assignment execution", () => {
-  it("meters traversal even when nested empty keys produce no expressions", () => {
+  it.each(["step","allocation"])("meters %s limits even when nested empty keys produce no expressions", reason => {
     const state = fixture(), statement = parseModule("obj[()]: T").body[0];
     if (statement.kind !== "annotated-assignment" || statement.target.kind !== "subscript") throw new Error("fixture");
     let item = statement.target.items[0];
     if (item.kind !== "tuple") throw new Error("fixture");
     for (let i = 0; i < 1000; i++) item = { ...item, items: [item] };
     const node = { ...statement, target: { ...statement.target, items: [item] } };
-    expect(() => executeAssignment(node, state.context, new ExecutionBudget({ maxSteps: 20, maxAllocatedBytes: 1000 }))).toThrow("execution step limit exceeded");
+    expect(() => executeAssignment(node, state.context, new ExecutionBudget({ maxSteps: reason === "step" ? 20 : 100000, maxAllocatedBytes: reason === "allocation" ? 1000 : 100000 }))).toThrow(`execution ${reason} limit exceeded`);
     expect(state.events).toEqual(["eval:obj"]);
   });
 

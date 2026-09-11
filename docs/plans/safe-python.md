@@ -12455,6 +12455,21 @@ extension, integration, or validation requirement is missing or unverified.
   lint and whitespace checks pass. The uncached full suite passes 8,717 tests
   in 577 files (193.22s; test bodies 13.68s). Cross-pattern capture validation remains recursive and
   requires a separate stack-safe resource audit before checked guest compilation.
+- Stack-safe pattern capture validation (2026-09-11): thirteen failing tests
+  reproduced uncharged validation storage, unbounded wide/cyclic traversal,
+  stack overflow on 50,000 nested sequences and lost cancellation from AST
+  accessors. Validation now uses depth-first continuation frames, charging
+  capture/key sets, name hashing, OR-alternative comparison and error strings.
+  OR alternatives retain independent captures and original diagnostic priority;
+  sequence stars, mapping rests and class positional/keyword ordering are preserved.
+  The final checkpoint preserves cancellation. All thirteen focused tests pass,
+  as do separate 50,000-level OR/mapping/class/as trees. All 820 result/diagnostic
+  comparisons against 0a46b5e77 and 820 CPython compile-acceptance cases pass.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  suite passes 8,730 tests in 578 files (149.57s; test bodies 11.95s).
+  This closes the identified recursive pattern-validation gap, not the complete
+  interpreter safety audit. BigInt representation accounting, guest compilation
+  ingress, runtime integration, modules and safe-fs delivery remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

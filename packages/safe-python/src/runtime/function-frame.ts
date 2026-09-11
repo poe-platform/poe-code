@@ -4,6 +4,7 @@ import { bindArguments, type CallParameter, type KeywordNames, type FunctionDefa
 import type { ExecutionMeter } from "./execution-budget.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
 import type {FunctionLocalLayout} from "./function-local-layout.js";
+import type {CompiledFunction} from "./function-compilation.js";
 
 export interface FunctionCallArguments<Value, Key = string> {
   /** Current function-qualified name for argument diagnostics. */
@@ -36,7 +37,7 @@ export interface FunctionFrameContext<Value, Key = string> extends LexicalNamesp
  */
 export function createFunctionFrame<Value, Key = string>(
   scope: ResolvedScope, call: FunctionCallArguments<Value, Key>,
-  context: FunctionFrameContext<Value, Key>, meter: ExecutionMeter, localLayout?:FunctionLocalLayout
+  context: FunctionFrameContext<Value, Key>, meter: ExecutionMeter, localLayout?:FunctionLocalLayout,code?:CompiledFunction<Value>
 ): LexicalFrame<Value> {
   meter.checkpoint();
   const node = scope.scope.node;
@@ -53,7 +54,7 @@ export function createFunctionFrame<Value, Key = string>(
     defaults.set(manglePrivateName(name, scope.scope.privateName), value);
   }
   const bound = bindArguments(call.name, parameters, call.positional, call.keywords, defaults, meter, call.keywordNames, call.defaultOverrides);
-  const frame = new LexicalFrame(scope, context, meter,localLayout);
+  const frame = new LexicalFrame(scope, context, meter,localLayout,code);
   for (const parameter of parameters) {
     meter.checkpoint();
     const value = parameter.kind === "var-positional" ? context.tuple(bound.varPositional)

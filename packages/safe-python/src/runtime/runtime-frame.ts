@@ -1,6 +1,7 @@
 import type {LexicalFrame} from "./lexical-frame.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
+import type {CompiledFunction} from "./function-compilation.js";
 
 /** Native identity around an interpreter-owned activation, never a host stack. */
 export interface RuntimeFrameState {
@@ -8,8 +9,8 @@ export interface RuntimeFrameState {
   readonly frame:LexicalFrame<RuntimeValue>;
 }
 
-export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,locals:(frame:LexicalFrame<RuntimeValue>)=>RuntimeValue):void {
-  for(const name of ["f_locals","f_globals","f_builtins"] as const){
+export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,locals:(frame:LexicalFrame<RuntimeValue>)=>RuntimeValue,code:(code:CompiledFunction<RuntimeValue>)=>RuntimeValue):void {
+  for(const name of ["f_locals","f_globals","f_builtins","f_code"] as const){
   meter.checkpoint(0,96);
   owner.value.namespace.items.set(values.string(name),values.getsetDescriptor({owner,name,
     accepts:value=>value.kind==="instance"&&value.type===owner&&value.native?.kind==="frame",
@@ -19,6 +20,10 @@ export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeVal
       try{
         const frame=receiver.native.frame;
         if(name==="f_locals")return locals(frame);
+        if(name==="f_code"){
+          if(frame.code===undefined)throw Error("frame code reflection requires compiled function metadata");
+          return code(frame.code);
+        }
         const namespace=name==="f_globals"?frame.namespaces.globals:frame.namespaces.builtins;
         const object=namespace.object;meter.checkpoint();
         if(object===undefined)throw Error("frame namespace reflection requires an original guest object");

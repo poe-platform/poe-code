@@ -17,6 +17,7 @@ import { hasRuntimeInstanceAttributes, type AttributeInstanceValue, type Builtin
 import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
 import type { KeyOperations } from "./ordered-key-map.js";
 import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
+import type {CompiledFunction} from "./function-compilation.js";
 import { beginRuntimeSet } from "./runtime-set.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeFormattedStringContext } from "./runtime-formatted-string.js";
@@ -42,6 +43,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda" | "comprehension"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth" | "beginMethodCall">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
+    readonly code?:(code:CompiledFunction<RuntimeValue>)=>RuntimeValue;
     readonly isException?: BuiltinInvocationContext["isException"];
     readonly mapping?: BuiltinInvocationContext;
     readonly subscription?: BuiltinInvocationContext;
@@ -162,6 +164,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
   };
   meter.checkpoint(0, 448);
   const methods = {
+    code:bindings.code?.bind(bindings),
     isException: bindings.isException?.bind(bindings),
     actualType: bindings.actualType?.bind(bindings),
     attribute: context.attribute.bind(context),

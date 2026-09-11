@@ -10953,6 +10953,30 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,778 tests in 522 files (150.82s;
   test bodies 9.68s).
+- Native compiler code identity/header (2026-09-10): a failing native regression
+  demonstrated that frames discarded compiled function identity and no canonical
+  guest code publisher existed. Function activation now retains its originating
+  compiled function; registry code objects are weakly cached by that identity.
+  Frame f_code and function __code__ share publication through an explicit runtime
+  hook. Function attribute shadows and later function renaming cannot replace
+  code metadata. Ten read-only descriptors expose co_name, co_qualname,
+  co_firstlineno, argument counts, co_nlocals and local/cell/free-name tuples;
+  tuple identities and immutable metadata are shared across reads and closures.
+  Low-level uncompiled frames or absent function publication policies report
+  missing capabilities rather than inventing code. Fifteen new tests cover
+  native frame/function identity, descriptor categories/ownership/immutability,
+  missing capabilities and cancellation after successful/failing publication.
+  The focused four-file suite passes 898 tests; all 384 header/layout comparisons
+  match CPython across signatures, nested functions, methods/private names,
+  decorators, generators and async functions. This is not a complete code type:
+  filename, flags, constants/names, instruction/line/position maps, structural
+  equality/hash, constructor/replace and function code replacement remain needed.
+  Synthetic module/class/comprehension code reflection and automatic traceback
+  frame insertion also remain required; existing comprehension layout differences
+  are not erased or claimed compatible by these tests.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,793 tests in 523 files (121.98s;
+  test bodies 9.28s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

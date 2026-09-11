@@ -9,6 +9,8 @@ import {installRuntimeFrameDescriptors} from "./runtime-frame.js";
 import {installRuntimeTracebackDescriptors,type RuntimeTracebackState} from "./runtime-traceback.js";
 import {Traceback} from "./traceback.js";
 import {createTracebackNewBuiltin} from "./builtin-traceback-new.js";
+import {createRuntimeCodeState,installRuntimeCodeDescriptors} from "./runtime-code.js";
+import type {CompiledFunction} from "./function-compilation.js";
 import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new.js";
 import {RuntimeHashError} from "./runtime-hash-error.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
@@ -115,6 +117,8 @@ export class RuntimeTypeRegistry {
   #frameLocalsProxyType:TypeValue|undefined;
   #frameType:TypeValue|undefined;
   #tracebackType:TypeValue|undefined;
+  #codeType:TypeValue|undefined;
+  readonly #codes=new WeakMap<CompiledFunction<RuntimeValue>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #tracebacks=new WeakMap<Traceback<LexicalFrame<RuntimeValue>>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frames=new WeakMap<LexicalFrame<RuntimeValue>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frameLocalsMappings=new WeakMap<LexicalFrame<RuntimeValue>,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
@@ -527,13 +531,27 @@ export class RuntimeTypeRegistry {
     return this.#tracebackType;
   }
 
+  code(code:CompiledFunction<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
+    this.meter.checkpoint();const existing=this.#codes.get(code);if(existing!==undefined)return existing;
+    const state=createRuntimeCodeState(code,this.values,this.meter);
+    if(this.#codeType===undefined){
+      const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+      const layout=new RuntimeTypeLayout("code",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:true,subclassable:false,instantiable:false});
+      const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+      installRuntimeCodeDescriptors(type,this.values,this.meter);
+      this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#codeType=type;
+    }
+    this.meter.checkpoint(0,96);const result=this.values.instance(this.#codeType,undefined,state);
+    this.#codes.set(code,result);return result;
+  }
+
   frame(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
     this.meter.checkpoint();const existing=this.#frames.get(frame);if(existing!==undefined)return existing;
     if(this.#frameType===undefined){
       const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
       const layout=new RuntimeTypeLayout("frame",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
       const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
-      installRuntimeFrameDescriptors(type,this.values,this.meter,this.frameLocalsProxy.bind(this));
+      installRuntimeFrameDescriptors(type,this.values,this.meter,this.frameLocalsProxy.bind(this),this.code.bind(this));
       this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#frameType=type;
     }
     this.meter.checkpoint(0,96);

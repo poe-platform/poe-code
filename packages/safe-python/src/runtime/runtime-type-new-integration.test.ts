@@ -204,6 +204,15 @@ it("shares exact Python dictionary globals across module, function and class exe
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
+it("shares immutable compiler code identity between functions and active frames",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.hooks.code=state.registry.code.bind(state.registry);
+  state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));
+  state.run("def outer(x):\n def f(a,/,b=2,*args,c=3,**kwargs):\n  local=x\n  return current_frame()\n return f\nf=outer(1)\ng=outer(2)\nframe=f(1)\ncode=f.__code__\nf.__name__='changed'\nf.__dict__['__code__']='shadow'\ncorrect=frame.f_code is code and g.__code__ is code and f.__code__ is code and code.co_name=='f' and code.co_qualname=='outer.<locals>.f' and code.co_firstlineno==2 and code.co_argcount==2 and code.co_posonlyargcount==1 and code.co_kwonlyargcount==1 and code.co_nlocals==6 and code.co_varnames==('a','b','c','args','kwargs','local') and code.co_cellvars==() and code.co_freevars==('x',)\ntry:code.co_name='changed'\nexcept AttributeError as e:readonly=e.args==('readonly attribute',)\ncorrect=correct and readonly\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it.each(["generator","delegated","coroutine","async_generator"])("accepts an explicit traceback when throwing into a %s",kind=>{
   const state=exceptionFixture({warn(){}}),{v,meter,registry}=state;
   const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);

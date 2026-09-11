@@ -62,6 +62,7 @@ import { createStatementContinuation } from "./statement-execution.js";
 import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
 import { createRuntimeAsyncIterator } from "./runtime-async-iteration.js";
 import { comprehensionIsAsynchronous } from "./comprehension-asynchronous.js";
+import type {CompiledFunction} from "./function-compilation.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -73,6 +74,8 @@ export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
+  /** Share the execution's canonical code publisher with frame reflection. */
+  code?(code:CompiledFunction<RuntimeValue>):RuntimeValue;
   expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "unary" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers" | "subscription" | "mapping" | "percent">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
   specialMethods?(frame: RuntimeFrame): RuntimeSpecialMethodContext;
@@ -437,6 +440,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get iteration() { return getIteration(); },
       get formatting() { return getFormatting(); },
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
+      code:hooks.code?.bind(hooks),
       createLambda: definitions.create.bind(definitions),
       comprehension(node) {
         meter.checkpoint();

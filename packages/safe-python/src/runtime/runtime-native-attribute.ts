@@ -64,6 +64,7 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } from "./runtime-native-method-metadata.js";
 import { runtimeFunctionDefaults } from "./runtime-function-defaults.js";
+import type {CompiledFunction} from "./function-compilation.js";
 import { readRuntimeDescriptorMethod } from "./runtime-descriptor-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
@@ -74,9 +75,13 @@ import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. A formatting
  * supplier is acquired only for members that actually require that policy. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & NativeMethodMetadataContext & { readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue> | (() => FormatContext<RuntimeValue>), methods?: RuntimeListMethodContext & RuntimeBytesInputContext & NativeMethodMetadataContext & { readonly code?:(code:CompiledFunction<RuntimeValue>)=>RuntimeValue; readonly translation?: RuntimeStringTranslationContext; readonly buffers?: RuntimeBufferContext; readonly dictionaryKeys?: KeyOperations<RuntimeValue>; readonly attribute?: ExpressionContext<RuntimeValue>["attribute"] }): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "function") {
+    if(name==="__code__"){
+      if(methods?.code===undefined)throw Error("function code reflection requires a code publication policy");
+      try{return methods.code(receiver.value.code);}finally{meter.checkpoint();}
+    }
     if (name === "__defaults__" || name === "__kwdefaults__") return runtimeFunctionDefaults(receiver, name, values, meter, methods?.dictionaryKeys);
     if (name === "__dict__") {
       if (methods?.dictionaryKeys === undefined) throw Error("function attribute dictionaries require a key policy");

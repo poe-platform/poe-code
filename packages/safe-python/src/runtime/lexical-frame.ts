@@ -6,6 +6,7 @@ import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameName
 import { PythonRuntimeError } from "./error.js";
 import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
 import {FrameLocals} from "./frame-locals.js";
+import type {CompiledFunction} from "./function-compilation.js";
 
 /** Internal shared storage, never a guest-accessible JavaScript object. The
  * wrapper distinguishes an unbound cell from any valid Value, including undefined.
@@ -46,7 +47,8 @@ export class LexicalFrame<Value> {
     /** Host-owned backing namespaces; never exposed as host objects to guests. */
     readonly namespaces: LexicalNamespaces<Value>,
     private readonly meter: ExecutionMeter,
-    private readonly localLayout?:FunctionLocalLayout
+    private readonly localLayout?:FunctionLocalLayout,
+    readonly code?:CompiledFunction<Value>
   ) {
     meter.checkpoint();
     if (scope.scope.kind !== "function" && scope.scope.kind !== "lambda" && scope.scope.kind !== "comprehension")

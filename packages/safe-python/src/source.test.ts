@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 import { PythonSource, PythonSyntaxError } from "./source.js";
 
 describe("Python source cursor", () => {
+  it("retains explicitly attributed diagnostic lines without file normalization",()=>{
+    const error=new PythonSyntaxError("bad","x",{offset:0,line:1,column:0});
+    expect(error.withSourceLine("\ufeffpass")).toBe(error);
+    error.withSource("different");error.withSourceLine("replacement");
+    expect(error.sourceLine).toBe("\ufeffpass");
+  });
+  it("charges an explicit diagnostic line before publishing it",()=>{
+    const error=new PythonSyntaxError("bad","x",{offset:0,line:1,column:0});
+    expect(()=>error.withSourceLine("line",{checkpoint(){throw Error("denied");}})).toThrow("denied");
+    expect(error.sourceLine).toBeUndefined();
+  });
   it("captures only the diagnostic source line with normalized physical newlines", () => {
     for (const newline of ["\n", "\r\n", "\r"]) {
       const prefix = "first" + newline;

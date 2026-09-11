@@ -12749,6 +12749,24 @@ extension, integration, or validation requirement is missing or unverified.
   registration and eval/exec remain unfinished. The low-level text source cursor
   accepts an initial BOM; Python compile(str) rejects it, requiring a separate
   guest/text compiler boundary audit rather than changing lexical behavior blindly.
+- Guest compilation source conversion (2026-09-11): added the text/buffer branch
+  used by the guest compiler fixture. Guest str conversion rejects raw surrogate
+  runs with original code-point storage and exact UTF-8 encode-error ranges before
+  any UTF-16 merging can occur. Bytes and explicit contiguous buffer leases become
+  copied byte inputs; no __str__, __bytes__ or iterable fallback participates.
+  Guest acquisition errors become compile's TypeError, while host faults and fatal
+  cancellation stay intact. Every acquired lease is released, including cancelled
+  acquisition and failed copying. The source compiler now distinguishes initial
+  text BOMs (rejected) from byte/file BOMs. Explicit first-write-only diagnostic line
+  attribution preserves BOM text and exact offsets instead of applying file-line
+  normalization. Missing-helper, text-BOM, exact diagnostic, source-line attribution
+  and native surrogate acceptance failures preceded their fixes. Focused runs pass;
+  585 direct CPython Unicode conversion comparisons agree, and 20 text-BOM errors
+  match exact CPython messages, filenames, line/offset ranges and text. Build,
+  typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
+  suite passes 8,983 tests in 594 files (73.41s; bodies 7.60s). AST source
+  dispatch and canonical bytearray/memoryview publication remain separate unfinished
+  work; buffer support here uses the existing explicit lease capability.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

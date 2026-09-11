@@ -36,6 +36,12 @@ it("preserves cancellation from a failing source codec",()=>{
 it("consumes at most one byte-source BOM",()=>{
   expect(()=>compileSourceProgram(new TextEncoder().encode('\ufeff\ufeffpass'),options,constants,budget())).toThrow(PythonSyntaxError);
 });
+it("rejects an initial BOM in text while accepting it in byte source",()=>{
+  expect(()=>compileSourceProgram('\ufeffpass',options,constants,budget())).toThrow("invalid non-printable character U+FEFF");
+  expect(()=>compileSourceProgram(new TextEncoder().encode('\ufeffpass'),options,constants,budget())).not.toThrow();
+  try{compileSourceProgram('\ufeffpass\n',{...options,filename:"bom.py"},constants,budget());expect.unreachable();}
+  catch(error){expect(error).toMatchObject({sourceLine:'\ufeffpass',position:{column:0,line:1},endPosition:{column:0,line:1},filename:"bom.py"});}
+});
 
 it.each(['""','"  value\\n  "','"\\ud800"'])("keeps eval strings as expressions, not docstrings: %s",source=>{
   const string=vi.fn(constants.string);

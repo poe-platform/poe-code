@@ -27,6 +27,14 @@ export class PythonSyntaxError extends SyntaxError {
 
   get sourceLine(): string | undefined { return this.#sourceLine; }
 
+  /** An already selected diagnostic line, without file BOM/newline rules.
+   * Attribution is first-write-only, like withSource. */
+  withSourceLine(line:string,meter?:SourceMeter):this {
+    meter?.checkpoint();
+    if(this.#sourceLine===undefined){meter?.checkpoint(0,32+2*line.length);this.#sourceLine=line;}
+    return this;
+  }
+
   /** Retain only the physical diagnostic line, never the entire input. Repeated
    * parser/analysis boundaries must not replace an already attributed line.
    * Token-parser errors include the lexer's implicit final newline. */

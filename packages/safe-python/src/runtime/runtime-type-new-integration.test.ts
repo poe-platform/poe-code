@@ -11,6 +11,7 @@ import {substituteRuntimeTypeParameters} from "./runtime-type-substitution.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
+import {runtimeCompilationSource} from "./runtime-compilation-source.js";
 import {decodeRuntimeFileSystemName,runtimeFileSystemPath} from "./runtime-filesystem-path.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
@@ -109,9 +110,9 @@ it("calls compile from guest code and publishes compiler metadata",()=>{
       return {displayName:Array.from(name.value,p=>String.fromCodePoint(p)).join(""),value:name};
     },
     inheritedFlags:()=>0x1000000,
-    compile(request){
-      if((request.source.kind!=="str"&&request.source.kind!=="bytes")||(request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires text/bytes exec/eval with future flags only");
-      const source=request.source.kind==="bytes"?request.source.value.toUint8Array(meter):Array.from(request.source.value,p=>String.fromCodePoint(p)).join("");
+    compile(request,invocation){
+      if((request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires exec/eval with future flags only");
+      const source=runtimeCompilationSource(request.source,meter,invocation);
       const program=compileSourceProgram(source,{mode:request.mode,filename:request.filename,stripDocstring:request.optimize===2,futureFlags:request.flags,enterRecursiveCall:()=>state.calls.enter(state.globals)},v,meter);
       return state.registry.code(program.module);
     }
@@ -121,6 +122,9 @@ it("calls compile from guest code and publishes compiler metadata",()=>{
   state.globals.set("encoded",v.bytes(new Uint8Array([...new TextEncoder().encode('# coding: latin-1\n"'),0xe9,34])));
   state.run("encoded_code=compile(encoded,name,'exec')\ncorrect_bytes=encoded_code.co_filename is name");
   expect(state.globals.get("correct_bytes")).toBe(v.true);
+  state.globals.set("EncodingError",state.registry.exceptionType("UnicodeEncodeError"));
+  state.run("try:compile(name,name,'exec')\nexcept EncodingError as failure:\n correct_encoding=failure.start==0 and failure.end==2 and failure.encoding=='utf-8'\n");
+  expect(state.globals.get("correct_encoding")).toBe(v.true);
   for(const [source,kind] of [["x=","SyntaxError"],[" x=1","IndentationError"],["if 1:\n\tpass\n        pass\n","TabError"]] as const){
     state.globals.set("Expected",state.registry.exceptionType(kind));state.globals.set("bad_source",v.string(source));
     state.run("try:compile(bad_source,name,'exec')\nexcept Expected as failure:\n correct_error=type(failure) is Expected and failure.filename is name and failure.args[1][0] is name\n");

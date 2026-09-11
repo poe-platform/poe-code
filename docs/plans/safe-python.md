@@ -10863,6 +10863,15 @@ extension, integration, or validation requirement is missing or unverified.
   reference check confirms None identity. Selected build, typecheck, scoped
   lint and diff whitespace checks pass. The final uncached one-worker package
   suite passes 7,732 tests in 520 files (131.62s; test bodies 8.84s).
+- Traceback resolver termination boundary (2026-09-10): a new failing test
+  reproduced an ordinary resolver error masking cancellation when a lazy line
+  callback both aborted execution and threw. Resolution now checks the execution
+  meter in finally, preserving cancellation on both success and failure. Ordinary
+  resolver failures still propagate unchanged and are not cached. All 14 focused
+  traceback tests pass; selected build, typecheck and scoped lint pass. This
+  isolated kernel currently has no production consumers, so the focused route
+  covers the changed behavior; the last full-package baseline remains 7,732
+  tests. Native traceback objects and exception attachment remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

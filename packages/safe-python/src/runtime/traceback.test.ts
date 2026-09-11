@@ -56,3 +56,15 @@ it("checks cancellation before resolving a lazy line",()=>{
   const cancelled=new ExecutionBudget({signal:controller.signal,maxSteps:100,maxAllocatedBytes:1000});
   expect(()=>tb.lineNumber(()=>{throw Error("must not resolve");},cancelled)).toThrow(ExecutionLimitError);
 });
+
+it.each([false,true])("checks cancellation after lazy line resolution (throws=%s)",throws=>{
+  const meter=budget(),tb=new Traceback(null,{},0,-1,meter),controller=new AbortController();
+  const cancelled=new ExecutionBudget({signal:controller.signal,maxSteps:100,maxAllocatedBytes:1000});
+  expect(()=>tb.lineNumber(()=>{controller.abort();if(throws)throw Error("resolver failure");return 12;},cancelled)).toThrow(ExecutionLimitError);
+});
+
+it("preserves ordinary lazy line resolver failures without caching them",()=>{
+  const meter=budget(),tb=new Traceback(null,{},0,-1,meter),failure=Error("resolver failure");
+  expect(()=>tb.lineNumber(()=>{throw failure;},meter)).toThrow(failure);
+  expect(tb.lineNumber(()=>12,meter)).toBe(12);
+});

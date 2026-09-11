@@ -21,7 +21,8 @@ export class Traceback<Frame> {
   lineNumber(resolve:(frame:Frame,instruction:number)=>number|null,meter:ExecutionMeter):number|null {
     meter.checkpoint();
     if(this.storedLine!==-1)return this.storedLine;
-    const line=resolve(this.frame,this.lastInstruction);meter.checkpoint();return line;
+    try{return resolve(this.frame,this.lastInstruction);}
+    finally{meter.checkpoint();}
   }
 
   /** Validate the entire candidate chain before publishing. Private links make

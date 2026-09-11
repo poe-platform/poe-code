@@ -12260,6 +12260,23 @@ extension, integration, or validation requirement is missing or unverified.
   bodies 12.49s). String,
   lambda and statement grammar allocation still require auditing before guest
   eager compilation.
+- Parameter/lambda AST allocation (2026-09-11): fifteen failing tests isolated
+  normalization and child-reader costs, reproducing uncharged parameter arrays,
+  records, name-set storage and lambda nodes plus cancellation hidden by throwing
+  body/default/annotation readers. Parameter parsing now charges arrays/sets,
+  name lookup and insertion, records/slots and each positional-only replacement
+  before allocation; lambda parsing charges its result node. Both readers
+  preserve termination in finally. An additional test activates allocation
+  checking after consuming the slash to isolate replacement-copy storage. The
+  initial focused two-file suite passes 43 tests. All 86 AST/diagnostic comparisons
+  against 6ffc9f9c8 preserve results, spans and ignored annotation behavior; the
+  same 86 function/lambda forms match CPython compile acceptance across separators,
+  defaults, variadics, annotations, Unicode normalization and invalid ordering.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,554 tests in 565 files (134.23s; test bodies
+  11.78s). String and
+  statement grammar allocation still require auditing before guest eager
+  compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

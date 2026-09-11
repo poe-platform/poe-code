@@ -4,6 +4,8 @@ import type { TokenCursor } from "./token-cursor.js";
 import { normalizeNfkc } from "./normalization.js";
 
 export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, minimum?: number) => Expression, terminator: ":" | ")"): Parameter[] {
+  try {
+  cursor.meter?.checkpoint(1,96);
   const parameters: Parameter[] = [];
   const names = new Set<string>();
   let slash = false;
@@ -19,7 +21,7 @@ export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, 
       if (slash || keywordOnly || parameters.length === 0) throw cursor.error("invalid positional-only separator");
       cursor.take();
       slash = true;
-      for (let i = 0; i < parameters.length; i++) parameters[i] = { ...parameters[i], kind: "positional-only" };
+      for (let i = 0; i < parameters.length; i++) {cursor.meter?.checkpoint(1,80);parameters[i] = { ...parameters[i], kind: "positional-only" };}
     } else {
       let kind: Parameter["kind"] = keywordOnly ? "keyword-only" : "positional-or-keyword";
       if (first.text === "*" || first.text === "**") {
@@ -38,7 +40,9 @@ export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, 
       if (name.kind !== "name" || reservedWords.has(name.text)) throw cursor.error("expected parameter name");
       const bindingName = normalizeNfkc(name.text,cursor.meter);
       if (bindingName === "__debug__") throw cursor.error("cannot assign to __debug__");
+      cursor.meter?.checkpoint(1+bindingName.length);
       if (names.has(bindingName)) throw cursor.error("duplicate argument in function definition");
+      cursor.meter?.checkpoint(0,32);
       names.add(bindingName);
       cursor.take();
       let end = name.end;
@@ -59,6 +63,7 @@ export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, 
         positionalDefault ||= value !== null;
       }
       if (kind === "keyword-only") keywordCount++;
+      cursor.meter?.checkpoint(0,96);
       parameters.push({ kind, spelling: name.text, name: bindingName, default: value, start: first.start, end: value?.end ?? end });
     }
     if (cursor.peek().text !== ",") break;
@@ -67,4 +72,5 @@ export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, 
   if (bareStar && keywordCount === 0) throw cursor.error("named arguments must follow bare star");
   cursor.expect(terminator);
   return parameters;
+  } finally {cursor.meter?.checkpoint();}
 }

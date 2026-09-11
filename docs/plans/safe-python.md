@@ -13557,6 +13557,19 @@ extension, integration, or validation requirement is missing or unverified.
   9,379 tests in 616 files (114.36s; bodies 13.40s). Remaining string methods,
   codecs, public interpreter assembly, imports, safe-fs and broad audits remain
   unfinished. No push or release.
+- String replacement descriptor: published canonical `str.replace` with native
+  string-subtype receivers, old/new arguments, and guest count conversion.
+  Explicit base calls bypass receiver overrides; ordinary lookup retains them.
+  Argument validation precedes count conversion, including equal old/new values.
+  Unchanged subtype results become fresh exact strings except canonical empty
+  results; exact receivers retain existing shortcuts. Invalid string arguments
+  report actual class names with CPython's 50-byte bound. Two new source tests
+  failed before publication and now pass. An 800-case in-memory comparison with
+  CPython has zero value, type, identity, diagnostic or documentation differences.
+  Maintained workspace build, typecheck, scoped lint and whitespace checks pass;
+  full uncached suite passes 9,381 tests in 616 files (147.97s; bodies 16.27s).
+  Remaining string methods, codecs, public assembly, imports, safe-fs and broad
+  audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -6001,6 +6001,19 @@ it("publishes string join with native subtype members and guest iteration", () =
   for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
 });
 
+it("publishes string replace with native subtype arguments and count callbacks",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass Count:\n def __index__(self):\n  visit('count')\n  return 1\ns=S('a🐍a')\na=str.replace(s,S('a'),S('b'),count=Count())\ncorrect=a=='b🐍a' and type(a) is str\nfirst=s.replace('x','y')\nsecond=s.replace('x','y')\nfresh=first is not s and first is not second\nsame=s.replace('a','a')\nexact=type(same) is str and same is not s\nbase='abc'\nretained=base.replace('x','y') is base\nowner=str.replace.__objclass__ is str\n");
+  for(const flag of ["correct","fresh","exact","retained","owner"])expect(state.globals.get(flag)).toBe(state.v.true);
+  expect(state.events).toEqual(["count"]);
+});
+
+it("preserves string replace argument precedence and ordinary overrides",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):\n def replace(self,*args):return 'override'\nclass Bad:pass\nclass Count:\n def __index__(self):raise ValueError('count')\ns=S('a')\nordinary=s.replace()=='override'\nexplicit=str.replace(s,'a','b')=='b'\ntry:str.replace(s,Bad(),'b',Count())\nexcept TypeError as e:first=str(e)=='replace() argument 1 must be str, not Bad'\ntry:str.replace(s,'a',Bad(),Count())\nexcept TypeError as e:second=str(e)=='replace() argument 2 must be str, not Bad'\ntry:str.replace(s,'a','a',Count())\nexcept ValueError as e:count=str(e)=='count'\n");
+  for(const flag of ["ordinary","explicit","first","second","count"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
 it.each(["center","ljust","rjust","zfill","expandtabs"])("publishes string %s with subtype storage and index callbacks",name=>{
   const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
   const argument=name==="expandtabs"?"tabsize=Width()":"Width()";

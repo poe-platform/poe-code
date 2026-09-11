@@ -12,6 +12,7 @@ import {createRuntimeSplitMethod} from "./runtime-split-method.js";
 import {createRuntimeSplitlinesMethod} from "./runtime-splitlines-method.js";
 import {createRuntimePadMethod} from "./runtime-pad-method.js";
 import {createRuntimeExpandtabsMethod} from "./runtime-expandtabs-method.js";
+import {createRuntimeStringReplaceMethod} from "./runtime-string-replace-method.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -73,6 +74,7 @@ const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const}
   ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const})),
   ...splitMethods.map(([name,doc])=>({name,doc,kind:"split" as const})),
   ...padMethods.map(([name,doc])=>({name,doc,kind:"pad" as const})),
+  {name:"replace",kind:"replace" as const,doc:"Return a copy with all occurrences of substring old replaced by new.\n\n  count\n    Maximum number of occurrences to replace.\n    -1 (the default value) means replace all occurrences.\n\nIf the optional argument count is given, only the first count occurrences are\nreplaced."},
   {name:"expandtabs",kind:"expandtabs" as const,doc:"Return a copy where all tab characters are expanded using spaces.\n\nIf tabsize is not given, a tab size of 8 characters is assumed."},
   {name:"splitlines",kind:"splitlines" as const,doc:"Return a list of the lines in the string, breaking at line boundaries.\n\nLine breaks are not included in the resulting list unless keepends\nis given and true."},
   {name:"join",kind:"join" as const,doc:"Concatenate any number of strings.\n\nThe string whose method is called is inserted in between each given\nstring.  The result is returned as a new string.\n\nExample: '.'.join(['ab', 'pq', 'rs']) -> 'ab.pq.rs'"}];
@@ -102,6 +104,7 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
             case "splitlines":bound=createRuntimeSplitlinesMethod(receiver,values,meter,invocation?.truth?.bind(invocation));break;
             case "pad":bound=createRuntimePadMethod(receiver,method.name,values,meter,invocation?.integerIndex);break;
             case "expandtabs":bound=createRuntimeExpandtabsMethod(receiver,values,meter,invocation?.integerIndex);break;
+            case "replace":bound=createRuntimeStringReplaceMethod(receiver,values,meter,invocation?.integerIndex);break;
           }
           return bound.value.invoke(positional,keywords,meter,invocation);
         } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}

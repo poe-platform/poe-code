@@ -12064,6 +12064,30 @@ extension, integration, or validation requirement is missing or unverified.
   Binding resolution/closure
   propagation and AST construction remain unfinished accounting work before
   guest compilation.
+- Metered iterative binding resolution (2026-09-11): four failing tests reproduced
+  host recursion on 10,000 nested scopes, ignored cancellation/steps after the
+  declaration pass and uncharged missing-nonlocal diagnostics. Frame construction
+  now uses an indexed active-path stack; outward/walrus owner resolution is a
+  loop. Comprehension metadata is computed in reverse frame-build order, consuming
+  child results in original sibling order and discarding them after merge. This
+  eliminates recursive closure-propagation calls without changing binding owners.
+  Frame/collection/result allocation, name lookup, ancestry scans, all map/set
+  mutations, inline copies, promotions and diagnostics are charged; final
+  checkpoints preserve termination. Two further tests verify frame-allocation
+  limits and free-variable propagation through 500 enclosing scopes. The focused
+  four-file suite passes 86 tests. All 68 comparisons with the previous resolver
+  preserve resolved trees/bindings/cells/free/closure requirements or diagnostics
+  (two diagnostic cases). All 52 CPython comparisons match compiled cell/free
+  layouts across inline promotion, globals/nonlocals and class captures. An
+  initial harness compared lexical cells directly with code cells; those differ
+  by design because compileCodeLocalLayout merges inline storage. The corrected
+  harness uses that production layout and excludes the deliberately omitted
+  annotation-only __classdict__ cell under the ignored-types policy; no production
+  behavior was changed to match the incorrect harness. Build and typecheck pass;
+  scoped lint and whitespace checks pass. The final uncached one-worker full
+  suite passes 8,414 tests in 553 files (129.79s; test bodies 10.25s).
+  AST allocation and downstream
+  compiler traversal audits remain required before guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -7,6 +7,7 @@ import { RuntimeValues, type RuntimeValue, type TypeValue } from "./runtime-valu
 import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import {collectRuntimeTypeParameters} from "./runtime-type-parameters.js";
+import {substituteRuntimeTypeParameters} from "./runtime-type-substitution.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
@@ -488,6 +489,28 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("substitutes nested runtime parameters and repeats preparation for each container",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("substitute",v.builtinFunction({name:"substitute",invoke(positional,_keywords,meter,invocation){return substituteRuntimeTypeParameters(v.none,positional[0],collectRuntimeTypeParameters(positional[0],v,meter,invocation),positional[1],v,meter,invocation);}}));
+  state.run("events=[]\nclass P:\n def __typing_prepare_subst__(self,owner,items):\n  events.append('prepare')\n  return items\n def __typing_subst__(self,item):\n  events.append('subst')\n  return item\np=P()\ncorrect=substitute(([p],(p,)),7)==([7],(7,)) and events==['prepare','prepare','subst','prepare','subst']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("substitutes nested aliases and expands variadic replacements without iterating parameters",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("substitute",v.builtinFunction({name:"substitute",invoke(positional,_keywords,meter,invocation){return substituteRuntimeTypeParameters(v.none,positional[0],collectRuntimeTypeParameters(positional[0],v,meter,invocation),positional[1],v,meter,invocation);}}));
+  state.run("events=[]\nclass P:\n __typing_is_unpacked_typevartuple__=True\n def __iter__(self):raise AssertionError('must not iterate')\n def __typing_subst__(self,item):return item\np=P()\nclass A:\n __parameters__=(p,)\n def __getitem__(self,item):\n  events.append(item)\n  return item\na=A()\ncorrect=substitute((p,a),((1,2),))==(1,2,(1,2)) and events==[(1,2)]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it.each([
+  ["()","(p,)","Too few arguments for None; actual 0, expected 1"],
+  ["(1,2)","(p,)","Too many arguments for None; actual 2, expected 1"],
+  ["7","()","None is not a generic class"]
+])("validates substitution %s against %s before parameter callbacks",(item,args,message)=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("message",v.string(message));
+  state.builtins.set("substitute",v.builtinFunction({name:"substitute",invoke(positional,_keywords,meter,invocation){return substituteRuntimeTypeParameters(v.none,positional[0],collectRuntimeTypeParameters(positional[0],v,meter,invocation),positional[1],v,meter,invocation);}}));
+  state.run(`class P:\n def __typing_subst__(self,item):raise AssertionError('substitution must not run')\np=P()\ncorrect=False\ntry:substitute(${args},${item})\nexcept TypeError as e:correct=e.args==(message,)\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("discovers parameters through list subclass iteration but borrows tuple subclass storage",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("list",state.registry.listType());state.builtins.set("tuple",state.registry.tupleType());state.builtins.set("iter",createIterBuiltin(v,state.meter));

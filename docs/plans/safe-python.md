@@ -11764,6 +11764,36 @@ extension, integration, or validation requirement is missing or unverified.
   typing publication remain required work; this milestone does not expose a
   complete generic subscription path or enable arbitrary union operands yet.
   Reference: https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/genericaliasobject.c
+- Runtime parameter substitution kernel (2026-09-11): eight failing kernel tests
+  drove the shared substitution engine required by generic aliases and checked
+  union subscriptions. It expands finite __typing_unpacked_tuple_args__ tuples,
+  retains ellipsis-ended/unrecognized inputs, invokes every parameter's optional
+  preparation hook in order and validates the resulting arity before replacing
+  arguments. Preparation may return a non-tuple; subsequent hooks receive it
+  wrapped as one argument. Nested list/tuple arguments repeat input preparation,
+  snapshot lists through normal iteration and preserve list/tuple result shape.
+  Bare type objects bypass metadata; other arguments use unpacked-parameter
+  truth, ordinary substitution hooks or nested alias parameter metadata and
+  normal subscription. Parameter matching is identity-based. Variadic alias
+  expansion checks native __iter__ slot presence without calling the iterator.
+  An explicit frame stack handles 10,000 nested containers without host stack
+  use, with quotas bounding cycles; callback failures preserve cancellation.
+  Nongeneric, arity and non-tuple variadic-result diagnostics retain repr/callback
+  ordering. Integration checks exercise ordinary guest descriptors and calls.
+  The focused two-file suite passes 1,028 tests. All 168 scoped CPython
+  comparisons pass: 90 nested/preparation combinations, 36 variadic alias cases,
+  18 input/subclass cases and 24 lookup/call failure cases. Six root-list harness
+  cases were excluded from the comparison because GenericAlias's public
+  constructor wraps a list argument, unlike the internal substitution kernel's
+  list-root contract; nested-list comparisons and direct list-root unit tests
+  cover those separate contracts without claiming they are identical.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,199 tests in 538 files
+  (139.04s; test bodies 10.79s).
+  This kernel is not yet wired to complete public generic subscriptions:
+  checked union construction, ForwardRef conversion/validation, native generic
+  alias construction and fast paths, and typing publication remain required.
+  Reference: https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/genericaliasobject.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

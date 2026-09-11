@@ -1,5 +1,7 @@
 import type { CodePointString } from "./code-point-string.js";
 import { PythonRuntimeError } from "./error.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeSequenceIterator } from "./runtime-sequence-iterator.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
@@ -7,7 +9,8 @@ import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtim
 
 /** Materialize generic input before validating members, as Python join does.
  * Iterator failures retain precedence over bad elements already collected.
- * Guest cursors supply length hints; str subclasses remain separate work. */
+ * Guest cursors supply length hints; members use native string storage without
+ * invoking guest conversions. Only exact singleton strings retain identity. */
 export function createRuntimeStringJoinMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, values: RuntimeValues, meter: ExecutionMeter, iterate?: ExpressionContext<RuntimeValue>["iterate"]): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
@@ -37,11 +40,12 @@ export function createRuntimeStringJoinMethod(receiver: Extract<RuntimeValue, { 
       const parts: CodePointString[] = new Array(items.length);
       for (let i = 0; i < items.length; i++) {
         meter.checkpoint(); const item = items[i];
-        if (item.kind !== "str") {
-          const type = item.kind === "none" ? "NoneType" : item.kind === "not-implemented" ? "NotImplementedType" : item.kind;
+        const payload = runtimeStringPayload(item);
+        if (payload === undefined) {
+          const type = diagnosticTypeName(item.kind === "none" ? "NoneType" : item.kind === "not-implemented" ? "NotImplementedType" : item.kind === "instance" ? item.type.value.diagnosticName : item.kind, meter, 80);
           throw new PythonRuntimeError("TypeError", `sequence item ${i}: expected str instance, ${type} found`);
         }
-        parts[i] = item.value;
+        parts[i] = payload.value;
       }
       return values.stringPoints(receiver.value.join(parts, meter));
     }

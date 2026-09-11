@@ -5994,6 +5994,28 @@ it("does not finalize or initialize an unrelated result from delegated allocatio
   expect(state.events).toEqual(["new", "new"]); expect(state.globals.get("first")).toBe(state.v.false); expect(state.globals.get("second")).toBe(state.v.false);
 });
 
+it("publishes string join with native subtype members and guest iteration", () => {
+  const state=exceptionFixture(); state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):\n def __str__(self):\n  raise TypeError('conversion forbidden')\nclass Items:\n def __iter__(self):\n  yield S('a')\n  yield S('b')\nseparator=S('-')\nresult=separator.join(Items())\nvalue=S('abc')\nfirst=str.join('',[value])\nsecond=str.join('',[value])\nexact=type(first) is str\nfresh=first is not second and first is not value\nbase='abc'\nretained=str.join(separator,[base]) is base\nowner=str.join.__objclass__ is str\n");
+  expect(state.globals.get("result")).toEqual(state.v.string("a-b"));
+  for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
+});
+
+it("materializes string join iterables before diagnosing subclass members", () => {
+  const state=exceptionFixture(); state.globals.set("str",state.registry.stringType());
+  state.run("class Bad:\n pass\nclass Items:\n def __iter__(self):\n  yield Bad()\n  visit('consumed')\n");
+  state.run("try:str.join('',Items())\nexcept TypeError as e:correct=str(e)=='sequence item 0: expected str instance, Bad found'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(["consumed"]);
+});
+
+it("honors iterable and join overrides while explicit string join bypasses only the receiver override", () => {
+  const state=exceptionFixture(); state.globals.set("str",state.registry.stringType());state.globals.set("list",state.registry.listType());
+  state.run("class S(str):\n def join(self,source):return 'override'\nclass L(list):\n def __iter__(self):\n  visit('iterated')\n  yield 'a'\n  yield 'b'\ns=S('-')\nordinary=s.join(None)=='override'\nexplicit=str.join(s,L(['ignored']))=='a-b'\ntry:str.join(s,[None])\nexcept TypeError as e:bad=str(e)=='sequence item 0: expected str instance, NoneType found'\ntry:str.join(s,iterable=[])\nexcept TypeError as e:keyword=str(e)=='str.join() takes no keyword arguments'\ntry:str.join(1,[])\nexcept TypeError:receiver=True\n");
+  for(const name of ["ordinary","explicit","bad","keyword","receiver"])expect(state.globals.get(name)).toBe(state.v.true);
+  expect(state.events).toEqual(["iterated"]);
+});
+
 it("detects metaclass conflicts before publishing a class cell", () => {
   const state = fixture(), cell = state.v.cell({}); state.globals.set("cell", cell);
   state.run("M1=type('M1',(type,),{})\nM2=type('M2',(type,),{})\nA=type.__new__(M1,'A',(),{})\nB=type.__new__(M2,'B',(),{})\n");

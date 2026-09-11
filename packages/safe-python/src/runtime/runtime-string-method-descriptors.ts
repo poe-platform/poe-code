@@ -6,6 +6,8 @@ import {createRuntimeStringSearchMethod} from "./runtime-string-search-method.js
 import {createRuntimeStringAffixMethod} from "./runtime-string-affix-method.js";
 import {createRuntimeStringCutMethod} from "./runtime-string-cut-method.js";
 import {createRuntimeStringStripMethod} from "./runtime-string-strip-method.js";
+import {createRuntimeStringJoinMethod} from "./runtime-string-join-method.js";
+import {runtimeIterate} from "./runtime-iteration.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -54,7 +56,8 @@ const cutMethods=[
 ] as const;
 const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const})),...classificationMethods.map(([name,doc])=>({name,doc,kind:"classification" as const})),
   ...searchMethods.map(([name,doc])=>({name,doc,kind:"search" as const})),...affixMethods.map(([name,doc])=>({name,doc,kind:"affix" as const})),
-  ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const}))];
+  ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const})),
+  {name:"join",kind:"join" as const,doc:"Concatenate any number of strings.\n\nThe string whose method is called is inserted in between each given\nstring.  The result is returned as a new string.\n\nExample: '.'.join(['ab', 'pq', 'rs']) -> 'ab.pq.rs'"}];
 export const runtimeStringMethodNames:ReadonlySet<string>=new Set(methods.map(method=>method.name));
 
 /** Canonical descriptors adapt owned subtype storage to the shared Unicode
@@ -76,6 +79,7 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
             case "affix":bound=createRuntimeStringAffixMethod(payload,method.name,values,meter,invocation?.integerIndex);break;
             case "strip":bound=createRuntimeStringStripMethod(receiver,method.name,values,meter);break;
             case "cut":bound=createRuntimeStringCutMethod(receiver,method.name,values,meter);break;
+            case "join":bound=createRuntimeStringJoinMethod(payload,values,meter,source=>runtimeIterate(source,values,meter,invocation?.iteration));break;
           }
           return bound.value.invoke(positional,keywords,meter,invocation);
         } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}

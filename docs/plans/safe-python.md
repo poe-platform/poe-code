@@ -13509,6 +13509,22 @@ extension, integration, or validation requirement is missing or unverified.
   uncached thread-pool suite passes 9,358 tests in 616 files (95.13s; bodies 11.51s).
   Remaining string methods, codecs, public interpreter assembly, imports, safe-fs
   and broad audits remain unfinished. No push or release.
+- String joining descriptor: published canonical `str.join`, inherited by native
+  string subtypes and explicitly callable through the base type. Members use
+  native string storage without invoking conversion overrides; exact singleton
+  strings retain identity, subtype singleton results become fresh base strings
+  (except canonical empty strings). Guest iterable overrides remain active,
+  including list subtypes, and complete materialization retains iterator-error
+  precedence over invalid members. Invalid member diagnostics use actual subtype
+  names and CPython's 80-byte bound. Three source integration tests cover native
+  members, generators, overrides, identity, descriptor ownership and admission.
+  Initial tests reproduced the missing descriptor; a partial native-type fixture
+  was updated to recognize canonical strings without weakening cursor-hint
+  assertions. An in-memory 192-case CPython comparison found zero value, type or
+  identity differences. Workspace build, typecheck, scoped lint and full uncached
+  suite pass: 9,361 tests in 616 files (160.84s; test bodies 18.10s). String
+  splitting, remaining methods, public assembly, imports and safe-fs are still
+  unfinished. Local change only; no push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

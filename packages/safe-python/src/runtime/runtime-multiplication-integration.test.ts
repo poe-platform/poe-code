@@ -42,6 +42,7 @@ function fixture(signal?: AbortSignal) {
       if (value.kind === "dict") return registry.dictionaryType();
       if (value.kind === "int") return registry.integerType();
       if (value.kind === "float") return registry.floatType();
+      if (value.kind === "str") return registry.stringType();
       if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
       throw Error(`unexpected type lookup: ${value.kind}`);
     }, slots: () => undefined }),

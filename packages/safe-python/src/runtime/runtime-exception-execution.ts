@@ -19,7 +19,7 @@ import type { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import type { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import { standardExceptionCatalog, type StandardExceptionName } from "./standard-exception-catalog.js";
 import type { StatementContext } from "./statement-execution.js";
-import type { BuiltinInvocationContext, InstanceValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { BuiltinInvocationContext, ExceptionPreparationValues, InstanceValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { GeneratorExecution,type GeneratorInput,type GeneratorDelegation } from "./generator-execution.js";
 import type { CallStack } from "./call-stack.js";
@@ -144,11 +144,11 @@ export class RuntimeExceptionExecution {
   private parserType(error:PythonSyntaxError):"SyntaxError"|"IndentationError"|"TabError" {
     return error instanceof PythonTabError?"TabError":error instanceof PythonIndentationError?"IndentationError":"SyntaxError";
   }
-  prepare(error:unknown,syntaxFilename?:RuntimeValue):unknown {
+  prepare(error:unknown,retained?:ExceptionPreparationValues):unknown {
     if(error instanceof PythonSyntaxError) {
       const {values,meter}=this;
       meter.checkpoint(0,64);
-      const message=values.string(error.message),filename=syntaxFilename??values.string(error.filename),line=values.integer(error.position.line),offset=values.integer(error.position.column+1);
+      const message=values.string(error.message),filename=retained?.syntaxFilename??values.string(error.filename),line=values.integer(error.position.line),offset=values.integer(error.position.column+1);
       const text=error.sourceLine===undefined?values.none:values.string(error.sourceLine);
       const endLine=error.endPosition===undefined?values.none:values.integer(error.endPosition.line),endOffset=error.endPosition===undefined?values.none:values.integer(error.endPosition.column+1);
       const details=values.tuple(error.endPosition===undefined?[filename,line,offset,text]:[filename,line,offset,text,endLine,endOffset]);
@@ -161,7 +161,7 @@ export class RuntimeExceptionExecution {
     if(!(error instanceof PythonRuntimeError)||!Object.hasOwn(standardExceptionCatalog,error.name))return error;
     const codec=error instanceof PythonEncodeError||error instanceof PythonDecodeError;
     this.meter.checkpoint(0,codec?80:0);
-    const args=codec?[this.values.string(error.encoding),error instanceof PythonEncodeError?this.values.stringPoints(error.object):this.values.bytes(error.object),this.values.integer(error.start),this.values.integer(error.end),this.values.string(error.reason)]:error instanceof PythonKeyError?error.args:[this.values.string(error.message)];
+    const args=codec?[this.values.string(error.encoding),retained?.unicodeObject??(error instanceof PythonEncodeError?this.values.stringPoints(error.object):this.values.bytes(error.object)),this.values.integer(error.start),this.values.integer(error.end),this.values.string(error.reason)]:error instanceof PythonKeyError?error.args:[this.values.string(error.message)];
     const value=this.native(error.name as StandardExceptionName,args);
     if(codec) {
       const storage=runtimeExceptionPayload(value)!;

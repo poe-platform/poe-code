@@ -12767,6 +12767,21 @@ extension, integration, or validation requirement is missing or unverified.
   suite passes 8,983 tests in 594 files (73.41s; bodies 7.60s). AST source
   dispatch and canonical bytearray/memoryview publication remain separate unfinished
   work; buffer support here uses the existing explicit lease capability.
+- Compiler Unicode exception source identity (2026-09-11): a failing guest
+  regression confirmed that UnicodeEncodeError.object and args[1] reconstructed
+  equal strings instead of retaining the original source object; direct CPython
+  compilation confirmed both identity requirements. Exception preparation now
+  accepts named retained guest values for syntax filenames and Unicode objects.
+  The guest source converter passes its original str when preparing a surrogate
+  encoding failure. Existing native faults without retained values still use the
+  original fallback conversion. Compiler filename retention uses the same named
+  contract and remains covered. Three focused failures covered the revised
+  capability call and cancellation during preparation before implementation.
+  The 1,064-test focused run passes, plus two native encode/decode identity tests.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 8,987 tests in 594 files (137.22s; bodies 12.56s).
+  This does not yet retrofit every other native encoder with original-object
+  retention or establish full codec/interpreter completion.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -84,8 +84,8 @@ export function createCompileBuiltin(values:RuntimeValues,meter:ExecutionMeter,c
       try{return context.compile({source:args[0]!,filename,mode,flags,optimize,featureVersion},invocation,meter);}
       catch(error){
         if(error instanceof PythonSyntaxError&&typeof filename!=="string"&&invocation?.prepareException!==undefined){
-          meter.checkpoint();
-          throw invocation.prepareException(error,filename.value);
+          meter.checkpoint(1,48);
+          throw invocation.prepareException(error,{syntaxFilename:filename.value});
         }
         throw error;
       }

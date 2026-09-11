@@ -123,7 +123,7 @@ it("calls compile from guest code and publishes compiler metadata",()=>{
   state.run("encoded_code=compile(encoded,name,'exec')\ncorrect_bytes=encoded_code.co_filename is name");
   expect(state.globals.get("correct_bytes")).toBe(v.true);
   state.globals.set("EncodingError",state.registry.exceptionType("UnicodeEncodeError"));
-  state.run("try:compile(name,name,'exec')\nexcept EncodingError as failure:\n correct_encoding=failure.start==0 and failure.end==2 and failure.encoding=='utf-8'\n");
+  state.run("try:compile(name,name,'exec')\nexcept EncodingError as failure:\n correct_encoding=failure.start==0 and failure.end==2 and failure.encoding=='utf-8' and failure.object is name and failure.args[1] is name\n");
   expect(state.globals.get("correct_encoding")).toBe(v.true);
   for(const [source,kind] of [["x=","SyntaxError"],[" x=1","IndentationError"],["if 1:\n\tpass\n        pass\n","TabError"]] as const){
     state.globals.set("Expected",state.registry.exceptionType(kind));state.globals.set("bad_source",v.string(source));
@@ -1770,6 +1770,15 @@ it("constructs and renders native Unicode exception families",()=>{
 it("keeps Unicode native fields on failed initialization while replacing args",()=>{
   const state=exceptionFixture();state.globals.set("Error",state.registry.exceptionType("UnicodeTranslateError"));
   state.run("error=Error('old',0,1,'old reason')\ntry:\n error.__init__('new',2,3,None)\nexcept TypeError:\n correct=error.args==('new',2,3,None) and error.object=='old' and error.start==0 and error.end==1 and error.reason=='old reason'\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
+it.each(["encode","decode"] as const)("retains original Unicode %s objects during native preparation",mode=>{
+  const state=exceptionFixture(),source=mode==="encode"?state.v.string("\ud800"):state.v.bytes(Uint8Array.of(255));
+  const failure=source.kind==="str"?new PythonEncodeError("utf-8",source.value,0,1,"bad"):new PythonDecodeError("utf-8",source.value.toUint8Array(state.meter),0,1,"bad");
+  state.globals.set("Error",state.registry.exceptionType(mode==="encode"?"UnicodeEncodeError":"UnicodeDecodeError"));state.globals.set("source",source);
+  state.builtins.set("codec",state.v.builtinFunction({name:"codec",invoke(_args,_keywords,_meter,invocation){throw invocation!.prepareException!(failure,{unicodeObject:source});}}));
+  state.run("try:codec()\nexcept Error as error:\n correct=error.object is source and error.args[1] is source\n");
   expect(state.globals.get("correct")).toBe(state.v.true);
 });
 

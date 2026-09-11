@@ -92,7 +92,7 @@ it("prepares compilation syntax failures with the retained guest filename",()=>{
   const state=fixture(),filename=state.v.stringPoints(new Uint32Array([0xd800,0xdc00])),syntax=new PythonSyntaxError("bad syntax","shown.py",{offset:0,line:1,column:0}),carrier=new Error("guest syntax carrier"),prepareException=vi.fn(()=>carrier);
   const builtin=createCompileBuiltin(state.v,state.meter,{filename:()=>({displayName:"shown.py",value:filename}),compile(){throw syntax;}});
   expect(()=>builtin.value.invoke(state.args(),state.keywords,state.meter,{prepareException} as unknown as BuiltinInvocationContext)).toThrow(carrier);
-  expect(prepareException).toHaveBeenCalledWith(syntax,filename);
+  expect(prepareException).toHaveBeenCalledWith(syntax,{syntaxFilename:filename});
 });
 it("leaves ordinary backend failures unprepared",()=>{
   const state=fixture(),failure=new Error("backend failure"),prepareException=vi.fn();

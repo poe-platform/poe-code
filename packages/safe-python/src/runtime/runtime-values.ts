@@ -91,14 +91,20 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
   return value.kind === "dict_keys" || value.kind === "dict_items";
 }
 
+/** Original guest values retained by native operations for exception publication. */
+export interface ExceptionPreparationValues {
+  readonly syntaxFilename?:RuntimeValue;
+  readonly unicodeObject?:RuntimeValue;
+}
+
 /** Trusted host implementation, installed explicitly by the runtime owner.
  * No payload fields are exposed through guest JavaScript property access. The
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
-  /** Translate a native failure; a compiler may retain its original filename
-   * constant instead of rebuilding it from host diagnostic text. */
-  prepareException?(error:unknown,syntaxFilename?:RuntimeValue):unknown;
+  /** Translate a native failure without rebuilding retained source/filename
+   * objects from host diagnostic storage. */
+  prepareException?(error:unknown,retained?:ExceptionPreparationValues):unknown;
   /** Execution-owned canonical base object type for native sentinel allocation. */
   readonly objectType?:TypeValue;
   /** Replace a guest protocol failure while retaining explicit cause/context. */

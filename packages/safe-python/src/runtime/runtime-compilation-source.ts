@@ -8,7 +8,7 @@ import type {BuiltinInvocationContext,RuntimeValue} from "./runtime-values.js";
  * by the compiler backend before entering this branch. No __str__/__bytes__ or
  * iteration fallback participates. Buffer leases end before parsing starts.
  */
-export function runtimeCompilationSource(source:RuntimeValue,meter:ExecutionMeter,context:Pick<BuiltinInvocationContext,"buffers"|"isException">={}):string|Uint8Array {
+export function runtimeCompilationSource(source:RuntimeValue,meter:ExecutionMeter,context:Pick<BuiltinInvocationContext,"buffers"|"isException"|"prepareException">={}):string|Uint8Array {
   let lease:RuntimeBufferLease|undefined,fatal=false;
   try {
     meter.checkpoint();
@@ -25,7 +25,12 @@ export function runtimeCompilationSource(source:RuntimeValue,meter:ExecutionMete
             end++;
           }
           meter.checkpoint(0,320);
-          throw new PythonEncodeError("utf-8",source.value,index,end,"surrogates not allowed");
+          const error=new PythonEncodeError("utf-8",source.value,index,end,"surrogates not allowed");
+          if(context.prepareException!==undefined){
+            meter.checkpoint(1,48);
+            throw context.prepareException(error,{unicodeObject:source});
+          }
+          throw error;
         }
         text+=String.fromCodePoint(point);
       }

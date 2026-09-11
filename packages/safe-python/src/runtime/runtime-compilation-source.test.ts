@@ -5,6 +5,15 @@ import {ExecutionBudget,ExecutionLimitError} from "./execution-budget.js";
 import {PythonRuntimeError} from "./error.js";
 
 function fixture(){const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000});return{meter,v:new RuntimeValues(meter)};}
+it("prepares encoding errors with the original guest source object",()=>{
+  const {v,meter}=fixture(),source=v.stringPoints(new Uint32Array([0xd800,0xdc00])),carrier=new Error("prepared"),prepareException=vi.fn(()=>carrier);
+  expect(()=>runtimeCompilationSource(source,meter,{prepareException})).toThrow(carrier);
+  expect(prepareException).toHaveBeenCalledWith(expect.objectContaining({name:"UnicodeEncodeError",object:source.value}),{unicodeObject:source});
+});
+it("preserves cancellation during encoding error preparation",()=>{
+  const {v}=fixture(),source=v.string("\ud800"),controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal});
+  expect(()=>runtimeCompilationSource(source,meter,{prepareException(){controller.abort();throw Error("preparation failed");}})).toThrow(ExecutionLimitError);
+});
 it("preserves the distinction between guest strings and bytes",()=>{
   const {v,meter}=fixture(),buffers={acquireSimple:vi.fn()};
   expect(runtimeCompilationSource(v.string('"🐍"'),meter,{buffers})).toBe('"🐍"');

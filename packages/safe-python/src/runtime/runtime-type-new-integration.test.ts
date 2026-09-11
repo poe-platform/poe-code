@@ -148,8 +148,8 @@ it("selects dynamic execution globals, locals and builtins before compiling sour
   for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,v,meter,{execute(request,invocation){
     if(invocation===undefined)throw Error("expected invocation");
     const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>globals,locals:()=>globals,builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
-    if(request.source.kind!=="str"||request.closure.kind!=="none")throw Error("fixture supports text without closure");
-    const source=runtimeCompilationSource(request.source,meter,invocation);if(typeof source!=="string")throw Error("expected text");
+    if(request.closure.kind!=="none")throw Error("fixture does not support closure");
+    const source=runtimeCompilationSource(request.source,meter,invocation,request.mode);
     const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
     const localNames=selected.locals.kind==="dict"?new RuntimeDictionaryNamespace(selected.locals,v,meter,invocation):new RuntimeMappingNamespace(selected.locals,v,meter,invocation);
     const builtinNames=selected.builtins.kind==="dict"?new RuntimeDictionaryNamespace(selected.builtins,v,meter,invocation):new RuntimeMappingNamespace(selected.builtins,v,meter,invocation);
@@ -163,6 +163,8 @@ it("selects dynamic execution globals, locals and builtins before compiling sour
   globals.items.set(v.string("Dict"),state.registry.dictionaryType());
   state.run("class G(Dict):\n def __getitem__(self,key):\n  if key=='x':return 42\n  return Dict.__getitem__(self,key)\n def __setitem__(self,key,value):raise RuntimeError('write override')\n def __delitem__(self,key):raise RuntimeError('delete override')\ng=G(x=7,__name__='guest')\nl={}\na=eval('x',g,l)\nb=eval('(lambda:x)()',g,l)\nexec('global x\\nx=9',g,l)\nexec('class C:\\n value=x',g,l)\ncorrect_subclass=a==7 and b==42 and Dict.__getitem__(g,'x')==9 and l['C'].value==9\nexec('global x\\ndel x',g,l)\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   expect(globals.items.lookup(v.string("correct_subclass"))?.value).toBe(v.true);
+  state.run("whitespace=eval(' \\t6*7')==42 and eval(b' \\t6*7')==42\ntry:exec(' \\t1')\nexcept SyntaxError:exec_indent=True\ntry:eval(1)\nexcept TypeError:invalid_source=True\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  for(const name of ["whitespace","exec_indent","invalid_source"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
 });
 
 it("executes guest eval/exec through an explicitly supplied source execution backend",()=>{

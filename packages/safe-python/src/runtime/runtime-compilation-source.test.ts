@@ -5,6 +5,32 @@ import {ExecutionBudget,ExecutionLimitError} from "./execution-budget.js";
 import {PythonRuntimeError} from "./error.js";
 
 function fixture(){const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000});return{meter,v:new RuntimeValues(meter)};}
+it.each(["compile","eval","exec"] as const)("reports %s source admission errors",mode=>{
+  const {v,meter}=fixture();
+  expect(()=>runtimeCompilationSource(v.none,meter,{},mode)).toThrow(`${mode}() arg 1 must be a string, bytes or ${mode==="compile"?"AST":"code"} object`);
+});
+it.each([" \t1","\t \t","\f 1"," \t\n 1"," \t'🐍'","1 \t"])("only removes eval's initial ASCII spaces and tabs: %j",source=>{
+  const {v,meter}=fixture(),expected=source.startsWith(" \t")?source.slice(2):source==="\t \t"?"":source;
+  expect(runtimeCompilationSource(v.string(source),meter,{},"eval")).toBe(expected);
+  expect(runtimeCompilationSource(v.bytes(new TextEncoder().encode(source)),meter,{},"eval")).toEqual(new TextEncoder().encode(expected));
+  for(const mode of ["compile","exec"] as const)expect(runtimeCompilationSource(v.string(source),meter,{},mode)).toBe(source);
+});
+it("normalizes eval buffer copies and releases the original lease",()=>{
+  const {v,meter}=fixture(),release=vi.fn(),bytes=v.bytes(new Uint8Array([32,9,49])).value;
+  expect(runtimeCompilationSource(v.none,meter,{buffers:{acquireSimple:()=>({byteLength:3,copy:()=>bytes,release})}},"eval")).toEqual(new Uint8Array([49]));
+  expect(release).toHaveBeenCalledTimes(1);
+});
+it("keeps original Unicode error offsets before eval whitespace removal",()=>{
+  const {v,meter}=fixture();
+  expect(()=>runtimeCompilationSource(v.string(" \t\ud800"),meter,{},"eval")).toThrow(expect.objectContaining({name:"UnicodeEncodeError",start:2,end:3}));
+});
+it("meters eval whitespace scanning and preserves fatal limits",()=>{
+  const {v,meter}=fixture(),source=v.bytes(new TextEncoder().encode(" ".repeat(100)+"1"));
+  const initial=meter.usage.steps;
+  runtimeCompilationSource(source,meter,{},"compile");
+  const limited=new ExecutionBudget({maxSteps:meter.usage.steps-initial,maxAllocatedBytes:1000000});
+  expect(()=>runtimeCompilationSource(source,limited,{},"eval")).toThrow(ExecutionLimitError);
+});
 it("prepares encoding errors with the original guest source object",()=>{
   const {v,meter}=fixture(),source=v.stringPoints(new Uint32Array([0xd800,0xdc00])),carrier=new Error("prepared"),prepareException=vi.fn(()=>carrier);
   expect(()=>runtimeCompilationSource(source,meter,{prepareException})).toThrow(carrier);

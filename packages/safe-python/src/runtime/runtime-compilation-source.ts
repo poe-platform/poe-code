@@ -4,11 +4,12 @@ import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeBufferLease} from "./runtime-buffer-context.js";
 import type {BuiltinInvocationContext,RuntimeValue} from "./runtime-values.js";
 
-/** Text/buffer branch of compile source conversion. AST objects must be handled
- * by the compiler backend before entering this branch. No __str__/__bytes__ or
- * iteration fallback participates. Buffer leases end before parsing starts.
+/** Text/buffer branch of compile/eval/exec source conversion. AST/code objects
+ * must be handled by the backend before entering this branch. No __str__/__bytes__
+ * or iteration fallback participates. Buffer leases end before parsing starts.
+ * Eval strips only initial ASCII space/tab after validating the original text.
  */
-export function runtimeCompilationSource(source:RuntimeValue,meter:ExecutionMeter,context:Pick<BuiltinInvocationContext,"buffers"|"isException"|"prepareException">={}):string|Uint8Array {
+export function runtimeCompilationSource(source:RuntimeValue,meter:ExecutionMeter,context:Pick<BuiltinInvocationContext,"buffers"|"isException"|"prepareException">={},mode:"compile"|"eval"|"exec"="compile"):string|Uint8Array {
   let lease:RuntimeBufferLease|undefined,fatal=false;
   try {
     meter.checkpoint();
@@ -34,9 +35,9 @@ export function runtimeCompilationSource(source:RuntimeValue,meter:ExecutionMete
         }
         text+=String.fromCodePoint(point);
       }
-      return text;
+      return normalizeSource(text,mode,meter);
     }
-    if(source.kind==="bytes")return source.value.toUint8Array(meter);
+    if(source.kind==="bytes")return normalizeSource(source.value.toUint8Array(meter),mode,meter);
     try {lease=context.buffers?.acquireSimple(source);}
     catch(error){
       if(error instanceof ExecutionLimitError||(!(error instanceof PythonRuntimeError)&&context.isException?.(error,"BaseException")!==true))throw error;
@@ -44,9 +45,23 @@ export function runtimeCompilationSource(source:RuntimeValue,meter:ExecutionMete
     meter.checkpoint();
     if(lease===undefined){
       meter.checkpoint(0,320);
-      throw new PythonRuntimeError("TypeError","compile() arg 1 must be a string, bytes or AST object");
+      throw new PythonRuntimeError("TypeError",`${mode}() arg 1 must be a string, bytes or ${mode==="compile"?"AST":"code"} object`);
     }
-    return lease.copy().toUint8Array(meter);
+    return normalizeSource(lease.copy().toUint8Array(meter),mode,meter);
   } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
   finally {lease?.release();if(!fatal)meter.checkpoint();}
+}
+
+function normalizeSource(source:string|Uint8Array,mode:"compile"|"eval"|"exec",meter:ExecutionMeter):string|Uint8Array {
+  if(mode!=="eval")return source;
+  let start=0;
+  while(start<source.length){
+    meter.checkpoint();
+    const unit=typeof source==="string"?source.charCodeAt(start):source[start];
+    if(unit!==32&&unit!==9)break;
+    start++;
+  }
+  if(start===0)return source;
+  meter.checkpoint(1,64+(typeof source==="string"?2*(source.length-start):0));
+  return typeof source==="string"?source.slice(start):source.subarray(start);
 }

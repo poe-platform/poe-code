@@ -12867,6 +12867,22 @@ extension, integration, or validation requirement is missing or unverified.
   thread-pool suite passes 9,043 tests in 597 files (69.19s; bodies 8.31s).
   Canonical dynamic backend registration, optimized default locals, code objects
   and closure execution remain unfinished; this is not a full eval/exec claim.
+- Dynamic text/buffer source admission (2026-09-11): seven failing regressions
+  established missing eval whitespace normalization and eval/exec-specific source
+  type errors. The shared conversion now accepts an explicit compile/eval/exec
+  mode, retaining compile as its default. Eval removes only initial ASCII spaces
+  and tabs after Unicode validation, preserving original Unicode error offsets
+  and source identity. Byte and buffer inputs follow the same rule; copied buffers
+  are released before compilation and whitespace scanning is metered. CPython's
+  builtin source was inspected to distinguish initial pointer advancement from
+  ordinary lexer handling of trailing whitespace. All 208 CPython comparisons of
+  text/byte whitespace admission and exception classes match. Native integration
+  executes padded string/byte eval, retains exec indentation errors and handles
+  invalid source types. The focused conversion suite passes 25 tests, including
+  fatal budget enforcement (its initial allowance was corrected to exclude source
+  construction). Build, typecheck, scoped lint and whitespace checks pass. The
+  uncached full thread-pool suite passes 9,055 tests in 597 files (64.77s; bodies
+  8.24s). Code-object execution remains a separate pending backend branch.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

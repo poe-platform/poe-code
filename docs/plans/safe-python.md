@@ -12041,6 +12041,29 @@ extension, integration, or validation requirement is missing or unverified.
   forwards the meter only for declaration validation in this milestone; its own
   binding resolution/closure propagation and symbol collection/AST construction
   remain unfinished accounting work before guest compilation.
+- Metered iterative symbol collection (2026-09-11): ten failing tests reproduced
+  ignored entry budgets/cancellation, host stack overflow in all four recursive
+  walkers on 10,000-level statement/expression/target/pattern trees, unmetered
+  defaultless parameter scans and event allocation, and absent analysis forwarding.
+  The walkers now yield child generators to an explicit active-path driver rather
+  than recursively invoking or delegating them. Resumption preserves mutations
+  after children, including walrus write-outer events, pattern bindings and scope
+  creation after defaults/outer iterables. The driver reserves iterator-result
+  and child-generator allocation before advancing; records/scopes, synthetic
+  names, expression/statement helper iterators and private-name work are charged.
+  Expressionless statements and defaultless parameters have explicit checkpoints.
+  analyzeModule forwards its meter; final checkpoints preserve cancellation.
+  Two additional tests bound cyclic statement/expression graphs. The focused
+  six-file suite passes 125 tests. All 22 comparisons against the previous
+  collector preserve complete scope trees, event order and child-entry indices;
+  these are regression comparisons, not a new claim of exhaustive compatibility.
+  All 80 downstream CPython comparisons still pass: 28 qualified-name cases,
+  13 static-attribute cases and 39 declaration diagnostics. Build and typecheck
+  pass, as do scoped lint and whitespace checks. The final uncached one-worker
+  full suite passes 8,408 tests in 552 files (142.03s; test bodies 13.10s).
+  Binding resolution/closure
+  propagation and AST construction remain unfinished accounting work before
+  guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

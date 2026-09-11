@@ -176,6 +176,12 @@ it.each(["__eq__","__ne__","__lt__","__le__","__gt__","__ge__"])("publishes None
   expect(state.globals.get("keyword")).toEqual(v.tuple([v.string(`wrapper ${method}() takes no keyword arguments`)]));
 });
 
+it("publishes NoneType-owned hashing with the shared execution hash policy",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("hash",createHashBuiltin(v,state.meter,state.hash));
+  state.run("T=type(None)\nowned=T.__hash__.__objclass__ is T\nconsistent=T.__hash__(None)==None.__hash__()==hash(None)\ntry:T.__hash__(1)\nexcept TypeError:rejected=True\n");
+  for(const name of ["owned","consistent","rejected"])expect(state.globals.get(name)).toBe(v.true);
+});
+
 it("distinguishes function names from assigned and natural generator-expression code names",()=>{
   const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
   const program=compileSourceProgram("g=(x for x in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);

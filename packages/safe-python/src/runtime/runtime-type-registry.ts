@@ -88,7 +88,7 @@ import { installRuntimeListArithmeticSlots } from "./runtime-list-arithmetic-slo
 import { createListInitWrapper } from "./builtin-list-init.js";
 import { createListNewBuiltin } from "./builtin-list-new.js";
 import { createListReprWrapper } from "./builtin-list-repr.js";
-import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js";
+import { createNativeHashWrapper } from "./builtin-native-hash.js";
 import { installRuntimeGeneratorDescriptors } from "./runtime-generator-descriptors.js";
 import { installRuntimeAsyncGeneratorDescriptors } from "./runtime-async-generator-descriptors.js";
 import { installRuntimeAnextAwaitableDescriptors } from "./runtime-anext-awaitable.js";
@@ -285,7 +285,7 @@ export class RuntimeTypeRegistry {
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeComparisonMethods(kind, type, this.values, this.meter);
     namespace.items.set(this.values.string("__repr__"), createBoundCallableReprWrapper(kind, type, this.values, this.meter));
-    namespace.items.set(this.values.string("__hash__"), createBoundCallableHashWrapper(kind, type, this.values, this.meter));
+    namespace.items.set(this.values.string("__hash__"), createNativeHashWrapper(kind, type, this.values, this.meter));
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#boundCallables.set(kind, type);
     return type;
@@ -673,6 +673,7 @@ export class RuntimeTypeRegistry {
     namespace.items.set(this.values.string("__new__"),createSingletonNewBuiltin(type,this.values.none,this.values,this.meter));
     installRuntimeSingletonSlots("none",type,this.values,this.meter);
     installRuntimeComparisonMethods("none",type,this.values,this.meter);
+    namespace.items.set(this.values.string("__hash__"),createNativeHashWrapper("none",type,this.values,this.meter));
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#noneType=type;
     return type;

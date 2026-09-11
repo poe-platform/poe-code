@@ -13275,6 +13275,21 @@ extension, integration, or validation requirement is missing or unverified.
   in 610 files (112.50s; bodies 12.23s). NoneType hashing policy/publication remains
   a separate follow-up, along with canonical type coverage, public interpreter
   assembly, imports, safe-fs and broad audits. No push or release.
+- NoneType native hashing (2026-09-11): a failing native regression established
+  that __hash__ inherited object ownership and accepted non-None receivers.
+  NoneType now publishes its own native hash descriptor. Generalized and renamed
+  the existing bound-callable hash wrapper to builtin-native-hash, sharing
+  execution-owned hashing without reentering the outer descriptor. The host
+  hash policy remains shared with hash(), dictionaries and sets; this does not
+  hard-code CPython's numeric None hash. Five direct tests verify policy selection,
+  receiver/argument admission, original exception identity, and cancellation on
+  callback return/throw. Corrected a new test's RuntimeHashError constructor setup
+  after the first full run identified that sole failure; the focused rerun and
+  final full run pass. CPython probes confirm descriptor ownership, hash
+  consistency and wrong-receiver rejection. Build, typecheck, scoped lint and
+  whitespace checks pass; final uncached thread-pool suite passes 9,211 tests in
+  611 files (136.45s; bodies 13.85s). Canonical type coverage, public interpreter
+  assembly, imports, safe-fs and broad audits remain unfinished. No push/release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

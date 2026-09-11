@@ -11,6 +11,7 @@ import { RepresentationStack } from "./representation-stack.js";
 import { runtimeDictionaryViewRepresentation } from "./runtime-dictionary-view-representation.js";
 import { runtimeSetRepresentation } from "./runtime-set-representation.js";
 import { runtimeSliceRepresentation } from "./runtime-slice-representation.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 
 export interface RuntimeRepresentationHooks {
   /** Pure guest str-subclass storage inspection. */
@@ -40,7 +41,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
   const guards = state ?? {};
   const context: RepresentationContext<RuntimeValue> = {
     isExactString(value) { meter.checkpoint(); return value.kind === "str"; },
-    string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
+    string(value) { meter.checkpoint(); return runtimeStringPayload(value)?.value ?? hooks.string?.(value); },
     lookupStr(value) {
       meter.checkpoint();
       if (value.kind === "mappingproxy") {

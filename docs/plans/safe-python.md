@@ -13383,6 +13383,26 @@ extension, integration, or validation requirement is missing or unverified.
   (139.87s; bodies 13.41s). Canonical str/subtype allocation, additional codecs,
   public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
   No push or release.
+- Native string subtype allocation backend (2026-09-11): added
+  createStringNewBuiltin with owned-type admission, subtype/native-layout checks,
+  shared string conversion and explicit decoder policy. Exact str retains
+  conversion-result identity; subtype allocations own distinct instance wrappers
+  and optional dictionaries over immutable native string payloads. InstanceValue
+  now admits string storage; runtimeStringPayload and the shared representation
+  policy inspect it without invoking guest conversion hooks. Dictionary-free
+  slotted layouts remain supported. Unlike numeric subtype constructors, custom
+  string initializers do not suppress unknown-keyword validation. Twelve new
+  tests cover identity, layout/admission, decoding, keyword behavior, native
+  payload inspection and cancellation. CPython probes established slot support
+  and direct-new diagnostics; a 70-case in-memory comparison initially found two
+  None-versus-NoneType differences. A failing regression led to an explicit
+  argument-binding mode in the shared construction backend, and the comparison
+  rerun has zero differences. All 32 focused tests pass. Maintained workspace
+  build, typecheck and scoped lint pass; the full uncached thread-pool suite
+  passes 9,293 tests in 616 files (109.44s; bodies 12.31s). This is the allocator
+  backend, not completed canonical str registration: descriptor/slot publication,
+  execution assembly, additional codecs, imports, safe-fs and audits remain.
+  No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

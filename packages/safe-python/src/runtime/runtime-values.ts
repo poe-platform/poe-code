@@ -232,7 +232,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | RuntimeAnextAwaitableState | RuntimeFrameLocalsProxyState | RuntimeFrameState | RuntimeTracebackState | RuntimeCodeState | RuntimeUnionState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
+  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | RuntimeAnextAwaitableState | RuntimeFrameLocalsProxyState | RuntimeFrameState | RuntimeTracebackState | RuntimeCodeState | RuntimeUnionState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" | "str" }>;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute

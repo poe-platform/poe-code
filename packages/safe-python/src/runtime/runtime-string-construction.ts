@@ -8,6 +8,8 @@ import {createRuntimeRepresentationContext} from "./runtime-representation.js";
 import type {BuiltinInvocationContext,DictionaryValue,RuntimeValue,RuntimeValues} from "./runtime-values.js";
 
 export interface RuntimeStringConstructionContext {
+  /** Exact str(...) has a positional fast path absent from str.__new__. */
+  readonly argumentMode?:"call"|"new";
   readonly invocation?:BuiltinInvocationContext;
   readonly representation?:RepresentationContext<RuntimeValue>;
   /** Codec lookup, buffer admission/acquisition/release and error handlers belong
@@ -23,7 +25,7 @@ export function constructRuntimeString(positional:readonly RuntimeValue[],keywor
   try {
     meter.checkpoint(1,192);
     const count=positional.length+keywords.items.size;
-    if(keywords.items.size===0&&positional.length>3)throw new PythonRuntimeError("TypeError",`str expected at most 3 arguments, got ${positional.length}`);
+    if(context.argumentMode!=="new"&&keywords.items.size===0&&positional.length>3)throw new PythonRuntimeError("TypeError",`str expected at most 3 arguments, got ${positional.length}`);
     if(count>3)throw new PythonRuntimeError("TypeError",`str() takes at most 3 ${positional.length===0?"keyword ":""}arguments (${count} given)`);
     const args=[...positional];let unexpected:string|undefined,duplicate=-1;
     for(const [key,value] of keywords.items.snapshot()){
@@ -46,7 +48,7 @@ export function constructRuntimeString(positional:readonly RuntimeValue[],keywor
       if(value===undefined){names.push(index===1?"utf-8":"strict");continue;}
       const storage=representation.string(value);meter.checkpoint();
       if(storage===undefined){
-        const name=value.kind==="none"?(keywords.items.size===0?"NoneType":"None"):invocation?.typeName?.(value)??(value.kind==="not-implemented"?"NotImplementedType":value.kind);
+        const name=value.kind==="none"?(context.argumentMode!=="new"&&keywords.items.size===0?"NoneType":"None"):invocation?.typeName?.(value)??(value.kind==="not-implemented"?"NotImplementedType":value.kind);
         throw new PythonRuntimeError("TypeError",`str() argument '${parameters[index]}' must be str, not ${diagnosticTypeName(name,meter)}`);
       }
       let name="";

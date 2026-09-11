@@ -65,6 +65,7 @@ import {constructRuntimeString} from "./runtime-string-construction.js";
 import {createRuntimeStringDecoder} from "./runtime-string-decoding.js";
 import {createRuntimeTextDecoder} from "./runtime-text-decoding.js";
 import {installRuntimeStringSlots} from "./runtime-string-slots.js";
+import {installRuntimeStringArithmeticSlots} from "./runtime-string-arithmetic-slots.js";
 import { installRuntimeFloatSlots } from "./runtime-float-slots.js";
 import { installRuntimeFloatMethodDescriptors } from "./runtime-float-method-descriptors.js";
 import { createComplexNewBuiltin } from "./builtin-complex-new.js";
@@ -451,6 +452,7 @@ export class RuntimeTypeRegistry {
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee",directCall});
     namespace.items.set(this.values.string("__new__"),createStringNewBuiltin(type,this.values,this.meter,requested=>this.#entries.get(requested.value)?.type===requested,decode));
     installRuntimeStringSlots(type,this.values,this.meter);
+    installRuntimeStringArithmeticSlots(type,this.values,this.meter);
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#stringType=type;
     return type;

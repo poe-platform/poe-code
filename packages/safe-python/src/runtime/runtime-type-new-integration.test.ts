@@ -134,6 +134,42 @@ it.each(["__str__","__repr__","__hash__","__len__","__iter__"])("validates canon
   state.run(`try:str.${name}(1)\nexcept TypeError:receiver=True\ntry:'x'.${name}(1)\nexcept TypeError:arity=True\ntry:'x'.${name}(unknown=1)\nexcept TypeError:keyword=True\n`);
   for(const flag of ["receiver","arity","keyword"])expect(state.globals.get(flag)).toBe(v.true);
 });
+it("concatenates native string subtypes without leaking backing-value identity",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):pass\ns=S('abc')\nempty=S('')\nexact='abc'\nshortcuts=(exact+'') is exact and (''+exact) is exact\nconverted=True\nfor a,b in [('',s),(empty,exact),(exact,empty),(s,''),(empty,s)]:\n x=a+b\n y=a+b\n converted=converted and x=='abc' and type(x) is str and x is not y and x is not exact\njoined=str.__add__(s,S('!'))=='abc!'\n");
+  for(const name of ["shortcuts","converted","joined"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("separates explicit string concatenation from ordinary reflected dispatch",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("class R:\n def __radd__(self,left):return 'reflected'\nordinary='x'+R()=='reflected'\ntry:str.__add__('x',R())\nexcept TypeError as e:explicit=str(e)=='can only concatenate str (not \\\"R\\\") to str'\n");
+  for(const name of ["ordinary","explicit"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("repeats string subtypes through index conversion and preserves exact result identity rules",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.globals.set("OverflowError",state.registry.exceptionType("OverflowError"));
+  state.run("class S(str):pass\ncalls=[]\nclass N:\n def __index__(self):\n  calls.append('index')\n  return 2\ns=S('ab')\nrepeated=s*N()=='abab' and N()*s=='abab' and calls==['index','index']\na=s*1\nb=s*1\nfresh=type(a) is str and a==b and a is not b\nexact='abc'\nidentity=exact*1 is exact\nempty=S('')*N()\nempty_ok=empty is '' and calls==['index','index','index']\ntry:str.__mul__('',2**64)\nexcept OverflowError:overflow=True\n");
+  for(const name of ["repeated","fresh","identity","empty_ok","overflow"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("keeps inherited string repeat slots distinct from declining guest overrides",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("NotImplemented",v.notImplemented);
+  state.run("class S(str):\n def __add__(self,other):return NotImplemented\n def __mul__(self,other):return NotImplemented\ns=S('x')\ntry:s+'y'\nexcept TypeError:add=True\ntry:s*2\nexcept TypeError:mul=True\ninherited=2*s=='xx'\nclass R:\n def __rmul__(self,other):return 'reflected'\nreflected=str.__new__(str,'x')*R()=='reflected'\n");
+  for(const name of ["add","mul","inherited","reflected"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("exactifies augmented string subtype operations without mutating their source",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):pass\nsource=S('ab')\nx=source\nx+='c'\ny=source\ny*=1\ncorrect=type(x) is str and x=='abc' and type(y) is str and y=='ab' and y is not source and str(source)=='ab'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("formats string subtype percent operands with live conversion and reflected overrides",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("NotImplemented",v.notImplemented);
+  state.run("class S(str):pass\nclass V(str):\n def __str__(self):return 'override'\nvalue=V('stored')\nconverted=S('%s')%value=='override' and str.__rmod__(value,'%s')=='override'\nclass R(str):\n def __rmod__(self,other):return 'reflected'\nreflected='%s'%R('x')=='reflected'\nplain=S('plain')\na=plain%()\nb=plain%()\nunchanged=a is plain and b is plain and type(a) is S\nempty=S('')%()\nempty_ok=empty is '' and type(empty) is str\ndeclined=str.__rmod__('x',1) is NotImplemented\n");
+  for(const name of ["converted","reflected","unchanged","empty_ok","declined"])expect(state.globals.get(name)).toBe(v.true);
+});
+it.each(["__add__","__mul__","__rmul__","__mod__","__rmod__"])("validates canonical string arithmetic descriptor admission: %s",name=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run(`try:str.${name}(1,1)\nexcept TypeError:receiver=True\ntry:'x'.${name}()\nexcept TypeError:arity=True\ntry:'x'.${name}(other=1)\nexcept TypeError:keyword=True\n`);
+  for(const flag of ["receiver","arity","keyword"])expect(state.globals.get(flag)).toBe(v.true);
+});
 it.each(["not-implemented","ellipsis"] as const)("constructs canonical singleton types without creating instances: %s",kind=>{
   const state=exceptionFixture(),value=kind==="ellipsis"?state.v.ellipsis:state.v.notImplemented;
   state.globals.set("singleton",value);

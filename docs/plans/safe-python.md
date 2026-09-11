@@ -13428,6 +13428,28 @@ extension, integration, or validation requirement is missing or unverified.
   ordinary method descriptor publication, further codecs/extension wiring,
   public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
   No push or release.
+- Canonical string arithmetic descriptors (2026-09-11): published __add__,
+  __mul__, __rmul__, __mod__ and __rmod__ with strict descriptor admission and
+  execution-owned index/conversion policies. Added native string concat/repeat
+  kernels that retain exact shortcuts without exposing subtype backing wrappers.
+  Integrated string payloads with numeric negotiation and sequence fallbacks so
+  reflected overrides precede concat/repeat, declining guest slots disable their
+  native fallbacks, inherited repeat partners remain callable, and augmented
+  operations return exact strings without mutating their source. Canonical string
+  types participate in reflection priority when paired with string subtypes.
+  Percent formatting preserves original operands for guest conversion and retains
+  unchanged nonempty subtype format identity, unlike concat/repeat exactification;
+  empty results are exact canonical strings. Eleven new integration tests failed
+  before slot implementation. CPython source probing corrected an initially wrong
+  assumption about unchanged percent-format identity, with a failing regression
+  before its fix. Six final source probes pass all 20 checks; an in-memory
+  720-case descriptor matrix, with an explicit native-subtype representation
+  policy, has zero value/type/diagnostic differences from CPython. Four focused
+  test files pass 1,519 tests; maintained workspace build, typecheck, scoped lint
+  and whitespace checks pass. The full uncached thread-pool suite passes 9,319
+  tests in 616 files (65.44s; bodies 8.62s). Ordinary string method descriptors,
+  broader native argument adaptation, further codecs, public interpreter assembly,
+  imports, safe-fs and audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

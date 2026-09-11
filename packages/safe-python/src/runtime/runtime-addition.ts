@@ -8,6 +8,8 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
 import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
 import { runtimeTupleConcat } from "./runtime-tuple-arithmetic.js";
+import {runtimeStringPayload} from "./runtime-string-payload.js";
+import {runtimeStringConcat} from "./runtime-string-arithmetic.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import type { RuntimeNumericContext } from "./runtime-numeric-slots.js";
@@ -28,6 +30,7 @@ export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values:
   if (result !== values.notImplemented) return result;
   const nativeLeft = context.sequenceFallbacks?.left === false ? undefined : runtimeListPayload(left);
   const tupleLeft = context.sequenceFallbacks?.left === false ? undefined : runtimeTuplePayload(left);
+  const stringLeft=context.sequenceFallbacks?.left===false?undefined:runtimeStringPayload(left);
   if (augmented && nativeLeft !== undefined) {
     if (right.kind === "list") nativeLeft.items.extend(right.items);
     else nativeLeft.items.extendIterator(iteration?.iterate === undefined ? runtimeIterate(right, values, meter) : iteration.iterate(right, undefined, true));
@@ -41,7 +44,11 @@ export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values:
     const joined = runtimeTupleConcat(left, right, values, meter);
     if (joined !== values.notImplemented) return joined;
   }
-  const sequence = nativeLeft !== undefined || tupleLeft !== undefined || left.kind === "str" || left.kind === "bytes";
+  if(stringLeft!==undefined){
+    const joined=runtimeStringConcat(left,right,values,meter);
+    if(joined!==values.notImplemented)return joined;
+  }
+  const sequence = nativeLeft !== undefined || tupleLeft !== undefined || stringLeft!==undefined || left.kind === "bytes";
   if (sequence && nativeLeft === undefined && tupleLeft === undefined && left.kind === right.kind) return runtimeBinary("+", left, right, values, meter);
   if (left.kind === "bytes" && buffers !== undefined) {
     let lease: RuntimeBufferLease | undefined;
@@ -62,7 +69,7 @@ export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values:
   const b = diagnosticTypeName(rightName, meter, sequence && left.kind !== "bytes" ? 200 : 100);
   if (left.kind === "bytes") throw new PythonRuntimeError("TypeError", `can't concat ${b} to bytes`);
   if (sequence) {
-    const name = nativeLeft !== undefined ? "list" : tupleLeft !== undefined ? "tuple" : left.kind;
+    const name = nativeLeft !== undefined ? "list" : tupleLeft !== undefined ? "tuple" : stringLeft!==undefined?"str":left.kind;
     throw new PythonRuntimeError("TypeError", `can only concatenate ${name} (not "${b}") to ${name}`);
   }
   const leftName = context.typeName?.(left) ?? (left.kind === "none" ? "NoneType" : left.kind === "not-implemented" ? "NotImplementedType" : left.kind);

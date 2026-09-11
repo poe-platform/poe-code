@@ -18,6 +18,8 @@ import {createRuntimeStringMaketransMethod} from "./runtime-string-maketrans-met
 import {createRuntimeBraceFormatMethod} from "./runtime-brace-format-method.js";
 import {createRuntimeFormatContext} from "./runtime-format.js";
 import {runtimeGetItem} from "./runtime-subscription.js";
+import {createRuntimeStringEncodeMethod} from "./runtime-string-encode-method.js";
+import {createRuntimeUtf8Encoder} from "./runtime-utf8-encoding.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -83,6 +85,7 @@ const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const}
   ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const})),
   ...splitMethods.map(([name,doc])=>({name,doc,kind:"split" as const})),
   ...padMethods.map(([name,doc])=>({name,doc,kind:"pad" as const})),
+  {name:"encode",kind:"encode" as const,doc:"Encode the string using the codec registered for encoding.\n\n  encoding\n    The encoding in which to encode the string.\n  errors\n    The error handling scheme to use for encoding errors.\n    The default is 'strict' meaning that encoding errors raise a\n    UnicodeEncodeError.  Other possible values are 'ignore', 'replace'\n    and 'xmlcharrefreplace' as well as any other name registered with\n    codecs.register_error that can handle UnicodeEncodeErrors."},
   ...formatMethods.map(([name,doc])=>({name,doc,kind:"format" as const})),
   {name:"translate",kind:"translate" as const,doc:"Replace each character in the string using the given translation table.\n\n  table\n    Translation table, which must be a mapping of Unicode ordinals\n    to Unicode ordinals, strings, or None.\n\nThe table must implement lookup/indexing via __getitem__, for\ninstance a dictionary or list.  If this operation raises\nLookupError, the character is left untouched.  Characters mapped to\nNone are deleted."},
   {name:"replace",kind:"replace" as const,doc:"Return a copy with all occurrences of substring old replaced by new.\n\n  count\n    Maximum number of occurrences to replace.\n    -1 (the default value) means replace all occurrences.\n\nIf the optional argument count is given, only the first count occurrences are\nreplaced."},
@@ -95,6 +98,7 @@ export const runtimeStringMethodNames:ReadonlySet<string>=new Set([...methods.ma
  * kernels. Native methods bypass guest overrides only when explicitly selected;
  * ordinary method lookup remains the object layer's responsibility. */
 export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
+  const encode=createRuntimeUtf8Encoder(values);
   owner.value.namespace.items.set(values.string("maketrans"),values.methodDecorator("staticmethod",createRuntimeStringMaketransMethod(values,meter,owner)));
   for(const method of methods){
     meter.checkpoint(0,96);
@@ -118,6 +122,7 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
             case "expandtabs":bound=createRuntimeExpandtabsMethod(receiver,values,meter,invocation?.integerIndex);break;
             case "replace":bound=createRuntimeStringReplaceMethod(receiver,values,meter,invocation?.integerIndex);break;
             case "translate":bound=createRuntimeStringTranslateMethod(payload,values,meter);break;
+            case "encode":bound=createRuntimeStringEncodeMethod(receiver,values,meter,encode);break;
             case "format":bound=createRuntimeBraceFormatMethod(receiver,method.name,values,meter,
               invocation?.formatting??createRuntimeFormatContext(values,meter,{defaultRepr(){throw Error("brace formatting requires a representation policy");}}),{
                 attribute(value,name){if(invocation?.attribute===undefined)throw Error("brace formatting requires an attribute policy");return invocation.attribute(value,name);},

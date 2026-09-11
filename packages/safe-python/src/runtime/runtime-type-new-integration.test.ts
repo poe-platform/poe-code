@@ -6001,6 +6001,24 @@ it("publishes string join with native subtype members and guest iteration", () =
   for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
 });
 
+it("publishes string encode with native subtype names and receiver overrides",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\n def encode(self,*args):return 'override'\ns=S('🐍')\nordinary=s.encode()=='override'\nexplicit=str.encode(s,encoding=S('UTF8'),errors=S('strict'))==b'\\xf0\\x9f\\x90\\x8d'\nbase='é'.encode()==b'\\xc3\\xa9'\nowner=str.encode.__objclass__ is str\n");
+  for(const flag of ["ordinary","explicit","base","owner"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("validates string encode arguments and resolves errors lazily",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());state.globals.set("LookupError",state.registry.exceptionType("LookupError"));
+  state.run("valid='x'.encode(errors='unknown')==b'x'\ntry:''.encode('unknown')\nexcept LookupError as e:codec=str(e)=='unknown encoding: unknown'\ntry:'x'.encode(None)\nexcept TypeError as e:none=str(e)==\"encode() argument 'encoding' must be str, not None\"\ntry:'x'.encode(encodin='utf8')\nexcept TypeError as e:suggestion=str(e)==\"encode() got an unexpected keyword argument 'encodin'. Did you mean 'encoding'?\"\ntry:'x'.encode('utf8',encoding='utf8')\nexcept TypeError as e:duplicate=str(e)==\"argument for encode() given by name ('encoding') and position (1)\"\n");
+  for(const flag of ["valid","codec","none","suggestion","duplicate"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("retains string encode source and codec-name identity in Unicode errors",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());state.globals.set("UnicodeEncodeError",state.registry.exceptionType("UnicodeEncodeError"));
+  state.run("class S(str):pass\ns=S('a\\ud800\\udfff')\ntry:s.encode()\nexcept UnicodeEncodeError as e:source=e.object is s and e.start==1 and e.end==3 and e.encoding=='utf-8'\nname=S('\\ud800')\ntry:'x'.encode(name)\nexcept UnicodeEncodeError as e:codec=e.object is name and e.start==0 and e.end==1\n");
+  for(const flag of ["source","codec"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
 it.each(["format","format_map"])("publishes string %s with guest attribute and item lookup",name=>{
   const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
   state.run(`class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass Value:\n def __format__(self,spec):\n  visit(spec)\n  return 'formatted'\nclass Items:\n def __getitem__(self,key):\n  visit(key)\n  return Value()\nclass Box:pass\nb=Box()\nb.items=Items()\ns=S('{box.items[key]:custom}')\nresult=str.${name}(s,${name==="format"?"box=b":"{'box':b}"})\ncorrect=result=='formatted'\nowner=str.${name}.__objclass__ is str\n`);

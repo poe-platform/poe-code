@@ -13630,6 +13630,22 @@ extension, integration, or validation requirement is missing or unverified.
   `str.encode` binding; additional codecs, guest codec registry/error handlers,
   public assembly, imports, safe-fs and broad audits remain unfinished.
   No push or release.
+- String encode binding: published canonical `str.encode` backed by the native
+  UTF-8 adapter. Binding accepts native subtype receivers and codec-name strings
+  without conversion hooks, checks positional/keyword duplicates and suggestions,
+  validates NUL/surrogate codec names, and preserves extension cancellation.
+  Source UnicodeEncodeError objects retain original receiver identity, including
+  subtypes; codec-name errors likewise retain the supplied name object. The codec
+  remains injectable into the standalone binding and must return bytes.
+  Four new binding tests and three source integration tests cover defaults,
+  validation, cancellation, overrides, metadata, lazy error lookup and exception
+  identity; missing binding/descriptor and identity regressions failed before
+  their fixes. A 486-case end-to-end CPython comparison matches bytes, errors and
+  spans. Maintained build, typecheck, scoped lint and whitespace checks pass.
+  Full uncached suite passes 9,417 tests in 618 files (228.37s; bodies 24.96s).
+  Additional encoding codecs and guest codec registration remain unfinished,
+  alongside native type coverage, public assembly, imports, safe-fs and audits.
+  No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

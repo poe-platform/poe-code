@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { bytes, fixture } from "./helpers.js";
 
-test("utimes forwards exact historical millisecond Dates to the native host", async (context) => {
+test("utimes forwards exact historical milliseconds as native seconds", async (context) => {
   const { filesystem, root } = await fixture(context);
   await filesystem.writeFile("file", bytes("data"));
   const original = native.utimes;
@@ -22,10 +22,8 @@ test("utimes forwards exact historical millisecond Dates to the native host", as
       assert.equal(calls.length, previousCalls + 1);
       const [path, atime, mtime] = calls[previousCalls]!;
       assert.equal(path, join(root, "file"));
-      assert.ok(atime instanceof Date);
-      assert.ok(mtime instanceof Date);
-      assert.equal(atime.getTime(), atimeMs);
-      assert.equal(mtime.getTime(), mtimeMs);
+      assert.equal(atime, atimeMs / 1000);
+      assert.equal(mtime, mtimeMs / 1000);
       const stat = await native.stat(join(root, "file"));
       assert.equal(stat.mtimeMs, mtimeMs);
       context.diagnostic(`HISTORICAL ATIME OBSERVATION: requested=${atimeMs} observed=${stat.atimeMs}; forwarding is asserted, host atime persistence is not`);

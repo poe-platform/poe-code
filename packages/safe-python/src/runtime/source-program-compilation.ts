@@ -5,8 +5,9 @@ import type {CodeCompilationOptions} from "./compilation-source.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import type {LiteralExpression} from "./literal-pool.js";
 import {compileProgram,type CompiledProgram} from "./program-compilation.js";
+import {normalizeFutureFlags} from "../future-flags.js";
 
-export interface SourceCompilationOptions extends CodeCompilationOptions,Pick<LexerOptions,"onWarning"|"onComment"> {
+export interface SourceCompilationOptions extends CodeCompilationOptions,Pick<LexerOptions,"onWarning"|"onComment"|"futureFlags"> {
   /** Module suites by default; eval preserves and returns one expression. */
   readonly mode?:"exec"|"eval";
   /** Required host recursion policy, shared with the calling execution. */
@@ -23,12 +24,13 @@ export interface ProgramConstants<Value> extends ClassConstants<Value> {
  */
 export function compileSourceProgram<Value>(text:string,options:SourceCompilationOptions,constants:ProgramConstants<Value>,meter:ExecutionMeter):CompiledProgram<Value> {
   try {
-    meter.checkpoint(1,112);
+    meter.checkpoint(1,120);
     const enterRecursiveCall=options.enterRecursiveCall;
     if(typeof enterRecursiveCall!=="function")throw new TypeError("source compilation requires a recursion guard");
     const mode=options.mode??"exec";
     if(mode!=="exec"&&mode!=="eval")throw new TypeError("unsupported source compilation mode");
-    const settings={filename:options.filename??"<string>",stripDocstring:options.stripDocstring,onWarning:options.onWarning,onComment:options.onComment,enterRecursiveCall,meter};
+    const futureFlags=normalizeFutureFlags(options.futureFlags,meter);
+    const settings={filename:options.filename??"<string>",stripDocstring:options.stripDocstring,onWarning:options.onWarning,onComment:options.onComment,enterRecursiveCall,meter,futureFlags};
     const analysis=mode==="eval"?analyzeExpression(text,settings):analyzeModule(text,settings);
     return compileProgram(analysis,settings,constants,meter);
   } finally {meter.checkpoint();}

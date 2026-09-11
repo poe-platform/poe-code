@@ -46,7 +46,7 @@ export interface CompiledFunction<Value> {
  * metadata mutation and complete host allocation accounting remain unfinished.
  */
 export function compileFunction<Value>(
-  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "functionKinds"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures">>,
+  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "functionKinds"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures"|"futureFlags">>,
   options: CodeCompilationOptions, constants: CodeConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,scopeFlags?:number
 ): CompiledFunction<Value> {
   try {
@@ -56,7 +56,7 @@ export function compileFunction<Value>(
     throw new Error("function code requires a function or lambda scope");
   const qualified = analysis.qualifiedNames.get(scope.scope), kind = analysis.functionKinds.get(node);
   if (qualified === undefined || kind === undefined) throw new Error("missing analyzed function metadata");
-  if(scopeFlags===undefined&&analysis.scopes!==undefined&&analysis.futureFeatures!==undefined)scopeFlags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter).get(scope.scope);
+  if(scopeFlags===undefined&&analysis.scopes!==undefined&&analysis.futureFeatures!==undefined)scopeFlags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter,analysis.futureFlags).get(scope.scope);
   source??=createCompilationSource(options.filename??"<string>",constants,meter);
   const name = constants.string(node.kind === "function" ? node.name.name : "<lambda>");
   meter.checkpoint();

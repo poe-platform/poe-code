@@ -50,7 +50,7 @@ export function compileProgram<Value>(
   if (analysis.scopes.scope.kind !== "module" || analysis.scopes.scope.node !== analysis.module)
     throw new Error("program compilation requires a matching analyzed module scope");
   const source=createCompilationSource(options.filename??"<string>",constants,meter);
-  const scopeFlags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter);
+  const scopeFlags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter,analysis.futureFlags);
   const expression="expression" in analysis?analysis.expression:undefined;
   let module:CompiledModule<Value>;
   if(expression!==undefined){

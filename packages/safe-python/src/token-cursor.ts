@@ -3,12 +3,16 @@ import { lex } from "./lexer.js";
 import type { LexerOptions } from "./lexer.js";
 import { PythonSyntaxError,type SourceMeter } from "./source.js";
 import type { SourceSpan } from "./ast.js";
+import {normalizeFutureFlags} from "./future-flags.js";
 
 export function createTokenCursor(text: string, options: LexerOptions = {}): TokenCursor {
   options.meter?.checkpoint(1,64);
+  const futureFlags=normalizeFutureFlags(options.futureFlags,options.meter);
   const comments: SourceSpan[] = [];
   const tokens = lex(text, { ...options, onComment: span => { options.meter?.checkpoint(1,8);comments.push(span); options.onComment?.(span); } });
-  return new TokenCursor(tokens, options.filename, text, comments,options.meter,options.enterRecursiveCall);
+  const cursor=new TokenCursor(tokens, options.filename, text, comments,options.meter,options.enterRecursiveCall);
+  if(futureFlags&0x400000){options.meter?.checkpoint(1,32);cursor.futureFeatures.add("barry_as_FLUFL");}
+  return cursor;
 }
 
 /** Lazy tokens, retaining consumed tokens only while a grammar alternative needs them. */

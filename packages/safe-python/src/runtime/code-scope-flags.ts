@@ -1,12 +1,13 @@
 import type {SymbolScope} from "../symbol-collection.js";
 import type {ExecutionMeter} from "./execution-budget.js";
+import {normalizeFutureFlags} from "../future-flags.js";
 
 /** Symbol-table flags precede executable-body flags. Inlined comprehension
  * scopes still affect lexical nesting without acquiring their own code object. */
-export function compileCodeScopeFlags(root:SymbolScope,features:ReadonlySet<string>,meter:ExecutionMeter):ReadonlyMap<SymbolScope,number> {
+export function compileCodeScopeFlags(root:SymbolScope,features:ReadonlySet<string>,meter:ExecutionMeter,inheritedFlags=0):ReadonlyMap<SymbolScope,number> {
   try {
   meter.checkpoint(1,352);
-  let future=0;
+  let future=normalizeFutureFlags(inheritedFlags,meter);
   for(const [name,flag] of [["barry_as_FLUFL",0x400000],["annotations",0x1000000]] as const){meter.checkpoint();if(features.has(name))future|=flag;}
   const result=new Map<SymbolScope,number>();
   const pending:Array<{scope:SymbolScope;parent?:SymbolScope;nested:boolean}>=[{scope:root,nested:false}];

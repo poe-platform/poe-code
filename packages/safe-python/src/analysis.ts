@@ -12,8 +12,11 @@ import type { SymbolScope } from "./symbol-collection.js";
 import { collectQualifiedNames } from "./qualified-names.js";
 import { collectStaticAttributes } from "./static-attributes.js";
 import { PythonSyntaxError } from "./source.js";
+import {normalizeFutureFlags} from "./future-flags.js";
 
 export interface ModuleAnalysis {
+  /** Explicit/inherited bits, separate from source future directives. */
+  readonly futureFlags?:number;
   readonly module: Module;
   readonly futureFeatures: ReadonlySet<string>;
   readonly scopes: ResolvedScope;
@@ -36,10 +39,13 @@ export interface ExpressionAnalysis extends ModuleAnalysis {
  */
 export function analyzeExpression(text:string,options:LexerOptions={}):ExpressionAnalysis {
   try {
-    const expression=parseExpression(text,options);
+    const futureFlags=normalizeFutureFlags(options.futureFlags,options.meter);
+    options.meter?.checkpoint(0,96);
+    const settings={...options,futureFlags};
+    const expression=parseExpression(text,settings);
     options.meter?.checkpoint(1,176);
     const module:Module={kind:"module",start:expression.start,end:expression.end,body:[{kind:"expression-statement",expression,start:expression.start,end:expression.end}]};
-    const analysis=analyzeTree(module,options);
+    const analysis=analyzeTree(module,settings);
     options.meter?.checkpoint(1,112);
     return {...analysis,expression};
   } catch(error) {
@@ -54,8 +60,11 @@ export function analyzeExpression(text:string,options:LexerOptions={}):Expressio
  */
 export function analyzeModule(text: string, options: LexerOptions = {}): ModuleAnalysis {
   try {
-    const module = parseModule(text, options);
-    return analyzeTree(module,options);
+    const futureFlags=normalizeFutureFlags(options.futureFlags,options.meter);
+    options.meter?.checkpoint(0,96);
+    const settings={...options,futureFlags};
+    const module = parseModule(text, settings);
+    return analyzeTree(module,settings);
   } catch (error) {
     if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);
     throw error;
@@ -68,6 +77,6 @@ function analyzeTree(module:Module,options:LexerOptions):ModuleAnalysis {
     const scopes = resolveSymbols(collectSymbols(module,options.meter), options.filename,options.meter);
     const qualifiedNames = collectQualifiedNames(scopes.scope,options.meter);
     const staticAttributes = collectStaticAttributes(scopes.scope,options.meter);
-    options.meter?.checkpoint(1,96);
-    return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
+    options.meter?.checkpoint(1,104);
+    return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes,futureFlags:options.futureFlags };
 }

@@ -12624,6 +12624,24 @@ extension, integration, or validation requirement is missing or unverified.
   full thread-pool suite passes 8,850 tests in 587 files (79.31s; bodies 9.47s).
   Guest compile/eval/exec builtins, interactive single mode, compiler flags,
   namespace defaults and full interpreter/safe-fs publication remain unfinished.
+- Explicit/inherited future compiler flags (2026-09-11): seventeen failing tests
+  reproduced ignored explicit flags, inherited grammar and missing validation.
+  Public source compilation and parser/analysis options now accept futureFlags;
+  validation rejects nonintegral, negative and unsupported bits before bitwise
+  truncation. The obsolete nested_scopes bit is accepted but does not invent
+  lexical nesting. Analysis snapshots option records before callbacks and keeps
+  explicit bits separate from source-declared futureFeatures. Token cursors seed
+  inherited Barry grammar without sharing mutable feature sets. Whole-program
+  and standalone function/class compilation combine explicit legacy bits with
+  active source directives throughout nested code. All nineteen focused tests
+  pass, including callback mutation and cross-compilation isolation. All 512
+  future-bit combinations match CPython across 1,024 nested code graphs and
+  2,048 exec/eval inequality grammar cases; the grammar rerun explicitly requires
+  PythonSyntaxError rather than accepting arbitrary failures as syntax rejection.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 8,869 tests in 588 files (64.25s; bodies 7.90s).
+  Guest builtin argument binding, dont_inherit/caller extraction, non-future
+  compiler flags and interactive single mode remain separate unfinished work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

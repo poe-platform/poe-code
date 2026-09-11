@@ -22,6 +22,8 @@ export interface StructuralToken {
 export type Token = NameToken | NumberToken | StringToken | StructuralToken | InterpolatedToken;
 
 export interface LexerOptions {
+  /** Explicit/inherited future compiler bits, isolated per parse. */
+  readonly futureFlags?:number;
   /** Accounts scanning, cursor work and expression validation, not all AST/analysis work. */
   readonly meter?:SourceMeter;
   /** Host-owned expression/pattern recursion guard. Successful entry returns an

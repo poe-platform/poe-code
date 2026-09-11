@@ -31,7 +31,7 @@ export interface CompiledClassBody<Value> {
  * concrete guest code objects remain unfinished.
  */
 export function compileClassBody<Value>(
-  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "staticAttributes"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures">>,
+  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "staticAttributes"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures"|"futureFlags">>,
   options: CodeCompilationOptions, constants: ClassConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,flags?:number
 ): CompiledClassBody<Value> {
   try {
@@ -40,7 +40,7 @@ export function compileClassBody<Value>(
   if (scope.scope.kind !== "class" || node.kind !== "class") throw new Error("class bodies require a class scope");
   const name = analysis.qualifiedNames.get(scope.scope), attributes = analysis.staticAttributes.get(scope.scope);
   if (name === undefined || attributes === undefined) throw new Error("missing analyzed class metadata");
-  if(flags===undefined&&analysis.scopes!==undefined&&analysis.futureFeatures!==undefined)flags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter).get(scope.scope);
+  if(flags===undefined&&analysis.scopes!==undefined&&analysis.futureFeatures!==undefined)flags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter,analysis.futureFlags).get(scope.scope);
   source??=createCompilationSource(options.filename??"<string>",constants,meter);
   const qualifiedName = constants.string(name);
   meter.checkpoint();

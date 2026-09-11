@@ -431,6 +431,8 @@ async function evaluateNode(
   node: ParseResult,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const checkpoint = SandboxJobQueue.checkpoint();
+  if (checkpoint !== undefined) await checkpoint;
   context.assertActive?.();
   const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
   if (replayWait !== undefined) await suspendJob(replayWait);

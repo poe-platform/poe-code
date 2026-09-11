@@ -7,6 +7,7 @@ import { PythonRuntimeError } from "./error.js";
 import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
 import {FrameLocals} from "./frame-locals.js";
 import type {CompiledFunction} from "./function-compilation.js";
+import type {SourceSpan} from "../ast.js";
 
 /** Internal shared storage, never a guest-accessible JavaScript object. The
  * wrapper distinguishes an unbound cell from any valid Value, including undefined.
@@ -38,6 +39,9 @@ export interface LexicalNamespaces<Value> {
  * Step limits are enforced; complete frame/cell heap accounting remains pending.
  */
 export class LexicalFrame<Value> {
+  /** Last entered execution site; retained while suspended or after failure.
+   * Host-only AST metadata, not a CPython instruction offset or tracing API. */
+  executionPosition:SourceSpan|undefined;
   readonly #locals = new Map<string, Value>();
   readonly #cells = new Map<string, LexicalCell<Value>>();
   #reflectiveLocals:FrameLocals<Value>|undefined;

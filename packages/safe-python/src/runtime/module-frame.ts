@@ -1,4 +1,5 @@
 import type { ResolvedScope } from "../symbol-resolution.js";
+import type {SourceSpan} from "../ast.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameNamespace } from "./namespace-lookup.js";
@@ -33,6 +34,8 @@ export interface ModuleNamespaces<Value> {
  * runtime responsibilities; this does not invoke host eval or exec.
  */
 export class ModuleFrame<Value> {
+  /** Last entered execution site, including a failing operation; host-only. */
+  executionPosition:SourceSpan|undefined;
   readonly #explicitGlobals = new Set<string>();
 
   constructor(scope: ResolvedScope, private readonly namespaces: ModuleNamespaces<Value>, private readonly meter: ExecutionMeter) {

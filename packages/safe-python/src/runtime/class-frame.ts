@@ -1,5 +1,6 @@
 import { manglePrivateName } from "../private-names.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
+import type {SourceSpan} from "../ast.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import type { LexicalCell, LexicalNamespaces } from "./lexical-frame.js";
@@ -20,6 +21,8 @@ export interface ClassNamespaces<Value> extends LexicalNamespaces<Value> {
  * Guest mappings own internal metering; complete heap accounting remains pending.
  */
 export class ClassFrame<Value> {
+  /** Last entered execution site, including a failing operation; host-only. */
+  executionPosition:SourceSpan|undefined;
   readonly #declarations = new Map<string, "global" | "nonlocal">();
   readonly #owned = new Map<string, LexicalCell<Value>>();
   readonly #free = new Map<string, LexicalCell<Value>>();

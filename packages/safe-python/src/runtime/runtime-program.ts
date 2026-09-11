@@ -404,7 +404,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       } finally {leave();}
     };
     const expressions = createRuntimeExpressionContext(values, {
-      position:expressionHooks.position?.bind(expressionHooks),
+      position(site){
+        frame.executionPosition=site.contentSpan??site;
+        expressionHooks.position?.(site);
+      },
       beginMethodCall: expressionHooks.attribute === undefined ? (receiver, name) => {
         const callee = expressions.attribute(receiver, name);
         const descriptor = runtimeDirectMethod(receiver, name, callee, values, meter, builtinCalls);
@@ -521,7 +524,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       inplace = (operator, left, right) => runtimeInPlaceSpecialMethod(operator, left, right, values, meter, builtinCalls);
     }
     return createRuntimeStatementContext(expressions, {
-      position:statementHooks.position?.bind(statementHooks),
+      position(site){
+        frame.executionPosition=site;
+        statementHooks.position?.(site);
+      },
       invocation: builtinCalls,
       subscription: statementHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
       get integerIndex() { return getIntegerIndex(); },

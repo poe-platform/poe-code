@@ -8,7 +8,7 @@ import { RuntimeTypeRegistry } from "./runtime-type-registry.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileProgram } from "./program-compilation.js";
-import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
+import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
 import { ModuleFrame } from "./module-frame.js";
 import { PythonRuntimeError } from "./error.js";
@@ -94,6 +94,43 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("stores native module, class and function positions without observer hooks",()=>{
+  const state=exceptionFixture(),frames:RuntimeFrame[]=[],lines:number[]=[];
+  state.builtins.set("record",state.v.builtinFunction({name:"record",invoke(){
+    const frame=state.calls.current as RuntimeFrame;
+    if(frame.executionPosition===undefined)throw Error("missing owned execution position");
+    frames.push(frame);lines.push(frame.executionPosition.start.line);return state.v.none;
+  }}));
+  state.run("record()\nclass C:\n record()\ndef f():\n record()\nf()\n(\n record\n)()\n");
+  expect(lines).toEqual([1,3,5,7]);
+  expect(frames[0]).toBe(frames[3]);
+  expect(new Set(frames).size).toBe(3);
+  expect(frames[1].executionPosition?.start.line).toBe(3);
+  expect(frames[2].executionPosition?.start.line).toBe(5);
+});
+
+it.each([false,true])("retains owned positions across native suspension (coroutine=%s)",asynchronous=>{
+  const state=exceptionFixture();let captured:RuntimeFrame|undefined;
+  state.builtins.set("capture",state.v.builtinFunction({name:"capture",invoke(){captured=state.calls.current as RuntimeFrame;return state.v.none;}}));
+  const source=asynchronous?"class Pause:\n def __await__(self):yield 1\nasync def f():\n capture()\n await Pause()\n return 9\ng=f()\ng.send(None)":"def f():\n capture()\n yield 1\n yield 2\n return 9\ng=f()\ng.send(None)";
+  state.run(source);
+  expect(captured).toBeDefined();
+  expect(captured?.executionPosition?.start.line).toBe(asynchronous?5:3);
+  state.run("try:g.send(None)\nexcept StopIteration:pass");
+  expect(captured?.executionPosition?.start.line).toBe(asynchronous?6:4);
+});
+
+it("stores positions before observers and retains the failing callback site",()=>{
+  const state=exceptionFixture(),original=state.hooks.expressions,error=Error("observer failed");let captured:RuntimeFrame|undefined;
+  state.hooks.expressions=frame=>({...original(frame),position(site){
+    captured=frame;
+    expect(frame.executionPosition).toBe(site.contentSpan??site);
+    if((site.contentSpan??site).start.line===2)throw error;
+  }});
+  expect(()=>state.run("x=(\n 1\n)\n")).toThrow(error);
+  expect(captured?.executionPosition?.start.line).toBe(2);
+});
 
 it.each([false,true])("reports native multiline manager cleanup locations (async=%s)",asynchronous=>{
   const state=exceptionFixture(),{v}=state,locations=new WeakMap<object,number>(),events:Array<[string,number]>=[],expressions=state.hooks.expressions,statements=state.hooks.statements;

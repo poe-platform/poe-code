@@ -11126,6 +11126,23 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and whitespace checks pass. The final uncached one-worker package
   suite passes 7,889 tests in 527 files (164.30s; test bodies 12.50s).
   Native frame location storage and automatic traceback capture remain required.
+- Frame-owned execution positions (2026-09-10): four failing native regressions
+  confirmed that source locations were absent without host observer bookkeeping.
+  Module, lexical and class frames now retain their last entered SourceSpan;
+  native expression/statement contexts update it before optional host observers.
+  Expression storage uses executable contentSpan while callbacks retain their
+  original AST contract. Suspended/completed/failed frames retain their own site
+  independently of later activations and separately compiled callers. No host
+  stack or instruction offset is fabricated. Four tests cover frame isolation,
+  generator/coroutine suspension and observer failure ordering. The focused
+  four-file suite passes 909 tests. With observer hooks removed, all 416 CPython
+  comparisons pass (192 expression, 128 loop and 96 manager locations).
+  A separate read-only multiline subscription-assignment probe also matches.
+  Selected workspace build, typecheck, scoped lint and whitespace checks pass.
+  The final uncached one-worker package suite passes 7,893 tests in 527 files
+  (129.92s; test bodies 9.55s). This is host-only current AST metadata, not native
+  f_lineno/f_lasti, complete instruction/leaf-operation locations, tracing or
+  automatic traceback capture; those still require implementation and auditing.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

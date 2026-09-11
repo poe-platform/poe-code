@@ -119,7 +119,7 @@ describe("function argument frame initialization", () => {
 
   it("rejects non-function scopes before doing argument work", () => {
     const state = fixture();
-    expect(() => createFunctionFrame(analyzeModule("pass").scopes, { name: "f", positional: [], keywords: new Map(), defaults: new Map() }, state.context, budget())).toThrow("function calls require a function or lambda scope");
+    expect(() => createFunctionFrame(analyzeModule("pass").scopes, { name: "f", positional: [], keywords: new Map(), defaults: new Map() }, state.context, budget())).toThrow("function calls require a function, lambda or generator-expression scope");
     expect(state.events).toEqual([]);
   });
 

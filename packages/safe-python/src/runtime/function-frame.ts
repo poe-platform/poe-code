@@ -5,6 +5,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
 import type {CodeLocalLayout} from "./code-local-layout.js";
 import type {CompiledFunction} from "./function-compilation.js";
+import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
 export interface FunctionCallArguments<Value, Key = string> {
   /** Current function-qualified name for argument diagnostics. */
@@ -28,7 +29,7 @@ export interface FunctionFrameContext<Value, Key = string> extends LexicalNamesp
   dictionary(values: ReadonlyMap<Key, Value>): Value;
 }
 
-/** Bind an expanded function/lambda call and populate a fresh lexical activation.
+/** Bind an expanded function/lambda/generator-expression call and populate a fresh lexical activation.
  * The body is not executed here, including for async/generator functions. The
  * invocation engine owns suspension, recursion limits, result conversion and
  * guest exception construction. Parameter names/default keys are mangled in the
@@ -37,14 +38,16 @@ export interface FunctionFrameContext<Value, Key = string> extends LexicalNamesp
  */
 export function createFunctionFrame<Value, Key = string>(
   scope: ResolvedScope, call: FunctionCallArguments<Value, Key>,
-  context: FunctionFrameContext<Value, Key>, meter: ExecutionMeter, localLayout?:CodeLocalLayout,code?:CompiledFunction<Value>
+  context: FunctionFrameContext<Value, Key>, meter: ExecutionMeter, localLayout?:CodeLocalLayout,code?:CompiledFunction<Value>|CompiledGeneratorExpression<Value>
 ): LexicalFrame<Value> {
   meter.checkpoint();
   const node = scope.scope.node;
-  if ((scope.scope.kind !== "function" && scope.scope.kind !== "lambda") || (node.kind !== "function" && node.kind !== "lambda"))
-    throw new Error("function calls require a function or lambda scope");
+  const generator=node.kind==="comprehension"&&node.collection==="generator";
+  if (!generator&&((scope.scope.kind !== "function" && scope.scope.kind !== "lambda") || (node.kind !== "function" && node.kind !== "lambda")))
+    throw new Error("function calls require a function, lambda or generator-expression scope");
   const parameters: CallParameter[] = [];
-  for (const parameter of node.parameters) {
+  if(generator){meter.checkpoint(1,48);parameters.push({name:".0",kind:"positional-or-keyword"});}
+  for (const parameter of node.kind==="function"||node.kind==="lambda"?node.parameters:[]) {
     meter.checkpoint();
     parameters.push({ name: manglePrivateName(parameter.name, scope.scope.privateName), kind: parameter.kind });
   }

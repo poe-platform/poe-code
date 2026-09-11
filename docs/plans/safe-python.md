@@ -13113,6 +13113,20 @@ extension, integration, or validation requirement is missing or unverified.
   remain unfinished. Build, typecheck, scoped lint and whitespace checks pass.
   The uncached full thread-pool suite passes 9,140 tests in 606 files (86.15s;
   bodies 9.86s).
+- Generator-expression callable frame binding (2026-09-11): three failing
+  regressions established that function frame creation rejected generator-expression
+  scopes before binding their implicit iterator argument. The shared binder now
+  treats .0 as one positional-or-keyword parameter, retains the original argument
+  without iteration or body execution, and carries the compiled generator-expression
+  identity into the frame. Existing closure cells remain shared. Tests cover .0
+  keyword calls, missing/excess/duplicate arguments, rejection of inspect's implicit0
+  display spelling and retained positional default overrides. Direct CPython probes
+  match the four exact argument diagnostics and iterator-default behavior. Focused
+  checks pass 20 tests. This is the argument/frame prerequisite only: callable
+  adapter publication and shared generator-expression suspension execution remain
+  unfinished, alongside broader interpreter and safe-fs integration. Build,
+  typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
+  suite passes 9,143 tests in 607 files (111.16s; bodies 11.67s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

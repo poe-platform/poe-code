@@ -50,3 +50,34 @@ it("checks cancellation after acquisition before inspecting the returned object"
   const meter=new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:10000,signal:controller.signal});
   expect(()=>acquireAwaitableIterator(value,context,meter)).toThrow(ExecutionLimitError);expect(context.hasNext).not.toHaveBeenCalled();
 });
+
+it.each(["native","lookup","call","returned-native","next","missing-name","returned-name"])("checks cancellation even when %s fails",stage=>{
+  const controller=new AbortController(),context=fixture(),iterator:Value={next:true},value:Value={await:()=>iterator};
+  const fail=()=>{controller.abort();throw Error("callback failed after cancellation");};
+  if(stage==="native")context.nativeKind=fail;
+  if(stage==="lookup")context.lookupAwait=fail;
+  if(stage==="call")value.await=fail;
+  if(stage==="returned-native")context.nativeKind=received=>received===iterator?fail():undefined;
+  if(stage==="next")context.hasNext=fail;
+  if(stage==="missing-name"){value.await=undefined;context.typeName=fail;}
+  if(stage==="returned-name"){iterator.next=false;context.typeName=fail;}
+  const meter=new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:10000,signal:controller.signal});
+  expect(()=>acquireAwaitableIterator(value,context,meter)).toThrow(ExecutionLimitError);
+});
+
+it.each(["native","lookup","returned-native","next","missing-name","returned-name"])("checks cancellation after successful %s",stage=>{
+  const controller=new AbortController(),context=fixture(),iterator:Value={next:true},value:Value={await:()=>iterator};
+  if(stage==="native")context.nativeKind=()=>{controller.abort();return "coroutine";};
+  if(stage==="lookup")context.lookupAwait=()=>{controller.abort();return value.await;};
+  if(stage==="returned-native")context.nativeKind=received=>{if(received===iterator)controller.abort();return undefined;};
+  if(stage==="next")context.hasNext=()=>{controller.abort();return true;};
+  if(stage==="missing-name"){value.await=undefined;context.typeName=()=>{controller.abort();return "Missing";};}
+  if(stage==="returned-name"){iterator.next=false;context.typeName=()=>{controller.abort();return "Invalid";};}
+  const meter=new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:10000,signal:controller.signal});
+  expect(()=>acquireAwaitableIterator(value,context,meter)).toThrow(ExecutionLimitError);
+});
+
+it.each([["X".repeat(300),"X".repeat(100)],["é".repeat(80),"é".repeat(50)],["X"+"😀".repeat(40),"X"+"😀".repeat(24)]])("bounds await type-name diagnostics to 100 complete UTF-8 bytes: %s",(name,limited)=>{
+  expect(()=>acquireAwaitableIterator({name},fixture(),budget())).toThrow(`'${limited}' object can't be awaited`);
+  expect(()=>acquireAwaitableIterator({await:()=>({name})},fixture(),budget())).toThrow(`__await__() returned non-iterator of type '${limited}'`);
+});

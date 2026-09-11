@@ -1,5 +1,6 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 
 export interface AwaitableContext<Value> {
   /** Inspect native storage/code flags, never guest instance/subclass hooks. */
@@ -16,20 +17,25 @@ export interface AwaitableContext<Value> {
  * Native coroutines and generator-based coroutines enter delegation directly. */
 export function acquireAwaitableIterator<Value>(value:Value,context:AwaitableContext<Value>,meter:ExecutionMeter):Value {
   meter.checkpoint();
-  const native=context.nativeKind(value);meter.checkpoint();
+  let native:ReturnType<AwaitableContext<Value>["nativeKind"]>;
+  try {native=context.nativeKind(value);}finally{meter.checkpoint();}
   if(native!==undefined)return value;
-  const method=context.lookupAwait(value);meter.checkpoint();
+  let method:(()=>Value)|undefined;
+  try {method=context.lookupAwait(value);}finally{meter.checkpoint();}
   if(method===undefined) {
-    const name=context.typeName(value);meter.checkpoint();
-    throw new PythonRuntimeError("TypeError",`'${name}' object can't be awaited`);
+    let name:string;try{name=context.typeName(value);}finally{meter.checkpoint();}
+    throw new PythonRuntimeError("TypeError",`'${diagnosticTypeName(name,meter,100)}' object can't be awaited`);
   }
-  const iterator=method();meter.checkpoint();
-  const returnedKind=context.nativeKind(iterator);meter.checkpoint();
+  let iterator:Value;
+  try {iterator=method();}finally{meter.checkpoint();}
+  let returnedKind:ReturnType<AwaitableContext<Value>["nativeKind"]>;
+  try {returnedKind=context.nativeKind(iterator);}finally{meter.checkpoint();}
   if(returnedKind!==undefined)throw new PythonRuntimeError("TypeError","__await__() returned a coroutine");
-  const valid=context.hasNext(iterator);meter.checkpoint();
+  let valid:boolean;
+  try {valid=context.hasNext(iterator);}finally{meter.checkpoint();}
   if(!valid) {
-    const name=context.typeName(iterator);meter.checkpoint();
-    throw new PythonRuntimeError("TypeError",`__await__() returned non-iterator of type '${name}'`);
+    let name:string;try{name=context.typeName(iterator);}finally{meter.checkpoint();}
+    throw new PythonRuntimeError("TypeError",`__await__() returned non-iterator of type '${diagnosticTypeName(name,meter,100)}'`);
   }
   return iterator;
 }

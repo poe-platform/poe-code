@@ -10645,6 +10645,20 @@ extension, integration, or validation requirement is missing or unverified.
   9.72s).
   Generator-based coroutine flags, native context managers, traceback/frame
   integration, public runtime/import/library and safe-fs work remain required.
+- Await acquisition boundary audit (2026-09-10): ten failing tests exposed
+  cancellation masked by failing callbacks at seven acquisition boundaries and
+  unbounded type-name diagnostics. All native-kind, special lookup, await call,
+  iterator validation and type-name callback exits now checkpoint in finally,
+  retaining ordinary failures unless execution has been cancelled/exhausted.
+  Missing-await and invalid-result diagnostics use the shared metered UTF-8
+  truncation helper with CPython's 100-byte precision. Sixteen new tests cover
+  failing/successful cancellation boundaries and ASCII/multibyte diagnostics.
+  Focused verification passes 840 tests. All 48 native long-name cases, 784 anext
+  sequences and 768 coroutine sequences match CPython (1,600 comparisons).
+  Selected workspace build, typecheck and scoped lint pass. The final uncached
+  one-worker suite passes 7,651 tests in 515 files (286.12s; test bodies 17.58s).
+  This hardens shared acquisition used by await, async iteration
+  and anext; it does not complete native frame/code or generator-coroutine flags.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -5,6 +5,8 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import {FrameLocalsMapping} from "./frame-locals-mapping.js";
 import type {LexicalFrame} from "./lexical-frame.js";
 import {installRuntimeFrameLocalsProxyDescriptors} from "./runtime-frame-locals-proxy.js";
+import {installRuntimeFrameDescriptors} from "./runtime-frame.js";
+import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new.js";
 import {RuntimeHashError} from "./runtime-hash-error.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
@@ -108,6 +110,8 @@ export class RuntimeTypeRegistry {
   readonly #dictionaryViews = new Map<"dict_keys" | "dict_values" | "dict_items", TypeValue>();
   #mappingProxyType: TypeValue | undefined;
   #frameLocalsProxyType:TypeValue|undefined;
+  #frameType:TypeValue|undefined;
+  readonly #frames=new WeakMap<LexicalFrame<RuntimeValue>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frameLocalsMappings=new WeakMap<LexicalFrame<RuntimeValue>,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
   #sliceType: TypeValue | undefined;
   #rangeType: TypeValue | undefined;
@@ -490,6 +494,20 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
+  frame(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
+    this.meter.checkpoint();const existing=this.#frames.get(frame);if(existing!==undefined)return existing;
+    if(this.#frameType===undefined){
+      const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+      const layout=new RuntimeTypeLayout("frame",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+      const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+      installRuntimeFrameDescriptors(type,this.values,this.meter,this.frameLocalsProxy.bind(this));
+      this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#frameType=type;
+    }
+    this.meter.checkpoint(0,96);
+    const result=this.values.instance(this.#frameType,undefined,Object.freeze({kind:"frame",frame}));
+    this.#frames.set(frame,result);return result;
+  }
+
   frameLocalsProxy(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
     this.meter.checkpoint();
     let mapping=this.#frameLocalsMappings.get(frame);
@@ -500,9 +518,10 @@ export class RuntimeTypeRegistry {
     }
     if(this.#frameLocalsProxyType===undefined){
       const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
-      const layout=new RuntimeTypeLayout("FrameLocalsProxy",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+      const layout=new RuntimeTypeLayout("FrameLocalsProxy",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
       const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
       installRuntimeFrameLocalsProxyDescriptors(type,this.values,this.meter);
+      namespace.items.set(this.values.string("__new__"),createFrameLocalsProxyNewBuiltin(type,this.values,this.meter,this.frameLocalsProxy.bind(this)));
       this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#frameLocalsProxyType=type;
     }
     this.meter.checkpoint(0,64);

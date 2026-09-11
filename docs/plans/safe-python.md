@@ -10805,6 +10805,29 @@ extension, integration, or validation requirement is missing or unverified.
   uses focused verification rather than a new full-package run and does not
   modify compiler/program assembly. Native frame exposure/construction and the
   previously documented augmented-failure distinction remain required.
+- Native lexical-frame identity and locals bridge (2026-09-10): registry-owned
+  weak caches now publish one native frame object per lexical activation, with
+  a non-instantiable/non-subclassable immutable frame type and a read-only
+  f_locals descriptor returning a fresh write-through proxy. FrameLocalsProxy
+  construction now accepts native frame objects and retains shared mapping
+  storage without caching proxy identities. Two failing integration tests drove
+  the bridge; additional tests cover retained generator frames after close,
+  qualified diagnostics and constructor callback cancellation. Native %T-style
+  diagnostics use intrinsic module/qualname metadata, including empty modules,
+  and omit __main__/builtins prefixes. Long-name comparisons exposed eighteen
+  initial qualification/truncation mismatches, now corrected; two failing
+  adapter-free tests also corrected primitive fallback names. All 32 constructor/
+  attribute and 24 long Unicode-name comparisons match CPython (56 total).
+  The focused native/proxy/registry route passes 863 tests. Selected workspace
+  build, typecheck and scoped lint pass. The final uncached one-worker package
+  suite passes 7,721 tests in 519 files (185.24s; test bodies 10.57s).
+  This is the native identity/f_locals bridge for optimized lexical frames, not
+  a complete frame API: globals/builtins require live dictionary adapters;
+  module/class/comprehension reflection, f_back/code/location/lifecycle metadata,
+  traceback attachment and public sys._getframe registration remain required.
+  Existing RuntimeDictionaryNamespace/RuntimeMappingNamespace adapters should
+  be extended for shared namespace identity rather than introducing copied
+  reflection dictionaries.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

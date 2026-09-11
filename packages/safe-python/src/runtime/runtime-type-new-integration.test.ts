@@ -164,6 +164,34 @@ it("clears native locals repr guards after errors and renders the pre-callback c
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("publishes stable native frame identities with fresh write-through locals views",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));
+  state.run("def f(x):\n frame=current_frame()\n same=current_frame()\n p=frame.f_locals\n q=frame.f_locals\n p['x']=9\n return frame,same,p,q,x\nframe,same,p,q,x=f(1)\ncorrect=frame is same and p is not q and p==q and x==9 and frame.f_locals['x']==9 and type(frame).__name__=='frame'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("constructs fresh locals proxies only from native frames and protects frame attributes",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f(x):return x").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  frame.store("x",v.integer(1));state.globals.set("frame",state.registry.frame(frame));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("p=frame.f_locals\nProxy=type(p)\nq=Proxy(frame)\nq['x']=7\ncorrect=q is not p and q==p and p['x']==7\ntry:Proxy(3)\nexcept TypeError as error:invalid=error.args==('expect frame, not int',)\ntry:frame.f_locals={}\nexcept AttributeError:readonly=True\ntry:type(frame)()\nexcept TypeError:nonconstructible=True\n");
+  for(const name of ["correct","invalid","readonly","nonconstructible"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("retains native frame locals across generator suspension and closure",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));
+  state.run("def g(x):\n frame=current_frame()\n yield frame\n yield x\na=g(1)\nframe=a.__next__()\nframe.f_locals['x']=8\nvalue=a.__next__()\na.close()\ncorrect=value==8 and frame.f_locals['x']==8\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("uses intrinsic qualified type names in native frame constructor diagnostics",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  state.globals.set("Proxy",state.registry.frameLocalsProxy(frame).type);
+  state.run("class C:pass\nC.__module__='module'\nC.__qualname__='Outer.C'\ntry:Proxy(C())\nexcept TypeError as error:qualified=error.args==('expect frame, not module.Outer.C',)\nC.__module__='__main__'\ntry:Proxy(C())\nexcept TypeError as error:main=error.args==('expect frame, not Outer.C',)\nC.__module__=''\ntry:Proxy(C())\nexcept TypeError as error:empty=error.args==('expect frame, not .Outer.C',)\n");
+  for(const name of ["qualified","main","empty"])expect(state.globals.get(name)).toBe(v.true);
+});
+
 it("reflects live locals through compiled calls, suspension and retained closures",()=>{
   const state=exceptionFixture(),{v}=state,snapshots:Map<string,RuntimeValue>[]=[];
   state.builtins.set("reflect",v.builtinFunction({name:"reflect",invoke(args){

@@ -3,6 +3,7 @@ import {analyzeModule} from "../analysis.js";
 import {ExecutionBudget,ExecutionLimitError} from "./execution-budget.js";
 import {LexicalFrame} from "./lexical-frame.js";
 import {FrameLocalsMapping} from "./frame-locals-mapping.js";
+import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new.js";
 import {OrderedKeyMap} from "./ordered-key-map.js";
 import {runtimeHash} from "./runtime-hash.js";
 import {runtimeComparison} from "./runtime-comparison.js";
@@ -17,7 +18,7 @@ function fixture(){
   const proxy=registry.frameLocalsProxy(frame),empty=values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(keys,meter));
   const context:BuiltinInvocationContext={call(){throw Error("unexpected call");},isStopIteration:()=>false,formatting:{isExactString:value=>value.kind==="str",isExactInteger:()=>false,string:value=>value.kind==="str"?value.value:undefined,stringPoints:value=>values.stringPoints(value),lookupFormat:()=>undefined,lookupStr:()=>undefined,lookupRepr:()=>()=>values.string("key"),defaultRepr:()=>values.string("key"),typeName:()=>"object"}};
   function method(name:string){const descriptor=proxy.type.value.namespace.items.lookup(values.string(name))!.value;if(descriptor.kind!=="method_descriptor"&&descriptor.kind!=="wrapper_descriptor")throw Error("expected descriptor");return (args:RuntimeValue[])=>descriptor.value.invoke(proxy,args,empty,meter,context);}
-  return {controller,meter,values,frame,proxy,empty,context,method};
+  return {controller,meter,values,frame,proxy,empty,context,method,registry};
 }
 
 it.each(["steps","allocation","cancelled"] as const)("does not classify a host %s termination as a missing local",reason=>{
@@ -88,4 +89,25 @@ it.each([false,true])("observes cancellation after dictionary repr callbacks (th
   const {context,method,values,controller}=fixture(),repr=method("__repr__");
   context.formatting!.lookupRepr=()=>()=>{controller.abort();if(throws)throw Error("repr failure");return values.string("result");};
   expect(()=>repr([])).toThrow(ExecutionLimitError);
+});
+
+it.each(["receiver","frame"])("checks constructor cancellation during %s diagnostics",position=>{
+  for(const throws of [false,true]){
+    const {context,controller,proxy,values,meter,empty,registry}=fixture(),create=vi.fn(registry.frameLocalsProxy.bind(registry));
+    const builtin=createFrameLocalsProxyNewBuiltin(proxy.type,values,meter,create),args=position==="receiver"?[values.none]:[proxy.type,values.none];
+    context.typeName=()=>{controller.abort();if(throws)throw Error("name failure");return "bad";};
+    expect(()=>builtin.value.invoke(args,empty,meter,context)).toThrow(ExecutionLimitError);expect(create).not.toHaveBeenCalled();
+  }
+});
+
+it.each([false,true])("checks constructor cancellation after proxy creation (throws=%s)",throws=>{
+  const {context,controller,proxy,frame,values,meter,empty,registry}=fixture(),native=registry.frame(frame);
+  const builtin=createFrameLocalsProxyNewBuiltin(proxy.type,values,meter,backing=>{expect(backing).toBe(frame);controller.abort();if(throws)throw Error("creation failure");return proxy;});
+  expect(()=>builtin.value.invoke([proxy.type,native],empty,meter,context)).toThrow(ExecutionLimitError);
+});
+
+it.each(["receiver","frame"])("names primitive %s arguments without an invocation adapter",position=>{
+  const {proxy,values,meter,empty,registry}=fixture(),builtin=createFrameLocalsProxyNewBuiltin(proxy.type,values,meter,registry.frameLocalsProxy.bind(registry));
+  const args=position==="receiver"?[values.none]:[proxy.type,values.none];
+  expect(()=>builtin.value.invoke(args,empty,meter)).toThrow(position==="receiver"?"FrameLocalsProxy.__new__(X): X is not a type object (NoneType)":"expect frame, not NoneType");
 });

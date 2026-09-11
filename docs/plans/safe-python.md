@@ -12425,6 +12425,20 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 575 files (186.17s; test bodies 13.17s). Pattern literal
   readers and cross-pattern validation still need auditing before checked guest
   compilation; this does not make external-AST validation stack safe yet.
+- Pattern literal resource accounting (2026-09-11): thirteen failing tests
+  reproduced uncharged literal/unary/binary nodes, unreserved integer conversion
+  work and lost cancellation through delegated string readers. Literal parsing
+  now reserves those nodes and conservatively charges integer source width before
+  conversion to a complex real component; its final checkpoint preserves aborts.
+  The singleton check no longer creates a temporary array. All thirteen focused
+  tests and 34 AST/diagnostic plus CPython compile-acceptance cases pass. The AST
+  harness now explicitly encodes bigints: the previous 120-pattern comparison
+  had caught JSON serialization failures as diagnostics for numeric ASTs. All
+  120 cases and the prior 42 match-statement cases were rerun with bigint-safe
+  serialization and pass. Build, typecheck,
+  scoped lint and whitespace checks pass. The uncached full suite passes 8,705
+  tests in 576 files (136.84s; test bodies 11.72s).
+  Literal equality-key generation and stack-safe pattern validation remain next.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

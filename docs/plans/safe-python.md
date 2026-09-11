@@ -12397,6 +12397,19 @@ extension, integration, or validation requirement is missing or unverified.
   and whitespace checks pass. The uncached full suite passes 8,656 tests in 573
   files (189.55s; test bodies 13.25s). Match/pattern
   grammar allocation remains before enabling checked guest compilation.
+- Match statement resource accounting (2026-09-11): eight failing tests
+  reproduced uncharged subject/case storage and cancellation masked by throwing
+  pattern, validation or suite readers. Match parsing now reserves its speculative
+  header closure, successful statement/case array and individual case records,
+  plus subject arrays/slots, starred records and tuple nodes. Its final checkpoint
+  preserves cancellation while retaining the soft-keyword alternative. Nine
+  focused tests pass. All 42 AST/diagnostic comparisons against 5af8cc49b and
+  42 CPython compile-acceptance cases pass, including tuple/starred/named subjects,
+  guarded and unreachable cases, representative pattern forms and malformed
+  headers. Build, typecheck, scoped lint and whitespace checks pass. The uncached
+  full suite passes 8,665 tests in 574 files (157.87s; test bodies 12.28s).
+  Pattern parsing/validation itself still needs
+  allocation and recursive-entry auditing before checked guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

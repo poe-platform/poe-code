@@ -61,6 +61,12 @@ it("includes nested inline slots in generator-expression code",()=>{
   const scope=analyzeModule("([y for y in ys] for x in xs)").scopes.children[0];
   expect(compileCodeLocalLayout(scope,budget()).variableNames).toEqual([".0","x","y"]);
 });
+it("retains outer cell requirements when promotion copies an already-captured inline cell",()=>{
+  const outer=analyzeModule("def outer(xs,x):\n def f():\n  keep=lambda:x\n  r=[lambda:x for x in xs]\n  return keep,r\n return f").scopes.children[0],fn=outer.children[0];
+  expect(compileCodeLocalLayout(outer,budget()).cellNames).toEqual(["xs","x"]);
+  expect(compileCodeLocalLayout(fn,budget()).freeNames).toEqual(["xs"]);
+  expect(compileCodeLocalLayout(fn,budget()).cellNames).toEqual(["x"]);
+});
 it("rejects comprehension activations without pretending they are native code",()=>{
   const scope=analyzeModule("[x for x in xs]").scopes.children[0];
   expect(()=>compileCodeLocalLayout(scope,budget())).toThrow("local layout requires a code-owning scope");

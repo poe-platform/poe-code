@@ -11414,6 +11414,36 @@ extension, integration, or validation requirement is missing or unverified.
   Static ownership promotion for such nested-only references remains required.
   No zero-allocation/performance equivalence is claimed: internal binding views
   remain allocated, and physical slot optimization still needs measurement.
+- Inline closure-owner promotion (2026-09-10): failing symbol and native tests
+  reproduced the previously recorded nested-only reference gap. Resolution now
+  validates original lexical bindings first, then merges inline symbols in
+  child order and reassigns already-free references to promoted owners. Initially
+  global references remain global; existing direct references/declarations and
+  earlier inline symbols prevent inappropriate promotion. Nonlocal validation
+  still requires an original enclosing binding. Pass-through free names enter
+  effective symbol tables only after child inlining.
+  A 310-case layout comparison exposed retained outer cell requirements when
+  promotion copies an already-captured inline cell. A failing regression preceded
+  separate compiler closure-requirement metadata, preserving those requirements
+  without inventing executable free-variable slots. Expanded runtime comparisons
+  exposed unbound reads incorrectly diagnosed as free-variable errors. Static
+  code ownership on lexical cells now distinguishes same-code inline reads from
+  actual nested closures, without retaining execution frames in cells.
+  The original ownership probe and all 396 expanded runtime cases now match
+  CPython, as do the 310 new layout cases and earlier 310 layout, 218 declaration,
+  210 async layout, 1,280 ordinary-function, 192 native inline-frame and 256
+  generator-expression metadata checks: 3,173 matching comparisons in total.
+  The focused four-file suite passes 998 tests. Workspace build, typecheck,
+  scoped lint and whitespace checks pass. The final uncached one-worker full
+  suite passes 8,045 tests in 530 files (126.46s; test bodies 10.20s).
+  The original static-owner failure recorded above is resolved.
+  A separate three-case class-cell probe finds two still-failing direct reads:
+  a comprehension in a class body must read global __class__, while lambdas and
+  methods retain the class construction cell. Direct reads currently capture the
+  unbound class cell. These failures are not counted as passes and are the next
+  scope-resolution audit target. Performance, instruction metadata, automatic
+  tracebacks, imports/stdlib, public interpreter and safe-fs integration remain
+  unfinished; this does not establish full Python compatibility.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

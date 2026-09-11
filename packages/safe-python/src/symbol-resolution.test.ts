@@ -4,6 +4,31 @@ import { collectSymbols } from "./symbol-collection.js";
 import { resolveSymbols } from "./symbol-resolution.js";
 
 describe("lexical binding resolution", () => {
+  it("promotes inlined locals to owners of already-free nested references",()=>{
+    const root=resolveSymbols(collectSymbols(parseModule("def outer(x):\n def f():\n  keep=lambda:x\n  r=[x for x in [1]]\n  return keep\n return f")));
+    const outer=root.children[0],fn=outer.children[0],lambda=fn.children[0];
+    expect(lambda.bindings.get("x")).toEqual({kind:"free",owner:fn.scope});
+    expect(fn.cells.has("x")).toBe(true);expect(fn.free.has("x")).toBe(false);expect(outer.cells.has("x")).toBe(false);
+  });
+  it.each(["seen=x\n  ","nonlocal x\n  ","[x for y in [1]]\n  "])("preserves an existing enclosing name before inline promotion: %s",before=>{
+    const root=resolveSymbols(collectSymbols(parseModule("def outer(x):\n def f():\n  "+before+"keep=lambda:x\n  r=[x for x in [1]]\n  return keep\n return f")));
+    const outer=root.children[0],fn=outer.children[0],lambda=fn.children.find(child=>child.scope.kind==="lambda")!;
+    expect(lambda.bindings.get("x")).toEqual({kind:"free",owner:outer.scope});
+  });
+  it("does not convert initially global nested references into closures",()=>{
+    const root=resolveSymbols(collectSymbols(parseModule("def f():\n keep=lambda:x\n r=[x for x in [1]]\n return keep"))),fn=root.children[0];
+    expect(fn.children[0].bindings.get("x")).toEqual({kind:"global",owner:root.scope});
+    expect(fn.cells.has("x")).toBe(false);
+  });
+  it("lets an earlier local inline occurrence precede a later free occurrence",()=>{
+    const root=resolveSymbols(collectSymbols(parseModule("def outer(x):\n def f():\n  [x for x in [1]]\n  [x for y in [1]]\n  return lambda:x\n return f")));
+    const fn=root.children[0].children[0];
+    expect(fn.children[2].bindings.get("x")).toEqual({kind:"free",owner:fn.scope});
+    expect(fn.children[1].bindings.get("x")).toEqual({kind:"free",owner:fn.scope});
+  });
+  it("does not make synthetic inline locals available to initial nonlocal validation",()=>{
+    expect(()=>resolveSymbols(collectSymbols(parseModule("def f():\n [x for x in [1]]\n def g():nonlocal x")))).toThrow("no binding for nonlocal 'x' found");
+  });
   it("resolves locals, implicit globals, and closures through intervening scopes", () => {
     const root = resolveSymbols(collectSymbols(parseModule("def outer(arg):\n x = arg\n def middle():\n  def inner(): return x + external\n  return inner\n return middle")));
     const outer = root.children[0], middle = outer.children[0], inner = middle.children[0];

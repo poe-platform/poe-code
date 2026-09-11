@@ -36,10 +36,10 @@ export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter)
       else {meter.checkpoint(0,8);codeChildren.push(child);}
     }
   }
-  // Only an actual nested code object needs a closure. Lexical resolution also
-  // has cells used solely to connect inline binding environments.
+  // Nested code capture requirements, rather than lexical-only inline reads,
+  // determine cell storage. Requirements may survive inline cell promotion.
   const captured=new Set<string>(),rootCaptured=new Set<string>();
-  for(const child of codeChildren)for(const [name,owner] of child.free){
+  for(const child of codeChildren)for(const [name,owner] of child.closureRequirements??child.free){
     meter.checkpoint();if(!owned.has(owner))continue;
     if(!captured.has(name)){meter.checkpoint(0,40);captured.add(name);}
     if(owner===scope.scope&&!rootCaptured.has(name)){meter.checkpoint(0,40);rootCaptured.add(name);}

@@ -486,6 +486,16 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("reports unbound inline reads as locals while keeping nested closure reads free",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def outer(x):\n def f():\n  [x for x in [1]]\n  keep=lambda:x\n  return [x for y in [1]]\n return f()\ncorrect=False\ntry:outer(9)\nexcept NameError as e:correct=type(e).__name__=='UnboundLocalError' and e.args==(\"cannot access local variable 'x' where it is not associated with a value\",)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("captures promoted unbound cells rather than outer names used only in nested closures",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def outer(x):\n def f():\n  keep=lambda:x\n  r=[x for x in [1]]\n  return keep(),r\n return f()\ncorrect=False\ntry:outer(9)\nexcept NameError:correct=True\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("discards suspended inline storage after fatal delegated throw lookup",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("fatal",v.builtinFunction({name:"fatal",invoke(){throw new ExecutionLimitError("steps");}}));

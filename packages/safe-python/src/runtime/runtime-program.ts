@@ -481,7 +481,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           meter.checkpoint(0,192);
           const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
           const code=generatorExpressions?.get(node);
-          const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code);
+          const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,node.kind==="comprehension"&&node.collection==="generator"?scope.scope:frame.scope.scope);
           if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
           const outer=expressions.iterate(source);
           const restore=frame.reflectLocals().enterInline(child.reflectLocals());
@@ -517,7 +517,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         meter.checkpoint(0,256);
         const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
         const code=generatorExpressions?.get(node);
-        const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code);
+        const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,node.kind==="comprehension"&&node.collection==="generator"?scope.scope:frame.scope.scope);
         if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
         const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
           ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>suspension.delegate(value,builtinCalls,"anext"),values,meter)}

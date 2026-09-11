@@ -20,6 +20,9 @@ export interface CellStorage<Value> {
 /** Lexical capture adds compiler ownership; standalone guest cells need no scope. */
 export interface LexicalCell<Value> extends CellStorage<Value> {
   readonly owner: SymbolScope;
+  /** Static code identity, not a retained activation. Inline environments may
+   * share code ownership while retaining distinct lexical cell owners. */
+  readonly codeScope?:SymbolScope;
 }
 
 export interface LexicalNamespaces<Value> {
@@ -53,7 +56,8 @@ export class LexicalFrame<Value> extends ExecutionFrame {
     readonly namespaces: LexicalNamespaces<Value>,
     private readonly meter: ExecutionMeter,
     private readonly localLayout?:CodeLocalLayout,
-    readonly code?:CompiledFunction<Value>|CompiledGeneratorExpression<Value>
+    readonly code?:CompiledFunction<Value>|CompiledGeneratorExpression<Value>,
+    readonly codeScope:SymbolScope=scope.scope
   ) {
     super();
     meter.checkpoint(1,32);
@@ -61,7 +65,7 @@ export class LexicalFrame<Value> extends ExecutionFrame {
       throw new Error("lexical frames require a function, lambda or comprehension scope");
     for (const name of scope.cells) {
       meter.checkpoint();
-      this.#cells.set(name, { owner: scope.scope });
+      this.#cells.set(name, { owner: scope.scope,codeScope });
     }
     const node=scope.scope.node;
     let isolated:Set<string>|undefined;
@@ -73,7 +77,7 @@ export class LexicalFrame<Value> extends ExecutionFrame {
       meter.checkpoint();
       const cell = namespaces.closure?.get(name);
       if (!cell || cell.owner !== owner) throw new Error(`missing or invalid closure cell: ${name}`);
-      if(isolated?.has(name)){meter.checkpoint(0,48);this.#cells.set(name,{owner});}
+      if(isolated?.has(name)){meter.checkpoint(0,48);this.#cells.set(name,{owner,codeScope});}
       else this.#cells.set(name, cell);
     }
   }
@@ -95,7 +99,9 @@ export class LexicalFrame<Value> extends ExecutionFrame {
   }
 
   #missing(name: string, kind: ResolvedBinding["kind"]): never {
-    if (kind === "local")
+    const node=this.scope.scope.node,cell=this.#cells.get(name);
+    const inline=node.kind==="dictionary-comprehension"||node.kind==="comprehension"&&node.collection!=="generator";
+    if (kind === "local"||kind==="free"&&inline&&cell?.owner.kind!=="class"&&cell?.codeScope===this.codeScope)
       throw new PythonRuntimeError("UnboundLocalError", `cannot access local variable '${name}' where it is not associated with a value`);
     throw new PythonRuntimeError("NameError", kind === "free"
       ? `cannot access free variable '${name}' where it is not associated with a value in enclosing scope`

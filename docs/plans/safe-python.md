@@ -12532,6 +12532,21 @@ extension, integration, or validation requirement is missing or unverified.
   The uncached full thread-pool suite passes 8,777 tests in 582 files (105.75s;
   test bodies 11.66s). Escape decoding and interpolation storage remain
   before checked guest compilation ingress.
+- Escape decoding and Unicode-name resource accounting (2026-09-11): seventeen
+  failing tests reproduced uncharged escape arrays/name strings, absent Unicode
+  lookup work/storage checks and warning cancellation lost on return or throw.
+  Escape decoding now reserves output/intermediate storage and forwards the
+  meter into named-character lookup; both preserve cancellation in finally.
+  Name lookup charges ASCII scanning, case folding, range parsing and static
+  table-search strings without building a name map. All seventeen focused tests
+  pass. Sixty escape-result/warning/diagnostic comparisons against 2dc5dae04 and
+  60 CPython decoded-value/error cases pass. All 45,842 Unicode-name cases match
+  CPython, including the complete stored name/alias table, algorithmic range
+  samples and invalid names. All 91,572 metered upper/lowercase table lookups also
+  pass. Build, typecheck, scoped lint and whitespace checks pass. The uncached
+  full thread-pool suite passes 8,794 tests in 583 files (103.93s; test bodies
+  11.31s). Interpolation storage remains before
+  checked guest compilation ingress.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

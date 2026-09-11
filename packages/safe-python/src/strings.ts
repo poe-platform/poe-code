@@ -99,13 +99,16 @@ export function readEscape(
   position: SourcePosition,
   warn: (escape: string, position: SourcePosition, octal?: boolean) => void
 ): number[] {
+  try {
+  source.meter?.checkpoint(1,48);
   const escape = source.advance();
   if (escape === "\n") return [];
   const simple = simpleEscapes[escape];
   if (simple !== undefined) return [simple];
   if (escape >= "0" && escape <= "7") {
     let octal = escape;
-    while (octal.length < 3 && source.peek() >= "0" && source.peek() <= "7") octal += source.advance();
+    while (octal.length < 3 && source.peek() >= "0" && source.peek() <= "7") {source.meter?.checkpoint(0,40);octal += source.advance();}
+    source.meter?.checkpoint(1+octal.length);
     const value = Number.parseInt(octal, 8);
     if (value > 255) warn(octal, position, true);
     return [bytes ? value & 255 : value];
@@ -114,9 +117,10 @@ export function readEscape(
     const width = escape === "x" ? 2 : escape === "u" ? 4 : 8;
     let value = 0;
     for (let index = 0; index < width; index++) {
+      source.meter?.checkpoint(0,40);
       const character = source.peek().toLowerCase();
       const digit = "0123456789abcdef".indexOf(character);
-      if (character === "" || digit < 0) throw source.error(`truncated \\${escape} escape`, position);
+      if (character === "" || digit < 0) {source.meter?.checkpoint(0,96);throw source.error(`truncated \\${escape} escape`, position);}
       value = value * 16 + digit;
       source.advance();
     }
@@ -127,13 +131,17 @@ export function readEscape(
     if (source.peek() !== "{") throw source.error("malformed \\N character escape", position);
     source.advance();
     let name = "";
-    while (!source.done && source.peek() !== "}") name += source.advance();
+    while (!source.done && source.peek() !== "}") {
+      const character=source.advance();source.meter?.checkpoint(0,64+2*character.length);name+=character;
+    }
     if (source.done || name === "") throw source.error("malformed \\N character escape", position);
     source.advance();
-    const character = lookupUnicodeName(name);
+    source.meter?.checkpoint(1+name.length,32+2*name.length);
+    const character = lookupUnicodeName(name,source.meter);
     if (character === undefined) throw source.error("unknown Unicode character name", position);
     return [character.codePointAt(0)!];
   }
   if (escape.codePointAt(0)! < 128) warn(escape, position);
   return [92, escape.codePointAt(0)!];
+  } finally {source.meter?.checkpoint();}
 }

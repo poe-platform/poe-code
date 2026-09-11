@@ -37,7 +37,7 @@ function copyLocals(state:RuntimeFrameLocalsProxyState,values:RuntimeValues,mete
 
 export function installRuntimeFrameLocalsProxyDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
   owner.value.namespace.items.set(values.string("__hash__"),values.none);
-  const methods=["__getitem__","__setitem__","__delitem__","__contains__","__len__","__iter__","__eq__","__ne__","keys","values","items","copy","get","__reversed__"] as const;
+  const methods=["__getitem__","__setitem__","__delitem__","__contains__","__len__","__iter__","__eq__","__ne__","keys","values","items","copy","get","setdefault","pop","__reversed__"] as const;
   for(const name of methods){
     meter.checkpoint(0,96);
     const wrapper=name.startsWith("__")&&name!=="__getitem__"&&name!=="__contains__"&&name!=="__reversed__";
@@ -47,15 +47,25 @@ export function installRuntimeFrameLocalsProxyDescriptors(owner:TypeValue,values
         try {
         if(keywords.items.size)throw new PythonRuntimeError("TypeError",wrapper?`wrapper ${name}() takes no keyword arguments`:`FrameLocalsProxy.${name}() takes no keyword arguments`);
         const count=name==="__setitem__"?2:["__getitem__","__delitem__","__contains__","__eq__","__ne__"].includes(name)?1:0;
-        if(name==="get"){
-          if(args.length<1||args.length>2)throw new PythonRuntimeError("TypeError","get expected 1 or 2 arguments");
+        if(name==="get"||name==="setdefault"||name==="pop"){
+          if(args.length<1||args.length>2)throw new PythonRuntimeError("TypeError",name==="pop"?`pop expected at ${args.length<1?"least 1 argument":"most 2 arguments"}, got ${args.length}`:`${name} expected 1 or 2 arguments`);
         }else if(args.length!==count)throw new PythonRuntimeError("TypeError",wrapper?`${name==="__setitem__"?"__setitem__ ":""}expected ${count} argument${count===1?"":"s"}, got ${args.length}`:`FrameLocalsProxy.${name}() takes ${count===1?"exactly one argument":"no arguments"} (${args.length} given)`);
         if(receiver.kind!=="instance"||receiver.native?.kind!=="frame_locals_proxy")throw Error("frame locals proxy requires native storage");
         const state=receiver.native,mapping=state.mapping;
         if(name==="__getitem__")return getLocal(state,args[0],values,meter,invocation);
-        if(name==="get"){
+        if(name==="get"||name==="setdefault"){
           try{return getLocal(state,args[0],values,meter,invocation);}
-          catch(error){meter.checkpoint();if(runtimeExceptionMatches(error,"KeyError",invocation))return args[1]??values.none;throw error;}
+          catch(error){
+            meter.checkpoint();if(!runtimeExceptionMatches(error,"KeyError",invocation))throw error;
+            meter.checkpoint();const fallback=args[1]??values.none;
+            if(name==="setdefault")mapping.set(args[0],fallback);
+            return fallback;
+          }
+        }
+        if(name==="pop"){
+          const found=mapping.pop(args[0]);if(found!==undefined)return found.value;
+          if(args.length===2)return args[1];
+          throw new PythonKeyError(args[0],meter);
         }
         if(name==="__setitem__"){mapping.set(args[0],args[1]);return values.none;}
         if(name==="__delitem__"){if(!mapping.delete(args[0]))throw new PythonKeyError(args[0],meter);return values.none;}

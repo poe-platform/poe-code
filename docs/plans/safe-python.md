@@ -10750,6 +10750,23 @@ extension, integration, or validation requirement is missing or unverified.
   not alter compiler/program assembly; the previous full-package baseline is
   7,684 passing tests. Remaining proxy methods and native frame exposure are
   still required.
+- Native frame-locals defaults/removal (2026-09-10): implemented setdefault
+  and pop after two failing storage/native integration tests established the
+  missing operations. Setdefault uses live item lookup, catches KeyError from
+  lookup/representation as CPython does, then writes the default through the
+  normal slot/extra-key path. It can initialize an unbound local. Pop performs
+  one slot-resolution pass followed by the extra dictionary's single removal;
+  it always rejects known bound/unbound slots, even with a supplied default.
+  Missing pop errors retain the original key, stored None remains distinct from
+  absence, and empty extra dictionaries skip the second hash. Cancellation
+  after exception classification is checked before attempting a default write.
+  Three new tests cover native behavior, hash counts, aliases, unbound slots and
+  the no-write cancellation boundary. The focused proxy/mapping/native route
+  passes 842 tests. All 120 operation/argument, 1,000 default/removal sequences
+  and 36 callback-error cases match CPython (1,156 total). Selected workspace
+  build, typecheck and scoped lint pass. This isolated mapping/
+  descriptor change uses focused verification, not a new full-package run.
+  Update/union methods, repr and native frame construction/exposure remain.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

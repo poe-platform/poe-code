@@ -21,6 +21,15 @@ it("matches hashable nonstring aliases against local slot names",()=>{
   const {frame,mapping}=fixture(),alias={name:"x"};mapping.set(alias,7);expect(frame.load("x")).toBe(7);expect(mapping.lookup(alias)).toEqual({value:7});
   expect(mapping.entries()).toEqual([["x",7]]);expect(()=>mapping.delete(alias)).toThrow("cannot remove local variables from FrameLocalsProxy");
 });
+it("pops extra values once and rejects bound or unbound local slots",()=>{
+  const {mapping,frame,operations}=fixture();mapping.set("extra",undefined);mapping.set(3,7);
+  expect(mapping.pop("extra")).toEqual({value:undefined});expect(mapping.pop("extra")).toBeUndefined();
+  for(const key of ["x","y",{name:"x"}])expect(()=>mapping.pop(key)).toThrow("cannot remove local variables from FrameLocalsProxy");
+  frame.store("x",1);expect(()=>mapping.pop("x")).toThrow("cannot remove local variables from FrameLocalsProxy");expect(frame.load("x")).toBe(1);
+  let hashes=0;operations.hash=key=>{if(key===3)hashes++;return 1n;};
+  expect(mapping.pop(3)).toEqual({value:7});expect(hashes).toBe(2);hashes=0;
+  expect(mapping.pop(3)).toBeUndefined();expect(hashes).toBe(1);
+});
 it("requires matching hashes before slot equality",()=>{
   const {frame,mapping}=fixture(),alias={name:"x",hash:2n};frame.store("x",1);mapping.set(alias,2);
   expect(frame.load("x")).toBe(1);expect(mapping.lookup(alias)).toEqual({value:2});expect(mapping.entries()).toEqual([["x",1],[alias,2]]);

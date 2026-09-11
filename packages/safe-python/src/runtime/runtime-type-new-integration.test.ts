@@ -121,6 +121,14 @@ it("compares native locals proxies by frame identity rather than equal contents"
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("implements native locals defaults and extra-key removal without deleting slots",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f(x,y):return x+y").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  frame.store("x",v.integer(1));state.globals.set("p",state.registry.frameLocalsProxy(frame));
+  state.run("correct=p.setdefault('x',9)==1 and p.setdefault('y',2)==2 and p.setdefault('extra') is None and p.pop('extra') is None and p.pop('extra',7)==7\ntry:p.pop('x',9)\nexcept ValueError:bound=True\ntry:p.pop('missing')\nexcept KeyError as error:missing=error.args==('missing',)\nclass K:\n def __hash__(self):return 71\n def __repr__(self):raise KeyError('repr')\nk=K()\ncallback=p.setdefault(k,8)==8 and p[k]==8 and p.pop(k)==8\n");
+  for(const name of ["correct","bound","missing","callback"])expect(state.globals.get(name)).toBe(v.true);
+  expect(frame.load("y")).toEqual(v.integer(2));
+});
+
 it("reflects live locals through compiled calls, suspension and retained closures",()=>{
   const state=exceptionFixture(),{v}=state,snapshots:Map<string,RuntimeValue>[]=[];
   state.builtins.set("reflect",v.builtinFunction({name:"reflect",invoke(args){

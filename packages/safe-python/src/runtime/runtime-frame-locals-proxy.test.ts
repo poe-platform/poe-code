@@ -2,6 +2,7 @@ import {expect,it,vi} from "vitest";
 import {analyzeModule} from "../analysis.js";
 import {ExecutionBudget,ExecutionLimitError} from "./execution-budget.js";
 import {LexicalFrame} from "./lexical-frame.js";
+import {FrameLocalsMapping} from "./frame-locals-mapping.js";
 import {OrderedKeyMap} from "./ordered-key-map.js";
 import {runtimeHash} from "./runtime-hash.js";
 import {runtimeComparison} from "./runtime-comparison.js";
@@ -51,4 +52,13 @@ it("preserves ordinary callback failures and nonboolean rich comparison results"
   const {context,method,empty,values}=fixture(),compare=method("__eq__"),result=values.list([]),failure=Error("ordinary failure");
   context.compare=()=>result;expect(compare([empty])).toBe(result);
   context.compare=()=>{throw failure;};expect(()=>compare([empty])).toThrow(failure);
+});
+
+it("does not publish a default after classification cancels execution",()=>{
+  const {context,method,controller,values}=fixture(),setdefault=method("setdefault"),key=values.string("x"),guest=Object.freeze({});
+  context.formatting!.lookupRepr=()=>()=>{throw guest;};
+  context.isException=()=>{controller.abort();return true;};
+  const write=vi.spyOn(FrameLocalsMapping.prototype,"set");
+  try{expect(()=>setdefault([key,values.integer(9)])).toThrow(ExecutionLimitError);expect(write).not.toHaveBeenCalled();}
+  finally{write.mockRestore();}
 });

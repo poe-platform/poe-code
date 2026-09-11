@@ -58,6 +58,11 @@ export class FrameLocalsMapping<Key,Value> {
     if(slot!==undefined)return this.slots.delete(slot.name);
     return this.#extra?.delete(key)??false;
   }
+  pop(key:Key):{readonly value:Value}|undefined {
+    const slot=this.#find(key,false);
+    if(slot!==undefined){this.slots.delete(slot.name);return undefined;}
+    return this.#extra?.pop(key);
+  }
   get size():number {
     this.meter.checkpoint();let size=this.#extra?.size??0;
     for(const slot of this.#names){if(this.slots.lookup(slot.name)!==undefined)size++;}

@@ -12224,6 +12224,23 @@ extension, integration, or validation requirement is missing or unverified.
   final uncached one-worker full suite passes 8,499 tests in 562 files (185.20s;
   test bodies 12.08s). Display/comprehension/string/lambda and statement
   grammar allocation still needs accounting before guest eager compilation.
+- Display/yield/comprehension-clause allocation (2026-09-11): twenty-nine failing
+  tests isolated child-reader costs, reproducing uncharged empty/nonempty
+  collection storage, parenthesized copies, unpack/mapping/entry objects,
+  comprehension wrappers/clauses/filters and yield/tuple nodes, plus cancellation
+  hidden by throwing child readers. These readers now reserve their own nodes,
+  arrays and entries before construction, with final cancellation checkpoints.
+  Parenthesized copies reserve both copied expression and content-span storage;
+  shared child expressions remain borrowed. Yield delimiter lookup no longer
+  constructs a temporary array. The focused two-file suite passes 57 tests.
+  All 65 AST/diagnostic comparisons against 5d7b20667 preserve existing behavior;
+  58 complete function compilation cases match CPython acceptance, including
+  async/nested comprehensions, unpacking, dictionary keys and yield forms. Build
+  and typecheck pass, as do scoped lint and whitespace checks. The final uncached
+  one-worker full suite passes 8,528 tests in 563 files (137.03s; test bodies
+  11.66s). Loop-target allocation
+  and validation, string/lambda and statement grammar still require auditing
+  before guest eager compilation is enabled.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

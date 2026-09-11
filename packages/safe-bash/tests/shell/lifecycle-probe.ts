@@ -82,16 +82,26 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
   } finally { clearTimeout(timer); }
 } else if (scenario === "owned-cleanup-abort") {
   const { shell, fs } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
   await fs.writeFile("/input", new Uint8Array([65]));
   const controller = new AbortController();
   const reason = new Error("cancel owned input cleanup");
   let returns = 0;
+  let retired = false;
   fs.readStream = () => ({ [Symbol.asyncIterator]() { return {
     async next() { return { value: new Uint8Array([65]), done: false }; },
-    return() { returns++; setTimeout(() => controller.abort(reason), 20); return new Promise(() => {}); },
+    return() {
+      returns++;
+      setTimeout(() => controller.abort(reason), 20);
+      return new Promise<IteratorResult<Uint8Array>>(resolve => controller.signal.addEventListener("abort", () => {
+        retired = true;
+        resolve({ done: true, value: undefined });
+      }, { once: true }));
+    },
   }; } });
   await assert.rejects(shell.exec("true <input", { signal: controller.signal }), (error) => error === reason);
   assert.equal(returns, 1);
+  assert.equal(retired, true);
 } else throw new Error(`Unknown lifecycle probe: ${scenario}`);
 
 clearInterval(keepAlive);

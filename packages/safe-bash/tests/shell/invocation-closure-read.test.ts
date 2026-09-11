@@ -46,10 +46,10 @@ test("N invalid options and counts preserve input and variable", async () => {
   }
 });
 
-test("N invalid UTF8 fails explicitly and preserves the unread binary tail", async () => {
+test("N reads one raw byte in the C locale and preserves the unread binary tail", async () => {
   const result = await setup().shell.exec('read -rN1 value; args "$?"; pass', { env: { LC_ALL: "C" }, stdin: Buffer.from([195, 169, 255]) });
-  assert.match(result.stderr, /unsupported non-UTF-8 text boundary/u);
-  assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from([...Buffer.from('["1"]'), 169, 255]));
+  assert.equal(result.stderr, "");
+  assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from([...Buffer.from('["0"]'), 169, 255]));
 });
 
 test("N validates all names before consuming input", async () => {

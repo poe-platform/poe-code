@@ -262,14 +262,29 @@ test("foundation: actual public zero B/F limits retain scalar-only execution", {
   } finally { await instance.dispose(); }
 });
 
-test("foundation: automatic PIPESTATUS does not spend guest array budgets", { timeout: 5000 }, async () => {
+test("foundation: automatic PIPESTATUS does not spend guest array budgets", { timeout: 5000 }, async context => {
   const instance = shell();
   try {
-    for (const source of ["scalar=", "scalar=; scalar=", "true | false", "f() { true; }; f", "(true)"]) {
+    for (const source of ["scalar=", "scalar=; scalar=", "f() { true; }; f", "(true)"]) {
       const result = await instance.exec(source, { limits: { maxExpansionBytes: source.includes("scalar") ? 0 : 5, maxExpansionFields: 1 } });
-      assert.equal(result.exitCode, source === "true | false" ? 1 : 0, result.stderr);
+      assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stderr, "");
     }
+    // Pipe references use the value arena; inspect the separate guest ledger after publication.
+    const observed: { active: boolean; used: readonly number[] }[] = [];
+    const pipeline = Runtime.prototype.pipeline;
+    const probe = context.mock.method(Runtime.prototype, "pipeline", async function (this: Runtime, ...args: Parameters<Runtime["pipeline"]>) {
+      const status = await pipeline.apply(this, args);
+      const ledger = stateMonitor(args[1])!.session.ledger;
+      observed.push({ active: ledger.active, used: ledger.snapshot().used });
+      return status;
+    });
+    try {
+      const result = await instance.exec("true | false");
+      assert.equal(result.exitCode, 1, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(observed, [{ active: false, used: [0, 0, 0, 0, 0, 0, 0] }]);
+    } finally { probe.mock.restore(); }
     const result = await instance.exec('false | true; printf "%s" "${PIPESTATUS[@]}"');
     assert.equal(result.stdout, "10");
     assert.equal(result.stderr, "");

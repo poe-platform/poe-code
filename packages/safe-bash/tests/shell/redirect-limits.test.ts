@@ -132,6 +132,7 @@ test("below-cap buffered inputs retain eager timing and independent byte allowan
   const { shell, fs } = fixture(t, { maxRedirects: 3, maxInputBytes: 8 });
   await fs.writeFile("/input", new Uint8Array(8));
   Object.defineProperty(fs, "open", { value: undefined });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
   Object.defineProperty(fs, "readStream", { value: undefined });
   const read = t.mock.method(fs, "readFile");
   assert.equal((await shell.exec(": 3<input 3<input 3<input")).exitCode, 0);

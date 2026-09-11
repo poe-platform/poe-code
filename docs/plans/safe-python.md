@@ -11675,6 +11675,41 @@ extension, integration, or validation requirement is missing or unverified.
   their construction and class-information paths remain required work. This
   milestone does not claim complete public predicate compatibility or full Python.
   Reference: https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/abstract.c
+- Runtime union core (2026-09-11): two failing integration tests reproduced
+  missing type union construction and union class information. Native type and
+  Union numeric descriptors now route through the existing reflected/metaclass
+  binary dispatcher. A separate union builder flattens native union arguments,
+  normalizes None to canonical NoneType, preserves first-occurrence argument
+  order and collapses a singleton result to its member. Owned immutable union
+  state separates ordered args, a frozen hashable set and unhashable arguments.
+  Initial guest hash failures classify unhashable members; later set-probe,
+  equality and host failures propagate. Cancellation always remains fatal.
+  Union equality ignores order while preserving separate hashable/unhashable
+  membership rules. Hashing uses cached member hashes, or retries originally
+  unhashable members and keeps the union unhashable even if those classes change.
+  Public type predicates consume the union's native args through lazy tuple
+  traversal. Ordinary guest __args__ attributes cannot grant union eligibility.
+  Additional red tests drove repr/hash/equality support, module-before-qualified
+  string conversion and strict descriptor receiver families. Runtime typing repr
+  follows ordinary metadata lookup and str/repr callbacks rather than the native
+  type repr shortcut. New names, union state, key storage, callbacks and output
+  joins are metered; direct tests cover hash-probe boundaries, host failures,
+  duplicate collapse and cancellation during hash/equality/None/publication.
+  The focused three-file suite passes 1,016 tests. New CPython comparisons cover
+  72 construction/flattening/predicate cases, 32 hash/deduplication cases and
+  12 hash/equality mutation cases. Observable hash tests use explicit matching
+  hash domains; the integration host's deliberate constant identity hashes are
+  not interchangeable with CPython identity hashes. All 36 reflected/metaclass
+  operator cases also match, as do the earlier 2,212 type-check and matching
+  cases: 2,364 scoped CPython comparisons in total. Workspace build, typecheck,
+  scoped lint and whitespace checks pass. The final uncached one-worker suite
+  passes 8,162 tests in 535 files (104.37s; test bodies 7.95s).
+  This is union runtime core, not the entire typing surface: remaining work
+  includes union metadata/subscription/mro-entry methods, checked typing.Union
+  construction, generic aliases and their union/predicate integration, typing
+  module publication and complete native-qualified diagnostics.
+  References: https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/unionobject.c
+  and https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/typevarobject.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

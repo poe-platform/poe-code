@@ -30,6 +30,7 @@ import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeNewBuiltin } from "./builtin-type-new.js";
 import { createTypePrepareDescriptor } from "./builtin-type-prepare.js";
 import {createTypeCheckDescriptor} from "./builtin-type-check.js";
+import {installRuntimeUnionOperators,installRuntimeUnionSlots} from "./runtime-union-slots.js";
 import { createTypeReprWrapper } from "./builtin-type-repr.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
@@ -135,6 +136,7 @@ export class RuntimeTypeRegistry {
   #asyncGeneratorTypes=new Map<"async_generator"|"async_generator_asend"|"async_generator_athrow",TypeValue>();
   #anextAwaitableType:TypeValue|undefined;
   #noneType:TypeValue|undefined;
+  #unionType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
@@ -153,6 +155,7 @@ export class RuntimeTypeRegistry {
     objectLayout.namespace.items.set(values.string("__new__"), createObjectNewBuiltin(values, meter, keys, this.object, type => this.#entries.get(type.value)?.type === type));
     typeLayout.namespace.items.set(values.string("__new__"), createTypeNewBuiltin(values, meter, this));
     typeLayout.namespace.items.set(values.string("__prepare__"), createTypePrepareDescriptor(values, meter, keys, this.type));
+    installRuntimeUnionOperators(this.type,values,meter,keys,this.noneType.bind(this),this.unionType.bind(this));
     for(const name of ["__instancecheck__","__subclasscheck__"] as const){meter.checkpoint();typeLayout.namespace.items.set(values.string(name),createTypeCheckDescriptor(name,this.type,values,meter));}
     typeLayout.namespace.items.set(values.string("__repr__"), createTypeReprWrapper(values, meter, this.type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
@@ -597,6 +600,16 @@ export class RuntimeTypeRegistry {
     }
     this.meter.checkpoint(0,64);
     return this.values.instance(this.#frameLocalsProxyType,undefined,Object.freeze({kind:"frame_locals_proxy",frame,mapping,keys:this.keys}));
+  }
+
+  unionType():TypeValue {
+    this.meter.checkpoint();if(this.#unionType)return this.#unionType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("Union",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:true,subclassable:false,instantiable:false});
+    const type=this.values.type(layout,this.type,{immutable:true});
+    namespace.items.set(this.values.string("__module__"),this.values.string("typing"));
+    installRuntimeUnionSlots(type,this.values,this.meter,this.keys,this.noneType.bind(this),this.unionType.bind(this));
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#unionType=type;return type;
   }
 
   noneType():TypeValue {

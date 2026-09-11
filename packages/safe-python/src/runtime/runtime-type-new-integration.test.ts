@@ -487,6 +487,41 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("constructs flattened runtime unions with stable args and None normalization",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:pass\nclass B:pass\nu=A|B\ncorrect=u.__args__==(A,B) and (u|A).__args__==(A,B) and A|A is A and (None|A).__args__==(type(None),A)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("compares and hashes unions independently of argument order",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("hash",createHashBuiltin(v,state.meter,{none:v.none,identity:()=>17n,string:()=>23n,bytes:()=>29n}));
+  state.run("class A:pass\nclass B:pass\nclass C:pass\nu=A|B\nv=B|A\ncorrect=u==v and not u!=v and u!=A|C and hash(u)==hash(v) and {u:7}[v]==7\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("renders runtime union members using their module and qualified names",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class Outer:\n class A:pass\nclass B:pass\nu=Outer.A|B|None\ncorrect=f'{u!r}'=='example.Outer.A | example.B | None'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("formats union module metadata before qualified-name metadata",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Text:\n def __init__(self,name):self.name=name\n def __str__(self):\n  events.append(self.name)\n  return self.name\nclass Meta(type):\n def __getattribute__(cls,name):\n  if name=='__module__':return Text('module')\n  if name=='__qualname__':return Text('name')\n  return type.__getattribute__(cls,name)\nclass A(metaclass=Meta):pass\nclass B:pass\nresult=f'{A|B!r}'\ncorrect=result=='module.name | example.B' and events==['module','name']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("keeps type and union binary descriptors restricted to their native receivers",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:pass\nclass B:pass\nu=A|B\nerrors=[]\ntry:type.__or__(u,A)\nexcept TypeError:errors.append(1)\ntry:type(u).__or__(A,B)\nexcept TypeError:errors.append(2)\ncorrect=errors==[1,2]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("keeps an originally unhashable union unhashable after class hash mutation",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("hash",createHashBuiltin(v,state.meter,{none:v.none,identity:()=>17n,string:()=>23n,bytes:()=>29n}));
+  state.run("class Meta(type):__hash__=None\nclass A(metaclass=Meta):pass\nclass B:pass\nu=A|B\nMeta.__hash__=lambda cls:17\ntry:hash(u)\nexcept TypeError as e:correct=e.args==('union contains 1 unhashable elements',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("uses union class information in public predicates without testing later members",()=>{
+  const state=exceptionFixture(),{v}=state;for(const name of ["isinstance","issubclass"] as const)state.builtins.set(name,createTypePredicateBuiltin(name,v,state.meter));
+  state.run("class A:pass\nclass B:pass\nu=A|B\ncorrect=isinstance(A(),u) and issubclass(B,u) and not isinstance(7,u) and not issubclass(object,u)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("short circuits nested class tuples before invalid later entries",()=>{
   const state=exceptionFixture(),{v}=state;for(const name of ["isinstance","issubclass"] as const)state.builtins.set(name,createTypePredicateBuiltin(name,v,state.meter));
   state.run("class C:pass\nclass D(C):pass\ncorrect=isinstance(D(),((),(C,7))) and issubclass(D,((),(C,7))) and not isinstance(7,()) and not issubclass(7,())\nerrors=[]\ntry:isinstance(7,(C,7))\nexcept TypeError:errors.append(1)\ntry:issubclass(7,(C,7))\nexcept TypeError:errors.append(2)\ncorrect=correct and errors==[1,2]\n");

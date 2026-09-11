@@ -2,6 +2,7 @@ import type {ExecutionMeter} from "./execution-budget.js";
 import {runtimeRealClassInstance,runtimeRealClassSubclass} from "./runtime-real-type-check.js";
 import {runtimeTuplePayload} from "./runtime-tuple-payload.js";
 import {runtimeTruth} from "./runtime-truth.js";
+import {runtimeUnionPayload} from "./runtime-union-state.js";
 import type {BuiltinInvocationContext,RuntimeValue,TypeValue} from "./runtime-values.js";
 
 /** Ordered tuple alternatives are lazy: invalid later members are never checked
@@ -25,7 +26,7 @@ export function runtimeTypePredicate(name:"isinstance"|"issubclass",subject:Runt
         continue;
       }
     }
-    const tuple=runtimeTuplePayload(candidate);
+    const tuple=runtimeUnionPayload(candidate)?.args??runtimeTuplePayload(candidate);
     if(tuple!==undefined){
       meter.checkpoint(0,48);work.push({items:tuple.items,index:0});
       continue;

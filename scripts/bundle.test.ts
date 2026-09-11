@@ -191,6 +191,11 @@ it.each([
         "packages/safe-js/dist/native/fs-seek/manifest.json"
       ]);
     }
+    const mainOptions = build.mock.calls.find(([options]) =>
+      Array.isArray(options.entryPoints) && options.entryPoints.includes(path.join(root, "src/index.ts"))
+    )![0];
+    expect(mainOptions).toMatchObject({ splitting: true, outdir: path.join(root, "dist") });
+    expect(mainOptions.outfile).toBeUndefined();
     for (const [options] of build.mock.calls) {
       if (options.splitting) continue;
       if (options.platform === "browser") {

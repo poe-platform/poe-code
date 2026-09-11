@@ -136,6 +136,35 @@ it.each(["not-implemented","ellipsis"] as const)("validates singleton allocator 
   expect(state.registry.sentinelType(kind)).toBe(state.globals.get("T"));
 });
 
+it.each(["none","not-implemented","ellipsis"] as const)("binds canonical singleton representation and inherited methods: %s",kind=>{
+  const state=exceptionFixture(),{v}=state,value=kind==="none"?v.none:kind==="ellipsis"?v.ellipsis:v.notImplemented;
+  state.globals.set("singleton",value);state.globals.set("expected",v.string(kind==="none"?"None":kind==="ellipsis"?"Ellipsis":"NotImplemented"));
+  state.run("T=type(singleton)\ncorrect=singleton.__repr__()==expected and T.__repr__(singleton)==expected and singleton.__str__()==expected and singleton.__init__() is None\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("exposes singleton boolean and reduction descriptors",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("NotImplemented",v.notImplemented);
+  state.run("false=None.__bool__() is False\ntry:NotImplemented.__bool__()\nexcept TypeError as e:failure=e.args\ncorrect=NotImplemented.__reduce__()=='NotImplemented' and (...).__reduce__()=='Ellipsis'\n");
+  expect(state.globals.get("false")).toBe(v.true);expect(state.globals.get("correct")).toBe(v.true);
+  expect(state.globals.get("failure")).toEqual(v.tuple([v.string("NotImplemented should not be used in a boolean context")]));
+});
+
+it.each(["none","not-implemented","ellipsis"] as const)("validates singleton descriptor binding and arguments: %s",kind=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("singleton",kind==="none"?v.none:kind==="ellipsis"?v.ellipsis:v.notImplemented);
+  const typeName=kind==="none"?"NoneType":kind==="ellipsis"?"ellipsis":"NotImplementedType";
+  const methods=kind==="none"?["__repr__","__bool__"]:kind==="ellipsis"?["__repr__","__reduce__"]:["__repr__","__bool__","__reduce__"];
+  for(const method of methods){
+    const prefix=method==="__reduce__"?`${typeName}.${method}()`:`wrapper ${method}()`;
+    for(const [args,expected] of [["1",method==="__reduce__"?`${prefix} takes no arguments (1 given)`:"expected 0 arguments, got 1"],["x=1",`${prefix} takes no keyword arguments`]]){
+      state.run(`try:singleton.${method}(${args})\nexcept TypeError as e:diagnostic=e.args\n`);
+      expect(state.globals.get("diagnostic")).toEqual(v.tuple([v.string(expected)]));
+    }
+    state.run(`try:type(singleton).${method}(1)\nexcept TypeError:rejected=True\n`);
+    expect(state.globals.get("rejected")).toBe(v.true);state.globals.delete("rejected");
+  }
+});
+
 it("distinguishes function names from assigned and natural generator-expression code names",()=>{
   const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
   const program=compileSourceProgram("g=(x for x in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);

@@ -93,6 +93,7 @@ import { installRuntimeGeneratorDescriptors } from "./runtime-generator-descript
 import { installRuntimeAsyncGeneratorDescriptors } from "./runtime-async-generator-descriptors.js";
 import { installRuntimeAnextAwaitableDescriptors } from "./runtime-anext-awaitable.js";
 import { createSingletonNewBuiltin } from "./builtin-singleton-new.js";
+import {installRuntimeSingletonSlots} from "./runtime-singleton-slots.js";
 import {createCellNewBuiltin} from "./builtin-cell-new.js";
 import {createCellReprWrapper} from "./builtin-cell-repr.js";
 import {readRuntimeCell,mutateRuntimeCell} from "./runtime-cell.js";
@@ -670,6 +671,7 @@ export class RuntimeTypeRegistry {
     const layout=new RuntimeTypeLayout("NoneType",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     namespace.items.set(this.values.string("__new__"),createSingletonNewBuiltin(type,this.values.none,this.values,this.meter));
+    installRuntimeSingletonSlots("none",type,this.values,this.meter);
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#noneType=type;
     return type;
@@ -683,6 +685,7 @@ export class RuntimeTypeRegistry {
     const layout=new RuntimeTypeLayout(name,[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     namespace.items.set(this.values.string("__new__"),createSingletonNewBuiltin(type,singleton,this.values,this.meter));
+    installRuntimeSingletonSlots(kind,type,this.values,this.meter);
     this.meter.checkpoint(1,96);this.#entries.set(layout,{type});this.#sentinelTypes.set(kind,type);return type;
   }
 

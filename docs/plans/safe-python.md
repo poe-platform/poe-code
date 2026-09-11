@@ -13248,6 +13248,20 @@ extension, integration, or validation requirement is missing or unverified.
   11.12s). Complete sentinel descriptor publication, canonical runtime type
   selection, public interpreter assembly, imports, safe-fs and broad audits
   remain unfinished. No push or release was requested or performed.
+- Singleton descriptor publication (2026-09-11): failing native tests established
+  missing/incorrect direct representation, boolean and reduction methods on
+  canonical sentinel types. Shared runtime-singleton-slots publishes repr for
+  None/NotImplemented/Ellipsis, bool for None/NotImplemented, and reduction names
+  for NotImplemented/Ellipsis. Native attribute lookup now binds sentinel methods
+  through canonical MRO descriptors, retaining inherited object methods such as
+  init and str. Tests cover bound/unbound representation, boolean behavior,
+  reduction names, positional/keyword rejection and wrong receiver rejection.
+  CPython probes confirm returned values, slot ownership and exact argument
+  diagnostics. Build, typecheck, scoped lint and whitespace checks pass; the full
+  uncached thread-pool suite passes 9,199 tests in 610 files (87.01s; bodies 11.20s).
+  Remaining native descriptor/type coverage, public interpreter assembly, imports,
+  safe-fs and broader compatibility/security/performance audits remain unfinished.
+  No push or release was requested or performed.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

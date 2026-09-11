@@ -12966,6 +12966,22 @@ extension, integration, or validation requirement is missing or unverified.
   creation behavior rather than adding a special path for dynamic execution.
   Build, typecheck, scoped lint and whitespace checks pass. The uncached full
   thread-pool suite passes 9,091 tests in 602 files (127.17s; bodies 14.29s).
+- Function namespace introspection (2026-09-11): seven failing regressions
+  established missing original-identity reads, spoofing by ordinary function
+  attributes, missing read-only enforcement and cancellation handling. Native
+  __globals__/__builtins__ now expose the original guest namespace objects before
+  consulting the function attribute dictionary, without source-name lookup or
+  dictionary copying. Host-only namespaces without original identities fail
+  explicitly rather than manufacturing guest dictionaries. Reassignment and
+  deletion raise AttributeError; the referenced dictionaries remain live. Unit
+  tests include retained None builtins and cancellation during identity access.
+  Native integration verifies subclass globals, captured builtins after globals
+  replacement, mutable global contents and resistance to __dict__ shadowing; the
+  same scenario passes CPython 3.14.7. The focused run passes 1,055 tests. Canonical
+  function descriptors, closure introspection and complete backend registration
+  remain separate unfinished work. Build, typecheck, scoped lint and whitespace
+  checks pass. The uncached full thread-pool suite passes 9,099 tests in 603 files
+  (144.38s; bodies 17.47s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

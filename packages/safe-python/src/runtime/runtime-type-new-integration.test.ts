@@ -226,6 +226,13 @@ it("captures function module metadata from intrinsic globals before overridden r
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
+it("reflects original function globals and captured builtins as read-only references",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  globals.items.set(v.string("Dict"),state.registry.dictionaryType());globals.items.set(v.string("AttributeError"),state.registry.exceptionType("AttributeError"));
+  state.run("class G(Dict):\n def __getitem__(self,key):\n  if key=='__builtins__':raise RuntimeError('must not inspect globals builtins again')\n  return Dict.__getitem__(self,key)\ng=G(__builtins__=B)\nexec(\"def f():\\n visit('called')\\n return x\",g)\nf=g['f']\noriginal=f.__builtins__\ng['__builtins__']={}\nf.__globals__['x']=7\nf.__dict__['__globals__']={}\nf.__dict__['__builtins__']={}\ntry:f.__globals__={}\nexcept AttributeError:readonly_globals=True\ntry:del f.__builtins__\nexcept AttributeError:readonly_builtins=True\ncorrect=f.__globals__ is g and original is B and f.__builtins__ is B and f()==7 and readonly_globals and readonly_builtins\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(state.events).toEqual(["called"]);
+});
+
 it("uses fresh function locals and live module/class namespaces for dynamic execution",()=>{
   const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
   state.run("def snapshots():\n x=7\n first=locals()\n exec('x=99; created=1')\n seen=eval('x')\n second=locals()\n first['x']=42\n return x==7 and seen==7 and second['x']==7 and first is not second and 'created' not in second\ncorrect_snapshots=snapshots()\nmodule_identity=locals() is globals()\ncomprehension=[locals() for hidden in (1,)]\nclass C:\n x=8\n names=locals()\n exec('x=9')\n correct=names['x']==9 and eval('x')==9\ncorrect_class=C.correct\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));

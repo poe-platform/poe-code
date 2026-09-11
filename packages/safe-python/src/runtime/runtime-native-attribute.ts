@@ -84,6 +84,14 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     try{return methods.actualType(receiver);}finally{meter.checkpoint();}
   }
   if (receiver.kind === "function") {
+    if(name==="__globals__"||name==="__builtins__"){
+      try {
+        const namespace=name==="__globals__"?receiver.value.globals:receiver.value.builtins;
+        const object=namespace.object;
+        if(object===undefined)throw Error("function namespace reflection requires an original guest object");
+        return object;
+      } finally {meter.checkpoint();}
+    }
     if(name==="__code__"){
       if(methods?.code===undefined)throw Error("function code reflection requires a code publication policy");
       try{return methods.code(receiver.value.code);}finally{meter.checkpoint();}

@@ -14,11 +14,18 @@ function fixture(signal?: AbortSignal) {
 
 it("preserves the extension boundary for unfinished intrinsic function fields", () => {
   const { meter, v, fn } = fixture(); fn.value.attributes.set("existing", v.true);
-  for (const name of ["__class__", "__code__", "__globals__", "__closure__", "__builtins__", "__annotate__", "__type_params__"]) {
+  for (const name of ["__class__", "__code__", "__closure__", "__annotate__", "__type_params__"]) {
     expect(runtimeMutateFunctionAttribute(fn, name, { kind: "set", value: v.false }, v, meter)).toBe(false);
     expect(runtimeMutateFunctionAttribute(fn, name, { kind: "delete" }, v, meter)).toBe(false);
   }
   expect([...fn.value.attributes]).toEqual([["existing", v.true]]);
+});
+
+it.each(["__globals__","__builtins__"])("rejects reassignment and deletion of %s",name=>{
+  const {meter,v,fn}=fixture();
+  expect(()=>runtimeMutateFunctionAttribute(fn,name,{kind:"set",value:v.none},v,meter)).toThrow(expect.objectContaining({name:"AttributeError",message:"readonly attribute"}));
+  expect(()=>runtimeMutateFunctionAttribute(fn,name,{kind:"delete"},v,meter)).toThrow("readonly attribute");
+  expect(fn.value.attributes.has(name)).toBe(false);
 });
 
 it("retains original name identities after invalid metadata changes", () => {

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import "./safe-packages-atomic.mjs";
 import { posix } from "node:path";
 import { posixPath as contractPath } from "@poe-platform/safe-bash/contracts";
 import { posixPath as indexedPath } from "@poe-platform/safe-bash/contracts/index";

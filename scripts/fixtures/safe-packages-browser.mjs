@@ -3,6 +3,7 @@ import { checksumWorkflows, expectedAgentCommandNames, nullDeviceWorkflows, runN
 import { FsError as CoreFsError, createDeviceFileSystem } from "@poe-platform/safe-fs/core";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs/core";
 import "./safe-packages-response-body-mode.mjs";
+import "./safe-packages-atomic.mjs";
 
 if (FsError !== CoreFsError) throw new Error("Browser filesystem identity diverged");
 if (FsError !== CompatibilityFsError) throw new Error("Compatibility filesystem identity diverged");

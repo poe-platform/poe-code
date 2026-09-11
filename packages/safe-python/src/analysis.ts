@@ -30,7 +30,7 @@ export interface ModuleAnalysis {
 export function analyzeModule(text: string, options: LexerOptions = {}): ModuleAnalysis {
   try {
     const module = parseModule(text, options);
-    const futureFeatures = validateFutureImports(module, options.filename);
+    const futureFeatures = validateFutureImports(module, options.filename,options.meter);
     const functionKinds = validateControlFlow(module, options.filename);
     const scopes = resolveSymbols(collectSymbols(module), options.filename);
     const qualifiedNames = collectQualifiedNames(scopes.scope);

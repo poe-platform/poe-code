@@ -11891,6 +11891,27 @@ extension, integration, or validation requirement is missing or unverified.
   (134.76s; test bodies 12.61s).
   AST construction and remaining module analysis still require accounting before
   guest eager compilation/ForwardRef conversion is enabled.
+- Metered future-directive validation (2026-09-11): nine failing tests reproduced
+  ignored budgets/cancellation, a host stack overflow on a 10,000-level external
+  syntax tree, uncharged repeated feature names and diagnostics, and missing
+  analysis-meter forwarding. Future validation now uses a metered depth-first
+  iterator stack that retains only the active path. Frame/set allocations,
+  feature-name lookup work, diagnostics and every traversal step are charged.
+  statementChildren accepts the structural meter for otherwise invisible empty
+  branch, handler and match-case scans; the consuming validator charges each
+  yielded child. Tests also cover cyclic trees, empty handler/case collections,
+  and depth-first diagnostic order. analyzeModule forwards its meter.
+  CPython comparisons exposed local wildcard future imports reporting directive
+  placement instead of the local wildcard restriction. Three additional failing
+  tests verified this discrepancy; traversal frames now retain local scope state
+  and prioritize the wildcard restriction for that directive. All 97 comparisons
+  agree with CPython on acceptance, error message and line, including competing
+  error precedence. The focused three-file suite passes 76 tests. Build,
+  typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,305 tests in 543 files
+  (106.59s; test bodies 10.54s).
+  This does not complete module analysis accounting: control-flow/expression
+  context, symbol analysis, derived metadata and AST construction remain.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

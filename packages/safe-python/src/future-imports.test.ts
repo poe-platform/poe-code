@@ -3,6 +3,9 @@ import { parseModule } from "./module.js";
 import { validateFutureImports } from "./future-imports.js";
 
 describe("future directives", () => {
+  it.each(["def f():\n from __future__ import *","class C:\n from __future__ import *","def f():\n if True:\n  from __future__ import *"])("prioritizes local wildcard restrictions: %s",source=>{
+    expect(()=>validateFutureImports(parseModule(source))).toThrow("import * only allowed at module level");
+  });
   it("accepts a leading docstring, aliases, and consecutive directives", () => {
     const module = parseModule("'doc'; from __future__ import annotations as a\nfrom __future__ import division, generator_stop\nx=1");
     expect([...validateFutureImports(module)]).toEqual(["annotations","division","generator_stop"]);

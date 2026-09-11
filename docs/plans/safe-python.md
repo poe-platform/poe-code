@@ -11974,6 +11974,24 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker full suite passes 8,360 tests in 548 files
   (226.00s; test bodies 15.80s). Symbol analysis,
   derived metadata and AST construction remain unfinished accounting work.
+- Metered qualified-name generation (2026-09-11): eight failing tests reproduced
+  ignored entry budgets/cancellation, unbounded path-string growth and duplicate
+  global-event scans, missing analysis forwarding, and unmetered private-name
+  underscore scanning/string construction. Qualified-name collection now uses
+  indexed active-path frames, retaining sibling order without copying all pending
+  siblings. String construction, frames, sets/maps, parent contexts and event
+  lookups are charged. Private-name mangling accepts the structural SourceMeter,
+  charges scans and output before allocation, and checks cancellation on all
+  exits; other consumers remain source-compatible without a meter. analyzeModule
+  forwards its meter. Three additional tests cover lazy sibling access, cyclic
+  external scope trees and private-name fast-path cancellation. The focused
+  five-file suite passes 94 tests. All 28 CPython code-object comparisons match
+  the generated qualified-name multiset across nested functions/classes, private
+  names, explicit globals, lambdas and inlined/generator comprehensions. Build
+  and typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,371 tests in 549 files
+  (183.22s; test bodies 13.78s). Symbol collection/resolution, static-attribute
+  metadata and AST construction still require accounting before guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

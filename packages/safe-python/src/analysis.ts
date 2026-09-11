@@ -33,7 +33,7 @@ export function analyzeModule(text: string, options: LexerOptions = {}): ModuleA
     const futureFeatures = validateFutureImports(module, options.filename,options.meter);
     const functionKinds = validateControlFlow(module, options.filename,options.meter);
     const scopes = resolveSymbols(collectSymbols(module), options.filename);
-    const qualifiedNames = collectQualifiedNames(scopes.scope);
+    const qualifiedNames = collectQualifiedNames(scopes.scope,options.meter);
     const staticAttributes = collectStaticAttributes(scopes.scope);
     return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
   } catch (error) {

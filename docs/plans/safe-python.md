@@ -12410,6 +12410,21 @@ extension, integration, or validation requirement is missing or unverified.
   full suite passes 8,665 tests in 574 files (157.87s; test bodies 12.28s).
   Pattern parsing/validation itself still needs
   allocation and recursive-entry auditing before checked guest compilation.
+- Nested pattern parser resource accounting (2026-09-11): twenty-four failing
+  tests reproduced uncharged pattern storage and missing recursive-entry hooks.
+  Pattern parsing now charges item/result records, sequence/or/as/star nodes,
+  name/attribute paths, mapping/class arrays and entries, keyword sets/hashing,
+  and speculative reader closures. Temporary delimiter/singleton arrays were
+  replaced with direct comparisons. Recursive pattern entry uses the caller's
+  guard, restoring it on success or failure with final cancellation checks;
+  standalone and shared entry points preserve cancellation too. All 27 focused
+  tests pass, including three 100-level successful nested forms and bounded
+  sequence/mapping/class recursion. All 120 AST/diagnostic comparisons against
+  3b8851193 and 120 CPython compile-acceptance cases pass. Build, typecheck,
+  scoped lint and whitespace checks pass. The uncached full suite passes 8,692
+  tests in 575 files (186.17s; test bodies 13.17s). Pattern literal
+  readers and cross-pattern validation still need auditing before checked guest
+  compilation; this does not make external-AST validation stack safe yet.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

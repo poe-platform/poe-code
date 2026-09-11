@@ -10,6 +10,7 @@ import { readWith } from "./with-statements.js";
 import { readFunction } from "./function-statements.js";
 import { readClass } from "./class-statements.js";
 import { readMatch } from "./match-statements.js";
+import { PythonIndentationError } from "./indentation.js";
 
 /** A block owns its statements; its caller owns the terminating dedent. */
 export function readStatements(cursor: TokenCursor): Statement[] {
@@ -18,6 +19,7 @@ export function readStatements(cursor: TokenCursor): Statement[] {
   const body: Statement[] = [];
   while (cursor.peek().kind !== "end" && cursor.peek().kind !== "dedent") {
     if (cursor.peek().kind === "newline") { cursor.take(); continue; }
+    if (cursor.peek().kind === "indent") throw cursor.error("unexpected indent", PythonIndentationError);
     cursor.meter?.checkpoint(0,8);
     if (cursor.peek().text === "match") {
       const match = readMatch(cursor, readSuite);
@@ -79,10 +81,10 @@ function readSuite(cursor: TokenCursor): Statement[] {
   cursor.expect(":");
   if (cursor.peek().kind !== "newline") return readSimpleLine(cursor);
   cursor.take();
-  if (cursor.peek().kind !== "indent") throw cursor.error("expected an indented block");
+  if (cursor.peek().kind !== "indent") throw cursor.error("expected an indented block", PythonIndentationError);
   cursor.take();
   const body = readStatements(cursor);
-  if (body.length === 0 || cursor.peek().kind !== "dedent") throw cursor.error("expected an indented block");
+  if (body.length === 0 || cursor.peek().kind !== "dedent") throw cursor.error("expected an indented block", PythonIndentationError);
   cursor.take();
   return body;
 }

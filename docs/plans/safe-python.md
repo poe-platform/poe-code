@@ -12697,6 +12697,20 @@ extension, integration, or validation requirement is missing or unverified.
   bodies 7.89s). Guest syntax-exception filename publication still needs to retain
   the original value rather than relying solely on the host diagnostic spelling;
   default compilation/eval/exec and safe-fs publication remain unfinished.
+- Guest compiler exception filename retention (2026-09-11): the compile adapter
+  now uses the execution-owned exception preparation capability to retain the
+  original guest filename in SyntaxError.filename and args, including distinct
+  adjacent surrogate code points. Native integration verifies SyntaxError,
+  IndentationError and TabError identity. Ordinary backend errors remain unchanged;
+  cancellation during exception preparation remains fatal. Expanding these checks
+  exposed unexpected/missing indentation reported as plain SyntaxError. Six failing
+  parser regressions established that defect before introducing typed cursor error
+  construction and the correct compound-suite exception class. The focused run
+  passes 1,094 tests; 43 direct CPython comparisons agree on indentation exception
+  classes. Build, typecheck, scoped lint and whitespace checks pass. The uncached
+  full thread-pool suite passes 8,922 tests in 591 files (66.11s; bodies 8.14s).
+  Exact diagnostic span/message parity, default compile/eval/exec publication and
+  safe-fs integration remain unfinished; this is not full interpreter completion.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -231,7 +231,9 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     meter.checkpoint(0, 128);
     meter.checkpoint(0,8);
+    if(context.exceptions!==undefined)meter.checkpoint(0,64);
     const builtinCalls: BuiltinInvocationContext = {
+      prepareException:context.exceptions?.prepare.bind(context.exceptions),
       objectType:context.objectType,
       causeException:context.exceptions?.caused.bind(context.exceptions),
       wrapAnext:context.exceptions?.wrapAnext.bind(context.exceptions),

@@ -3,8 +3,8 @@ import type { SourcePosition,SourceMeter } from "./source.js";
 import {maximumIndentationLevels} from "./lexical-limits.js";
 
 export class PythonIndentationError extends PythonSyntaxError {
-  constructor(message: string, filename: string, position: SourcePosition) {
-    super(message, filename, position);
+  constructor(message: string, filename: string, position: SourcePosition, endPosition?: SourcePosition) {
+    super(message, filename, position, endPosition);
     this.name = "IndentationError";
   }
 }

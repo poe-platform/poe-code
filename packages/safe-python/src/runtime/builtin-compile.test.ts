@@ -3,6 +3,7 @@ import {createCompileBuiltin,type CompileRequest} from "./builtin-compile.js";
 import {RuntimeValues,type RuntimeValue,type BuiltinInvocationContext} from "./runtime-values.js";
 import {ExecutionBudget,ExecutionLimitError} from "./execution-budget.js";
 import {constructRuntimeDictionary} from "./runtime-dictionary-update.js";
+import {PythonSyntaxError} from "../source.js";
 
 function fixture(){
   const meter=new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:10000000}),v=new RuntimeValues(meter);
@@ -86,4 +87,20 @@ it("retains rich filename values and snapshots them before conversion callbacks"
   const builtin=createCompileBuiltin(state.v,state.meter,{filename:()=>filename,compile(request){requests.push(request);return state.v.none;}});
   builtin.value.invoke([...state.args(),state.v.integer(0),state.v.cell({})],state.keywords,state.meter,{truth(){filename.value=state.v.string("changed");return true;}} as BuiltinInvocationContext);
   expect(requests[0].filename).toEqual({displayName:"shown.py",value:original});expect(Object.isFrozen(requests[0].filename)).toBe(true);
+});
+it("prepares compilation syntax failures with the retained guest filename",()=>{
+  const state=fixture(),filename=state.v.stringPoints(new Uint32Array([0xd800,0xdc00])),syntax=new PythonSyntaxError("bad syntax","shown.py",{offset:0,line:1,column:0}),carrier=new Error("guest syntax carrier"),prepareException=vi.fn(()=>carrier);
+  const builtin=createCompileBuiltin(state.v,state.meter,{filename:()=>({displayName:"shown.py",value:filename}),compile(){throw syntax;}});
+  expect(()=>builtin.value.invoke(state.args(),state.keywords,state.meter,{prepareException} as unknown as BuiltinInvocationContext)).toThrow(carrier);
+  expect(prepareException).toHaveBeenCalledWith(syntax,filename);
+});
+it("leaves ordinary backend failures unprepared",()=>{
+  const state=fixture(),failure=new Error("backend failure"),prepareException=vi.fn();
+  const builtin=createCompileBuiltin(state.v,state.meter,{filename:()=>({displayName:"x",value:state.v.string("x")}),compile(){throw failure;}});
+  expect(()=>builtin.value.invoke(state.args(),state.keywords,state.meter,{prepareException} as unknown as BuiltinInvocationContext)).toThrow(failure);expect(prepareException).not.toHaveBeenCalled();
+});
+it("preserves cancellation during syntax exception preparation",()=>{
+  const state=fixture(),controller=new AbortController(),meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000,signal:controller.signal}),syntax=new PythonSyntaxError("bad","x",{offset:0,line:1,column:0});
+  const builtin=createCompileBuiltin(state.v,meter,{filename:()=>({displayName:"x",value:state.v.string("x")}),compile(){throw syntax;}});
+  expect(()=>builtin.value.invoke(state.args(),state.keywords,meter,{prepareException(){controller.abort();throw Error("prepare failure");}} as unknown as BuiltinInvocationContext)).toThrow(ExecutionLimitError);
 });

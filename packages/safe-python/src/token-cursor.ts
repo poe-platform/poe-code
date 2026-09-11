@@ -98,9 +98,9 @@ export class TokenCursor {
     return this.take();
   }
 
-  error(message = "invalid syntax"): PythonSyntaxError {
+  error(message = "invalid syntax", ErrorType: typeof PythonSyntaxError = PythonSyntaxError): PythonSyntaxError {
     const token = this.peek();
     this.meter?.checkpoint(0,160+2*message.length);
-    return new PythonSyntaxError(message, this.filename, token.start, token.end).withSource(this.sourceText, true,this.meter);
+    return new ErrorType(message, this.filename, token.start, token.end).withSource(this.sourceText, true,this.meter);
   }
 }

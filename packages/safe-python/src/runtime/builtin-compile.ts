@@ -1,4 +1,5 @@
 import {normalizeFutureFlags} from "../future-flags.js";
+import {PythonSyntaxError} from "../source.js";
 import {diagnosticTypeName} from "./diagnostic-type-name.js";
 import {PythonRuntimeError} from "./error.js";
 import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
@@ -80,7 +81,14 @@ export function createCompileBuiltin(values:RuntimeValues,meter:ExecutionMeter,c
       if(mode!=="exec"&&mode!=="eval"&&mode!=="single"&&mode!=="func_type")throw new PythonRuntimeError("ValueError",flags&0x400?"compile() mode must be 'exec', 'eval', 'single' or 'func_type'":"compile() mode must be 'exec', 'eval' or 'single'");
       if(!dontInherit&&context.inheritedFlags!==undefined)flags|=normalizeFutureFlags(context.inheritedFlags(invocation,meter),meter);
       meter.checkpoint(1,96);
-      return context.compile({source:args[0]!,filename,mode,flags,optimize,featureVersion},invocation,meter);
+      try{return context.compile({source:args[0]!,filename,mode,flags,optimize,featureVersion},invocation,meter);}
+      catch(error){
+        if(error instanceof PythonSyntaxError&&typeof filename!=="string"&&invocation?.prepareException!==undefined){
+          meter.checkpoint();
+          throw invocation.prepareException(error,filename.value);
+        }
+        throw error;
+      }
     } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
     finally{if(!fatal)meter.checkpoint();}
   }});

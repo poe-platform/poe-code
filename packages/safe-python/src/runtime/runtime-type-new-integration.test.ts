@@ -118,6 +118,11 @@ it("calls compile from guest code and publishes compiler metadata",()=>{
   }));
   state.run("class Path:\n def __fspath__(self):return b'child.py'\na=compile('1+2',Path(),'eval')\nb=compile(source='pass',filename=b'other.py',mode='exec',dont_inherit=True,optimize=2)\nc=compile('1',b'\\xff','eval')\nname='\\ud800\\udc00'\nd=compile('1',name,'eval')\ncorrect=a.co_filename=='child.py' and a.co_name=='<module>' and a.co_flags==16777216 and b.co_filename=='other.py' and b.co_flags==0 and c.co_filename=='\\udcff' and d.co_filename is name");
   expect(state.globals.get("correct")).toBe(v.true);
+  for(const [source,kind] of [["x=","SyntaxError"],[" x=1","IndentationError"],["if 1:\n\tpass\n        pass\n","TabError"]] as const){
+    state.globals.set("Expected",state.registry.exceptionType(kind));state.globals.set("bad_source",v.string(source));
+    state.run("try:compile(bad_source,name,'exec')\nexcept Expected as failure:\n correct_error=type(failure) is Expected and failure.filename is name and failure.args[1][0] is name\n");
+    expect(state.globals.get("correct_error")).toBe(v.true);
+  }
 });
 
 it.each(["1+2","(lambda x:x+1)(2)","(x:=3)"])("returns concrete eval values: %s",source=>{

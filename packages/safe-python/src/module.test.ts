@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { parseModule } from "./module.js";
+import { PythonIndentationError } from "./indentation.js";
+
+it.each([" x=1", "x=1\n  y=2", "if True:\n pass\n  pass", "if True:\npass", "def f():\n", "class C:\n# comment\n"])("reports indentation failures with their Python exception class: %s", source => {
+  expect(() => parseModule(source, {filename:"indent.py"})).toThrow(PythonIndentationError);
+});
 
 describe("module assignment and expression statements", () => {
   it("handles empty modules, comments, semicolons and logical lines", () => {

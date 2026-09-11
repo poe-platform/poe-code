@@ -11992,6 +11992,27 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker full suite passes 8,371 tests in 549 files
   (183.22s; test bodies 13.78s). Symbol collection/resolution, static-attribute
   metadata and AST construction still require accounting before guest compilation.
+- Metered static-attribute collection (2026-09-11): six failing tests reproduced
+  ignored entry budgets/cancellation, host argument-stack overflow from spreading
+  a 200,000-statement body, uninterruptible attribute-name sorting and missing
+  analysis-meter forwarding. The collector now charges scope/statement/target
+  worklists, set/map entries, source-name lookup, result copies and sort workspace.
+  Statement and target lists are appended individually, never spread into an
+  unbounded host call. Sort comparisons checkpoint at entry and during Unicode
+  code-point comparisons; statement-child enumeration receives the same meter.
+  A final checkpoint preserves cancellation. Three additional tests cover a
+  successful 200,000-statement traversal within sufficient budgets, cyclic
+  external scope trees and allocation-limited pending statements. The focused
+  four-file suite passes 81 tests. All thirteen comparisons match CPython's
+  compiled __static_attributes__ tuples by class qualified name, covering nested
+  classes, private/Unicode names, excluded stores and comprehension ownership.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,380 tests in 550 files
+  (205.89s; test bodies 13.34s). Unlike qualified-name traversal, these worklists still
+  retain pending siblings/targets, with their storage charged before appending;
+  this milestone does not claim active-path-only memory for static attributes.
+  Symbol collection/resolution and AST construction remain unfinished accounting
+  work before guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

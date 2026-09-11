@@ -12470,6 +12470,21 @@ extension, integration, or validation requirement is missing or unverified.
   This closes the identified recursive pattern-validation gap, not the complete
   interpreter safety audit. BigInt representation accounting, guest compilation
   ingress, runtime integration, modules and safe-fs delivery remain unfinished.
+- Numeric/identifier lexical resource accounting (2026-09-11): the compilation
+  ingress audit found that source cursor work was charged but lexical token
+  storage and conversion buffers were not. Fourteen failing tests reproduced
+  missing identifier/numeric allocation charges and cancellation masked by a
+  throwing numeric warning callback. PythonSource exposes its existing meter
+  read-only so delegated token readers share it. Readers reserve token records,
+  spelling/normalization strings and numeric payload/conversion work; final
+  checkpoints preserve cancellation. Underscore normalization uses replaceAll
+  instead of split/join, and keyword-boundary scanning no longer allocates a
+  callback. All fourteen focused tests pass. All 157 token/warning/diagnostic
+  comparisons against dc139b401 and 144 CPython numeric compile-acceptance cases
+  pass. Build, typecheck, scoped lint and whitespace checks pass. The uncached
+  full suite passes 8,744 tests in 579 files (182.24s; test bodies 12.50s).
+  Structural lexer, indentation and string/interpolation
+  storage still require auditing; host numeric conversion remains indivisible.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

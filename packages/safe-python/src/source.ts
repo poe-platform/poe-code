@@ -51,7 +51,7 @@ export class PythonSource {
   private line = 1;
   private column = 0;
 
-  constructor(readonly text: string, readonly filename = "<string>",private readonly meter?:SourceMeter) {
+  constructor(readonly text: string, readonly filename = "<string>",readonly meter?:SourceMeter) {
     meter?.checkpoint(1+text.length,64);
     this.offset = text.startsWith("\uFEFF") ? 1 : 0;
     const nul = text.indexOf("\0");

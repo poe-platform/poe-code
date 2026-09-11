@@ -24,12 +24,16 @@ export function isIdentifierContinue(point: number): boolean {
 
 /** Retain spelling: the parser must recognize keywords before NFKC normalization. */
 export function readIdentifier(source: PythonSource): NameToken {
+  try {
+  source.meter?.checkpoint(1,64);
   const start = source.position;
   if (!isIdentifierStart(source.peek().codePointAt(0) ?? -1)) throw source.error("expected identifier", start);
   source.advance();
   while (isIdentifierContinue(source.peek().codePointAt(0) ?? -1)) source.advance();
   const end = source.position;
+  source.meter?.checkpoint(1+end.offset-start.offset,32+2*(end.offset-start.offset));
   return { kind: "name", text: source.text.slice(start.offset, end.offset), start, end };
+  } finally {source.meter?.checkpoint();}
 }
 
 function containsCodePoint(ranges: readonly number[], point: number): boolean {

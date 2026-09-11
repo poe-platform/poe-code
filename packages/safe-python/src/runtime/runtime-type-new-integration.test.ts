@@ -441,6 +441,19 @@ it("keeps generator-expression code with its originating compilation across late
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it.each([false,true])("binds a generator expression's real iterator once: async %s",asynchronous=>{
+  const state=exceptionFixture(),{v}=state,prefix=asynchronous?"ag":"gi";
+  const next=asynchronous?"g.__anext__().send(None)":"g.__next__()";
+  state.run(`events=[]\nclass I:\n def __init__(self,start):self.n=start\n def __${asynchronous?"aiter":"iter"}__(self):\n  events.append(self.n)\n  return self\n ${asynchronous?"async ":""}def __${asynchronous?"anext":"next"}__(self):\n  self.n+=1\n  return self.n\na=I(0)\nb=I(10)\nc=I(20)\ng=(x ${asynchronous?"async ":""}for x in a)\np=g.${prefix}_frame.f_locals\noriginal=p['.0'] is a\np['.0']=b\ntry:first=${next}\nexcept StopIteration as e:first=e.value\np['.0']=c\ntry:second=${next}\nexcept StopIteration as e:second=e.value\ncorrect=original and first==11 and second==12 and p['.0'] is c and events==[0]\ntry:g.${asynchronous?"aclose().send(None)":"close()"}\nexcept StopIteration:pass\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each([false,true].flatMap(asynchronous=>[false,true].map(started=>({asynchronous,started}))))("handles invalid iterator-slot writes safely: async $asynchronous started $started",({asynchronous,started})=>{
+  const state=exceptionFixture(),{v}=state,prefix=asynchronous?"ag":"gi",next=asynchronous?"g.__anext__().send(None)":"g.__next__()";
+  state.run(`class I:\n def __aiter__(self):return self\n async def __anext__(self):return 7\nxs=${asynchronous?"I()":"[7,8]"}\ng=(x ${asynchronous?"async ":""}for x in xs)\nframe=g.${prefix}_frame\n${started?"try:"+next+"\nexcept StopIteration:pass\n":""}frame.f_locals['.0']=None\nfailed=False\ntry:${next}\nexcept TypeError:failed=True\nexcept StopIteration:pass\ncorrect=failed is ${started?"False":"True"} and frame.f_locals['.0'] is None\n${started?"":"correct=correct and g."+prefix+"_frame is None and frame.f_generator is None\n"}try:g.${asynchronous?"aclose().send(None)":"close()"}\nexcept StopIteration:pass\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("reflects native frame line numbers during calls and after return",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));

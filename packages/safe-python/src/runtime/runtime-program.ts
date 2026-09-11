@@ -60,7 +60,10 @@ import type { RuntimeExceptionExecution } from "./runtime-exception-execution.js
 import { ComprehensionCursor,executeComprehensionClauses,createComprehensionContinuation,type ComprehensionIterator } from "./comprehension-execution.js";
 import { createStatementContinuation } from "./statement-execution.js";
 import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
-import { createRuntimeAsyncIterator } from "./runtime-async-iteration.js";
+import { createRuntimeAsyncIterator,advanceRuntimeAsyncIterator } from "./runtime-async-iteration.js";
+import {acquireRuntimeAsyncIterator} from "./runtime-async-iterator-acquisition.js";
+import {acquireRuntimeIterator} from "./runtime-iterator-acquisition.js";
+import {PreparedIterator} from "./prepared-iterator.js";
 import { comprehensionIsAsynchronous } from "./comprehension-asynchronous.js";
 import type {CompiledFunction} from "./function-compilation.js";
 import {prepareRuntimeContextManager} from "./runtime-context-manager.js";
@@ -378,31 +381,44 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
     const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,source:RuntimeValue,child:LexicalFrame<RuntimeValue>)=>{
       if(context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
-      if(comprehensionIsAsynchronous(node,meter)) {
+      const iterator=node.clauses[0].async?acquireRuntimeAsyncIterator(source,builtinCalls,meter,"async for"):acquireRuntimeIterator(source,values,meter,builtinCalls.iteration);
+      child.store(".0",iterator);
+      const prepareOuter=(inner:RuntimeStatementContext,delegation?:RuntimeGeneratorDelegation):ComprehensionIterator<RuntimeValue>=>{
+        // LOAD_FAST .0 happens once on first execution, not at construction or
+        // on subsequent resumes. The active loop then retains its own iterator.
+        const iterator=child.load(".0"),invocation=inner.invocation;
+        if(node.clauses[0].async){
+          if(invocation===undefined||delegation===undefined)throw Error("async generator iterator requires frame-bound invocation");
+          return {kind:"async",value:{next:()=>advanceRuntimeAsyncIterator(iterator,invocation,value=>delegation.delegate(value,invocation,"anext"),values,meter)}};
+        }
+        if(iterator.kind==="iterator")return {kind:"sync",value:iterator.value};
+        if(invocation?.iteration===undefined)throw Error("generator iterator requires frame-bound iteration");
+        return {kind:"sync",value:new PreparedIterator(iterator,invocation.iteration,meter)};
+      };
+      const asynchronous=child.code===undefined?comprehensionIsAsynchronous(node,meter):child.code.kind==="async-generator";
+      if(asynchronous) {
         meter.checkpoint(0,288);
         const delegation=new RuntimeGeneratorDelegation(values,context.exceptions,meter,context.unraisable);
-        const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
-          ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>delegation.delegate(value,builtinCalls,"anext"),values,meter)}
-          :{kind:"sync",value:expressions.iterate(source)};
         function* run():Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
-          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,delegation,generatorExpressions).suspend();
+          const context=body(child,namespaces,functions,classFunctions,literals,comprehensions,delegation,generatorExpressions);
+          const outer=prepareOuter(context,delegation),inner=context.suspend();
           yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){yield yield* inner.evaluate(node.element);},meter);
           return values.none;
         }
         const cursor=run();
         return context.exceptions.generator(input=>input.kind==="throw"?cursor.throw(input.error):cursor.next(input.value),child,calls,delegation,"async-generator");
       }
-      const outer=expressions.iterate(source);
-      const leave=calls.enter(child,{retainCaller:false});
-      try {
-        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions);
-        const cursor=new ComprehensionCursor(node.clauses,outer,inner,()=>inner.evaluate(node.element),meter);
-        return context.exceptions.generator(input=>{
-          if(input.kind==="throw")throw input.error;
-          const step=cursor.next();
-          return step.done?{done:true,value:values.none}:step;
-        },child,calls);
-      } finally {leave();}
+      let cursor:ComprehensionCursor<RuntimeValue,RuntimeValue>|undefined;
+      return context.exceptions.generator(input=>{
+        if(input.kind==="throw")throw input.error;
+        if(cursor===undefined){
+          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions),outer=prepareOuter(inner);
+          if(outer.kind!=="sync")throw Error("synchronous generator requires a synchronous iterator");
+          cursor=new ComprehensionCursor(node.clauses,outer.value,inner,()=>inner.evaluate(node.element),meter);
+        }
+        const step=cursor.next();
+        return step.done?{done:true,value:values.none}:step;
+      },child,calls);
     };
     const expressions = createRuntimeExpressionContext(values, {
       position(site){

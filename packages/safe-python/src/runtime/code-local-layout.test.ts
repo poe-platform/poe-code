@@ -36,3 +36,8 @@ it("checks cancellation before publishing a large layout",()=>{
   expect(()=>compileCodeLocalLayout(scope,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:100000}))).toThrow(ExecutionLimitError);
   expect(compileCodeLocalLayout(scope,budget()).variableNames).toHaveLength(500);
 });
+it("resolves the implicit generator iterator as a local parameter",()=>{
+  const scope=analyzeModule("(x for x in xs)").scopes.children[0];
+  expect(scope.bindings.get(".0")).toEqual({kind:"local",owner:scope.scope});
+  expect(scope.scope.events[0]).toEqual(expect.objectContaining({kind:"parameter",name:".0"}));
+});

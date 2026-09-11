@@ -11338,6 +11338,29 @@ extension, integration, or validation requirement is missing or unverified.
   Binding/honoring the live iterator slot and shared inlined-comprehension
   activation/layout semantics remain required, alongside full instruction
   metadata, automatic tracebacks, imports, library coverage and safe-fs integration.
+- Generator-expression iterator binding (2026-09-10): failing symbol and native
+  tests confirmed that .0 was absent and could not select the initial iterator.
+  Generator-expression analysis now records its implicit local parameter. Native
+  creation acquires the real synchronous/asynchronous guest iterator exactly
+  once in the enclosing frame and stores it in .0. First execution captures the
+  current slot; later writes do not replace the active loop iterator. Prepared
+  synchronous advancement is shared with ProtocolIterator, and prepared async
+  advancement is shared with async-for without another acquisition. Frame-bound
+  invocation capabilities preserve generator-expression callers during descriptor
+  lookup and next callbacks. Compiler-owned execution kind avoids rescanning
+  generator bodies at creation, and synchronous body assembly is deferred until
+  first resume. Tests cover implicit binding, native completion preservation,
+  non-latched guest exhaustion, cancellation priority, sync/async replacement
+  timing and safe TypeError handling for invalid pre-start slot writes; invalid
+  later writes do not disrupt an already-active iterator. The focused eight-file
+  suite passes 1,318 tests. All 160 CPython comparisons match: 96 custom-iterator
+  cases cover ordinary/generator/coroutine creators, acquisition/caller identity,
+  replacement timing and padding; 64 cover list/tuple/string/bytes iterator
+  replacements. Workspace build, typecheck, scoped lint and whitespace checks
+  pass. The final uncached one-worker full suite passes 7,991 tests in 529 files
+  (127.11s; test bodies 9.04s). Inlined-comprehension activation and
+  layout remain a verified gap, along with instruction metadata, automatic
+  tracebacks, imports, library coverage and safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

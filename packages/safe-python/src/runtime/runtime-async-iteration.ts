@@ -10,7 +10,11 @@ import {acquireRuntimeAsyncIterator} from "./runtime-async-iterator-acquisition.
 export function createRuntimeAsyncIterator(source:RuntimeValue,invocation:BuiltinInvocationContext,awaitNext:(value:RuntimeValue)=>Generator<RuntimeValue,RuntimeValue,RuntimeValue>,values:RuntimeValues,meter:ExecutionMeter):ReturnType<NonNullable<ResumableStatementContext<RuntimeValue>["asyncIterate"]>> {
   meter.checkpoint(1,256);
   const iterator=acquireRuntimeAsyncIterator(source,invocation,meter,"async for");
-  return { *next() {
+  return {next:()=>advanceRuntimeAsyncIterator(iterator,invocation,awaitNext,values,meter)};
+}
+
+/** Pull one item from a prepared async iterator without calling __aiter__. */
+export function* advanceRuntimeAsyncIterator(iterator:RuntimeValue,invocation:BuiltinInvocationContext,awaitNext:(value:RuntimeValue)=>Generator<RuntimeValue,RuntimeValue,RuntimeValue>,values:RuntimeValues,meter:ExecutionMeter):Generator<RuntimeValue,IteratorResult<RuntimeValue>,RuntimeValue>{
     meter.checkpoint(1,64);
     try {
       const next=invocation.lookupSpecial!(iterator,"__anext__");meter.checkpoint();
@@ -23,5 +27,4 @@ export function createRuntimeAsyncIterator(source:RuntimeValue,invocation:Builti
       if(!invocation.isException!(error,"StopAsyncIteration"))throw error;
       meter.checkpoint(0,32);return {done:true,value:values.none};
     }
-  }};
 }

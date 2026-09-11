@@ -3,6 +3,7 @@ import { PythonRuntimeError } from "./error.js";
 import { SequenceIterator } from "./sequence-iterator.js";
 import type { CompletionIterator, CompletionResult } from "./iterator-completion.js";
 import { lengthHint, type LengthHintContext } from "./length-hint.js";
+import {PreparedIterator} from "./prepared-iterator.js";
 
 export interface IterationContext<Value> {
   /** Optional advisory-size capability for consumers that request length hints.
@@ -65,12 +66,12 @@ export function resolveIteration<Value>(value: Value, context: IterationContext<
 export class ProtocolIterator<Value> implements IterableIterator<Value> {
   readonly #source: { value: Value } | undefined;
   readonly #sequence: SequenceIterator<Value> | undefined;
-  readonly #native: CompletionIterator<Value> | undefined;
+  readonly #prepared: PreparedIterator<Value> | undefined;
 
   constructor(value: Value, private readonly context: IterationContext<Value>, private readonly meter: ExecutionMeter, notIterable?: (typeName: string) => never) {
     const source = resolveIteration(value, context, meter, notIterable);
     meter.checkpoint(0, 8);
-    this.#native = source.sequence ? undefined : context.nativeIterator?.(source.value);
+    this.#prepared = source.sequence ? undefined : new PreparedIterator(source.value,context,meter);
     meter.checkpoint();
     this.#source = source.sequence ? undefined : source;
     this.#sequence = source.sequence ? new SequenceIterator(source.value, context, meter) : undefined;
@@ -99,20 +100,6 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
 
   next(): CompletionResult<Value> {
     if (this.#sequence !== undefined) return this.#sequence.next();
-    this.meter.checkpoint(1, 16);
-    if (this.#native !== undefined) {
-      const result = this.#native.next(); this.meter.checkpoint(); return result;
-    }
-    let value: Value;
-    try { value = this.context.next(this.#source!.value); }
-    catch (error) {
-      this.meter.checkpoint();
-      const ended = this.context.isStopIteration(error); this.meter.checkpoint();
-      if (!ended) throw error;
-      this.meter.checkpoint(0, 32);
-      return { done: true, value: undefined, exception: { value: error } };
-    }
-    this.meter.checkpoint();
-    return { done: false, value };
+    return this.#prepared!.next();
   }
 }

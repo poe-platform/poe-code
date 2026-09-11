@@ -33,6 +33,8 @@ export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
 }
 
 export interface RuntimeStatementContext extends StatementContext<RuntimeValue> {
+  /** Frame-bound native protocol capabilities, never a guest namespace. */
+  readonly invocation?:BuiltinInvocationContext;
   /** Bind source-level continuations lazily; do not execute guest code. */
   suspend(): ResumableStatementContext<RuntimeValue>;
 }
@@ -83,6 +85,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
   };
   const deletion = { position:bindings.position?.bind(bindings),removeName: bindings.deleteName.bind(bindings), resolve };
   const context: RuntimeStatementContext = {
+    invocation:bindings.invocation,
     position:bindings.position?.bind(bindings),
     evaluate: assignment.evaluate,
     test: expression => evaluateExpression(expression, expressions, meter, "branch"),

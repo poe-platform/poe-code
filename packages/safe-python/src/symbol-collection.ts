@@ -57,6 +57,7 @@ export function collectSymbols(module: Module): SymbolScope {
     if (node.kind === "comprehension" || node.kind === "dictionary-comprehension") {
       expression(node.clauses[0]!.iterable, scope, walrusScope);
       const nested = child(scope, "comprehension", node);
+      if(node.kind==="comprehension"&&node.collection==="generator")record(nested,"parameter",{name:".0",start:node.start,end:node.start});
       for (let index = 0; index < node.clauses.length; index++) {
         const clause = node.clauses[index]!;
         if (index) expression(clause.iterable, nested, walrusScope);

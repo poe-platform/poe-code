@@ -12711,6 +12711,21 @@ extension, integration, or validation requirement is missing or unverified.
   full thread-pool suite passes 8,922 tests in 591 files (66.11s; bodies 8.14s).
   Exact diagnostic span/message parity, default compile/eval/exec publication and
   safe-fs integration remain unfinished; this is not full interpreter completion.
+- Byte source encoding declaration scanner (2026-09-11): introduced a separate
+  metered header scanner after a failing missing-module test run established the
+  absent capability. It recognizes initial UTF-8 BOMs, coding cookies on eligible
+  first/second physical lines, CR/LF/CRLF, exact Python UTF-8/Latin-1 normalization,
+  and conflicting BOM declarations. Unknown codec names are retained for explicit
+  decoder lookup, not silently accepted as UTF-8. Text sources must bypass header
+  scanning. All 25 focused cases pass, including cancellation/allocation/scan limits
+  and avoiding scans beyond the first two lines. Compared against CPython 3.14's
+  tokenizer helper implementation and 270 direct Python header-detection cases
+  (universal newlines normalized for tokenize.readline): all agree. The initial
+  differential harness had an escaped-newline quoting error, fixed with String.raw
+  before obtaining any comparison result. This scanner does not yet decode bytes,
+  validate codec names, or extend the guest compile backend. Build, typecheck and
+  scoped lint and whitespace checks pass. The uncached full thread-pool suite
+  passes 8,947 tests in 592 files (63.37s; bodies 7.55s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

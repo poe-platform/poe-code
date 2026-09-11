@@ -11,13 +11,13 @@ import {substituteRuntimeTypeParameters} from "./runtime-type-substitution.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
+import {createRuntimeCompilation} from "./runtime-compilation.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
 import {createNamespaceBuiltin} from "./builtin-namespace.js";
 import {RuntimeCodePrograms} from "./runtime-code-programs.js";
 import {createRuntimeDynamicExecution,type RuntimeDynamicExecutionPolicy} from "./runtime-dynamic-execution.js";
 import {prepareDynamicNamespaces} from "./dynamic-namespaces.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
-import {decodeRuntimeFileSystemName,runtimeFileSystemPath} from "./runtime-filesystem-path.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
@@ -275,14 +275,9 @@ function dynamicNamespaceFixture(policy:Partial<RuntimeDynamicExecutionPolicy>={
   const currentFrame=()=>{const frame=state.calls.current;if(!(frame instanceof ModuleFrame||frame instanceof LexicalFrame||frame instanceof ClassFrame))throw Error("expected guest frame");return frame;};
   state.builtins.set("locals",createNamespaceBuiltin("locals",v,meter,()=>state.registry.frameLocals(currentFrame())));
   state.builtins.set("globals",createNamespaceBuiltin("globals",v,meter,()=>{const object=currentFrame().namespaces.globals.object;if(object===undefined)throw Error("expected original globals");return object;}));
-  state.builtins.set("compile",createCompileBuiltin(v,meter,{
-    filename(value){if(value.kind!=="str")throw Error("fixture requires a string filename");return {displayName:Array.from(value.value,p=>String.fromCodePoint(p)).join(""),value};},
-    compile(request,invocation){
-      if(request.mode!=="exec"&&request.mode!=="eval")throw Error("fixture supports exec/eval compilation");
-      const program=compileSourceProgram(runtimeCompilationSource(request.source,meter,invocation),{stripDocstring:false,mode:request.mode,filename:request.filename,optimize:(request.optimize<0?0:request.optimize) as 0|1|2,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter);
-      programs.register(program);return state.registry.code(program.module);
-    }
-  }));
+  state.builtins.set("compile",createCompileBuiltin(v,meter,createRuntimeCompilation(v,programs,{
+    compilation:()=>({stripDocstring:false,enterRecursiveCall:()=>state.calls.enter(globals)}),code:state.registry.code.bind(state.registry)
+  })));
   const dynamic=createRuntimeDynamicExecution({objectType:state.registry.object,values:v,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},programs,{
     globals:()=>currentFrame().namespaces.globals.object,locals:()=>state.registry.frameLocals(currentFrame()),builtins:()=>builtins,
     compilation:()=>({stripDocstring:false,enterRecursiveCall:()=>state.calls.enter(globals)}),...policy
@@ -335,6 +330,12 @@ it("resolves selected builtins with execution-owned policy and retains the origi
   const {state,v,meter,globals,builtins}=fixture,marker=v.cell({});globals.items.set(v.string("marker"),marker);
   state.run("g={'__builtins__':marker}\nexec(\"visit('resolved')\",g)\ncorrect=g['__builtins__'] is marker\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   expect(seen).toEqual([marker]);expect(state.events).toEqual(["resolved"]);expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("compiles path-like filenames and future flags through the reusable dynamic code registry",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("class Path:\n def __fspath__(self):return b'child.py'\ncode=compile('6*7',Path(),'eval',flags=16777216)\nvalue=eval(code)\nname='\\ud800\\udc00'\nother=compile('pass',name,'exec')\ncorrect=value==42 and code.co_filename=='child.py' and code.co_flags==16777216 and other.co_filename is name\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
 it("executes registered compiled module code in fresh namespaces without recompilation",()=>{
@@ -431,19 +432,10 @@ it("uses compiled __debug__ constants throughout nested scopes despite namespace
 
 it("calls compile from guest code and publishes compiler metadata",()=>{
   const state=exceptionFixture(),{v,meter}=state;
-  state.builtins.set("compile",createCompileBuiltin(v,meter,{
-    filename(value,invocation,meter){
-      const path=runtimeFileSystemPath(value,meter,invocation),name=path.kind==="str"?path:v.stringPoints(decodeRuntimeFileSystemName(path,meter));
-      return {displayName:Array.from(name.value,p=>String.fromCodePoint(p)).join(""),value:name};
-    },
+  state.builtins.set("compile",createCompileBuiltin(v,meter,createRuntimeCompilation(v,new RuntimeCodePrograms(meter,v),{
     inheritedFlags:()=>0x1000000,
-    compile(request,invocation){
-      if((request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires exec/eval with future flags only");
-      const source=runtimeCompilationSource(request.source,meter,invocation);
-      const program=compileSourceProgram(source,{mode:request.mode,filename:request.filename,stripDocstring:request.optimize===2,optimize:(request.optimize<0?0:request.optimize) as 0|1|2,futureFlags:request.flags,enterRecursiveCall:()=>state.calls.enter(state.globals)},v,meter);
-      return state.registry.code(program.module);
-    }
-  }));
+    compilation:()=>({stripDocstring:false,enterRecursiveCall:()=>state.calls.enter(state.globals)}),code:state.registry.code.bind(state.registry)
+  })));
   state.run("class Path:\n def __fspath__(self):return b'child.py'\na=compile('1+2',Path(),'eval')\nb=compile(source='pass',filename=b'other.py',mode='exec',dont_inherit=True,optimize=2)\nc=compile('1',b'\\xff','eval')\nname='\\ud800\\udc00'\nd=compile('1',name,'eval')\ncorrect=a.co_filename=='child.py' and a.co_name=='<module>' and a.co_flags==16777216 and b.co_filename=='other.py' and b.co_flags==0 and c.co_filename=='\\udcff' and d.co_filename is name");
   expect(state.globals.get("correct")).toBe(v.true);
   state.globals.set("encoded",v.bytes(new Uint8Array([...new TextEncoder().encode('# coding: latin-1\n"'),0xe9,34])));

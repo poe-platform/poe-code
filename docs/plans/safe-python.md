@@ -13183,6 +13183,25 @@ extension, integration, or validation requirement is missing or unverified.
   suite passes 9,156 tests in 607 files (89.66s; bodies 10.20s). Public interpreter
   assembly, canonical builtin registration, full compilation flags, imports,
   safe-fs and security/performance audits remain unfinished. No push or release.
+- Shared compile backend (2026-09-11): a failing native regression established
+  that the combined compile/eval fixture rejected path-like filenames and did not
+  apply explicit future flags. runtime-compilation now assembles filename
+  conversion, source admission, compilation options, execution-owned program
+  registration and code publication. Both native compile fixtures use this
+  production backend. Filename conversion preserves guest string identity and
+  distinct surrogate points, supports an explicit filesystem decoder, and meters
+  diagnostic spelling without file I/O. Explicit optimization overrides execution
+  defaults; future flags are inherited by the binder exactly once. Modes/flags
+  not yet implemented require an explicit extended compiler rather than silently
+  losing semantics. Twelve focused tests cover registration-before-publication,
+  optimization, future flags, intact extended requests, unsupported-flag rejection,
+  source admission ordering, publication/extension cancellation and custom filename
+  decoding. Native tests retain byte-source/error filename coverage, and an
+  in-memory CPython probe confirms path/future/filename-identity behavior. Build,
+  typecheck, scoped lint and whitespace checks pass; the full uncached thread-pool
+  suite passes 9,169 tests in 608 files (138.59s; bodies 16.56s). AST compilation,
+  interactive/single and func_type modes, non-future flags, public interpreter
+  assembly, imports, safe-fs and broad audits remain unfinished. No push/release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

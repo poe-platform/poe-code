@@ -3,6 +3,12 @@ import { parseModule } from "./module.js";
 import { collectSymbols } from "./symbol-collection.js";
 
 describe("lexical symbol collection", () => {
+  it("records child entry positions after outer inputs and before result stores",()=>{
+    const root=collectSymbols(parseModule("r=[x for x in [y for y in ys]]\ns=lambda a=[z for z in zs]:a"));
+    expect(root.events.map(event=>event.name)).toEqual(["ys","r","zs","s"]);
+    expect(root.children.map(child=>child.parentEventIndex)).toEqual([1,1,3,3]);
+    expect(root.children.map(child=>child.kind)).toEqual(["comprehension","comprehension","comprehension","lambda"]);
+  });
   it("distinguishes binding targets from attribute and subscript reads", () => {
     const scope = collectSymbols(parseModule("x, *rest = source\nobj.attr = x\nitems[index] = rest\ndel gone"));
     expect(scope.events.map(e => [e.kind,e.name])).toEqual([

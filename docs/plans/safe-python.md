@@ -11361,6 +11361,27 @@ extension, integration, or validation requirement is missing or unverified.
   (127.11s; test bodies 9.04s). Inlined-comprehension activation and
   layout remain a verified gap, along with instruction metadata, automatic
   tracebacks, imports, library coverage and safe-fs integration.
+- Inlined-comprehension code layout (2026-09-10): failing regressions confirmed
+  missing fast-local slots in enclosing function, generator-expression, module
+  and class code, plus synthetic closure cells caused solely by inline reads.
+  Symbol scopes now retain their parent event position after outer-input
+  evaluation, so code layout interleaves inline slot reservations with ordinary
+  local operations without sorting source offsets. Nested inline scopes reserve
+  isolated locals, while actual nested code objects determine closure storage.
+  Shared fast-local/cell slots precede sorted cell-only storage. Differential
+  checks exposed additional global assignment-expression slots and cell ordering;
+  failing regressions preceded both fixes. New compiler collections and traversal
+  are metered, with an explicit large-inline-layout resource-limit test.
+  All 2,274 CPython comparisons match: 310 inline layout cases, 218 declaration and
+  shadowing cases, 210 async variants and the existing 256 generator-expression
+  metadata comparisons, plus 1,280 ordinary-function layout regressions.
+  Invalid CPython sources are excluded, not counted as
+  passes. Workspace build, typecheck, scoped lint and whitespace checks pass.
+  The final uncached one-worker full package suite passes 8,009 tests in 529
+  files (78.01s; test bodies 6.26s), including allocation-accounting changes.
+  This establishes compiler slot metadata, not complete runtime inlining:
+  materialized comprehensions still need shared enclosing activation, temporary
+  storage/cell isolation, live locals reflection and restoration on every exit.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

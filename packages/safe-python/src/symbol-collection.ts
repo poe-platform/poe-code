@@ -10,6 +10,9 @@ export type SymbolEvent = SourceSpan & {
   readonly name: string;
 };
 export type SymbolScope = {
+  /** Parent event position at scope creation, after evaluating outer inputs.
+   * This preserves evaluation order when code-owning scopes inline children. */
+  readonly parentEventIndex?: number;
   readonly privateName: string | null;
   readonly kind: "module" | "function" | "class" | "lambda" | "comprehension";
   readonly node: Module | Statement | Expression;
@@ -26,7 +29,7 @@ export function collectSymbols(module: Module): SymbolScope {
   }
   function child(scope: MutableScope, kind: SymbolScope["kind"], node: SymbolScope["node"]): MutableScope {
     const privateName = node.kind === "class" ? node.name.name : scope.privateName;
-    const nested: MutableScope = { kind, privateName, node, events: [], children: [] };
+    const nested: MutableScope = { kind, privateName, node, parentEventIndex: scope.events.length, events: [], children: [] };
     scope.children.push(nested);
     return nested;
   }

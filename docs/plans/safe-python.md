@@ -12358,6 +12358,18 @@ extension, integration, or validation requirement is missing or unverified.
   suite passes 8,625 tests in 570 files (249.15s; test bodies 15.26s). Ignored
   type syntax, imports and try/with/match grammar allocation still require auditing
   before guest eager compilation.
+- Ignored type grammar resource accounting (2026-09-11): seven failing tests
+  reproduced uncharged parameter-set/alias storage and cancellation masked by
+  delegated type-expression readers. Type parameter parsing now reserves its
+  name set and entries, charges name hashing and dynamic diagnostic strings,
+  and checks cancellation in finally. Alias parsing reserves its speculative
+  reader closure and successful AST/name records and also checks cancellation
+  in finally. The ordinary soft-keyword fallback remains intact. All eight
+  focused tests pass. All 28 AST/diagnostic comparisons against 97b79ec32 and
+  28 CPython compile-acceptance comparisons pass. Build, typecheck and scoped
+  lint and whitespace checks pass. The uncached full suite passes 8,633 tests
+  in 571 files (170.69s; test bodies 13.14s). This does not enable execution
+  of annotations or type aliases. Import/try/with/match allocation remains next.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

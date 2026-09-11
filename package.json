@@ -560,7 +560,8 @@
     "toolcraft": ">=0.0.51 <0.1.0",
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.2",
+    "temporal-polyfill": "1.0.4"
   },
   "optionalDependencies": {
     "braintrust": "^3.17.0"

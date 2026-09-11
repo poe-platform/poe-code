@@ -12439,6 +12439,22 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and whitespace checks pass. The uncached full suite passes 8,705
   tests in 576 files (136.84s; test bodies 11.72s).
   Literal equality-key generation and stack-safe pattern validation remain next.
+- Literal pattern equality-key safety (2026-09-11): twelve failing tests
+  reproduced uncharged string/numeric keys, absent typed-buffer work checks,
+  host stack overflow on 50,000 nested numeric nodes, cyclic traversal overflow
+  and cancellation lost through AST accessors. Key generation accepts the source
+  meter, reserves typed-buffer joining and key output, and uses an iterative
+  numeric traversal with charged frames/results. Metered integer formatting uses
+  the maintained integer helpers with no new decimal-digit policy; their existing
+  temporary-hex size-inspection limitation is explicitly retained, not claimed
+  fixed. Mapping-pattern validation forwards its meter to key generation.
+  All twelve focused tests pass. All 154 metered/unmetered key comparisons against
+  c67ee0744 and 484 CPython duplicate-key compile-acceptance cases pass, including
+  bool/int/float/complex equality, large exact integers, strings and bytes.
+  A separate 50,000-level binary AST check also passes. Build, typecheck, scoped
+  lint and whitespace checks pass. The uncached full suite passes 8,717 tests
+  in 577 files (193.22s; test bodies 13.68s). Cross-pattern capture validation remains recursive and
+  requires a separate stack-safe resource audit before checked guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

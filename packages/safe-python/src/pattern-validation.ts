@@ -48,7 +48,7 @@ export function validatePattern(pattern: Pattern, cursor: TokenCursor): boolean 
       case "mapping": {
         const keys = new Set<string>();
         for (const entry of pattern.entries) {
-          const key = patternLiteralKey(entry.key);
+          const key = patternLiteralKey(entry.key,cursor.meter);
           if (key !== undefined) {
             if (keys.has(key)) throw cursor.error("mapping pattern checks duplicate key");
             keys.add(key);

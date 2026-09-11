@@ -47,6 +47,84 @@ async function turns(): Promise<void> {
   for (let index = 0; index < 8; index++) await setImmediate();
 }
 
+for (const owned of [true, false]) {
+  test(`output operation drains only explicitly owned writes after cancellation: ${owned}`, async () => {
+    const caller = new AbortController(), entered = deferred(), gate = deferred();
+    let completed = false, closed = false;
+    const write = async () => {
+      entered.resolve();
+      try { await gate.promise; throw new Error("late write failure"); }
+      finally { completed = true; }
+    };
+    const operation = createOutputOperation({ signal: caller.signal }, {
+      write,
+      ...(owned ? { ownedOutput: { consumerClosed: new AbortController().signal, write } } : {}),
+    });
+    const writing = assert.rejects(operation.output.write(Uint8Array.of(65)), reason => reason === false);
+    await entered.promise;
+    caller.abort(false);
+    const closing = operation.close().then(() => { closed = true; });
+    try {
+      await writing;
+      await turns();
+      assert.equal(closed, !owned);
+      assert.equal(completed, false);
+    } finally {
+      gate.resolve();
+      await closing;
+      await turns();
+    }
+    assert.equal(completed, true);
+  });
+}
+
+test("output operation closes all admitted writes and runs cleanup that releases them", async () => {
+  const first = deferred(), second = deferred(), entered = deferred();
+  let calls = 0, closed = false;
+  const operation = createOutputOperation({ signal: new AbortController().signal }, {
+    async write() { assert.fail("owned route required"); },
+    ownedOutput: { consumerClosed: new AbortController().signal, async write() {
+      if (++calls === 1) await first.promise;
+      else { entered.resolve(); await second.promise; }
+    } },
+  });
+  operation.registerCleanup(() => { first.resolve(); });
+  const writes = [operation.output.write(Uint8Array.of(1)), operation.output.write(Uint8Array.of(2))];
+  await entered.promise;
+  const closing = operation.close().then(() => { closed = true; });
+  try {
+    await writes[0];
+    await turns();
+    assert.equal(closed, false);
+    await assert.rejects(operation.output.write(Uint8Array.of(3)), /closed/);
+    assert.equal(calls, 2);
+  } finally {
+    second.resolve();
+    await Promise.all([...writes, closing]);
+  }
+});
+
+test("output operation drains a write that closes its scope during admission", async () => {
+  const gate = deferred();
+  let closing: Promise<void> | undefined, closed = false;
+  const operation = createOutputOperation({ signal: new AbortController().signal }, {
+    async write() { assert.fail("owned route required"); },
+    ownedOutput: { consumerClosed: new AbortController().signal, async write() {
+      closing = operation.close().then(() => { closed = true; });
+      await gate.promise;
+    } },
+  });
+  const writing = operation.output.write(Uint8Array.of(65));
+  try {
+    assert.ok(closing);
+    await turns();
+    assert.equal(closed, false);
+  } finally {
+    gate.resolve();
+    await Promise.all([writing, closing]);
+  }
+});
+
 for (const command of ["writer", "forward"]) {
   for (const reason of [false, 0, "", null, "dispose"] as const) {
     test(`${command}: enrolled write drains before caller ${JSON.stringify(reason)}`, async () => {

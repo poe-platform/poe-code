@@ -797,7 +797,7 @@ describe("createRalphSimulation", () => {
 
   it("uses each agent once when iterations matches the agent list length", async () => {
     const sim = createRalphSimulation({
-      agent: ["claude-code", "codex", "kimi"],
+      agent: ["claude-code", "codex", "goose"],
       docContent: "Keep rotating",
       maxIterations: 3,
       turns: [successTurn(), successTurn(), successTurn()]
@@ -805,7 +805,7 @@ describe("createRalphSimulation", () => {
 
     const { runs } = await sim.run();
 
-    expect(runs.map((run) => run.agent)).toEqual(["claude-code", "codex", "kimi"]);
+    expect(runs.map((run) => run.agent)).toEqual(["claude-code", "codex", "goose"]);
   });
 
   it("passes skills to the agent runner", async () => {

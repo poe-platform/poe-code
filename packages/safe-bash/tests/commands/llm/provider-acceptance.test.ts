@@ -92,8 +92,14 @@ for (const endpoint of ["chat", "images", "videos"] as const) {
 }
 
 for (const endpoint of ["tts", "music"] as const) {
-  for (const outputType of [undefined, "audio/mpeg", "Audio/MPEG", "audio/mpeg; profile=fixture"]) {
-    test(`provider acceptance: ElevenLabs ${endpoint} derives MP3 for ${outputType ?? "omitted outputType"}`, async () => {
+  test(`provider acceptance: ElevenLabs ${endpoint} rejects omitted outputType`, () => {
+    let requests = 0;
+    const transport: HttpTransport = async () => { requests++; return response(audio); };
+    assert.throws(() => createElevenLabsProvider({ transport, apiKey: "fixture-key", models: [{ id: "configured", endpoint }] }), /outputType/);
+    assert.equal(requests, 0);
+  });
+  for (const outputType of ["audio/mpeg", "Audio/MPEG", "audio/mpeg; profile=fixture"]) {
+    test(`provider acceptance: ElevenLabs ${endpoint} derives MP3 for ${outputType}`, async () => {
       const requests: HttpRequest[] = [];
       let upload: Response | undefined;
       const transport: HttpTransport = async request => {
@@ -103,7 +109,7 @@ for (const endpoint of ["tts", "music"] as const) {
       };
       const model: ElevenLabsModel = {
         id: "configured", endpoint, defaultVoiceId: "configured-voice",
-        ...(outputType === undefined ? {} : { outputType }),
+        outputType,
       };
       const provider = createElevenLabsProvider({ transport, apiKey: "fixture-key", models: [model] });
       const args = endpoint === "tts"
@@ -117,7 +123,7 @@ for (const endpoint of ["tts", "music"] as const) {
       const url = new URL(requests[0]!.url);
       assert.equal(url.pathname, endpoint === "tts" ? "/v1/text-to-speech/selected-voice" : "/v1/music");
       assert.equal(url.searchParams.get("output_format"), "mp3_44100_128");
-      assert.equal(provider.models[0]!.outputType, outputType ?? "audio/mpeg");
+      assert.equal(provider.models[0]!.outputType, outputType);
       assert.ok(upload);
       assert.deepEqual(await upload.json(), endpoint === "tts" ? {
         text: "speak", model_id: "configured", voice_settings: { speed: 1.2, future_option: "001" },
@@ -170,7 +176,7 @@ test("provider acceptance: issue-named image options remain JSON strings", async
   const result = await execute(provider, ["paint", "-o", "size", "1024x1024", "-o", "quality", "high", "-o", "background", "transparent"]);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.ok(upload);
-  assert.deepEqual(await upload.json(), { model: "configured", prompt: "paint", size: "1024x1024", quality: "high", background: "transparent" });
+  assert.deepEqual(await upload.json(), { model: "configured", prompt: "paint", size: "1024x1024", quality: "high", background: "transparent", output_format: "png" });
 });
 
 test("provider acceptance: issue-named video seconds and size remain multipart strings", async () => {
@@ -228,7 +234,7 @@ test("provider acceptance: OpenAI leaves unknown option strings and image-edit m
   const generated = await execute(provider, ["paint", ...unknown]);
   assert.equal(generated.exitCode, 0, generated.stderr);
   assert.ok(upload);
-  assert.deepEqual(await upload.json(), { model: "configured", prompt: "paint", future_number: "001", future_boolean: "true", future_null: "null", future_object: '{"value":1}' });
+  assert.deepEqual(await upload.json(), { model: "configured", prompt: "paint", output_format: "png", future_number: "001", future_boolean: "true", future_null: "null", future_object: '{"value":1}' });
   const edited = await execute(provider, ["paint", "--at", "/fixture.png", "image/png", "-o", "n", "01", "-o", "output_compression", "080", ...unknown]);
   assert.equal(edited.exitCode, 0, edited.stderr);
   const form = await upload.formData();

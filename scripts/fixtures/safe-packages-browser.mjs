@@ -25,7 +25,7 @@ if (JSON.stringify(commandNames) !== JSON.stringify(expectedAgentCommandNames)) 
   throw new Error(`Default browser command inventory differs: ${JSON.stringify(commandNames)}`);
 }
 const declaredCommands = [
-  "[", "basename", "cat", "cmp", "cp", "cut", "dirname", "echo", "false", "fmt", "grep", "head", "ln", "ls",
+  "[", "basename", "cat", "cmp", "cp", "csplit", "cut", "dirname", "echo", "false", "fmt", "grep", "head", "ln", "ls",
   "mkdir", "mv", "numfmt", "printf", "pwd", "readlink", "realpath", "rg", "rm", "rmdir", "sed", "shuf", "sort",
   "tail", "tee", "test", "touch", "tr", "true", "truncate", "uniq", "wc",
 ];
@@ -35,7 +35,7 @@ for (const definition of definitions.filter(definition => !Object.hasOwn(definit
   const support = evaluateCommandSupport(definition, { readOnly: true });
   if (support.declared || support.status !== "partial" || support.modes.length) throw new Error(`Undeclared browser command support became optimistic: ${definition.name}`);
 }
-for (const [name, expected] of [["printf", "supported"], ["mkdir", "unsupported"], ["tee", "partial"], ["truncate", "unsupported"]]) {
+for (const [name, expected] of [["printf", "supported"], ["mkdir", "unsupported"], ["csplit", "unsupported"], ["tee", "partial"], ["truncate", "unsupported"]]) {
   const definition = definitions.find(command => command.name === name);
   if (!definition || evaluateCommandSupport(definition, { readOnly: true }).status !== expected) {
     throw new Error(`Browser filesystem capability evaluation failed: ${name}`);
@@ -99,4 +99,6 @@ import { verifyIconvCommands } from "./safe-packages-iconv.mjs";
 await verifyIconvCommands();
 
 import { verifyLineEndingCommands } from "./safe-packages-line-endings.mjs";
+import { verifyLlmCommands } from "./safe-packages-llm.mjs";
+await verifyLlmCommands();
 await verifyLineEndingCommands();

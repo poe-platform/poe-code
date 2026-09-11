@@ -110,6 +110,7 @@ test("hazardous expansion cases have a one-second killable outer deadline", asyn
   });
   for (const scenario of ["source", "json", "expansion", "allocation", "cancel"]) {
     const result = spawnSync(process.execPath, ["--input-type=module", "-", scenario], { input: prepared.outputFiles[0]!.text, encoding: "utf8", timeout: 1000, maxBuffer: 4096 });
-    assert.ifError(result.error); assert.equal(result.status, 0, `${scenario}: ${result.stderr}`); assert.equal(result.stdout.trim(), "ok");
+    if (result.error) throw new Error(`${scenario}: hazard worker failed`, { cause: result.error });
+    assert.equal(result.status, 0, `${scenario}: ${result.stderr}`); assert.equal(result.stdout.trim(), "ok");
   }
 });

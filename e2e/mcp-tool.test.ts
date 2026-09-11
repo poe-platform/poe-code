@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useContainer, shellQuote, resolveBackend } from '@poe-code/e2e-test-runner';
 import { resolveMcpFixtureCommand } from './mcp-fixture.js';
-import { resolveE2eModel, resolveE2eModelEnvironment, registerKimiFixtureModel } from './runtime-models.js';
+import { resolveE2eModel, resolveE2eModelEnvironment } from './runtime-models.js';
 
 interface AgentMcpSpawnTest {
   name: Parameters<typeof resolveE2eModel>[0];
@@ -22,10 +22,6 @@ const agents: AgentMcpSpawnTest[] = [
   },
   {
     name: 'opencode',
-    expectSpawnSuccess: true,
-  },
-  {
-    name: 'kimi',
     expectSpawnSuccess: true,
   },
   {
@@ -51,11 +47,7 @@ describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, 
     expect(configResult).toHaveExitCode(0);
 
     const model = resolveE2eModel(name);
-    if (name === 'kimi') {
-      const configPath = `${container.home}/.kimi/config.toml`;
-      const contextSize = Number(process.env.POE_CODE_E2E_KIMI_CONTEXT_SIZE ?? 131072);
-      await container.writeFile(configPath, registerKimiFixtureModel(await container.readFile(configPath), model, contextSize));
-    }
+
 
     const prompt = 'Call the word_of_the_day tool and return only the exact tool output.';
     const extraArgs = spawnArgs
@@ -69,7 +61,7 @@ describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, 
     if (!expectSpawnSuccess) {
       expect(spawnResult).toFail();
       expect(spawnResult).toHaveStderr('does not support MCP servers at spawn time');
-      expect(spawnResult).toHaveStderr('claude-code, codex, kimi');
+      expect(spawnResult).toHaveStderr('claude-code, codex');
       return;
     }
 

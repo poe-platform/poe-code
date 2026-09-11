@@ -203,7 +203,7 @@ describe("createCodeReviewAgentMcpGroup orchestrator tools", () => {
     }
   );
 
-  it.each(["kimi", "goose"])(
+  it.each(["goose"])(
     "does not pass raw text stdin to the %s structured-input protocol",
     async (agent) => {
       const state = createCodeReviewState({

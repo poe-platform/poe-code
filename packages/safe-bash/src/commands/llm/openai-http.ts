@@ -17,16 +17,19 @@ export function openAiAbortable<Value>(pending: PromiseLike<Value>, signal: Abor
   });
 }
 
-export async function* openAiBytes(source: ByteSource, signal: AbortSignal): ByteSource {
+export async function* openAiBytes(source: ByteSource, signal: AbortSignal, limit = 64 * 1024 * 1024): ByteSource {
   signal.throwIfAborted();
   const iterator = source[Symbol.asyncIterator]();
   let failed = false, finished = false;
+  let size = 0;
   try {
     while (true) {
       signal.throwIfAborted();
       const next = await openAiAbortable(iterator.next(), signal);
       if (next.done) { finished = true; return; }
       if (!(next.value instanceof Uint8Array)) throw new Error("OpenAI returned a non-byte response chunk");
+      size += next.value.byteLength;
+      if (size > limit) throw new RangeError("Provider response byte limit exceeded");
       yield Uint8Array.from(next.value);
     }
   } catch (error) {
@@ -44,7 +47,7 @@ export async function* openAiBytes(source: ByteSource, signal: AbortSignal): Byt
 export async function openAiJson(response: HttpResponse, signal: AbortSignal, maxBytes = 64 * 1024 * 1024): Promise<Record<string, unknown>> {
   const decoder = new TextDecoder("utf-8", { fatal: true });
   let text = "", length = 0;
-  for await (const chunk of openAiBytes(response.body, signal)) {
+  for await (const chunk of openAiBytes(response.body, signal, maxBytes)) {
     length += chunk.byteLength;
     if (length > maxBytes) throw new Error("OpenAI JSON response exceeds buffer limit");
     text += decoder.decode(chunk, { stream: true });

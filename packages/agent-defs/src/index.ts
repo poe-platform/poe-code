@@ -12,7 +12,6 @@ export {
   cursorAgent,
   geminiCliAgent,
   openCodeAgent,
-  kimiAgent,
   gooseAgent,
   piAgent,
   poeAgentAgent

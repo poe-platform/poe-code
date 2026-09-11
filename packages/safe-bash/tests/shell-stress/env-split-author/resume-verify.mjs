@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const base = 'e7f4f2e3753184415f8098445c2009cb4cd9a6e9';
+const hostParentCommit = '18c36c54bb6509a97c600375dac4a7384589e9fa';
+const hostParentPath = 'tests/shell/env-split-host.test.ts';
 const output = process.argv[2];
 assert.ok(output?.startsWith('/tmp/'));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -14,7 +16,7 @@ const owned = [
   ...['resume-fixtures.ts', 'resume-host.ts', 'resume-baseline.mjs', 'resume-cases.json', 'resume-native.json', 'native-frozen.json'].map(name => `tests/shell-stress/env-split-author/${name}`),
 ];
 const scratch = await mkdtemp('/tmp/safe-bash-env-split-committed-base-');
-const report = { base, scratch, date: new Date().toISOString(), repositoryHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), node: process.version, borrowed: {}, authorHashes: {}, commands: [], scratchRemoved: false };
+const report = { base, hostParentCommit, scratch, date: new Date().toISOString(), repositoryHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), node: process.version, borrowed: {}, authorHashes: {}, commands: [], scratchRemoved: false };
 const run = (command, args, cwd = scratch, input) => {
   const child = spawnSync(command, args, { cwd, input, detached: true, timeout: 20000, maxBuffer: 4 * 1024 * 1024 });
   if (child.pid) try { process.kill(-child.pid, 'SIGKILL'); } catch {}
@@ -30,8 +32,15 @@ try {
   await symlink(`${root}node_modules`, `${scratch}/node_modules`);
   for (const path of owned) {
     await mkdir(`${scratch}/${path.slice(0, path.lastIndexOf('/'))}`, { recursive: true });
-    await copyFile(`${root}${path}`, `${scratch}/${path}`);
-    report.authorHashes[path] = hash(await readFile(`${root}${path}`));
+    if (path === hostParentPath) {
+      // Preserve this archived source-only reproduction when the current host uses dist.
+      const bytes = execFileSync('git', ['show', `${hostParentCommit}:packages/safe-bash/${path}`], { cwd: root });
+      await writeFile(`${scratch}/${path}`, bytes, { flag: 'wx' });
+      report.hostParentSha256 = hash(bytes);
+    } else {
+      await copyFile(`${root}${path}`, `${scratch}/${path}`);
+      report.authorHashes[path] = hash(await readFile(`${root}${path}`));
+    }
   }
   for (const path of ['node_modules/tsx/package.json', 'node_modules/typescript/package.json', 'package-lock.json']) report.borrowed[path] = hash(await readFile(`${root}${path}`));
   const baseline = run(process.execPath, ['--import', 'tsx', `${scratch}/tests/shell-stress/env-split-author/resume-baseline.mjs`, `${scratch}/baseline.json`], root);
@@ -41,6 +50,7 @@ try {
   report.testsExit = tests.status;
   const types = run(process.execPath, ['node_modules/typescript/bin/tsc', '--noEmit', '--target', 'ES2023', '--lib', 'ES2023', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--strict', '--noUncheckedIndexedAccess', '--exactOptionalPropertyTypes', '--verbatimModuleSyntax', '--skipLibCheck', '--types', 'node', 'tests/shell/env-split-native.test.ts', 'tests/shell/env-split-host.test.ts', 'tests/shell-stress/env-split-author/resume-host.ts']);
   report.scopedTypecheckExit = types.status;
+  assert.equal(hash(await readFile(`${scratch}/${hostParentPath}`)), report.hostParentSha256);
   for (const [path, digest] of Object.entries(report.authorHashes)) assert.equal(hash(await readFile(`${root}${path}`)), digest);
 } finally {
   await rm(scratch, { recursive: true, force: true }); report.scratchRemoved = true;

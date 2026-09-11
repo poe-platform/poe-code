@@ -35,7 +35,7 @@ async function bundlePublicConsumer(contents: string) {
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|llm|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -231,11 +231,12 @@ it("builds the portable shell without Node workers, adapters, or duplicate files
 it("bundles the complete portable preset with one owned-argument identity", async () => {
   const options = resolveBrowserShellBuild(root);
   expect(options.entryPoints).toEqual({
+    "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
+    "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
     "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),
     "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
-      "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
-      "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
+    "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
     "commands/csplit/index.browser": path.join(root, "packages/safe-bash/src/commands/csplit/index.ts"),
     "commands/pr/index.browser": path.join(root, "packages/safe-bash/src/commands/pr/index.ts"),
     "commands/tsort/index.browser": path.join(root, "packages/safe-bash/src/commands/tsort/index.ts"),

@@ -1,18 +1,19 @@
 import type { ByteSource } from "../../contracts/index.js";
 import { openAiBytes, openAiError, openAiRecord } from "./openai-http.js";
 
-async function* events(source: ByteSource, signal: AbortSignal): AsyncIterable<string> {
+async function* events(source: ByteSource, signal: AbortSignal, limit: number, responseLimit: number): AsyncIterable<string> {
   const decoder = new TextDecoder("utf-8", { fatal: true });
   let line = "", data: string[] = [], size = 0, afterCarriageReturn = false;
-  for await (const chunk of openAiBytes(source, signal)) {
+  for await (const chunk of openAiBytes(source, signal, responseLimit)) {
     const text = decoder.decode(chunk, { stream: true });
     for (const character of text) {
       if (afterCarriageReturn && character === "\n") { afterCarriageReturn = false; continue; }
       afterCarriageReturn = character === "\r";
+      const codePoint = character.codePointAt(0)!;
+      size += codePoint < 0x80 ? 1 : codePoint < 0x800 ? 2 : codePoint < 0x10000 ? 3 : 4;
+      if (size > limit) throw new Error("OpenAI SSE event exceeds buffer limit: event byte limit exceeded");
       if (character !== "\n" && character !== "\r") {
         line += character;
-        size++;
-        if (size > 1024 * 1024) throw new Error("OpenAI SSE event exceeds buffer limit");
         continue;
       }
       if (line === "") {
@@ -30,8 +31,8 @@ async function* events(source: ByteSource, signal: AbortSignal): AsyncIterable<s
   throw new Error("OpenAI chat stream ended before [DONE]");
 }
 
-export async function* openAiChat(source: ByteSource, signal: AbortSignal): AsyncIterable<string> {
-  for await (const data of events(source, signal)) {
+export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit = 1024 * 1024, responseLimit = 64 * 1024 * 1024): AsyncIterable<string> {
+  for await (const data of events(source, signal, limit, responseLimit)) {
     signal.throwIfAborted();
     if (data.trim() === "[DONE]") return;
     let parsed: unknown;

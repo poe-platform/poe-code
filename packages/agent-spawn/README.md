@@ -47,7 +47,7 @@ MCP server names and commands must be non-blank before provider-specific seriali
 
 ## Resuming sessions
 
-Pass `resumeThreadId` to continue a prior provider thread/session. Declarative agent configs decide where the resume arguments are inserted and how user-facing resume hints are rendered. Claude Code, Codex, Cursor, OpenCode, Kimi, Goose, and Poe Agent have resume mappings; Poe Agent persists its local message history under `~/.poe-code/sessions/`.
+Pass `resumeThreadId` to continue a prior provider thread/session. Declarative agent configs decide where the resume arguments are inserted and how user-facing resume hints are rendered. Claude Code, Codex, Cursor, OpenCode, Goose, and Poe Agent have resume mappings; Poe Agent persists its local message history under `~/.poe-code/sessions/`.
 
 ## Autonomous streaming
 

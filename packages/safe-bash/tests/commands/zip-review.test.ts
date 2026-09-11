@@ -122,13 +122,15 @@ test("unzip review: replaced staging symlink cannot change outside metadata befo
   await fs.utimes!("/outside", 946684800000, 946684800000);
   const before = await fs.stat("/outside");
   let staging = "";
-  const dynamic = wrapped(fs, { async appendFile(path, bytes, options) {
-    await fs.appendFile(path, bytes, options);
+  const dynamic = wrapped(fs, { async createStagedFile(directory, name, content, options) {
+    const receipt = await fs.createStagedFile!(directory, name, content, options);
+    const path = receipt.file.path;
     if (path.startsWith("/work/.unzip-")) {
       staging = path;
       await fs.rename(path, "/work/held-stage");
       await fs.symlink!("/outside", path);
     }
+    return receipt;
   } });
   const result = await run(dynamic, "unzip", ["-o", "sample.zip"]);
   assert.notEqual(staging, "");
@@ -203,17 +205,19 @@ test("zip review: DOS headers use local wall time while UT extras retain the ins
   }
 });
 
-test("unzip review: falsey cancellation after a staged append waits for cleanup", async () => {
+test("unzip review: falsey cancellation after staging creation waits for cleanup", async () => {
   const original = archive(Buffer.alloc(4096, 65), 8);
   const fs = await fixture(original);
   const controller = new AbortController();
   let appended = false;
-  const dynamic = wrapped(fs, { async appendFile(path, bytes, options) {
-    await fs.appendFile(path, bytes, options);
+  const dynamic = wrapped(fs, { async createStagedFile(directory, name, content, options) {
+    const receipt = await fs.createStagedFile!(directory, name, content, options);
+    const path = receipt.file.path;
     if (path.startsWith("/work/.unzip-")) {
       appended = true;
       controller.abort(false);
     }
+    return receipt;
   } });
   await assert.rejects(run(dynamic, "unzip", ["-o", "sample.zip"], { signal: controller.signal }), reason => reason === false);
   assert.equal(appended, true);
@@ -254,12 +258,12 @@ for (const stop of ["caller", "dispose"]) test(`zip review: actual Shell ${stop}
   let settled = false;
   let disposed = false;
   let disposal: Promise<void> | undefined;
-  const dynamic = wrapped(fs, { async writeFile(path, bytes, options) {
+  const dynamic = wrapped(fs, { async createStagedFile(path, name, content, options) {
     entered = true;
     writeSignal = options?.signal;
     try {
       await gate;
-      await fs.writeFile(path, bytes, options);
+      return await fs.createStagedFile!(path, name, content, options);
     } finally { completed = true; finishHost(); }
   } });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });
@@ -293,20 +297,19 @@ for (const stop of ["caller", "dispose"]) test(`zip review: actual Shell ${stop}
   }
 });
 
-test("zip review: actual Shell partial ENOSPC before publication preserves the previous archive", async () => {
+test("zip review: actual Shell atomic allocation ENOSPC before publication preserves the previous archive", async () => {
   const original = archive();
   const fs = await fixture(original);
   let failedPath: string | undefined;
-  const dynamic = wrapped(fs, { async writeFile(path, bytes, options) {
-    await fs.writeFile(path, bytes.subarray(0, Math.min(17, bytes.length)), options);
+  const dynamic = wrapped(fs, { async createStagedFile(path) {
     failedPath = path;
-    throw new FsError("ENOSPC", { path, syscall: "writeFile" });
+    throw new FsError("ENOSPC", { path, syscall: "createStagedFile" });
   } });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });
   shell.commands.register(createZipCommand());
   try {
     const result = await shell.exec("zip sample.zip file");
-    assert.notEqual(failedPath, undefined, "the backend must partially write before reporting ENOSPC");
+    assert.notEqual(failedPath, undefined, "the backend must attempt atomic allocation before reporting ENOSPC");
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /ENOSPC/u);
     assert.deepEqual(await fs.readFile("/work/sample.zip"), Uint8Array.from(original), "failed prepublication write must not destroy the existing ZIP");
@@ -445,19 +448,21 @@ for (const phase of ["metadata", "buffered input"]) test(`zip review: actual She
   }
 });
 
-test("unzip review: actual Shell abort after staged append removes its temporary without outside effects", async () => {
+test("unzip review: actual Shell abort after staging creation removes its temporary without outside effects", async () => {
   const original = archive(Buffer.alloc(4096, 65), 8);
   const fs = await fixture(original);
   await fs.writeFile("/outside", Buffer.from("outside sentinel"), { mode: 0o604 });
   await fs.utimes!("/outside", 946684800000, 946684800000);
   const controller = new AbortController();
   let appended = false;
-  const dynamic = wrapped(fs, { async appendFile(path, bytes, options) {
-    await fs.appendFile(path, bytes, options);
+  const dynamic = wrapped(fs, { async createStagedFile(directory, name, content, options) {
+    const receipt = await fs.createStagedFile!(directory, name, content, options);
+    const path = receipt.file.path;
     if (path.startsWith("/work/.unzip-")) {
       appended = true;
       controller.abort(false);
     }
+    return receipt;
   } });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });
   shell.commands.register(createUnzipCommand());
@@ -478,6 +483,8 @@ test("zip review: new archives honor a 0644-default VFS while updates preserve e
   const fs = await fixture();
   const defaults = wrapped(fs, { async writeFile(path, bytes, options) {
     await fs.writeFile(path, bytes, { ...options, mode: options?.mode ?? 0o644 });
+  }, async createStagedFile(path, name, content, options) {
+    return fs.createStagedFile!(path, name, content, { ...options, mode: options.mode ?? 0o644 });
   } });
   await defaults.writeFile("/work/default-file", Buffer.from("mode control"));
   const defaultMode = (await fs.stat("/work/default-file")).mode & 0o777;
@@ -508,16 +515,18 @@ test("zip review: replaced staging directory cannot redirect archive mode restor
   let replaced = false;
   let stagingDirectory = "";
   let outsideBytes: Uint8Array | undefined;
-  const dynamic = wrapped(fs, { async writeFile(path, bytes, options) {
-    await fs.writeFile(path, bytes, options);
-    if (!path.startsWith("/work/.zip-") || !path.endsWith("/archive.zip")) return;
+  const dynamic = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    assert.equal(content.type, "file");
+    const bytes = content.type === "file" ? content.data : new Uint8Array();
     outsideBytes = Uint8Array.from(bytes);
     await fs.writeFile("/outside/archive.zip", bytes, { mode: 0o600 });
     await fs.utimes!("/outside/archive.zip", 946684800000, 946684800000);
-    stagingDirectory = path.slice(0, path.lastIndexOf("/"));
+    stagingDirectory = path;
     await fs.rename(stagingDirectory, "/work/held-stage");
     await fs.symlink!("/outside", stagingDirectory);
     replaced = true;
+    return receipt;
   } });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });
   shell.commands.register(createZipCommand());
@@ -531,6 +540,6 @@ test("zip review: replaced staging directory cannot redirect archive mode restor
     assert.equal(await fs.readlink!(stagingDirectory), "/outside");
     const outside = await fs.stat("/outside/archive.zip");
     assert.deepEqual({ mode: outside.mode & 0o777, mtimeMs: outside.mtimeMs }, { mode: 0o600, mtimeMs: 946684800000 },
-      "stage-parent proof must be refreshed after the awaited write and before chmod");
+      "atomic publication must reject the original staging parent after replacement");
   } finally { await shell.dispose(); }
 });

@@ -674,3 +674,75 @@ permitted. Replacing that historical generic row's explicit-mode/X_OK ENOTSUP
 expectations is an intentional profile delta, **not a source bug fix**. Preserve
 the red historical cohort, exact bytes, exclusivity, invalid-mode, chmod,
 authorization, cancellation and read-only assertions when revising backend tests.
+# Conditional file mutations
+
+`atomicFileMutation` requires `writeFileConditional(path, data, options)` and
+`removeFileConditional(path, options)`. Each operation atomically checks the
+parent's scoped identity and directory type, and the file's scoped identity,
+type, and revision. `expected: null` on a write requires absence and creates the
+file, including with `append: true`; an expected existing file is never silently
+recreated. Current permissions and ordinary provider write restrictions still
+apply. `mode` affects creation only.
+
+A write replaces or appends the complete supplied byte array, or changes
+nothing. Quota and allocation refusals happen before mutation. It returns the
+original committed `FileStat`, not a subsequent path lookup. A pre-commit abort
+refuses the operation; an abort arriving after commit must not suppress its
+receipt. Removal only removes the exact expected file. Changed conditions fail
+with `EAGAIN`; unavailable identity/revision guarantees fail with `ENOTSUP`.
+Implementations must not substitute a read/check followed by an unconditional
+mutation. Retained cleanup exposes only conditional removal and preserves its
+existing operation budget and lifetime rules.
+
+
+## Atomic owned staging
+
+`atomicFileStaging: true` requires `createStagedFile`, `publishStagedFile`, and
+`removeStagedFile`. Creation atomically checks the supplied parent identity,
+creates a private mode-0700 directory and an exclusive regular file or symlink,
+and returns the original parent, directory, and file snapshots as a `FileStaging`
+receipt. Once creation commits, the provider and forwarding views must return
+the original receipt even if cancellation arrives before the promise settles;
+the caller can then retain cleanup before honoring cancellation. It must not
+derive ownership from a later path lookup. Allocation,
+quota, permission, and unsupported-metadata failures must precede publication of
+any staging entry. Implementations retain their existing file and aggregate
+limits; this contract adds no larger byte allowance.
+
+Publication atomically verifies the original staging file, its private directory,
+both parents, and the destination's supplied snapshot or explicit absence before
+renaming. Parent and directory conditions compare stable identity and type;
+child mutations may legitimately change their timestamps. File conditions also
+compare `revision`, size, mode, link count, modification time, and change time.
+`FileStat.revision`, when present, is a nonnegative safe integer that changes for
+each content write or explicit metadata mutation, including same-tick same-size
+writes. Access-time updates caused solely by reads need not change it.
+Unknown identity or revision cannot satisfy a conditional file mutation.
+
+Cleanup atomically removes only the original staging file, if still present,
+and its empty original private directory. A replacement entry, changed source,
+or unexpected child must survive. An absent file after successful publication
+is allowed. Cleanup never follows a replacement symlink or recursively removes
+a directory. `retainFileSystemCleanup` exposes only this narrow cleanup method
+in addition to its existing methods; its lifetime, operation limit, scope charge,
+and pending-operation drain still apply after cancellation.
+
+`atomicDirectoryMetadata: true` requires `prepareDirectory`. With `expected: null`
+it exclusively creates a directory after checking its parent's original
+identity and returns the creation snapshot atomically. With an existing snapshot
+it verifies the directory and parent identities before applying metadata and
+returning the updated snapshot. Child writes do not invalidate this directory
+identity condition. Unsupported timestamp fields must reject before mutation;
+a caller must not infer timestamp support from this capability.
+
+These operations reject changed conditions with `EAGAIN` and unavailable
+identity with `ENOTSUP`. A backend must withhold capabilities it cannot implement
+atomically. Mount/device views preserve the original snapshots while translating
+paths; cross-mount publication is refused. Read-only, quota, and overlay views
+withhold unsupported owned staging rather than bypassing their policies.
+
+ZIP creation/update and unzip file extraction require `atomicFileStaging`.
+Unzip directory creation and supported directory metadata restoration also
+require `atomicDirectoryMetadata`. Listing an archive does not require mutation capabilities. Providers without these guarantees reject the
+corresponding mutation; they must not fall back to check-then-rename or
+check-then-delete operations.

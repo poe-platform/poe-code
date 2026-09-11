@@ -51,15 +51,15 @@ for (const phase of ["input next", "second output append"] as const) {
         };
       } });
     } else {
-      const appendFile = fs.appendFile.bind(fs);
-      fs.appendFile = async (path, bytes, options) => {
-        if (path !== "/work/xx01") return appendFile(path, bytes, options);
+      const writeFileConditional = fs.writeFileConditional.bind(fs);
+      fs.writeFileConditional = async (path, bytes, options) => {
+        if (path !== "/work/xx01" || !options.append) return writeFileConditional(path, bytes, options);
         operationSignal = options?.signal;
         admitted.resolve();
         try {
           await gate.promise;
           options?.signal?.throwIfAborted();
-          await appendFile(path, bytes, options);
+          return await writeFileConditional(path, bytes, options);
         } finally { completed = true; finished.resolve(); }
       };
     }
@@ -95,12 +95,11 @@ for (const phase of ["input next", "second output append"] as const) {
   });
 }
 
-for (const keep of [false, true]) test(`partial second append after first publication, keep=${keep}`, async () => {
+for (const keep of [false, true]) test(`atomic second append refusal after first publication, keep=${keep}`, async () => {
   const fs = await fixture();
-  const appendFile = fs.appendFile.bind(fs);
-  fs.appendFile = async (path, bytes, options) => {
-    if (path !== "/work/xx01") return appendFile(path, bytes, options);
-    await appendFile(path, bytes.subarray(0, 1), options);
+  const writeFileConditional = fs.writeFileConditional.bind(fs);
+  fs.writeFileConditional = async (path, bytes, options) => {
+    if (path !== "/work/xx01" || !options.append) return writeFileConditional(path, bytes, options);
     throw new FsError("ENOSPC");
   };
   const shell = new Shell({ fs, cwd: "/work" }).use(csplitCommands());
@@ -112,7 +111,7 @@ for (const keep of [false, true]) test(`partial second append after first public
     assert.deepEqual(await fs.readFile("/work/xx99"), Uint8Array.from(Buffer.from("foreign")));
     if (keep) {
       assert.deepEqual(await fs.readFile("/work/xx00"), Uint8Array.from(Buffer.from("aa\n")));
-      assert.deepEqual(await fs.readFile("/work/xx01"), Uint8Array.from(Buffer.from("b")));
+      assert.deepEqual(await fs.readFile("/work/xx01"), new Uint8Array());
     } else assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["input", "xx99"]);
   } finally { await shell.dispose(); }
 });
@@ -120,15 +119,14 @@ for (const keep of [false, true]) test(`partial second append after first public
 test("cleanup failure for the first output does not abandon later owned cleanup", async () => {
   const fs = await fixture();
   const failures: unknown[] = [];
-  const appendFile = fs.appendFile.bind(fs), remove = fs.rm.bind(fs);
+  const writeFileConditional = fs.writeFileConditional.bind(fs), remove = fs.removeFileConditional.bind(fs);
   const primary = new FsError("ENOSPC");
   const cleanup = new Error("first output cleanup failed");
-  fs.appendFile = async (path, bytes, options) => {
-    if (path !== "/work/xx01") return appendFile(path, bytes, options);
-    await appendFile(path, bytes.subarray(0, 1), options);
+  fs.writeFileConditional = async (path, bytes, options) => {
+    if (path !== "/work/xx01" || !options.append) return writeFileConditional(path, bytes, options);
     throw primary;
   };
-  fs.rm = async (path, options) => {
+  fs.removeFileConditional = async (path, options) => {
     if (path === "/work/xx00") throw cleanup;
     await remove(path, options);
   };
@@ -150,8 +148,8 @@ test("input symlink backing identity is excluded before truncating the output", 
   await fs.writeFile("/work/xx00", Buffer.from("aa\nbb\n"));
   await fs.symlink("xx00", "/work/input");
   let writes = 0;
-  const writeFile = fs.writeFile.bind(fs);
-  fs.writeFile = async (...args) => { writes++; return writeFile(...args); };
+  const writeFile = fs.writeFileConditional.bind(fs);
+  fs.writeFileConditional = async (...args) => { writes++; return writeFile(...args); };
   const shell = new Shell({ fs, cwd: "/work" }).use(csplitCommands());
   try {
     assert.equal((await shell.exec("csplit input 2")).exitCode, 1);
@@ -166,14 +164,14 @@ for (const source of ["xx00", "./xx00", "source-link"]) test(`source/output alia
   await fs.mkdir("/work");
   await fs.writeFile("/work/xx00", Buffer.from("aa\nbb\n"));
   if (source === "source-link") await fs.symlink("xx00", "/work/source-link");
-  const stat = fs.stat.bind(fs), writeFile = fs.writeFile.bind(fs);
+  const stat = fs.stat.bind(fs), writeFile = fs.writeFileConditional.bind(fs);
   let writes = 0;
   fs.stat = async (path, options) => {
     const value = await stat(path, options);
     const { identityScope: ignoredScope, ino: ignoredInode, dev: ignoredDevice, ...unknown } = value;
     return unknown;
   };
-  fs.writeFile = async (...args) => { writes++; return writeFile(...args); };
+  fs.writeFileConditional = async (...args) => { writes++; return writeFile(...args); };
   const shell = new Shell({ fs, cwd: "/work" }).use(csplitCommands());
   try {
     assert.equal((await shell.exec(`csplit ${source} 2`)).exitCode, 1);

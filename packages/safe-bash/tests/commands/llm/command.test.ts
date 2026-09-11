@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createLlmCommands, llmCommands } from "../../../src/commands/llm/command.js";
 import type { LlmCommandsOptions, LlmProvider, LlmRequest } from "../../../src/commands/llm/types.js";
-import { CommandRegistry, toByteSource, type CommandContext, type ByteSource } from "../../../src/contracts/index.js";
+import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext, type ByteSource } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
@@ -71,6 +71,34 @@ test("supports attached flag values and last-option-wins", async () => {
   assert.equal((await run.execute()).exitCode, 0);
   assert.equal(fake.requests[0]!.system, "two");
   assert.equal(fake.requests[0]!.options.key, "second");
+});
+
+test("raw argument bytes and stdin must be fatal UTF-8 before provider admission", async () => {
+  for (const values of [[Uint8Array.of(255)], ["--system", Uint8Array.of(255)], ["--model=chat", Uint8Array.of(255)]]) {
+    const argumentValues = createCommandArguments(values);
+    const fake = provider();
+    const run = await fixture(argumentValues.args, { provider: fake, context: { argumentValues } });
+    assert.equal((await run.execute()).exitCode, 1);
+    assert.equal(fake.requests.length, 0);
+  }
+  const fake = provider();
+  const run = await fixture([], { provider: fake, stdin: toByteSource(Uint8Array.of(255)) });
+  assert.equal((await run.execute()).exitCode, 1);
+  assert.equal(fake.requests.length, 0);
+});
+
+test("provider text writes remain bounded across internal and provider surrogate splits", async () => {
+  const text = "a".repeat(16_383) + "😀" + "b".repeat(40_000) + "\ud83e";
+  const run = await fixture([], { provider: provider([text, "", "\udd8a"]) });
+  assert.equal((await run.execute()).exitCode, 0);
+  assert.deepEqual(Buffer.concat(run.stdout), Buffer.from(text + "\udd8a\n"));
+  assert.ok(run.stdout.every(chunk => chunk.byteLength <= 16_384 * 3));
+});
+
+test("MIME classification retains remote structured and plain text detection", () => {
+  assert.equal(sniffMimeType("/unknown", Buffer.from('{"value":1}')), "application/json");
+  assert.equal(sniffMimeType("/unknown", Buffer.from("plain text")), "text/plain");
+  assert.equal(sniffMimeType("/unknown", Uint8Array.of(0, 97, 115, 109, 1, 0, 0, 0)), "application/wasm");
 });
 
 test("unknown models fail without reading input or invoking providers", async () => {
@@ -151,8 +179,10 @@ test("missing files and directories fail without a request", async () => {
 
 test("input admission is cumulative across stdin and all attachments", async () => {
   const fake = provider();
-  const bytes = new Uint8Array(16 * 1024 * 1024);
-  const run = await fixture(["-m", "audio", "--at", "first", "image/png", "--at", "second", "image/png"], { provider: fake, stdin: toByteSource("content") });
+  const bytes = new Uint8Array(16);
+  const run = await fixture(["-m", "audio", "--at", "first", "image/png", "--at", "second", "image/png"], { provider: fake, stdin: toByteSource("content"), context: {
+    inputBudget: { maxBytes: 32, check(total) { if (total > 32) throw new Error("input limit exceeded"); } },
+  } });
   await run.fs.writeFile("/work/first", bytes);
   await run.fs.writeFile("/work/second", bytes);
   assert.equal((await run.execute()).exitCode, 1);
@@ -187,7 +217,7 @@ test("streaming awaits each sink before advancing, then closes exactly once", as
   assert.deepEqual(events, ["first", "one", "second", "two", "closed", "\n"]);
 });
 
-test("cancellation interrupts pending next, aborts provider work, and waits for iterator cleanup", async () => {
+test("cancellation interrupts pending next and detaches opaque provider cleanup", async () => {
   const controller = new AbortController();
   const entered = deferred();
   const released = deferred();
@@ -206,13 +236,9 @@ test("cancellation interrupts pending next, aborts provider work, and waits for 
   const reason = new Error("cancelled");
   controller.abort(reason);
   assert.equal(signal!.aborted, true);
-  let settled = false;
-  void Promise.resolve(pending).then(() => { settled = true; }, () => { settled = true; });
-  await Promise.resolve();
-  assert.equal(settled, false);
-  released.resolve();
   await assert.rejects(Promise.resolve(pending), error => error === reason);
   assert.equal(returns, 1);
+  released.resolve();
 });
 
 test("sink failure aborts provider work and propagates unchanged", async () => {
@@ -258,8 +284,7 @@ test("attachments obey the configured shell input budget before provider invocat
   await fs.writeFile("/five", new TextEncoder().encode("12345"));
   const fake = { ...provider(), models: [{ id: "text", attachmentTypes: ["text/plain"] }] };
   const shell = new Shell({ fs, limits: { maxInputBytes: 4 } }).use(llmCommands({ providers: [fake], defaultModel: "text" }));
-  const result = await shell.exec("llm --at /five text/plain");
-  assert.equal(result.exitCode, 1);
+  await assert.rejects(shell.exec("llm --at /five text/plain"), { name: "ShellLimitError", message: "Shell limit exceeded: maxInputBytes" });
   assert.equal(fake.requests.length, 0);
 });
 
@@ -280,8 +305,8 @@ test("shell input admission combines stdin and attachments without charging prom
   const shell = new Shell({ fs, limits: { maxInputBytes: 4 } }).use(llmCommands({ providers: [fake], defaultModel: "text" }));
   assert.equal((await shell.exec("llm --at /three text/plain 'summarize this'", { stdin: "a" })).exitCode, 0);
   assert.equal(fake.requests[0]!.prompt, "a\n\nsummarize this");
-  assert.equal((await shell.exec("llm --at /three text/plain", { stdin: "ab" })).exitCode, 1);
-  assert.equal((await shell.exec("llm --at /three text/plain --at /three text/plain")).exitCode, 1);
+  await assert.rejects(shell.exec("llm --at /three text/plain", { stdin: "ab" }), /maxInputBytes/);
+  await assert.rejects(shell.exec("llm --at /three text/plain --at /three text/plain"), /maxInputBytes/);
   assert.equal(fake.requests.length, 1);
 });
 

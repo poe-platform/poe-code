@@ -100,3 +100,24 @@ public-root/subpath consumer also verifies uppercase MIME, numeric request
 serialization, ElevenLabs format lookup and binary VFS pipelines. The
 committed-metadata prerequisite remains unchanged and is the only outstanding
 qualification gate; no commit, push, guard waiver or timeout increase was made.
+
+### Main delivery integration
+
+The user explicitly authorized committing and pushing to main. Candidate
+`63d80f97f` records this implementation. Fetching before push found a concurrent
+implementation and qualification already delivered in `a46e03405` and
+`a92c830ab`, followed by unrelated fixes. Integration preserves those commits,
+their provider subpath and configurable limits, native input-budget failures,
+opaque-provider cancellation behavior, and regression tests. The additional
+acceptance cases and portable public-entry coverage are reconciled rather than
+replacing the remote work wholesale.
+
+The remote `CommandContext.inputBudget` is the single maintained input-budget
+contract. The candidate-only scalar `inputByteLimit` is removed rather than
+publishing duplicate APIs; existing remote runtime and contract code is unchanged.
+
+The first committed archive run passed build, package installation and runtime
+checks, then rejected an ambient `buffer` type fallback. Its temporary consumer
+was beneath this repository, allowing ancestor node_modules resolution. The
+rerun uses a dedicated directory under `/tmp`, outside the repository, retaining
+both isolation and bounded directory scans; no verification guard is relaxed.

@@ -1,4 +1,4 @@
-import { collectBytes, readBytes, resolvePath, writeBytes, type CommandContext, type CommandDefinition, type FileStat } from "../../contracts/index.js";
+import { dirname, collectBytes, readBytes, resolvePath, writeBytes, type CommandContext, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { Budget, bounded, checkPath, display, fail, settings, text, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
@@ -97,8 +97,8 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       let selected = 0;
       let total = 0;
       let actualTotal = 0;
-      const links: { path: string; shown: string; target: string; existing: FileStat | undefined; entry: ZipEntry }[] = [];
-      const directories: { path: string; entry: ZipEntry; identity: FileStat }[] = [];
+      const links: { path: string; shown: string; target: string; existing: FileStat | undefined; parent: FileStat; entry: ZipEntry }[] = [];
+      const directories: { path: string; entry: ZipEntry; identity: FileStat; parent: FileStat }[] = [];
       for (const entry of zip.entries) {
         await budget.member(entry.size);
         checkPath(entry.name, limits);
@@ -120,17 +120,19 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           for await (const chunk of readBytes(decodeZipEntry(entry, limits, context.signal), context.signal)) {
             await writeFileOutput(context, chunk, async () => { if (chunk.length) fail("directory has nonempty payload"); });
           }
+          const parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
           const existing = await extraction.stat(path);
+          let identity = existing;
           if (existing && existing.type !== "directory") fail("directory destination is not a directory");
           if (!existing) {
-            await extraction.operation(() => context.fs.mkdir(path, { signal: context.signal, mode: 0o755 }));
+            identity = await extraction.createDirectory(path, parent);
             await budget.output(`   creating: ${filtered(shown)}\n`);
           }
-          const identity = await extraction.stat(path);
           if (!identity || identity.type !== "directory") fail("directory changed during creation");
-          directories.push({ path, entry, identity });
+          directories.push({ path, entry, identity, parent });
           continue;
         }
+        let parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
         let existing = await extraction.destination(path, archivePath, archiveStat);
         let skip = false;
         let prompting = 0;
@@ -158,6 +160,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             path = extraction.member(root, renamed);
             shown = parsed.destination === undefined ? renamed : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${renamed}`;
             await extraction.parents(root, path, true);
+            parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
             existing = await extraction.destination(path, archivePath, archiveStat);
             continue;
           }
@@ -177,10 +180,10 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           const target = text(Buffer.concat(chunks));
           await extraction.target(root, path, target);
           if (!context.fs.symlink || context.fs.capabilities.symlinks === false) fail("filesystem does not support symlinks");
-          links.push({ path, shown, target, existing, entry });
+          links.push({ path, shown, target, existing, parent, entry });
           await budget.output(`    linking: ${padded(filtered(shown))}  -> ${filtered(target)} \n`);
         } else {
-          await extraction.publish(root, path, chunks, existing, entry.mode, entry.modified);
+          await extraction.publish(root, path, chunks, existing, parent, entry.mode, entry.modified);
           await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(shown))}  \n`);
         }
       }
@@ -191,11 +194,11 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           await extraction.parents(root, link.path, false);
           await extraction.target(root, link.path, link.target);
           await extraction.destination(link.path, archivePath, archiveStat);
-          await extraction.publish(root, link.path, [], link.existing, link.entry.mode, link.entry.modified, link.target);
+          await extraction.publish(root, link.path, [], link.existing, link.parent, link.entry.mode, link.entry.modified, link.target);
           await budget.output(`  ${padded(filtered(link.shown))} -> ${filtered(link.target)}\n`);
         }
-        for (const { path, entry, identity } of directories.reverse()) {
-          await extraction.metadata(root, path, identity, entry.mode, entry.modified);
+        for (const { path, entry, identity, parent } of directories.reverse()) {
+          await extraction.metadata(root, path, identity, parent, entry.mode, entry.modified);
         }
         for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
           await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);

@@ -21,7 +21,7 @@ export interface LlmRequest {
 }
 
 export interface LlmCommandsOptions {
-  providers: readonly LlmProvider[];
-  defaultModel?: string;
-  replace?: boolean;
+  readonly providers: readonly LlmProvider[];
+  readonly defaultModel?: string;
+  readonly replace?: boolean;
 }

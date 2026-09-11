@@ -337,7 +337,7 @@ try {
   });
 
   await session.waitFor(/Pick an agent to configure:/);
-  await session.press("ArrowDown"); // choose Codex, Kimi, etc.
+  await session.press("ArrowDown"); // choose Codex, Claude, etc.
   await session.press("Enter");
 
   await session.waitFor(/Waiting for authorization|default model|configured/i, {

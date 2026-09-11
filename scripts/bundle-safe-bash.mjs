@@ -7,11 +7,12 @@ export function resolveBrowserShellBuild(rootDir) {
   return {
     absWorkingDir: rootDir,
     entryPoints: {
+      "commands/llm/index.browser": path.join(directory, "src/commands/llm/index.ts"),
+      "commands/llm/providers/index.browser": path.join(directory, "src/commands/llm/providers/index.ts"),
       "core.browser": path.join(directory, "src/core.browser.ts"),
       "commands/xml/index.browser": path.join(directory, "src/commands/xml/index.ts"),
       "commands/yq/index.browser": path.join(directory, "src/commands/yq/index.ts"),
       "commands/network/index.browser": path.join(directory, "src/commands/network/public.ts"),
-      "commands/llm/index.browser": path.join(directory, "src/commands/llm/index.ts"),
       "commands/csplit/index.browser": path.join(directory, "src/commands/csplit/index.ts"),
       "commands/pr/index.browser": path.join(directory, "src/commands/pr/index.ts"),
       "commands/tsort/index.browser": path.join(directory, "src/commands/tsort/index.ts"),

@@ -219,5 +219,7 @@ await verifyIconvCommands(defaultEntry);
 await verifyIconvCommands(nodeEntry);
 
 import { verifyLineEndingCommands } from "./safe-packages-line-endings.mjs";
+import { verifyLlmCommands } from "./safe-packages-llm.mjs";
+await verifyLlmCommands();
 await verifyLineEndingCommands(defaultEntry);
 await verifyLineEndingCommands(nodeEntry);

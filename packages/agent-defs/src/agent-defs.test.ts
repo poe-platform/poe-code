@@ -6,7 +6,6 @@ import {
   cursorAgent,
   geminiCliAgent,
   openCodeAgent,
-  kimiAgent,
   gooseAgent,
   piAgent,
   poeAgentAgent,
@@ -24,7 +23,6 @@ const expectedAgents: AgentDefinition[] = [
   cursorAgent,
   geminiCliAgent,
   openCodeAgent,
-  kimiAgent,
   gooseAgent,
   piAgent,
   poeAgentAgent
@@ -34,7 +32,6 @@ const expectedProviderAgentApiShapes = new Map<string, NonNullable<AgentDefiniti
   ["claude-code", ["anthropic-messages"]],
   ["codex", ["openai-responses"]],
   ["gemini-cli", ["google-generations"]],
-  ["kimi", ["openai-chat-completions"]],
   ["opencode", ["openai-chat-completions"]],
   ["goose", ["openai-chat-completions"]],
   ["poe-agent", ["openai-responses", "openai-chat-completions"]]
@@ -77,7 +74,6 @@ describe("agent-defs package", () => {
     expect(cursorAgent).toBeDefined();
     expect(geminiCliAgent).toBeDefined();
     expect(openCodeAgent).toBeDefined();
-    expect(kimiAgent).toBeDefined();
     expect(gooseAgent).toBeDefined();
     expect(poeAgentAgent).toBeDefined();
   });
@@ -139,7 +135,6 @@ describe("agent-defs package", () => {
     });
     expect(cursorAgent.configPath).toBe("~/.cursor/mcp.json");
     expect(openCodeAgent.configPath).toBe("~/.config/opencode/opencode.json");
-    expect(kimiAgent.configPath).toBe("~/.kimi/mcp.json");
   });
 
   it("declares api shapes for every provider-backed agent", () => {
@@ -172,7 +167,6 @@ describe("agent-defs package", () => {
   it("resolves aliases case-insensitively", () => {
     expect(resolveAgentId("CLAUDE")).toBe("claude-code");
     expect(resolveAgentId("GeMiNi")).toBe("gemini-cli");
-    expect(resolveAgentId("kimi-cli")).toBe("kimi");
     expect(resolveAgentId("GOOSE")).toBe("goose");
     expect(resolveAgentId("cursor-agent")).toBe("cursor");
     expect(resolveAgentId("PI")).toBe("pi");
@@ -208,12 +202,6 @@ describe("parseAgentSpecifier", () => {
     });
   });
 
-  it("parses kimi with model", () => {
-    expect(parseAgentSpecifier("kimi:novitaai/kimi-k2.5")).toEqual({
-      agent: "kimi",
-      model: "novitaai/kimi-k2.5"
-    });
-  });
 
   it("returns undefined model when colon is present but model is empty", () => {
     expect(parseAgentSpecifier("claude-code:")).toEqual({

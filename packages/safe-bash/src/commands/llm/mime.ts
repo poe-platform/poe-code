@@ -1,3 +1,5 @@
+import { classify } from "../file/classify.js";
+
 const extensions: Readonly<Record<string, string>> = {
   png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp",
   avif: "image/avif", heic: "image/heic", heif: "image/heif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff", svg: "image/svg+xml",
@@ -82,10 +84,13 @@ export function sniffMimeType(path: string, bytes: Uint8Array): string {
   if (matches([0x1f, 0x8b])) return "application/gzip";
   if (matches([0x49, 0x49, 42, 0]) || matches([0x4d, 0x4d, 0, 42])) return "image/tiff";
   if (ascii(0, "BM")) return "image/bmp";
+  const prefix = bytes.subarray(0, 512);
+  const classified = classify(prefix, bytes.length <= prefix.length).mime;
+  if (!["application/octet-stream", "text/plain", "inode/x-empty"].includes(classified)) return classified;
   const filename = path.slice(path.lastIndexOf("/") + 1);
   const dot = filename.lastIndexOf(".");
   const extension = dot < 0 ? "" : filename.slice(dot + 1).toLowerCase();
-  return Object.hasOwn(extensions, extension) ? extensions[extension]! : "application/octet-stream";
+  return Object.hasOwn(extensions, extension) ? extensions[extension]! : classified === "inode/x-empty" ? "application/octet-stream" : classified;
 }
 
 export function acceptsMimeType(types: readonly string[], mimeType: string): boolean {

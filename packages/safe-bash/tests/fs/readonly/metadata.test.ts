@@ -42,7 +42,7 @@ function requiredStat(): Mutable<FileStat> {
 }
 
 function fullStat(): Mutable<Required<FileStat>> {
-  return { ...requiredStat(), allocatedBytes: 4096, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, nlink: 2, uid: 0, gid: 0 };
+  return { ...requiredStat(), revision: 7, allocatedBytes: 4096, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, nlink: 2, uid: 0, gid: 0 };
 }
 
 for (const representation of ["prototype-accessors", "nonenumerable-own"] as const) {

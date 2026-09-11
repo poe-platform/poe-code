@@ -212,13 +212,13 @@ export interface CommandContext {
   readonly stdinInput?: CommandInput;
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
-  readonly inputByteLimit?: number;
   readonly stdoutFile?: { readonly path: string };
   readonly stderr: ByteSink;
   cwd: string;
   env: Record<string, string>;
   readonly fs: FileSystem;
   readonly signal: AbortSignal;
+  readonly inputBudget?: { readonly maxBytes: number; check(totalBytes: number): void };
   readonly invoke?: CommandInvoker;
   readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
 }

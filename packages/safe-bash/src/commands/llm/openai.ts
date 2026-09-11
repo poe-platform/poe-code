@@ -3,6 +3,7 @@ import type { LlmModel, LlmProvider, LlmRequest } from "./types.js";
 import { openAiBytes, openAiError, openAiJson, openAiRecord, openAiResponse } from "./openai-http.js";
 import { openAiChat } from "./openai-sse.js";
 import { acceptsMimeType } from "./mime.js";
+import { credential, providerLimits, jsonBody, multipart, type LlmProviderLimits } from "./providers/shared.js";
 
 export interface OpenAiModel extends LlmModel {
   readonly endpoint: "chat" | "images" | "videos";
@@ -13,6 +14,7 @@ export interface OpenAiProviderOptions {
   readonly apiKey: string;
   readonly baseUrl?: string;
   readonly models: readonly OpenAiModel[];
+  readonly limits?: Partial<LlmProviderLimits>;
 }
 
 const numericOptions = {
@@ -27,8 +29,12 @@ const numericOptions = {
   ]),
 };
 
-function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number> {
+function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number | boolean> {
   return Object.fromEntries(Object.entries(options).map(([key, value]) => {
+    if ((endpoint === "chat" ? ["store", "parallel_tool_calls", "logprobs"] : ["stream"]).includes(key)) {
+      if (value !== "true" && value !== "false") throw new Error(`Invalid OpenAI option ${key}: expected boolean`);
+      return [key, value === "true"];
+    }
     const type = numericOptions[endpoint].get(key);
     if (!type) return [key, value];
     const number = value.trim() ? Number(value) : NaN;
@@ -56,28 +62,11 @@ function imageBytes(value: unknown): Uint8Array {
   return Uint8Array.from(decoded, character => character.charCodeAt(0));
 }
 
-function jsonBody(value: unknown): Pick<HttpRequest, "body" | "headers"> {
-  const bytes = new TextEncoder().encode(JSON.stringify(value));
-  return { headers: [["content-type", "application/json"]], body: (async function* () { yield bytes; })() };
-}
-
-function multipart(request: LlmRequest, field: string): Pick<HttpRequest, "body" | "headers"> {
-  const form = new FormData();
-  for (const [key, value] of Object.entries(request.options)) form.append(key, value);
-  form.set("model", request.model);
-  form.set("prompt", request.system === undefined ? request.prompt : `${request.system}\n\n${request.prompt}`);
-  for (const [index, attachment] of request.attachments.entries()) {
-    form.append(field, new Blob([Uint8Array.from(attachment.bytes)], { type: attachment.mimeType }), `input-${index}`);
-  }
-  const encoded = new Response(form);
-  return { headers: [["content-type", encoded.headers.get("content-type")!]], body: encoded.body! };
-}
-
-function waitForPoll(signal: AbortSignal): Promise<void> {
+function waitForPoll(signal: AbortSignal, interval: number): Promise<void> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
     const abort = () => { clearTimeout(timer); signal.removeEventListener("abort", abort); reject(signal.reason); };
-    const timer = setTimeout(() => { signal.removeEventListener("abort", abort); resolve(); }, 10_000);
+    const timer = setTimeout(() => { signal.removeEventListener("abort", abort); resolve(); }, interval);
     signal.addEventListener("abort", abort, { once: true });
     if (signal.aborted) abort();
   });
@@ -96,8 +85,10 @@ function job(value: Record<string, unknown>, expectedId?: string): { id: string;
 
 export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvider {
   const { transport, apiKey } = options;
+  const limits = providerLimits(options.limits);
   if (typeof transport !== "function") throw new TypeError("OpenAI requires an injected HTTP transport");
   if (typeof apiKey !== "string" || !apiKey.trim() || apiKey.includes("\r") || apiKey.includes("\n")) throw new TypeError("OpenAI requires a valid API key");
+  credential(apiKey);
   const base = new URL(options.baseUrl ?? "https://api.openai.com/v1");
   if ((base.protocol !== "https:" && base.protocol !== "http:") || base.username || base.password || base.search || base.hash) {
     throw new TypeError("OpenAI baseUrl must be an HTTP(S) URL without credentials, query or fragment");
@@ -112,6 +103,9 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
   for (const model of configured) {
     if (!model.id || byId.has(model.id)) throw new TypeError(`OpenAI duplicate or empty model id: ${model.id}`);
     if (!["chat", "images", "videos"].includes(model.endpoint)) throw new TypeError(`OpenAI invalid endpoint for model: ${model.id}`);
+    if (model.endpoint === "images" && !acceptsMimeType(["image/png", "image/jpeg", "image/webp"], model.outputType ?? "")) throw new TypeError("Image models require outputType image/png, image/jpeg or image/webp");
+    if (model.endpoint === "videos" && !acceptsMimeType(["video/mp4"], model.outputType ?? "")) throw new TypeError("Video models require outputType video/mp4");
+    if (model.endpoint === "chat" && model.outputType !== undefined && !acceptsMimeType(["text/*"], model.outputType)) throw new TypeError("Chat models require a text outputType");
     byId.set(model.id, model);
   }
   return {
@@ -124,8 +118,10 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
       }
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
+      if (request.attachments.reduce((size, file) => size + file.bytes.byteLength, 0) > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
+      if (model.endpoint !== "chat" && request.system !== undefined) throw new TypeError("System prompts are supported only by chat models");
       const reserved = model.endpoint === "chat" ? ["model", "messages", "stream"]
-        : model.endpoint === "images" ? ["model", "prompt", "image", "image[]", "stream"] : ["model", "prompt", "input_reference"];
+        : model.endpoint === "images" ? ["model", "prompt", "image", "image[]"] : ["model", "prompt", "input_reference"];
       for (const key of Object.keys(request.options)) {
         if (reserved.includes(key)) throw new Error(`OpenAI option ${key} is controlled by the provider`);
       }
@@ -140,16 +136,18 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
           { type: "text", text: request.prompt },
           ...request.attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
         ] });
-        for await (const response of send("/chat/completions", "POST", jsonBody({ ...jsonOptions(request.options, "chat"), model: request.model, messages, stream: true }))) {
-          yield* openAiChat(response.body, request.signal);
+        for await (const response of send("/chat/completions", "POST", jsonBody({ ...jsonOptions(request.options, "chat"), model: request.model, messages, stream: true }, limits.maxRequestBytes))) {
+          yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
         }
       } else if (model.endpoint === "images") {
         const editing = request.attachments.length > 0;
-        const body = editing ? multipart(request, "image[]") : jsonBody({
-          ...jsonOptions(request.options, "images"), model: request.model, prompt: request.system === undefined ? request.prompt : `${request.system}\n\n${request.prompt}`,
-        });
+        const outputFormat = model.outputType!.split(";", 1)[0]!.trim().toLowerCase().slice("image/".length);
+        if (request.options.output_format !== undefined && request.options.output_format !== outputFormat) throw new TypeError("output_format conflicts with model outputType");
+        const values: Record<string, string | number | boolean> = { ...jsonOptions(request.options, "images"), output_format: outputFormat, model: request.model, prompt: request.prompt };
+        if (values.stream === true) throw new TypeError("Image event streaming is not supported by this reference provider");
+        const body = editing ? multipart({ ...values, ...request.options }, request.attachments.map(file => ({ ...file, field: "image[]" })), limits.maxRequestBytes) : jsonBody(values, limits.maxRequestBytes);
         for await (const response of send(editing ? "/images/edits" : "/images/generations", "POST", body)) {
-          const value = await openAiJson(response, request.signal);
+          const value = await openAiJson(response, request.signal, limits.maxResponseBytes);
           if (value.error != null) throw new Error(`OpenAI: ${openAiError(value.error) ?? "image generation failed"}`);
           if (!Array.isArray(value.data) || value.data.length === 0) throw new Error("OpenAI image response has no images");
           for (const item of value.data) {
@@ -160,14 +158,16 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         }
       } else {
         let current: { id: string; status: string } | undefined;
-        for await (const response of send("/videos", "POST", multipart(request, "input_reference"))) {
-          current = job(await openAiJson(response, request.signal));
+        for await (const response of send("/videos", "POST", multipart({ ...request.options, model: request.model, prompt: request.prompt }, request.attachments.map(file => ({ ...file, field: "input_reference" })), limits.maxRequestBytes))) {
+          current = job(await openAiJson(response, request.signal, limits.maxResponseBytes));
         }
         if (!current) throw new Error("OpenAI video creation returned no job");
         const path = `/videos/${encodeURIComponent(current.id)}`;
+        let polls = 0;
         while (current.status !== "completed") {
-          await waitForPoll(request.signal);
-          for await (const response of send(path, "GET")) current = job(await openAiJson(response, request.signal), current.id);
+          if (polls++ >= limits.maxPolls) throw new RangeError("Provider video polling limit exceeded");
+          await waitForPoll(request.signal, limits.pollIntervalMs);
+          for await (const response of send(path, "GET")) current = job(await openAiJson(response, request.signal, limits.maxResponseBytes), current.id);
         }
         for await (const response of send(`${path}/content`, "GET")) {
           const contentType = response.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1].split(";")[0]?.trim().toLowerCase();
@@ -175,7 +175,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
             throw new Error(`OpenAI video download has unexpected content type: ${contentType}`);
           }
           let received = false;
-          for await (const chunk of openAiBytes(response.body, request.signal)) {
+          for await (const chunk of openAiBytes(response.body, request.signal, limits.maxResponseBytes)) {
             if (chunk.byteLength === 0) continue;
             received = true;
             yield chunk;

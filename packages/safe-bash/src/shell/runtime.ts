@@ -2724,9 +2724,16 @@ export class Runtime {
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
-      inputByteLimit: this.budget.limits.maxInputBytes,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
+      inputBudget: {
+        maxBytes: this.budget.limits.maxInputBytes,
+        check: totalBytes => {
+          this.commandSignal.throwIfAborted();
+          if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+          if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
+        },
+      },
       registerCleanup: (cleanup) => { scope.register(cleanup); },
       invoke: (name, args, options) => {
         const invocation = this.invoke(name, args, options, context, state, scope);
@@ -3267,7 +3274,6 @@ export class Runtime {
       const invocationOverride: { current: CommandInvoker | undefined } = { current: undefined };
       const context: ShellCommandContext = {
         ...incoming, args: argumentValues.args, argumentValues,
-        inputByteLimit: this.budget.limits.maxInputBytes,
         executionScope: this.budget.executionScope,
         onInternalError: this.budget.onInternalError,
         env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),

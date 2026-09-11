@@ -204,12 +204,12 @@ describe("selectParticipantAgent", () => {
   it("selects agents round-robin across iterations", () => {
     const participant: WorkflowParticipant = {
       id: "ensemble",
-      agent: ["claude-code", "codex", "kimi"]
+      agent: ["claude-code", "codex", "goose"]
     };
 
     expect(selectParticipantAgent(participant, 0)).toBe("claude-code");
     expect(selectParticipantAgent(participant, 1)).toBe("codex");
-    expect(selectParticipantAgent(participant, 2)).toBe("kimi");
+    expect(selectParticipantAgent(participant, 2)).toBe("goose");
     expect(selectParticipantAgent(participant, 3)).toBe("claude-code");
     expect(selectParticipantAgent(participant, 4)).toBe("codex");
   });

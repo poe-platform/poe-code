@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import test from "node:test";
 import { createOpenAiProvider, type OpenAiModel } from "../../../src/commands/llm/openai.js";
+import { openAiChat } from "../../../src/commands/llm/openai-sse.js";
 import type { LlmRequest } from "../../../src/commands/llm/types.js";
 import type { HttpRequest, HttpResponse, HttpTransport } from "../../../src/commands/network/types.js";
 
@@ -89,7 +90,7 @@ test("OpenAI image generation decodes fixed bytes and passes option strings unch
   const transport = fake(reply);
   assert.deepEqual(await collect(provider(transport.transport).complete(request({ model: "custom-image", options: { size: "1024x1024", quality: "high", background: "transparent" } }))), [picture]);
   assert.equal(transport.calls[0]!.url, "https://api.openai.com/v1/images/generations");
-  assert.deepEqual(await (await wireBody(transport.calls[0]!)).json(), { model: "custom-image", prompt: "describe", size: "1024x1024", quality: "high", background: "transparent" });
+  assert.deepEqual(await (await wireBody(transport.calls[0]!)).json(), { model: "custom-image", prompt: "describe", size: "1024x1024", quality: "high", background: "transparent", output_format: "png" });
   assert.equal(reply.disposed, 1);
 });
 
@@ -570,4 +571,9 @@ test("OpenAI cancellation during response disposal does not report successful co
   reply.dispose = async () => { reply.disposed++; controller.abort(reason); };
   await assert.rejects(collect(provider(fake(reply).transport).complete(request({ signal: controller.signal }))), error => error === reason);
   assert.equal(reply.disposed, 1);
+});
+
+test("OpenAI SSE reader applies the configured response budget independently of event limits", async () => {
+  const source = bytes(encoder.encode("data: [DONE]\n\n"));
+  await assert.rejects(collect(openAiChat(source, new AbortController().signal, 1024, 4)), /response byte limit/);
 });

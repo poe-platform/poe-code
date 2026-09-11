@@ -38,18 +38,31 @@ for (const name of createByteCommands().map(command => command.name)) {
   for (const waiting of ["source", "sink"] as const) test(`${name}: independent ${waiting} cancellation and late rejection`, { timeout: 3000 }, async () => {
     const controller = new AbortController();
     const reason = new Error("independent byte cancellation");
-    let reject!: (reason: unknown) => void;
-    const blocked = new Promise<never>((_, failure) => { reject = failure; });
-    const source: ByteSource = { [Symbol.asyncIterator]() { return { next: () => blocked, return: async () => ({ done: true as const, value: undefined }) }; } };
+    let reject: ((reason: unknown) => void) | undefined;
+    let admissions = 0;
+    let enter!: () => void;
+    const entered = new Promise<void>(resolve => { enter = resolve; });
+    const block = () => {
+      admissions++;
+      assert.equal(admissions, 1);
+      const blocked = new Promise<never>((_, failure) => { reject = failure; });
+      enter();
+      return blocked;
+    };
+    const source: ByteSource = { [Symbol.asyncIterator]() { return { next: block, return: async () => ({ done: true as const, value: undefined }) }; } };
     const payload = inputFor(name, Buffer.from("payload"));
-    const overrides: Partial<CommandContext> = { signal: controller.signal, ...(waiting === "sink" ? { stdout: { write: () => blocked } } : {}) };
+    const overrides: Partial<CommandContext> = { signal: controller.signal, ...(waiting === "sink" ? { stdout: { write: block } } : {}) };
     const task = run(name, [], waiting === "source" ? source : payload, {}, overrides);
-    const timer = setTimeout(() => controller.abort(reason), 15);
     try {
+      await Promise.race([entered, task.then(() => assert.fail(`completed before ${waiting} admission`))]);
+      assert.equal(admissions, 1);
+      controller.abort(reason);
       await assert.rejects(task, error => error === reason);
+      assert.equal(admissions, 1);
+      assert(reject);
       reject(new Error("late uncooperative failure"));
       await new Promise<void>(resolve => setImmediate(resolve));
-    } finally { clearTimeout(timer); reject(new Error("cleanup")); }
+    } finally { controller.abort(reason); reject?.(new Error("cleanup")); }
   });
 }
 

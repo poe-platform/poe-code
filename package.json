@@ -107,12 +107,6 @@
       "browser": "./packages/safe-bash/dist/commands/network/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/network/index.js"
     },
-    "./safe-bash/commands/llm": {
-      "types": "./packages/safe-bash/dist/commands/llm/index.d.ts",
-      "workerd": "./packages/safe-bash/dist/commands/llm/index.browser.js",
-      "browser": "./packages/safe-bash/dist/commands/llm/index.browser.js",
-      "import": "./packages/safe-bash/dist/commands/llm/index.js"
-    },
     "./safe-bash/commands/node": {
       "types": "./packages/safe-bash/dist/commands/node/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/node/index.js"
@@ -348,6 +342,18 @@
       "browser": null,
       "import": "./packages/safe-js/dist/workerd.js"
     },
+    "./safe-bash/commands/llm": {
+      "types": "./packages/safe-bash/dist/commands/llm/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/llm/index.js"
+    },
+    "./safe-bash/commands/llm/providers": {
+      "types": "./packages/safe-bash/dist/commands/llm/providers/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/llm/providers/index.js"
+    },
     "./safe-bash/commands/line-endings": {
       "types": "./packages/safe-bash/dist/commands/line-endings/index.d.ts",
       "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
@@ -379,7 +385,7 @@
     "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
     "lint:packages": "tsx packages/package-lint/src/cli.ts",
     "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs",
-    "lint:types": "tsc -p tsconfig.build.json --noEmit",
+    "lint:types": "tsc -p tsconfig.build.json --noEmit && npm run typecheck:contracts --workspace=@poe-code/safe-js && npm run typecheck:contracts --workspace=tiny-mcp-client",
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
     "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",

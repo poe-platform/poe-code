@@ -87,6 +87,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const outputName = vfsPath(context.cwd, parsed.archive);
   const parentName = dirname(outputName);
   const parent = await scope.operation(() => context.fs.realpath(parentName, { signal: context.signal }));
+  const parentStat = await scope.operation(() => context.fs.lstat(parent, { signal: context.signal }));
   const output = `${parent === "/" ? "" : parent}/${outputName.slice(outputName.lastIndexOf("/") + 1)}`;
   checkPath(output, limits);
   const existing = await scope.stat(output);
@@ -197,7 +198,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
   const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal);
-  return { output, parentName, parent, existing, bytes, progress };
+  return { output, parentName, parent, parentStat, existing, bytes, progress };
 }
 
 export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {

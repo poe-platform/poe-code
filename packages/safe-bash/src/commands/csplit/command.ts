@@ -12,7 +12,9 @@ export type { CsplitCommandsOptions, CsplitLimits } from "./internal.js";
 
 export function createCsplitCommandWithExecutor(executor: RegexExecutor, options: CsplitCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return { name: "csplit", description: "Split files at bounded line and BRE boundaries", async execute(context) {
+  return { name: "csplit", description: "Split files at bounded line and BRE boundaries",
+    filesystemRequirements: [{ id: "split", description: "Atomically mutate owned VFS outputs", capabilities: ["atomicFileMutation"], mutates: true }],
+    async execute(context) {
     return withRegexSession(context, executor, async session => {
       const budget = new Budget(context, limits);
       const lifecycle = new Lifecycle(budget);

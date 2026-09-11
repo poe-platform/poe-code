@@ -15,13 +15,14 @@ async function abortable<Result>(operation: () => PromiseLike<Result>, signal: A
   }
 }
 
-export async function* streamElevenLabs(transport: HttpTransport, request: HttpRequest): AsyncGenerator<Uint8Array> {
+export async function* streamElevenLabs(transport: HttpTransport, request: HttpRequest, limit = 64 * 1024 * 1024): AsyncGenerator<Uint8Array> {
   const { signal } = request;
   signal.throwIfAborted();
   let iterator: AsyncIterator<Uint8Array> | undefined;
   let finished = false;
   let failed = false;
   let closed = false;
+  let size = 0;
   const cleanups = new Map<InvocationCleanup, { run: InvocationCleanup; pending?: Promise<void> }>();
   const runCleanup = (entry: { run: InvocationCleanup; pending?: Promise<void> }): Promise<void> => {
     return entry.pending ??= Promise.resolve().then(entry.run);
@@ -80,7 +81,9 @@ export async function* streamElevenLabs(transport: HttpTransport, request: HttpR
       signal.throwIfAborted();
       if (next.done) { finished = true; return; }
       if (!(next.value instanceof Uint8Array)) throw new TypeError("ElevenLabs audio stream must yield Uint8Array chunks");
-      yield next.value;
+      size += next.value.byteLength;
+      if (size > limit) throw new RangeError("Provider response byte limit exceeded");
+      yield Uint8Array.from(next.value);
     }
   } catch (error) {
     failed = true;

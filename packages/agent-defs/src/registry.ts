@@ -6,7 +6,6 @@ import {
   cursorAgent,
   geminiCliAgent,
   openCodeAgent,
-  kimiAgent,
   gooseAgent,
   piAgent,
   poeAgentAgent
@@ -40,7 +39,6 @@ export const allAgents: readonly AgentDefinition[] = Object.freeze([
   freezeAgent(cursorAgent),
   freezeAgent(geminiCliAgent),
   freezeAgent(openCodeAgent),
-  freezeAgent(kimiAgent),
   freezeAgent(gooseAgent),
   freezeAgent(piAgent),
   freezeAgent(poeAgentAgent)

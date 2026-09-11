@@ -1,9 +1,11 @@
-import { createOutputOperation, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
+import { createOutputOperation, getCommandArguments, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { inheritYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { bufferLimit, pathOf } from "../internal.js";
+import { pathOf } from "../internal.js";
 import { acceptsMimeType, sniffMimeType } from "./mime.js";
 import type { LlmCommandsOptions, LlmModel, LlmProvider, LlmRequest } from "./types.js";
+
+const maxBytes = 64 * 1024 * 1024;
 
 interface ModelEntry { provider: LlmProvider; model: LlmModel }
 interface Arguments {
@@ -14,12 +16,13 @@ interface Arguments {
   attachments: { path: string; mimeType?: string }[];
 }
 
-function parse(args: readonly string[]): Arguments {
+async function parse(length: number, text: (index: number) => string, step: () => Promise<void>): Promise<Arguments> {
   const parsed: Arguments = { prompt: "", options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
-  for (let index = 0; index < args.length; index++) {
-    const argument = args[index]!;
+  for (let index = 0; index < length; index++) {
+    await step();
+    const argument = text(index);
     if (ended || !argument.startsWith("-") || argument === "-") { operands.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
     const equals = argument.indexOf("=");
@@ -27,9 +30,8 @@ function parse(args: readonly string[]): Arguments {
     const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : argument.slice(0, 2);
     const attached = long ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.length > 2 ? argument.slice(2) : undefined;
     const take = (): string => {
-      const value = args[++index];
-      if (value === undefined) throw new Error(`Option ${flag} requires an argument`);
-      return value;
+      if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
+      return text(index);
     };
     if (!["-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     const value = attached ?? take();
@@ -83,48 +85,85 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
   const operation = createOutputOperation(context, context.stdout);
   const signal = AbortSignal.any([operation.signal, controller.signal]);
   inheritYieldCheckpoint(context.signal, signal);
-  operation.registerCleanup(() => { controller.abort(new Error("llm request closed")); });
+  let iterator: AsyncIterator<string | Uint8Array> | undefined;
+  let closed = false;
+  let ended = false;
+  operation.registerCleanup(() => {
+    if (closed) return;
+    closed = true;
+    controller.abort(new Error("llm request closed"));
+    if (!ended && iterator) {
+      const resource = iterator;
+      void Promise.resolve().then(() => resource.return?.()).catch(() => {});
+    }
+  });
+  let work = 0;
+  const step = async (): Promise<void> => {
+    signal.throwIfAborted();
+    if (closed) throw new Error("LLM invocation is closed");
+    if (++work > 1_000_000) throw new Error("LLM work limit exceeded");
+    if (work % 256 === 0) await yieldTurn(signal);
+  };
   let writing = false;
   const write = async (chunk: Uint8Array): Promise<void> => {
     writing = true;
     await operation.output.write(chunk);
     writing = false;
   };
-  let remaining = bufferLimit;
-  let inputRemaining = context.inputByteLimit ?? bufferLimit;
-  const admit = (size: number): void => {
-    if (size > remaining) throw new FsError("EFBIG", { message: "llm input byte limit exceeded" });
-    remaining -= size;
+  const emitText = async (text: string): Promise<void> => {
+    for (let offset = 0; offset < text.length;) {
+      await step();
+      let end = Math.min(text.length, offset + 16_384);
+      const last = text.charCodeAt(end - 1);
+      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
+      await write(new TextEncoder().encode(text.slice(offset, end)));
+      offset = end;
+    }
+  };
+  let inputBytes = 0;
+  let argumentBytes = 0;
+  const inputLimit = Math.min(maxBytes, context.inputBudget?.maxBytes ?? maxBytes);
+  const checkInput = (size: number): void => {
+    context.inputBudget?.check(inputBytes + size);
+    if (size > inputLimit - inputBytes) throw new FsError("EFBIG", { message: "llm input byte limit exceeded" });
   };
   const admitInput = (size: number): void => {
-    if (size > inputRemaining) throw new FsError("EFBIG", { message: "llm input byte limit exceeded" });
-    admit(size);
-    inputRemaining -= size;
+    checkInput(size);
+    inputBytes += size;
   };
   try {
-    for (const argument of context.args) admit(Buffer.byteLength(argument));
-    if (context.args.length === 1 && context.args[0] === "models") {
+    const argumentsValue = getCommandArguments(context);
+    const argumentText = (index: number): string => {
+      const bytes = argumentsValue.bytes(index);
+      if (!bytes) throw new Error("Missing option argument");
+      if (bytes.byteLength > maxBytes - argumentBytes) throw new Error("LLM argument byte limit exceeded");
+      argumentBytes += bytes.byteLength;
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    };
+    if (argumentsValue.args.length === 1 && ["--help", "-h"].includes(argumentsValue.args[0]!)) {
+      argumentText(0);
+      await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment; -- ends options\n");
+      return { exitCode: 0 };
+    }
+    const args = await parse(argumentsValue.args.length, argumentText, step);
+    if (argumentsValue.args[0] === "models" && args.prompt === "models" && !args.attachments.length) {
       for (const { provider, model } of models) {
-        await write(new TextEncoder().encode(`${provider.name}/${model.id}\taliases: ${model.aliases?.join(", ") || "-"}\tattachments: ${model.attachmentTypes?.join(", ") || "-"}\toutput: ${model.outputType ?? "text/plain"}\n`));
+        await step();
+        await emitText(`${provider.name}/${model.id}	aliases: ${model.aliases?.join(", ") || "-"}	attachments: ${model.attachmentTypes?.join(", ") || "-"}	output: ${model.outputType ?? "text/plain"}\n`);
       }
       return { exitCode: 0 };
     }
-    if (context.args.length === 1 && ["--help", "-h"].includes(context.args[0]!)) {
-      await write(new TextEncoder().encode("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment; -- ends options\n"));
-      return { exitCode: 0 };
-    }
-    const args = parse(context.args);
     const selected = args.model ?? defaultModel;
     if (selected === undefined) throw new Error("No model selected; use --model or configure defaultModel");
     const entry = lookup.get(selected);
     if (!entry) throw new Error(`Unknown model: ${selected}`);
     const fragments: string[] = [];
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoder("utf-8", { fatal: true });
     const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
-      ? { next: () => context.stdinInput!.read(Math.min(65536, remaining + 1, inputRemaining + 1), signal) }
+      ? { next: () => context.stdinInput!.read(Math.min(65536, inputLimit - inputBytes + 1), signal) }
       : context.stdin[Symbol.asyncIterator](), async iterator => { await iterator.return?.(); });
-    let turns = 0;
     while (true) {
+      await step();
       const result = await interrupted(() => input.next(), signal);
       signal.throwIfAborted();
       if (result.done) break;
@@ -132,16 +171,18 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
       if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
       admitInput(chunk.byteLength);
       fragments.push(decoder.decode(chunk, { stream: true }));
-      if (++turns % 64 === 0) await yieldTurn(signal);
     }
     fragments.push(decoder.decode());
     const content = fragments.join("");
-    if (content && args.prompt) admit(2);
     const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
     for (const attachment of args.attachments) {
+      await step();
       if (attachment.path.includes("://")) throw new Error("URL attachments are not supported");
       const path = pathOf(context, attachment.path);
-      const bytes = await operation.acquire(() => context.fs.readFile(path, { signal, maxBytes: Math.min(remaining, inputRemaining) }), () => {});
+      const stat = await interrupted(() => context.fs.stat(path, { signal }), signal);
+      checkInput(stat.size);
+      const bytes = await interrupted(() => context.fs.readFile(path, { signal, maxBytes: inputLimit - inputBytes }), signal);
+      signal.throwIfAborted();
       if (!(bytes instanceof Uint8Array)) throw new TypeError("Attachment read must return Uint8Array");
       admitInput(bytes.byteLength);
       const mimeType = attachment.mimeType ?? sniffMimeType(path, bytes);
@@ -152,25 +193,26 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
       model: entry.model.id, prompt: content && args.prompt ? `${content}\n\n${args.prompt}` : content || args.prompt,
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal,
     };
-    const iterator = await operation.acquire(() => entry.provider.complete(request)[Symbol.asyncIterator](), async resource => { await resource.return?.(); });
+    signal.throwIfAborted();
+    iterator = entry.provider.complete(request)[Symbol.asyncIterator]();
     const text = (entry.model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
     let pendingSurrogate = "";
     while (true) {
-      const result = await interrupted(() => iterator.next(), signal);
+      await step();
+      const result = await interrupted(() => iterator!.next(), signal);
       signal.throwIfAborted();
-      if (result.done) break;
-      if (text ? typeof result.value !== "string" : !(result.value instanceof Uint8Array)) throw new Error(`Provider ${entry.provider.name} returned a chunk incompatible with ${entry.model.outputType ?? "text/plain"}`);
+      if (result.done) { ended = true; break; }
+      if (text ? typeof result.value !== "string" : !(result.value instanceof Uint8Array)) throw new Error(`Provider ${entry.provider.name} returned a response chunk incompatible with ${entry.model.outputType ?? "text/plain"}`);
       if (typeof result.value === "string") {
         let chunk = pendingSurrogate + result.value;
         const last = chunk.charCodeAt(chunk.length - 1);
         pendingSurrogate = last >= 0xd800 && last <= 0xdbff ? chunk.slice(-1) : "";
         if (pendingSurrogate) chunk = chunk.slice(0, -1);
-        if (chunk) await write(new TextEncoder().encode(chunk));
+        if (chunk) await emitText(chunk);
       } else await write(result.value);
-      if (++turns % 64 === 0) await yieldTurn(signal);
     }
     if (text) {
-      if (pendingSurrogate) await write(new TextEncoder().encode(pendingSurrogate));
+      if (pendingSurrogate) await emitText(pendingSurrogate);
       await write(Uint8Array.of(10));
     }
     return { exitCode: 0 };
@@ -180,7 +222,7 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
     controller.abort(error);
     if (writing) throw error;
     await operation.close();
-    await writeDiagnostic(context.stderr, `${error instanceof Error ? error.message : "llm provider failed"}\n`, context.signal);
+    await writeDiagnostic(context.stderr, `${error instanceof Error ? error.message.slice(0, 4096) : "llm provider failed"}\n`, context.signal);
     return { exitCode: 1 };
   } finally {
     controller.abort(new Error("llm request closed"));

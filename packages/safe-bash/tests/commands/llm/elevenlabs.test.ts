@@ -90,6 +90,7 @@ test("ElevenLabs music maps numeric and boolean options without replacing prompt
 for (const [outputType, outputFormat] of [
   ["audio/mpeg", "mp3_44100_128"], ["audio/wav", "wav_44100"], ["audio/x-wav", "wav_44100"],
   ["audio/pcm", "pcm_44100"], ["audio/basic", "ulaw_8000"], ["audio/opus", "opus_48000_128"],
+  ["audio/ogg", "opus_48000_128"],
 ] as const) test(`ElevenLabs derives ${outputFormat} from ${outputType}`, async () => {
   const fake = fixture();
   const provider = createElevenLabsProvider({ transport: fake.transport, apiKey: "key", models: [{ id: "custom", endpoint: "tts", outputType, defaultVoiceId: "voice" }] });
@@ -98,12 +99,10 @@ for (const [outputType, outputFormat] of [
   assert.equal(Object.hasOwn(fake.bodies[0] as object, "output_format"), false);
 });
 
-test("ElevenLabs defaults omitted outputType to audio/mpeg rather than advertising text", async () => {
+test("ElevenLabs requires explicit audio outputType rather than advertising text", () => {
   const fake = fixture();
-  const provider = createElevenLabsProvider({ transport: fake.transport, apiKey: "key", models: [{ id: "custom", endpoint: "music" }] });
-  assert.equal(provider.models[0]?.outputType, "audio/mpeg");
-  await collect(provider.complete(request({ model: "custom" })));
-  assert.equal(new URL(fake.requests[0]!.url).searchParams.get("output_format"), "mp3_44100_128");
+  assert.throws(() => createElevenLabsProvider({ transport: fake.transport, apiKey: "key", models: [{ id: "custom", endpoint: "music" }] }), /outputType/);
+  assert.equal(fake.requests.length, 0);
 });
 
 test("ElevenLabs rejects missing and blank voices before transport", async () => {

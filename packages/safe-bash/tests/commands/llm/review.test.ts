@@ -96,6 +96,8 @@ test("review: provider iteration never advances while a downstream write is outs
 test("review: attachment snapshots survive an adapter reusing its read buffer", async () => {
   const run = await fixture(async function* () { yield "ok"; }, { args: ["--at", "/one", "image/png", "--at", "/two", "image/png"], attachmentTypes: ["image/*"] });
   const slab = new Uint8Array(3);
+  await run.fs.writeFile("/one", slab);
+  await run.fs.writeFile("/two", slab);
   let reads = 0;
   run.fs.readFile = async () => { slab.fill(++reads); return slab; };
   assert.equal((await run.execute()).exitCode, 0);
@@ -105,6 +107,7 @@ test("review: attachment snapshots survive an adapter reusing its read buffer", 
 test("review: duplicate attachment paths are admitted cumulatively rather than deduplicated", async () => {
   const run = await fixture(async function* () { yield "ok"; }, { args: ["--at", "/same", "image/png", "--at", "/same", "image/png"], attachmentTypes: ["image/*"], stdin: toByteSource("🦊") });
   const limits: (number | undefined)[] = [];
+  await run.fs.writeFile("/same", new Uint8Array(3));
   run.fs.readFile = async (_path, options) => { limits.push(options?.maxBytes); return new Uint8Array(3); };
   assert.equal((await run.execute()).exitCode, 0);
   assert.equal(limits.length, 2);
@@ -138,20 +141,15 @@ test("review: falsey provider failures close acquired iterators and emit no succ
   }
 });
 
-test("review: successful commands wait for cooperative iterator cleanup", async () => {
-  const closing = deferred<void>(), release = deferred<void>();
+test("review: exhausted providers need no return call or opaque cleanup wait", async () => {
+  let returns = 0;
   const run = await fixture(() => ({ [Symbol.asyncIterator]() { return {
     async next() { return { done: true as const, value: undefined }; },
-    async return() { closing.resolve(); await release.promise; return { done: true as const, value: undefined }; },
+    return() { returns++; return new Promise<IteratorResult<string>>(() => {}); },
   }; } }));
-  const completion = Promise.resolve(run.execute());
-  let settled = false;
-  void completion.then(() => { settled = true; }, () => { settled = true; });
-  await closing.promise;
-  assert.equal(settled, false);
+  assert.equal((await run.execute()).exitCode, 0);
   assert.equal(run.requests[0]?.signal.aborted, true);
-  release.resolve();
-  assert.equal((await completion).exitCode, 0);
+  assert.equal(returns, 0);
 });
 
 test("review: cancellation during provider acquisition still closes the acquired iterator exactly once", async () => {
@@ -192,9 +190,13 @@ test("review: EBML DocType wins over unrelated webm text in a Matroska header", 
   assert.equal(sniffMimeType("video.mkv", bytes), "video/x-matroska");
 });
 
-test("review: truncated signatures and dotted directories use only the final filename fallback", () => {
-  for (const bytes of [new Uint8Array(), Uint8Array.of(137, 80, 78, 71), new TextEncoder().encode("RIFF")]) {
-    assert.equal(sniffMimeType("/images.png/raw", bytes), "application/octet-stream");
+test("review: truncated signatures preserve text classification and only final filename fallback", () => {
+  for (const [bytes, fallback] of [
+    [new Uint8Array(), "application/octet-stream"],
+    [Uint8Array.of(137, 80, 78, 71), "application/octet-stream"],
+    [new TextEncoder().encode("RIFF"), "text/plain"],
+  ] as const) {
+    assert.equal(sniffMimeType("/images.png/raw", bytes), fallback);
     assert.equal(sniffMimeType("/images.png/file.MP4", bytes), "video/mp4");
   }
 });

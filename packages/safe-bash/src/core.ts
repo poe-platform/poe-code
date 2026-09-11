@@ -19,6 +19,7 @@ export * from "./commands/diff-patch/index.js";
 export * from "./commands/safejs/index.js";
 export * from "./commands/network/public.js";
 export * from "./commands/llm/index.js";
+export * from "./commands/llm/providers/index.js";
 export * from "./commands/metadata/index.js";
 export * from "./commands/archive/index.js";
 export * from "./commands/table-text/index.js";

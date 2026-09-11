@@ -35,10 +35,37 @@ describe("SafeJS CLI entrypoint", () => {
   });
 
   afterEach(() => {
+    vi.doUnmock("./run.js");
     process.argv = originalArgv;
     process.exitCode = originalExitCode;
     vi.restoreAllMocks();
     vol.reset();
+  });
+
+  it("prints help without initializing the interpreter", async () => {
+    vi.doMock("./run.js", () => {
+      throw new Error("Help must not initialize the interpreter");
+    });
+    process.argv = [process.execPath, filename, "--help"];
+
+    await import("./cli.js");
+
+    expect(output.join("")).toContain("Usage: poe-safe-js");
+    expect(process.exitCode).toBe(0);
+  });
+
+  it("treats a broken help output pipe as a clean exit", async () => {
+    vi.doMock("./run.js", () => {
+      throw new Error("Help must not initialize the interpreter");
+    });
+    vi.mocked(process.stdout.write).mockImplementation(() => {
+      throw Object.assign(new Error("broken pipe"), { code: "EPIPE" });
+    });
+    process.argv = [process.execPath, filename, "-h"];
+
+    await import("./cli.js");
+
+    expect(process.exitCode).toBe(0);
   });
 
   it.each([

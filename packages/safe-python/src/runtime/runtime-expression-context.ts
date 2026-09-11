@@ -41,7 +41,7 @@ import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda" | "comprehension"> &
-  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth" | "beginMethodCall">> &
+  Partial<Pick<ExpressionContext<RuntimeValue>, "position" | "attribute" | "literal" | "constants" | "formattedString" | "truth" | "beginMethodCall">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
     readonly code?:(code:CompiledFunction<RuntimeValue>)=>RuntimeValue;
     readonly isException?: BuiltinInvocationContext["isException"];
@@ -95,6 +95,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
   };
   let formattedString: ExpressionContext<RuntimeValue>["formattedString"], resolved = false;
   const context: ExpressionContext<RuntimeValue> = {
+    position:bindings.position?.bind(bindings),
     get formattedString() {
       meter.checkpoint();
       if (!resolved) {

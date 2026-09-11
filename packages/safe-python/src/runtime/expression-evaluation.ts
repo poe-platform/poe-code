@@ -37,6 +37,10 @@ export interface SliceValues<Value> {
  * name resolution, descriptor/operator dispatch and metering inside each call.
  */
 export interface ExpressionContext<Value> {
+  /** Trusted frame-location bookkeeping before an AST node or its deferred
+   * operation executes. This is not a guest tracing callback or bytecode offset.
+   * Each frame must retain its own location across nested calls/suspension. */
+  position?(node:Expression):void;
   readonly constants?: ReadonlyMap<Expression, Value>;
   formattedString?: FormattedStringContext<Value>;
   literal(node: Extract<Expression, { kind: "literal" }>): Value;
@@ -138,8 +142,19 @@ export function createExpressionContinuation<Value>(expression:Expression,contex
 
 function* expressionContinuation<Value>(expression:Expression,context:ExpressionContext<Value>,meter:ExecutionMeter,mode:"value"|"branch"|"subscript-reference",suspension?:{readonly none:Value}):Generator<Value,Value|boolean|SubscriptReference<Value>,Value> {
   if (mode === "subscript-reference" && expression.kind !== "subscript") throw new Error("subscript reference mode requires a subscript expression");
-  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | {kind:"yield"|"yield-from"|"await"} | (() => void);
+  type Task = { node: Expression; test: "value" | "preserve" | "branch" } | {kind:"yield"|"yield-from"|"await";node:Expression} | {node:Expression;run:()=>void} | (() => void);
   const work: Task[] = [{ node: expression, test: mode === "branch" ? "branch" : "value" }];
+  let current=expression;
+  const locate=context.position?.bind(context);
+  // Unobserved continuations do not allocate location records. Observed
+  // continuations capture their owner when scheduled, not the last child run.
+  const schedule=locate===undefined?work.push.bind(work):(...tasks:Task[])=>{
+    meter.checkpoint(0,32+tasks.length*8);
+    for(const task of tasks){
+      if(typeof task==="function"){meter.checkpoint(0,48);work.push({node:current,run:task});}
+      else work.push(task);
+    }
+  };
   let reference: SubscriptReference<Value> | undefined;
   let value!: Value;
   let knownTruth: boolean | undefined;
@@ -147,6 +162,9 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
     meter.checkpoint();
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
+    current=task.node;
+    if(locate!==undefined){try{locate(current);}finally{meter.checkpoint(0);}}
+    if("run" in task){task.run();continue;}
     if("kind" in task) {
       meter.checkpoint(0);
       value=task.kind==="await"?yield* context.awaitValue!(value):task.kind==="yield-from"?yield* context.delegate!(value):yield value;
@@ -161,19 +179,19 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
       case "await":
         if(suspension===undefined||context.awaitValue===undefined)throw new UnsupportedExpressionError(node.kind);
         meter.checkpoint(0,64);
-        work.push({kind:"await"},{node:node.value,test:"value"});
+        schedule({kind:"await",node},{node:node.value,test:"value"});
         break;
       case "yield-from":
         if(suspension===undefined||context.delegate===undefined)throw new UnsupportedExpressionError(node.kind);
         meter.checkpoint(0,64);
-        work.push({kind:"yield-from"},{node:node.value,test:"value"});
+        schedule({kind:"yield-from",node},{node:node.value,test:"value"});
         break;
       case "yield":
         if(suspension===undefined)throw new UnsupportedExpressionError(node.kind);
         meter.checkpoint(0,node.value===null?32:64);
-        work.push({kind:"yield"});
+        schedule({kind:"yield",node});
         if(node.value===null)value=suspension.none;
-        else work.push({node:node.value,test:"value"});
+        else schedule({node:node.value,test:"value"});
         break;
       case "comprehension": case "dictionary-comprehension":
         if(suspension!==undefined&&context.comprehensionContinuation!==undefined){value=yield* context.comprehensionContinuation(node);break;}
@@ -186,9 +204,9 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
         const advance = () => {
           const next = parts.next(value);
           if (next.done) { value = next.value; knownTruth = undefined; }
-          else work.push(advance, { node: next.value, test: "value" });
+          else schedule(advance, { node: next.value, test: "value" });
         };
-        work.push(advance);
+        schedule(advance);
         break;
       }
       case "literal": value = context.literal(node); break;
@@ -203,46 +221,46 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
             meter.checkpoint();
             const parameter = node.parameters[index++];
             if (parameter.default === null) continue;
-            work.push(() => { defaults.set(parameter.name, value); work.push(next); }, { node: parameter.default, test: "value" });
+            schedule(() => { defaults.set(parameter.name, value); schedule(next); }, { node: parameter.default, test: "value" });
             return;
           }
           value = create.call(context, node, defaults);
           knownTruth = undefined;
         };
-        work.push(next);
+        schedule(next);
         break;
       }
       case "unary":
         if (node.operator === "not" && test === "branch") {
-          work.push(() => {
+          schedule(() => {
             const truth = knownTruth ?? context.truth(value);
             meter.checkpoint();
             value = context.boolean(!truth);
             knownTruth = !truth;
           }, { node: node.operand, test: "branch" });
         } else {
-          work.push(() => { value = context.unary(node.operator, value); knownTruth = undefined; }, { node: node.operand, test: "value" });
+          schedule(() => { value = context.unary(node.operator, value); knownTruth = undefined; }, { node: node.operand, test: "value" });
         }
         break;
       case "attribute":
-        work.push(() => { value = context.attribute(value, node.name); knownTruth = undefined; }, { node: node.object, test: "value" });
+        schedule(() => { value = context.attribute(value, node.name); knownTruth = undefined; }, { node: node.object, test: "value" });
         break;
       case "assignment-expression":
-        work.push(() => { context.store(node.target.name, value); knownTruth = undefined; }, { node: node.value, test: "value" });
+        schedule(() => { context.store(node.target.name, value); knownTruth = undefined; }, { node: node.value, test: "value" });
         break;
       case "dictionary": {
         let dictionary: ExpressionDictionary<Value> | undefined, index = 0;
         const nextChunk = () => {
           const entry = node.entries[index];
           if (entry === undefined) {
-            if (dictionary === undefined) { meter.checkpoint(0, 32); dictionary = context.beginDictionary([]); work.push(nextChunk); }
+            if (dictionary === undefined) { meter.checkpoint(0, 32); dictionary = context.beginDictionary([]); schedule(nextChunk); }
             else { value = dictionary.finish(); knownTruth = undefined; }
             return;
           }
           if (entry.kind === "mapping") {
-            if (dictionary === undefined) { meter.checkpoint(0, 32); dictionary = context.beginDictionary([]); work.push(nextChunk); return; }
+            if (dictionary === undefined) { meter.checkpoint(0, 32); dictionary = context.beginDictionary([]); schedule(nextChunk); return; }
             index++;
-            work.push(() => { dictionary!.update(value); work.push(nextChunk); }, { node: entry.value, test: "value" });
+            schedule(() => { dictionary!.update(value); schedule(nextChunk); }, { node: entry.value, test: "value" });
             return;
           }
           let end = index;
@@ -258,31 +276,31 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
           if (end - index > 15) { meter.checkpoint(1, 32); group = context.beginDictionary([]); }
           index = end;
           const finishGroup = () => {
-            if (dictionary === undefined) { dictionary = group!; work.push(nextChunk); }
+            if (dictionary === undefined) { dictionary = group!; schedule(nextChunk); }
             else {
               const mapping = group!.finish();
-              work.push(() => { dictionary!.update(mapping); work.push(nextChunk); });
+              schedule(() => { dictionary!.update(mapping); schedule(nextChunk); });
             }
           };
           const nextPair = () => {
             if (cursor === end) {
               if (group === undefined) group = context.beginDictionary(pending);
-              work.push(finishGroup);
+              schedule(finishGroup);
               return;
             }
             const pair = node.entries[cursor++] as Extract<DictionaryEntry, { kind: "entry" }>;
-            work.push(() => {
+            schedule(() => {
               const key = value;
-              work.push(() => {
+              schedule(() => {
                 if (group === undefined) { meter.checkpoint(0, 56); pending.push([key, value]); }
                 else group.set(key, value);
-                work.push(nextPair);
+                schedule(nextPair);
               }, { node: pair.value, test: "value" });
             }, { node: pair.key, test: "value" });
           };
-          work.push(nextPair);
+          schedule(nextPair);
         };
-        work.push(nextChunk);
+        schedule(nextChunk);
         break;
       }
       case "set": {
@@ -300,19 +318,19 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
         const nextItem = () => {
           if (set === undefined && index === initialCount) {
             set = context.beginSet(initial);
-            work.push(nextItem);
+            schedule(nextItem);
             return;
           }
           const item = node.items[index++];
           if (item === undefined) { value = set!.finish(); knownTruth = undefined; return; }
-          work.push(() => {
+          schedule(() => {
             if (item.kind === "unpack") set!.update(value);
             else if (set === undefined) { meter.checkpoint(0, 8); initial.push(value); }
             else set.add(value);
-            work.push(nextItem);
+            schedule(nextItem);
           }, { node: item.kind === "unpack" ? item.value : item, test: "value" });
         };
-        work.push(nextItem);
+        schedule(nextItem);
         break;
       }
       case "tuple":
@@ -327,14 +345,14 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
             const item = node.items[index++];
             if (item === undefined) {
               if (node.kind === "subscript") {
-                work.push(() => {
+                schedule(() => {
                   if (mode === "subscript-reference" && node === expression) {
                     meter.checkpoint(1, 32);
                     reference = { object, key: value };
                   } else value = context.getItem(object, value);
                   knownTruth = undefined;
                 });
-                if (node.tuple) work.push(() => { value = context.tuple(keys); });
+                if (node.tuple) schedule(() => { value = context.tuple(keys); });
                 else value = keys[0];
               } else {
                 value = node.kind === "list" ? context.list(keys) : context.tuple(keys);
@@ -352,95 +370,95 @@ function* expressionContinuation<Value>(expression:Expression,context:Expression
                   meter.checkpoint();
                   const field = fields[part++], bound = item[field];
                   if (bound === null) continue;
-                  work.push(() => { parts[field] = value; work.push(nextPart); }, { node: bound, test: "value" });
+                  schedule(() => { parts[field] = value; schedule(nextPart); }, { node: bound, test: "value" });
                   return;
                 }
                 meter.checkpoint();
                 const slice = context.slice(parts);
                 meter.checkpoint(0, 8); keys.push(slice);
-                work.push(nextItem);
+                schedule(nextItem);
               };
-              work.push(nextPart);
+              schedule(nextPart);
             } else if (item.kind === "unpack") {
-              work.push(() => {
+              schedule(() => {
                 const iterator = context.iterate(value, name => {
                   throw new PythonRuntimeError("TypeError", `Value after * must be an iterable, not ${name}`);
                 }, true);
                 const nextValue = () => {
                   const entry = iterator.next();
-                  if (entry.done) work.push(nextItem);
-                  else { meter.checkpoint(0, 8); keys.push(entry.value); work.push(nextValue); }
+                  if (entry.done) schedule(nextItem);
+                  else { meter.checkpoint(0, 8); keys.push(entry.value); schedule(nextValue); }
                 };
-                work.push(nextValue);
+                schedule(nextValue);
               }, { node: item.value, test: "value" });
             } else {
-              work.push(() => { meter.checkpoint(0, 8); keys.push(value); work.push(nextItem); }, { node: item, test: "value" });
+              schedule(() => { meter.checkpoint(0, 8); keys.push(value); schedule(nextItem); }, { node: item, test: "value" });
             }
           };
-          work.push(nextItem);
+          schedule(nextItem);
         };
         if (node.kind === "subscript") {
-          work.push(() => { object = value; assemble(); }, { node: node.object, test: "value" });
-        } else work.push(assemble);
+          schedule(() => { object = value; assemble(); }, { node: node.object, test: "value" });
+        } else schedule(assemble);
         break;
       }
       case "call": {
         const attribute = context.beginMethodCall !== undefined && node.callee.kind === "attribute" && node.arguments.every(argument => {
           meter.checkpoint(); return argument.kind !== "starred" && argument.kind !== "mapping";
         }) ? node.callee : undefined;
-        work.push(() => {
+        schedule(() => {
           const call = attribute === undefined ? context.beginCall(value) : context.beginMethodCall!(value, attribute.name);
           const arguments_ = evaluateCallArguments(node.arguments, call, meter);
           const advance = () => {
             const next = arguments_.next(value);
             if (next.done) { value = next.value; knownTruth = undefined; }
-            else work.push(advance, { node: next.value, test: "value" });
+            else schedule(advance, { node: next.value, test: "value" });
           };
-          work.push(advance);
+          schedule(advance);
         }, { node: attribute?.object ?? node.callee, test: "value" });
         break;
       }
       case "binary":
-        work.push(() => {
+        schedule(() => {
           const left = value;
-          work.push(() => { value = context.binary(node.operator, left, value); knownTruth = undefined; }, { node: node.right, test: "value" });
+          schedule(() => { value = context.binary(node.operator, left, value); knownTruth = undefined; }, { node: node.right, test: "value" });
         }, { node: node.left, test: "value" });
         break;
       case "boolean":
-        work.push(() => {
+        schedule(() => {
           const truth = knownTruth ?? context.truth(value);
-          if (truth === (node.operator === "and")) work.push({ node: node.right, test });
+          if (truth === (node.operator === "and")) schedule({ node: node.right, test });
           else knownTruth = test !== "value" ? truth : undefined;
         }, { node: node.left, test: test === "branch" ? "branch" : "preserve" });
         break;
       case "conditional":
-        work.push(() => {
+        schedule(() => {
           const truth = knownTruth ?? context.truth(value);
           // CPython's value-producing consequent crosses the conditional's
           // forward jump; the alternate falls through to the surrounding test.
-          work.push({ node: truth ? node.consequent : node.alternate, test: truth && test !== "branch" ? "value" : test });
+          schedule({ node: truth ? node.consequent : node.alternate, test: truth && test !== "branch" ? "value" : test });
         }, { node: node.condition, test: "branch" });
         break;
       case "comparison": {
         let index = 0;
         const next = () => {
           const left = value;
-          work.push(() => {
+          schedule(() => {
             const right = value;
             value = context.compare(node.operators[index], left, right);
             knownTruth = undefined;
             index++;
             if (index < node.operators.length) {
               // Comparison and its truth test are separate guest operations.
-              work.push(() => {
+              schedule(() => {
                 const truth = context.truth(value);
-                if (truth) { value = right; work.push(next); }
+                if (truth) { value = right; schedule(next); }
                 else knownTruth = test === "branch" ? false : undefined;
               });
             }
           }, { node: node.operands[index + 1], test: "value" });
         };
-        work.push(next, { node: node.operands[0], test: "value" });
+        schedule(next, { node: node.operands[0], test: "value" });
         break;
       }
       default: {

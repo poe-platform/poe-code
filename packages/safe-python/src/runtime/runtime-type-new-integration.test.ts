@@ -95,6 +95,14 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("reports native expression call sites independently for each active frame",()=>{
+  const state=exceptionFixture(),{v}=state,locations=new WeakMap<object,number>(),original=state.hooks.expressions;
+  state.hooks.expressions=frame=>({...original(frame),position:node=>{locations.set(frame,node.start.line);}});
+  state.builtins.set("line",v.builtinFunction({name:"line",invoke(){const line=locations.get(state.calls.current!);if(line===undefined)throw Error("missing expression location");return v.integer(line);}}));
+  state.run("def child():\n return line(\n  1,\n  2\n )\ndef parent():\n return line(\n  child(),\n  3\n ),child()\ncorrect=parent()==(7,2)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("suspends native async context-manager entry and cleanup with cached methods",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("events=[]\nclass Pause:\n def __init__(self,n):self.n=n\n def __await__(self):\n  yield self.n\n  return 7\nclass C:\n async def __aenter__(self):\n  C.__aexit__=None\n  return await Pause('enter')\n async def __aexit__(self,t,e,tb):\n  events.append((t is ValueError,e is error,tb is e.__traceback__))\n  await Pause('exit')\n  return True\nerror=ValueError('body')\nasync def f():\n async with C() as x:\n  events.append(x)\n  raise error\n return 9\nc=f()\ncorrect=c.send(None)=='enter' and c.send(None)=='exit'\ntry:c.send(None)\nexcept StopIteration as e:correct=correct and e.value==9\ncorrect=correct and events==[7,(True,True,True)]\n");

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseExpression } from "../expression.js";
 import type { Expression } from "../ast.js";
 import { createExpressionContinuation,evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
-import { ExecutionBudget } from "./execution-budget.js";
+import { ExecutionBudget,ExecutionLimitError } from "./execution-budget.js";
 import { integerDivmod } from "./integer-arithmetic.js";
 import { parseModule } from "../module.js";
 import { executeStatements } from "./statement-execution.js";
@@ -45,6 +45,81 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("resumable expression execution",()=>{
+  it("restores call ownership for argument collection and invocation",()=>{
+    const {context}=environment(new Map<string,Value>([["f",0n],["a",1n],["b",2n]])),expression=parseExpression("f(\n a,\n key=b\n)"),seen:Expression[]=[];
+    let current:Expression|undefined;context.position=node=>{current=node;};
+    context.beginCall=()=>({positional(){seen.push(current!);},keywords(){seen.push(current!);},starred(){throw Error("unexpected star");},mapping(){throw Error("unexpected mapping");},invoke(){seen.push(current!);return 9n;}});
+    expect(evaluateExpression(expression,context,budget())).toBe(9n);
+    expect(seen).toEqual([expression,expression,expression]);
+  });
+
+  it.each(["(a +\n b)","(a *\n b)","-(\n a)","(a <\n b)","(a\n).x"])("retains the failing operation owner for %s",source=>{
+    const {context}=environment(new Map<string,Value>([["a",1n],["b",2n]])),expression=parseExpression(source),failure=Error("operation");
+    let current:Expression|undefined;context.position=node=>{current=node;};
+    const fail=()=>{throw failure;};context.binary=fail;context.unary=fail;context.compare=fail;context.attribute=fail;
+    expect(()=>evaluateExpression(expression,context,budget())).toThrow(failure);
+    expect(current).toBe(expression);
+  });
+
+  it("does not visit skipped logical operands or conditional branches",()=>{
+    const {context}=environment(new Map<string,Value>([["a",1n],["b",2n],["skip",3n]])),seen:string[]=[];
+    context.position=node=>{if(node.kind==="name")seen.push(node.name);};
+    expect(evaluateExpression(parseExpression("(a or skip) if b else skip"),context,budget())).toBe(1n);
+    expect(seen).toEqual(["b","a"]);
+  });
+
+  it.each([false,true])("prioritizes position callback cancellation before guest operations (throws=%s)",throws=>{
+    const {context,events}=environment(new Map<string,Value>([["a",1n]])),controller=new AbortController();
+    context.position=()=>{controller.abort();if(throws)throw Error("position failure");};
+    expect(()=>evaluateExpression(parseExpression("a"),context,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:10000,signal:controller.signal}))).toThrow(ExecutionLimitError);
+    expect(events).toEqual([]);
+  });
+
+  it("preserves ordinary position callback failures",()=>{
+    const {context,events}=environment(),failure=Error("position failure");context.position=()=>{throw failure;};
+    expect(()=>evaluateExpression(parseExpression("a"),context,budget())).toThrow(failure);expect(events).toEqual([]);
+  });
+
+  it("retains operand location when operand evaluation fails",()=>{
+    const {context}=environment(new Map<string,Value>([["a",1n]])),expression=parseExpression("(a +\n missing)");
+    let current:Expression|undefined;context.position=node=>{current=node;};
+    expect(()=>evaluateExpression(expression,context,budget())).toThrow("missing:missing");
+    expect(current?.kind).toBe("name");expect(current?.start.line).toBe(2);
+  });
+
+  it("attributes awaited and delegated operations to their owning expressions",()=>{
+    for(const source of ["(await\n a)","(yield from\n a)"]){
+      const {context}=environment(new Map<string,Value>([["a",1n]])),expression=parseExpression(source),failure=Error("injected");
+      let current:Expression|undefined;context.position=node=>{current=node;};
+      const delegate=function*(){expect(current).toBe(expression);yield 1n;return 2n;};context.awaitValue=delegate;context.delegate=delegate;
+      const cursor=createExpressionContinuation(expression,context,budget(),null);
+      expect(cursor.next()).toEqual({done:false,value:1n});expect(current).toBe(expression);
+      expect(()=>cursor.throw(failure)).toThrow(failure);expect(current).toBe(expression);
+    }
+  });
+
+  it("meters observed continuation records before operand effects",()=>{
+    const {context,events}=environment(new Map<string,Value>([["a",1n],["b",2n]]));context.position=()=>{};
+    expect(()=>evaluateExpression(parseExpression("a+b"),context,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:192}))).toThrow(ExecutionLimitError);
+    expect(events).toEqual([]);
+  });
+  it("restores owning expression locations before deferred operations",()=>{
+    const {context}=environment(new Map<string,Value>([["a",1n],["b",2n],["c",3n]])),seen:string[]=[];
+    let current:Expression|undefined;
+    context.position=node=>{current=node;};
+    const binary=context.binary;
+    context.binary=(operator,left,right)=>{seen.push(`${operator}:${current?.kind}:${current?.start.line}`);return binary(operator,left,right);};
+    expect(evaluateExpression(parseExpression("(a +\n b *\n c)"),context,budget())).toBe(7n);
+    expect(seen).toEqual(["*:binary:2","+:binary:1"]);
+  });
+
+  it("attributes suspension to yield and restores parent ownership after resumption",()=>{
+    const {context}=environment(new Map<string,Value>([["a",1n],["b",2n]]));
+    let current:Expression|undefined;context.position=node=>{current=node;};
+    const cursor=createExpressionContinuation(parseExpression("(a +\n (yield\n b))"),context,budget(),null);
+    expect(cursor.next()).toEqual({done:false,value:2n});expect(current?.kind).toBe("yield");expect(current?.start.line).toBe(2);
+    expect(cursor.next(3n)).toEqual({done:true,value:4n});expect(current?.kind).toBe("binary");expect(current?.start.line).toBe(1);
+  });
   it("retains operands across nested awaits without replaying their sources",()=>{
     const {context,events}=environment(new Map<string,Value>([["a",10n],["b",20n]]));
     context.awaitValue=function*(source){events.push(`await:${source}`);return yield source;};
@@ -456,6 +531,14 @@ describe("expression execution order", () => {
     let expression: Expression = leaf;
     for (let depth = 0; depth < 20000; depth++) expression = { ...leaf, kind: "unary", operator: "+", operand: expression };
     expect(evaluateExpression(expression, environment().context, budget())).toBe(1n);
+  });
+
+  it("tracks deep expression ownership without recursive host calls",()=>{
+    const leaf=parseExpression("1"),{context}=environment();let expression:Expression=leaf,visits=0;
+    for(let depth=0;depth<20000;depth++)expression={...leaf,kind:"unary",operator:"+",operand:expression};
+    context.position=()=>{visits++;};
+    expect(evaluateExpression(expression,context,new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:4000000}))).toBe(1n);
+    expect(visits).toBe(40001);
   });
 
   it("stops before operations on cancellation or step exhaustion", () => {

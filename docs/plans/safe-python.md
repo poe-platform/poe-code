@@ -11060,6 +11060,28 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,852 tests in 527 files (179.96s;
   test bodies 10.98s).
+- Expression execution locations (2026-09-10): failing regressions demonstrated
+  missing source ownership for deferred operators and suspended yield sites.
+  Expression contexts now accept trusted per-frame position bookkeeping, also
+  available through native runtime expression hooks. Observed continuation tasks
+  retain the AST expression that scheduled them and restore that owner before
+  argument collection, calls, operators and other deferred work. Operand errors
+  retain operand locations, skipped branches produce no location visits, and
+  yield/await/delegation retain their owning expression while suspended. Ordinary
+  unobserved continuations do not allocate location records. Added metering for
+  observed task records and cancellation checks around position callbacks.
+  Seventeen tests cover ownership, call/operand failures, logical skipping,
+  suspension/injected errors, callback failures/cancellation, allocation limits,
+  independent native frames and 20,000-deep observed trees without recursion.
+  The focused three-file suite passes 959 tests. All 192 native call-site line
+  comparisons match CPython across multiline calls/arguments, operations,
+  displays, formatted strings, lambdas and comprehensions in module/function
+  scopes. This is AST execution metadata, not a guest tracing API or bytecode
+  location table: statement/control-flow locations, native f_lineno/f_lasti,
+  complete code position tables and automatic traceback capture remain required.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,869 tests in 527 files (182.24s;
+  test bodies 13.29s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

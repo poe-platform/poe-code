@@ -78,7 +78,7 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
   /** Share the execution's canonical code publisher with frame reflection. */
   code?(code:CompiledFunction<RuntimeValue>):RuntimeValue;
-  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "unary" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers" | "subscription" | "mapping" | "percent">;
+  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "position" | "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "unary" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers" | "subscription" | "mapping" | "percent">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
   specialMethods?(frame: RuntimeFrame): RuntimeSpecialMethodContext;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
@@ -404,6 +404,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       } finally {leave();}
     };
     const expressions = createRuntimeExpressionContext(values, {
+      position:expressionHooks.position?.bind(expressionHooks),
       beginMethodCall: expressionHooks.attribute === undefined ? (receiver, name) => {
         const callee = expressions.attribute(receiver, name);
         const descriptor = runtimeDirectMethod(receiver, name, callee, values, meter, builtinCalls);

@@ -82,7 +82,7 @@ export class ClassFrame<Value> extends ExecutionFrame {
       const cell = this.#free.get(key)!;
       return cell.content !== undefined ? cell.content.value : this.#missingFree(key);
     }
-    const global=lookupNamespace(this.namespaces.globals,key);if(global!==undefined)return global.value;
+    const global=lookupNamespace(this.namespaces.globals,key,declaration!=="global"?"intrinsic":undefined);if(global!==undefined)return global.value;
     this.meter.checkpoint();
     const builtin = lookupNamespace(this.namespaces.builtins, key);
     if (builtin !== undefined) return builtin.value;

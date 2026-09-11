@@ -116,15 +116,39 @@ it.each(["eval","exec"] as const)("retains %s dictionary-subclass namespace iden
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("uses subclass global reads, intrinsic writes and deletes, and original frame identity",()=>{
+  const state=exceptionFixture(),{v,meter}=state;
+  state.globals.set("Dict",state.registry.dictionaryType());
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(frame===undefined)throw Error("missing frame");return state.registry.frame(frame as RuntimeFrame);}}));
+  state.builtins.set("check",v.builtinFunction({name:"check",invoke(args,_keywords,_meter,invocation){
+    const object=args[0],names=new RuntimeDictionaryNamespace(object,v,meter,invocation);
+    expect(names.object).toBe(object);
+    names.store("x",v.integer(7));expect(names.lookup("x")?.value).toEqual(v.integer(42));
+    expect(names.lookup("x","intrinsic")?.value).toEqual(v.integer(7));
+    const intrinsic=new RuntimeDictionaryNamespace(object,v,meter);
+    expect(intrinsic.lookup("x","intrinsic")?.value).toEqual(v.integer(7));
+    expect(()=>intrinsic.lookup("x")).toThrow("dictionary-subclass lookup requires invocation context");
+    expect(names.delete("x")).toBe(true);expect(names.delete("x")).toBe(false);
+    expect(names.lookup("absent")).toBeUndefined();
+    expect(()=>names.lookup("failure")).toThrow();
+    names.store("G",object);
+    state.run("global x,correct\nx=9\ndef f():return x\ncorrect=f()==42 and current_frame().f_globals is G\ndel x\n",names);
+    expect(names.lookup("correct")?.value).toBe(v.true);expect(names.delete("x")).toBe(false);
+    return v.none;
+  }}));
+  state.run("class G(Dict):\n def __getitem__(self,key):\n  if key=='x':return 42\n  if key=='failure':raise ValueError('read failure')\n  return Dict.__getitem__(self,key)\n def __setitem__(self,key,value):raise RuntimeError('write override')\n def __delitem__(self,key):raise RuntimeError('delete override')\ng=G()\ncheck(g)\n");
+});
+
 it("selects dynamic execution globals, locals and builtins before compiling source",()=>{
   const state=exceptionFixture(),{v,meter}=state;
+  state.hooks.resolveBuiltins=value=>new RuntimeDictionaryNamespace(value,v,meter);
   const globals=v.dictionary(new OrderedKeyMap(state.keys,meter)),builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));
   for(const [name,value] of state.globals)globals.items.set(v.string(name),value);
   globals.items.set(v.string("B"),builtins);globals.items.set(v.string("SyntaxError"),state.registry.exceptionType("SyntaxError"));
   for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,v,meter,{execute(request,invocation){
     if(invocation===undefined)throw Error("expected invocation");
     const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>globals,locals:()=>globals,builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
-    if(request.source.kind!=="str"||request.closure.kind!=="none"||selected.globals.kind!=="dict")throw Error("fixture supports text and exact dictionary globals");
+    if(request.source.kind!=="str"||request.closure.kind!=="none")throw Error("fixture supports text without closure");
     const source=runtimeCompilationSource(request.source,meter,invocation);if(typeof source!=="string")throw Error("expected text");
     const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
     const localNames=selected.locals.kind==="dict"?new RuntimeDictionaryNamespace(selected.locals,v,meter,invocation):new RuntimeMappingNamespace(selected.locals,v,meter,invocation);
@@ -136,6 +160,9 @@ it("selects dynamic execution globals, locals and builtins before compiling sour
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
   state.run("class Locals:\n def __getitem__(self,key):\n  if key=='x':return 11\n  raise KeyError(key)\ncustom=eval('x+y',g,Locals())\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   expect(globals.items.lookup(v.string("custom"))?.value).toEqual(v.integer(18));
+  globals.items.set(v.string("Dict"),state.registry.dictionaryType());
+  state.run("class G(Dict):\n def __getitem__(self,key):\n  if key=='x':return 42\n  return Dict.__getitem__(self,key)\n def __setitem__(self,key,value):raise RuntimeError('write override')\n def __delitem__(self,key):raise RuntimeError('delete override')\ng=G(x=7,__name__='guest')\nl={}\na=eval('x',g,l)\nb=eval('(lambda:x)()',g,l)\nexec('global x\\nx=9',g,l)\nexec('class C:\\n value=x',g,l)\ncorrect_subclass=a==7 and b==42 and Dict.__getitem__(g,'x')==9 and l['C'].value==9\nexec('global x\\ndel x',g,l)\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct_subclass"))?.value).toBe(v.true);
 });
 
 it("executes guest eval/exec through an explicitly supplied source execution backend",()=>{

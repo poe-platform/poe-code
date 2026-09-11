@@ -1,42 +1,59 @@
 import { PythonRuntimeError } from "./error.js";
 import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
+import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
+import { runtimeGetItem } from "./runtime-subscription.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { LocalNamespace } from "./module-frame.js";
 import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-/** Adapt source-name access to an exact Python dictionary without copying its
- * entries or normalizing names. Source analysis owns identifier normalization
- * and frames own private-name mangling. The same storage can back class locals,
- * builtin lookup and later class attributes. Arbitrary prepared mapping objects
- * require their own protocol adapter; this class does not emulate them.
+/** Dictionary globals use intrinsic writes/deletes but subclass item lookup.
+ * Exact dictionaries also support ordinary locals and builtin namespaces.
+ * Subclass locals require RuntimeMappingNamespace so their writes/deletes use
+ * item slots too. Names are neither copied nor normalized by this adapter.
  */
 export class RuntimeDictionaryNamespace implements LocalNamespace<RuntimeValue> {
+  private readonly storage: DictionaryValue;
   constructor(
-    readonly object: DictionaryValue,
+    readonly object: RuntimeValue,
     private readonly values: RuntimeValues,
     private readonly meter: ExecutionMeter,
-    private readonly invocation?:Pick<BuiltinInvocationContext,"isException">
+    private readonly invocation?:BuiltinInvocationContext|Pick<BuiltinInvocationContext,"isException">
   ) {
-    meter.checkpoint(1, 56);
+    meter.checkpoint(1, 64);
+    const storage = runtimeDictionaryPayload(object);
+    if (storage === undefined) throw new TypeError("dictionary namespace requires dictionary storage");
+    this.storage = storage;
     Object.freeze(this);
   }
 
-  lookup(name: string): { readonly value: RuntimeValue } | undefined {
+  lookup(name: string, access?: "intrinsic"): { readonly value: RuntimeValue } | undefined {
     const key = this.values.string(name);
-    const result = this.object.items.lookup(key);
+    if (this.object.kind !== "dict" && access !== "intrinsic") {
+      const invocation = this.invocation;
+      if (invocation === undefined || !("call" in invocation)) throw new Error("dictionary-subclass lookup requires invocation context");
+      try {
+        const value = runtimeGetItem(this.object, key, this.values, this.meter, invocation);
+        this.meter.checkpoint(1, 16); return { value };
+      } catch (error) {
+        this.meter.checkpoint();
+        if (runtimeExceptionMatches(error, "KeyError", this.invocation)) return undefined;
+        throw error;
+      }
+    }
+    const result = this.storage.items.lookup(key);
     this.meter.checkpoint();
     return result;
   }
 
   store(name: string, value: RuntimeValue): void {
     const key = this.values.string(name);
-    this.object.items.set(key, value);
+    this.storage.items.set(key, value);
     this.meter.checkpoint();
   }
 
   delete(name: string): boolean {
     const key = this.values.string(name);
-    const result = this.object.items.delete(key);
+    const result = this.storage.items.delete(key);
     this.meter.checkpoint();
     return result;
   }

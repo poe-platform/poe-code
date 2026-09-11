@@ -75,7 +75,7 @@ export class ModuleFrame<Value> extends ExecutionFrame {
       if (local !== undefined) return local.value;
       this.meter.checkpoint();
     }
-    const global=lookupNamespace(this.namespaces.globals,name);if(global!==undefined)return global.value;
+    const global=lookupNamespace(this.namespaces.globals,name,!this.#explicitGlobals.has(name)&&this.namespaces.locals?"intrinsic":undefined);if(global!==undefined)return global.value;
     this.meter.checkpoint();
     const builtin = lookupNamespace(this.namespaces.builtins, name);
     if (builtin !== undefined) return builtin.value;

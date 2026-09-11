@@ -12851,6 +12851,22 @@ extension, integration, or validation requirement is missing or unverified.
   thread-pool suite passes 9,041 tests in 597 files (83.56s; bodies 9.48s). Optimized
   caller-local snapshots, canonical backend registration, code/closure handling and
   general globals-subclass namespace adapters remain unfinished integration work.
+- Dictionary-subclass execution namespaces (2026-09-11): reproduced adapter
+  failure on native subclass storage and missing construction validation before
+  implementing payload-backed writes/deletes with original reflected identity.
+  CPython 3.14.7 probes exposed the separate read rules: LOAD_GLOBAL invokes
+  subclass item slots, whereas LOAD_NAME's global fallback and function builtin
+  selection use intrinsic dictionary access. Added explicit intrinsic lookup to
+  namespace adapters and routed module/class fallback and builtin selection
+  accordingly. A failing native eval/exec comparison was reproduced before the
+  fallback fix. Subclass locals retain their separate mapping protocol adapter.
+  Native tests cover overridden reads, missing keys, propagated failures, writes,
+  deletion, function and class access, frame identity and required invocation
+  context. Exact dictionaries retain direct access without guest callbacks.
+  Build, typecheck, scoped lint and whitespace checks pass; the uncached full
+  thread-pool suite passes 9,043 tests in 597 files (69.19s; bodies 8.31s).
+  Canonical dynamic backend registration, optimized default locals, code objects
+  and closure execution remain unfinished; this is not a full eval/exec claim.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

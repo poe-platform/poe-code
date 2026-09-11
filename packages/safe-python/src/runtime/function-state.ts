@@ -56,7 +56,7 @@ export function createFunctionState<Value>(
 ): FunctionState<Value> {
   meter.checkpoint();
   let builtins = context.builtins;
-  const selectedBuiltins=lookupNamespace(context.globals,"__builtins__");
+  const selectedBuiltins=lookupNamespace(context.globals,"__builtins__","intrinsic");
   if (selectedBuiltins!==undefined) {
     if (context.resolveBuiltins === undefined) throw new Error("builtin namespace resolution is unavailable");
     builtins = context.resolveBuiltins(selectedBuiltins.value);

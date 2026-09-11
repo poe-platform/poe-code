@@ -20,6 +20,10 @@ function fixture(signal?: AbortSignal) {
 }
 
 describe("dictionary-backed runtime namespaces", () => {
+  it("rejects values without dictionary storage at construction", () => {
+    const { v, meter } = fixture();
+    expect(() => new RuntimeDictionaryNamespace(v.none, v, meter)).toThrow(TypeError);
+  });
   it("shares live storage while distinguishing missing names from None", () => {
     const { namespace, dictionary, v } = fixture();
     expect(namespace.lookup("x")).toBeUndefined(); namespace.store("x", v.none);

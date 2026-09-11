@@ -10998,6 +10998,26 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,808 tests in 524 files (157.73s;
   test bodies 11.78s).
+- Compiler execution flags (2026-09-10): failing scope/native regressions
+  demonstrated absent co_flags metadata. One metered iterative scope traversal
+  now derives lexical nesting, direct class method and active future-feature
+  flags for the entire program. Function compilation adds argument, execution
+  kind and retained-docstring flags; standalone compilation derives the same
+  ancestry from complete analysis, while legacy partial metadata stays absent
+  rather than inventing flags. Module/class code retains future flags without
+  acquiring function/docstring flags. Native code exposes immutable co_flags.
+  Sixteen new tests cover lexical versus qualified-name ancestry, lambdas inside
+  class comprehensions, future propagation, standalone compilation, generic
+  undefined docstrings, stripping, cancellation and descriptor ownership.
+  All 1,536 compiler comparisons match CPython across signatures, ordinary/async
+  functions, generators, module/class/nested/global scopes, future features and
+  docstring stripping; another 144 lambda/generator-lambda comparisons match
+  across lexical and comprehension nesting. Selected build, typecheck, scoped
+  lint and whitespace checks pass. The final uncached one-worker package suite
+  passes 7,824 tests in 525 files (179.65s; test bodies 10.68s).
+  This does not implement code replacement, dynamically
+  marked iterable coroutines, instruction/location tables, native comprehension
+  code objects or automatic traceback capture.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

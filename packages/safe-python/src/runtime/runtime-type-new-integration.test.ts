@@ -204,6 +204,12 @@ it("shares exact Python dictionary globals across module, function and class exe
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
+it("reflects compiler execution, argument, method, nested and docstring flags",()=>{
+  const state=exceptionFixture(),{v}=state;state.hooks.code=state.registry.code.bind(state.registry);
+  state.run("def f(*args,**kwargs):\n 'doc'\n yield 1\nasync def c():pass\nasync def a():yield 1\nclass C:\n def method(self):pass\ndef outer():\n def inner():pass\n return inner\ncorrect=f.__code__.co_flags==0x400002f and c.__code__.co_flags==0x83 and a.__code__.co_flags==0x203 and C.method.__code__.co_flags==0x8000003 and outer().__code__.co_flags==0x13\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("retains defining filenames when nested functions are created from another program",()=>{
   const state=exceptionFixture(),{v}=state;state.hooks.code=state.registry.code.bind(state.registry);
   state.run("def factory():\n return lambda:1\n",undefined,undefined,"../first/🐍.py");

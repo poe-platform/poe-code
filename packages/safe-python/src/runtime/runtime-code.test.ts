@@ -18,7 +18,7 @@ function fixture(){
   return {controller,meter,v,registry,code,fn,namespaces};
 }
 
-it.each(["co_name","co_qualname","co_filename","co_firstlineno","co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals","co_varnames","co_cellvars","co_freevars"])("publishes owned immutable %s metadata",name=>{
+it.each(["co_name","co_qualname","co_filename","co_flags","co_firstlineno","co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals","co_varnames","co_cellvars","co_freevars"])("publishes owned immutable %s metadata",name=>{
   const s=fixture(),native=s.registry.code(s.code),descriptor=native.type.value.namespace.items.lookup(s.v.string(name))!.value;
   if(descriptor.kind!=="member_descriptor"&&descriptor.kind!=="getset_descriptor")throw Error("expected code descriptor");
   expect(s.registry.code(s.code)).toBe(native);
@@ -26,6 +26,12 @@ it.each(["co_name","co_qualname","co_filename","co_firstlineno","co_argcount","c
   expect(()=>mutateRuntimeGetsetDescriptor(descriptor,native,{kind:"set",value:s.v.none},s.meter)).toThrow(descriptor.kind==="member_descriptor"?"readonly attribute":`attribute '${name}' of 'code' objects is not writable`);
   expect(()=>mutateRuntimeGetsetDescriptor(descriptor,native,{kind:"delete"},s.meter)).toThrow();
   expect(()=>readRuntimeGetsetDescriptor(descriptor,s.v.instance(s.registry.object),native.type,s.meter)).toThrow("doesn't apply to a 'object' object");
+});
+
+it("does not invent flags for legacy manually assembled code",()=>{
+  const s=fixture(),native=s.registry.code({...s.code,flags:undefined}),descriptor=native.type.value.namespace.items.lookup(s.v.string("co_flags"))!.value;
+  if(descriptor.kind!=="member_descriptor")throw Error("expected flags member");
+  expect(()=>readRuntimeGetsetDescriptor(descriptor,native,native.type,s.meter)).toThrow("missing compiler code metadata");
 });
 
 it("does not invent filenames for legacy manually assembled code",()=>{

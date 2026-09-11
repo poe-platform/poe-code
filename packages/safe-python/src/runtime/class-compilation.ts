@@ -5,6 +5,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { CodeConstants } from "./code-constants.js";
 import { compileSuite } from "./suite-compilation.js";
 import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
+import {compileCodeScopeFlags} from "./code-scope-flags.js";
 
 export interface ClassConstants<Value> extends CodeConstants<Value> {
   /** Builtin constant allocation only, without invoking guest conversion hooks. */
@@ -12,6 +13,7 @@ export interface ClassConstants<Value> extends CodeConstants<Value> {
 }
 
 export interface CompiledClassBody<Value> {
+  readonly flags?:number;
   readonly source?:CompilationSource<Value>;
   readonly scope: ResolvedScope;
   readonly qualifiedName: Value;
@@ -29,14 +31,15 @@ export interface CompiledClassBody<Value> {
  * concrete guest code objects remain unfinished.
  */
 export function compileClassBody<Value>(
-  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "staticAttributes">,
-  options: CodeCompilationOptions, constants: ClassConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>
+  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "staticAttributes"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures">>,
+  options: CodeCompilationOptions, constants: ClassConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,flags?:number
 ): CompiledClassBody<Value> {
   meter.checkpoint();
   const node = scope.scope.node;
   if (scope.scope.kind !== "class" || node.kind !== "class") throw new Error("class bodies require a class scope");
   const name = analysis.qualifiedNames.get(scope.scope), attributes = analysis.staticAttributes.get(scope.scope);
   if (name === undefined || attributes === undefined) throw new Error("missing analyzed class metadata");
+  if(flags===undefined&&analysis.scopes!==undefined&&analysis.futureFeatures!==undefined)flags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter).get(scope.scope);
   source??=createCompilationSource(options.filename??"<string>",constants,meter);
   const qualifiedName = constants.string(name);
   meter.checkpoint();
@@ -46,5 +49,5 @@ export function compileClassBody<Value>(
   meter.checkpoint();
   const staticAttributes = constants.tuple(names);
   const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
-  return { source,scope, qualifiedName, firstLine, staticAttributes, ...suite };
+  return { flags,source,scope, qualifiedName, firstLine, staticAttributes, ...suite };
 }

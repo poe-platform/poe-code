@@ -11,8 +11,10 @@ import type { LiteralPool } from "./literal-pool.js";
 import type { ComprehensionNode } from "./comprehension-execution.js";
 import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
 import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
+import {compileCodeScopeFlags} from "./code-scope-flags.js";
 
 export interface CompiledFunction<Value> {
+  readonly flags?:number;
   readonly source?:CompilationSource<Value>;
   /** Real function/lambda code owns this layout; synthetic class code does not. */
   readonly localLayout?:FunctionLocalLayout;
@@ -42,8 +44,8 @@ export interface CompiledFunction<Value> {
  * metadata mutation and complete host allocation accounting remain unfinished.
  */
 export function compileFunction<Value>(
-  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "functionKinds">,
-  options: CodeCompilationOptions, constants: CodeConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>
+  scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "functionKinds"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures">>,
+  options: CodeCompilationOptions, constants: CodeConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,scopeFlags?:number
 ): CompiledFunction<Value> {
   meter.checkpoint();
   const node = scope.scope.node;
@@ -51,6 +53,7 @@ export function compileFunction<Value>(
     throw new Error("function code requires a function or lambda scope");
   const qualified = analysis.qualifiedNames.get(scope.scope), kind = analysis.functionKinds.get(node);
   if (qualified === undefined || kind === undefined) throw new Error("missing analyzed function metadata");
+  if(scopeFlags===undefined&&analysis.scopes!==undefined&&analysis.futureFeatures!==undefined)scopeFlags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter).get(scope.scope);
   source??=createCompilationSource(options.filename??"<string>",constants,meter);
   const name = constants.string(node.kind === "function" ? node.name.name : "<lambda>");
   meter.checkpoint();
@@ -58,7 +61,10 @@ export function compileFunction<Value>(
   meter.checkpoint();
   const firstLine = constants.integer(node.kind === "function" ? node.decorators[0]?.start.line ?? node.start.line : node.start.line);
   const localLayout=compileFunctionLocalLayout(scope,meter);
-  if (node.kind === "lambda") return { source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: undefined, body: { kind: "expression", expression: node.body } };
+  let flags=scopeFlags;
+  if(flags!==undefined)flags|=(localLayout.varPositional?4:0)|(localLayout.varKeyword?8:0)|(kind==="generator"?0x20:kind==="coroutine"?0x80:kind==="async-generator"?0x200:0);
+  if (node.kind === "lambda") return { flags,source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: undefined, body: { kind: "expression", expression: node.body } };
   const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
-  return { source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: suite.docstring, body: { kind: "suite", statements: suite.statements } };
+  if(flags!==undefined&&suite.docstring!==undefined)flags|=0x4000000;
+  return { flags,source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: suite.docstring, body: { kind: "suite", statements: suite.statements } };
 }

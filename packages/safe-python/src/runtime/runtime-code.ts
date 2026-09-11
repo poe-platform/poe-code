@@ -3,7 +3,7 @@ import type {CompiledFunction} from "./function-compilation.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
-const members=["co_name","co_qualname","co_filename","co_firstlineno","co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals"] as const;
+const members=["co_name","co_qualname","co_filename","co_flags","co_firstlineno","co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals"] as const;
 const tuples=["co_varnames","co_cellvars","co_freevars"] as const;
 
 /** Compiler identity and immutable reflected metadata, not a host function. */
@@ -22,6 +22,7 @@ export function createRuntimeCodeState(code:CompiledFunction<RuntimeValue>,value
     ["co_kwonlyargcount",values.integer(layout.keywordOnlyCount)],["co_nlocals",values.integer(layout.variableNames.length)]
   ]);
   if(code.source!==undefined){meter.checkpoint(0,32);fields.set("co_filename",code.source.filename);}
+  if(code.flags!==undefined){meter.checkpoint(0,32);fields.set("co_flags",values.integer(code.flags));}
   for(const [name,names] of [["co_varnames",layout.variableNames],["co_cellvars",layout.cellNames],["co_freevars",layout.freeNames]] as const){
     fields.set(name,values.tuple(names.length,index=>values.string(names[index])));
   }

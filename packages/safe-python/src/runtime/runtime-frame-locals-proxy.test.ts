@@ -75,3 +75,17 @@ it.each([false,true])("checks cancellation after bulk exception wrapping (throws
   context.causeException=()=>{controller.abort();if(throws)throw Error("wrapping failure");return guest;};
   expect(()=>invoke([proxy])).toThrow(ExecutionLimitError);
 });
+
+it.each([false,true])("clears repr guards after callback errors (fatal=%s)",fatal=>{
+  const {context,method,values}=fixture(),repr=method("__repr__"),error=fatal?new ExecutionLimitError("steps"):Error("repr failure");
+  context.formatting!.lookupRepr=()=>()=>{throw error;};
+  expect(()=>repr([])).toThrow(error);
+  context.formatting!.lookupRepr=()=>()=>values.string("recovered");
+  expect(repr([])).toEqual(values.string("recovered"));
+});
+
+it.each([false,true])("observes cancellation after dictionary repr callbacks (throws=%s)",throws=>{
+  const {context,method,values,controller}=fixture(),repr=method("__repr__");
+  context.formatting!.lookupRepr=()=>()=>{controller.abort();if(throws)throw Error("repr failure");return values.string("result");};
+  expect(()=>repr([])).toThrow(ExecutionLimitError);
+});

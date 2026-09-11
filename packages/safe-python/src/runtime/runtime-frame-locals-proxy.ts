@@ -74,8 +74,9 @@ function mergeLocals(state:RuntimeFrameLocalsProxyState,source:RuntimeValue,valu
 }
 
 export function installRuntimeFrameLocalsProxyDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
+  meter.checkpoint(0,64);const representing=new WeakSet<RuntimeValue>();
   owner.value.namespace.items.set(values.string("__hash__"),values.none);
-  const methods=["__getitem__","__setitem__","__delitem__","__contains__","__len__","__iter__","__eq__","__ne__","keys","values","items","copy","get","setdefault","pop","__reversed__","update","__or__","__ror__","__ior__"] as const;
+  const methods=["__getitem__","__setitem__","__delitem__","__contains__","__len__","__iter__","__eq__","__ne__","keys","values","items","copy","get","setdefault","pop","__reversed__","update","__or__","__ror__","__ior__","__repr__"] as const;
   for(const name of methods){
     meter.checkpoint(0,96);
     const wrapper=name.startsWith("__")&&name!=="__getitem__"&&name!=="__contains__"&&name!=="__reversed__";
@@ -90,6 +91,13 @@ export function installRuntimeFrameLocalsProxyDescriptors(owner:TypeValue,values
         }else if(args.length!==count)throw new PythonRuntimeError("TypeError",wrapper?`${name==="__setitem__"?"__setitem__ ":""}expected ${count} argument${count===1?"":"s"}, got ${args.length}`:`FrameLocalsProxy.${name}() takes ${count===1?"exactly one argument":"no arguments"} (${args.length} given)`);
         if(receiver.kind!=="instance"||receiver.native?.kind!=="frame_locals_proxy")throw Error("frame locals proxy requires native storage");
         const state=receiver.native,mapping=state.mapping;
+        if(name==="__repr__"){
+          if(representing.has(receiver))return values.string("{...}");
+          if(!invocation?.formatting)throw Error("frame locals representation requires formatting");
+          meter.checkpoint(0,32);representing.add(receiver);
+          try{return representationObject(copyLocals(state,values,meter,invocation),"repr",invocation.formatting,meter);}
+          finally{representing.delete(receiver);}
+        }
         if(name==="update"||name==="__or__"||name==="__ror__"||name==="__ior__"){
           const source=args[0],supported=runtimeDictionaryPayload(source)!==undefined||(source.kind==="instance"&&source.native?.kind==="frame_locals_proxy");
           if(!supported&&name!=="__ror__"){if(name!=="update")return values.notImplemented;throw new PythonRuntimeError("TypeError","update() argument must be dict or another FrameLocalsProxy");}

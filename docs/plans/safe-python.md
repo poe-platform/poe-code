@@ -10790,6 +10790,21 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker package suite passes 7,705 tests in 519 files (332.75s; test bodies
   17.56s). Repr, native frame construction/exposure and the pending
   augmented-failure distinction remain required.
+- Native frame-locals representation (2026-09-10): two failing native tests
+  established missing dictionary-style repr and callback execution. The proxy
+  now copies its current mapping before formatting and owns a per-proxy recursion
+  guard, so self-references render as {...} while two proxies sharing one frame
+  remain independently guarded. Guard cleanup runs on ordinary errors and host
+  termination; the descriptor's exit checkpoint observes cancellation after
+  successful or failing formatting callbacks. Four direct boundary tests cover
+  cleanup/retry and cancellation; two native tests cover shared-frame cycles,
+  repr failures and mutation of a not-yet-rendered value after the copy.
+  All 343 nested-reference cases and 145 operation/argument checks match CPython
+  (488 total). Selected workspace build, typecheck and scoped lint pass. The
+  final two-file focused route passes 842 tests; this isolated descriptor change
+  uses focused verification rather than a new full-package run and does not
+  modify compiler/program assembly. Native frame exposure/construction and the
+  previously documented augmented-failure distinction remain required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

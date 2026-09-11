@@ -150,6 +150,20 @@ it("supports reflected locals unions with general mappings and live update key l
   for(const name of ["correct","invalid"])expect(state.globals.get(name)).toBe(v.true);
 });
 
+it("represents native locals with per-proxy recursion guards and independent snapshots",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f(x):return x").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  frame.store("x",v.integer(1));state.globals.set("p",state.registry.frameLocalsProxy(frame));state.globals.set("q",state.registry.frameLocalsProxy(frame));
+  state.run("plain=f'{p!r}'\np['self']=p\nrecursive=f'{p!r}'\np['other']=q\nshared=f'{p!r}'\ncorrect=plain==\"{'x': 1}\" and recursive==\"{'x': 1, 'self': {...}}\" and shared==\"{'x': 1, 'self': {...}, 'other': {'x': 1, 'self': {...}, 'other': {...}}}\"\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("clears native locals repr guards after errors and renders the pre-callback copy",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  state.globals.set("p",state.registry.frameLocalsProxy(frame));
+  state.run("class R:\n def __repr__(self):\n  p['later']=9\n  raise ValueError('repr')\np['value']=R()\ntry:text=f'{p!r}'\nexcept ValueError:failed=True\ndel p['value']\nrecovered=f'{p!r}'\ndel p['later']\nclass M:\n def __repr__(self):\n  p['later']=10\n  return 'M'\np['value']=M()\np['later']=9\ntext=f'{p!r}'\ncorrect=failed and recovered==\"{'later': 9}\" and text==\"{'value': M, 'later': 9}\" and p['later']==10\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("reflects live locals through compiled calls, suspension and retained closures",()=>{
   const state=exceptionFixture(),{v}=state,snapshots:Map<string,RuntimeValue>[]=[];
   state.builtins.set("reflect",v.builtinFunction({name:"reflect",invoke(args){

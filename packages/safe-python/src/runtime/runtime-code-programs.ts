@@ -9,7 +9,7 @@ import type {CompiledFunction} from "./function-compilation.js";
  * environment. This is trusted compiler metadata, not a guest security boundary. */
 export class RuntimeCodePrograms {
   readonly #programs=new WeakMap<RuntimeCompiledCode,CompiledProgram<RuntimeValue>>();
-  readonly #moduleFunctions=new WeakMap<RuntimeCompiledCode,CompiledFunction<RuntimeValue>>();
+  readonly #callableAdapters=new WeakMap<RuntimeCompiledCode,CompiledFunction<RuntimeValue>>();
   constructor(private readonly meter:ExecutionMeter,private readonly values:RuntimeValues){meter.checkpoint(1,160);Object.freeze(this);}
 
   register(program:CompiledProgram<RuntimeValue>):void {
@@ -42,13 +42,19 @@ export class RuntimeCodePrograms {
     if("body" in code)return code;
     const program=this.#programs.get(code);
     if(program?.module===code){
-      const existing=this.#moduleFunctions.get(code);if(existing!==undefined)return existing;
+      const existing=this.#callableAdapters.get(code);if(existing!==undefined)return existing;
       this.meter.checkpoint(1,240);
       const name=this.values.string("<module>"),firstLine=this.values.integer(1);
       const result:CompiledFunction<RuntimeValue>={scope:code.scope,source:code.source,flags:code.flags,kind:"function",name,qualifiedName:name,firstLine,docstring:code.docstring,body:{kind:"module",program}};
-      this.meter.checkpoint(1,48);this.#moduleFunctions.set(code,result);return result;
+      this.meter.checkpoint(1,48);this.#callableAdapters.set(code,result);return result;
     }
     const node=code.scope.scope.node;
+    if(node.kind==="comprehension"&&node.collection==="generator"&&"localLayout" in code&&program!==undefined&&program.generatorExpressions?.get(node)===code){
+      const existing=this.#callableAdapters.get(code);if(existing!==undefined)return existing;
+      this.meter.checkpoint(1,320);
+      const result:CompiledFunction<RuntimeValue>={...code,docstring:undefined,body:{kind:"generator-expression",code},definitions:program.functions,classDefinitions:program.classFunctions,literals:program.literals,comprehensions:program.comprehensions,generatorExpressions:program.generatorExpressions};
+      this.meter.checkpoint(1,48);this.#callableAdapters.set(code,result);return result;
+    }
     if(node.kind!=="class")return undefined;
     const wrapper=program?.classFunctions.get(node);
     this.meter.checkpoint();

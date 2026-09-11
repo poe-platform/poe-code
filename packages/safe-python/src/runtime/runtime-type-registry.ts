@@ -553,6 +553,7 @@ export class RuntimeTypeRegistry {
     // Class-body functions and their executed suite share one guest code identity.
     if("body" in code&&code.body.kind==="class")code=code.body.code;
     if("body" in code&&code.body.kind==="module")code=code.body.program.module;
+    if("body" in code&&code.body.kind==="generator-expression")code=code.body.code;
     this.meter.checkpoint();const existing=this.#codes.get(code);if(existing!==undefined)return existing;
     const state=createRuntimeCodeState(code,this.values,this.meter);
     if(this.#codeType===undefined){

@@ -111,6 +111,30 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("retains closure cells and nested definitions in assigned generator-expression code",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("def outer(x):return (lambda:x+y for y in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("GenCode"),state.registry.code([...program.generatorExpressions!.values()][0]));
+  state.run("def outer(z):\n def f(iterator):yield z\n return f\nf=outer(7)\ncells=f.__closure__\nf.__code__=GenCode\na=f((y for y in (2,3)))\nfirst=a.__next__()\ncorrect=first()==9 and f.__closure__ is cells\ncells[0].cell_contents=8\nsecond=a.__next__()\nupdated=first()==11 and second()==11\na.close()\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(globals.items.lookup(v.string("updated"))?.value).toBe(v.true);
+});
+
+it("calls assigned async-generator-expression code without reacquiring its iterator",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("g=(x*2 async for x in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("GenCode"),state.registry.code([...program.generatorExpressions!.values()][0]));
+  state.run("class Input:\n def __init__(self):self.calls=0\n def __aiter__(self):raise RuntimeError('must not reacquire iterator')\n async def __anext__(self):\n  self.calls+=1\n  return self.calls\nasync def f(iterator):yield -1\nf.__code__=GenCode\niterator=Input()\na=f(iterator)\ndeferred=iterator.calls==0\ntry:a.__anext__().send(None)\nexcept StopIteration as error:first=error.value\ncorrect=first==2 and iterator.calls==1 and a.ag_code is GenCode\ntry:a.aclose().send(None)\nexcept StopIteration:closed=True\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  for(const name of ["deferred","correct","closed"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+});
+
+it("calls assigned generator-expression code with a deferred original iterator",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("g=(x*2 for x in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("GenCode"),state.registry.code([...program.generatorExpressions!.values()][0]));
+  state.run("class Input:\n def __init__(self):self.calls=0\n def __iter__(self):raise RuntimeError('must not reacquire iterator')\n def __next__(self):\n  self.calls+=1\n  return self.calls\ndef f(iterator):yield -1\nf.__code__=GenCode\niterator=Input()\na=f(iterator)\ndeferred=iterator.calls==0\ncorrect=a.__next__()==2 and a.__next__()==4 and iterator.calls==2 and a.gi_code is GenCode and f.__code__ is GenCode\nb=f(**{'.0':Input()})\nkeyword=b.__next__()==2\ntry:f()\nexcept TypeError:missing=True\ntry:eval(GenCode)\nexcept TypeError:eval_missing=True\na.close()\nb.close()\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  for(const name of ["deferred","correct","keyword","missing","eval_missing"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+});
+
 it("uses prepared class locals when a builder function contains module code",()=>{
   const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
   state.run("def f():pass\nf.__code__=compile('created=7','builder.py','exec')\nC=__build_class__(f,'C')\ncorrect=C.created==7 and 'created' not in globals()\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));

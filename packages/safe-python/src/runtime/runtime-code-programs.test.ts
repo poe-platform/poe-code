@@ -31,6 +31,15 @@ it("caches module callable adapters retaining the original program and code",()=
   expect(wrapper.source).toBe(program.module.source);expect(registry.functionCode(program.module)).toBe(wrapper);
   expect(registry.functionCode({...program.module})).toBeUndefined();
 });
+it("caches generator-expression adapters with original nested code environments",()=>{
+  const {meter,program,v}=fixture(),registry=new RuntimeCodePrograms(meter,v),code=[...program.generatorExpressions!.values()][0];
+  expect(registry.functionCode(code)).toBeUndefined();registry.register(program);
+  const wrapper=registry.functionCode(code)!;
+  expect(wrapper.body).toEqual({kind:"generator-expression",code});expect(wrapper.kind).toBe(code.kind);
+  expect(wrapper.literals).toBe(program.literals);expect(wrapper.definitions).toBe(program.functions);
+  expect(wrapper.localLayout).toBe(code.localLayout);expect(registry.functionCode(code)).toBe(wrapper);
+  expect(registry.functionCode({...code})).toBeUndefined();
+});
 it("does not publish a module adapter after allocation fails",()=>{
   const {program,v}=fixture();let fail=false;
   const registry=new RuntimeCodePrograms({checkpoint(_steps,bytes=0){if(fail&&bytes)throw new ExecutionLimitError("allocation");}},v);

@@ -216,6 +216,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
         else if (context.exceptions) invocation.suspended = (kind, child, code) => {
+          if(code.body.kind==="generator-expression"){
+            const node=code.body.code.scope.scope.node;
+            if(node.kind!=="comprehension"||node.collection!=="generator")throw Error("generator-expression adapter requires generator code");
+            return generatorComprehension(node,undefined,child,{code,namespaces:child.namespaces});
+          }
           meter.checkpoint(0, 288);
           const origin = fn.value;
           const delegation=new RuntimeGeneratorDelegation(values,context.exceptions!,meter,context.unraisable);
@@ -401,10 +406,15 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     };
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
-    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,source:RuntimeValue,child:LexicalFrame<RuntimeValue>)=>{
+    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,source:RuntimeValue|undefined,child:LexicalFrame<RuntimeValue>,execution?:{readonly code:CompiledFunction<RuntimeValue>;readonly namespaces:LexicalNamespaces<RuntimeValue>})=>{
       if(context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
-      const iterator=node.clauses[0].async?acquireRuntimeAsyncIterator(source,builtinCalls,meter,"async for"):acquireRuntimeIterator(source,values,meter,builtinCalls.iteration);
-      child.store(".0",iterator);
+      if(source!==undefined){
+        const iterator=node.clauses[0].async?acquireRuntimeAsyncIterator(source,builtinCalls,meter,"async for"):acquireRuntimeIterator(source,values,meter,builtinCalls.iteration);
+        child.store(".0",iterator);
+      }
+      meter.checkpoint(0,96);
+      const compiled=execution?.code;
+      const prepareBody=(delegation?:RuntimeGeneratorDelegation)=>body(child,execution?.namespaces??namespaces,compiled?.definitions??functions,compiled?.classDefinitions??classFunctions,compiled===undefined?literals:compiled.literals??null,compiled?.comprehensions??comprehensions,delegation,compiled?.generatorExpressions??generatorExpressions);
       const prepareOuter=(inner:RuntimeStatementContext,delegation?:RuntimeGeneratorDelegation):ComprehensionIterator<RuntimeValue>=>{
         // LOAD_FAST .0 happens once on first execution, not at construction or
         // on subsequent resumes. The active loop then retains its own iterator.
@@ -422,7 +432,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         meter.checkpoint(0,288);
         const delegation=new RuntimeGeneratorDelegation(values,context.exceptions,meter,context.unraisable);
         function* run():Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
-          const context=body(child,namespaces,functions,classFunctions,literals,comprehensions,delegation,generatorExpressions);
+          const context=prepareBody(delegation);
           const outer=prepareOuter(context,delegation),inner=context.suspend();
           yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){yield yield* inner.evaluate(node.element);},meter);
           return values.none;
@@ -434,7 +444,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       return context.exceptions.generator(input=>{
         if(input.kind==="throw")throw input.error;
         if(cursor===undefined){
-          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions),outer=prepareOuter(inner);
+          const inner=prepareBody(),outer=prepareOuter(inner);
           if(outer.kind!=="sync")throw Error("synchronous generator requires a synchronous iterator");
           cursor=new ComprehensionCursor(node.clauses,outer.value,inner,()=>inner.evaluate(node.element),meter);
         }

@@ -67,6 +67,7 @@ export function invokeFunction<Value, Key = string>(
     if (!context.suspended) throw new UnsupportedFunctionExecutionError(code.kind);
     return context.suspended(code.kind, frame, code);
   }
+  if(code.body.kind==="generator-expression")throw Error("generator-expression code requires suspended execution");
   const leave = context.calls.enter(frame);
   try {
     const bodyContext = context.body(frame);

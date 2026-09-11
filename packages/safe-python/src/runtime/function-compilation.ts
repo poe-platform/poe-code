@@ -39,7 +39,8 @@ export interface CompiledFunction<Value> {
   readonly body: { readonly kind: "suite"; readonly statements: readonly Statement[] }
     | { readonly kind: "expression"; readonly expression: Expression }
     | { readonly kind: "class"; readonly code: CompiledClassBody<Value> }
-    | { readonly kind: "module"; readonly program: CompiledProgram<Value> };
+    | { readonly kind: "module"; readonly program: CompiledProgram<Value> }
+    | { readonly kind: "generator-expression"; readonly code: CompiledGeneratorExpression<Value> };
 }
 
 /** Compile function/lambda metadata using exact analyzed identities. Defaults and

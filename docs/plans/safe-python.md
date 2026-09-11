@@ -13127,6 +13127,25 @@ extension, integration, or validation requirement is missing or unverified.
   unfinished, alongside broader interpreter and safe-fs integration. Build,
   typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
   suite passes 9,143 tests in 607 files (111.16s; bodies 11.67s).
+- Callable generator-expression execution (2026-09-11): a failing native
+  assignment scenario established missing generator-expression callable adapters.
+  The execution code registry now caches adapters retaining original code identity,
+  implicit-argument layout, literals and nested definition/comprehension registries.
+  The existing synchronous/asynchronous generator-expression engine handles these
+  calls using the already bound .0 iterator, without invoking __iter__/__aiter__
+  again. Body preparation remains delayed until first resume, using the activation's
+  captured namespaces and originating compiled environment. Canonical gi_code/ag_code
+  reflection unwraps adapters to the original generator-expression code. Native
+  tests cover synchronous/async iteration, deferred work, keyword .0 binding,
+  missing arguments (including eval), close/aclose, shared free-variable cells and
+  nested lambda capture. All three exact scenarios also pass CPython. Registry
+  coverage verifies adapter cache identity and original environment retention;
+  focused checks pass 1,069 tests. Inspection identified the separate missing
+  generator/coroutine __name__/__qualname__ descriptors and function-name retention
+  policy, which remain next work alongside public interpreter/backend registration,
+  audit events and safe-fs integration. Build, typecheck, scoped lint and whitespace
+  checks pass. The uncached full thread-pool suite passes 9,147 tests in 607 files
+  (129.44s; bodies 12.48s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

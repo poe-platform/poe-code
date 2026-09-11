@@ -12642,6 +12642,25 @@ extension, integration, or validation requirement is missing or unverified.
   thread-pool suite passes 8,869 tests in 588 files (64.25s; bodies 7.90s).
   Guest builtin argument binding, dont_inherit/caller extraction, non-future
   compiler flags and interactive single mode remain separate unfinished work.
+- Guest compile builtin adapter (2026-09-11): the new native builtin binds
+  source/filename/mode, optional flags/dont_inherit/optimize and keyword-only
+  _feature_version through explicit filename and compiler capabilities. It
+  preserves source identity, C-int index conversion and filename/flag/truth/
+  optimize/feature conversion order. Caller future bits are queried only when
+  inheritance is enabled; invalid flags, optimize values and modes fail before
+  backend invocation. AST func_type requests are accepted only with ONLY_AST.
+  Missing/duplicate/unexpected keyword precedence, suggestions and None diagnostics
+  were corrected from CPython differential evidence and failing regressions.
+  Final checks preserve cancellation without re-metering an already fatal exit.
+  All twenty builtin tests and 1,046 focused builtin/native integration tests pass.
+  A guest compile call uses the real source compiler and code publisher in the
+  explicit string exec/eval fixture, validating filename and future metadata.
+  All 161 binding/diagnostic cases match CPython. Build, typecheck, scoped lint and
+  whitespace checks pass. The uncached full thread-pool suite passes 8,890 tests
+  in 589 files (71.59s; bodies 9.07s). This is a capability-driven builtin adapter,
+  not completed default backend publication: byte/buffer/AST source handling,
+  filesystem-name policy, single/func_type implementation, non-future flags,
+  optimization policy, caller extraction and guest eval/exec remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

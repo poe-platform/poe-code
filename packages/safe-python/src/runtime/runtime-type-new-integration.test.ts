@@ -10,6 +10,7 @@ import {collectRuntimeTypeParameters} from "./runtime-type-parameters.js";
 import {substituteRuntimeTypeParameters} from "./runtime-type-substitution.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileSourceProgram } from "./source-program-compilation.js";
+import {createCompileBuiltin} from "./builtin-compile.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
@@ -98,6 +99,22 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it("calls compile from guest code and publishes compiler metadata",()=>{
+  const state=exceptionFixture(),{v,meter}=state;
+  state.builtins.set("compile",createCompileBuiltin(v,meter,{
+    filename(value){if(value.kind!=="str")throw Error("fixture requires string filename");return Array.from(value.value,p=>String.fromCodePoint(p)).join("");},
+    inheritedFlags:()=>0x1000000,
+    compile(request){
+      if(request.source.kind!=="str"||(request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires string exec/eval with future flags only");
+      const source=Array.from(request.source.value,p=>String.fromCodePoint(p)).join("");
+      const program=compileSourceProgram(source,{mode:request.mode,filename:request.filename,stripDocstring:request.optimize===2,futureFlags:request.flags,enterRecursiveCall:()=>state.calls.enter(state.globals)},v,meter);
+      return state.registry.code(program.module);
+    }
+  }));
+  state.run("a=compile('1+2','child.py','eval')\nb=compile(source='pass',filename='other.py',mode='exec',dont_inherit=True,optimize=2)\ncorrect=a.co_filename=='child.py' and a.co_name=='<module>' and a.co_flags==16777216 and b.co_filename=='other.py' and b.co_flags==0");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 
 it.each(["1+2","(lambda x:x+1)(2)","(x:=3)"])("returns concrete eval values: %s",source=>{
   const state=fixture();

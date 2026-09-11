@@ -10898,6 +10898,26 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,749 tests in 521 files (154.52s;
   test bodies 9.21s).
+- Native traceback construction (2026-09-10): a failing compiled-program test
+  reproduced the previously non-instantiable traceback type. Added its native
+  __new__ with positional/keyword binding, required-field and total-count
+  diagnostics, exact native frame validation, signed C-int index conversion,
+  and next-link validation after both conversions. The canonical traceback type
+  is now directly publishable through tracebackType(), independently of an
+  existing traceback. Constructor callbacks retain frame/link identity and all
+  failure paths preserve cancellation. Frame diagnostics use CPython's 50-byte
+  type-name limit; next-link and __new__ receiver diagnostics retain full names.
+  Registry construction accepts an optional interpreter line resolver for
+  guest-created tracebacks. Explicit lines need no resolver; lazy -1 lines
+  require the capability and report missing code metadata rather than inventing
+  a result. This does not implement compiler instruction maps or automatic
+  exception attachment. Eleven new tests cover native construction/order,
+  missing metadata, cancellation during callbacks/diagnostics, and explicit
+  constructor receivers. All 909 argument/conversion cases and 96 long-name
+  cases match CPython; the focused two-file suite passes 853 tests.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,760 tests in 521 files (148.86s;
+  test bodies 9.63s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

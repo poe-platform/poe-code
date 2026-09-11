@@ -204,6 +204,14 @@ it("shares exact Python dictionary globals across module, function and class exe
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
+it("constructs native tracebacks with index conversion before next-link validation",()=>{
+  const state=exceptionFixture(),{v,meter,registry}=state;
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);
+  state.globals.set("frame",registry.frame(frame));state.globals.set("Traceback",registry.traceback(new Traceback(null,frame,0,1,meter),()=>null).type);
+  state.run("events=[]\nclass Index:\n def __init__(self,x):self.x=x\n def __index__(self):\n  events.append(self.x)\n  return self.x\na=Traceback(tb_lineno=Index(12),tb_frame=frame,tb_lasti=Index(4),tb_next=None)\nb=Traceback(a,frame,True,False)\ntry:Traceback(1,frame,Index(8),Index(9))\nexcept TypeError as e:error=e.args\ncorrect=a.tb_next is None and a.tb_frame is frame and a.tb_lasti==4 and a.tb_lineno==12 and b.tb_next is a and b.tb_lasti==1 and b.tb_lineno==0 and events==[4,12,8,9] and error==(\"expected traceback object or None, got 'int'\",)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("exposes native traceback identity, saved locations and atomic mutable links",()=>{
   const state=exceptionFixture(),{v,meter,registry}=state;
   state.globals.set("AttributeError",registry.exceptionType("AttributeError"));

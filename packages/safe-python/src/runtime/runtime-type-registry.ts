@@ -7,7 +7,8 @@ import type {LexicalFrame} from "./lexical-frame.js";
 import {installRuntimeFrameLocalsProxyDescriptors} from "./runtime-frame-locals-proxy.js";
 import {installRuntimeFrameDescriptors} from "./runtime-frame.js";
 import {installRuntimeTracebackDescriptors,type RuntimeTracebackState} from "./runtime-traceback.js";
-import type {Traceback} from "./traceback.js";
+import {Traceback} from "./traceback.js";
+import {createTracebackNewBuiltin} from "./builtin-traceback-new.js";
 import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new.js";
 import {RuntimeHashError} from "./runtime-hash-error.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
@@ -132,7 +133,9 @@ export class RuntimeTypeRegistry {
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
 
-  constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
+  constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter,
+    /** Needed for lazy line lookup on guest-constructed tracebacks. */
+    private readonly resolveTracebackLine?:RuntimeTracebackState["resolveLine"]) {
     meter.checkpoint(1, 272);
     this.#entries = new WeakMap();
     const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter, { sequenceTable: false, instanceDictionary: false, weakReferences: false });
@@ -501,16 +504,27 @@ export class RuntimeTypeRegistry {
   /** A traceback's initial publication fixes its interpreter line resolver. */
   traceback(traceback:Traceback<LexicalFrame<RuntimeValue>>,resolveLine:RuntimeTracebackState["resolveLine"]):Extract<RuntimeValue,{kind:"instance"}> {
     this.meter.checkpoint();const existing=this.#tracebacks.get(traceback);if(existing!==undefined)return existing;
+    const type=this.tracebackType();
+    this.meter.checkpoint(0,96);
+    const result=this.values.instance(type,undefined,Object.freeze({kind:"traceback",traceback,resolveLine}));
+    this.#tracebacks.set(traceback,result);return result;
+  }
+
+  tracebackType():TypeValue {
+    this.meter.checkpoint();
     if(this.#tracebackType===undefined){
       const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
-      const layout=new RuntimeTypeLayout("traceback",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+      const layout=new RuntimeTypeLayout("traceback",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
       const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
       installRuntimeTracebackDescriptors(type,this.values,this.meter,this.frame.bind(this),this.traceback.bind(this));
+      const resolveLine:RuntimeTracebackState["resolveLine"]=(frame,instruction)=>{
+        if(this.resolveTracebackLine===undefined)throw Error("traceback line resolution requires interpreter code metadata");
+        return this.resolveTracebackLine(frame,instruction);
+      };
+      namespace.items.set(this.values.string("__new__"),createTracebackNewBuiltin(type,this.values,this.meter,(next,frame,instruction,line)=>this.traceback(new Traceback(next,frame,instruction,line,this.meter),resolveLine)));
       this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#tracebackType=type;
     }
-    this.meter.checkpoint(0,96);
-    const result=this.values.instance(this.#tracebackType,undefined,Object.freeze({kind:"traceback",traceback,resolveLine}));
-    this.#tracebacks.set(traceback,result);return result;
+    return this.#tracebackType;
   }
 
   frame(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {

@@ -3,17 +3,64 @@ import {analyzeModule} from "../analysis.js";
 import {ExecutionBudget,ExecutionLimitError} from "./execution-budget.js";
 import {LexicalFrame} from "./lexical-frame.js";
 import {Traceback} from "./traceback.js";
+import {OrderedKeyMap} from "./ordered-key-map.js";
+import {createTracebackNewBuiltin} from "./builtin-traceback-new.js";
 import {RuntimeTypeRegistry} from "./runtime-type-registry.js";
 import {RuntimeValues,type RuntimeValue,type BuiltinInvocationContext} from "./runtime-values.js";
 import {readRuntimeGetsetDescriptor,mutateRuntimeGetsetDescriptor} from "./runtime-getset-descriptor.js";
 
-function fixture(resolve:(frame:LexicalFrame<RuntimeValue>,instruction:number)=>number|null=()=>null){
+function fixture(resolve:(frame:LexicalFrame<RuntimeValue>,instruction:number)=>number|null=()=>null,constructorResolver?:typeof resolve){
   const controller=new AbortController(),meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000,signal:controller.signal}),v=new RuntimeValues(meter);
-  const keys={hash:()=>1n,equal:(a:RuntimeValue,b:RuntimeValue)=>a.kind==="str"&&b.kind==="str"&&a.value.compare(b.value,meter)===0},registry=new RuntimeTypeRegistry(v,keys,meter);
+  const keys={hash:()=>1n,equal:(a:RuntimeValue,b:RuntimeValue)=>a.kind==="str"&&b.kind==="str"&&a.value.compare(b.value,meter)===0},registry=new RuntimeTypeRegistry(v,keys,meter,constructorResolver);
   const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter),tb=new Traceback(null,frame,4,-1,meter),native=registry.traceback(tb,resolve);
   function descriptor(name:string){const result=native.type.value.namespace.items.lookup(v.string(name))!.value;if(result.kind!=="getset_descriptor"&&result.kind!=="member_descriptor")throw Error("expected traceback descriptor");return result;}
-  return {controller,meter,v,registry,frame,tb,native,descriptor};
+  return {controller,meter,v,registry,frame,tb,native,descriptor,keys};
 }
+
+it.each([false,true])("uses only explicit code metadata for guest-constructed lazy lines (available=%s)",available=>{
+  const s=fixture(undefined,available?()=>77:undefined),create=s.native.type.value.namespace.items.lookup(s.v.string("__new__"))!.value;
+  if(create.kind!=="builtin_function_or_method")throw Error("expected native constructor");
+  const empty=s.v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(s.keys,s.meter));
+  const result=create.value.invoke([s.native.type,s.v.none,s.registry.frame(s.frame),s.v.integer(4),s.v.integer(-1)],empty,s.meter);
+  const read=()=>readRuntimeGetsetDescriptor(s.descriptor("tb_lineno"),result,s.native.type,s.meter);
+  if(available)expect(read()).toEqual(s.v.integer(77));
+  else expect(read).toThrow("traceback line resolution requires interpreter code metadata");
+});
+
+it.each([false,true])("checks constructor cancellation after index callbacks (throws=%s)",throws=>{
+  const s=fixture(),empty=s.v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(s.keys,s.meter));
+  let created=false;
+  const create=createTracebackNewBuiltin(s.native.type,s.v,s.meter,()=>{created=true;return s.v.none;});
+  const context:BuiltinInvocationContext={call(){throw Error("unexpected call");},isStopIteration:()=>false,integerIndex:{integer:()=>undefined,isExactInteger:()=>false,typeName:()=>"test",warn(){throw Error("unexpected warning");},lookupIndex(){s.controller.abort();if(throws)throw Error("index failure");return undefined;}}};
+  expect(()=>create.value.invoke([s.native.type,s.v.none,s.registry.frame(s.frame),s.v.none,s.v.integer(1)],empty,s.meter,context)).toThrow(ExecutionLimitError);
+  expect(created).toBe(false);
+});
+
+it.each([false,true])("checks constructor cancellation after allocation callbacks (throws=%s)",throws=>{
+  const s=fixture(),empty=s.v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(s.keys,s.meter));
+  const create=createTracebackNewBuiltin(s.native.type,s.v,s.meter,()=>{s.controller.abort();if(throws)throw Error("allocation failure");return s.v.none;});
+  expect(()=>create.value.invoke([s.native.type,s.v.none,s.registry.frame(s.frame),s.v.integer(0),s.v.integer(1)],empty,s.meter)).toThrow(ExecutionLimitError);
+});
+
+it.each(["receiver","frame","next"])("checks constructor cancellation during %s diagnostics",position=>{
+  for(const throws of [false,true]){
+    const s=fixture(),empty=s.v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(s.keys,s.meter));
+    let created=false;
+    const create=createTracebackNewBuiltin(s.native.type,s.v,s.meter,()=>{created=true;return s.v.none;});
+    const args=[s.native.type,s.v.none,s.registry.frame(s.frame),s.v.integer(0),s.v.integer(1)];
+    args[position==="receiver"?0:position==="frame"?2:1]=s.v.true;
+    const context:BuiltinInvocationContext={call(){throw Error("unexpected call");},isStopIteration:()=>false,typeName(){s.controller.abort();if(throws)throw Error("name failure");return "bad";}};
+    expect(()=>create.value.invoke(args,empty,s.meter,context)).toThrow(ExecutionLimitError);
+    expect(created).toBe(false);
+  }
+});
+
+it("requires the explicit constructor receiver even with complete keywords",()=>{
+  const s=fixture(),keywords=s.v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(s.keys,s.meter));
+  for(const [key,value] of [["tb_next",s.v.none],["tb_frame",s.registry.frame(s.frame)],["tb_lasti",s.v.integer(0)],["tb_lineno",s.v.integer(1)]] as const)keywords.items.set(s.v.string(key),value);
+  const create=createTracebackNewBuiltin(s.native.type,s.v,s.meter,()=>{throw Error("must not allocate");});
+  expect(()=>create.value.invoke([],keywords,s.meter)).toThrow("traceback.__new__(): not enough arguments");
+});
 
 it("returns None for an unmapped saved instruction and retains initial publication identity",()=>{
   const s=fixture(),line=s.descriptor("tb_lineno");

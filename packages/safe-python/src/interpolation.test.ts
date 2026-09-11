@@ -109,10 +109,11 @@ describe("interpolated string tokenization", () => {
     expect(tokens.filter((token) => token.kind === "newline")).toHaveLength(4);
   });
 
-  it("handles deep nested interpolation with an explicit stack", () => {
+  it("handles the deepest valid interpolation stack and rejects excess nesting", () => {
     let text = "x";
-    for (let depth = 0; depth < 300; depth++) text = `f"{${text}}"`;
-    expect([...lex(text)]).toHaveLength(1203);
+    for (let depth = 0; depth < 149; depth++) text = `f"{${text}}"`;
+    expect([...lex(text)]).toHaveLength(599);
+    expect(()=>[...lex(`f"{${text}}"`)]).toThrow("too many nested f-strings or t-strings");
   });
 
   it("supports format fields nested within other format fields", () => {

@@ -11817,6 +11817,37 @@ extension, integration, or validation requirement is missing or unverified.
   require audit/instrumentation before guest-driven eager compilation is enabled.
   Checked unions and ForwardRef conversion remain unfinished; no unchecked
   parser call was added to guest execution to bypass this safety prerequisite.
+- Lexical depth limits and expression recursion policy (2026-09-11): ten failing
+  tests reproduced acceptance of excessive delimiter/indentation/interpolation
+  nesting, including a host RangeError on 10,000 parentheses. The lexer now
+  enforces CPython's 200 delimiter levels, 100 indentation-stack entries
+  (including the base level) and 150 interpolation-mode entries (including
+  ordinary mode). Replacement-field braces participate in total delimiter depth;
+  literal and field counters are restored as modes close. Excess indentation
+  does not grow state and is attributed to the physical line start. Excess
+  f/t-string nesting is attributed to the final opening quote, including triple
+  quotes. An older test accepting 300 nested f-strings contradicted both CPython
+  compile and tokenize; it now covers the valid 149-level boundary and rejection
+  of the next level. Five additional failing tests reproduced host-stack errors
+  from recursive unary, power and lambda grammar and absent recursion ownership.
+  LexerOptions/TokenCursor now carry an optional host-owned enterRecursiveCall
+  policy; expression parsing restores each successful entry in a finally block.
+  Tests stop 10,000-level inputs at a configured depth and verify restoration
+  after success and syntax/resource errors. This does not impose a new arbitrary
+  recursion limit on existing host parser callers; guest compilation must supply
+  its execution-owned guard. All 102 CPython comparisons pass: 70 ordinary/raw
+  delimiter/indentation/interpolation boundaries and 32 triple-quote boundaries.
+  Another 30 combined delimiter/interpolation cases match the CPython tokenizer.
+  These are lexical comparisons only: compiling some near-limit combinations
+  hits CPython's separate parser-stack MemoryError, whose default compatibility
+  remains to be audited rather than counted as a parsing match.
+  The focused five-file suite passes 153 tests. Build, typecheck, scoped lint
+  and whitespace checks pass. The final uncached one-worker full suite passes
+  8,252 tests in 540 files (125.94s; test bodies 10.66s).
+  AST creation and validation/
+  analysis accounting remain required before enabling guest eager compilation.
+  References: https://raw.githubusercontent.com/python/cpython/v3.14.7/Parser/lexer/lexer.c
+  and https://raw.githubusercontent.com/python/cpython/v3.14.7/Parser/lexer/state.h
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

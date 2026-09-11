@@ -46,6 +46,8 @@ export function parseExpression(text: string, options: LexerOptions = {}): Expre
 
 /** Shared Pratt reader for expression-bearing grammar productions. */
 export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
+  const restore=cursor.enterRecursiveCall?.();
+  try {
   let left = readPrefix(cursor, minimum);
   while (true) {
     const token = cursor.peek();
@@ -84,6 +86,7 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
     };
   }
   return left;
+  } finally {restore?.();}
 }
 
 function readPrefix(cursor: TokenCursor, minimum: number): Expression {

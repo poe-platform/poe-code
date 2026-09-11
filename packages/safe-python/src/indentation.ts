@@ -1,5 +1,6 @@
 import { PythonSource, PythonSyntaxError } from "./source.js";
 import type { SourcePosition } from "./source.js";
+import {maximumIndentationLevels} from "./lexical-limits.js";
 
 export class PythonIndentationError extends PythonSyntaxError {
   constructor(message: string, filename: string, position: SourcePosition) {
@@ -21,7 +22,7 @@ export type IndentationToken = "INDENT" | "DEDENT";
 export class Indentation {
   private readonly levels = [{ width: 0, alternate: 0 }];
 
-  accept(whitespace: string, source: PythonSource): IndentationToken[] {
+  accept(whitespace: string, source: PythonSource,start?:SourcePosition): IndentationToken[] {
     let width = 0;
     let alternate = 0;
     for (const character of whitespace) {
@@ -35,6 +36,7 @@ export class Indentation {
 
     const current = this.levels[this.levels.length - 1];
     if (width > current.width) {
+      if(this.levels.length>=maximumIndentationLevels)throw new PythonIndentationError("too many levels of indentation",source.filename,start??source.position);
       if (alternate <= current.alternate) throw new PythonTabError(source.filename, source.position);
       this.levels.push({ width, alternate });
       return ["INDENT"];

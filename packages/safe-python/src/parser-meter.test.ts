@@ -43,6 +43,19 @@ it("retains ordinary ASTs and source locations with accounting enabled",()=>{
   expect(meter.usage.steps).toBeGreaterThan(source.length);
   expect(meter.usage.allocatedBytes).toBeGreaterThan(0);
 });
+it.each(["unary","power","lambda"])("guards recursive %s grammar before host stack exhaustion",kind=>{
+  const source=kind==="unary"?"-".repeat(10000)+"1":kind==="power"?"1**".repeat(10000)+"1":"lambda:".repeat(10000)+"1";
+  let active=0,maximum=0;
+  const enterRecursiveCall=()=>{if(active===40)throw new ExecutionLimitError("steps");active++;maximum=Math.max(maximum,active);return ()=>{active--;};};
+  expect(()=>parseExpression(source,{enterRecursiveCall})).toThrow(ExecutionLimitError);
+  expect(active).toBe(0);expect(maximum).toBe(40);
+});
+it.each(["1+2*3","(1+)"])("restores recursive parser accounting after %s",source=>{
+  let active=0,entered=0;
+  const enterRecursiveCall=()=>{active++;entered++;return ()=>{active--;};};
+  try{parseExpression(source,{enterRecursiveCall});}catch(error){expect(error).toHaveProperty("name","SyntaxError");}
+  expect(active).toBe(0);expect(entered).toBeGreaterThan(0);
+});
 it.each([
   "x=1\ny=x+2", "if True:\n x=1\nelse:\n x=2", "for x in (1,2):\n pass", "while x:\n break",
   "def f(a:int=1)->str:\n return a", "class C:\n __slots__=('x',)", "async def f():\n await g()",

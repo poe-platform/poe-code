@@ -8,7 +8,7 @@ export function createTokenCursor(text: string, options: LexerOptions = {}): Tok
   options.meter?.checkpoint(1,64);
   const comments: SourceSpan[] = [];
   const tokens = lex(text, { ...options, onComment: span => { options.meter?.checkpoint(1,8);comments.push(span); options.onComment?.(span); } });
-  return new TokenCursor(tokens, options.filename, text, comments,options.meter);
+  return new TokenCursor(tokens, options.filename, text, comments,options.meter,options.enterRecursiveCall);
 }
 
 /** Lazy tokens, retaining consumed tokens only while a grammar alternative needs them. */
@@ -18,7 +18,7 @@ export class TokenCursor {
   private offset = 0;
   private attempts = 0;
   private lexerFailure: unknown;
-  constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = [],private readonly meter?:SourceMeter) {meter?.checkpoint(1,128);}
+  constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = [],private readonly meter?:SourceMeter,readonly enterRecursiveCall?:()=>()=>void) {meter?.checkpoint(1,136);}
 
   /** Retrieve original spelling, excluding lexer-identified comments only. */
   sourceBetween(start: number, end: number): string {

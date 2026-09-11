@@ -10,6 +10,7 @@ import type { StringToken } from "./strings.js";
 import { Interpolation } from "./interpolation.js";
 import type { InterpolatedToken } from "./interpolation.js";
 import type { SourceSpan } from "./ast.js";
+import {maximumDelimiterDepth} from "./lexical-limits.js";
 
 export interface StructuralToken {
   readonly kind: "operator" | "newline" | "indent" | "dedent" | "end";
@@ -23,6 +24,9 @@ export type Token = NameToken | NumberToken | StringToken | StructuralToken | In
 export interface LexerOptions {
   /** Accounts source scanning and parser cursor work, not all AST/analysis work. */
   readonly meter?:SourceMeter;
+  /** Host-owned expression recursion guard. Successful entry returns an
+   * unmetered restoration; resource failures must not be syntax errors. */
+  readonly enterRecursiveCall?:()=>()=>void;
   readonly filename?: string;
   readonly onWarning?: (message: string, position: SourcePosition) => void;
   readonly onComment?: (span: SourceSpan) => void;
@@ -93,7 +97,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     // A backslash may join this prefix to a blank/comment-only physical line.
     // Only a real token makes the logical line's indentation significant.
     if (pendingIndent) {
-      for (const kind of indentation.accept(pendingIndent.text, source)) {
+      for (const kind of indentation.accept(pendingIndent.text, source,pendingIndent.start)) {
         yield kind === "INDENT"
           ? { kind: "indent", ...pendingIndent }
           : { kind: "dedent", text: "", start: source.position, end: source.position };
@@ -125,7 +129,10 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     while (operator && !operators.has(operator)) operator = operator.slice(0, -1);
     if (!operator) throw source.error(`invalid character ${JSON.stringify(character)}`);
     const start = source.position;
-    if (operator === "(" || operator === "[" || operator === "{") delimiters.push({ text: operator, start });
+    if (operator === "(" || operator === "[" || operator === "{") {
+      if(delimiters.length+interpolation.replacementDepth>=maximumDelimiterDepth)throw source.error("too many nested parentheses",start);
+      delimiters.push({ text: operator, start });
+    }
     const opening = closingDelimiters[operator];
     if (opening) {
       if (interpolation.fieldDepth !== undefined && delimiters.length <= interpolation.fieldDepth) {

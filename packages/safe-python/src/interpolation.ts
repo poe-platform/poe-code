@@ -1,6 +1,7 @@
 import type { PythonSource, SourcePosition } from "./source.js";
 import type { StructuralToken } from "./lexer.js";
 import { escapeWarning, readEscape } from "./strings.js";
+import {maximumDelimiterDepth,maximumInterpolatedStringLevels} from "./lexical-limits.js";
 
 export type InterpolatedToken = {
   readonly text: string;
@@ -36,6 +37,10 @@ interface FieldMode {
 /** The outer lexer handles expressions; this stack handles literal/format boundaries. */
 export class Interpolation {
   private readonly modes: Array<QuotedMode | FieldMode> = [];
+  private quotedDepth=0;
+  private fields=0;
+
+  get replacementDepth():number {return this.fields;}
 
   get active(): boolean { return this.modes.length > 0; }
   get inText(): boolean {
@@ -51,10 +56,13 @@ export class Interpolation {
     const start = source.position;
     let prefix = source.advance().toLowerCase();
     if (source.peek() !== "'" && source.peek() !== '"') prefix += source.advance().toLowerCase();
+    let quotePosition=source.position;
     const quote = source.advance();
     const triple = source.peek() === quote && source.peek(1) === quote;
-    if (triple) { source.advance(); source.advance(); }
+    if (triple) { source.advance();quotePosition=source.position; source.advance(); }
     const flavor = prefix.includes("f") ? "fstring" : "tstring";
+    if(this.quotedDepth+1>=maximumInterpolatedStringLevels)throw source.error("too many nested f-strings or t-strings",quotePosition);
+    this.quotedDepth++;
     this.modes.push({ mode: "literal", flavor, quote, triple, raw: prefix.includes("r"), start });
     return { kind: `${flavor}-start`, text: source.text.slice(start.offset, source.position.offset), start, end: source.position };
   }
@@ -67,7 +75,7 @@ export class Interpolation {
     const start = source.position;
     source.advance();
     if (character === ":") mode.mode = "format";
-    else this.modes.pop();
+    else {this.modes.pop();this.fields--;}
     return { kind: "operator", text: character, start, end: source.position };
   }
 
@@ -92,6 +100,7 @@ export class Interpolation {
         source.advance();
         if (owner.triple) { source.advance(); source.advance(); }
         this.modes.pop();
+        this.quotedDepth--;
         return { kind: `${owner.flavor}-end`, text: source.text.slice(start.offset, source.position.offset), start, end: source.position };
       }
       if (character === "\n" && !owner.triple) throw source.error("unterminated interpolated string literal", owner.start);
@@ -102,9 +111,10 @@ export class Interpolation {
         }
         if (character === "}" && mode.mode === "literal") throw source.error("single '}' is not allowed in interpolated strings");
         if (source.position.offset !== start.offset) break;
+        if(character==="{"&&depth+this.fields>=maximumDelimiterDepth)throw source.error("too many nested parentheses",start);
         source.advance();
-        if (character === "{") this.modes.push({ mode: "field", owner, depth, start });
-        else this.modes.pop();
+        if (character === "{") {this.modes.push({ mode: "field", owner, depth, start });this.fields++;}
+        else {this.modes.pop();this.fields--;}
         return { kind: "operator", text: character, start, end: source.position };
       }
       const position = source.position;

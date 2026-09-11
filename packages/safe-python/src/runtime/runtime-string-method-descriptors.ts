@@ -1,7 +1,9 @@
-import type {ExecutionMeter} from "./execution-budget.js";
+import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
 import {runtimeStringPayload} from "./runtime-string-payload.js";
 import {createRuntimeStringCaseMethod} from "./runtime-string-case-method.js";
 import {createRuntimeStringClassificationMethod} from "./runtime-string-classification-method.js";
+import {createRuntimeStringSearchMethod} from "./runtime-string-search-method.js";
+import {createRuntimeStringAffixMethod} from "./runtime-string-affix-method.js";
 import type {RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -26,7 +28,19 @@ const classificationMethods=[
   ["isupper","Return True if the string is an uppercase string, False otherwise.\n\nA string is uppercase if all cased characters in the string are\nuppercase and there is at least one cased character in the string."],
   ["istitle","Return True if the string is a title-cased string, False otherwise.\n\nIn a title-cased string, upper- and title-case characters may only\nfollow uncased characters and lowercase characters only cased ones."]
 ] as const;
-const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const})),...classificationMethods.map(([name,doc])=>({name,doc,kind:"classification" as const}))];
+const searchMethods=[
+  ["find","Return the lowest index in S where substring sub is found, such that sub is contained within S[start:end].\n\nOptional arguments start and end are interpreted as in slice\nnotation.  Return -1 on failure."],
+  ["rfind","Return the highest index in S where substring sub is found, such that sub is contained within S[start:end].\n\nOptional arguments start and end are interpreted as in slice\nnotation.  Return -1 on failure."],
+  ["index","Return the lowest index in S where substring sub is found, such that sub is contained within S[start:end].\n\nOptional arguments start and end are interpreted as in slice\nnotation.  Raises ValueError when the substring is not found."],
+  ["rindex","Return the highest index in S where substring sub is found, such that sub is contained within S[start:end].\n\nOptional arguments start and end are interpreted as in slice\nnotation.  Raises ValueError when the substring is not found."],
+  ["count","Return the number of non-overlapping occurrences of substring sub in string S[start:end].\n\nOptional arguments start and end are interpreted as in slice\nnotation."]
+] as const;
+const affixMethods=[
+  ["startswith","Return True if the string starts with the specified prefix, False otherwise.\n\n  prefix\n    A string or a tuple of strings to try.\n  start\n    Optional start position. Default: start of the string.\n  end\n    Optional stop position. Default: end of the string."],
+  ["endswith","Return True if the string ends with the specified suffix, False otherwise.\n\n  suffix\n    A string or a tuple of strings to try.\n  start\n    Optional start position. Default: start of the string.\n  end\n    Optional stop position. Default: end of the string."]
+] as const;
+const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const})),...classificationMethods.map(([name,doc])=>({name,doc,kind:"classification" as const})),
+  ...searchMethods.map(([name,doc])=>({name,doc,kind:"search" as const})),...affixMethods.map(([name,doc])=>({name,doc,kind:"affix" as const}))];
 export const runtimeStringMethodNames:ReadonlySet<string>=new Set(methods.map(method=>method.name));
 
 /** Canonical descriptors adapt owned subtype storage to the shared Unicode
@@ -37,9 +51,16 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
     meter.checkpoint(0,96);
     owner.value.namespace.items.set(values.string(method.name),values.methodDescriptor({owner,name:method.name,doc:method.doc,accepts:receiver=>runtimeStringPayload(receiver)!==undefined,
       invoke(receiver,positional,keywords,meter,invocation){
-        const payload=runtimeStringPayload(receiver)!;
-        const bound=method.kind==="case"?createRuntimeStringCaseMethod(payload,method.name,values,meter):createRuntimeStringClassificationMethod(payload,method.name,values,meter);
-        return bound.value.invoke(positional,keywords,meter,invocation);
+        let fatal=false;
+        try {
+          const payload=runtimeStringPayload(receiver)!;
+          const bound=method.kind==="case"?createRuntimeStringCaseMethod(payload,method.name,values,meter)
+            :method.kind==="classification"?createRuntimeStringClassificationMethod(payload,method.name,values,meter)
+            :method.kind==="search"?createRuntimeStringSearchMethod(payload,method.name,values,meter,invocation?.integerIndex)
+            :createRuntimeStringAffixMethod(payload,method.name,values,meter,invocation?.integerIndex);
+          return bound.value.invoke(positional,keywords,meter,invocation);
+        } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
+        finally{if(!fatal)meter.checkpoint();}
       }
     }));
   }

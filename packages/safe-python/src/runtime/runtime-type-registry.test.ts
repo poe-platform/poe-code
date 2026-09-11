@@ -35,6 +35,12 @@ describe("canonical runtime type registry", () => {
     expect(registry.nativeType(instance)).toBe(owner);expect(registry.nativeType(owner)).toBe(registry.type);
     expect(registry.nativeType(registry.type)).toBe(registry.type);
   });
+  it.each([["find",false],["find",true],["startswith",false],["startswith",true]] as const)("preserves cancellation from string search index lookup: %s throws=%s",(name,throws)=>{
+    const {registry,values:v}=fixture(),owner=registry.stringType(),slot=owner.value.namespace.items.lookup(v.string(name))?.value;
+    if(slot?.kind!=="method_descriptor")throw Error("expected search descriptor");
+    const controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal}),keywords=v.dictionary(owner.value.namespace.items.emptyCopy());
+    expect(()=>slot.value.invoke(v.string("abc"),[v.string("a"),v.cell({})],keywords,meter,{call(){throw Error("unexpected call");},integerIndex:{integer:()=>undefined,isExactInteger:value=>value.kind==="int",typeName:()=>"Index",warn(){throw Error("unexpected warning");},lookupIndex(){controller.abort();if(throws)throw Error("lookup failed");return ()=>v.integer(0);}}})).toThrow(ExecutionLimitError);
+  });
   it("publishes canonical string allocation and core descriptors atomically",()=>{
     const state=fixture();state.fail(true);expect(()=>state.registry.stringType()).toThrow(ExecutionLimitError);state.fail(false);
     const owner=state.registry.stringType();expect(state.registry.stringType()).toBe(owner);

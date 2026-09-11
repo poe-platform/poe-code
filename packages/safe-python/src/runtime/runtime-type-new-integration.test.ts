@@ -192,6 +192,26 @@ it("honors string method overrides while explicit descriptors inspect native sto
   state.run("class S(str):\n def upper(self):return 'override'\n def isalpha(self):return False\ns=S('abc')\ncorrect=s.upper()=='override' and not s.isalpha() and str.upper(s)=='ABC' and str.isalpha(s)\ns.lower=lambda:'instance'\ninstance=s.lower()=='instance' and str.lower(s)=='abc'\n");
   for(const flag of ["correct","instance"])expect(state.globals.get(flag)).toBe(v.true);
 });
+it.each([["find",1],["rfind",3],["index",1],["rindex",3],["count",2]] as const)("searches canonical string subtype storage and substring arguments: %s",(name,expected)=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):\n def __str__(self):raise AssertionError('conversion')\ns=S('a🐍a🐍')\nneedle=S('🐍')\nresult=s.${name}(needle)\ncorrect=result==${expected} and str.${name}(s,needle,None,2**100)==${expected}\nmetadata=s.${name}.__self__ is s and str.${name}.__objclass__ is str\ntry:str.${name}(1,needle)\nexcept TypeError:receiver=True\ntry:s.${name}(sub=needle)\nexcept TypeError:keyword=True\n`);
+  for(const flag of ["correct","metadata","receiver","keyword"])expect(state.globals.get(flag)).toBe(v.true);
+});
+it.each(["startswith","endswith"])("checks canonical string affixes using lazy native tuple-subclass storage: %s",name=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("tuple",state.registry.tupleType());
+  state.run(`class S(str):\n def __str__(self):raise AssertionError('conversion')\nclass T(tuple):\n def __iter__(self):raise AssertionError('iteration')\ns=S('aba')\ncorrect=s.${name}(T((S('a'),None))) and not str.${name}(s,T((S('z'),)))\nmetadata=s.${name}.__self__ is s and str.${name}.__objclass__ is str\ntry:s.${name}(T((S('z'),None)))\nexcept TypeError:lazy=True\n`);
+  for(const flag of ["correct","metadata","lazy"])expect(state.globals.get(flag)).toBe(v.true);
+});
+it("preserves search and affix argument-validation order around guest index conversion",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("calls=[]\nclass N:\n def __index__(self):\n  calls.append('index')\n  return 0\ntry:str.find('abc',None,N())\nexcept TypeError:search=calls==[]\ntry:str.startswith('abc',None,N())\nexcept TypeError:affix=calls==['index']\nempty=not str.endswith('abc',(),N()) and calls==['index','index']\n");
+  for(const flag of ["search","affix","empty"])expect(state.globals.get(flag)).toBe(v.true);
+});
+it("reports native search argument type names with CPython precision limits",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("C=type('X'*400,(),{})\nx=C()\ntry:str.find('a',x)\nexcept TypeError as e:search=str(e)==\"find() argument 1 must be str, not \"+'X'*50\ntry:str.startswith('a',x)\nexcept TypeError as e:affix=str(e)==\"startswith first arg must be str or a tuple of str, not \"+'X'*100\ntry:str.endswith('a',('z',x))\nexcept TypeError as e:member=str(e)==\"tuple for endswith must only contain str, not \"+'X'*100\n");
+  for(const flag of ["search","affix","member"])expect(state.globals.get(flag)).toBe(v.true);
+});
 it.each(["not-implemented","ellipsis"] as const)("constructs canonical singleton types without creating instances: %s",kind=>{
   const state=exceptionFixture(),value=kind==="ellipsis"?state.v.ellipsis:state.v.notImplemented;
   state.globals.set("singleton",value);

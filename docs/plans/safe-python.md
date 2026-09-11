@@ -13469,6 +13469,27 @@ extension, integration, or validation requirement is missing or unverified.
   string method descriptors and native argument adaptation, codecs, public
   interpreter assembly, imports, safe-fs and broad audits remain unfinished.
   No push or release.
+- Canonical string search/affix descriptors (2026-09-11): published find, rfind,
+  index, rindex, count, startswith and endswith, including CPython documentation.
+  Shared kernels now inspect native string-subclass arguments; affix tuple
+  subclasses use immutable native members without invoking guest iteration.
+  Tuple candidates remain lazily validated. Search needle validation precedes
+  bound conversion, while affix bound conversion precedes candidate inspection.
+  Invalid native argument type names use CPython's 50-byte search and 100-byte
+  affix precision limits. Descriptor dispatch preserves fatal cancellation from
+  guest index callbacks, including callbacks that throw ordinary errors.
+  Nine source integration tests failed before publication; four additional
+  cancellation regressions pass. The index integration fixture now recognizes
+  canonical str while retaining unchanged guest lookup and invocation counts.
+  All 55 focused tests pass. A 4,704-case in-memory CPython matrix has zero result,
+  diagnostic or documentation differences across exact/subtype receivers and
+  arguments, tuple subclasses, Unicode, empty strings and valid/invalid bounds.
+  Two additional CPython source probes pass six checks for side-effect ordering
+  and diagnostic precision. Maintained workspace build, typecheck, scoped lint
+  and whitespace checks pass. The full uncached thread-pool suite passes 9,351
+  tests in 616 files (87.72s; bodies 10.36s). Remaining string methods, codecs,
+  public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
+  No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

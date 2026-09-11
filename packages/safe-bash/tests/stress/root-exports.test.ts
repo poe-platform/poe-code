@@ -17,7 +17,7 @@ test("root exposes delivered wrapper constructors and package subpaths", async (
       import: `./dist/fs/${name}/index.js`,
     });
   }
-  assert.deepEqual(manifest.dependencies ?? {}, {});
+  assert.deepEqual(manifest.dependencies ?? {}, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
   assert.equal(root.createStructuredCommands()[0]?.name, "jq");
 });
 

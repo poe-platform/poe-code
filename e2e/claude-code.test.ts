@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useContainer } from '@poe-code/e2e-test-runner';
+import { useContainer, shellQuote } from '@poe-code/e2e-test-runner';
+import { resolveE2eModel } from './runtime-models.js';
 
 describe('claude-code', () => {
   const container = useContainer({ testName: 'claude-code' });
@@ -19,12 +20,12 @@ describe('claude-code', () => {
     expect(config).not.toHaveProperty('env.ANTHROPIC_CUSTOM_HEADERS');
     expect(config).toHaveProperty('env.ANTHROPIC_BASE_URL');
 
-    const testResult = await container.exec('poe-code test claude-code');
+    const testResult = await container.exec(`poe-code test claude-code --model ${shellQuote(resolveE2eModel('claude-code'))}`);
     expect(testResult).toSucceedWith('Tested Claude Code.');
   });
 
   it('test --isolated', async () => {
-    const result = await container.exec('poe-code test claude-code --isolated');
+    const result = await container.exec(`poe-code test claude-code --isolated --model ${shellQuote(resolveE2eModel('claude-code'))}`);
     expect(result).toSucceedWith('Tested Claude Code.');
   });
 });

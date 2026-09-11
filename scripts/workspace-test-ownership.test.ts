@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 import { workspaceTestExclusions, workspaceUnitSelections } from "./workspace-test-ownership.mjs";
@@ -20,8 +21,29 @@ describe("workspace test ownership", () => {
       selectors: ["packages/example/src", "packages/example/scripts/build.test.ts"],
       exclusions: ["packages/example/src/**", "packages/example/scripts/build.test.ts"],
       passWithNoTests: false,
-      hasHooks: false
+      hasHooks: false,
+      requiresNativePool: false
     }]);
+  });
+
+  for (const option of ["--pool=forks", "--pool forks", "--pool=threads", "--pool=vmThreads", "--pool=vmForks"]) {
+    it(`retains exact ownership with a native pool override: ${option}`, () => {
+      const fileSystem = fixture(`cd ../.. && vitest run packages/example/src/ ${option}`);
+      expect(workspaceTestExclusions("/repo", fileSystem)).toEqual(["packages/example/src/**"]);
+      expect(workspaceUnitSelections("/repo", fileSystem)[0]).toMatchObject({ requiresNativePool: true });
+    });
+  }
+
+  it("keeps the maintained terminal native selection out of root ownership", () => {
+    const root = fileURLToPath(new URL("../", import.meta.url));
+    const selection = workspaceUnitSelections(root).find(value => value.path === "packages/terminal-pilot");
+    expect(selection).toMatchObject({
+      selectors: ["packages/terminal-pilot/src/"],
+      exclusions: ["packages/terminal-pilot/src/**"],
+      hasHooks: true,
+      requiresNativePool: true
+    });
+    expect(workspaceTestExclusions(root)).toContain("packages/terminal-pilot/src/**");
   });
 
   it("preserves the declared empty-selection policy", () => {
@@ -74,6 +96,8 @@ describe("workspace test ownership", () => {
   for (const script of [
     undefined,
     "node --test",
+    "cd ../.. && vitest run packages/example/src --pool=custom",
+    "cd ../.. && vitest run packages/example/src --pool",
     "vitest run --config vitest.config.ts",
     "cd ../.. && vitest run --config custom.config.ts packages/example/src",
     "cd ../.. && vitest run packages/example/src -t selected",

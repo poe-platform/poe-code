@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test, type TestContext } from "node:test";
 import { getEventListeners } from "node:events";
 import { standardCommands } from "../../src/commands/index.js";
-import { browserCommands } from "../../src/browser.js";
+import { agentCommands } from "../../src/index.js";
 import { setup } from "./helpers.js";
 import { tailFollowScheduler } from "../../src/commands/tail-follow.js";
 import { FsError, type ByteSource, type FileSystem } from "../../src/contracts/index.js";
@@ -59,7 +59,7 @@ function fixture() {
 
 for (const browser of [false, true]) test(`actual ${browser ? "browser" : "standard"} tail follow uses retained memory and initial-only output`, async () => {
   const { shell, fs } = setup();
-  shell.use(browser ? browserCommands({ maxTailFollowHandles: 2 }) : standardCommands({ maxTailFollowHandles: 2 }));
+  shell.use(browser ? agentCommands({ maxTailFollowHandles: 2 }) : standardCommands({ maxTailFollowHandles: 2 }));
   await fs.writeFile("/log", new TextEncoder().encode("first\nlast\n"));
   try {
     const result = await shell.exec("tail -F --max-idle=0 -n1 /log");

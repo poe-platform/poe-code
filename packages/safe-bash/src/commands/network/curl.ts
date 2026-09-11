@@ -1,4 +1,4 @@
-import { posix } from "node:path";
+import { normalizePath, posixPath as posix } from "../../contracts/path.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
@@ -7,7 +7,7 @@ import { parseArguments, type CurlArguments } from "./args.js";
 import { createBody, queryData } from "./body.js";
 import { dumpHeaders, responseHeaders, writeOutput, writeOutFormat } from "./output.js";
 import { delay, diagnostic, encode, header, limitsFor, networkError, withSignal } from "./shared.js";
-import { createNodeHttpTransport } from "./transport.js";
+import { createDefaultHttpTransport } from "./platform.js";
 import { CurlError, type HttpHeaders, type HttpResponse, type NetworkCommandsOptions, type NetworkLimits } from "./types.js";
 
 const retryStatuses = new Set([408, 429, 500, 502, 503, 504]);
@@ -37,7 +37,7 @@ function parseUrl(text: string, globoff: boolean, redirect = false): { url: URL;
 }
 
 function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number): HttpHeaders {
-  const defaults: [string, string][] = [["Accept", args.data[0]?.kind === "json" ? "application/json" : "*/*"], ["User-Agent", "virtual-bash-curl/0.0"]];
+  const defaults: [string, string][] = [["Accept", args.data[0]?.kind === "json" ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
   if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${Buffer.from(user).toString("base64")}`]);
   if (scoped && args.bearer !== undefined) {
@@ -71,24 +71,41 @@ function remoteFilename(url: URL): string {
   return name;
 }
 
+interface TransferProfile {
+  readonly name: string;
+  readonly help: string;
+  readonly version: string;
+  parse(context: CommandContext, limits: NetworkLimits): CurlArguments | Promise<CurlArguments>;
+  status(code: number): number;
+}
+
 export function createCurlCommand(options: NetworkCommandsOptions): CommandDefinition {
-  if (typeof options?.authorize !== "function") throw new TypeError("curl requires an explicit network authorizer");
+  return createTransferCommand(options, {
+    name: "curl",
+    help: "Usage: curl [HTTP(S) URL] [-X METHOD] [-H HEADER] [-d DATA] [-L] [-o VFSFILE]\nExplicit host authorization is required. See network/README.md for supported flags and limits.\n",
+    version: "virtual-bash curl 0.0 (HTTP HTTPS; Node streaming transport)\n",
+    parse: (context, limits) => parseArguments(context.args, limits),
+    status: code => code,
+  });
+}
+
+export function createTransferCommand(options: NetworkCommandsOptions, profile: TransferProfile): CommandDefinition {
+  if (typeof options?.authorize !== "function") throw new TypeError(`${profile.name} requires an explicit network authorizer`);
   const limits = limitsFor(options.limits);
-  const transport = options.transport ?? createNodeHttpTransport({ maxHeaderBytes: limits.maxHeaderBytes });
+  const transport = options.transport ?? createDefaultHttpTransport({ maxHeaderBytes: limits.maxHeaderBytes });
   if (typeof transport !== "function") throw new TypeError("Invalid HTTP transport");
   const authorize = options.authorize;
   const executions = new WeakMap<object, number>();
   return {
-    name: "curl",
+    name: profile.name,
     async execute(context) {
       context.signal.throwIfAborted();
       let args: CurlArguments;
       try {
         if (context.args.reduce((size, value) => size + Buffer.byteLength(value), 0) > limits.maxBufferBytes) throw new CurlError(2, "Arguments exceed host buffer limit");
-        args = parseArguments(context.args, limits);
+        args = await profile.parse(context, limits);
         if (args.help || args.version) {
-          await writeBytes(context.stdout, encode(args.version ? "virtual-bash curl 0.0 (HTTP HTTPS; Node streaming transport)\n" :
-            "Usage: curl [HTTP(S) URL] [-X METHOD] [-H HEADER] [-d DATA] [-L] [-o VFSFILE]\nExplicit host authorization is required. See network/README.md for supported flags and limits.\n"), context.signal);
+          await writeBytes(context.stdout, encode(args.version ? profile.version : profile.help), context.signal);
           return { exitCode: 0 };
         }
         for (const url of args.urls) parseUrl(url, args.globoff);
@@ -97,9 +114,9 @@ export function createCurlCommand(options: NetworkCommandsOptions): CommandDefin
         }
       } catch (error) {
         context.signal.throwIfAborted();
-        const failure = error instanceof CurlError ? error : new CurlError(2, "Invalid curl arguments");
-        await diagnostic(context, failure);
-        return { exitCode: failure.exitCode };
+        const failure = error instanceof CurlError ? error : new CurlError(2, `Invalid ${profile.name} arguments`);
+        await diagnostic(context, new CurlError(profile.status(failure.exitCode), failure.message));
+        return { exitCode: profile.status(failure.exitCode) };
       }
       const scope = context.executionScope ?? {};
       let started = executions.get(scope);
@@ -113,9 +130,9 @@ export function createCurlCommand(options: NetworkCommandsOptions): CommandDefin
             try { await deadlineDiagnostic(context, failure, 0); }
             catch (error) { context.signal.throwIfAborted(); if (!(error instanceof CurlError)) throw error; }
           }
-          return { exitCode: failure.exitCode };
+          return { exitCode: profile.status(failure.exitCode) };
         }
-        exitCode = await transfer(context, args, url, limits, transport, authorize, started);
+        exitCode = await transfer(context, args, url, limits, transport, authorize, started, profile.status);
       }
       return { exitCode };
     },
@@ -123,7 +140,7 @@ export function createCurlCommand(options: NetworkCommandsOptions): CommandDefin
 }
 
 async function transfer(context: CommandContext, args: CurlArguments, input: string, limits: NetworkLimits,
-  transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"], started: number): Promise<number> {
+  transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"], started: number, status: (code: number) => number): Promise<number> {
   const start = performance.now();
   const remaining = (): number => Math.min(args.maxTimeMs - (performance.now() - start), limits.maxTotalTimeMs - (performance.now() - started));
   const hasFileOutput = args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
@@ -171,15 +188,15 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       initial.search += `${initial.search ? "&" : "?"}${query.replace(/%[0-9a-f]{2}/gi, escape => escape.toLowerCase())}`;
       body = undefined;
     }
-    const output = args.remoteName ? remoteFilename(initial) : args.output;
+    const output = args.remoteName ? args.directoryIndex && initial.pathname.endsWith("/") ? args.directoryIndex : remoteFilename(initial) : args.output;
     values.filename_effective = output && output !== "-" ? output : "";
     if (output && output !== "-" && args.dumpHeader && args.dumpHeader !== "-" &&
-      posix.resolve(pathOf(context, output)) === posix.resolve(pathOf(context, args.dumpHeader))) {
+      normalizePath(pathOf(context, output)) === normalizePath(pathOf(context, args.dumpHeader))) {
       throw new CurlError(23, "Body and header output files must differ");
     }
     const initialMethod = args.method ?? (args.head ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET");
     requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
-    for (let attempt = 0; attempt <= args.retries; attempt++) {
+    attempts: for (let attempt = 0; attempt <= args.retries; attempt++) {
       values.num_retries = String(attempt);
       downloaded = 0;
       failure = undefined;
@@ -213,12 +230,22 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         const upload: ByteSource | undefined = currentBody && (async function* () {
           for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }
         })();
+        try {
         response = await operation.acquire(async () => {
-          const acquired = await transport({ url: current.href, method, headers, signal,
+          const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head ? "omit" : args.fail ? "omit-on-http-error" : "read",
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}) });
           let cleanup: Promise<void> | undefined;
           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
         }, result => result.dispose());
+        } catch (error) {
+          signal.throwIfAborted();
+          const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+          if (args.retryTransport && (code === "ECONNRESET" || code === "ETIMEDOUT" || code === "EPIPE") && attempt < args.retries) {
+            await delay(args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000), signal);
+            continue attempts;
+          }
+          throw error;
+        }
         const block = responseHeaders(response, limits.maxHeaderBytes);
         headerBytes += block.length;
         if (headerBytes > limits.maxHeaderBytes) throw new CurlError(63, "Combined response headers exceed host byte limit");
@@ -293,7 +320,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         } finally { await writing?.close(); }
       }
       if (retryStatuses.has(response.status) && attempt < args.retries) {
-        if (failure && (!args.silent || args.showError)) await deadlineDiagnostic(context, failure, remaining());
+        if (failure && (!args.silent || args.showError)) await deadlineDiagnostic(context, new CurlError(status(failure.exitCode), failure.message), remaining());
         const after = header(response.headers, "retry-after");
         let wait = args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000);
         if (after !== undefined) {
@@ -326,8 +353,8 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     catch (error) { context.signal.throwIfAborted(); failure = error instanceof CurlError ? error : new CurlError(23, "Failed writing write-out result"); }
   }
   if (failure && (!args.silent || args.showError)) {
-    try { await deadlineDiagnostic(context, failure, remaining()); }
+    try { await deadlineDiagnostic(context, new CurlError(status(failure.exitCode), failure.message), remaining()); }
     catch (error) { context.signal.throwIfAborted(); if (!(error instanceof CurlError)) throw error; failure = error; }
   }
-  return failure?.exitCode ?? (closedOutput ? 141 : 0);
+  return failure ? status(failure.exitCode) : closedOutput ? 141 : 0;
 }

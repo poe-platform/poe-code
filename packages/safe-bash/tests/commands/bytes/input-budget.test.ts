@@ -30,7 +30,7 @@ function definitions(maxInputBytes: number) {
   return createByteCommands({ encoding: { limits: { maxInputBytes } }, checksums: { limits: { maxInputBytes } } });
 }
 
-for (const name of ["base64", "base32", "xxd", "od", "sha256sum", "sha1sum", "md5sum", "cksum"]) {
+for (const name of ["base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha224sum", "sha256sum", "sha1sum", "md5sum", "cksum"]) {
   test(`${name} accepts the exact input cap and rejects the next byte before processing`, async () => {
     const args = name === "base64" || name === "base32" ? ["-di"] : name === "xxd" ? ["-p"] : name === "od" ? ["-An", "-tx1"] : [];
     const commands = definitions(8);
@@ -60,7 +60,7 @@ for (const [name, args] of [["xxd", ["-s9", "-l0"]], ["od", ["-j9", "-N0", "-An"
 
 test("zero-byte limits accept EOF and zero-count commands do not acquire input", async () => {
   const commands = definitions(0);
-  for (const name of ["base64", "base32", "xxd", "od", "sha256sum", "sha1sum", "md5sum", "cksum"]) {
+  for (const name of ["base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha224sum", "sha256sum", "sha1sum", "md5sum", "cksum"]) {
     const empty = (async function* () { yield new Uint8Array(); yield new Uint8Array(); })();
     const result = await run(commands, name, [], empty);
     assert.equal(result.exitCode, 0, result.stderr);
@@ -89,59 +89,62 @@ test("od shares input admission across file operands", async () => {
   assert.deepEqual(opened, ["/first", "/second"]);
 });
 
-test("checksum generation stops acquiring operands after cumulative overflow", async () => {
-  const fs = createMemoryFileSystem();
-  await fs.writeFile("/first", new Uint8Array(4));
-  await fs.writeFile("/second", new Uint8Array(5));
-  await fs.writeFile("/never", new Uint8Array(1));
-  const opened: string[] = [];
-  const read = fs.readStream.bind(fs);
-  fs.readStream = (path, options) => { opened.push(path); return read(path, options); };
-  const result = await run(definitions(8), "sha256sum", ["/first", "/second", "/never"], toByteSource(""), fs);
-  assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /EFBIG/);
-  assert.deepEqual(opened, ["/first", "/second"]);
-  assert.equal(result.stdout.toString().split("\n").filter(Boolean).length, 1);
-});
+for (const algorithm of ["sha512", "sha384", "sha224", "sha256"]) {
+  test(`${algorithm}: checksum generation stops acquiring operands after cumulative overflow`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/first", new Uint8Array(4));
+    await fs.writeFile("/second", new Uint8Array(5));
+    await fs.writeFile("/never", new Uint8Array(1));
+    const opened: string[] = [];
+    const read = fs.readStream.bind(fs);
+    fs.readStream = (path, options) => { opened.push(path); return read(path, options); };
+    const result = await run(definitions(8), `${algorithm}sum`, ["/first", "/second", "/never"], toByteSource(""), fs);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /EFBIG/);
+    assert.deepEqual(opened, ["/first", "/second"]);
+    assert.equal(result.stdout.toString().split("\n").filter(Boolean).length, 1);
+  });
 
-test("checksum manifests and referenced bytes count once toward one exact invocation cap", async () => {
-  const fs = createMemoryFileSystem();
-  const payload = encoder.encode("data");
-  const manifest = encoder.encode(`${createHash("sha256").update(payload).digest("hex")}  /data\n`);
-  await fs.writeFile("/data", payload);
-  await fs.writeFile("/manifest", manifest);
-  const total = manifest.length + payload.length;
-  const exact = await run(definitions(total), "sha256sum", ["-c", "/manifest"], toByteSource(""), fs);
-  assert.equal(exact.exitCode, 0, exact.stderr);
-  assert.equal(exact.stdout.toString(), "/data: OK\n");
-  const overflow = await run(definitions(total - 1), "sha256sum", ["-c", "/manifest"], toByteSource(""), fs);
-  assert.equal(overflow.exitCode, 1);
-  assert.match(overflow.stderr, /EFBIG/);
-});
+  for (const tag of [false, true]) test(`${algorithm}: ${tag ? "tagged" : "default"} manifests and referenced bytes share one exact invocation cap`, async () => {
+    const fs = createMemoryFileSystem();
+    const payload = encoder.encode("data");
+    const digest = createHash(algorithm).update(payload).digest("hex");
+    const manifest = encoder.encode(tag ? `${algorithm.toUpperCase()} (/data) = ${digest}\n` : `${digest}  /data\n`);
+    await fs.writeFile("/data", payload);
+    await fs.writeFile("/manifest", manifest);
+    const total = manifest.length + payload.length;
+    const exact = await run(definitions(total), `${algorithm}sum`, ["-c", "/manifest"], toByteSource(""), fs);
+    assert.equal(exact.exitCode, 0, exact.stderr);
+    assert.equal(exact.stdout.toString(), "/data: OK\n");
+    const overflow = await run(definitions(total - 1), `${algorithm}sum`, ["-c", "/manifest"], toByteSource(""), fs);
+    assert.equal(overflow.exitCode, 1);
+    assert.match(overflow.stderr, /EFBIG/);
+  });
 
-test("checksum budget failure closes paused manifests without pulling or opening later inputs", async () => {
-  const fs = createMemoryFileSystem();
-  const payload = encoder.encode("data");
-  const entry = encoder.encode(`${createHash("sha256").update(payload).digest("hex")}  /data\n`);
-  let closed = false;
-  let resumed = false;
-  const opened: string[] = [];
-  fs.readStream = path => {
-    opened.push(path);
-    if (path === "/data") return toByteSource(payload);
-    if (path !== "/manifest") assert.fail(`unexpected acquisition ${path}`);
-    return (async function* () {
-      try { yield entry; resumed = true; yield entry; }
-      finally { closed = true; }
-    })();
-  };
-  const result = await run(definitions(entry.length + payload.length - 1), "sha256sum", ["-c", "/manifest", "/never"], toByteSource(""), fs);
-  assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /EFBIG/);
-  assert.deepEqual(opened, ["/manifest", "/data"]);
-  assert.equal(resumed, false);
-  assert.equal(closed, true);
-});
+  test(`${algorithm}: checksum budget failure closes paused manifests without pulling or opening later inputs`, async () => {
+    const fs = createMemoryFileSystem();
+    const payload = encoder.encode("data");
+    const entry = encoder.encode(`${algorithm.toUpperCase()} (/data) = ${createHash(algorithm).update(payload).digest("hex")}\n`);
+    let closed = false;
+    let resumed = false;
+    const opened: string[] = [];
+    fs.readStream = path => {
+      opened.push(path);
+      if (path === "/data") return toByteSource(payload);
+      if (path !== "/manifest") assert.fail(`unexpected acquisition ${path}`);
+      return (async function* () {
+        try { yield entry; resumed = true; yield entry; }
+        finally { closed = true; }
+      })();
+    };
+    const result = await run(definitions(entry.length + payload.length - 1), `${algorithm}sum`, ["-c", "/manifest", "/never"], toByteSource(""), fs);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /EFBIG/);
+    assert.deepEqual(opened, ["/manifest", "/data"]);
+    assert.equal(resumed, false);
+    assert.equal(closed, true);
+  });
+}
 
 test("input limits are validated eagerly through direct, family, and aggregate factories", () => {
   for (const maxInputBytes of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {

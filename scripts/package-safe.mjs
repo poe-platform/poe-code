@@ -7,6 +7,8 @@ import semver from "semver";
 import ts from "typescript";
 import { build } from "esbuild";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
+import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
+import { resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 
 export function rewriteModuleSpecifiers(filename, text, rewrite) {
   const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true);
@@ -68,6 +70,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
   }
   const results = [];
   const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
+  const nativeAssets = await exists(path.join(rootDir, "packages/safe-fs/native/assets.json"))
+    ? await readBuiltNativeAssets({ rootDir, files }) : undefined;
   for (const name of ["safe-fs", "safe-js", "safe-bash"]) {
     const packageDir = path.join(rootDir, "packages", name);
     const source = await readJson(path.join(packageDir, "package.json"));
@@ -76,14 +80,24 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     await files.mkdir(directory);
     const pending = [];
     const copied = new Set();
+    if (name === "safe-fs" && nativeAssets) {
+      await copyNativeAssets({ rootDir, files,
+        outDir: path.join(directory, artifactPath(rootDir, path.join(rootDir, "packages/safe-fs/dist"))) });
+      for (const entry of nativeAssets.entries) copied.add(path.join(nativeAssets.directory, entry.name));
+    }
     const dependencies = {};
     const bundled = new Map();
     if (name === "safe-js") {
       const graph = await resolveBundleGraph(rootDir, workspaces, files);
       const alias = Object.fromEntries(Object.entries(graph.alias).map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
-      const entryPoints = Object.fromEntries(Object.entries(source.exports).map(([key, target]) => [key === "." ? "index" : key.slice(2), path.join(packageDir, "src", target.import.slice("./dist/".length, -3) + ".ts")]));
-      const result = await bundle({ absWorkingDir: rootDir, entryPoints, alias, external: [...graph.external, "@poe-platform/safe-fs"], bundle: true, splitting: true, platform: "node", target: "node18.18", format: "esm", outdir: path.join(packageDir, "dist"), chunkNames: "chunks/[name]-[hash]", sourcemap: true, write: false });
+      const entryPoints = Object.fromEntries(Object.entries(source.exports).filter(([key]) => key !== "./workerd").map(([key, target]) => [key === "." ? "index" : key.slice(2), path.join(packageDir, "src", target.import.slice("./dist/".length, -3) + ".ts")]));
+      const external = [...graph.external, "@poe-platform/safe-fs"];
+      const result = await bundle({ absWorkingDir: rootDir, entryPoints, alias, external, bundle: true, splitting: true, platform: "node", target: "node18.18", format: "esm", outdir: path.join(packageDir, "dist"), chunkNames: "chunks/[name]-[hash]", sourcemap: true, write: false });
       for (const output of result.outputFiles) bundled.set(output.path, output.contents);
+      if (source.exports["./workerd"]) {
+        const workerd = await bundle(resolveWorkerdRuntimeBuild(rootDir, { alias, external }));
+        for (const output of workerd.outputFiles) bundled.set(output.path, output.contents);
+      }
     }
     const enqueueExport = value => {
       if (typeof value === "string" && value.startsWith("./")) {
@@ -117,7 +131,6 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         }
         exports[key] = enqueueExport(workspaceTarget(target));
       }
-      if (name === "safe-bash" && root.exports["./safe-bash/browser"]) exports["./browser"] = enqueueExport(root.exports["./safe-bash/browser"]);
       const walk = async directory => {
         for (const entry of await files.readdir(directory, { withFileTypes: true })) {
           const filename = path.join(directory, entry.name);
@@ -148,6 +161,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         contents = rewriteModuleSpecifiers(filename, contents.toString(), specifier => {
           if (specifier.startsWith("node:") || builtinModules.includes(specifier)) {
             if (declaration && ranges["@types/node"]) addDependency("@types/node");
+            return specifier;
+          }
+          if (nativeAssets && specifier === nativeAssets.registry.specifier) {
+            if (name !== "safe-fs") throw new Error("Filesystem implementation leaked into " + name);
             return specifier;
           }
           if (specifier === "#safe-fs-platform") {
@@ -187,6 +204,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       publishConfig: { access: "public" }, dependencies,
     };
     if (name === "safe-fs") manifest.imports = { "#safe-fs-platform": { types: { browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
+    if (name === "safe-fs" && nativeAssets) manifest.imports[nativeAssets.registry.specifier] = nativeImportMapping(nativeAssets.registry,
+      artifactPath(rootDir, path.join(rootDir, "packages/safe-fs/dist")));
     if (name === "safe-js") {
       if (source.bin) manifest.bin = Object.fromEntries(Object.entries(source.bin).map(([command, target]) => [command, "./" + artifactPath(rootDir, path.resolve(packageDir, target))]));
     }

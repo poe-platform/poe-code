@@ -1,3 +1,5 @@
+import { validateUtf8 } from "../utf8.js";
+import { foldAscii } from "../ascii.js";
 import { EreLedger } from "./limits.js";
 import { admitAscii, resolveEreProgram } from "./syntax.js";
 import type { EreNode, EreProgram, EreResult, EreSpan } from "./types.js";
@@ -98,9 +100,78 @@ async function resetDescendants(node: EreNode, previous: readonly (EreSpan | nul
 
 export async function matchEre(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): Promise<EreResult> {
   ledger.check(signal);
-  const root = resolveEreProgram(program, ledger);
+  resolveEreProgram(program, ledger);
   ledger.admitInput("subjectBytes", subject.length, signal);
   await admitAscii(subject, ledger, signal);
+  return runMatcher(program, subject, ledger, signal, 0, true);
+}
+
+/** Owns one validated immutable subject; cursor searches preserve original anchors. */
+export async function createEreSpanMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): Promise<(start: number) => Promise<EreSpan | undefined>> {
+  ledger.check(signal);
+  resolveEreProgram(program, ledger);
+  ledger.admitInput("subjectBytes", subject.length, signal);
+  await admitAscii(subject, ledger, signal);
+  ledger.charge("allocationUnits", 2, signal);
+  return async start => {
+    if (!Number.isSafeInteger(start) || start < 0 || start > subject.length) throw new RangeError("Invalid ERE search cursor");
+    return runMatcher(program, subject, ledger, signal, start, false);
+  };
+}
+
+/** Validated, owned UTF-8 subject with one internal code unit per Unicode scalar. */
+export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
+  ledger.check(signal);
+  ledger.admitInput("subjectBytes", bytes.length, signal);
+  // Logical allocation units per byte: copy 1, offset storage 8, character
+  // slot 1, normalized string 1. Scalar counts never exceed byte counts.
+  ledger.charge("allocationUnits", bytes.length * 11 + 16, signal);
+  ledger.charge("work", bytes.length, signal);
+  const owned = new Uint8Array(bytes);
+  await validateUtf8(owned, ledger, signal);
+  const characters: string[] = [];
+  const offsets: number[] = [];
+  for (let offset = 0; offset < owned.length;) {
+    const first = owned[offset]!;
+    const width = first < 0x80 ? 1 : first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
+    ledger.charge("work", width, signal);
+    await ledger.checkpoint(signal);
+    offsets.push(offset);
+    // ASCII patterns cannot distinguish non-ASCII scalar values. U+0080 is
+    // private matcher input, never reconstructed output or user-visible text.
+    characters.push(String.fromCharCode(first < 0x80 ? first : 128));
+    offset += width;
+  }
+  offsets.push(owned.length);
+  ledger.charge("work", characters.length, signal);
+  await ledger.checkpoint(signal);
+  const subject = characters.join("");
+  return program => {
+    resolveEreProgram(program, ledger);
+    ledger.charge("allocationUnits", 2, signal);
+    return async start => {
+      if (!Number.isSafeInteger(start) || start < 0 || start > owned.length) throw new RangeError("Invalid UTF-8 ERE search cursor");
+      let lower = 0, upper = offsets.length - 1;
+      while (lower < upper) {
+        ledger.charge("work", 1, signal);
+        await ledger.checkpoint(signal);
+        const middle = Math.floor((lower + upper) / 2);
+        if (offsets[middle]! < start) lower = middle + 1;
+        else upper = middle;
+      }
+      if (offsets[lower] !== start) throw new RangeError("UTF-8 ERE cursor must be a scalar boundary");
+      const span = await runMatcher(program, subject, ledger, signal, lower, false);
+      if (!span) return undefined;
+      ledger.charge("allocationUnits", 2, signal);
+      return Object.freeze({ start: offsets[span.start]!, end: offsets[span.end]! });
+    };
+  };
+}
+
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: true): Promise<EreResult>;
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: false): Promise<EreSpan | undefined>;
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: boolean): Promise<EreResult | EreSpan | undefined> {
+  const root = resolveEreProgram(program, ledger);
   const width = program.groups + 1;
   ledger.charge("work", width * 2, signal);
   ledger.charge("allocationUnits", width * 2 + 1, signal);
@@ -117,7 +188,7 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
     ledger.charge("allocationUnits", 5, signal);
     pending.push({ position, task: next, captures, histories });
   };
-  for (let start = 0; start <= subject.length; start++) {
+  for (let start = from; start <= subject.length; start++) {
     push(start, task(() => ({ kind: "node", node: root, next: null })), emptyCaptures, emptyHistories);
     let best: State | undefined;
     while (pending.length > 0) {
@@ -161,7 +232,7 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
         case "literal":
         case "set": {
           const code = subject.charCodeAt(state.position);
-          if (state.position < subject.length && (node.kind === "dot" || node.kind === "literal" && node.code === code || node.kind === "set" && node.members[code])) {
+          if (state.position < subject.length && (node.kind === "dot" || node.kind === "literal" && (node.insensitive ? foldAscii(node.code) === foldAscii(code) : node.code === code) || node.kind === "set" && (code < 128 ? node.members[code] : node.nonAscii))) {
             push(state.position + 1, current.next, state.captures, state.histories);
           }
           break;
@@ -196,6 +267,11 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
       }
     }
     if (best) {
+      if (!materialize) {
+        ledger.charge("allocationUnits", 2, signal);
+        ledger.check(signal);
+        return Object.freeze({ start, end: best.position });
+      }
       ledger.charge("captureSlots", width, signal);
       let bytes = best.position - start;
       for (let group = 1; group < width; group++) {
@@ -221,7 +297,8 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
       return Object.freeze({ matched: true, captures: Object.freeze(captures), values: Object.freeze(values) });
     }
   }
-  ledger.charge("allocationUnits", 3, signal);
   ledger.check(signal);
+  if (!materialize) return undefined;
+  ledger.charge("allocationUnits", 3, signal);
   return Object.freeze({ matched: false, captures: Object.freeze([] as const), values: Object.freeze([] as const) });
 }

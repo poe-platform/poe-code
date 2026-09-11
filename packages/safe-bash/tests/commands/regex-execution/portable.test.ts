@@ -1,18 +1,14 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { Worker } from "node:worker_threads";
-import { test } from "node:test";
+import { createNodeRegexProvider } from "../../../src/node.js";
+import { before, describe, test } from "node:test";
 import { createContext, runInContext } from "node:vm";
 import { fileURLToPath } from "node:url";
 import { build, type BuildOptions } from "esbuild";
-import * as browser from "../../../src/browser.js";
+import * as browser from "../../../src/index.js";
 import * as filesystem from "poe-code/safe-fs/core";
 
-const provider = {
-  createWorker() {
-    return new Worker(new URL("../../../dist/commands/regex-execution/worker.js", import.meta.url), { execArgv: [] });
-  },
-};
+const provider = createNodeRegexProvider();
 
 test("public cooperative ERE primitives enforce shared work budgets and cancellation", async () => {
   const node = await import("../../../src/index.js");
@@ -28,11 +24,12 @@ test("public cooperative ERE primitives enforce shared work budgets and cancella
   await assert.rejects(pending, error => error === reason);
 });
 
-test("portable search pack is public, opt-in, and registers the three commands atomically", async () => {
-  assert.equal(typeof browser.portableSearchCommands, "function");
-  const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(browser.browserCommands());
-  assert.equal((await shell.exec("grep x")).exitCode, 127);
-  shell.use(browser.portableSearchCommands({ provider }));
+test("default preset exposes search commands with explicit Node regex injection", async () => {
+  assert.equal(typeof browser.agentCommands, "function");
+  const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(browser.agentCommands({ regexExecutor: provider }));
+  assert.equal((await shell.exec("grep x", { stdin: "x\n" })).exitCode, 0);
+  assert.equal(shell.commands.list().length, 110);
+  for (const name of ["xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv"]) assert.equal(shell.commands.has(name), true);
   for (const source of ["printf 'first\\nsecond\\n' | grep second", "printf 'first\\nsecond\\n' | rg second", "printf 'first\\nsecond\\n' | sed -n '/second/p'"]) {
     const result = await shell.exec(source);
     assert.equal(result.exitCode, 0, result.stderr);
@@ -41,76 +38,83 @@ test("portable search pack is public, opt-in, and registers the three commands a
   await shell.dispose();
 });
 
-test("portable registration preflights collisions and requires an explicit provider", async () => {
+test("default registration preflights collisions and rejects invalid explicit providers", async () => {
   const commands = new browser.CommandRegistry();
   commands.register({ name: "rg", execute: () => ({ exitCode: 0 }) });
   const host = { commands, use() {}, registerFileSystem() {} };
-  const plugin = browser.portableSearchCommands({ provider });
+  const plugin = browser.agentCommands({ regexExecutor: provider });
   assert.throws(() => plugin.setup(host), /already registered: rg/);
   assert.equal(commands.has("grep"), false);
   assert.equal(commands.has("sed"), false);
   await plugin.dispose?.();
-  const replacement = browser.portableSearchCommands({ provider, replace: true });
+  const replacement = browser.agentCommands({ regexExecutor: provider, replace: true });
   await replacement.setup(host);
   assert.equal(commands.has("grep"), true);
   assert.equal(commands.has("sed"), true);
   await replacement.dispose?.();
-  assert.throws(() => browser.portableSearchCommands({ provider: undefined! }), /bounded regex provider is required/);
+  assert.throws(() => browser.agentCommands({ regexExecutor: null! }), /bounded regex provider is required/);
 });
 
-test("portable commands do not depend on Node globals or Node timer handles", { timeout: 3000 }, async () => {
-  const { resolveBrowserShellBuild } = await import(new URL("../../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href) as { resolveBrowserShellBuild(root: string): BuildOptions };
-  const bundle = await build(resolveBrowserShellBuild(fileURLToPath(new URL("../../../../../", import.meta.url))));
-  const emitted = new Map(bundle.outputFiles!.map(output => [output.path, output.text]));
-  const entry = bundle.outputFiles!.find(output => output.path.endsWith("browser.js"))!;
-  const compiled = await build({
-    entryPoints: [entry.path], bundle: true, platform: "browser", format: "cjs", write: false,
-    plugins: [{
-      name: "emitted-browser-runtime",
-      setup(builder) {
-        builder.onResolve({ filter: /.*/ }, args => {
-          if (args.path === "poe-code/safe-fs/core") return { path: args.path, external: true };
-          const filename = path.resolve(args.resolveDir, args.path);
-          return emitted.has(filename) ? { path: filename, namespace: "emitted-browser" }
-            : { errors: [{ text: `Missing emitted browser module: ${filename}` }] };
-        });
-        builder.onLoad({ filter: /.*/, namespace: "emitted-browser" }, args => ({
-          contents: emitted.get(args.path)!, loader: "js", resolveDir: path.dirname(args.path),
-        }));
+describe("portable browser runtime", () => {
+  let compiledSource: string;
+  before(async () => {
+    const { resolveBrowserShellBuild } = await import(new URL("../../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href) as { resolveBrowserShellBuild(root: string): BuildOptions };
+    const bundle = await build(resolveBrowserShellBuild(fileURLToPath(new URL("../../../../../", import.meta.url))));
+    const emitted = new Map(bundle.outputFiles!.map(output => [output.path, output.text]));
+    const entry = bundle.outputFiles!.find(output => output.path.endsWith("core.browser.js"))!;
+    const compiled = await build({
+      entryPoints: [entry.path], bundle: true, platform: "browser", format: "cjs", write: false,
+      plugins: [{
+        name: "emitted-browser-runtime",
+        setup(builder) {
+          builder.onResolve({ filter: /.*/ }, args => {
+            if (args.path === "poe-code/safe-fs/core") return { path: args.path, external: true };
+            const filename = path.resolve(args.resolveDir, args.path);
+            return emitted.has(filename) ? { path: filename, namespace: "emitted-browser" }
+              : { errors: [{ text: `Missing emitted browser module: ${filename}` }] };
+          });
+          builder.onLoad({ filter: /.*/, namespace: "emitted-browser" }, args => ({
+            contents: emitted.get(args.path)!, loader: "js", resolveDir: path.dirname(args.path),
+          }));
+        },
+      }],
+    });
+    compiledSource = compiled.outputFiles![0]!.text;
+  }, { timeout: 3000 });
+
+  test("portable commands do not depend on Node globals or Node timer handles", { timeout: 3000 }, async () => {
+    const timers = new Map<number, ReturnType<typeof setTimeout>>();
+    let timerId = 0;
+    const sandbox = createContext({
+      TextEncoder, TextDecoder, Uint8Array, Float64Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+      AbortController, AbortSignal, queueMicrotask, performance, canonical: filesystem,
+      setTimeout(callback: () => void, delay: number) {
+        const id = ++timerId;
+        timers.set(id, setTimeout(() => { timers.delete(id); callback(); }, delay));
+        return id;
       },
-    }],
-  });
-  const timers = new Map<number, ReturnType<typeof setTimeout>>();
-  let timerId = 0;
-  const sandbox = createContext({
-    TextEncoder, TextDecoder, Uint8Array, Float64Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, queueMicrotask, performance, canonical: filesystem,
-    setTimeout(callback: () => void, delay: number) {
-      const id = ++timerId;
-      timers.set(id, setTimeout(() => { timers.delete(id); callback(); }, delay));
-      return id;
-    },
-    clearTimeout(id: number) { clearTimeout(timers.get(id)); timers.delete(id); },
-  });
-  const portable = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "poe-code/safe-fs/core") throw new Error(name); return canonical; }; ${compiled.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as typeof browser;
-  assert.equal(runInContext("typeof Buffer + ':' + typeof process", sandbox), "undefined:undefined");
-  const shell = new portable.Shell({ fs: new portable.MemoryFileSystem() }).use(portable.browserCommands()).use(portable.portableSearchCommands({ provider }));
-  try {
-    for (const source of ["printf 'café\\n' | grep 'café'", "printf 'café\\n' | rg --json 'café'", "printf 'café\\n' | sed 's/café/tea/'"]) {
-      const result = await shell.exec(source);
-      assert.equal(result.exitCode, 0, result.stderr);
-      assert.ok(result.stdout.length > 0);
+      clearTimeout(id: number) { clearTimeout(timers.get(id)); timers.delete(id); },
+    });
+    const portable = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "poe-code/safe-fs/core") throw new Error(name); return canonical; }; ${compiledSource}; return module.exports; })()`, sandbox) as typeof browser;
+    assert.equal(runInContext("typeof Buffer + ':' + typeof process", sandbox), "undefined:undefined");
+    const shell = new portable.Shell({ fs: new portable.MemoryFileSystem() }).use(portable.agentCommands({ regexExecutor: provider }));
+    try {
+      for (const source of ["printf 'café\\n' | grep 'café'", "printf 'café\\n' | rg --json 'café'", "printf 'café\\n' | sed 's/café/tea/'"]) {
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.ok(result.stdout.length > 0);
+      }
+    } finally {
+      await shell.dispose();
     }
-  } finally {
-    await shell.dispose();
-  }
+  });
 });
 
 test("portable pack preserves adversarial regex deadlines and sed step budgets", async () => {
-  assert.equal(typeof browser.portableSearchCommands, "function");
+  assert.equal(typeof browser.agentCommands, "function");
   const fs = new browser.MemoryFileSystem();
   await fs.writeFile("/input", new TextEncoder().encode("a".repeat(40) + "!\n"));
-  const shell = new browser.Shell({ fs }).use(browser.portableSearchCommands({ provider, regex: { requestTimeoutMs: 20 }, sed: { maxSteps: 20 } }));
+  const shell = new browser.Shell({ fs }).use(browser.agentCommands({ regexExecutor: provider, regex: { requestTimeoutMs: 20 }, text: { maxSteps: 20 } }));
   for (const source of ["grep -E '(a+)+$' /input", "rg '(a+)+$' /input"]) {
     const result = await shell.exec(source);
     assert.equal(result.exitCode, 2);
@@ -140,13 +144,13 @@ async function capabilityShell(capabilities: browser.FileSystemCapabilities, pat
       };
     },
   });
-  const shell = new browser.Shell({ fs }).use(browser.portableSearchCommands({ provider }));
+  const shell = new browser.Shell({ fs }).use(browser.agentCommands({ regexExecutor: provider }));
   return { shell, backing, calls };
 }
 
 test("portable search help declares separate supported, unsupported, and unknown modes", async () => {
   const commands = new browser.CommandRegistry();
-  const plugin = browser.portableSearchCommands({ provider });
+  const plugin = browser.agentCommands({ regexExecutor: provider });
   await plugin.setup({ commands, use() {}, registerFileSystem() {} });
   try {
     for (const name of ["grep", "rg", "sed"]) {

@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../src/node.js";
 import { CommandRegistry, toByteSource, type ByteSource, type CommandContext, type CommandHandler, type FileSystem } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
@@ -26,7 +27,7 @@ export interface RunOptions {
 export async function run(command: string, args: readonly string[] = [], options: RunOptions = {}) {
   const fs = options.fs ?? await fixture();
   const registry = new CommandRegistry();
-  await standardCommands(options.execute ? { execute: options.execute } : {}).setup({ commands: registry, use() {}, registerFileSystem() {} });
+  await standardCommands({ regexExecutor: createNodeRegexProvider(), ...(options.execute ? { execute: options.execute } : {}) }).setup({ commands: registry, use() {}, registerFileSystem() {} });
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   const context: CommandContext = {

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { collectBytes, toByteSource } from "../../../src/contracts/index.js";
 import { createFetchTransport } from "../../../src/commands/network/index.js";
-import { createFetchTransport as createBrowserFetchTransport, cloudflareWorkerLimits } from "../../../src/browser.js";
+import { createFetchTransport as createBrowserFetchTransport, cloudflareWorkerLimits } from "../../../src/index.js";
 import { CurlError, type HttpResponse } from "../../../src/commands/network/types.js";
 
 test("browser entry exposes Worker-safe transport and limits", () => {

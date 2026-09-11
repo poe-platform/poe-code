@@ -24,8 +24,8 @@ export async function run(args: readonly string[], options: TreeCommandsOptions 
 
 export function quote(value: string): string { return `'${value.replaceAll("'", "'\\''")}'`; }
 
-export async function shellRun(fs: FileSystem, args: readonly string[], options: TreeCommandsOptions = {}) {
-  const shell = new Shell({ fs }).use(treeCommands(options));
+export async function shellRun(fs: FileSystem, args: readonly string[], options: TreeCommandsOptions = {}, cwd = "/") {
+  const shell = new Shell({ fs, cwd }).use(treeCommands(options));
   try { return await shell.exec(`tree ${args.map(quote).join(" ")}`); }
   finally { await shell.dispose(); }
 }

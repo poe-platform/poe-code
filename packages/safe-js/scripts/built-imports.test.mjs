@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+test("built platform resolution does not add a nested canonical filesystem package scope", () => {
+  assert.equal(existsSync(new URL("../dist/package.json", import.meta.url)), false);
+});
 for (const [name, entry] of Object.entries(manifest.exports)) {
   test(`built ${name} export initializes in a fresh native ESM process`, () => {
     const url = new URL(`../${entry.import}`, import.meta.url).href;

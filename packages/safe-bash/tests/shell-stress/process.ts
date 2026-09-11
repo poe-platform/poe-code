@@ -1,9 +1,12 @@
 import { spawn } from "node:child_process";
+import assert from "node:assert/strict";
+import { Writable } from "node:stream";
 
 export interface ProcessOptions {
   readonly cwd?: string;
   readonly env?: NodeJS.ProcessEnv;
   readonly input?: string | Uint8Array;
+  readonly extraInput?: string | Uint8Array;
   readonly timeout: number;
   readonly maxBuffer: number;
 }
@@ -22,7 +25,11 @@ export function isolatedSpawn(command: string, args: readonly string[], options:
   if (!Number.isSafeInteger(options.timeout) || options.timeout < 1) throw new RangeError("Invalid child timeout");
   if (!Number.isSafeInteger(options.maxBuffer) || options.maxBuffer < 1) throw new RangeError("Invalid child output limit");
   return new Promise(resolve => {
-    const child = spawn(command, args, { cwd: options.cwd, env: options.env, detached: true, shell: false, stdio: "pipe" });
+    const child = spawn(command, args, { cwd: options.cwd, env: options.env, detached: true, shell: false, stdio: options.extraInput === undefined ? "pipe" : ["pipe", "pipe", "pipe", "pipe"] });
+    assert.ok(child.stdin && child.stdout && child.stderr);
+    const extra = options.extraInput === undefined ? undefined : child.stdio[3];
+    assert.ok(extra === undefined || extra instanceof Writable);
+    const inputs = extra === undefined ? [child.stdin] : [child.stdin, extra];
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
     let captured = 0;
@@ -40,7 +47,7 @@ export function isolatedSpawn(command: string, args: readonly string[], options:
     const stop = (error: Error) => {
       failure ??= error;
       killGroup();
-      child.stdin.destroy();
+      for (const input of inputs) input.destroy();
       child.stdout.destroy();
       child.stderr.destroy();
     };
@@ -57,8 +64,8 @@ export function isolatedSpawn(command: string, args: readonly string[], options:
     child.stderr.on("data", (chunk: Buffer) => collect(stderr, chunk));
     child.stdout.on("error", stop);
     child.stderr.on("error", stop);
-    child.stdin.on("error", error => {
-      if (!("code" in error && error.code === "EPIPE")) stop(error);
+    for (const input of inputs) input.on("error", error => {
+      if (!("code" in error && (error.code === "EPIPE" || error.code === "ECONNRESET"))) stop(error);
     });
     child.on("error", error => { failure ??= error; });
     child.once("exit", killGroup);
@@ -68,5 +75,6 @@ export function isolatedSpawn(command: string, args: readonly string[], options:
       resolve({ pid: child.pid, status, signal, error: failure, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) });
     });
     child.stdin.end(options.input);
+    extra?.end(options.extraInput);
   });
 }

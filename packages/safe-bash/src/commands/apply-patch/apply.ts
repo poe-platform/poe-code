@@ -88,7 +88,11 @@ class Invocation {
     }
     try { await this.work.fs(target, () => this.context.fs.access(target, 2, { signal: this.context.signal })); }
     catch (error) {
-      if (error instanceof FileFailure && (error.error.code === "ENOTSUP" || error.error.code === "EOPNOTSUPP") && this.context.fs.capabilities.permissions !== true) return;
+      if (error instanceof FileFailure && (error.error.code === "ENOTSUP" || error.error.code === "EOPNOTSUPP")) {
+        const capabilities = await this.work.fs(target, async () =>
+          await this.context.fs.capabilitiesFor?.(target, { signal: this.context.signal }) ?? this.context.fs.capabilities);
+        if (capabilities.permissions !== true) return;
+      }
       throw error;
     }
   }

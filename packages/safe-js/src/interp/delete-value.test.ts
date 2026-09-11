@@ -10,6 +10,8 @@ it.each([
   "return delete (()=>1)",
   "const o={get value(){throw new Error('read')}};return [delete o.value,'value' in o]",
   "const o=null;return delete o?.value",
+  "let evaluations=0;function base(){evaluations++;return null}return [delete base()?.value,evaluations]",
+  "let evaluations=0;function base(){evaluations++;return null}try{return delete base().value}catch(error){return [error.name,evaluations]}",
   "let n=0;const result=delete(n++);return [result,n]",
   "let n=0;const result=delete(n=3);return [result,n]",
   "let n=0;const result=delete (n++,n++);return [result,n]",

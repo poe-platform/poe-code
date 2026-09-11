@@ -1,13 +1,15 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
+import { foldAscii } from "./ascii.js";
 import { yieldTurn } from "../../contracts/yield.js";
-import { matchExprSteps } from "../expr/bre-engine.js";
+import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
 import { EreLedger } from "./ere/limits.js";
 import { compileEre } from "./ere/syntax.js";
-import { matchEre } from "./ere/matcher.js";
-import type { EreProgram } from "./ere/types.js";
+import { prepareUtf8EreSubject } from "./ere/matcher.js";
+import { validateUtf8 } from "./utf8.js";
+import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -19,17 +21,19 @@ export interface BoundedRegexProviderOptions {
   readonly maxWork?: number;
   readonly maxAllocationUnits?: number;
   readonly maxStates?: number;
+  readonly maxMatchesPerLine?: number;
+  readonly maxTotalMatches?: number;
 }
 
 const defaults: Required<BoundedRegexProviderOptions> = Object.freeze({
   maxWorkers: 2, maxPatterns: 32, maxPatternBytes: 8192, maxRows: 128,
   maxInputBytes: 65_536, maxResultBytes: 2048, maxWork: 2_000_000,
-  maxAllocationUnits: 1_000_000, maxStates: 65_536,
+  maxAllocationUnits: 1_000_000, maxStates: 65_536, maxMatchesPerLine: 128, maxTotalMatches: 128,
 });
 const ceilings: Required<BoundedRegexProviderOptions> = Object.freeze({
   maxWorkers: 32, maxPatterns: 128, maxPatternBytes: 65_532, maxRows: 4096,
   maxInputBytes: 1_048_576, maxResultBytes: 65_536, maxWork: 33_554_432,
-  maxAllocationUnits: 4_000_000, maxStates: 65_536,
+  maxAllocationUnits: 4_000_000, maxStates: 65_536, maxMatchesPerLine: 100_000, maxTotalMatches: 100_000,
 });
 
 type SelectionDescriptor = GrepDescriptor | SearchDescriptor;
@@ -38,10 +42,11 @@ interface OwnedRequest {
   readonly descriptor: SelectionDescriptor;
   readonly rows: readonly Row[];
   readonly ledger: EreLedger;
+  readonly limits: Required<BoundedRegexProviderOptions>;
 }
 interface OwnedExprRequest {
   readonly id: number;
-  readonly descriptor: ExprMatchDescriptor;
+  readonly descriptor: ExprMatchDescriptor | BreSearchDescriptor;
   readonly subject: Uint8Array;
   readonly ownedUnits: number;
 }
@@ -102,7 +107,7 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
   record(value, ["kind", "patterns", ...flags, ...(kind.value === "rg" ? ["case"] : [])]);
   for (const flag of flags) if (typeof value[flag] !== "boolean") fail("protocol", `invalid ${flag} flag`);
   if (kind.value === "rg" && !["sensitive", "insensitive", "smart"].includes(value.case as string)) fail("protocol", "invalid case flag");
-  if (value.word || kind.value === "grep" && value.insensitive || kind.value === "rg" && value.case !== "sensitive") fail("unsupported", "only case-sensitive, non-word selection is supported");
+  if (value.word || kind.value === "rg" && value.case !== "sensitive") fail("unsupported", "word matching and rg case-insensitive selection are unsupported");
   if (kind.value === "rg" && !value.fixed) fail("unsupported", "rg regex modes are unsupported; use fixed UTF-8 patterns");
   array(value.patterns, limits.maxPatterns, "pattern");
   let bytes = 0;
@@ -128,7 +133,7 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
       || Object.hasOwn(row, "directory") && typeof row.directory !== "boolean"
       || Object.hasOwn(row, "ancestors") && typeof row.ancestors !== "boolean") fail("protocol", "invalid row");
     if (Object.hasOwn(row, "directory") || Object.hasOwn(row, "ancestors")) fail("unsupported", "glob row flags are unsupported");
-    if (row.all) fail("unsupported", "all-match enumeration is unsupported");
+    if (row.all && selected.kind !== "grep") fail("unsupported", "rg all-match enumeration is unsupported");
     const length = byteLength.call(row.bytes) as number;
     if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
     bytes += length;
@@ -150,9 +155,9 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     const source = new Uint8Array(byteBuffer.call(row.bytes) as ArrayBuffer, byteOffset.call(row.bytes) as number, byteLength.call(row.bytes) as number);
     const copy = new Uint8Array(source.length);
     copy.set(source);
-    rows.push({ bytes: copy, all: false, terminated: row.terminated });
+    rows.push({ bytes: copy, all: row.all, terminated: row.terminated });
   }
-  return { id: input.id, descriptor: ownedDescriptor, rows, ledger };
+  return { id: input.id, descriptor: ownedDescriptor, rows, ledger, limits };
 }
 
 function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedExprRequest {
@@ -160,7 +165,7 @@ function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProvi
   record(input, ["id", "descriptor", "rows"]);
   const selected: unknown = input.descriptor;
   record(selected, ["kind", "pattern", "profile", "limits"]);
-  if (selected.kind !== "expr-match" || selected.profile !== "byte" && selected.profile !== "utf8-scalar") fail("protocol", "invalid expr descriptor");
+  if (selected.kind !== "expr-match" && selected.kind !== "bre-search" || selected.profile !== "byte" && selected.profile !== "utf8-scalar") fail("protocol", "invalid expr descriptor");
   const keys = Object.keys(exprMatchCeilings) as (keyof ExprMatchLimits)[];
   record(selected.limits, keys);
   for (const key of keys) {
@@ -197,12 +202,21 @@ function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProvi
   };
   return {
     id: input.id,
-    descriptor: { kind: "expr-match", pattern: copy(selected.pattern), profile: selected.profile, limits: allowance },
+    descriptor: { kind: selected.kind, pattern: copy(selected.pattern), profile: selected.profile, limits: allowance },
     subject: copy(row.bytes), ownedUnits,
   };
 }
 
-async function executeExpr(input: OwnedExprRequest, signal: AbortSignal): Promise<ExprMatchReply> {
+async function executeExpr(input: OwnedExprRequest, signal: AbortSignal): Promise<ExprMatchReply | BreSearchReply> {
+  if (input.descriptor.kind === "bre-search") {
+    const execution = searchBreSteps(input.descriptor, input.subject, { ownedUnits: input.ownedUnits });
+    while (true) {
+      signal.throwIfAborted();
+      const step = execution.next();
+      if (step.done) return { id: input.id, operation: "bre-search", result: step.value };
+      await yieldTurn(signal);
+    }
+  }
   const execution = matchExprSteps(input.descriptor, input.subject, { asciiOnly: true, ownedUnits: input.ownedUnits });
   while (true) {
     signal.throwIfAborted();
@@ -212,49 +226,43 @@ async function executeExpr(input: OwnedExprRequest, signal: AbortSignal): Promis
   }
 }
 
-async function admitBre(pattern: string, ledger: EreLedger, signal: AbortSignal): Promise<void> {
+async function breFragments(pattern: string, ledger: EreLedger, signal: AbortSignal): Promise<EreFragment[]> {
+  ledger.charge("allocationUnits", 1, signal);
+  const fragments: EreFragment[] = [];
   let bracket = -1;
   let member = false;
   let namedClass = false;
   for (let index = 0; index < pattern.length; index++) {
     ledger.charge("work", 1, signal);
     await ledger.checkpoint(signal);
-    const character = pattern[index]!;
-    if ("\\()+?{}|".includes(character)) fail("unsupported", "BRE escapes, groups and interval/operator extensions are unsupported; use grep -E");
+    let character = pattern[index]!;
+    let literal = false;
     if (bracket >= 0) {
-      if (index === bracket + 1 && character === "^") continue;
-      if (namedClass) {
+      if (index === bracket + 1 && character === "^") {
+        // The initial complement marker is not a bracket member.
+      } else if (namedClass) {
         if (character === "]" && pattern[index - 1] === ":") namedClass = false;
       } else if (character === "]" && member) bracket = -1;
       else if (character === "[" && pattern[index + 1] === ":") namedClass = true;
-      member = true;
-    } else if (character === "[") { bracket = index; member = false; }
+      if (!(index === bracket + 1 && character === "^")) member = true;
+    } else if (character === "\\") {
+      character = pattern[++index]!;
+      ledger.charge("work", 1, signal);
+      if (character === undefined || !"\\.^$[]*".includes(character)) fail("unsupported", "BRE groups, intervals, backreferences and escape extensions are unsupported; use grep -E where applicable");
+      literal = true;
+    } else if ("()+?{}|".includes(character)) literal = true;
+    else if (character === "[") { bracket = index; member = false; }
     else if (character === "^" && index !== 0 || character === "$" && index !== pattern.length - 1) {
       fail("unsupported", "BRE anchors are supported only at record boundaries");
     } else if (character === "*" && (index === 0 || index === 1 && pattern[0] === "^")) {
       fail("unsupported", "BRE leading literal star is unsupported; use fixed matching");
     }
+    ledger.charge("allocationUnits", 4, signal);
+    fragments.push({ text: character, literal });
   }
+  return fragments;
 }
 
-async function validateUtf8(input: Uint8Array | string, ledger: EreLedger, signal: AbortSignal): Promise<void> {
-  for (let index = 0; index < input.length;) {
-    const first = typeof input === "string" ? input.charCodeAt(index) : input[index]!;
-    const width = first < 0x80 ? 1 : first >= 0xc2 && first <= 0xdf ? 2
-      : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 0;
-    ledger.charge("work", Math.max(width, 1), signal);
-    if (first === 0 || width === 0 || width > input.length - index) fail("unsupported", "literal patterns and subjects require valid non-NUL UTF-8 bytes");
-    for (let continuation = 1; continuation < width; continuation++) {
-      const byte = typeof input === "string" ? input.charCodeAt(index + continuation) : input[index + continuation]!;
-      if (byte < 0x80 || byte > 0xbf || continuation === 1 && (
-        first === 0xe0 && byte < 0xa0 || first === 0xed && byte > 0x9f
-        || first === 0xf0 && byte < 0x90 || first === 0xf4 && byte > 0x8f
-      )) fail("unsupported", "literal patterns and subjects require valid non-NUL UTF-8 bytes");
-    }
-    index += width;
-    await ledger.checkpoint(signal);
-  }
-}
 
 async function literalBytes(pattern: string, selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal): Promise<Uint8Array> {
   const { kind } = selected;
@@ -296,11 +304,16 @@ async function literalBytes(pattern: string, selected: SelectionDescriptor, ledg
   return bytes;
 }
 
-interface LiteralProgram { readonly bytes: Uint8Array; readonly fallback: Uint32Array }
+interface LiteralProgram { readonly bytes: Uint8Array; readonly fallback: Uint32Array; readonly insensitive: boolean }
 
-async function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal): Promise<LiteralProgram> {
+async function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal, insensitive = false): Promise<LiteralProgram> {
+  if (insensitive) for (let index = 0; index < bytes.length; index++) {
+    ledger.charge("work", 1, signal);
+    await ledger.checkpoint(signal);
+    bytes[index] = foldAscii(bytes[index]!);
+  }
   ledger.charge("states", bytes.length, signal);
-  ledger.charge("allocationUnits", bytes.length * 4 + 3, signal);
+  ledger.charge("allocationUnits", bytes.length * 4 + 4, signal);
   const fallback = new Uint32Array(bytes.length);
   // KMP failure links bound prefix-heavy matching to linear work per pattern/row.
   for (let index = 1, prefix = 0; index < bytes.length;) {
@@ -310,18 +323,18 @@ async function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: Abor
     else index++;
     await ledger.checkpoint(signal);
   }
-  return { bytes, fallback };
+  return { bytes, fallback, insensitive };
 }
 
-async function literalStart(program: LiteralProgram, subject: Uint8Array, whole: boolean, ledger: EreLedger, signal: AbortSignal): Promise<number> {
+async function literalStart(program: LiteralProgram, subject: Uint8Array, whole: boolean, ledger: EreLedger, signal: AbortSignal, from = 0): Promise<number> {
   const { bytes, fallback } = program;
   ledger.charge("work", 1, signal);
   await ledger.checkpoint(signal);
-  if (whole && bytes.length !== subject.length || bytes.length > subject.length) return -1;
-  if (bytes.length === 0) return 0;
-  for (let index = 0, prefix = 0; index < subject.length;) {
+  if (whole && (from !== 0 || bytes.length !== subject.length) || bytes.length > subject.length - from) return -1;
+  if (bytes.length === 0) return from;
+  for (let index = from, prefix = 0; index < subject.length;) {
     ledger.charge("work", 1, signal);
-    if (subject[index] === bytes[prefix]) {
+    if ((program.insensitive ? foldAscii(subject[index]!) : subject[index]) === bytes[prefix]) {
       index++;
       if (++prefix === bytes.length) return index - prefix;
     } else if (prefix > 0) prefix = fallback[prefix - 1]!;
@@ -331,15 +344,68 @@ async function literalStart(program: LiteralProgram, subject: Uint8Array, whole:
   return -1;
 }
 
+interface Span { readonly start: number; readonly end: number }
+interface MatchUsage { count: number }
+
+async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from: number) => Promise<Span | undefined>)[], usage: MatchUsage, signal: AbortSignal): Promise<Float64Array> {
+  const { ledger, limits } = input;
+  ledger.charge("allocationUnits", finders.length + 2, signal);
+  const cached: (Span | null | undefined)[] = new Array(finders.length);
+  const ranges: number[] = [];
+  for (let from = 0; from <= row.bytes.length;) {
+    let best: Span | undefined;
+    for (let index = 0; index < finders.length; index++) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      let candidate = cached[index];
+      if (candidate === undefined || candidate !== null && candidate.start < from) {
+        candidate = await finders[index]!(from) ?? null;
+        cached[index] = candidate;
+      }
+      if (candidate && (!best || candidate.start < best.start || candidate.start === best.start && candidate.end > best.end)) best = candidate;
+    }
+    if (!best) break;
+    if (ranges.length / 2 >= limits.maxMatchesPerLine) fail("limit", "matches per line limit exceeded");
+    if (usage.count >= limits.maxTotalMatches) fail("limit", "total match limit exceeded");
+    if (usage.count >= Math.floor(limits.maxResultBytes / 16)) fail("limit", "result byte limit exceeded");
+    ledger.charge("work", 2, signal);
+    // Charge temporary number pairs and the final Float64Array before retaining either.
+    ledger.charge("allocationUnits", 24, signal);
+    usage.count++;
+    ranges.push(best.start, best.end);
+    if (best.end > best.start) from = best.end;
+    else {
+      const byte = row.bytes[best.end];
+      from = best.end + (byte === undefined || byte < 0x80 ? 1 : byte < 0xe0 ? 2 : byte < 0xf0 ? 3 : 4);
+    }
+  }
+  ledger.charge("work", ranges.length, signal);
+  await ledger.checkpoint(signal);
+  return new Float64Array(ranges);
+}
+
 async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
   const programs: LiteralProgram[] = [];
   for (const pattern of selected.patterns) {
-    programs.push(await compileLiteral(await literalBytes(pattern, selected, ledger, signal), ledger, signal));
+    programs.push(await compileLiteral(await literalBytes(pattern, selected, ledger, signal), ledger, signal, selected.kind === "grep" && selected.insensitive));
   }
+  ledger.charge("allocationUnits", 3, signal);
   const results: Float64Array[] = [];
+  const usage: MatchUsage = { count: 0 };
   for (const row of rows) {
     await validateUtf8(row.bytes, ledger, signal);
+    if (row.all) {
+      ledger.charge("allocationUnits", programs.length * 2, signal);
+      const finders = programs.map(program => async (from: number): Promise<Span | undefined> => {
+        const start = await literalStart(program, row.bytes, selected.whole, ledger, signal, from);
+        if (start < 0) return undefined;
+        ledger.charge("allocationUnits", 2, signal);
+        return { start, end: start + program.bytes.length };
+      });
+      results.push(await enumerate(input, row, finders, usage, signal));
+      continue;
+    }
     let start = -1;
     let end = -1;
     for (const program of programs) {
@@ -349,6 +415,10 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise
       if (selected.kind === "grep") break;
     }
     signal.throwIfAborted();
+    if (start >= 0) {
+      if (usage.count >= input.limits.maxTotalMatches || usage.count >= Math.floor(input.limits.maxResultBytes / 16)) fail("limit", "total match or result byte limit exceeded");
+      usage.count++;
+    }
     results.push(start < 0 ? new Float64Array() : new Float64Array([start, end]));
   }
   return { id: input.id, results };
@@ -359,36 +429,44 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
   if (selected.fixed) return executeLiteral(input, signal);
   const programs: EreProgram[] = [];
   for (const pattern of selected.patterns) {
-    if (selected.kind === "grep" && !selected.fixed && !selected.extended) await admitBre(pattern, ledger, signal);
     if (selected.kind === "rg" && !selected.nullData && pattern.includes("\n")) fail("unsupported", "rg multiline matching is unsupported");
     ledger.charge("allocationUnits", (selected.whole ? 3 : 1) * 3 + 2, signal);
-    const fragments = selected.whole
-      ? [{ text: "^(", literal: false }, { text: pattern, literal: selected.fixed }, { text: ")$", literal: false }]
-      : [{ text: pattern, literal: selected.fixed }];
-    programs.push(await compileEre(fragments, ledger, signal));
-  }
-  const results: Float64Array[] = [];
-  for (const row of rows) {
-    // The admitted ASCII profile makes every character offset the original byte offset.
-    ledger.charge("allocationUnits", row.bytes.length * 2 + 2, signal);
-    const characters: string[] = [];
-    for (const byte of row.bytes) {
-      ledger.charge("work", 1, signal);
-      if (byte === 0 || byte > 127) fail("unsupported", "subjects require non-NUL ASCII; Unicode and invalid UTF-8 are unsupported");
-      characters.push(String.fromCharCode(byte));
+    const fragments: EreFragment[] = selected.kind === "grep" && !selected.extended
+      ? await breFragments(pattern, ledger, signal)
+      : [{ text: pattern, literal: false }];
+    if (selected.whole) {
+      ledger.charge("work", fragments.length, signal);
       await ledger.checkpoint(signal);
+      fragments.unshift({ text: "^(", literal: false });
+      fragments.push({ text: ")$", literal: false });
     }
-    const subject = characters.join("");
+    programs.push(await compileEre(fragments, ledger, signal, selected.kind === "grep" && selected.insensitive));
+  }
+  ledger.charge("allocationUnits", 3, signal);
+  const results: Float64Array[] = [];
+  const usage: MatchUsage = { count: 0 };
+  for (const row of rows) {
+    const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal);
+    if (row.all) {
+      ledger.charge("allocationUnits", programs.length + 1, signal);
+      const finders: ((from: number) => Promise<Span | undefined>)[] = [];
+      for (const program of programs) finders.push(subject(program));
+      results.push(await enumerate(input, row, finders, usage, signal));
+      continue;
+    }
     let span: { readonly start: number; readonly end: number } | undefined;
     for (const program of programs) {
-      const match = await matchEre(program, subject, ledger, signal);
-      if (!match.matched) continue;
-      const candidate = match.captures[0]!;
+      const candidate = await subject(program)(0);
+      if (!candidate) continue;
       if (selected.kind === "grep") { span = candidate; break; }
       // Fixed rg patterns select the first occurrence, breaking ties by pattern order.
       if (!span || candidate.start < span.start) span = candidate;
     }
     signal.throwIfAborted();
+    if (span) {
+      if (usage.count >= input.limits.maxTotalMatches || usage.count >= Math.floor(input.limits.maxResultBytes / 16)) fail("limit", "total match or result byte limit exceeded");
+      usage.count++;
+    }
     results.push(span ? new Float64Array([span.start, span.end]) : new Float64Array());
   }
   return { id: input.id, results };
@@ -425,7 +503,8 @@ class CooperativeWorker implements RegexWorker {
     if (!identity || !("value" in identity) || !Number.isSafeInteger(identity.value) || identity.value < 1) fail("protocol", "invalid request identity");
     const id = identity.value as number;
     const submitted = Object.getOwnPropertyDescriptor(input, "descriptor")?.value as unknown;
-    const expression = submitted !== null && typeof submitted === "object" && Object.getOwnPropertyDescriptor(submitted, "kind")?.value === "expr-match";
+    const operation: unknown = submitted !== null && typeof submitted === "object" ? Object.getOwnPropertyDescriptor(submitted, "kind")?.value : undefined;
+    const expression = operation === "expr-match" || operation === "bre-search";
     let owned: OwnedRequest | OwnedExprRequest | undefined;
     let failure: string | undefined;
     let category: ExprMatchError["category"] = "unsupported";
@@ -437,7 +516,7 @@ class CooperativeWorker implements RegexWorker {
     }
     this.#busy = true;
     const task = Promise.resolve().then(async () => {
-      let reply: Reply | ExprMatchReply;
+      let reply: Reply | ExprMatchReply | BreSearchReply;
       try {
         this.#controller.signal.throwIfAborted();
         reply = owned ? "subject" in owned ? await executeExpr(owned, this.#controller.signal) : await execute(owned, this.#controller.signal) : { id, error: failure! };
@@ -451,7 +530,7 @@ class CooperativeWorker implements RegexWorker {
         if (error instanceof ExprMatchError) category = error.category;
         reply = { id, error: error.message.slice(0, 512) };
       }
-      if (expression && "error" in reply) reply = { id, operation: "expr-match", category, error: reply.error };
+      if (expression && "error" in reply) reply = { id, operation: operation === "bre-search" ? "bre-search" : "expr-match", category, error: reply.error };
       // Clear request-owned payloads before notifying the consumer or allowing reuse.
       owned = undefined;
       this.#busy = false;
@@ -474,7 +553,7 @@ class CooperativeWorker implements RegexWorker {
   }
 }
 
-/** Cooperative ASCII grep/expr regex and non-NUL UTF-8 literals; not a native-worker/RSS sandbox. */
+/** Cooperative ASCII grep patterns over UTF-8 scalars, ASCII expr, and UTF-8 literals; not a native-worker/RSS sandbox. */
 export function createBoundedRegexProvider(input: BoundedRegexProviderOptions = {}): BoundedRegexProvider {
   const limits = options(input);
   let active = 0;

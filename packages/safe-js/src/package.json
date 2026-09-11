@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "imports": {
+    "#safe-js-platform": {
+      "workerd": "./platform/workerd.js",
+      "default": "./platform/node.js"
+    }
+  }
+}

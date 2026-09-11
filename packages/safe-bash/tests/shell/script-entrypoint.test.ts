@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { FsError, toByteSource, writeText } from "../../src/contracts/index.js";
+import { FsError, resolvePath, toByteSource, writeText } from "../../src/contracts/index.js";
 import type { ByteSource, FileSystem } from "../../src/contracts/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
@@ -386,15 +386,18 @@ test("backend permission errors, signals and byte ceilings remain authoritative"
   const { shell, fs } = setup();
   await script(fs, "/program", "#!/bin/bash\nsay bad");
   const accesses: number[] = [];
+  const paths: string[] = [];
   fs.access = async (path, mode, options) => {
-    assert.equal(path, "/program");
+    assert.equal(resolvePath("/", path), "/program");
     assert.ok(options?.signal);
+    paths.push(path);
     accesses.push(mode!);
     throw new FsError("EACCES", { path, message: "denied" });
   };
   assert.equal((await shell.exec("./program")).exitCode, 126);
   assert.equal((await shell.exec("bash program")).exitCode, 126);
   assert.deepEqual(accesses, [5, 4]);
+  assert.deepEqual(paths, ["/./program", "/program"]);
 });
 
 test("new interpreter modes are valid while binary bytes remain rejected", async () => {

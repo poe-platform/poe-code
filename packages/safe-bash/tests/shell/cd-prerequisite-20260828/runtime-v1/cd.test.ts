@@ -193,21 +193,34 @@ test("absolute 65536-byte target admitted, next byte refused", async () => {
     const { fs, calls } = await fixture();
     const directory = await fs.stat("/work");
     calls.length = 0;
+    const metadataCalls: string[] = [];
     fs.stat = async path => { calls.push(path); return directory; };
+    fs.lstat = async path => { metadataCalls.push(path); return directory; };
     fs.access = async () => {};
-    const result = await execute(fs, 'cd "$DEST"', { env: { DEST: "/" + "x".repeat(length - 1) } });
+    const target = "/" + "x".repeat(length - 1);
+    const result = await execute(fs, 'cd "$DEST"', { env: { DEST: target } });
     assert.equal(result.exitCode, length === 65_536 ? 0 : 1);
     assert.equal(calls.length, length === 65_536 ? 1 : 0);
+    assert.deepEqual(calls, length === 65_536 ? [target] : []);
+    if (length === 65_536) {
+      assert.ok(metadataCalls.length > 0);
+      assert.ok(metadataCalls.every(path => path === target));
+    } else assert.deepEqual(metadataCalls, []);
   }
 });
 
 test("local helper-work failure has ordinary status and leaves subsequent command usable", async () => {
   const { fs, calls } = await fixture();
+  const metadataCalls: string[] = [];
   fs.stat = async path => { calls.push(path); throw new FsError("ENOENT", { path }); };
-  const result = await execute(fs, 'cd "$DEST"; printf "%s" "$?"', { env: { DEST: "x".repeat(60_000), CDPATH: ":".repeat(100) } });
+  fs.lstat = async path => { metadataCalls.push(path); throw new FsError("ENOENT", { path }); };
+  const target = "x".repeat(60_000);
+  const result = await execute(fs, 'cd "$DEST"; printf "%s" "$?"', { env: { DEST: target, CDPATH: ":".repeat(100) } });
   assert.equal(result.stdout, "1");
   assert.match(result.stderr, /cd: helper work limit exceeded/);
   assert.equal(calls.length, 46);
+  assert.ok(calls.every(path => path === `/work/${target}`));
+  assert.ok(metadataCalls.includes(`/work/${target}`));
 });
 
 for (const script of ["unset HOME; cd", "unset OLDPWD; cd -", "cd one two"]) test(`argument/missing-variable precedence ${script}`, async () => {
@@ -263,7 +276,12 @@ for (const adapter of ["memory", "real", "readonly", "s3", "webdav"] as const) t
     assert.equal(result.stderr, "");
     assert.ok(requests.every(request => request.startsWith("PROPFIND:0:")));
     if (adapter === "webdav") assert.deepEqual(requests, [
+      "PROPFIND:0:/dav/absent",
       "PROPFIND:0:/dav/absent/target", "PROPFIND:0:/dav/absent",
+      "PROPFIND:0:/dav/absent/target", "PROPFIND:0:/dav/absent",
+      "PROPFIND:0:/dav/one",
+      "PROPFIND:0:/dav/one/target", "PROPFIND:0:/dav/one/target",
+      "PROPFIND:0:/dav/one",
       "PROPFIND:0:/dav/one/target", "PROPFIND:0:/dav/one/target",
     ]);
   } finally { await rm(root, { recursive: true, force: true }); }

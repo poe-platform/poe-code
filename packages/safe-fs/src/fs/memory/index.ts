@@ -1,9 +1,10 @@
 import { FsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileStat, FileSystem,
-  FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
-  WriteFileOptions,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem,
+  FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
+  OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
@@ -18,6 +19,7 @@ import { normalizeMemoryFileSystemLimits, type MemoryFileSystemOptions } from ".
 export { defaultMemoryFileSystemLimits, type MemoryFileSystemLimits, type MemoryFileSystemOptions } from "./limits.js";
 
 interface Metadata {
+  revision: number;
   mode: number;
   ino: number;
   nlink: number;
@@ -54,6 +56,7 @@ interface Location {
 }
 
 interface ResolveOptions {
+  resizeCreate?: boolean;
   followFinal?: boolean;
   allowMissing?: boolean;
   createDirectories?: number;
@@ -66,8 +69,9 @@ interface WriteTarget {
 }
 
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
+const ext4HtreeEof64 = (1n << 63n) - 1n;
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
-const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; capabilities: FileSystem["capabilities"]; intact: () => boolean }>();
+const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; intact: () => boolean }>();
 const registeredAuthorities = new WeakSet<FileSystem>();
 const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   options.signal?.throwIfAborted();
@@ -110,7 +114,7 @@ export class MemoryFileSystem implements FileSystem {
       read: true, stat: true, readdir: true, realpath: true, access: true,
       write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
       mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
-      rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
+      rename: true, atomicRenameNoReplace: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
       streamingAppend: true, randomAccessWrite: true,
       readOnly: false,
       symlinks: true,
@@ -118,8 +122,11 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
+      atomicFileStaging: true, atomicFileMutation: true,
+      atomicDirectoryMetadata: true,
       streamingRead: true,
       retainedRead: true,
+      get retainedResize() { return stockRetainedResize(filesystem); },
       streamingWrite: true,
       get descriptorWriteStream() { return stockDescriptorWrite(filesystem); },
     });
@@ -137,6 +144,7 @@ export class MemoryFileSystem implements FileSystem {
     const root = this.root;
     ownedStores.set(this, {
       root,
+      ledger: this.ledger,
       capabilities: this.capabilities,
       intact: () => this.root === root,
     });
@@ -167,7 +175,7 @@ export class MemoryFileSystem implements FileSystem {
   private metadata(mode: number): Metadata {
     const now = Date.now();
     return {
-      mode, ino: this.nextInode++, nlink: 1, references: 0,
+      mode, ino: this.nextInode++, nlink: 1, references: 0, revision: 0,
       atimeMs: now, mtimeMs: now, ctimeMs: now, birthtimeMs: now,
     };
   }
@@ -197,7 +205,7 @@ export class MemoryFileSystem implements FileSystem {
     if (node.type === "file") node.allocation.release();
   }
 
-  private releaseReference(node: FileNode, path: string): void {
+  private releaseReference(node: FileNode | DirectoryNode, path: string): void {
     node.references--;
     this.ledger.release(path.length * 2, 1);
     this.releaseNode(node);
@@ -234,26 +242,28 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private changed(node: MemoryNode): void {
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     node.mtimeMs = node.ctimeMs = Date.now();
   }
 
   private resolve(path: string, syscall: string, options: ResolveOptions = {}): Location {
     this.validatePath(path, syscall);
     const pending = path.split("/").filter(Boolean);
-    if (path.endsWith("/")) pending.push(".");
+    if (path.endsWith("/")) pending.push("");
     const stack: { node: MemoryNode; name: string }[] = [{ node: this.root, name: "" }];
     let links = 0;
     while (pending.length > 0) {
       const component = pending.shift()!;
       const current = stack[stack.length - 1]!.node;
       if (current.type !== "directory") this.fail("ENOTDIR", syscall, path);
-      this.permission(current, 1, syscall, path);
-      if (component === ".") continue;
+      if (!(component === "" && pending.length === 0 && options.resizeCreate !== undefined)) this.permission(current, 1, syscall, path);
+      if (component === "." || component === "") continue;
       if (component === "..") {
         if (stack.length > 1) stack.pop();
         continue;
       }
       if (new TextEncoder().encode(component).byteLength > 255) this.fail("ENAMETOOLONG", syscall, path);
+      if (options.resizeCreate === true && pending.length === 1 && pending[0] === "") this.fail("EISDIR", syscall, path);
       let node = current.entries.get(component);
       if (!node && options.createDirectories !== undefined) {
         this.permission(current, 3, syscall, path);
@@ -269,7 +279,8 @@ export class MemoryFileSystem implements FileSystem {
       if (node.type === "symlink" && (options.followFinal !== false || pending.length > 0)) {
         if (++links > 40) this.fail("ELOOP", syscall, path);
         const target = node.target.split("/").filter(Boolean);
-        if (node.target.endsWith("/")) target.push(".");
+        if (node.target.endsWith("/")) target.push("");
+        if (options.resizeCreate !== undefined && target.at(-1) === "" && pending[0] === "") target.pop();
         pending.unshift(...target);
         if (node.target.startsWith("/")) stack.splice(1);
         continue;
@@ -305,11 +316,13 @@ export class MemoryFileSystem implements FileSystem {
   private snapshot(node: MemoryNode): FileStat {
     return {
       type: node.type,
+      ...(Number.isSafeInteger(node.revision) ? { revision: node.revision } : {}),
+      preferredIoBlockSize: 4096,
       size: node.type === "file" ? node.data.byteLength
         : node.type === "symlink" ? new TextEncoder().encode(node.target).byteLength : 0,
       mode: node.mode, ...(ownedStores.get(this)?.intact() ? { identityScope: this.identityScope } : {}),
       ino: node.ino, dev: 0, uid: 0, gid: 0,
-      nlink: node.type === "directory"
+      nlink: node.type === "directory" && node.nlink !== 0
         ? 2 + [...node.entries.values()].filter((entry) => entry.type === "directory").length : node.nlink,
       atimeMs: node.atimeMs, mtimeMs: node.mtimeMs, ctimeMs: node.ctimeMs, birthtimeMs: node.birthtimeMs,
     };
@@ -441,6 +454,153 @@ export class MemoryFileSystem implements FileSystem {
     return new Uint8Array(node.data);
   }
 
+  private expectEntry(node: MemoryNode | undefined, expected: FileStat | null, path: string, unchanged = true): void {
+    if (expected === null) {
+      if (node) this.fail("EAGAIN", "fileStaging", path);
+      return;
+    }
+    if (!node) this.fail("EAGAIN", "fileStaging", path);
+    const current = this.snapshot(node);
+    if (!expected.identityScope || expected.identityScope !== current.identityScope
+      || !Number.isSafeInteger(expected.ino) || !Number.isSafeInteger(expected.dev)) this.fail("ENOTSUP", "fileStaging", path);
+    if (current.ino !== expected.ino || current.dev !== expected.dev || current.type !== expected.type) this.fail("EAGAIN", "fileStaging", path);
+    if (unchanged) {
+      if (!Number.isSafeInteger(expected.revision) || !Number.isSafeInteger(current.revision)) this.fail("ENOTSUP", "fileStaging", path);
+      if (current.revision !== expected.revision || current.size !== expected.size || current.mode !== expected.mode
+        || current.nlink !== expected.nlink || current.mtimeMs !== expected.mtimeMs || current.ctimeMs !== expected.ctimeMs) this.fail("EAGAIN", "fileStaging", path);
+    }
+  }
+
+  private stagingLocations(staging: FileStaging): { directory: Location; file: Location } {
+    const parent = this.entry(staging.parent.path, "fileStaging");
+    this.expectEntry(parent.node, staging.parent.stat, staging.parent.path, false);
+    if (parent.node!.type !== "directory") this.fail("ENOTDIR", "fileStaging", staging.parent.path);
+    const directory = this.entry(staging.directory.path, "fileStaging");
+    this.expectEntry(directory.node, staging.directory.stat, staging.directory.path, false);
+    if (directory.parent !== parent.node || directory.node!.type !== "directory" || (directory.node!.mode & 0o777) !== 0o700) this.fail("EAGAIN", "fileStaging", staging.directory.path);
+    const file = this.entry(staging.file.path, "fileStaging", true);
+    if (file.parent !== directory.node || !["file", "symlink"].includes(staging.file.stat.type)) this.fail("EAGAIN", "fileStaging", staging.file.path);
+    return { directory, file };
+  }
+
+  async createStagedFile(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    options.signal?.throwIfAborted();
+    if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\0")) this.fail("EINVAL", "createStagedFile", directoryPath);
+    const location = this.entry(directoryPath, "createStagedFile", true);
+    if (location.node) this.fail("EEXIST", "createStagedFile", directoryPath);
+    this.expectEntry(location.parent, options.parent, directoryPath, false);
+    this.permission(location.parent, 3, "createStagedFile", directoryPath);
+    const mode = this.mode(options.mode, content.type === "file" ? 0o666 : 0o777, "createStagedFile", directoryPath);
+    for (const time of [options.atimeMs, options.mtimeMs]) if (time !== undefined && !Number.isFinite(time)) this.fail("EINVAL", "createStagedFile", directoryPath);
+    if (content.type === "file" && !(content.data instanceof Uint8Array)) throw new TypeError("Staged files require Uint8Array data");
+    if (content.type === "symlink") this.validatePath(content.target, "createStagedFile");
+    const retained = (location.name.length + name.length) * 2 + (content.type === "symlink" ? content.target.length * 2 : 0);
+    this.ledger.reserve(retained, 4, "createStagedFile", directoryPath);
+    let allocation: MemoryAllocation | undefined;
+    let directory: DirectoryNode;
+    let file: FileNode | SymlinkNode;
+    try {
+      if (content.type === "file") allocation = this.bytes(content.data, "createStagedFile", directoryPath);
+      directory = this.directory(0o700);
+      file = content.type === "file"
+        ? { ...this.metadata(typeModes.file | mode), type: "file", data: allocation!.data, allocation: allocation! }
+        : { ...this.metadata(typeModes.symlink | mode), type: "symlink", target: content.target };
+      if (options.atimeMs !== undefined) file.atimeMs = options.atimeMs;
+      if (options.mtimeMs !== undefined) file.mtimeMs = options.mtimeMs;
+      directory.entries.set(name, file);
+      location.parent.entries.set(location.name, directory);
+    } catch (error) { allocation?.release(); this.ledger.release(retained, 4); throw error; }
+    this.changed(location.parent);
+    const parentPath = location.path.slice(0, location.path.lastIndexOf("/")) || "/";
+    const receipt = (path: string, node: MemoryNode) => Object.freeze({ path, stat: Object.freeze(this.snapshot(node)) });
+    return Object.freeze({ parent: receipt(parentPath, location.parent), directory: receipt(location.path, directory), file: receipt(`${location.path}/${name}`, file) });
+  }
+
+  async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+    options.signal?.throwIfAborted();
+    const { directory, file } = this.stagingLocations(staging);
+    this.expectEntry(file.node, staging.file.stat, staging.file.path);
+    const target = this.entry(destination, "publishStagedFile", true);
+    this.expectEntry(target.parent, options.parent, destination, false);
+    this.expectEntry(target.node, options.destination, destination);
+    if (target.parent === directory.node || target.node === directory.node || target.node === file.node) this.fail("EINVAL", "publishStagedFile", destination);
+    if (target.node && (target.node.type !== "file" || target.node.nlink !== 1)) this.fail("EAGAIN", "publishStagedFile", destination);
+    return MemoryFileSystem.prototype.rename.call(this, staging.file.path, destination, { ...options, noReplace: options.destination === null });
+  }
+
+  async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {
+    options.signal?.throwIfAborted();
+    const { directory, file } = this.stagingLocations(staging);
+    if (file.node) this.expectEntry(file.node, staging.file.stat, staging.file.path);
+    const node = directory.node as DirectoryNode;
+    if (node.entries.size !== (file.node ? 1 : 0)) this.fail("ENOTEMPTY", "removeStagedFile", staging.directory.path);
+    this.permission(directory.parent, 3, "removeStagedFile", staging.directory.path);
+    this.permission(node, 3, "removeStagedFile", staging.file.path);
+    directory.parent.entries.delete(directory.name);
+    if (file.node) {
+      node.entries.delete(file.name);
+      this.ledger.release(file.name.length * 2, 1);
+      file.node.nlink--;
+      file.node.ctimeMs = Date.now();
+      file.node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, file.node.revision + 1);
+      this.releaseNode(file.node);
+    }
+    this.ledger.release(directory.name.length * 2, 1);
+    node.nlink = 0;
+    node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
+    this.releaseNode(node);
+    this.changed(directory.parent);
+  }
+
+  async prepareDirectory(path: string, options: PrepareDirectoryOptions): Promise<FileStat> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "prepareDirectory", true);
+    this.expectEntry(location.parent, options.parent, path, false);
+    this.expectEntry(location.node, options.expected, path, false);
+    const mode = options.mode === undefined ? undefined : this.mode(options.mode, 0, "prepareDirectory", path);
+    for (const time of [options.atimeMs, options.mtimeMs]) if (time !== undefined && !Number.isFinite(time)) this.fail("EINVAL", "prepareDirectory", path);
+    let node = location.node;
+    if (!node) {
+      this.permission(location.parent, 3, "prepareDirectory", path);
+      node = this.addNode(location.parent, location.name, () => this.directory(mode ?? 0o777), "prepareDirectory", path);
+    }
+    if (node.type !== "directory") this.fail("ENOTDIR", "prepareDirectory", path);
+    if (mode !== undefined) node.mode = typeModes.directory | mode;
+    if (options.atimeMs !== undefined) node.atimeMs = options.atimeMs;
+    if (options.mtimeMs !== undefined) node.mtimeMs = options.mtimeMs;
+    node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
+    return Object.freeze(this.snapshot(node));
+  }
+
+  async writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "writeFileConditional", true);
+    this.expectEntry(location.parent, options.parent, path, false);
+    this.expectEntry(location.node, options.expected, path);
+    if (location.node && location.node.type !== "file") this.fail("EINVAL", "writeFileConditional", path);
+    this.writeData(path, data, { ...(options.mode === undefined ? {} : { mode: options.mode }), flag: options.append ? "a" : "w" }, "writeFileConditional");
+    return Object.freeze(this.snapshot(location.parent.entries.get(location.name)!));
+  }
+
+  async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "removeFileConditional", true);
+    this.expectEntry(location.parent, options.parent, path, false);
+    this.expectEntry(location.node, options.expected, path);
+    const node = location.node!;
+    if (node.type !== "file") this.fail("EINVAL", "removeFileConditional", path);
+    this.permission(location.parent, 3, "removeFileConditional", path);
+    location.parent.entries.delete(location.name);
+    this.ledger.release(location.name.length * 2, 1);
+    node.nlink--;
+    node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
+    this.releaseNode(node);
+    this.changed(location.parent);
+  }
+
   async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     this.writeData(path, data, options, "writeFile");
@@ -502,6 +662,7 @@ export class MemoryFileSystem implements FileSystem {
     this.ledger.release(location.name.length * 2, 1);
     node.nlink = 0;
     node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     this.releaseNode(node);
     this.changed(location.parent);
   }
@@ -537,12 +698,13 @@ export class MemoryFileSystem implements FileSystem {
       }
       entry.nlink--;
       entry.ctimeMs = Date.now();
+      entry.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, entry.revision + 1);
       this.releaseNode(entry);
     }
     this.changed(location.parent);
   }
 
-  async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {
+  async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     try {
       const origin = this.entry(source, "rename");
@@ -551,6 +713,7 @@ export class MemoryFileSystem implements FileSystem {
       if (this.terminalDot(source) || this.terminalDot(destination)) this.fail("EINVAL", "rename", source, destination);
       if (node === this.root || target.node === this.root) this.fail("EBUSY", "rename", source, destination);
       if (destination.endsWith("/") && node.type !== "directory") this.fail("ENOTDIR", "rename", source, destination);
+      if (options.noReplace && target.node) this.fail("EEXIST", "rename", source, destination);
       if (target.node === node) return;
       if (node.type === "directory" && target.path.startsWith(`${origin.path}/`)) this.fail("EINVAL", "rename", source, destination);
       this.permission(origin.parent, 3, "rename", source);
@@ -569,11 +732,13 @@ export class MemoryFileSystem implements FileSystem {
         this.ledger.release(origin.name.length * 2, 1);
         target.node.nlink--;
         target.node.ctimeMs = Date.now();
+        target.node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, target.node.revision + 1);
         this.releaseNode(target.node);
       } else if (nameGrowth < 0) this.ledger.release(-nameGrowth, 0);
       this.changed(origin.parent);
       this.changed(target.parent);
       node.ctimeMs = Date.now();
+      node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     } catch (error) {
       if (error instanceof FsError) throw new FsError(error.code, { syscall: "rename", path: source, dest: destination, cause: error });
       throw error;
@@ -639,6 +804,7 @@ export class MemoryFileSystem implements FileSystem {
     catch (error) { this.ledger.release(target.name.length * 2, 1); throw error; }
     node.nlink++;
     node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     this.changed(target.parent);
   }
 
@@ -648,6 +814,7 @@ export class MemoryFileSystem implements FileSystem {
     const node = this.resolve(path, "chmod").node!;
     node.mode = typeModes[node.type] | permissions;
     node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
   }
 
   async utimes(path: string, atimeMs: number, mtimeMs: number, options: FsOptions = {}): Promise<void> {
@@ -657,6 +824,7 @@ export class MemoryFileSystem implements FileSystem {
     node.atimeMs = atimeMs;
     node.mtimeMs = mtimeMs;
     node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
   }
 
   async truncate(path: string, length = 0, options: FsOptions = {}): Promise<void> {
@@ -664,32 +832,41 @@ export class MemoryFileSystem implements FileSystem {
     this.integer(length, "truncate", path);
     const node = this.file(path, "truncate");
     this.permission(node, 2, "truncate", path);
-    const data = this.allocate(length, "truncate", path);
+    this.resizeNode(node, length, "truncate", path);
+  }
+
+  private resizeNode(node: FileNode, length: number, syscall: string, path: string): void {
+    const data = this.allocate(length, syscall, path);
     try { data.data.set(node.data.subarray(0, length)); }
     catch (error) { data.release(); throw error; }
     this.replaceData(node, data);
     this.changed(node);
   }
 
-  async openReadFile(path: string, options: FsOptions = {}): Promise<FileReadHandle> {
+  async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {
     options.signal?.throwIfAborted();
-    const unsupported = (): never => { throw new FsError("ENOTSUP", { syscall: "openReadFile", path }); };
-    const owner = ownedStores.get(this);
-    if (!owner || Object.getPrototypeOf(this) !== MemoryFileSystem.prototype
-      || Object.getOwnPropertyDescriptor(this, "root")?.value !== owner.root) unsupported();
-    for (const name of ["openReadFile", "readFile", "readStream", "stat", "lstat", "realpath", "access",
-      "file", "resolve", "permission", "validatePath", "fail", "snapshot", "integer", "releaseReference", "releaseNode"]) {
-      const descriptor = Object.getOwnPropertyDescriptor(this, name)
-        ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
-      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) unsupported();
+    if (!stockRetainedResize(this)) throw new FsError("ENOTSUP", { syscall: "openResizeFile", path });
+    const location = this.resolve(path, "openResizeFile", { allowMissing: options.create === true, resizeCreate: options.create ?? false });
+    let mode = 0o666;
+    if (location.node) {
+      if (location.node.type !== "file") this.fail("EISDIR", "openResizeFile", path);
+      this.permission(location.node, 2, "openResizeFile", path);
+    } else {
+      this.permission(location.parent, 3, "openResizeFile", path);
+      mode = this.mode(options.mode, mode, "openResizeFile", path);
     }
-    if (Object.getOwnPropertyDescriptor(this, "capabilities")?.value?.retainedRead !== true) unsupported();
-    let node: FileNode | undefined = this.file(path, "openReadFile");
-    this.permission(node, 4, "openReadFile", path);
-    this.ledger.reserve(path.length * 2, 1, "openReadFile", path);
-    node.references++;
+    this.ledger.reserve(path.length * 2, 1, "openResizeFile", path);
+    let node: FileNode | undefined;
+    try {
+      node = this.openWrite(path, {}, "openResizeFile", { location, mode, append: false });
+      node.references++;
+    } catch (error) {
+      this.ledger.release(path.length * 2, 1);
+      throw error;
+    }
     const snapshot = this.snapshot.bind(this);
     const integer = this.integer.bind(this);
+    const resizeNode = this.resizeNode.bind(this);
     const releaseReference = this.releaseReference.bind(this);
     let closing: Promise<void> | undefined;
     const current = (signal: AbortSignal | undefined, syscall: string): FileNode => {
@@ -698,8 +875,66 @@ export class MemoryFileSystem implements FileSystem {
       return node;
     };
     return {
+      async stat(options = {}) { return snapshot(current(options.signal, "fstat")); },
+      async seekEnd(options = {}) { return BigInt(current(options.signal, "lseek").data.byteLength); },
+      async truncate(length, options = {}) {
+        const file = current(options.signal, "ftruncate");
+        integer(length, "ftruncate", path);
+        resizeNode(file, length, "ftruncate", path);
+      },
+      close() {
+        if (!closing) {
+          const retained = node;
+          node = undefined;
+          closing = Promise.resolve().then(() => { if (retained) releaseReference(retained, path); });
+        }
+        return closing;
+      },
+    };
+  }
+
+  async openReadFile(path: string, options: OpenReadFileOptions = {}): Promise<FileReadHandle> {
+    const signal = options.signal;
+    signal?.throwIfAborted();
+    const allowDirectory = options.allowDirectory === true;
+    signal?.throwIfAborted();
+    const unsupported = (): never => { throw new FsError("ENOTSUP", { syscall: "openReadFile", path }); };
+    const owner = ownedStores.get(this);
+    if (!owner || Object.getPrototypeOf(this) !== MemoryFileSystem.prototype
+      || Object.getOwnPropertyDescriptor(this, "root")?.value !== owner.root
+      || Object.getOwnPropertyDescriptor(this, "ledger")?.value !== owner.ledger) unsupported();
+    for (const name of ["openReadFile", "readFile", "readStream", "stat", "lstat", "realpath", "access",
+      "file", "resolve", "permission", "validatePath", "fail", "snapshot", "integer", "releaseReference", "releaseNode"]) {
+      const descriptor = Object.getOwnPropertyDescriptor(this, name)
+        ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) unsupported();
+    }
+    const retainedRead = Object.getOwnPropertyDescriptor(this, "capabilities")?.value?.retainedRead;
+    signal?.throwIfAborted();
+    if (retainedRead !== true) unsupported();
+    const selected = allowDirectory ? this.resolve(path, "openReadFile").node! : this.file(path, "openReadFile");
+    if (selected.type !== "file" && selected.type !== "directory") this.fail("EISDIR", "openReadFile", path);
+    let node: FileNode | DirectoryNode | undefined = selected;
+    this.permission(node, 4, "openReadFile", path);
+    signal?.throwIfAborted();
+    this.ledger.reserve(path.length * 2, 1, "openReadFile", path);
+    node.references++;
+    const snapshot = this.snapshot.bind(this);
+    const integer = this.integer.bind(this);
+    const releaseReference = this.releaseReference.bind(this);
+    let closing: Promise<void> | undefined;
+    const current = (signal: AbortSignal | undefined, syscall: string): FileNode | DirectoryNode => {
+      signal?.throwIfAborted();
+      if (!node) throw new FsError("EBADF", { syscall, path });
+      return node;
+    };
+    return {
       async stat(options = {}) {
         return snapshot(current(options.signal, "fstat"));
+      },
+      async seekEnd(options = {}) {
+        const file = current(options.signal, "lseek");
+        return file.type === "directory" ? ext4HtreeEof64 : BigInt(file.data.byteLength);
       },
       async read(position, maxBytes, options = {}) {
         const file = current(options.signal, "read");
@@ -708,6 +943,7 @@ export class MemoryFileSystem implements FileSystem {
         if (maxBytes === 0 || maxBytes > Number.MAX_SAFE_INTEGER - position) {
           throw new FsError("EINVAL", { syscall: "read", path });
         }
+        if (file.type === "directory") throw new FsError("EISDIR", { syscall: "read", path });
         const bytes = file.data.slice(position, position + maxBytes);
         file.atimeMs = Date.now();
         return bytes;
@@ -793,6 +1029,18 @@ function stockDescriptorWrite(filesystem: MemoryFileSystem): boolean {
   for (const name of ["writeStream", "writeFile", "appendFile", "access", "stat", "lstat", "realpath",
     "openWrite", "prepareWrite", "writeData", "addNode", "replaceData", "releaseReference", "releaseNode",
     "resolve", "permission", "validatePath", "mode", "bytes", "allocate", "changed", "metadata", "integer", "writeAt", "fail"]) {
+    const descriptor = Object.getOwnPropertyDescriptor(filesystem, name)
+      ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+    if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return false;
+  }
+  return true;
+}
+
+function stockRetainedResize(filesystem: MemoryFileSystem): boolean {
+  if (!stockDescriptorWrite(filesystem)) return false;
+  const owner = ownedStores.get(filesystem);
+  if (!owner || Object.getOwnPropertyDescriptor(filesystem, "ledger")?.value !== owner.ledger) return false;
+  for (const name of ["openResizeFile", "truncate", "resizeNode", "snapshot"]) {
     const descriptor = Object.getOwnPropertyDescriptor(filesystem, name)
       ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
     if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return false;

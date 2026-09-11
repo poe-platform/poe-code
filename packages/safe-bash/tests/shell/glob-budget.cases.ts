@@ -32,7 +32,7 @@ test("glob results preserve sorted arguments with token storage admitted", async
     const result = await shell.exec("args *");
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, '["aaaaaa","bbbbbb"]');
+    assert.equal(result.stdout, '["aaaaaa","bbbbbb","dev"]');
   } finally { await shell.dispose(); }
 });
 
@@ -52,9 +52,9 @@ for (const extra of [false, true]) {
   test(`glob enumeration ${extra ? "refuses one byte beyond" : "fills exactly"} the admitted byte budget`, async context => {
     const { shell, fs } = setup({ limits: { maxExpansionBytes: 4096 } });
     const names: string[] = [];
-    for (let index = 0; index < 64; index++) names.push(String(index).padStart(64, "x"));
+    for (let index = 0; index < 64; index++) names.push(String(index).padStart(index === 0 ? 64 - Buffer.byteLength("dev") : 64, "x"));
     if (extra) names.push("z");
-    assert.equal(names.reduce((bytes, name) => bytes + Buffer.byteLength(name), 0), extra ? 4097 : 4096);
+    assert.equal(names.reduce((bytes, name) => bytes + Buffer.byteLength(name), Buffer.byteLength("dev")), extra ? 4097 : 4096);
     for (const name of names) await fs.writeFile(`/${name}`, new Uint8Array());
     const enumeration = context.mock.method(fs, "readdir");
     const metadata = context.mock.method(fs, "stat");

@@ -1,12 +1,15 @@
 import * as esbuild from "esbuild";
+import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, cp, lstat, mkdir, open, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
-import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
+import { mergeRuntimeBundleOutputs, resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
+import { copyNativeAssets, nativeImportMapping, readNativeRegistry } from "../packages/safe-fs/scripts/native-assets.mjs";
+import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "../packages/package-lint/dist/native-assets.js";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import {
   canonicalFs,
@@ -98,7 +101,10 @@ async function getProviderEntryPoints(root) {
     if (!isProviderSourceFile(entry.name)) continue;
     files.push(path.join(providersDir, entry.name));
   }
-  return files;
+  return {
+    entryPoints: files,
+    sourceNames: new Set(entries.filter(entry => entry.isFile()).map(entry => entry.name))
+  };
 }
 
 const mainBuild = await esbuild.build({
@@ -178,7 +184,7 @@ consumerBuilds.push(
   })
 );
 
-const providerEntryPoints = await getProviderEntryPoints(rootDir);
+const { entryPoints: providerEntryPoints, sourceNames: providerSourceNames } = await getProviderEntryPoints(rootDir);
 if (providerEntryPoints.length > 0) {
   consumerBuilds.push(
     await esbuild.build({
@@ -204,28 +210,43 @@ const safejsEntryPoints = {
   core: path.join(rootDir, "packages/safe-js/src/core.ts"),
   cli: path.join(rootDir, "packages/safe-js/src/cli.ts")
 };
+const nativeAssets = await readNativeRegistry({ rootDir });
 const fsBuildOptions = resolveCanonicalFsBuilds(
   rootDir,
   { alias: workspaceAliases, external: externalDeps },
-  safejsEntryPoints
+  safejsEntryPoints,
+  nativeAssets
 );
+const nativeRootPrefix = path.relative(rootDir, fsBuildOptions.node.outdir).split(path.sep).join("/");
+assert.equal(JSON.stringify(packageJson.imports?.[nativeAssets.specifier]),
+  JSON.stringify(nativeImportMapping(nativeAssets, nativeRootPrefix)), "Invalid root native private import mapping");
+const safejsScope = JSON.parse(await readFile(path.join(rootDir, "packages/safe-js/package.json"), "utf8"));
+assert.equal(JSON.stringify(safejsScope.imports?.[nativeAssets.specifier]),
+  JSON.stringify(nativeImportMapping(nativeAssets, "dist")), "Invalid worktree native private import mapping");
 const fsBuilds = {};
+const workerdOptions = resolveWorkerdRuntimeBuild(rootDir, consumerBuildOptions);
+const workerdBundle = await esbuild.build(workerdOptions);
+consumerBuilds.push(workerdBundle);
 for (const [profile, options] of Object.entries(fsBuildOptions)) {
   const result = await esbuild.build(options);
-  await publishBundleOutputs(result, {
+  const publication = profile === "node" ? mergeRuntimeBundleOutputs(result, workerdBundle) : result;
+  const entryPoints = Object.values(options.entryPoints);
+  if (profile === "node") entryPoints.push(...Object.values(workerdOptions.entryPoints));
+  await publishBundleOutputs(publication, {
     outdir: options.outdir,
-    entryPoints: Object.values(options.entryPoints),
+    entryPoints,
     workingDirectory: rootDir
   });
   fsBuilds[profile] = result;
 }
+await copyNativeAssets({ rootDir, outDir: fsBuildOptions.node.outdir });
 await setBinExecutable(path.join(rootDir, "packages/safe-js"));
 
 const shellOptions = resolveBrowserShellBuild(rootDir);
 const shellBundle = await esbuild.build(shellOptions);
 await publishBundleOutputs(shellBundle, {
   outdir: shellOptions.outdir,
-  entryPoints: shellOptions.entryPoints,
+  entryPoints: Object.values(shellOptions.entryPoints),
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
@@ -434,6 +455,13 @@ const metafile = {
     ),
     metafile: fsBuilds.browser.metafile
   },
+  ...(await collectCanonicalNativeAssets(rootDir, {
+    readdir: (directory) => readdir(directory, { withFileTypes: true }),
+    readFile: (filename) => readFile(filename, "utf8"),
+    lstat,
+    realpath,
+    readBytes: (filename, maximum) => readBoundedNativeBytes(open, filename, maximum)
+  })),
   ...(await collectCanonicalDeclarations(rootDir, {
     readdir: (directory) => readdir(directory, { withFileTypes: true }),
     readFile: (filename) => readFile(filename, "utf8")
@@ -448,6 +476,18 @@ if (issues.length)
   throw new Error(
     `Bundle publication policy failed:\n${issues.map((issue) => `${issue.external}: ${issue.reason}`).join("\n")}`
   );
+const providerOutputDirectory = path.join(rootDir, "dist", "providers");
+await assertSafeOutputDirectory(rootDir, providerOutputDirectory);
+const providerOutputs = await readdir(providerOutputDirectory, { withFileTypes: true }).catch(error => {
+  if (error.code !== "ENOENT") throw error;
+  return [];
+});
+for (const entry of providerOutputs) {
+  const suffix = [".d.ts.map", ".js.map", ".d.ts", ".js"].find(extension => entry.name.endsWith(extension));
+  if (entry.isFile() && suffix && !providerSourceNames.has(`${entry.name.slice(0, -suffix.length)}.ts`)) {
+    await rm(path.join(providerOutputDirectory, entry.name));
+  }
+}
 await writeFile(path.join(rootDir, "dist/metafile.json"), JSON.stringify(metafile));
 
 console.log("Bundle complete: dist/index.js + dist/bin.cjs");

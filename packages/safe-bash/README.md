@@ -40,44 +40,6 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 Each `exec()` starts fresh shell variables, functions, and working-directory state;
 filesystem changes persist in the supplied `fs`.
 
-## Browsers and Workers
-
-Use `@poe-platform/safe-bash/browser` for a portable Shell with an explicit command
-subset. Bundle as ESM with `platform: "browser"` and
-`conditions: ["workerd", "worker", "browser"]`; the `browser` condition selects
-the canonical portable filesystem. No `nodejs_compat` flag or Node globals are
-required. The regular `@poe-platform/safe-bash` entry remains the Node API.
-
-```ts
-import { Shell, browserCommands } from "@poe-platform/safe-bash/browser";
-import { createMemoryFileSystem } from "@poe-platform/safe-fs/core";
-
-const fs = createMemoryFileSystem();
-const shell = new Shell({ fs, limits: { maxCommands: 100, maxOutputBytes: 65536 } })
-  .use(browserCommands());
-try {
-  const result = await shell.exec("printf 'hello\\n' > /note; cat /note");
-  console.log(result.stdout);
-} finally {
-  await shell.dispose();
-}
-```
-
-`browserCommands({ replace?: boolean })` registers **28 commands**: `true`, `false`,
-`echo`, `printf`, `pwd`, `basename`, `dirname`, `mkdir`, `touch`, `cp`, `mv`, `rm`,
-`rmdir`, `ln`, `readlink`, `realpath`, `ls`, `test`, `[`, `cat`, `head`, `tail`, `wc`,
-`tee`, `tr`, `sort`, `uniq`, and `cut`. Replacement defaults to `false`.
-`createBrowserCommands()` returns the same definitions for custom registration.
-
-Shell builtins, virtual scripts, pipelines, budgets, cancellation, and disposal
-remain available. Inject a canonical filesystem or compose memory/read-only/mount
-adapters from `@poe-platform/safe-fs/core`; matching scoped packages share filesystem
-and error identity. Legacy `poe-code` imports use a separate runtime; see the
-[filesystem migration boundary](../safe-fs/README.md#entry-points-and-shared-identity).
-The core's portable `posixPath` exposes `basename`, `dirname`, `extname`, `join`,
-and `isAbsolute`. Node-only adapters and command packs are not included. Use the Node entry for regex-worker
-commands such as `grep`, `sed`, and `rg`.
-
 ## Supported features and commands
 
 ### Shell syntax
@@ -123,6 +85,7 @@ These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`
 | `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Node uses the native HTTP transport; Workers can inject `createFetchTransport()`. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
 | `node` | `nodeCommands({ runtime, limits?, replace? })`: runs JavaScript with an injected SafeJS runtime, virtual files, and shell streams. [Usage and supported subset](src/commands/node/README.md). |
 | `safejs` | `safeJsCommands({ runtime, limits?, replace? })`: inject `run`, `createBudget`, `makeFsModule`, and `declareHostOperation` to execute programs. [Runtime contract](src/commands/safejs/types.ts). |
+| `llm` | `llmCommands({ providers, defaultModel?, replace? })`: opt-in model routing, sandbox attachments and streamed text/binary output. Includes injected-transport OpenAI and ElevenLabs reference providers. [Configuration and provider contract](src/commands/llm/README.md). |
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
 with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;

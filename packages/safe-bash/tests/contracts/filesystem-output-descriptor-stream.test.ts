@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MemoryFileSystem } from "../../../safe-fs/src/fs/memory/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { CommandRegistry, FsError, type FileSystem, type InvocationCleanup } from "../../src/contracts/index.js";
 import { openFileOutput } from "../../src/contracts/filesystem-output.js";
 import { Shell } from "../../src/shell/index.js";

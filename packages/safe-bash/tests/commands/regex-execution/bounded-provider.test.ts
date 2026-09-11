@@ -3,6 +3,9 @@ import test from "node:test";
 import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
 import { defaults, exprMatchCeilings, type Descriptor, type Reply } from "../../../src/commands/regex-execution/protocol.js";
 import type { RegexWorker, RegexWorkerRequest } from "../../../src/commands/regex-execution/provider.js";
+import { EreLedger } from "../../../src/commands/regex-execution/ere/limits.js";
+import { compileEre } from "../../../src/commands/regex-execution/ere/syntax.js";
+import { createEreSpanMatcher, matchEre, prepareUtf8EreSubject } from "../../../src/commands/regex-execution/ere/matcher.js";
 import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 
 const grep = (patterns: string[], overrides: object = {}): Descriptor => ({
@@ -58,7 +61,7 @@ test("fixed literals, BRE subset, pattern lists, whole and empty patterns retain
 
 test("unsupported dialects and flags are rejected even without subject rows", async () => {
   const unsupported: Descriptor[] = [
-    grep(["x"], { insensitive: true }), grep(["x"], { word: true }),
+    grep(["x"], { word: true }),
     grep(["a\\+"], { extended: false }), grep(["é"]),
     ...["a^", "$a", "a^b", "a$b", "*a", "^*a", "^^*"].map(pattern => grep([pattern], { extended: false })),
     { kind: "rg", patterns: ["a|ab"], fixed: false, case: "sensitive", whole: false, word: false, nullData: false },
@@ -73,7 +76,7 @@ test("unsupported dialects and flags are rejected even without subject rows", as
   const syntax = await run(request(grep(["["]), []));
   assert.ok("error" in syntax);
   assert.match(syntax.error, /invalid ERE/);
-  const all = await run({ ...request(grep(["x"])), rows: [row("x", true)] });
+  const all = await run({ ...request(literal("rg", ["x"])), rows: [row("x", true)] });
   assert.ok("error" in all);
   assert.match(all.error, /all-match/);
 });
@@ -84,12 +87,12 @@ test("BRE boundary-anchor admission retains character-class literals and named c
   }
 });
 
-test("raw non-ASCII, invalid UTF-8 and NUL are refused without decoding or replacement", async () => {
-  for (const bytes of [Uint8Array.of(0xff), Uint8Array.of(0xc0, 0x80), Uint8Array.of(0), new TextEncoder().encode("é")]) {
+test("invalid UTF-8 and NUL are refused without decoding or replacement", async () => {
+  for (const bytes of [Uint8Array.of(0xff), Uint8Array.of(0xc0, 0x80), Uint8Array.of(0)]) {
     const input = { ...request(grep(["."])), rows: [{ bytes, all: false, terminated: true }] };
     const reply = await run(input);
     assert.ok("error" in reply);
-    assert.match(reply.error, /non-NUL ASCII/);
+    assert.match(reply.error, /non-NUL UTF-8/);
     assert.deepEqual(input.rows[0]!.bytes, bytes);
   }
 });
@@ -335,4 +338,264 @@ test("budget options are finite positive bounded integers and unknown options ar
   for (const options of [{ maxInputBytes: Infinity }, { maxWorkers: 0 }, { maxRows: 1.5 }, { maxWork: Number.MAX_SAFE_INTEGER }, { typo: 1 }]) {
     assert.throws(() => createBoundedRegexProvider(options), /option|limit/);
   }
+});
+
+test("grep enumeration retains nonoverlapping leftmost-longest byte spans", async () => {
+  for (const [descriptor, text, expected] of [
+    [grep(["giraffe"], { extended: false }), "giraffe giraffe", [0, 7, 8, 15]],
+    [grep(["a", "ab"]), "zababa", [1, 3, 3, 5, 5, 6]],
+    [grep(["a|ab"]), "ab ab", [0, 2, 3, 5]],
+    [grep(["ab", "b..b"]), "abxxbxxb", [0, 2, 4, 8]],
+    [grep(["^|a"]), "aaa", [0, 1, 1, 2, 2, 3]],
+    [literal("grep", ["é", "é🦊"]), "é🦊é", [0, 6, 6, 8]],
+    [grep(["^a|b$"]), "aab", [0, 1, 2, 3]],
+    [grep(["a"], { whole: true }), "aa", []],
+    [grep(["a*"]), "ba", [0, 0, 1, 2, 2, 2]],
+    [literal("grep", [""]), "é", [0, 0, 2, 2]],
+  ] as const) {
+    assert.deepEqual(spans(await run({ id: 1, descriptor, rows: [row(text, true)] })), [expected]);
+  }
+});
+
+test("grep enumeration enforces independent retained match and result bounds", async () => {
+  const input = { id: 1, descriptor: grep(["a"]), rows: [row("aa", true), row("a", true)] };
+  assert.deepEqual(spans(await run(input, { maxMatchesPerLine: 2, maxTotalMatches: 3, maxResultBytes: 48 })), [[0, 1, 1, 2], [0, 1]]);
+  for (const limits of [{ maxMatchesPerLine: 1 }, { maxTotalMatches: 2 }, { maxResultBytes: 47 }]) {
+    const reply = await run(input, limits);
+    assert.ok("error" in reply);
+    assert.match(reply.error, /limit/);
+  }
+});
+
+
+test("prepared ERE cursor authenticates programs and validates its subject only once", async () => {
+  const ledger = new EreLedger({ maxExpansionBytes: 65536, maxExpansionFields: 8192 });
+  const program = await compileEre([{ text: "a", literal: false }], ledger);
+  const scan = await createEreSpanMatcher(program, "a".repeat(4096), ledger);
+  const before = ledger.usage.work;
+  assert.deepEqual(await scan(2048), { start: 2048, end: 2049 });
+  assert.ok(ledger.usage.work - before < 64, "cursor must not rescan the whole subject");
+  assert.equal(ledger.usage.captureBytes, 0, "span-only matching does not materialize capture strings");
+  for (const cursor of [-1, 4097, NaN, 0.5]) await assert.rejects(scan(cursor), RangeError);
+  await assert.rejects(createEreSpanMatcher({ ...program }, "a", ledger));
+  await assert.rejects(createEreSpanMatcher(program, "é", ledger));
+  const normal = await matchEre(program, "a", ledger);
+  assert.equal(normal.matched, true);
+  assert.deepEqual(normal.values, ["a"]);
+});
+
+test("enumeration is work-bounded and recovers after a refused hostile request", async () => {
+  const worker = createBoundedRegexProvider({ maxWork: 2048 }).createWorker(defaults);
+  try {
+    const reply = await exchange(worker, { id: 1, descriptor: grep(["(a+)+b"]), rows: [row("a".repeat(64), true)] });
+    assert.ok("error" in reply);
+    assert.match(reply.error, /work|allocation|states/);
+    assert.deepEqual(spans(await exchange(worker, { id: 2, descriptor: grep(["a"]), rows: [row("aa", true)] })), [[0, 1, 1, 2]]);
+  } finally { await worker.terminate(); }
+});
+
+test("enumeration cancellation retains falsey identity and permits a subsequent session", async () => {
+  const executor = new RegexExecutor(createBoundedRegexProvider({ maxWorkers: 1, maxMatchesPerLine: 4096, maxTotalMatches: 4096, maxResultBytes: 65536 }));
+  const controller = new AbortController();
+  const session = executor.open(controller.signal);
+  const pending = session.run(grep(["a"]), [row("a".repeat(4096), true)]);
+  const rejected = assert.rejects(pending, reason => reason === false);
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  controller.abort(false);
+  await rejected;
+  await session.close();
+  const recovered = executor.open(new AbortController().signal);
+  try { assert.deepEqual(await recovered.run(grep(["a"]), [row("aa", true)]), [[{ start: 0, end: 1 }, { start: 1, end: 2 }]]); }
+  finally { await recovered.close(); await executor.dispose(); }
+});
+
+test("enumeration caches absent and future candidates within a shared work budget", async () => {
+  for (const [descriptor, count] of [[literal("grep", ["a", "z"]), 512], [grep(["a", "$"], { extended: true }), 514]] as const) {
+    const reply = await run({ id: 1, descriptor, rows: [row("a".repeat(256), true)] }, {
+      maxMatchesPerLine: 257, maxTotalMatches: 257, maxResultBytes: 4112, maxWork: 12000,
+    });
+    const found = spans(reply)[0]!;
+    assert.equal(found.length, count);
+    assert.deepEqual(found.slice(0, 4), [0, 1, 1, 2]);
+  }
+});
+
+test("empty and mixed selection rows consume the same aggregate match allowance", async () => {
+  const empty = await run({ id: 1, descriptor: grep([""]), rows: [row("abc", true)] }, { maxMatchesPerLine: 3 });
+  assert.ok("error" in empty);
+  assert.match(empty.error, /matches per line/);
+  const mixed = { id: 1, descriptor: grep(["a"]), rows: [row("a"), row("aa", true)] };
+  assert.deepEqual(spans(await run(mixed, { maxTotalMatches: 3 })), [[0, 1], [0, 1, 1, 2]]);
+  const over = await run(mixed, { maxTotalMatches: 2 });
+  assert.ok("error" in over);
+  assert.match(over.error, /total match/);
+});
+
+test("ordinary ASCII grep patterns search UTF-8 HTML with original byte spans", async () => {
+  const text = '<div class="section-title">⚽ Alternate Plan: Football Fans</div>';
+  for (const extended of [false, true]) {
+    for (const pattern of ["section-title", "Alternate Plan"]) {
+      const start = Buffer.byteLength(text.slice(0, text.indexOf(pattern)));
+      assert.deepEqual(spans(await run(request(grep([pattern], { extended }), [text]))), [[start, start + pattern.length]]);
+    }
+  }
+  assert.deepEqual(spans(await run(request(grep(["absent"]), ["café ⚽"]))), [[]]);
+});
+
+test("UTF-8 regex enumeration consumes scalars and retains original byte offsets", async () => {
+  for (const [pattern, expected] of [
+    [".", [0, 2, 2, 6, 6, 7]],
+    ["[^a]+", [0, 6]],
+    ["[[:alpha:]]+", [6, 7]],
+    ["^..a$", [0, 7]],
+    ["", [0, 0, 2, 2, 6, 6, 7, 7]],
+  ] as const) assert.deepEqual(spans(await run({ id: 1, descriptor: grep([pattern]), rows: [row("é🦊a", true)] })), [expected]);
+});
+
+
+test("prepared UTF-8 subject owns its input and rejects interior-byte cursors and foreign programs", async () => {
+  const ledger = new EreLedger({ maxExpansionBytes: 65536, maxExpansionFields: 8192 });
+  const program = await compileEre([{ text: ".", literal: false }], ledger);
+  const bytes = new TextEncoder().encode("é🦊a");
+  const preparing = prepareUtf8EreSubject(bytes, ledger);
+  bytes.fill(120);
+  const prepared = await preparing;
+  const scan = prepared(program);
+  assert.deepEqual(await scan(0), { start: 0, end: 2 });
+  assert.deepEqual(await scan(2), { start: 2, end: 6 });
+  assert.deepEqual(await scan(6), { start: 6, end: 7 });
+  for (const cursor of [1, 3, 4, 5, -1, 8, NaN]) await assert.rejects(scan(cursor), RangeError);
+  assert.throws(() => prepared({ ...program }), TypeError);
+  const other = new EreLedger({ maxExpansionBytes: 65536, maxExpansionFields: 8192 });
+  const foreign = await compileEre([{ text: ".", literal: false }], other);
+  assert.throws(() => prepared(foreign), TypeError);
+});
+
+test("UTF-8 preparation and enumeration remain allocation/work bounded and cancellable", async () => {
+  for (const options of [{ maxAllocationUnits: 512 }, { maxWork: 512 }]) {
+    const reply = await run({ id: 1, descriptor: grep(["."]), rows: [row("🦊".repeat(256), true)] }, options);
+    assert.ok("error" in reply);
+    assert.match(reply.error, /allocation|work/);
+  }
+  const controller = new AbortController();
+  const ledger = new EreLedger({ maxExpansionBytes: 65536, maxExpansionFields: 8192 });
+  const pending = prepareUtf8EreSubject(new TextEncoder().encode("🦊".repeat(4096)), ledger, controller.signal);
+  const rejected = assert.rejects(pending, reason => reason === false);
+  controller.abort(false);
+  await rejected;
+});
+
+test("ASCII-insensitive grep retains original spans for fixed BRE and ERE", async () => {
+  for (const options of [{ fixed: true }, { extended: false }, { extended: true }]) {
+    const descriptor = grep(["giraffe"], { ...options, insensitive: true });
+    assert.deepEqual(spans(await run(request(descriptor, ["é GiRaFfE", "other"]))), [[3, 10], []]);
+    assert.deepEqual(spans(await run({ id: 1, descriptor, rows: [row("GIRAFFE giraffe", true)] })), [[0, 7, 8, 15]]);
+  }
+});
+
+test("ASCII-insensitive regex closes case sets before complement", async () => {
+  for (const [pattern, text, expected] of [
+    ["[^a]+", "aAébB", [2, 6]],
+    ["[a-c]+", "xAbCy", [1, 4]],
+    ["[[:upper:]]+", "éaZ", [2, 4]],
+    ["[[:lower:]]+", "éZa", [2, 4]],
+    ["^ab+$", "ABb", [0, 3]],
+  ] as const) assert.deepEqual(spans(await run(request(grep([pattern], { insensitive: true }), [text]))), [expected]);
+  const fixed = literal("grep", ["Éa"]);
+  assert.deepEqual(spans(await run(request({ ...fixed, insensitive: true } as Descriptor, ["éA", "ÉA"]))), [[], [0, 3]]);
+});
+
+test("ordinary ERE stays case-sensitive and opted-in capture values retain original case", async () => {
+  const ledger = new EreLedger({ maxExpansionBytes: 65536, maxExpansionFields: 8192 });
+  const sensitive = await compileEre("(a+)", ledger);
+  assert.equal((await matchEre(sensitive, "AA", ledger)).matched, false);
+  const insensitive = await compileEre("(a+)", ledger, undefined, true);
+  assert.deepEqual((await matchEre(insensitive, "AaA", ledger)).values, ["AaA", "AaA"]);
+});
+
+test("ASCII-insensitive matching preserves shared work and allocation bounds", async () => {
+  for (const options of [{ maxWork: 512 }, { maxAllocationUnits: 512 }]) {
+    const reply = await run({ id: 1, descriptor: grep(["a"], { insensitive: true }), rows: [row("A".repeat(1024), true)] }, options);
+    assert.ok("error" in reply);
+    assert.match(reply.error, /work|allocation/);
+  }
+  const reply = await run({ id: 1, descriptor: grep(["(a+)+b"], { insensitive: true }), rows: [row("A".repeat(64), true)] }, { maxStates: 32 });
+  assert.ok("error" in reply);
+  assert.match(reply.error, /states/);
+});
+
+test("ASCII-insensitive enumeration preserves live abort identity and worker reuse", async () => {
+  const executor = new RegexExecutor(createBoundedRegexProvider({ maxWorkers: 1, maxMatchesPerLine: 4096, maxTotalMatches: 4096, maxResultBytes: 65536 }));
+  const controller = new AbortController();
+  const session = executor.open(controller.signal);
+  const descriptor = grep(["a"], { insensitive: true });
+  const pending = session.run(descriptor, [row("A".repeat(4096), true)]);
+  const rejected = assert.rejects(pending, reason => reason === false);
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  controller.abort(false);
+  await rejected;
+  await session.close();
+  const recovered = executor.open(new AbortController().signal);
+  try { assert.deepEqual(await recovered.run(descriptor, [row("aA", true)]), [[{ start: 0, end: 1 }, { start: 1, end: 2 }]]); }
+  finally { await recovered.close(); await executor.dispose(); }
+});
+
+test("BRE escaped metacharacters and ordinary operators retain literal byte spans", async () => {
+  for (const [pattern, subject, expected] of [
+    ["upload\\.wikimedia\\.org", "é upload.wikimedia.org", [3, 23]],
+    ["a+b?(x){2}|y", "a+b?(x){2}|y", [0, 12]],
+    ["[+()?{}|]", "x+y", [1, 2]],
+    ["\\[x\\]\\*\\^\\$\\\\", "[x]*^$\\", [0, 7]],
+  ] as const) {
+    const descriptor = grep([pattern], { extended: false });
+    assert.deepEqual(spans(await run(request(descriptor, [subject]))), [expected]);
+    assert.deepEqual(spans(await run({ id: 1, descriptor, rows: [row(subject, true)] })), [expected]);
+  }
+});
+
+test("BRE bracket boundaries and escaped atoms do not leak ERE operator semantics", async () => {
+  for (const [pattern, subject, expected] of [
+    ["[[:alpha:]+]", "+", [0, 1]],
+    ["]+", "]+", [0, 2]],
+    ["[]+]", "]", [0, 1]],
+    ["[^]+]", "a", [0, 1]],
+    ["\\^*", "^^", [0, 2]],
+    ["[\\]", "\\", [0, 1]],
+    ["\\[a+\\]", "[a+]", [0, 4]],
+  ] as const) assert.deepEqual(spans(await run(request(grep([pattern], { extended: false }), [subject]))), [expected]);
+  assert.deepEqual(spans(await run(request(grep(["a+"], { extended: true }), ["aa"]))), [[0, 2]]);
+  assert.deepEqual(spans(await run(request(grep(["a+"], { extended: false }), ["aa"]))), [[]]);
+  assert.deepEqual(spans(await run(request(grep(["a+b"], { extended: false, insensitive: true, whole: true }), ["A+B"]))), [[0, 3]]);
+  for (const pattern of ["a\\+", "a\\?", "\\(a\\)", "a\\{2\\}", "a\\|b", "\\1", "\\w", "a\\"]) {
+    const result = await run(request(grep([pattern], { extended: false }), []));
+    assert.ok("error" in result);
+    assert.match(result.error, /unsupported/);
+  }
+});
+
+test("BRE translation charges original source, work, and retained fragments", async () => {
+  for (const [pattern, options, expected] of [
+    ["\\.", { maxPatternBytes: 1 }, /pattern/],
+    ["a+".repeat(1024), { maxWork: 128 }, /work/],
+    ["a+".repeat(1024), { maxAllocationUnits: 128 }, /allocation/],
+  ] as const) {
+    const result = await run(request(grep([pattern], { extended: false }), []), options);
+    assert.ok("error" in result);
+    assert.match(result.error, expected);
+  }
+});
+
+test("BRE translation preserves live cancellation and a subsequent worker session", async () => {
+  const executor = new RegexExecutor(createBoundedRegexProvider({ maxWorkers: 1 }));
+  const controller = new AbortController();
+  const session = executor.open(controller.signal);
+  const pending = session.run(grep(["a+".repeat(4096)], { extended: false }), [row("x")]);
+  const rejected = assert.rejects(pending, reason => reason === false);
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  controller.abort(false);
+  await rejected;
+  await session.close();
+  const recovered = executor.open(new AbortController().signal);
+  try { assert.deepEqual(await recovered.run(grep(["a+b"], { extended: false }), [row("a+b", true)]), [[{ start: 0, end: 3 }]]); }
+  finally { await recovered.close(); await executor.dispose(); }
 });

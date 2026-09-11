@@ -23,6 +23,7 @@ export interface ParsedOptions {
 export function options(
   args: readonly string[], short: string, long: Readonly<Record<string, string>> = {},
   stopAtOperand = false, onOperand?: (index: number) => void,
+  onValue?: (key: string, index: number, offset: number) => void,
 ): ParsedOptions {
   const flags = new Set<string>();
   const values = new Map<string, string[]>();
@@ -51,6 +52,7 @@ export function options(
       if (specifications.get(key)) {
         const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
         if (value === undefined) throw new UsageError(`option '--${name}' requires an argument`);
+        onValue?.(key, index, equals >= 0 ? equals + 1 : 0);
         values.set(key, [...values.get(key) ?? [], value]);
       } else if (equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);
       flags.add(key);
@@ -62,6 +64,7 @@ export function options(
       if (specifications.get(key)) {
         const value = argument.slice(offset + 1) || args[++index];
         if (value === undefined) throw new UsageError(`option requires an argument -- '${key}'`);
+        onValue?.(key, index, offset + 1 < argument.length ? offset + 1 : 0);
         values.set(key, [...values.get(key) ?? [], value]);
         offset = argument.length;
       }
@@ -87,7 +90,7 @@ export function requireOperands(operands: readonly string[], minimum = 1, maximu
   if (operands.length > maximum) throw new UsageError(`extra operand '${operands[maximum]}'`);
 }
 
-export function pathOf(context: CommandContext, path: string): string {
+export function pathOf(context: Pick<CommandContext, "cwd">, path: string): string {
   if (!path) throw new FsError("ENOENT", { path });
   validatePath(path);
   validatePath(context.cwd);
@@ -143,7 +146,8 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
   } else {
     await assertInputRequirements(context, [name]);
     const path = pathOf(context, name);
-    if (context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
+    const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+    if (context.fs.readStream && capabilities.streamingRead !== false) {
       let emitted = false;
       let reading = true;
       try {
@@ -159,7 +163,7 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
         if (!reading || emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
       }
     }
-    if (context.fs.capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
+    if (capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
     yield* readBytes({
       async *[Symbol.asyncIterator]() {
         const bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes: bufferLimit });

@@ -315,7 +315,7 @@ async function executeWith(overrides: Partial<CommandContext>): Promise<{ readon
   return { result, stdout: text(stdout), stderr: text(stderr) };
 }
 
-test("factories are frozen and replace-only", () => {
+test("factories are frozen and reject unknown options", () => {
   const command = createYqCommand();
   const commands = createYqCommands();
   assert.equal(command.name, "yq");
@@ -326,11 +326,11 @@ test("factories are frozen and replace-only", () => {
 
 test("exact information forms avoid input", async () => {
   const version = await run(["--version"], "[");
-  assert.deepEqual(version, { status: 0, stdout: "virtual-bash restricted YAML profile\n", stderr: "" });
+  assert.deepEqual(version, { status: 0, stdout: "virtual-bash restricted YAML/TOML profile\n", stderr: "" });
   const help = await run(["e", "--help"], "[");
   assert.equal(help.status, 0);
-  assert.equal(Buffer.byteLength(help.stdout), 501);
-  assert.equal(createHash("sha256").update(help.stdout).digest("hex"), "97238372eed5e2358540baadbb7e5eac1c81d14dde163a1b7fd05d9048521f65");
+  assert.equal(Buffer.byteLength(help.stdout), 613);
+  assert.equal(createHash("sha256").update(help.stdout).digest("hex"), "4ef0b3fc3ef45fe9b87703dcc4d0a1161f8dc95383ce5ab50cf66890c9c3528d");
 });
 
 test("CLI admission and refusals use finite diagnostics", async () => {

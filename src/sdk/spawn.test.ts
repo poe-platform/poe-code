@@ -1528,21 +1528,21 @@ describe("SDK spawn()", () => {
   it("uses CLI streaming for ACP agents that do not support MCP over ACP", async () => {
     vi.mocked(getAcpSpawnConfig).mockReturnValue({
       kind: "acp",
-      agentId: "kimi",
+      agentId: "opencode",
       acpArgs: ["acp"],
       supportsMcpServers: false
     } as any);
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
-      agentId: "kimi",
-      adapter: "kimi"
+      agentId: "opencode",
+      adapter: "opencode"
     } as any);
     vi.mocked(spawnStreaming).mockImplementation(() => ({
       events: (async function* () {})(),
       done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
 
-    const { result } = spawn("kimi", "test prompt", {
+    const { result } = spawn("opencode", "test prompt", {
       mcpServers: {
         test: { command: "tiny-stdio-mcp-test-server" }
       }
@@ -1553,7 +1553,7 @@ describe("SDK spawn()", () => {
     expect(spawnAcp).not.toHaveBeenCalled();
     expect(spawnStreaming).toHaveBeenCalledWith(
       expect.objectContaining({
-        agentId: "kimi",
+        agentId: "opencode",
         mcpServers: {
           test: { command: "tiny-stdio-mcp-test-server" }
         }

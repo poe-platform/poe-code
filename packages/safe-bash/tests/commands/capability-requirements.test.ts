@@ -4,7 +4,7 @@ import type { FileSystem, FileSystemCapabilities } from "../../src/contracts/fil
 import { evaluateCommandSupport } from "../../src/contracts/command-requirements.js";
 import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { fixture, run } from "./helpers.js";
-import * as browser from "../../src/browser.js";
+import * as browser from "../../src/index.js";
 import * as root from "../../src/index.js";
 
 test("cross-mount move retains its existing route without requiring native backend rename", async () => {
@@ -121,8 +121,10 @@ test("command help distinguishes modes and unknown declarations without probing 
   assert.deepEqual(evaluateCommandSupport({ filesystemRequirements: [] }, {}), { status: "supported", declared: true, modes: [] });
 });
 
-test("browser pure and optional-file commands have honest capability help", () => {
-  for (const command of browser.createBrowserCommands()) {
+test("default pure and optional-file commands retain honest capability help", () => {
+  const commands = new Map(browser.createAgentCommands().map(command => [command.name, command]));
+  for (const name of ["true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch", "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail", "wc", "tee", "tr", "sort", "uniq", "cut", "test", "["]) {
+    const command = commands.get(name)!;
     assert.equal(evaluateCommandSupport(command, {}).declared, true, command.name);
     if (["echo", "printf", "true", "false", "basename", "dirname", "tr"].includes(command.name)) {
       assert.equal(evaluateCommandSupport(command, {}).status, "supported", command.name);

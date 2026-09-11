@@ -5,7 +5,7 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { FsError, type ByteSource, type CommandDefinition, type FileSystem, type VirtualShellPlugin } from "../../src/contracts/index.js";
 import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { createAgentCommands, agentCommands } from "../../src/plugins/index.js";
-import { createBrowserCommands, browserCommands } from "../../src/browser.js";
+import { createAgentCommands as createDefaultCommands, agentCommands as defaultCommands } from "../../src/index.js";
 import { streamCommands } from "../../src/commands/streams.js";
 
 const routes: { name: string; create(maxTeeTargets?: number): readonly CommandDefinition[] | VirtualShellPlugin }[] = [
@@ -14,8 +14,8 @@ const routes: { name: string; create(maxTeeTargets?: number): readonly CommandDe
   { name: "standard plugin", create: limit => standardCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
   { name: "agent factory", create: limit => createAgentCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
   { name: "agent plugin", create: limit => agentCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
-  { name: "browser factory", create: limit => createBrowserCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
-  { name: "browser plugin", create: limit => browserCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
+  { name: "default factory", create: limit => createDefaultCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
+  { name: "default plugin", create: limit => defaultCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
 ];
 
 function install(shell: Shell, route: typeof routes[number], limit?: number): void {

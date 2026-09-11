@@ -1,4 +1,5 @@
 import { writeDiagnostic } from "../escaping.js";
+import { createDeviceFileSystem } from "poe-code/safe-fs/core";
 import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
 import type {
   ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
@@ -254,11 +255,13 @@ export class Shell implements PluginHost {
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,
+          globstar: false,
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
         const admission = Runtime.rootCancellationAdmission(budget);
+        const filesystem = options.fs ?? this.#options.fs;
         const runtime = new Runtime(
-          options.fs ?? this.#options.fs,
+          createDeviceFileSystem(filesystem),
           this.commands,
           [...this.#middleware],
           budget,
@@ -271,6 +274,8 @@ export class Shell implements PluginHost {
           owner,
           0,
           admission.maxDepth,
+          undefined,
+          filesystem,
         );
         exitCode = 0;
         while (true) {

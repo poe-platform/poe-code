@@ -91,7 +91,8 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
           yield chunk;
         }
       })();
-      if (context.fs.writeStream && context.fs.capabilities.streamingWrite !== false) {
+      const capabilities = await interruptible(() => Promise.resolve(context.fs.capabilitiesFor?.(destination.path, { signal }) ?? context.fs.capabilities), signal);
+      if (context.fs.writeStream && capabilities.streamingWrite !== false) {
         await interruptible(() => context.fs.writeStream!(destination.path, source, { signal, flag: destination.flag }), signal);
       } else {
         const bytes = await collectBytes(source, { signal, maxBytes: limits.maxBufferBytes });

@@ -5,7 +5,6 @@ import { resolveConfig } from "./configs/resolve-config.js";
 import { claudeCodeSpawnConfig } from "./configs/claude-code.js";
 import { codexSpawnConfig } from "./configs/codex.js";
 import { openCodeSpawnConfig } from "./configs/opencode.js";
-import { kimiSpawnConfig } from "./configs/kimi.js";
 import { gooseSpawnConfig } from "./configs/goose.js";
 import { spawnInteractive } from "./spawn-interactive.js";
 import { getMcpArgs } from "./mcp-args.js";
@@ -124,20 +123,6 @@ describe("spawnInteractive", () => {
     ]);
   });
 
-  it("builds flag-based prompt args for kimi", async () => {
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
-
-    await spawnInteractive("kimi", { prompt: "test prompt", mode: "yolo" });
-
-    const [command, args] = spawnMock.mock.calls[0];
-    expect(command).toBe("kimi");
-    expect(args).toEqual([
-      kimiSpawnConfig.interactive!.promptFlag,
-      "test prompt",
-      ...kimiSpawnConfig.interactive!.defaultArgs,
-      ...kimiSpawnConfig.modes.yolo
-    ]);
-  });
 
   it("builds goose interactive args with the session subcommand before the prompt", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));

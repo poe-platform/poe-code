@@ -1,10 +1,11 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { createRequire, syncBuiltinESMExports } from "node:module";
 import test, { after } from "node:test";
 import { Worker, type WorkerOptions } from "node:worker_threads";
 import { createGrepAliasCommands, egrepCommand, fgrepCommand } from "../../../src/commands/grep-aliases/index.js";
-import { RegexExecutor } from "../../../src/commands/regex-execution/client.js";
+import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 import type { Request } from "../../../src/commands/regex-execution/protocol.js";
 import type { ByteSource, InvocationCleanup } from "../../../src/contracts/index.js";
 import { deferred, run } from "./helpers.js";
@@ -30,14 +31,14 @@ after(() => {
 });
 
 for (const factory of [egrepCommand, fgrepCommand]) {
-  const name = factory().name;
+  const name = factory({ regexExecutor: createNodeRegexProvider() }).name;
   test(`${name} registers cleanup synchronously before acquisition and shares completion`, { timeout: 5000 }, async () => {
     const original = RegexExecutor.prototype.open;
     const events: string[] = [];
     const callbacks: InvocationCleanup[] = [];
     RegexExecutor.prototype.open = function(signal) { events.push("open"); return original.call(this, signal); };
     try {
-      assert.equal((await run(factory(), ["a"], "a\n", { registerCleanup(cleanup) { events.push("register"); callbacks.push(cleanup); } })).code, 0);
+      assert.equal((await run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], "a\n", { registerCleanup(cleanup) { events.push("register"); callbacks.push(cleanup); } })).code, 0);
       assert.deepEqual(events, ["register", "open"]);
       assert.equal(callbacks.length, 1);
       const completion = callbacks[0]!();
@@ -45,7 +46,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
       await completion;
       events.length = 0;
       const reason = new Error("registrar refused");
-      await assert.rejects(run(factory(), ["a"], "a\n", { registerCleanup() { throw reason; } }), error => error === reason);
+      await assert.rejects(run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], "a\n", { registerCleanup() { throw reason; } }), error => error === reason);
       assert.deepEqual(events, []);
     } finally { RegexExecutor.prototype.open = original; }
   });
@@ -55,7 +56,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
     const reason = Object.assign(new Error("cancelled"), { code: "ENOENT" });
     controller.abort(reason);
     let registered = false;
-    await assert.rejects(run(factory(), ["a"], "a\n", {
+    await assert.rejects(run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], "a\n", {
       signal: controller.signal, registerCleanup() { registered = true; },
     }), error => error === reason);
     assert.equal(registered, false);
@@ -71,7 +72,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
       if (request.rows.length) { activeWorker = this; entered.resolve(); return; }
       original.call(this, request, transfer);
     };
-    const execution = run(factory(), ["a"], "a\n", { signal: controller.signal });
+    const execution = run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], "a\n", { signal: controller.signal });
     const rejected = assert.rejects(execution, error => error === reason);
     try {
       await entered.promise;
@@ -91,7 +92,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
         reused.set(Buffer.from("a3!")); yield reused.subarray(0, 2);
       } finally { reused.fill(120); }
     })();
-    const result = await run(factory(), ["a"], source);
+    const result = await run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], source);
     assert.equal(result.code, 0);
     assert.equal(result.stdout.toString(), "a1\na2\na3\n");
     assert.equal(reused.toString(), "xxx");
@@ -103,7 +104,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
     const output: Uint8Array[] = [];
     let writes = 0;
     let complete = false;
-    const execution = run(factory(), ["a"], "a\na\n", { stdout: { async write(bytes) {
+    const execution = run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], "a\na\n", { stdout: { async write(bytes) {
       writes++;
       if (writes === 1) { entered.resolve(); await release.promise; }
       output.push(Uint8Array.from(bytes));
@@ -125,7 +126,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
     let rejectLate!: (error: unknown) => void;
     const opaque = new Promise<never>((_resolve, reject) => { rejectLate = reject; });
     const source: ByteSource = { [Symbol.asyncIterator]() { return { next() { entered.resolve(); return opaque; } }; } };
-    const execution = run(factory(), ["a"], destination === "stdin" ? source : "a\n", {
+    const execution = run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], destination === "stdin" ? source : "a\n", {
       signal: controller.signal,
       ...(destination === "stdout" ? { stdout: { async write() { entered.resolve(); await opaque; } } } : {}),
     });
@@ -146,7 +147,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
       async next() { reads++; assert.equal(reads, 1); return { done: false, value: Buffer.from("a\nlater\n") }; },
       async return() { returns++; returning.resolve(); await release.promise; return { done: true, value: undefined }; },
     }; } };
-    const execution = run(factory(), ["-q", "a"], source).then(result => { complete = true; return result; });
+    const execution = run(factory({ regexExecutor: createNodeRegexProvider() }), ["-q", "a"], source).then(result => { complete = true; return result; });
     try { await returning.promise; assert.equal(complete, false); }
     finally { release.resolve(); }
     assert.equal((await execution).code, 0);
@@ -162,7 +163,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
       async next() { return { done: false, value: Buffer.from("a\n") }; },
       async return() { returns++; return { done: true, value: undefined }; },
     }; } };
-    const result = await run(factory(), ["a"], source, { onInternalError(error) { internalErrors.push(error); }, stdout: { async write() { throw failure; } } });
+    const result = await run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], source, { onInternalError(error) { internalErrors.push(error); }, stdout: { async write() { throw failure; } } });
     assert.equal(result.code, 2);
     assert.equal(result.stderr.toString(), `${name}: internal error\n`);
     assert.equal(internalErrors.length, 1);
@@ -178,7 +179,7 @@ for (const factory of [egrepCommand, fgrepCommand]) {
       async next(): Promise<IteratorResult<Uint8Array>> { throw failure; },
       async return(): Promise<IteratorResult<Uint8Array>> { returns++; throw new Error("return failed"); },
     }; } };
-    const result = await run(factory(), ["a"], source, { onInternalError(error) { internalErrors.push(error); } });
+    const result = await run(factory({ regexExecutor: createNodeRegexProvider() }), ["a"], source, { onInternalError(error) { internalErrors.push(error); } });
     assert.equal(result.code, 2);
     assert.equal(result.stderr.toString(), `${name}: internal error\n`);
     assert.equal(internalErrors.length, 1);
@@ -192,13 +193,13 @@ for (const factory of [egrepCommand, fgrepCommand]) {
       construct() { throw new Error("host RegExp forbidden"); },
       apply() { throw new Error("host RegExp forbidden"); },
     });
-    try { assert.equal((await run(factory(), [name === "egrep" ? "a+" : "a+"], "aa\na+\n")).code, 0); }
+    try { assert.equal((await run(factory({ regexExecutor: createNodeRegexProvider() }), [name === "egrep" ? "a+" : "a+"], "aa\na+\n")).code, 0); }
     finally { globalThis.RegExp = original; }
   });
 }
 
 test("family aliases share executor worker and queue budgets", { timeout: 10000 }, async () => {
-  const [extended, fixed] = createGrepAliasCommands({ regex: { maxWorkers: 1, maxQueuedRequests: 0, requestTimeoutMs: 5000 } });
+  const [extended, fixed] = createGrepAliasCommands({ regexExecutor: createNodeRegexProvider(), regex: { maxWorkers: 1, maxQueuedRequests: 0, requestTimeoutMs: 5000 } });
   const original = Worker.prototype.postMessage;
   const entered = deferred();
   let held: { worker: Worker; request: Request } | undefined;
@@ -228,7 +229,7 @@ test("request timeout option bounds a stalled actual matcher request", { timeout
     original.call(this, request, transfer);
   };
   try {
-    const result = await run(egrepCommand({ regex: { requestTimeoutMs: 50 } }), ["a"], "a\n");
+    const result = await run(egrepCommand({ regexExecutor: createNodeRegexProvider(), regex: { requestTimeoutMs: 50 } }), ["a"], "a\n");
     assert.equal(result.code, 2);
     assert.match(result.stderr.toString(), /^egrep: regex REQUEST_TIMEOUT: active request exceeded 50ms\n$/);
     assert.ok(activeWorker && exited.has(activeWorker));
@@ -236,7 +237,7 @@ test("request timeout option bounds a stalled actual matcher request", { timeout
 });
 
 test("paused alias sink releases shared request capacity for sibling", { timeout: 5000 }, async () => {
-  const [extended, fixed] = createGrepAliasCommands({ regex: { maxWorkers: 1, maxQueuedRequests: 0 } });
+  const [extended, fixed] = createGrepAliasCommands({ regexExecutor: createNodeRegexProvider(), regex: { maxWorkers: 1, maxQueuedRequests: 0 } });
   const entered = deferred();
   const release = deferred();
   const initial = run(extended!, ["a"], "a\n", { stdout: { async write() { entered.resolve(); await release.promise; } } });

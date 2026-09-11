@@ -152,7 +152,9 @@ test("pre-aborted invocation and abort during stdout produce no fallback diagnos
 });
 
 test("actual Shell charges output through shared sinks across two tree invocations", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(treeCommands());
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/fixture");
+  const shell = new Shell({ fs, cwd: "/fixture" }).use(treeCommands());
   try {
     assert.equal((await shell.exec("tree --noreport", { limits: { maxOutputBytes: 2 } })).stdout, ".\n");
     await assert.rejects(shell.exec("tree --noreport; tree --noreport", { limits: { maxOutputBytes: 3 } }),

@@ -420,7 +420,7 @@ describe("renderTable", () => {
             Status: "[-]",
             Env: "CF_AIG_TOKEN, CF_AIG_BASE_URL",
             "API shapes": "chat-completions, responses, messages, generations",
-            Agents: "claude-code, codex, gemini-cli, goose, kimi, opencode, poe-agent",
+            Agents: "claude-code, codex, gemini-cli, goose, opencode, poe-agent",
           },
         ],
         maxWidth: 60,
@@ -493,7 +493,7 @@ describe("renderTable", () => {
             {
               Provider: "cloudflare",
               Env: "CF_AIG_TOKEN, CF_AIG_BASE_URL",
-              Agents: "claude-code, codex, gemini-cli, goose, kimi, opencode",
+              Agents: "claude-code, codex, gemini-cli, goose, opencode",
             },
           ],
           maxWidth: loggerTableWidth(),

@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import ts from "typescript";
 import type { BuildOptions, BuildResult, Metafile, OutputFile } from "esbuild";
 import { createFsFromVolume, Volume } from "memfs";
@@ -13,9 +14,50 @@ afterEach(() => {
   vi.doUnmock("node:fs/promises");
   vi.doUnmock("esbuild");
   vi.doUnmock("../packages/package-lint/dist/bundle-policy.js");
+  vi.doUnmock("../packages/package-lint/dist/native-assets.js");
   vi.doUnmock("./bundle-assets.mjs");
   vi.resetModules();
 });
+
+function addNativeFixture(root: string, volume: Volume) {
+  const registry = {
+    version: 1, specifier: "#safe-fs-native-seek", directory: "native/fs-seek", source: "native/seek.c",
+    loader: "native/loader.mjs", declaration: "src/native/loader.d.ts", napi: 6, maxBinaryBytes: 1048576,
+    targets: [{ platform: "linux", arch: "x64", libc: "glibc", minimumLibc: "2.31" }]
+  };
+  const source = "int seek_fixture(void) { return 0; }\n";
+  const loader = "export async function loadBinding() { throw new Error('unsupported fixture'); }\n";
+  const declaration = "export declare function loadBinding(): Promise<unknown>;\n";
+  const digest = (text: string) => createHash("sha256").update(text).digest("hex");
+  const manifest = {
+    version: 1, napi: 6, maxBinaryBytes: 1048576, targets: [], build: {
+      sourceSha256: digest(source), loaderSha256: digest(loader), declarationSha256: digest(declaration),
+      headers: null, compiler: null
+    }
+  };
+  const entries = {
+    "packages/safe-fs/native/assets.json": JSON.stringify(registry),
+    "packages/safe-fs/native/seek.c": source,
+    "packages/safe-fs/native/loader.mjs": loader,
+    "packages/safe-fs/src/native/loader.d.ts": declaration,
+    "packages/safe-fs/dist/native/fs-seek/loader.mjs": loader,
+    "packages/safe-fs/dist/native/fs-seek/loader.d.ts": declaration,
+    "packages/safe-fs/dist/native/fs-seek/manifest.json": JSON.stringify(manifest)
+  };
+  for (const [filename, contents] of Object.entries(entries)) {
+    volume.mkdirSync(path.dirname(path.join(root, filename)), { recursive: true });
+    volume.writeFileSync(path.join(root, filename), contents);
+  }
+  for (const [filename, directory] of [["package.json", "packages/safe-js/dist"], ["packages/safe-js/package.json", "dist"]]) {
+    const absolute = path.join(root, filename!);
+    const scope = JSON.parse(volume.readFileSync(absolute, "utf8") as string);
+    scope.imports = { ...scope.imports, [registry.specifier]: {
+      types: `./${directory}/${registry.directory}/loader.d.ts`, workerd: null, browser: null,
+      default: `./${directory}/${registry.directory}/loader.mjs`
+    } };
+    volume.writeFileSync(absolute, JSON.stringify(scope));
+  }
+}
 
 it.each([
   { external: "poe-code/safe-fs", invalidExternal: false },
@@ -43,7 +85,13 @@ it.each([
             : "export {};\n"
         ])
       ),
-      [path.join(root, "src/providers/proof.ts")]: "export {};"
+      [path.join(root, "src/providers/proof.ts")]: "export {};",
+      [path.join(root, "dist/providers/retired.js")]: "export {};",
+      [path.join(root, "dist/providers/retired.js.map")]: "{}",
+      [path.join(root, "dist/providers/retired.d.ts")]: "export {};",
+      [path.join(root, "dist/providers/retired.d.ts.map")]: "{}",
+      [path.join(root, "dist/providers/proof.d.ts")]: "export {};",
+      [path.join(root, "dist/providers/notes.txt")]: "keep"
     });
     for (const name of ["safe-fs", "safe-js", "safe-bash", "memory", "agent-mcp-config", "agent-skill-config"]) {
       volume.mkdirSync(path.join(root, "packages", name, "dist"), { recursive: true });
@@ -52,6 +100,7 @@ it.each([
         JSON.stringify({ name: `@poe-code/${name}` })
       );
     }
+    addNativeFixture(root, volume);
     const files = createFsFromVolume(volume).promises;
     const build = vi.fn(async (options: BuildOptions) => {
       const entries = Array.isArray(options.entryPoints)
@@ -114,11 +163,17 @@ it.each([
       "../packages/package-lint/dist/bundle-policy.js",
       () => import("../packages/package-lint/src/bundle-policy.js")
     );
+    vi.doMock("../packages/package-lint/dist/native-assets.js", () => import("../packages/package-lint/src/native-assets.js"));
     if (invalidExternal) {
       await expect(import("./bundle.mjs")).rejects.toThrow("invalid-external");
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      for (const suffix of [".js", ".js.map", ".d.ts", ".d.ts.map"]) {
+        expect(volume.existsSync(path.join(root, `dist/providers/retired${suffix}`))).toBe(false);
+      }
+      expect(volume.existsSync(path.join(root, "dist/providers/proof.d.ts"))).toBe(true);
+      expect(volume.readFileSync(path.join(root, "dist/providers/notes.txt"), "utf8")).toBe("keep");
       for (const [name, content] of Object.entries(experimentAssets)) {
         expect(await files.readFile(path.join(root, "dist", name), "utf8")).toBe(content);
       }
@@ -130,6 +185,11 @@ it.each([
         external
       );
       expect(volume.existsSync(path.join(root, "packages/safe-js/dist/safe-fs.js"))).toBe(true);
+      expect(evidence.canonicalNativeAssets.assets.map((asset: { path: string }) => asset.path).sort()).toEqual([
+        "packages/safe-js/dist/native/fs-seek/loader.d.ts",
+        "packages/safe-js/dist/native/fs-seek/loader.mjs",
+        "packages/safe-js/dist/native/fs-seek/manifest.json"
+      ]);
     }
     for (const [options] of build.mock.calls) {
       if (options.splitting) continue;
@@ -143,13 +203,29 @@ it.each([
     }
     expect(build.mock.calls.filter(([options]) => options.outdir === path.join(root, "packages/safe-bash/dist"))
       .map(([options]) => options.entryPoints)).toEqual([
-      [path.join(root, "packages/safe-bash/src/browser.ts"), path.join(root, "packages/safe-bash/src/portable.ts")],
+      {
+        "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
+        "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),
+        "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
+    "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
+        "commands/csplit/index.browser": path.join(root, "packages/safe-bash/src/commands/csplit/index.ts"),
+        "commands/pr/index.browser": path.join(root, "packages/safe-bash/src/commands/pr/index.ts"),
+        "commands/tsort/index.browser": path.join(root, "packages/safe-bash/src/commands/tsort/index.ts"),
+        "commands/factor/index.browser": path.join(root, "packages/safe-bash/src/commands/factor/index.ts"),
+        "commands/getopt/index.browser": path.join(root, "packages/safe-bash/src/commands/getopt/index.ts"),
+        "commands/hexdump/index.browser": path.join(root, "packages/safe-bash/src/commands/hexdump/index.ts"),
+        "commands/iconv/index.browser": path.join(root, "packages/safe-bash/src/commands/iconv/index.ts"),
+        "commands/line-endings/index.browser": path.join(root, "packages/safe-bash/src/commands/line-endings/index.ts"),
+        "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
+        "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
+      },
     ]);
   }
 );
 
-it("preserves the previous SafeJS bundle when compilation fails", async () => {
+it.each(["workerd", "node"])("preserves the previous SafeJS bundle when %s compilation fails", async profile => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const previousEntry = path.join(root, "packages/safe-js/dist/index.js");
   const previousChunk = path.join(root, "packages/safe-js/dist/chunks/chunk-OLD.js");
   const volume = Volume.fromJSON({
     [path.join(root, "package.json")]: "{}",
@@ -157,14 +233,15 @@ it("preserves the previous SafeJS bundle when compilation fails", async () => {
     [path.join(root, "packages/safe-fs/package.json")]:
       '{"name":"@poe-code/safe-fs","exports":{"./node":{"import":"./dist/node/index.js"}}}',
     [path.join(root, "packages/memory/package.json")]: '{"name":"@poe-code/memory"}',
-    [path.join(root, "packages/safe-js/dist/index.js")]: 'export * from "./chunks/chunk-OLD.js";',
+    [previousEntry]: 'export * from "./chunks/chunk-OLD.js";',
     [previousChunk]: "export const previous = true;",
     [path.join(root, "dist/metafile.json")]: "{}"
   });
   volume.mkdirSync(path.join(root, "src/providers"), { recursive: true });
+  addNativeFixture(root, volume);
   const failure = new Error("SafeJS compilation failed");
   const build = vi.fn(async (options: BuildOptions) => {
-    if (options.outdir === path.join(root, "packages/safe-js/dist")) throw failure;
+    if (options.outdir === path.join(root, "packages/safe-js/dist") && options.conditions?.includes(profile)) throw failure;
     return { metafile: { outputs: {} } };
   });
   vi.doMock("node:fs/promises", () => createFsFromVolume(volume).promises);
@@ -178,12 +255,21 @@ it("preserves the previous SafeJS bundle when compilation fails", async () => {
 
   expect(build).toHaveBeenLastCalledWith(expect.objectContaining({ write: false, metafile: true }));
   const producer = build.mock.calls.at(-1)![0];
-  expect((producer.entryPoints as Record<string, string>)["safe-fs"]).toBe(
-    path.join(root, "packages/safe-fs/src/index.ts")
-  );
-  expect(producer.alias!["@poe-code/safe-fs/node"]).toBe(
-    path.join(root, "packages/safe-fs/src/node-host.ts")
-  );
+  expect(producer.conditions).toEqual([profile]);
+  if (profile === "node") {
+    expect((producer.entryPoints as Record<string, string>)["safe-fs"]).toBe(
+      path.join(root, "packages/safe-fs/src/index.ts")
+    );
+    expect(producer.alias!["@poe-code/safe-fs/node"]).toBe(
+      path.join(root, "packages/safe-fs/src/node-host.ts")
+    );
+  } else {
+    expect(producer.entryPoints).toEqual({ workerd: path.join(root, "packages/safe-js/src/workerd.ts") });
+    expect(producer.alias!["@poe-code/safe-fs"]).toBe("poe-code/safe-fs");
+    expect(producer.alias!["@poe-code/safe-fs/node"]).toBe("poe-code/safe-fs/node");
+    expect(producer.external).toContain("poe-code/safe-fs");
+    expect(producer.splitting).toBe(false);
+  }
   for (const [options] of build.mock.calls.slice(0, -1)) {
     expect(options.alias!["@poe-code/safe-fs"]).toBe("poe-code/safe-fs");
     expect(options.alias!["@poe-code/safe-fs/node"]).toBe("poe-code/safe-fs/node");
@@ -191,6 +277,7 @@ it("preserves the previous SafeJS bundle when compilation fails", async () => {
     expect(options.metafile).toBe(true);
   }
   expect(volume.existsSync(previousChunk)).toBe(true);
+  expect(volume.readFileSync(previousEntry, "utf8")).toBe('export * from "./chunks/chunk-OLD.js";');
   expect(volume.readFileSync(previousChunk, "utf8")).toBe("export const previous = true;");
 });
 

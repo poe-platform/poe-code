@@ -3,6 +3,18 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "imports": {
+    "#safe-fs-native-seek": {
+      "types": "./dist/native/fs-seek/loader.d.ts",
+      "workerd": null,
+      "browser": null,
+      "default": "./dist/native/fs-seek/loader.mjs"
+    },
+    "#safe-js-platform": {
+      "workerd": "./dist/platform/workerd.js",
+      "default": "./dist/platform/node.js"
+    }
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -21,6 +33,16 @@
     "./cli": {
       "types": "./dist/cli.d.ts",
       "import": "./dist/cli.js"
+    },
+    "./workerd": {
+      "types": {
+        "workerd": "./dist/workerd.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/workerd.d.ts"
+      },
+      "workerd": "./dist/workerd.js",
+      "browser": null,
+      "import": "./dist/workerd.js"
     }
   },
   "dependencies": {
@@ -47,8 +69,9 @@
     "pretest:unit": "node scripts/numberformat-data.mjs && npm run typecheck:fs",
     "test:unit": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
     "test:adversarial": "cd ../.. && vitest run packages/safe-js/test/adversarial",
-    "test:conformance": "tsx test/conformance/command.ts",
     "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts",
+    "typecheck:contracts": "node scripts/check-fs-type-contract.mjs",
+    "test:conformance": "tsx test/conformance/command.ts",
     "typecheck:fs": "node scripts/fs-type-contract.mjs"
   },
   "files": [

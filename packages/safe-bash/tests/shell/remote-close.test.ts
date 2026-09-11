@@ -1,7 +1,24 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 import { runRemoteCloseChild } from "./remote-close-child.js";
+
+const probes = new Map<string, Promise<string>>();
+
+test("remote-close supervisor supplies in-memory JavaScript on stdin", async () => {
+  const result = await runRemoteCloseChild(["--input-type=module", "-"], 'console.log("stdin: passed");');
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.timedOut, false);
+  assert.equal(result.stdout, "stdin: passed\n");
+});
+
+test("remote-close supervisor handles a child exiting before consuming stdin", async () => {
+  const result = await runRemoteCloseChild(["--eval", "process.exit(0)"], " ".repeat(1024 * 1024));
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.timedOut, false);
+  assert.equal(result.residual, false);
+});
 
 for (const scenario of [
   "transport", "pipefail", "middle", "middle-status", "nested-invoke", "redirect", "group",
@@ -14,8 +31,14 @@ for (const scenario of [
   "first-read-webdav-body-acquired", "first-read-curl-body-acquired", "first-read-required-destinations",
 ]) {
   test(`hard-deadline pipeline close: ${scenario}`, async context => {
-    const result = await runRemoteCloseChild(["--unhandled-rejections=strict", "--import", "tsx",
-      fileURLToPath(new URL(scenario.startsWith("first-read-") ? "./first-read-probe.ts" : "./remote-close-probe.ts", import.meta.url)), scenario]);
+    const entry = fileURLToPath(new URL(scenario.startsWith("first-read-") ? "./first-read-probe.ts" : "./remote-close-probe.ts", import.meta.url));
+    let prepared = probes.get(entry);
+    if (prepared === undefined) {
+      prepared = build({ entryPoints: [entry], bundle: true, packages: "external", platform: "node",
+        format: "esm", target: "es2022", write: false }).then(result => result.outputFiles[0]!.text);
+      probes.set(entry, prepared);
+    }
+    const result = await runRemoteCloseChild(["--unhandled-rejections=strict", "--input-type=module", "-", scenario], await prepared);
     const { pid, status, signal, timedOut, oversized, residual, residualAtClose, closeElapsedMs, elapsedMs, stdout, stderr } = result;
     context.diagnostic(JSON.stringify({ scenario, pid, status, signal, timedOut, oversized, residual, residualAtClose, closeElapsedMs, elapsedMs,
       ...(scenario.startsWith("first-read-") ? { stdout, stderr } : {}),

@@ -172,14 +172,14 @@ test("DU standalone and aggregate replacement remain explicit with limit forward
     const expected = [
       "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
       "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
-      "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
-      "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
-      "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+      "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
+      "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
+      "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
       "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
       "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr",
-      "which", "timeout", "apply_patch",
+      "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
     ];
-    assert.equal(expected.length, 79); assert.equal(new Set(expected).size, 79);
+    assert.equal(expected.length, 110); assert.equal(new Set(expected).size, 110);
     assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expected.sort());
     assert.equal(shell.commands.has("html-to-markdown"), true); assert.equal(shell.commands.has("expr"), true);
     for (const name of ["curl", "safejs", "node", "npm", "npx"]) assert.equal(shell.commands.has(name), false);

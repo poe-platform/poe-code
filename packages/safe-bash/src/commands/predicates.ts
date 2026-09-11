@@ -2,6 +2,7 @@ import { type CommandContext, type CommandDefinition, type FileStat } from "../c
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { predicateRequirements } from "./portable-requirements.js";
+import { compareCopyIdentity } from "./copy-identity.js";
 
 type Predicate = () => Promise<boolean>;
 
@@ -30,7 +31,7 @@ export function predicateCommands(): CommandDefinition[] {
     if (!args.length) return { exitCode: 1 };
     if (args.length === 1) return { exitCode: args[0] ? 0 : 1 };
     if (args.length === 2 && args[0] === "!") return { exitCode: args[1] ? 1 : 0 };
-    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-L", "-h", "-s", "-r", "-w", "-x"]);
+    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-c", "-d", "-L", "-h", "-s", "-r", "-w", "-x"]);
     const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
     let offset = 0;
     const number = (text: string): bigint => {
@@ -62,7 +63,9 @@ export function predicateCommands(): CommandDefinition[] {
             const rightStat = await metadata(context, right);
             if (operator === "-nt") return leftStat !== undefined && (!rightStat || leftStat.mtimeMs > rightStat.mtimeMs);
             if (operator === "-ot") return rightStat !== undefined && (!leftStat || leftStat.mtimeMs < rightStat.mtimeMs);
-            return leftStat?.ino !== undefined && rightStat?.ino !== undefined && leftStat.ino === rightStat.ino && leftStat.dev === rightStat.dev;
+            const identity = compareCopyIdentity(leftStat, rightStat);
+            if (identity !== "unknown") return identity === "same";
+            return leftStat?.ino !== undefined && rightStat?.ino !== undefined && leftStat.type === rightStat.type && leftStat.ino === rightStat.ino && leftStat.dev === rightStat.dev;
           }
           const leftNumber = number(token);
           const rightNumber = number(right);
@@ -93,6 +96,7 @@ export function predicateCommands(): CommandDefinition[] {
           const stat = await metadata(context, operand, token === "-L" || token === "-h");
           if (!stat) return false;
           if (token === "-f") return stat.type === "file";
+          if (token === "-c") return stat.type === "character";
           if (token === "-d") return stat.type === "directory";
           if (token === "-L" || token === "-h") return stat.type === "symlink";
           if (token === "-s") return stat.size > 0;

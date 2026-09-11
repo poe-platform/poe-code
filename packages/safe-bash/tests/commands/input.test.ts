@@ -100,6 +100,21 @@ test("redirected cancellation never falls back even for ENOTSUP", async (suite) 
   }
 });
 
+test("redirected buffered sources read only on demand and close unused inputs without reading", async suite => {
+  const backend = await bufferedBackend();
+  const read = suite.mock.method(backend, "readFile");
+  const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
+  const source = await fileInput(fs, "/data/note", 9, new AbortController().signal);
+  assert.equal(read.mock.callCount(), 0);
+  const unused = source[Symbol.asyncIterator]();
+  await unused.return?.();
+  assert.equal(read.mock.callCount(), 0);
+  const consumed = await fileInput(fs, "/data/note", 9, new AbortController().signal);
+  assert.equal(read.mock.callCount(), 0);
+  assert.equal(new TextDecoder().decode(await collectBytes(consumed, { maxBytes: 9 })), "buffered\n");
+  assert.equal(read.mock.callCount(), 1);
+});
+
 test("redirected fallback cancels pending reads and observes late failures", async (suite) => {
   const backend = await bufferedBackend();
   const controller = new AbortController();

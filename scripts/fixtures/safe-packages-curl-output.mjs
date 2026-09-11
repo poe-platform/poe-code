@@ -12,9 +12,8 @@ function buffered(backing) {
   };
 }
 
-for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/browser"]) {
-  const { Shell, standardCommands, browserCommands } = await import(entry);
-  const commands = standardCommands ?? browserCommands;
+for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"]) {
+  const { Shell, agentCommands: commands } = await import(entry);
   for (const mounted of [false, true]) {
     for (const empty of [false, true]) {
       const backing = createMemoryFileSystem();

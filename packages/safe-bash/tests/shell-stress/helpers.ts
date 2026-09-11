@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+import { build, transform } from "esbuild";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { maxBatchCases } from "./model.js";
 import type { BatchRequest, ChildRequest, Observation, ScriptOutcome, StressCase } from "./model.js";
 import { isolatedSpawn } from "./process.js";
@@ -46,8 +47,24 @@ function checkChild(result: { error?: Error | undefined; signal: NodeJS.Signals 
 
 async function executeVirtual(request: ChildRequest | BatchRequest, dependencies = { sourceEvidence, isolatedSpawn }) {
   const before = dependencies.sourceEvidence();
-  const result = await dependencies.isolatedSpawn(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./virtual-child.ts", import.meta.url))], {
-    cwd: root, env: environment(tmpdir()), input: JSON.stringify(request),
+  const bundled = await build({
+    entryPoints: [fileURLToPath(new URL("./virtual-child.ts", import.meta.url))],
+    bundle: true, packages: "external", platform: "node", format: "esm", target: "es2022", write: false,
+    plugins: [{
+      name: "preserve-source-module-urls",
+      setup(builder) {
+        builder.onLoad({ filter: /\.ts$/ }, async args => {
+          const source = readFileSync(args.path, "utf8");
+          if (!source.includes("import.meta.url")) return undefined;
+          const result = await transform(source, { loader: "ts", format: "esm", target: "es2022",
+            define: { "import.meta.url": JSON.stringify(pathToFileURL(args.path).href) } });
+          return { contents: result.code, loader: "js" };
+        });
+      },
+    }],
+  });
+  const result = await dependencies.isolatedSpawn(process.execPath, ["--unhandled-rejections=strict", "--input-type=module", "-", "--request-fd=3"], {
+    cwd: root, env: environment(tmpdir()), input: bundled.outputFiles[0]!.text, extraInput: JSON.stringify(request),
     timeout: hardDeadlineMs, maxBuffer,
   });
   const after = dependencies.sourceEvidence();

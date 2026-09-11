@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test, { type TestContext } from "node:test";
 import { cloudflareWorkerLimits, ShellLimitError, type ShellLimits } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { createMountFileSystem } from "poe-code/safe-fs/core";
 
 function fixture(t: TestContext, limits: ShellLimits = {}) {
   const instance = setup({ limits });
@@ -138,6 +140,62 @@ test("below-cap buffered inputs retain eager timing and independent byte allowan
   assert.deepEqual(read.mock.calls.map(call => call.arguments[1]?.maxBytes), [8, 8, 8]);
   read.mock.resetCalls();
   assert.equal((await shell.exec(": 3<input 3<input", { limits: { maxInputBytes: 7 } })).exitCode, 1);
+  assert.equal(read.mock.callCount(), 1);
+});
+
+test("eager buffered profiles survive nested execution and filesystem overrides", async t => {
+  const { shell, fs } = fixture(t, { maxInputBytes: 8 });
+  const override = new MemoryFileSystem();
+  await override.writeFile("/input", new Uint8Array(8));
+  Object.defineProperty(override, "readStream", { value: undefined });
+  const read = t.mock.method(override, "readFile");
+  for (const source of [": 3<input", "(: 3<input)", "f() { : 3<input; }; f", "bash -c ': 3<input'", "eval ': 3<input'", ": 3<input | :"]) {
+    read.mock.resetCalls();
+    const result = await shell.exec(source, { fs: override });
+    assert.equal(result.exitCode, 0, `${source}: ${result.stderr}`);
+    assert.equal(read.mock.callCount(), 1, source);
+    assert.equal(read.mock.calls[0]!.arguments[1]?.maxBytes, 8);
+  }
+  await assert.rejects(fs.stat("/input"), { code: "ENOENT" });
+  assert.equal((await shell.exec(": 3<input", { fs: override, limits: { maxInputBytes: 7 } })).exitCode, 1);
+});
+
+test("method-present mixed mounted buffers stay lazy while raw disabled profiles stay eager", async t => {
+  const { shell } = fixture(t);
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/input", new Uint8Array(8));
+  const read = t.mock.method(backing, "readFile");
+  const disabled = new Proxy(backing, { get(target, key) {
+    if (key === "capabilities") return { ...target.capabilities, streamingRead: false };
+    if (key === "readStream") return () => { assert.fail("declared-disabled stream must not open"); };
+    const member = Reflect.get(target, key);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const mounted = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": disabled } });
+  assert.equal(mounted.capabilities.streamingRead, undefined);
+  assert.equal((await shell.exec(": 3</data/input", { fs: mounted })).exitCode, 0);
+  assert.equal(read.mock.callCount(), 0);
+  assert.equal((await shell.exec(": 3<input", { fs: disabled })).exitCode, 0);
+  assert.equal(read.mock.callCount(), 1);
+  assert.equal((await shell.exec("read -r value </dev/null", { fs: disabled })).exitCode, 1);
+  assert.equal(read.mock.callCount(), 1);
+});
+
+test("input acquisition observes host optional-method changes within one execution", async t => {
+  const { shell, fs, commands } = fixture(t);
+  await fs.writeFile("/input", new Uint8Array(8));
+  const read = t.mock.method(fs, "readFile");
+  const stream = fs.readStream;
+  commands.register({ name: "disable-reader", execute() {
+    Object.defineProperty(fs, "readStream", { value: undefined, configurable: true });
+    return { exitCode: 0 };
+  } });
+  commands.register({ name: "restore-reader", execute() {
+    Object.defineProperty(fs, "readStream", { value: stream, configurable: true });
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec(": 3<input; disable-reader; : 3<input; restore-reader; : 3<input");
+  assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(read.mock.callCount(), 1);
 });
 

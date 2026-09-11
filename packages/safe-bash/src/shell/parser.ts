@@ -4,18 +4,20 @@ import { ParseBudget } from "./parse-budget.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
 import type { ArithmeticProgram } from "./arithmetic.js";
-import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
+import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, getArraySelector, isQuoteMarker, prefixNameQuoteGroups, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
 import type { ArrayEntry, ArraySelector } from "./arrays/syntax.js";
 import { conditionalBinary, conditionalUnary } from "./conditional.js";
 import type { ConditionalExpression } from "./conditional.js";
-import { shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ByteShellValue, ShellValue } from "../contracts/value.js";
 
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean; byteValue?: ByteShellValue }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
+  | { kind: "failed-parameter"; source: string; line: number; quoted: boolean }
+  | { kind: "compound-substitution-eof"; line: number; quoted: boolean }
   | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
 export interface Word {
@@ -28,6 +30,8 @@ export interface Word {
 
 export const compoundEntryWords = new WeakMap<ArrayEntry, Word>();
 export const expansionSpellings = new WeakMap<WordPart, { source: string; start: number; end: number; ansi?: boolean }>();
+const documentValues = new WeakMap<HereDocument, ReadonlyMap<number, ByteShellValue>>();
+const documentDelimiters = new WeakMap<HereDocument, Uint8Array>();
 
 interface Token {
   kind: "word" | "operator" | "end";
@@ -77,6 +81,8 @@ export type Command = (
   | { kind: "while"; condition: Script; body: Script }
   | { kind: "until"; condition: Script; body: Script }
   | { kind: "for"; name: string; words?: Word[]; body: Script }
+  | { kind: "select"; name: string; words?: Word[]; body: Script }
+  | { kind: "arithmetic-for"; expressions: readonly [ArithmeticProgram | undefined, ArithmeticProgram | undefined, ArithmeticProgram | undefined]; body: Script }
   | { kind: "function"; name: string; body: Command }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string }
   | { kind: "conditional"; expression: ConditionalExpression; source: string }
@@ -118,6 +124,7 @@ function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolea
 }
 
 class IncompleteShellInput extends Error {}
+class CompoundListEofError extends ShellSyntaxError {}
 
 class Lexer {
   position = 0;
@@ -129,7 +136,7 @@ class Lexer {
   conditionalPattern: "pattern" | "regex" | undefined;
   braceReplay?: ReadonlyMap<number, ShellValue>;
   readonly documents: HereDocument[] = [];
-  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0) {
+  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
   }
 
@@ -187,6 +194,10 @@ class Lexer {
         quoted: word.parts.some((part) => part.quoted), stripTabs: delimiterOperator === "<<-", offset,
         body: "", endLine: this.lineAt(offset), depth: this.depth,
       };
+      if (this.sourceValues?.size) {
+        this.budget.admit(word.parts.length + 1);
+        documentDelimiters.set(document, shellValueBytes(concatShellValues(word.parts.map(part => part.kind === "text" ? part.byteValue ?? part.value : ""))));
+      }
       this.documents.push(document);
     }
     this.budget.admit();
@@ -196,26 +207,60 @@ class Lexer {
   readDocuments(): void {
     for (const document of this.documents.splice(0)) {
       let body = "";
+      const bodyValues = this.sourceValues ? new Map<number, ByteShellValue>() : undefined;
       let terminated = false;
       while (this.position < this.source.length) {
         let line = "";
+        const lineValues = this.sourceValues ? new Map<number, ByteShellValue>() : undefined;
         while (this.position < this.source.length) {
+          const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
+          if (opaque !== undefined) { this.budget.admit(); lineValues!.set(line.length, opaque); }
           const current = this.source[this.position++]!;
           if (!document.quoted && current === "\\" && this.position < this.source.length) {
+            const escaped = this.sourceValues?.get(this.sourceOffset + this.position);
             const next = this.source[this.position++]!;
-            if (next !== "\n") line += current + next;
+            if (next !== "\n") {
+              if (escaped !== undefined) { this.budget.admit(); lineValues!.set(line.length + 1, escaped); }
+              line += current + next;
+            }
           } else if (current === "\n") break;
           else line += current;
         }
-        if (line === document.delimiter || (document.stripTabs && line.replace(/^\t+/u, "") === document.delimiter)) {
+        const stripped = document.stripTabs ? line.replace(/^\t+/u, "") : line;
+        const delimiter = documentDelimiters.get(document);
+        let matches = stripped === document.delimiter;
+        if (delimiter) {
+          const fragments: ShellValue[] = [];
+          let start = line.length - stripped.length;
+          for (const [position, value] of lineValues ?? []) {
+            this.budget.admit(3);
+            if (position > start) fragments.push(line.slice(start, position));
+            fragments.push(value);
+            start = position + 1;
+          }
+          this.budget.admit(3);
+          fragments.push(line.slice(start));
+          const bytes = shellValueBytes(concatShellValues(fragments));
+          matches = bytes.length === delimiter.length;
+          for (let position = 0; matches && position < bytes.length; position++) {
+            if (position % 128 === 0) this.budget.admit();
+            matches = bytes[position] === delimiter[position];
+          }
+        }
+        if (matches) {
           terminated = true;
           break;
         }
-        body += (document.stripTabs ? line.replace(/^\t+/u, "") : line) + "\n";
+        for (const [position, value] of lineValues ?? []) {
+          this.budget.admit();
+          bodyValues!.set(body.length + position - (line.length - stripped.length), value);
+        }
+        body += stripped + "\n";
       }
       if (!terminated && this.partial) throw new IncompleteShellInput();
       if (!terminated) this.warnings.push(`here-document at offset ${document.offset} delimited by end-of-file (wanted ${JSON.stringify(document.delimiter)})`);
       document.body = body;
+      if (bodyValues?.size) documentValues.set(document, bodyValues);
       document.endLine = this.lineAt(Math.max(0, this.position - 1));
     }
   }
@@ -224,7 +269,12 @@ class Lexer {
     let text = "";
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
-      if (current === "$" || current === "`") {
+      const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
+      if (opaque !== undefined) {
+        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
+        this.budget.admit(2);
+        yield { offset: this.position++, parts: [{ kind: "text", value: shellValueText(opaque), byteValue: opaque, quoted: true }] };
+      } else if (current === "$" || current === "`") {
         if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
         const offset = this.position;
         this.budget.admit();
@@ -262,11 +312,21 @@ class Lexer {
     return new HereDocumentSyntaxError(`shell: command substitution: line ${line}: syntax error near unexpected token \`${token}'\nshell: command substitution: line ${line}: \`${sourceLine}'\n`);
   }
 
-  literalExpansion(): string {
+  literalExpansion(): ShellValue {
     const backtick = this.source[this.position] === "`";
     const opening = this.source[this.position + 1];
     if (!backtick && opening !== "(" && opening !== "{") return this.source[this.position++]!;
     let value = backtick ? "`" : `$${opening}`;
+    const fragments: ShellValue[] = [];
+    const append = (text: string, position: number): void => {
+      const opaque = this.sourceValues?.get(this.sourceOffset + position);
+      if (opaque === undefined) value += text;
+      else {
+        this.budget.admit(2);
+        fragments.push(value, opaque);
+        value = "";
+      }
+    };
     this.position += backtick ? 1 : 2;
     const closers = [backtick ? "`" : opening === "(" ? ")" : "}"];
     let quote = "";
@@ -275,16 +335,24 @@ class Lexer {
       if (current === "\\" && quote !== "'") {
         const next = this.source[this.position++];
         if (next === undefined) this.error("Trailing delimiter escape");
-        if (next !== "\n") value += quote === '"' && !/[$`"\\]/u.test(next) ? current + next : next;
+        if (next !== "\n") {
+          if (quote === '"' && !/[$`"\\]/u.test(next)) value += current;
+          append(next, this.position - 1);
+        }
       } else if (quote) {
         if (current === quote) quote = "";
-        else value += current;
+        else append(current, this.position - 1);
       } else if (current === "'" || current === '"') quote = current;
       else {
-        value += current;
+        append(current, this.position - 1);
         if (current === closers.at(-1)) {
           closers.pop();
-          if (!closers.length) return value;
+          if (!closers.length) {
+            if (!fragments.length) return value;
+            this.budget.admit();
+            fragments.push(value);
+            return concatShellValues(fragments);
+          }
         } else if ((current === "(" && (closers.at(-1) === ")" || this.source[this.position - 2] === "$"))
           || (current === "{" && (closers.at(-1) === "}" || this.source[this.position - 2] === "$"))) {
           closers.push(current === "(" ? ")" : "}");
@@ -332,8 +400,8 @@ class Lexer {
     };
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
-      const opaque = this.braceReplay?.get(this.position);
-      if (opaque !== undefined) { text(opaque, false); this.position++; continue; }
+      const opaque = this.braceReplay?.get(this.position) ?? this.sourceValues?.get(this.sourceOffset + this.position);
+      if (opaque !== undefined) { plain = false; text(opaque, enclosingQuoted); this.position++; continue; }
       if (conditionalPattern) {
         if (/[ \t\n;]/u.test(current)) break;
         const bracketMaterial = conditionalPattern === "regex" && (regexBracket || current === "[");
@@ -363,10 +431,10 @@ class Lexer {
           if (!this.braceReplay) this.error("Unterminated single quote", { quote: "'", line: this.lineAt(this.position) });
           end = this.source.length;
         }
-        if (this.braceReplay?.size) {
+        if (this.braceReplay?.size || this.sourceValues?.size) {
           let start = this.position + 1;
           for (let position = start; position < end; position++) {
-            const opaque = this.braceReplay.get(position);
+            const opaque = this.braceReplay?.get(position) ?? this.sourceValues?.get(this.sourceOffset + position);
             if (opaque === undefined) continue;
             if (position > start) text(this.source.slice(start, position), true, false, start, position);
             text(opaque, true, false, position, position + 1);
@@ -381,11 +449,17 @@ class Lexer {
         this.position++;
         text("", true, true, this.position - 1, this.position);
         const quoteParts = parts.length;
+        let nameListing = false;
         while (this.position < this.source.length && this.source[this.position] !== '"') {
           const inner = this.source[this.position]!;
-          const opaque = this.braceReplay?.get(this.position);
+          const opaque = this.braceReplay?.get(this.position) ?? this.sourceValues?.get(this.sourceOffset + this.position);
           if (opaque !== undefined) { text(opaque, true); this.position++; }
-          else if (!literal && (inner === "$" || inner === "`")) this.expansion(parts, true);
+          else if (!literal && (inner === "$" || inner === "`")) {
+            this.expansion(parts, true);
+            const part = parts.at(-1)!;
+            const selector = getArraySelector(part);
+            nameListing ||= part.kind === "variable" && (part.prefixNames === "@" || !!part.transform && (part.name === "@" || selector?.kind === "members" && selector.separator === "@"));
+          }
           else if (inner === "\\" && /[$`"\\\n]/u.test(this.source[this.position + 1] ?? "")) {
             const escaped = this.source[this.position + 1]!;
             if (escaped !== "\n") text(escaped, true, false, this.position, this.position + 2);
@@ -398,6 +472,17 @@ class Lexer {
         }
         if (this.source[this.position] !== '"' && !this.braceReplay) this.error("Unterminated double quote", { quote: '"', line: quoteLine });
         if (parts.length === quoteParts) setQuoteMarker(parts.at(-1)!, false);
+        if (nameListing) {
+          this.budget.admit();
+          const group = {};
+          for (let index = quoteParts - 1; index < parts.length; index++) {
+            this.budget.admit();
+            const part = parts[index]!;
+            // A preceding explicit empty quote can share this text part;
+            // its independent field-presence contribution must survive.
+            if (index !== quoteParts - 1 || isQuoteMarker(part) || part.kind !== "text" || part.value !== "") prefixNameQuoteGroups.set(part, group);
+          }
+        }
         const spelling = expansionSpellings.get(parts.at(-1)!);
         if (spelling) spelling.end = Math.min(this.position + 1, this.source.length);
         if (this.position < this.source.length) this.position++;
@@ -409,7 +494,7 @@ class Lexer {
           text("", true);
           break;
         }
-        if (this.source[this.position] !== "\n") text(this.source[this.position]!, true, false, this.position - 1, this.position + 1);
+        if (this.source[this.position] !== "\n") text(this.sourceValues?.get(this.sourceOffset + this.position) ?? this.source[this.position]!, true, false, this.position - 1, this.position + 1);
         else this.printedNewlineReduction++;
         this.position++;
       } else if (current === "$" || current === "`") {
@@ -442,14 +527,23 @@ class Lexer {
     const encoder = new TextEncoder();
     const escapes: Readonly<Record<string, number>> = { a: 7, b: 8, e: 27, E: 27, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92, "'": 39, '"': 34, "?": 63 };
     while (this.position < this.source.length) {
+      const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
+      if (opaque !== undefined) {
+        this.budget.admit();
+        bytes.push(...shellValueBytes(opaque));
+        this.position++;
+        continue;
+      }
       const character = String.fromCodePoint(this.source.codePointAt(this.position)!);
       this.position += character.length;
       if (character === "'") {
         const nul = bytes.indexOf(0);
         const raw = Uint8Array.from(nul < 0 ? bytes : bytes.slice(0, nul));
-        try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw); }
+        const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+        try { return decoder.decode(raw); }
         catch (error) {
-          if (!(error instanceof TypeError) || !("code" in error) || error.code !== "ERR_ENCODING_INVALID_ENCODED_DATA") throw error;
+          this.budget.admit(0);
+          if (!(error instanceof TypeError) || ("code" in error && error.code !== "ERR_ENCODING_INVALID_ENCODED_DATA")) throw error;
           this.budget.admit(2);
           return shellValueFromBytes(raw);
         }
@@ -496,13 +590,16 @@ class Lexer {
       }
       this.position++;
       let source = "";
+      const sourceValues = this.sourceValues ? new Map<number, ByteShellValue>() : undefined;
       while (this.position < this.source.length && this.source[this.position] !== "`") {
         if (this.source[this.position] === "\\" && /[$`\\]/u.test(this.source[this.position + 1] ?? "")) this.position++;
+        const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
+        if (opaque !== undefined) { this.budget.admit(); sourceValues!.set(source.length, opaque); }
         source += this.source[this.position++]!;
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + this.operandDepth + 1, this.warnings, line - 1, this.byteLocale, this.budget), line, quoted }); }
+      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + this.operandDepth + 1, this.warnings, line - 1, this.byteLocale, this.budget, this.documentLine === undefined, sourceValues), line, quoted }); }
       catch (error) {
         if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
         this.budget.admit();
@@ -528,7 +625,7 @@ class Lexer {
       let script: Script;
       try {
         this.budget.admit();
-        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start);
+        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues);
         script = nested.script(new Set([")"]));
       }
       catch (error) {
@@ -548,20 +645,38 @@ class Lexer {
     } else if (this.source[this.position] === "{") {
       this.position++;
       const parameterStart = this.position - 2;
-      const length = this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
+      const listing = this.source[this.position] === "!";
+      if (listing) this.position++;
+      const length = !listing && this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
       if (length) this.position++;
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
+      let prefixNames: "*" | "@" | undefined;
+      if (listing && this.source[this.position] !== "[") {
+        const separator = this.source[this.position];
+        if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name) || (separator !== "*" && separator !== "@") || this.source[this.position + 1] !== "}") this.error("Unsupported indirect parameter expansion");
+        prefixNames = separator;
+        this.position++;
+      }
       let selector: ArraySelector | undefined;
       if (this.source[this.position] === "[") {
         if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Unsupported indexed-array parameter");
         const start = ++this.position;
-        const end = this.source.indexOf("]", start);
-        if (end < 0) this.error("Unterminated indexed-array subscript");
-        selector = arraySelector(this.source.slice(start, end), start, this.budget);
+        const keyWord = this.word("]");
+        const end = this.position;
+        if (this.source[end] !== "]") this.error("Unterminated indexed-array subscript");
+        selector = arraySelector(this.source.slice(start, end), start, this.budget, keyWord);
         this.position = end + 1;
-        if (this.source[this.position] !== "}") this.error("Unsupported indexed-array operator");
+        if (this.source[this.position] !== "}" && this.source[this.position] !== "@") this.error("Unsupported indexed-array operator");
+      }
+      if (listing && selector?.kind === "element") this.error("Unsupported indirect parameter expansion");
+      let transform: "Q" | "E" | undefined;
+      if (this.source[this.position] === "@") {
+        const operation = this.source[this.position + 1];
+        if (length || prefixNames || (operation !== "Q" && operation !== "E") || this.source[this.position + 2] !== "}") this.error("Unsupported parameter transform");
+        transform = operation;
+        this.position += 2;
       }
       const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
       let alternate: Word | undefined;
@@ -593,11 +708,22 @@ class Lexer {
           }
         } finally { this.operandDepth--; }
       }
-      if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
-      this.position++;
-      const part: WordPart = { kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
-      if (selector) setArraySelector(part, selector);
-      parts.push(part);
+      if (this.source[this.position] !== "}") {
+        let end = this.position;
+        if (this.ordinaryBacktick && !selector && !operator && !substring && /^[a-zA-Z_]/u.test(name)
+          && !"^,@".includes(this.source[this.position] ?? "")) {
+          while (end < this.source.length && !" \t\r\n$`'\"\\{}[]();|&<>".includes(this.source[end]!)) end++;
+        }
+        if (end === this.position || this.source[end] !== "}") this.error("Unterminated or unsupported parameter expansion");
+        this.position = end + 1;
+        parts.push({ kind: "failed-parameter", source: this.source.slice(parameterStart, this.position), line, quoted });
+      } else {
+        this.position++;
+        const part: WordPart = { kind: "variable", name, quoted, line, ...(prefixNames ? { prefixNames } : {}), ...(transform ? { transform } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
+        if (listing && selector) part.keys = true;
+        if (selector) setArraySelector(part, selector);
+        parts.push(part);
+      }
     } else {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
@@ -618,17 +744,19 @@ class Parser {
   lookahead: Token | undefined;
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
+  completedInput?: { lists: AndOr[]; count: number; line: number };
 
-  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0) {
+  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
     budget.admit();
-    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset);
+    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset, ordinaryBacktick, sourceValues);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
 
-  error(message: string): never {
+  error(message: string, compoundList = false): never {
     const command = this.current.kind === "end" ? this.openCommands.findLast((command) => ["{", "if", "while", "until", "for", "case"].includes(command.name)) : undefined;
+    if (compoundList && command && this.lexer.ordinaryBacktick) throw new CompoundListEofError(message, this.current.offset, 2, command);
     throw new ShellSyntaxError(message, this.current.offset, 2, command);
   }
 
@@ -647,19 +775,20 @@ class Parser {
 
   isEnd(): boolean { return this.current.kind === "end"; }
 
-  expect(value: string): void {
-    if (!this.is(value)) this.error(`Expected ${value}`);
+  expect(value: string, compoundList = false): void {
+    if (!this.is(value)) this.error(`Expected ${value}`, compoundList);
     this.advance();
   }
 
   newlines(): void { while (this.is("\n")) this.advance(); }
 
-  script(stops = new Set<string>(), inputUnit = false): Script {
+  script(stops = new Set<string>(), inputUnit = false, captureInputUnits = false): Script {
     this.budget.admit();
     const lists: AndOr[] = [];
     const separators: boolean[] = [];
     this.newlines();
     const line = this.lexer.lineAt(this.current.offset);
+    if (captureInputUnits) this.completedInput = { lists, count: 0, line };
     while (this.current.kind !== "end" && !stops.has(this.current.value)) {
       this.budget.admit();
       const pipelines = [this.pipeline()];
@@ -671,9 +800,11 @@ class Parser {
       }
       lists.push({ pipelines, operators });
       separators.push(this.is("\n"));
+      if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
       if (inputUnit && this.is("\n")) break;
       if (this.is(";") || this.is("\n")) {
         this.advance();
+        if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
         if (inputUnit && this.is("\n")) break;
         this.newlines();
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
@@ -780,15 +911,15 @@ class Parser {
       const subshell = this.is("(");
       this.advance();
       const body = this.script(new Set([subshell ? ")" : "}"]));
-      if (!body.lists.length) this.error("Empty compound command");
-      this.expect(subshell ? ")" : "}");
+      if (!body.lists.length) this.error("Empty compound command", !subshell);
+      this.expect(subshell ? ")" : "}", !subshell);
       command = { kind: subshell ? "subshell" : "group", body, redirects: [] };
     } else if (this.is("if")) {
       this.advance();
       const branches: { condition: Script; body: Script }[] = [];
       while (true) {
         const condition = this.nonemptyScript(new Set(["then"]));
-        this.expect("then");
+        this.expect("then", true);
         const body = this.nonemptyScript(new Set(["elif", "else", "fi"]));
         this.budget.admit();
         branches.push({ condition, body });
@@ -800,17 +931,18 @@ class Parser {
         this.advance();
         otherwise = this.nonemptyScript(new Set(["fi"]));
       }
-      this.expect("fi");
+      this.expect("fi", true);
       command = { kind: "if", branches, ...(otherwise ? { otherwise } : {}), redirects: [] };
     } else if (this.is("case")) {
       this.advance();
       if (!this.current.word) this.error("Expected case subject");
       const subject = this.advance().word!;
       this.newlines();
-      this.expect("in");
+      this.expect("in", true);
       this.newlines();
       const clauses: CaseClause[] = [];
       while (!this.is("esac")) {
+        if (this.isEnd()) this.error("Expected case pattern", true);
         if (this.is("(")) this.advance();
         const patterns: Word[] = [];
         while (true) {
@@ -821,7 +953,7 @@ class Parser {
         }
         this.expect(")");
         const body = this.script(new Set([";;", ";&", ";;&", "esac"]));
-        if (![";;", ";&", ";;&", "esac"].includes(this.current.value)) this.error("Expected case terminator");
+        if (![";;", ";&", ";;&", "esac"].includes(this.current.value)) this.error("Expected case terminator", true);
         const terminator = this.current.value as CaseClause["terminator"];
         this.budget.admit();
         clauses.push({ patterns, body, terminator });
@@ -829,19 +961,53 @@ class Parser {
         this.advance();
         this.newlines();
       }
-      this.expect("esac");
+      this.expect("esac", true);
       command = { kind: "case", subject, clauses, redirects: [] };
     } else if (this.is("while") || this.is("until")) {
       const kind = this.advance().value as "while" | "until";
       const condition = this.nonemptyScript(new Set(["do"]));
-      this.expect("do");
+      this.expect("do", true);
       const body = this.nonemptyScript(new Set(["done"]));
-      this.expect("done");
+      this.expect("done", true);
       command = { kind, condition, body, redirects: [] };
-    } else if (this.is("for")) {
+    } else if (this.is("for") && this.peek().value === "(" && this.lexer.source.startsWith("((", this.peek().offset)) {
       this.advance();
+      const start = this.current.offset + 2;
+      let partStart = start;
+      let depth = 0;
+      let end = start;
+      this.budget.admit(4);
+      const sources: string[] = [];
+      for (; end < this.lexer.source.length; end++) {
+        this.budget.admit();
+        const character = this.lexer.source[end];
+        if (character === "(") depth++;
+        else if (character === ")") {
+          if (!depth && this.lexer.source[end + 1] === ")") break;
+          if (--depth < 0) this.error("Unterminated arithmetic for", true);
+        } else if (character === ";" && !depth) {
+          if (sources.length === 2) this.error("Arithmetic for requires three expressions");
+          sources.push(this.lexer.source.slice(partStart, end));
+          partStart = end + 1;
+        }
+      }
+      if (end === this.lexer.source.length) this.error("Unterminated arithmetic for", true);
+      if (sources.length !== 2) this.error("Arithmetic for requires three expressions");
+      sources.push(this.lexer.source.slice(partStart, end));
+      const expressions = sources.map(source => source.trim() ? prepareArithmetic(source, this.budget) : undefined) as [ArithmeticProgram | undefined, ArithmeticProgram | undefined, ArithmeticProgram | undefined];
+      this.lexer.position = end + 2;
+      this.lookahead = undefined;
+      this.current = this.lexer.next();
+      if (this.is(";")) this.advance();
+      this.newlines();
+      this.expect("do", true);
+      const body = this.nonemptyScript(new Set(["done"]));
+      this.expect("done", true);
+      command = { kind: "arithmetic-for", expressions, body, redirects: [] };
+    } else if (this.is("for") || this.is("select")) {
+      const kind = this.advance().value as "for" | "select";
       const name = this.advance().value;
-      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid for variable");
+      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error(`Invalid ${kind} variable`);
       this.newlines();
       let words: Word[] | undefined;
       if (this.is("in")) {
@@ -850,12 +1016,12 @@ class Parser {
         while (this.current.kind === "word") words.push(this.advance().word!);
       }
       if (this.is(";") || this.is("\n")) this.advance();
-      else if (words) this.error("Expected for separator");
+      else if (words) this.error(`Expected ${kind} separator`, true);
       this.newlines();
-      this.expect("do");
+      this.expect("do", true);
       const body = this.nonemptyScript(new Set(["done"]));
-      this.expect("done");
-      command = { kind: "for", name, ...(words ? { words } : {}), body, redirects: [] };
+      this.expect("done", true);
+      command = { kind, name, ...(words ? { words } : {}), body, redirects: [] };
     } else if (this.is("function")) {
       this.advance();
       if (this.current.kind !== "word" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(this.current.value)) this.error("Invalid function name");
@@ -873,7 +1039,7 @@ class Parser {
       this.expect("(");
       this.expect(")");
       this.newlines();
-      if (!["{", "(", "if", "case", "while", "until", "for", "[["].includes(this.current.value)) this.error("Expected function body");
+      if (!["{", "(", "if", "case", "while", "until", "for", "select", "[["].includes(this.current.value)) this.error("Expected function body");
       command = { kind: "function", name, body: this.command(), redirects: [] };
     } else {
       if (["!", "then", "else", "elif", "fi", "do", "done", "}", "case", "esac", "select", "function", "[[", "]]"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);
@@ -905,7 +1071,7 @@ class Parser {
             word = { offset: word.offset, parts: word.parts, spelling: this.lexer.source.slice(word.offset, end) };
             setArrayAssignment(word, { kind: "compound", ...head, entries });
           } else {
-            const assignment = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) ? elementAssignment(word, this.budget) : undefined;
+            const assignment = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) ? elementAssignment(word, this.budget, source => parseArraySubscript(source, this.budget, this.lexer.byteLocale, this.lexer.depth), (source, start) => { const lexer = new Lexer(this.budget, source, this.lexer.depth, [], 0, this.lexer.byteLocale); lexer.position = start; lexer.word("]"); return lexer.source[lexer.position] === "]" ? lexer.position : -1; }) : undefined;
             if (assignment) setArrayAssignment(word, assignment);
           }
           words.push(word);
@@ -923,7 +1089,7 @@ class Parser {
 
   nonemptyScript(stops: Set<string>): Script {
     const script = this.script(stops);
-    if (!script.lists.length) this.error("Expected nonempty compound list");
+    if (!script.lists.length) this.error("Expected nonempty compound list", true);
     return script;
   }
 
@@ -952,6 +1118,11 @@ export function parseShell(source: string, depth = 0, options: ShellParseOptions
   return { ...script, ...(warnings.length ? { warnings } : {}) };
 }
 
+export function parseArraySubscript(source: string, budget: ParseBudget, byteLocale = false, depth = 0): Word {
+  const lexer = new Lexer(budget, source, depth, [], 0, byteLocale);
+  return lexer.word("\0");
+}
+
 export function parseBraceWord(source: string, opaque: ReadonlyMap<number, ShellValue>, budget: ParseBudget): Word {
   budget.admit(source.length + 1);
   const lexer = new Lexer(budget, source, 0);
@@ -960,15 +1131,25 @@ export function parseBraceWord(source: string, opaque: ReadonlyMap<number, Shell
 }
 
 export function* hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[], budget = new ParseBudget()): Generator<Word> {
-  if (document.quoted) { budget.admit(2); yield { offset: document.offset, parts: [{ kind: "text", value: document.body, quoted: true }] }; }
-  else { budget.admit(); yield* new Lexer(budget, document.body, document.depth, warnings, line - 1, byteLocale, line).documentWords(); }
+  const values = documentValues.get(document);
+  if (document.quoted) {
+    let start = 0;
+    for (const [position, value] of values ?? []) {
+      budget.admit(4);
+      if (start < position) yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start, position), quoted: true }] };
+      yield { offset: document.offset, parts: [{ kind: "text", value: shellValueText(value), byteValue: value, quoted: true }] };
+      start = position + 1;
+    }
+    budget.admit(2);
+    yield { offset: document.offset, parts: [{ kind: "text", value: document.body.slice(start), quoted: true }] };
+  } else { budget.admit(); yield* new Lexer(budget, document.body, document.depth, warnings, line - 1, byteLocale, line, false, undefined, 0, false, values).documentWords(); }
 }
 
-export function parseShellUnit(source: string, position = 0, byteLocale = false, budget = new ParseBudget(), lineIndex = new SourceLineIndex(source, budget)): { script: Script; next: number } {
+export function parseShellUnit(source: string, position = 0, byteLocale = false, budget = new ParseBudget(), lineIndex = new SourceLineIndex(source, budget), sourceValues?: ReadonlyMap<number, ByteShellValue>): { script: Script; next: number } {
   const warnings: string[] = [];
   budget.admit();
   if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
-  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex);
+  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex, 0, false, sourceValues);
   const script = parser.script(new Set(), true);
   const next = parser.current.end;
   const nul = source.indexOf("\0", position);
@@ -993,10 +1174,21 @@ export function parseShellInputUnit(source: string, byteLocale = false, budget =
   }
 }
 
-function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget): Script {
+function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>): Script {
   budget.admit();
-  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale);
-  const script = parser.script();
-  if (parser.current.kind !== "end") parser.error("Unexpected token");
-  return script;
+  const warningCount = warnings.length;
+  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale, false, undefined, 0, ordinaryBacktick, sourceValues);
+  try {
+    const script = parser.script(new Set(), false, ordinaryBacktick);
+    if (parser.current.kind !== "end") parser.error("Unexpected token");
+    return script;
+  } catch (error) {
+    if (!(error instanceof CompoundListEofError) || warnings.length !== warningCount) throw error;
+    const prefix = parser.completedInput;
+    budget.admit(6 + (prefix?.count ?? 0));
+    const lists = prefix?.lists.slice(0, prefix.count) ?? [];
+    const line = lineOffset + source.split("\n").length + Number(!source.endsWith("\n"));
+    lists.push({ pipelines: [{ negate: false, commands: [{ kind: "simple", line, redirects: [], words: [{ offset: source.length, parts: [{ kind: "compound-substitution-eof", line, quoted: true }] }] }] }], operators: [] });
+    return { lists, line: prefix?.line ?? lineOffset + 1 };
+  }
 }

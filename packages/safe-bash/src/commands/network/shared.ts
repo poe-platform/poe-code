@@ -46,5 +46,5 @@ export function networkError(error: unknown): CurlError {
 }
 
 export async function diagnostic(context: CommandContext, error: CurlError): Promise<void> {
-  await writeDiagnostic(context.stderr, `curl: (${error.exitCode}) ${error.message}\n`, context.signal);
+  await writeDiagnostic(context.stderr, `${context.command}: (${error.exitCode}) ${error.message}\n`, context.signal);
 }

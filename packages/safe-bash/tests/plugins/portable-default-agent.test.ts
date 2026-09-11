@@ -4,8 +4,8 @@ import test, { type Mock } from "node:test";
 import {
   CommandRegistry, MemoryFileSystem, Shell, createBoundedRegexProvider, toByteSource,
   type BoundedRegexProvider, type RegexWorkerRequest,
-} from "../../src/portable.js";
-import { portableAgentCommands } from "../../src/plugins/portable.js";
+} from "../../src/index.js";
+import { agentCommands } from "../../src/index.js";
 import { RegexExecutor } from "../../src/commands/regex-execution/portable.js";
 import { defaults as regexDefaults } from "../../src/commands/regex-execution/protocol.js";
 
@@ -25,7 +25,7 @@ for (const configuration of ["omitted", "empty"] as const) {
       "env sed 's/bb/cc/' /input | tail -n 1",
       "printf '\"1+1\"' | xargs jq -nc",
     ].join("\n")));
-    const plugin = configuration === "omitted" ? portableAgentCommands() : portableAgentCommands({});
+    const plugin = configuration === "omitted" ? agentCommands() : agentCommands({});
     const shell = new Shell({ fs }).use(plugin);
     try {
       const result = await shell.exec("sh /workflow.sh");
@@ -37,13 +37,13 @@ for (const configuration of ["omitted", "empty"] as const) {
 }
 
 test("invalid supplied providers do not silently select the default", () => {
-  assert.throws(() => portableAgentCommands({ provider: null! }), /provider/i);
+  assert.throws(() => agentCommands({ regexExecutor: null! }), /provider/i);
 });
 
 test("default provider retains unsupported modes and bounded pattern admission", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(portableAgentCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
-    for (const command of ["grep -i a", "rg 'a+'"]) {
+    for (const command of ["grep -w a", "rg 'a+'"]) {
       const result = await shell.exec(command, { stdin: "aa\n" });
       assert.equal(result.exitCode, 2, command);
       assert.equal(result.stdout, "", command);
@@ -71,17 +71,17 @@ test("defaults preserve collision preflight, replacement and custom execute fall
   const host = { commands, use() {}, registerFileSystem() {} };
   const before = commands.list();
   const originalCustom = commands.get("custom");
-  const plugin = portableAgentCommands();
+  const plugin = agentCommands();
   try {
     assert.throws(() => plugin.setup(host), /already registered: jq/u);
     assert.deepEqual(commands.list(), before);
   } finally { await plugin.dispose?.(); }
   const execute = context.mock.fn(() => ({ exitCode: 19 }));
-  const replacement = portableAgentCommands({ replace: true, execute });
+  const replacement = agentCommands({ replace: true, execute });
   try {
     await replacement.setup(host);
     assert.equal(commands.get("custom"), originalCustom);
-    assert.equal(commands.list().length, 80);
+    assert.equal(commands.list().length, 111);
     const result = await commands.get("env")!.execute({
       command: "env", args: ["custom"], stdin: toByteSource(""),
       stdout: { async write() {} }, stderr: { async write() {} },
@@ -101,10 +101,10 @@ test("default providers are per preset while search policies remain per executor
     opened.push(this);
     return open.call(this, signal);
   });
-  const first = new Shell({ fs: new MemoryFileSystem() }).use(portableAgentCommands({
+  const first = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands({
     regex: { maxWorkers: 1 }, search: { regex: { maxWorkers: 2 } },
   }));
-  const second = new Shell({ fs: new MemoryFileSystem() }).use(portableAgentCommands());
+  const second = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
     for (const command of ["grep -E a", "egrep a", "fgrep a", "expr 1 + 1", "rg -F a"]) {
       assert.equal((await first.exec(command, { stdin: "a\n" })).exitCode, 0, command);
@@ -123,7 +123,7 @@ test("default providers are per preset while search policies remain per executor
 });
 
 test("default composition keeps structured and search limits local to their families", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(portableAgentCommands({
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands({
     structured: { limits: { maxInputBytes: 1 } }, search: { maxLineBytes: 1 },
   }));
   try {
@@ -166,8 +166,8 @@ test("caller provider handles every regex route without default substitution", a
       return worker;
     },
   } satisfies BoundedRegexProvider & { dispose(): Promise<void> };
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(portableAgentCommands({
-    provider, regex: { maxWorkers: 1 }, search: { regex: { maxWorkers: 3 } },
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands({
+    regexExecutor: provider, regex: { maxWorkers: 1 }, search: { regex: { maxWorkers: 3 } },
   }));
   try {
     for (const command of ["grep -i aa", "egrep 'a+'", "fgrep aa", "expr aa : 'a*'", "rg 'a+'"]) {
@@ -192,8 +192,8 @@ test("disposing one preset preserves a shared caller provider and caller endpoin
   const provider = { ...backing, dispose: context.mock.fn(async () => {}) };
   const callerWorker = provider.createWorker(regexDefaults);
   const callerTerminate = context.mock.method(callerWorker, "terminate");
-  const first = new Shell({ fs: new MemoryFileSystem() }).use(portableAgentCommands({ provider }));
-  const second = new Shell({ fs: new MemoryFileSystem() }).use(portableAgentCommands({ provider }));
+  const first = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands({ regexExecutor: provider }));
+  const second = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands({ regexExecutor: provider }));
   try {
     assert.equal((await first.exec("egrep a", { stdin: "a\n" })).stdout, "a\n");
     await first.dispose();
@@ -218,7 +218,7 @@ for (const action of ["cancel", "dispose"] as const) {
         return Object.assign(events, { postMessage() { submitted.resolve(); }, terminate });
       },
     };
-    const plugin = portableAgentCommands({ provider, search: { regex: { maxWorkers: 1 } } });
+    const plugin = agentCommands({ regexExecutor: provider, search: { regex: { maxWorkers: 1 } } });
     const shell = new Shell({ fs: new MemoryFileSystem() }).use(plugin);
     const controller = new AbortController();
     const reason = new Error("cancel preset request");

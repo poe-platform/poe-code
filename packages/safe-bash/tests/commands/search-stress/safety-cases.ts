@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createNodeRegexProvider } from "../../../src/node.js";
 import { setTimeout as delay } from "node:timers/promises";
 import { createSearchCommands } from "../../../src/commands/search/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -28,7 +29,7 @@ for (const blocked of ["stdin", "stdout", "stderr", "readStream"] as const) test
   };
   if (blocked === "readStream") fs.readStream = (_path, options) => { assert.equal(options?.signal, controller.signal); return input; };
   try {
-    const execution = createSearchCommands()[0]!.execute(context);
+    const execution = createSearchCommands({ regexExecutor: createNodeRegexProvider() })[0]!.execute(context);
     await waiting;
     controller.abort(reason);
     await assert.rejects(Promise.resolve(execution), error => error === reason);
@@ -46,7 +47,7 @@ test("quiet closes a matching source before a stalled second read", async () => 
     async next() { if (++reads === 1) return { done: false as const, value: Buffer.from("foo\n") }; return new Promise<never>(() => {}); },
     async return() { returned = true; return { done: true as const, value: undefined }; },
   }; } };
-  const result = await createSearchCommands()[0]!.execute({
+  const result = await createSearchCommands({ regexExecutor: createNodeRegexProvider() })[0]!.execute({
     command: "rg", args: ["-q", "foo", "-"], cwd: "/", env: {}, fs: new MemoryFileSystem(),
     signal: new AbortController().signal, stdin, stdinIsDefault: false,
     stdout: { async write() { assert.fail("quiet stdout"); } }, stderr: { async write() { assert.fail("quiet stderr"); } },
@@ -61,7 +62,7 @@ test("EPIPE stops traversal without later reads, writes or diagnostics", async (
   const reads: string[] = [];
   fs.readStream = (path, options) => { reads.push(path); return original(path, options); };
   let writes = 0;
-  const result = await createSearchCommands()[0]!.execute({
+  const result = await createSearchCommands({ regexExecutor: createNodeRegexProvider() })[0]!.execute({
     command: "rg", args: ["foo", "a", "b"], cwd: "/", env: {}, fs,
     signal: new AbortController().signal, stdin: toByteSource(""), stdinIsDefault: true,
     stdout: { async write() { writes++; throw new FsError("EPIPE", { syscall: "write" }); } },
@@ -76,7 +77,7 @@ test("EPIPE cleanup never waits for an uncooperative source return", async () =>
     async next() { return { done: false as const, value: Buffer.from("foo\n") }; },
     return() { returned = true; return new Promise<never>(() => {}); },
   }; } };
-  const result = await createSearchCommands()[0]!.execute({
+  const result = await createSearchCommands({ regexExecutor: createNodeRegexProvider() })[0]!.execute({
     command: "rg", args: ["-a", "foo", "-"], cwd: "/", env: {}, fs: new MemoryFileSystem(),
     signal: new AbortController().signal, stdin: source, stdinIsDefault: false,
     stdout: { async write() { throw new FsError("EPIPE"); } },
@@ -87,7 +88,7 @@ test("EPIPE cleanup never waits for an uncooperative source return", async () =>
 
 test("cancellation wins a racing stdout EPIPE", async () => {
   const controller = new AbortController(); const reason = new Error("cancel before EPIPE");
-  await assert.rejects(Promise.resolve(createSearchCommands()[0]!.execute({
+  await assert.rejects(Promise.resolve(createSearchCommands({ regexExecutor: createNodeRegexProvider() })[0]!.execute({
     command: "rg", args: ["foo", "-"], cwd: "/", env: {}, fs: new MemoryFileSystem(),
     signal: controller.signal, stdin: toByteSource("foo\n"), stdinIsDefault: false,
     stdout: { async write() { controller.abort(reason); throw new FsError("EPIPE"); } },
@@ -110,7 +111,7 @@ test("metadata-selected stdin yields during endless empty chunks", async () => {
     } finally { closed = true; }
   })();
   try {
-    await assert.rejects(Promise.resolve(createSearchCommands()[0]!.execute({
+    await assert.rejects(Promise.resolve(createSearchCommands({ regexExecutor: createNodeRegexProvider() })[0]!.execute({
       command: "rg", args: ["-f", "/patterns"], cwd: "/", env: {}, fs, signal: controller.signal, stdin, stdinIsDefault: false,
       stdout: { async write() { assert.fail("empty stdout"); } }, stderr: { async write() { assert.fail("empty stderr"); } },
     })), error => error === reason);

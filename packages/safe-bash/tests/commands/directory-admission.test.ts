@@ -5,7 +5,7 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { createAgentCommands, agentCommands } from "../../src/plugins/index.js";
-import { createBrowserCommands, browserCommands } from "../../src/browser.js";
+import { createAgentCommands as createDefaultCommands, agentCommands as defaultCommands } from "../../src/index.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { createDirectoryReader } from "../../src/commands/directory-admission.js";
 import { run } from "./helpers.js";
@@ -17,8 +17,8 @@ const routes: readonly [string, (fs: FileSystem, options: { maxDirectoryEntries?
   ["standard plugin", (fs, options) => new Shell({ fs }).use(standardCommands(options))],
   ["agent factory", (fs, options) => new Shell({ fs, commands: new CommandRegistry(createAgentCommands(options)) })],
   ["agent plugin", (fs, options) => new Shell({ fs }).use(agentCommands(options))],
-  ["browser factory", (fs, options) => new Shell({ fs, commands: new CommandRegistry(createBrowserCommands(options)) })],
-  ["browser plugin", (fs, options) => new Shell({ fs }).use(browserCommands(options))],
+  ["default factory", (fs, options) => new Shell({ fs, commands: new CommandRegistry(createDefaultCommands(options)) })],
+  ["default plugin", (fs, options) => new Shell({ fs }).use(defaultCommands(options))],
 ];
 
 for (const [name, create] of routes) {
@@ -54,6 +54,7 @@ for (const [name, create] of routes) {
 
 test("directory admission defaults to 10000 and keeps zero valid", async context => {
   const fs = createMemoryFileSystem();
+  await fs.mkdir("/empty");
   const read = fs.readdir.bind(fs);
   const limits: unknown[] = [];
   fs.readdir = async (path, options) => { limits.push(Reflect.get(options ?? {}, "maxEntries")); return read(path); };
@@ -61,9 +62,9 @@ test("directory admission defaults to 10000 and keeps zero valid", async context
   const zero = new Shell({ fs }).use(standardCommands({ maxDirectoryEntries: 0 }));
   context.after(async () => { await defaults.dispose(); await zero.dispose(); });
   assert.equal((await defaults.exec("ls /")).exitCode, 0);
-  assert.equal((await zero.exec("ls -a /")).stdout, ".\n..\n");
-  await fs.writeFile("/a", new Uint8Array());
-  assert.equal((await zero.exec("ls /")).exitCode, 1);
+  assert.equal((await zero.exec("ls -a /empty")).stdout, ".\n..\n");
+  await fs.writeFile("/empty/a", new Uint8Array());
+  assert.equal((await zero.exec("ls /empty")).exitCode, 1);
   assert.deepEqual(limits, [10000, 0, 0]);
 });
 
@@ -81,8 +82,9 @@ test("directory admission rejects before materializing a custom host result", as
 
 test("directory admission avoids redundant ls sorting and orders synthetic entries", async context => {
   const fs = createMemoryFileSystem();
-  for (const name of ["!", ".hidden", "A", "z"]) await fs.writeFile(`/${name}`, new Uint8Array());
-  const entries = (await fs.readdir("/")).sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+  await fs.mkdir("/entries");
+  for (const name of ["!", ".hidden", "A", "z"]) await fs.writeFile(`/entries/${name}`, new Uint8Array());
+  const entries = (await fs.readdir("/entries")).sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
   fs.readdir = async () => entries;
   const shell = new Shell({ fs }).use(standardCommands({ maxDirectoryEntries: 4 }));
   context.after(() => shell.dispose());
@@ -93,8 +95,8 @@ test("directory admission avoids redundant ls sorting and orders synthetic entri
     return sort.call(this, compare);
   };
   context.after(() => { Array.prototype.sort = sort; });
-  assert.equal((await shell.exec("ls -a /")).stdout, "!\n.\n..\n.hidden\nA\nz\n");
-  assert.equal((await shell.exec("ls -ar /")).stdout, "z\nA\n.hidden\n..\n.\n!\n");
+  assert.equal((await shell.exec("ls -a /entries")).stdout, "!\n.\n..\n.hidden\nA\nz\n");
+  assert.equal((await shell.exec("ls -ar /entries")).stdout, "z\nA\n.hidden\n..\n.\n!\n");
   assert.equal(sorts, 0);
   ["z", "!"].sort();
   assert.equal(sorts, 1, "the observer must detect a matching sort");
@@ -165,13 +167,14 @@ for (const reason of [false, null, 0, ""]) {
 
 test("directory admission preserves lexical order for an unordered host", async context => {
   const fs = createMemoryFileSystem();
-  for (const name of ["a", "Z", "é"]) await fs.writeFile(`/${name}`, new Uint8Array());
-  const entries = await fs.readdir("/");
+  await fs.mkdir("/entries");
+  for (const name of ["a", "Z", "é"]) await fs.writeFile(`/entries/${name}`, new Uint8Array());
+  const entries = await fs.readdir("/entries");
   fs.readdir = async () => [...entries].reverse();
   const shell = new Shell({ fs }).use(standardCommands({ maxDirectoryEntries: 3 }));
   context.after(() => shell.dispose());
-  assert.equal((await shell.exec("ls /")).stdout, "Z\na\n\\303\\251\n");
-  assert.equal((await shell.exec("find / -mindepth 1")).stdout, "/Z\n/a\n/\\303\\251\n");
+  assert.equal((await shell.exec("ls /entries")).stdout, "Z\na\n\\303\\251\n");
+  assert.equal((await shell.exec("find /entries -mindepth 1")).stdout, "/entries/Z\n/entries/a\n/entries/\\303\\251\n");
 });
 
 test("directory admission preserves cp preflight retry and directory creation", async context => {

@@ -150,7 +150,9 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
 
 export async function* fileSource(context: CommandContext, path: string, limits: ArchiveLimits): ByteSource {
   context.signal.throwIfAborted();
-  if (context.fs.readStream) {
+  const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+  context.signal.throwIfAborted();
+  if (context.fs.readStream && capabilities.streamingRead !== false) {
     yield* readBytes(context.fs.readStream(path, { signal: context.signal, chunkSize: limits.chunkSize }), context.signal);
   } else {
     const stat = await operation(context, () => context.fs.stat(path, { signal: context.signal }));
@@ -162,8 +164,10 @@ export async function* fileSource(context: CommandContext, path: string, limits:
 }
 
 export async function publish(context: CommandContext, path: string, source: ByteSource, mode = 0o600): Promise<void> {
-  const options = { signal: context.signal, flag: "wx" as const, mode };
-  if (context.fs.writeStream) {
+  const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+  context.signal.throwIfAborted();
+  const options = { signal: context.signal, flag: "wx" as const, ...(capabilities.permissions === false ? {} : { mode }) };
+  if (context.fs.writeStream && capabilities.streamingWrite !== false) {
     let finished = false;
     const observed = (async function* () { yield* readBytes(source, context.signal); finished = true; })();
     try {

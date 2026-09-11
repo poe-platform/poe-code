@@ -138,6 +138,16 @@ capability. Their finite streaming is not live retention. This filesystem
 composition does not implement `tail`, polling, idle limits or a command handle
 cap; command integration and its qualification are separate work.
 
+# Atomic no-replace rename
+
+The canonical [SafeFS rename contract](../../../safe-fs/src/contracts/filesystem.md#atomic-no-replace-rename)
+defines `RenameOptions.noReplace` and `atomicRenameNoReplace`. `mv -n` requires
+affirmative support before moving to an absent destination and passes
+`noReplace: true` to `rename`. An atomic `EEXIST` is a successful skip that
+preserves both entries; unsupported and cross-device moves fail without a
+copy/delete fallback. Existing-target skips and ordinary overwriting moves
+retain their existing behavior.
+
 # Optional allocation metadata
 
 `FileStat.allocatedBytes?: number` is an optional, readonly observation of the

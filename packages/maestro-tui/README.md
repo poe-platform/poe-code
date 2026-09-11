@@ -46,3 +46,5 @@ This package does not introduce config file options.
 | Env var  | Behavior                                                              |
 | -------- | --------------------------------------------------------------------- |
 | `EDITOR` | Used by the source-file edit action when `variables` is not provided. |
+
+The detail pane renders non-Error loading failures. Task metadata uses a fence longer than any embedded backtick run, and issue URLs are trimmed before opening.

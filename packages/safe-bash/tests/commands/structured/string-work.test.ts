@@ -91,6 +91,7 @@ for (const reason of [false, null]) {
   });
 
   test(`split fit proof still yields and preserves cancellation during scanning: ${reason}`, async context => {
+    context.mock.method(performance, "now", () => 0);
     const controller = new AbortController();
     const budget = new Budget(resolveJqLimits(), controller.signal);
     const validation = context.mock.method(budget, "value");
@@ -100,6 +101,23 @@ for (const reason of [false, null]) {
     await assert.rejects(splitString("x".repeat(1025), ",", budget), error => error === reason);
     assert.equal(checkpoints, 1);
     assert.equal(step.mock.callCount(), 1024);
+    assert.equal(validation.mock.callCount(), 0);
+  });
+
+  test(`split fit proof yields at 25ms during scanning and preserves cancellation: ${reason}`, async context => {
+    const times = [0, 0, 24, 25];
+    let reads = 0;
+    const clock = context.mock.method(performance, "now", () => times[reads++] ?? 25);
+    const controller = new AbortController();
+    const budget = new Budget(resolveJqLimits(), controller.signal);
+    const validation = context.mock.method(budget, "value");
+    const step = context.mock.method(budget, "step");
+    let checkpoints = 0;
+    registerYieldCheckpoint(controller.signal, () => { checkpoints++; controller.abort(reason); });
+    await assert.rejects(splitString("x".repeat(1025), ",", budget), error => error === reason);
+    assert.equal(checkpoints, 1);
+    assert.equal(step.mock.callCount(), 5);
+    assert.equal(clock.mock.callCount(), 4);
     assert.equal(validation.mock.callCount(), 0);
   });
 }

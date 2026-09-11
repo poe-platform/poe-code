@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -15,7 +16,7 @@ assert.deepEqual(frozen.observations.map(observation => observation.id), nativeC
 for (const fixture of nativeCases) test(`native-derived ${fixture.id}${productProfile(fixture).qualification ? " (qualified)" : " (exact BSD tuple)"}`, async () => {
   const fs = new MemoryFileSystem();
   for (const [name, content] of Object.entries(fixture.files)) await fs.writeFile(`/${name}`, Buffer.from(content));
-  const definition = createGrepAliasCommands().find(command => command.name === fixture.alias)!;
+  const definition = createGrepAliasCommands({ regexExecutor: createNodeRegexProvider() }).find(command => command.name === fixture.alias)!;
   const result = await run(definition, fixture.args, fixture.stdin, { fs });
   const actual = { code: result.code, stdoutBase64: result.stdout.toString("base64"), stderrBase64: result.stderr.toString("base64") };
   const profile = productProfile(fixture);

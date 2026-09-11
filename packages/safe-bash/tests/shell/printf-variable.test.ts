@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
-import { browserCommands, MemoryFileSystem as BrowserMemoryFileSystem, Shell as BrowserShell } from "../../src/browser.js";
+import { agentCommands, MemoryFileSystem as BrowserMemoryFileSystem, Shell as BrowserShell } from "../../src/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { createCommandArguments } from "../../src/contracts/command.js";
@@ -212,7 +212,7 @@ for (const [name, script, expected] of [
         throw platformError;
       }
     });
-    const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(browserCommands());
+    const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(agentCommands());
     try {
       const result = await shell.exec(script);
       assert.equal(result.exitCode, 0, result.stderr);
@@ -247,7 +247,7 @@ test("printf -v browser decoding does not relabel a storage TypeError", async co
     }
     return get.apply(this, args);
   });
-  const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(browserCommands());
+  const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(agentCommands());
   try {
     const result = await shell.exec('value=old; printf -v "value[1]" %s new; printf "<%s:%s>" "$?" "$value"', { onInternalError(error) { observed.push(error); } });
     assert.equal(result.stdout, "<1:old>");
@@ -270,7 +270,7 @@ for (const reason of [false, 0, null, ""]) test(`printf -v browser decoder cance
     return decode.apply(this, args);
   });
   const writes = context.mock.method(Runtime.prototype, "arrayAssignment");
-  const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(browserCommands());
+  const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(agentCommands());
   try {
     await assert.rejects(shell.exec('printf -v "value[1]" "\\377"', { signal: controller.signal }), error => error === reason);
     assert.equal(writes.mock.callCount(), 0);

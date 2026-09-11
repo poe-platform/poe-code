@@ -1,5 +1,9 @@
 import path from "node:path";
-import { collectCanonicalDeclarations, type BundleMetafile } from "./bundle-policy.js";
+import {
+  collectCanonicalDeclarations,
+  collectCanonicalNativeAssets,
+  type BundleMetafile
+} from "./bundle-policy.js";
 import { parse as parseYaml } from "yaml";
 import {
   createNpmPacklistProvider,
@@ -22,6 +26,7 @@ import { createSourceAdmission, parseSourceExclude } from "./source-files.js";
  */
 export interface LintFs {
   readFile(p: string): Promise<string>;
+  readBytes?(p: string, maxBytes: number): Promise<Uint8Array>;
   readdir(p: string): Promise<{ name: string; isDirectory(): boolean }[]>;
   stat?(p: string): Promise<{ isDirectory(): boolean; isFile(): boolean }>;
   lstat?(p: string): Promise<LintStat>;
@@ -32,6 +37,7 @@ export interface LintFs {
 export interface LintStat {
   dev: number | bigint;
   ino: number | bigint;
+  size?: number | bigint;
   isDirectory(): boolean;
   isFile(): boolean;
   isSymbolicLink(): boolean;
@@ -701,6 +707,14 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
       }
     }
     Object.assign(metafile, await collectCanonicalDeclarations(rootDir, declarationFs));
+  }
+  if (
+    metafile.canonicalBundle ||
+    metafile.browserCanonicalBundle ||
+    metafile.canonicalNativeAssets ||
+    (fs.lstat && fs.realpath)
+  ) {
+    Object.assign(metafile, await collectCanonicalNativeAssets(rootDir, fs));
   }
   return parseMetafile(metafile);
 }

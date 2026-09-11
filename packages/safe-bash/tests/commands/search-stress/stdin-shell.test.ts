@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { collectBytes, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
@@ -9,7 +10,7 @@ import { discovered, inputFileSystem } from "./stdin-helpers.js";
 async function inputShell() {
   const fs = await inputFileSystem();
   const seen: { metadata: boolean | undefined; args: readonly string[] }[] = [];
-  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(searchCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor: createNodeRegexProvider() })).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   shell.use(async (context, next) => {
     if (context.command === "rg") seen.push({ metadata: context.stdinIsDefault, args: [...context.args] });
     return next();

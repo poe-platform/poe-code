@@ -32,6 +32,19 @@ export function mergeStandaloneInventory(inventory, sealedEntries) {
   };
 }
 
+export function includeCurrentSourceDeclarations(inventory) {
+  const declarations = ["bz2", "xz", "zstd"].map(codec => ({
+    path: `src/commands/bytes/compression/native/generated/${codec}.d.mts`,
+    classification: "declaration",
+    sha256: "c4539600528ca49e815605ce0ec33ab3382ac4123d5afa7d31a262f92e18934a",
+  }));
+  return {
+    ...inventory,
+    entries: [...inventory.entries, ...declarations],
+    counts: { ...inventory.counts, declaration: (inventory.counts.declaration ?? 0) + declarations.length },
+  };
+}
+
 export function verifyAdmittedStandaloneInventory(inventory, tracked, currentPaths, negativePaths, read, boundaries) {
   const paths = inventory.entries.map(entry => entry.path);
   assert.deepEqual(tracked.filter(path => path.endsWith(".mts")).sort(), [...paths].sort(), "standalone inventory changed; classify new paths explicitly before qualification");
@@ -74,7 +87,7 @@ export function verifyTypecheckInputs(root, fileSystem = fs) {
   }
   const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split("\0").filter(Boolean);
   for (const entry of staged.entries) assert.ok(tracked.includes(entry.path) && tracked.includes(entry.owner.path), `staged input and owning manifest must be tracked: ${entry.path}`);
-  const inventory = mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries);
+  const inventory = includeCurrentSourceDeclarations(mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries));
   const classified = new Set(inventory.entries.map(entry => entry.path));
   const unknown = tracked.filter(path => path.endsWith(".mts") && !classified.has(path));
   assert.equal(unknown.length, 0, `Unclassified current .mts inputs require an explicit existing-inventory route: ${unknown.join(", ")}`);
@@ -88,10 +101,15 @@ export function verifyTypecheckInputs(root, fileSystem = fs) {
   return { capturedData: classification.entries.length, stagedInputs: staged.entries.map(({ path, role, currentGroup }) => ({ path, role, currentGroup })), currentSourceConsumerGroups, standaloneInventory: inventory.counts, standaloneAdmission, integrationTypeEvidence: { capturedPaths: integrationTypes.capturedPaths, standaloneEntries: integrationTypes.standaloneEntries, cohorts: integrationTypes.cohorts } };
 }
 
-export function requireBuiltPackage(root) {
-  const pkg = JSON.parse(readRegularInput(root, "package.json", 300000));
-  const paths = Object.values(pkg.exports).flatMap(entry => [entry.types, entry.import]).filter(path => path && !path.includes("*"));
-  const missing = [...new Set(paths)].filter(path => !fs.existsSync(join(root, path)));
+export function requireBuiltPackage(root, fileSystem = fs) {
+  const pkg = JSON.parse(readRegularInput(root, "package.json", 300000, fileSystem));
+  const targets = entry => {
+    if (entry === null) return [];
+    if (typeof entry === "string") return entry.includes("*") ? [] : [entry];
+    assert.ok(entry && typeof entry === "object" && !Array.isArray(entry), "Invalid export condition");
+    return Object.values(entry).flatMap(targets);
+  };
+  const missing = [...new Set(targets(pkg.exports))].filter(path => !fileSystem.existsSync(join(root, path)));
   if (missing.length) {
     const error = new Error(`Built-package prerequisite missing (${missing.length} files). Run npm run typecheck:all to build once and check source plus current consumers, or npm run build before npm run typecheck. No consumer compilation was attempted.`);
     error.code = "TYPECHECK_BUILD_REQUIRED";

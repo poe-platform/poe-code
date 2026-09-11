@@ -16,10 +16,10 @@ runtimes. Compression, archives, checksums and timers use supported pure Node
 builtins. It does not promise a zero-Node-builtins browser runtime. The separate
 `/browser` entry retains its original lightweight, polyfill-free builtin contract.
 
-The authoritative inventory is `portableAgentCommandNames`: the same 79 default
+The authoritative inventory is `portableAgentCommandNames`: the same 91 default
 commands as `agentCommands`, without duplicate registration. It includes standard
 filesystem and stream tools, find, sed/awk, jq, search, byte encoders and checksums,
-compression, diff/patch, metadata, tar, table and stream formatting, splitting,
+compression, diff/patch, metadata, tar, zip/unzip, table and stream formatting, splitting,
 time/environment tools, tree/file, aliases, column, HTML conversion, du, expr,
 which, timeout and apply_patch. It excludes curl, node and safejs; these remain
 separate explicit capability opt-ins. Existing Node `agentCommands` and
@@ -81,14 +81,29 @@ retain their independently bounded cooperative implementations. The built-in
 `createBoundedRegexProvider` is a restricted cooperative implementation, not a
 native-worker, wall-clock-preemption or RSS-isolation guarantee.
 
-Its supported modes include restricted ASCII grep BRE/ERE, fixed non-NUL UTF-8
-matching, and conservative ASCII BRE expr matching with anchored match lengths
+Its supported modes include restricted ASCII grep BRE/ERE patterns over valid
+non-NUL UTF-8 subjects, fixed non-NUL UTF-8
+matching, bounded grep `-o` extraction, and conservative ASCII BRE expr matching with anchored match lengths
 and bounded captures. Its unsupported modes include non-ASCII/NUL expr inputs, rg regex and
-glob descriptors, case-insensitive/word selection and all-match enumeration.
+glob descriptors, word selection, rg case modes and rg all-match enumeration.
 Unsupported requests fail at provider admission with explicit diagnostics and
 nonzero status, without executing an unbounded regex or falling back to Node.
 For example `expr aa : 'a*'` prints `2`, while `expr abc : 'a\(.\)c'` prints `b`;
 unsupported BRE extensions such as `\w` fail explicitly. `expr 2 + 3` still works.
+For grep regex subjects, `.` consumes one Unicode scalar, positive ASCII
+classes remain ASCII-only, and complemented classes include non-ASCII scalars.
+Output and match offsets preserve the original bytes. This profile is unchanged
+by `LC_ALL=C`, performs no normalization or Unicode folding, and rejects non-ASCII
+regex patterns, invalid UTF-8 and NUL subjects. Expr retains its separate ASCII
+restriction. See `PORTABLE_SEARCH.md` for the full matching and budget profile.
+Grep `-i` supports ASCII A–Z/a–z equivalence for fixed, BRE and ERE patterns,
+with or without `-o`, while preserving original output bytes and case. Bracket
+classes include both ASCII cases before complementing. Non-ASCII fixed literals
+still compare exactly; for example, `é` and `É` are distinct.
+Plain grep also accepts escaped basic metacharacters such as `\.` and `\*`,
+and treats unescaped `+?(){}|` as literals. Bracket members retain bracket
+semantics. Escaped BRE groups, intervals, extended operators and backreferences
+remain unsupported; `grep -E` retains its separate extended grammar.
 A different host provider may implement more descriptors
 while respecting the existing bounded request/reply and retirement contracts.
 

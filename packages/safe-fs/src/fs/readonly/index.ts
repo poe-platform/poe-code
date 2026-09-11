@@ -3,23 +3,26 @@ import { FsError } from "../../contracts/errors.js";
 import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat,
-  FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
+  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileResizeHandle, FileStat, OpenReadFileOptions, OpenResizeFileOptions,
+  FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { openRetainedReadFile, readOnlyCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import { pathNamespace, readOnlyPathNamespace } from "../path-namespace.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
   throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
+    ...(revision === undefined ? {} : { revision }),
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
@@ -36,6 +39,9 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   constructor(filesystem: FileSystem) {
     this.#filesystem = filesystem;
+    if (Reflect.has(filesystem, pathNamespace)) Object.defineProperty(this, pathNamespace, {
+      get: () => readOnlyPathNamespace(Reflect.get(filesystem, pathNamespace)),
+    });
     registerEntryView(this, async (path) => ({ filesystem: this.#filesystem, path, readOnly: true }));
     const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
     this.#capabilities = readOnlyCapabilities({
@@ -56,12 +62,14 @@ export class ReadOnlyFileSystem implements FileSystem {
     return this.#capabilities;
   }
 
-  async capabilitiesFor(path: string, options?: FsOptions): Promise<FileSystemCapabilities> {
+  async capabilitiesFor(path: string, options?: CapabilityQueryOptions): Promise<FileSystemCapabilities> {
+    options?.signal?.throwIfAborted();
+    if (options?.create !== undefined) readOnly("capabilitiesFor", path);
     const capabilities = await this.#filesystem.capabilitiesFor?.(path, options) ?? this.#filesystem.capabilities;
     return readOnlyCapabilities(retainedReadCapabilities(this.#filesystem, capabilities));
   }
 
-  openReadFile(path: string, options: FsOptions = {}) {
+  openReadFile(path: string, options: OpenReadFileOptions = {}) {
     return openRetainedReadFile(this.#filesystem, path, options);
   }
 
@@ -145,7 +153,7 @@ export class ReadOnlyFileSystem implements FileSystem {
     readOnly("rmdir", path);
   }
 
-  async rename(source: string, destination: string, _options?: FsOptions): Promise<void> {
+  async rename(source: string, destination: string, _options?: RenameOptions): Promise<void> {
     readOnly("rename", source, destination);
   }
 
@@ -171,6 +179,11 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   async truncate(path: string, _length?: number, _options?: FsOptions): Promise<void> {
     readOnly("truncate", path);
+  }
+
+  async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {
+    options.signal?.throwIfAborted();
+    readOnly("openResizeFile", path);
   }
 }
 

@@ -60,19 +60,51 @@
       "import": "./dist/skills.js"
     },
     "./safe-bash": {
-      "types": "./packages/safe-bash/dist/index.d.ts",
+      "types": {
+        "workerd": "./packages/safe-bash/dist/core.d.ts",
+        "browser": "./packages/safe-bash/dist/core.d.ts",
+        "default": "./packages/safe-bash/dist/index.d.ts"
+      },
+      "workerd": "./packages/safe-bash/dist/core.browser.js",
+      "browser": "./packages/safe-bash/dist/core.browser.js",
       "import": "./packages/safe-bash/dist/index.js"
     },
     "./safe-bash/contracts": {
-      "types": "./packages/safe-bash/dist/contracts/index.d.ts",
-      "import": "./packages/safe-bash/dist/contracts/index.js"
+      "types": {
+        "browser": "./packages/safe-bash/dist/contracts/index.d.ts",
+        "default": "./packages/safe-bash/dist/contracts/node.d.ts"
+      },
+      "browser": "./packages/safe-bash/dist/contracts/index.js",
+      "import": "./packages/safe-bash/dist/contracts/node.js"
+    },
+    "./safe-bash/contracts/index": {
+      "types": {
+        "browser": "./packages/safe-bash/dist/contracts/index.d.ts",
+        "default": "./packages/safe-bash/dist/contracts/node.d.ts"
+      },
+      "browser": "./packages/safe-bash/dist/contracts/index.js",
+      "import": "./packages/safe-bash/dist/contracts/node.js"
+    },
+    "./safe-bash/contracts/path": {
+      "types": {
+        "browser": "./packages/safe-bash/dist/contracts/path.d.ts",
+        "default": "./packages/safe-bash/dist/contracts/node-path.d.ts"
+      },
+      "browser": "./packages/safe-bash/dist/contracts/path.js",
+      "import": "./packages/safe-bash/dist/contracts/node-path.js"
     },
     "./safe-bash/contracts/*": {
       "types": "./packages/safe-bash/dist/contracts/*.d.ts",
       "import": "./packages/safe-bash/dist/contracts/*.js"
     },
     "./safe-bash/commands/network": {
-      "types": "./packages/safe-bash/dist/commands/network/index.d.ts",
+      "types": {
+        "workerd": "./packages/safe-bash/dist/commands/network/public.d.ts",
+        "browser": "./packages/safe-bash/dist/commands/network/public.d.ts",
+        "default": "./packages/safe-bash/dist/commands/network/index.d.ts"
+      },
+      "workerd": "./packages/safe-bash/dist/commands/network/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/network/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/network/index.js"
     },
     "./safe-bash/commands/node": {
@@ -102,6 +134,48 @@
     "./safe-bash/commands/split": {
       "types": "./packages/safe-bash/dist/commands/split/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/split/index.js"
+    },
+    "./safe-bash/commands/csplit": {
+      "types": "./packages/safe-bash/dist/commands/csplit/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/csplit/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/csplit/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/csplit/index.js"
+    },
+    "./safe-bash/commands/pr": {
+      "types": "./packages/safe-bash/dist/commands/pr/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/pr/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/pr/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/pr/index.js"
+    },
+    "./safe-bash/commands/tsort": {
+      "types": "./packages/safe-bash/dist/commands/tsort/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/tsort/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/tsort/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/tsort/index.js"
+    },
+    "./safe-bash/commands/factor": {
+      "types": "./packages/safe-bash/dist/commands/factor/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/factor/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/factor/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/factor/index.js"
+    },
+    "./safe-bash/commands/getopt": {
+      "types": "./packages/safe-bash/dist/commands/getopt/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/getopt/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/getopt/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/getopt/index.js"
+    },
+    "./safe-bash/commands/hexdump": {
+      "types": "./packages/safe-bash/dist/commands/hexdump/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/hexdump/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/hexdump/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/hexdump/index.js"
+    },
+    "./safe-bash/commands/iconv": {
+      "types": "./packages/safe-bash/dist/commands/iconv/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/iconv/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/iconv/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/iconv/index.js"
     },
     "./safe-bash/commands/time-env": {
       "types": "./packages/safe-bash/dist/commands/time-env/index.d.ts",
@@ -146,6 +220,18 @@
     "./safe-bash/commands/which": {
       "types": "./packages/safe-bash/dist/commands/which/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/which/index.js"
+    },
+    "./safe-bash/commands/xml": {
+      "types": "./packages/safe-bash/dist/commands/xml/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/xml/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/xml/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/xml/index.js"
+    },
+    "./safe-bash/commands/yq": {
+      "types": "./packages/safe-bash/dist/commands/yq/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/yq/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/yq/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/yq/index.js"
     },
     "./safe-bash/fs/s3": {
       "types": "./packages/safe-bash/dist/fs/s3/index.d.ts",
@@ -219,18 +305,60 @@
       "browser": null,
       "import": "./packages/safe-js/dist/cli.js"
     },
-    "./safe-bash/browser": {
-      "types": "./packages/safe-bash/dist/browser.d.ts",
-      "import": "./packages/safe-bash/dist/browser.js"
-    },
-    "./safe-bash/portable": {
-      "types": "./packages/safe-bash/dist/portable.d.ts",
-      "import": "./packages/safe-bash/dist/portable.js"
-    },
     "./safe-bash/node": {
       "types": "./packages/safe-bash/dist/node.d.ts",
       "browser": null,
       "import": "./packages/safe-bash/dist/node.js"
+    },
+    "./safe-js/workerd": {
+      "types": {
+        "workerd": "./packages/safe-js/dist/workerd.d.ts",
+        "browser": "./packages/safe-js/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/workerd.d.ts"
+      },
+      "workerd": "./packages/safe-js/dist/workerd.js",
+      "browser": null,
+      "import": "./packages/safe-js/dist/workerd.js"
+    },
+    "./safe-bash/commands/node/host": {
+      "types": {
+        "workerd": "./packages/safe-bash/dist/node-unavailable.d.ts",
+        "worker": "./packages/safe-bash/dist/node-unavailable.d.ts",
+        "browser": "./packages/safe-bash/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-bash/dist/commands/node/worker-provider.d.ts"
+      },
+      "workerd": null,
+      "worker": null,
+      "browser": null,
+      "import": "./packages/safe-bash/dist/commands/node/worker-provider.js"
+    },
+    "./safejs/workerd": {
+      "types": {
+        "workerd": "./packages/safe-js/dist/workerd.d.ts",
+        "browser": "./packages/safe-js/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/workerd.d.ts"
+      },
+      "workerd": "./packages/safe-js/dist/workerd.js",
+      "browser": null,
+      "import": "./packages/safe-js/dist/workerd.js"
+    },
+    "./safe-bash/commands/llm": {
+      "types": "./packages/safe-bash/dist/commands/llm/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/llm/index.js"
+    },
+    "./safe-bash/commands/llm/providers": {
+      "types": "./packages/safe-bash/dist/commands/llm/providers/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/llm/providers/index.js"
+    },
+    "./safe-bash/commands/line-endings": {
+      "types": "./packages/safe-bash/dist/commands/line-endings/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/line-endings/index.js"
     }
   },
   "workspaces": [
@@ -256,8 +384,8 @@
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:workflows",
     "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
     "lint:packages": "tsx packages/package-lint/src/cli.ts",
-    "lint:eslint": "node scripts/lint-eslint.mjs",
-    "lint:types": "tsc -p tsconfig.build.json --noEmit",
+    "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs",
+    "lint:types": "tsc -p tsconfig.build.json --noEmit && npm run typecheck:contracts --workspace=@poe-code/safe-js && npm run typecheck:contracts --workspace=tiny-mcp-client",
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
     "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",
@@ -389,7 +517,11 @@
     "packages/toolcraft-schema/dist",
     "packages/workspace-resolver/dist",
     "packages/worktree/dist",
-    "packages/safe-fs/dist/**/*.d.ts"
+    "packages/safe-fs/dist/**/*.d.ts",
+    "packages/safe-fs/native/assets.json",
+    "packages/safe-fs/native/seek.c",
+    "packages/safe-fs/native/loader.mjs",
+    "packages/safe-fs/src/native/loader.d.ts"
   ],
   "engines": {
     "node": ">=18.18"
@@ -401,6 +533,7 @@
     "@formatjs/intl-localematcher": "0.8.13",
     "@formatjs/intl-numberformat": "9.4.0",
     "@formatjs/intl-pluralrules": "6.3.13",
+    "@noble/hashes": "2.4.0",
     "@petamoriken/float16": "^3.9.3",
     "chalk": "^5.6.2",
     "commander": "^13.1.0",
@@ -412,6 +545,7 @@
     "gray-matter": "^4.0.3",
     "ignore": "^5.3.2",
     "jose": "^6.1.3",
+    "pako": "3.0.1",
     "jsonc-parser": "^3.3.1",
     "lru-cache": "^10.4.3",
     "mustache": "^4.2.0",
@@ -541,6 +675,12 @@
     "vite": "6.4.3"
   },
   "imports": {
+    "#safe-fs-native-seek": {
+      "types": "./packages/safe-js/dist/native/fs-seek/loader.d.ts",
+      "workerd": null,
+      "browser": null,
+      "default": "./packages/safe-js/dist/native/fs-seek/loader.mjs"
+    },
     "#safe-fs-platform": {
       "types": {
         "browser": "./packages/safe-fs/dist/platform/browser.d.ts",

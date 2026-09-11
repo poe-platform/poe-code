@@ -1,5 +1,6 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
 import type { RegexExecutionOptions } from "../regex-execution/protocol.js";
+import type { BoundedRegexProvider } from "../regex-execution/provider.js";
 import { defaultFileTypes } from "./file-types.js";
 
 export interface SearchOptions {
@@ -10,6 +11,7 @@ export interface SearchOptions {
   readonly maxFileBytes?: number;
   readonly maxFiles?: number;
   readonly regex?: RegexExecutionOptions;
+  readonly regexExecutor?: BoundedRegexProvider;
 }
 
 export class SearchError extends PublicDiagnostic {}

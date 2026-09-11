@@ -16,7 +16,7 @@ vi.mock("./engine/index.js", async () => {
   const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
   const built = await buildBrowserEngine();
   return import(
-    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(built.code).toString("base64")}`
+    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-execution.mjs`).toString("base64")}`
   );
 });
 
@@ -44,6 +44,126 @@ function controlledWorkers() {
 }
 
 describe("dedicated playground execution", () => {
+  it.each([0, 7])("settles result %s only after all retained cleanup drains despite close rejection", async exitCode => {
+    const workers = controlledWorkers();
+    vi.useFakeTimers();
+    const filesystem = createMemoryFileSystem();
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const failedClose = vi.fn(async () => { throw new Error("retained cleanup failure"); });
+    const heldClose = vi.fn(() => held);
+    vi.spyOn(filesystem, "openResizeFile")
+      .mockResolvedValueOnce({ stat: async () => filesystem.stat("/"), truncate: async () => {}, close: failedClose })
+      .mockResolvedValueOnce({ stat: async () => filesystem.stat("/"), truncate: async () => {}, close: heldClose });
+    const running = executeInWorker(filesystem, "controlled", "/", "help", vi.fn());
+    let settled: Awaited<typeof running> | undefined;
+    void running.then(result => { settled = result; });
+    const worker = workers[0]!;
+    worker.emit({ kind: "ready" });
+    worker.emit({ kind: "fs", identity: 1, method: "handle-open-resize", args: ["/one"] });
+    worker.emit({ kind: "fs", identity: 2, method: "handle-open-resize", args: ["/two"] });
+    await vi.advanceTimersByTimeAsync(0);
+    worker.emit({ kind: "result", result: { stdout: "kept\n", stderr: exitCode ? "primary failure\n" : "", exitCode } });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(settled).toBeUndefined();
+    expect(failedClose).toHaveBeenCalledTimes(1);
+    expect(heldClose).toHaveBeenCalledTimes(1);
+    release();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(settled).toEqual(exitCode
+      ? { stdout: "kept\n", stderr: "primary failure\n", exitCode }
+      : { stdout: "kept\n", stderr: "Filesystem cleanup failed: retained cleanup failure\n", exitCode: 1 });
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each([false, 0, "", null, undefined, NaN])("surfaces falsey cleanup-only failure %s without losing completed output", async reason => {
+    const workers = controlledWorkers();
+    vi.useFakeTimers();
+    const filesystem = createMemoryFileSystem();
+    const close = vi.fn(async () => { throw reason; });
+    vi.spyOn(filesystem, "openResizeFile").mockResolvedValue({ stat: async () => filesystem.stat("/"), truncate: async () => {}, close });
+    const running = executeInWorker(filesystem, "controlled", "/", "help", vi.fn());
+    const worker = workers[0]!;
+    worker.emit({ kind: "ready" });
+    worker.emit({ kind: "fs", identity: 1, method: "handle-open-resize", args: ["/one"] });
+    await vi.advanceTimersByTimeAsync(0);
+    worker.emit({ kind: "result", result: { stdout: "completed", stderr: "warning", exitCode: 0 } });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(await running).toEqual({ stdout: "completed", stderr: `warning\nFilesystem cleanup failed: ${String(reason)}\n`, exitCode: 1 });
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each(["timeout", "worker error"])("preserves %s primacy and waits for retained cleanup rejection", async termination => {
+    const workers = controlledWorkers();
+    vi.useFakeTimers();
+    const filesystem = createMemoryFileSystem();
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const close = vi.fn(async () => { await held; throw false; });
+    vi.spyOn(filesystem, "openResizeFile").mockResolvedValue({ stat: async () => filesystem.stat("/"), truncate: async () => {}, close });
+    const running = executeInWorker(filesystem, "controlled", "/", "help", vi.fn());
+    let settled = false;
+    void running.then(() => { settled = true; });
+    const worker = workers[0]!;
+    worker.emit({ kind: "ready" });
+    worker.emit({ kind: "fs", identity: 1, method: "handle-open-resize", args: ["/one"] });
+    await vi.advanceTimersByTimeAsync(0);
+    if (termination === "timeout") await vi.advanceTimersByTimeAsync(5000);
+    else {
+      worker.dispatchEvent(Object.assign(new Event("error", { cancelable: true }), { message: "worker crashed" }));
+      await vi.advanceTimersByTimeAsync(0);
+    }
+    expect(settled).toBe(false);
+    worker.emit({ kind: "result", result: { stdout: "stale", stderr: "", exitCode: 0 } });
+    release();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(await running).toEqual(termination === "timeout"
+      ? { stdout: "", stderr: "Shell worker exceeded the 5-second deadline\n", exitCode: 124 }
+      : { stdout: "", stderr: "worker crashed\n", exitCode: 1 });
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("does not let throwing cleanup diagnostic conversion prevent settlement", async () => {
+    const workers = controlledWorkers();
+    vi.useFakeTimers();
+    const filesystem = createMemoryFileSystem();
+    const reason = { toString() { throw new Error("diagnostic conversion"); } };
+    vi.spyOn(filesystem, "openResizeFile").mockResolvedValue({ stat: async () => filesystem.stat("/"), truncate: async () => {}, close: async () => { throw reason; } });
+    const running = executeInWorker(filesystem, "controlled", "/", "help", vi.fn());
+    workers[0]!.emit({ kind: "ready" });
+    workers[0]!.emit({ kind: "fs", identity: 1, method: "handle-open-resize", args: ["/one"] });
+    await vi.advanceTimersByTimeAsync(0);
+    workers[0]!.emit({ kind: "result", result: { stdout: "", stderr: "", exitCode: 0 } });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(await running).toEqual({ stdout: "", stderr: "Filesystem cleanup failed: Unknown cleanup failure\n", exitCode: 1 });
+  });
+
+  it("continues resource cleanup when worker termination and auxiliary close throw", async () => {
+    const workers = controlledWorkers();
+    vi.useFakeTimers();
+    const filesystem = createMemoryFileSystem();
+    const close = vi.fn(async () => {});
+    vi.spyOn(filesystem, "openResizeFile").mockResolvedValue({ stat: async () => filesystem.stat("/"), truncate: async () => {}, close });
+    const auxiliaryClose = vi.fn(() => { throw new Error("auxiliary close failed"); });
+    vi.spyOn(browserWorkerRuntime, "create").mockReturnValue({ worker: Object.assign(new EventTarget(), { postMessage: vi.fn() }), close: auxiliaryClose });
+    const running = executeInWorker(filesystem, "controlled", "/", "help", vi.fn());
+    const worker = workers[0]!;
+    worker.terminate.mockImplementation(() => { throw new Error("termination failed"); });
+    worker.emit({ kind: "ready" });
+    worker.emit({ kind: "aux-create", identity: 1, worker: "regex", data: {} });
+    worker.emit({ kind: "fs", identity: 1, method: "handle-open-resize", args: ["/one"] });
+    await vi.advanceTimersByTimeAsync(0);
+    worker.emit({ kind: "result", result: { stdout: "", stderr: "", exitCode: 0 } });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(await running).toEqual({ stdout: "", stderr: "Filesystem cleanup failed: termination failed\n", exitCode: 1 });
+    expect(auxiliaryClose).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
   it("does not execute on the page when dedicated workers cannot start", async () => {
     vi.stubGlobal("Worker", class {
       constructor() {

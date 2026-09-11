@@ -85,7 +85,7 @@ test("WebDAV permits virtual directory traversal, not file execution or write pe
   assert.deepEqual(service.files, before);
 });
 
-test("explicit access then plain or readonly cd uses three metadata requests without GET or mutations", async () => {
+test("explicit access then plain or readonly cd uses five metadata requests without GET or mutations", async () => {
   for (const readOnly of [false, true]) {
     const { service, remote } = fixture();
     const before = structuredClone(service.files);
@@ -95,7 +95,10 @@ test("explicit access then plain or readonly cd uses three metadata requests wit
     try {
       const result = await shell.exec("cd /dir; pwd");
       assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "/dir\n", ""]);
-      assert.deepEqual(service.requests.map(request => [request.init.method, request.headers.get("Depth")]), [["PROPFIND", "0"], ["PROPFIND", "0"], ["PROPFIND", "0"]]);
+      assert.deepEqual(service.requests.map(request => [request.init.method, request.headers.get("Depth")]), [
+        ["PROPFIND", "0"], ["PROPFIND", "0"], ["PROPFIND", "0"], ["PROPFIND", "0"], ["PROPFIND", "0"],
+      ]);
+      assert.ok(service.requests.every(request => new URL(request.url).pathname === "/dav/dir"));
       assert.deepEqual(service.files, before);
     } finally { await shell.dispose(); }
   }

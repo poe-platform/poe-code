@@ -14,7 +14,6 @@ Authoritative sources:
 | Claude Code    | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
 | Codex          | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
 | OpenCode       | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
-| Kimi           | Yes   | Yes            | Yes       | Yes               | Yes                   | No     |
 | Goose          | Yes   | Yes            | Yes       | Yes               | Yes                   | Yes    |
 | Cursor         | Yes   | Yes            | Yes       | No                | Yes                   | Yes    |
 | Gemini CLI     | Yes   | Yes            | Yes       | Yes               | No                    | Yes    |

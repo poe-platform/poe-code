@@ -184,7 +184,7 @@ test("plain and readonly cd retain existing metadata-only behavior", async () =>
       assert.equal(result.exitCode, 0);
       assert.equal(result.stdout, "/folder\n");
       assert.equal(result.stderr, "");
-      assert.deepEqual(requests.map(request => request.depth), ["0", "0"]);
+      assert.deepEqual(requests.map(request => request.depth), ["0", "0", "0", "0"]);
       assert.ok(requests.every(request => request.init.method === "PROPFIND" && new URL(request.url).pathname === "/dav/folder"));
     } finally { await shell.dispose(); }
   }

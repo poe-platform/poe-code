@@ -1,12 +1,14 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { RegexExecutor } from "../regex-execution/client.js";
+import { RegexExecutor } from "../regex-execution/portable.js";
+import { createBoundedRegexProvider } from "../regex-execution/bounded-provider.js";
 import { createExprCommandWithExecutor } from "./command.js";
 import type { ExprCommandsOptions } from "./internal.js";
 
 export type { ExprCommandsOptions, ExprLimits } from "./internal.js";
 
 export function createExprCommand(options: ExprCommandsOptions = {}): CommandDefinition {
-  return createExprCommandWithExecutor(new RegexExecutor(options.regex), options);
+  const provider = options.regexExecutor === undefined ? createBoundedRegexProvider() : options.regexExecutor;
+  return createExprCommandWithExecutor(new RegexExecutor(provider, options.regex), options);
 }
 
 export function createExprCommands(options: ExprCommandsOptions = {}): readonly CommandDefinition[] {

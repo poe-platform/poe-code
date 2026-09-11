@@ -1,5 +1,3 @@
-import { performance } from "node:perf_hooks";
-import { clearTimeout as nodeClearTimeout, setTimeout as nodeSetTimeout } from "node:timers";
 import type { TimeoutScheduler } from "./index.js";
 
 export interface SchedulerBinding {
@@ -9,10 +7,10 @@ export interface SchedulerBinding {
   readonly clearTimeout: TimeoutScheduler["clearTimeout"];
 }
 export const defaultSchedulerBinding: SchedulerBinding = Object.freeze({
-  receiver: performance,
-  now: performance.now,
-  setTimeout: nodeSetTimeout,
-  clearTimeout: nodeClearTimeout as TimeoutScheduler["clearTimeout"],
+  receiver: globalThis,
+  now: globalThis.performance.now.bind(globalThis.performance),
+  setTimeout: globalThis.setTimeout.bind(globalThis),
+  clearTimeout: globalThis.clearTimeout.bind(globalThis) as TimeoutScheduler["clearTimeout"],
 });
 
 export interface Deadline {

@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { runInNewContext } from "node:vm";
+import { Worker } from "node:worker_threads";
+import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 
 import { parse, parseModule, type ParseResult, type Statement } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
@@ -933,27 +936,42 @@ describe("interpret", () => {
     );
   });
 
-  it("spreads large arrays into push without leaking the host argument limit", async () => {
-    const source = Array.from({ length: 600_000 }, (_, index) => index);
-    expect(() => Reflect.apply(Array.prototype.push, [], source)).toThrow(RangeError);
-
-    await expect(
-      interpret(
-        block(
+  it("spreads large arrays into push without leaking the host argument limit", async ({ onTestFinished, signal }) => {
+    const bundled = await build({
+      entryPoints: [fileURLToPath(new URL("./interpreter.ts", import.meta.url))],
+      bundle: true, platform: "node", format: "cjs", write: false
+    });
+    signal.throwIfAborted();
+    // Bound the native stack so the same regression needs fewer interpreted elements.
+    const worker = new Worker(`
+      const interpreterModule = { exports: {} };
+      (function(module, exports) { ${bundled.outputFiles[0]!.text} })(interpreterModule, interpreterModule.exports);
+      const { parentPort, workerData } = require("node:worker_threads");
+      const assert = require("node:assert/strict");
+      (async () => {
+        const { interpret } = interpreterModule.exports;
+        const source = Array.from({ length: 75_000 }, (_, index) => index);
+        assert.throws(() => Reflect.apply(Array.prototype.push, [], source), RangeError);
+        const result = await interpret(workerData.program, { bindings: { source } });
+        parentPort.postMessage({ ok: result.ok, returnValue: result.returnValue });
+      })().catch(error => { throw error; });
+    `, {
+      eval: true,
+      resourceLimits: { stackSizeMb: 0.5 },
+      workerData: {
+        program: block(
           parse("const target = []"),
           parse("target.push(...source)"),
           parse("return [target.length, target[0], target[target.length - 1]]")
-        ),
-        {
-          bindings: {
-            source
-          }
-        }
-      )
-    ).resolves.toMatchObject({
-      ok: true,
-      returnValue: [source.length, 0, source.length - 1]
+        )
+      }
     });
+    onTestFinished(async () => { await worker.terminate(); });
+    await expect(new Promise((resolve, reject) => {
+      worker.once("message", resolve);
+      worker.once("error", reject);
+      worker.once("exit", code => reject(new Error(`Spread worker exited before reporting a result (${code})`)));
+    })).resolves.toEqual({ ok: true, returnValue: [75_000, 0, 74_999] });
   });
 
   it("assigns a new value to a let binding", async () => {

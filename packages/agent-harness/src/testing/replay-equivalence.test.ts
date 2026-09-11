@@ -3,6 +3,13 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
+// Loader tests cover real lint admission; these tests exercise every captured
+// replay through the real interpreter, schema extraction, and source hashes.
+vi.mock("@poe-code/safe-js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/safe-js")>();
+  return { ...actual, lint: vi.fn(() => []) };
+});
+
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return {
@@ -13,10 +20,12 @@ vi.mock("node:fs/promises", async () => {
 
 const { assertReplayEquivalent } = await import("./replay-equivalence.js");
 const api = await import("../index.js");
+const { lint } = await import("@poe-code/safe-js");
 
 describe("assertReplayEquivalent", () => {
   beforeEach(() => {
     vol.reset();
+    vi.mocked(lint).mockClear();
   });
 
   it("is re-exported from the package entrypoint", () => {
@@ -32,6 +41,7 @@ describe("assertReplayEquivalent", () => {
     });
 
     await expect(assertReplayEquivalent(mdPath, deterministicModulesFor)).resolves.toBeUndefined();
+    expect(lint).toHaveBeenCalled();
   });
 
   it("replays unseeded Math.random through every captured and completed snapshot", async () => {

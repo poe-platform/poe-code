@@ -3,7 +3,8 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { userInfo } from "node:os";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadBoundaries } from "../../../scripts/integration-inputs.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, isHeldInputPath, readRegularInput } from "../../../scripts/typecheck-integration-inputs.mjs";
@@ -15,6 +16,11 @@ export const contained = (root, filename) => {
   const local = relative(root, filename);
   return !isAbsolute(local) && local !== ".." && !local.startsWith("../");
 };
+
+const approvedDependencies = Object.freeze({
+  "@noble/hashes": Object.freeze({ version: "2.4.0", resolved: "https://registry.npmjs.org/@noble/hashes/-/hashes-2.4.0.tgz", integrity: "sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==" }),
+  pako: Object.freeze({ version: "3.0.1", resolved: "https://registry.npmjs.org/pako/-/pako-3.0.1.tgz", integrity: "sha512-GupotUUI0mlhugKjUs4bjOwLt3nrehy9Ys2dxC0GtgVef5cnKggkDMmf2bq2poCCuVXopWPmqsc9VDT2iJUy+w==" }),
+});
 
 export function cleanEnvironment(directory) {
   for (const name of ["home", "tmp", "npm-cache"]) mkdirSync(join(directory, name), { recursive: true });
@@ -31,7 +37,8 @@ export function cleanEnvironment(directory) {
 }
 
 export function assertArchiveDependencyContract(manifest) {
-  for (const key of ["dependencies", "optionalDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(manifest[key] ?? {}).length, 0, `runtime dependency: ${key}`);
+  if (Object.keys(manifest.dependencies ?? {}).length) assert.deepEqual(manifest.dependencies, Object.fromEntries(Object.entries(approvedDependencies).map(([name, entry]) => [name, entry.version])), "unapproved runtime dependency contract");
+  for (const key of ["optionalDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(manifest[key] ?? {}).length, 0, `runtime dependency: ${key}`);
   if (Object.keys(manifest.peerDependencies ?? {}).length === 0) {
     assert.equal(manifest.devDependencies?.["poe-code"], undefined, "canonical development peer requires its published peer contract");
     assert.notEqual(manifest.poeCode?.integration?.peerProfile, "checkout-root", "checkout profile requires its published peer contract");
@@ -40,6 +47,147 @@ export function assertArchiveDependencyContract(manifest) {
   }
   assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" }, "unapproved canonical peer contract");
   if (Object.keys(manifest.peerDependenciesMeta ?? {}).length) assert.deepEqual(manifest.peerDependenciesMeta, { "poe-code": { optional: false } }, "canonical peer must remain required");
+}
+
+export function assertArchiveDependencyLock(manifest, lock) {
+  assertArchiveDependencyContract(manifest);
+  if (!Object.keys(manifest.dependencies ?? {}).length) return;
+  assert.equal(lock?.lockfileVersion, 3, "dependency lock version");
+  assert.deepEqual(lock.packages?.[packagePrefix]?.dependencies, manifest.dependencies, "dependency workspace lock drift");
+  for (const [name, approved] of Object.entries(approvedDependencies)) {
+    const entry = lock.packages[`node_modules/${name}`];
+    assert.ok(entry, `missing dependency lock: ${name}`);
+    for (const field of ["version", "resolved", "integrity"]) assert.equal(entry[field], approved[field], `dependency lock ${field}: ${name}`);
+    for (const field of ["dependencies", "optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(entry[field] ?? {}).length, 0, `transitive dependency ${field}: ${name}`);
+    assert.ok(entry.link === undefined && entry.hasInstallScript !== true, `dependency link or install script: ${name}`);
+    for (const prefix of [packagePrefix, "packages"]) assert.equal(lock.packages[`${prefix}/node_modules/${name}`], undefined, `shadowed dependency lock: ${name}`);
+  }
+}
+
+export function mirrorArchiveExportTargets(target) {
+  if (target === null) return null;
+  if (typeof target === "string") {
+    assert.ok(target.startsWith("./"), "archive export must be package-relative");
+    const local = target.slice(2);
+    if (local.includes("*")) {
+      const parts = local.split("/");
+      assert.ok(["*.js", "*.d.ts"].includes(parts.pop()), "archive export requires a single filename pattern");
+      assertLiteralInputPath([...parts, "export-pattern"].join("/"));
+    } else assertLiteralInputPath(local);
+    return `./${packagePrefix}/${target.slice(2)}`;
+  }
+  assert.ok(target && typeof target === "object" && !Array.isArray(target), "invalid archive export conditions");
+  return Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, mirrorArchiveExportTargets(value)]));
+}
+
+export async function prepareArchiveDependencies(candidate, tools, directory, { artifacts = {}, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync } } = {}) {
+  assertArchiveDependencyLock(candidate.manifest, candidate.lock);
+  const names = Object.keys(candidate.manifest.dependencies ?? {});
+  assert.ok(Object.keys(artifacts).every(name => names.includes(name)), "unapproved dependency artifact");
+  if (!names.length) return Object.freeze([]);
+  assertCanonicalRoot(directory, fileSystem);
+  const ownedRoot = join(directory, "dependency-artifacts");
+  fileSystem.mkdirSync(ownedRoot);
+  const bindings = [];
+  for (const [name, approved] of Object.entries(approvedDependencies)) {
+    const source = Object.hasOwn(artifacts, name) ? artifacts[name] : tools.dependencyArtifactPath(approved.integrity);
+    assert.ok(typeof source === "string" && isAbsolute(source) && resolve(source) === source, `dependency artifact must have a canonical absolute path: ${name}`);
+    assertCanonicalRoot(dirname(source), fileSystem);
+    const stat = fileSystem.lstatSync(source);
+    assert.ok(stat.isFile() && stat.nlink === 1, `dependency artifact must be regular single-link: ${name}`);
+    const bytes = readRegularInput(dirname(source), basename(source), 8 * 1024 * 1024, fileSystem);
+    assert.equal(`sha512-${createHash("sha512").update(bytes).digest("base64")}`, approved.integrity, `dependency artifact integrity: ${name}`);
+    const tarball = join(ownedRoot, `${name.split("/").at(-1)}.tgz`);
+    const tarballSha256 = digest(bytes);
+    fileSystem.writeFileSync(tarball, bytes, { flag: "wx" });
+    const folded = new Set();
+    const contents = await readArchive(tools.tar, tarball, tarballSha256, path => {
+      assert.ok(path.startsWith("package/"), `dependency archive prefix: ${name}`);
+      const local = path.slice("package/".length);
+      assertLiteralInputPath(local);
+      assert.ok(!local.split("/").includes("node_modules"), `bundled dependency archive: ${name}`);
+      assert.ok(!folded.has(local.toLowerCase()), `dependency archive case alias: ${name}`);
+      folded.add(local.toLowerCase());
+    }, fileSystem);
+    assert.ok(contents.has("package/package.json"), `dependency package metadata missing: ${name}`);
+    const metadata = JSON.parse(contents.get("package/package.json"));
+    assert.equal(metadata.name, name, "dependency package name");
+    assert.equal(metadata.version, approved.version, `dependency package version: ${name}`);
+    for (const key of ["dependencies", "optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(metadata[key] ?? {}).length, 0, `unapproved dependency package ${key}: ${name}`);
+    for (const key of ["preinstall", "install", "postinstall"]) assert.equal(metadata.scripts?.[key], undefined, `dependency install lifecycle: ${name}`);
+    const entries = {};
+    for (const [route, conditions] of Object.entries(metadata.exports ?? {})) {
+      assert.ok(route === "." || route.startsWith("./"), `dependency export route: ${name}`);
+      assert.ok(typeof conditions === "string" || conditions && typeof conditions === "object" && !Array.isArray(conditions), `dependency export conditions: ${name}`);
+      const target = typeof conditions === "string" ? conditions : conditions.import ?? conditions.default;
+      if (target === undefined) continue;
+      assert.equal(typeof target, "string", `dependency runtime export: ${name}`);
+      if (target.endsWith(".json")) continue;
+      assert.ok(target.startsWith("./") && (target.endsWith(".js") || target.endsWith(".mjs")), `dependency runtime export: ${name}`);
+      assertLiteralInputPath(target.slice(2));
+      assert.ok(contents.has(`package/${target.slice(2)}`), `dependency export missing: ${name}`);
+      entries[route === "." ? name : `${name}/${route.slice(2)}`] = target.slice(2);
+    }
+    const files = [...contents].map(([path, payload]) => Object.freeze({ path: path.slice("package/".length), bytes: payload, sha256: digest(payload) }));
+    bindings.push(Object.freeze({ name, ...approved, tarball, tarballSha256, entries: Object.freeze(entries), files: Object.freeze(files) }));
+  }
+  return Object.freeze(bindings);
+}
+
+export function assertArchiveDependencyArtifacts(bindings, fileSystem) {
+  for (const binding of bindings) {
+    assert.ok(Object.hasOwn(approvedDependencies, binding.name), "unapproved dependency binding");
+    for (const key of ["version", "resolved", "integrity"]) assert.equal(binding[key], approvedDependencies[binding.name][key], `dependency binding ${key}`);
+    const stat = (fileSystem?.lstatSync ?? lstatSync)(binding.tarball);
+    assert.ok(stat.isFile() && stat.nlink === 1, `dependency artifact must be regular single-link: ${binding.name}`);
+    const bytes = readRegularInput(dirname(binding.tarball), basename(binding.tarball), 8 * 1024 * 1024, fileSystem);
+    assert.equal(digest(bytes), binding.tarballSha256, `dependency artifact drift: ${binding.name}`);
+    assert.equal(`sha512-${createHash("sha512").update(bytes).digest("base64")}`, binding.integrity, `dependency artifact integrity: ${binding.name}`);
+  }
+}
+
+export function stageArchiveDependencies(bindings, directory, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }) {
+  assertArchiveDependencyArtifacts(bindings, fileSystem);
+  assertCanonicalRoot(directory, fileSystem);
+  for (const binding of bindings) {
+    const root = join(directory, "node_modules", binding.name);
+    fileSystem.mkdirSync(dirname(root), { recursive: true });
+    fileSystem.mkdirSync(root);
+    for (const { path, bytes, sha256 } of binding.files) {
+      assertLiteralInputPath(path);
+      assert.equal(digest(bytes), sha256, `dependency captured bytes drift: ${binding.name}/${path}`);
+      fileSystem.mkdirSync(dirname(join(root, path)), { recursive: true });
+      fileSystem.writeFileSync(join(root, path), bytes, { flag: "wx" });
+    }
+  }
+}
+
+export function assertArchiveDependencies(bindings, directory, fileSystem = { lstatSync, readdirSync, readFileSync }) {
+  assertArchiveDependencyArtifacts(bindings, fileSystem);
+  for (const binding of bindings) {
+    const root = join(directory, "node_modules", binding.name);
+    assertCanonicalRoot(root, fileSystem);
+    const paths = [];
+    let entries = 0;
+    const visit = local => {
+      assert.ok(local.split("/").length <= 64, "dependency inventory depth budget");
+      for (const entry of fileSystem.readdirSync(join(root, local), { withFileTypes: true })) {
+        assert.ok(++entries <= 10000, "dependency inventory entry budget");
+        const path = local ? `${local}/${entry.name}` : entry.name;
+        assertLiteralInputPath(path);
+        assert.ok(Buffer.byteLength(path) <= 4096, "dependency inventory path budget");
+        if (entry.isDirectory()) visit(path);
+        else { assert.ok(entry.isFile(), `dependency inventory nonregular: ${path}`); paths.push(path); }
+      }
+    };
+    visit("");
+    assert.deepEqual(paths.sort(), binding.files.map(file => file.path).sort(), `dependency inventory drift: ${binding.name}`);
+    for (const { path, sha256 } of binding.files) {
+      const stat = fileSystem.lstatSync(join(root, path));
+      assert.ok(stat.isFile() && stat.nlink === 1, `dependency inventory nonregular or shared: ${path}`);
+      assert.equal(digest(readRegularInput(root, path, 32 * 1024 * 1024, fileSystem)), sha256, `dependency bytes drift: ${binding.name}/${path}`);
+    }
+  }
 }
 
 export function readCommittedBlobs(entries, hashAlgorithm, git, { bootstrapCount = entries.length, validateBootstrap } = {}) {
@@ -149,7 +297,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
     assert.match(entry.oid, hashAlgorithm === "sha1" ? /^[a-f0-9]{40}$/u : /^[a-f0-9]{64}$/u);
     if (!admitted.has(path)) admitted.set(path, { path, oid: entry.oid, maximum });
   };
-  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs"];
+  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs"];
   assert.ok(tree.has("scripts/guard-package-dist.mjs"), "missing committed root output guard");
   admit("scripts/guard-package-dist.mjs");
   for (const path of reviewed) admit(`${packagePrefix}/${path}`, 300000);
@@ -197,12 +345,12 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.deepEqual(manifest.files, ["dist"]);
       assertArchiveDependencyContract(manifest);
       for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
-      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
+      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs", "unreviewed committed build command");
       assert.equal(rootManifest.name, "poe-code");
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
       for (const [path, conditions] of Object.entries(manifest.exports)) {
         const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
-        assert.deepEqual(rootManifest.exports[name], Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, target === null ? null : `./${packagePrefix}/${target.slice(2)}`])), `root export mismatch: ${name}`);
+        assert.deepEqual(rootManifest.exports[name], mirrorArchiveExportTargets(conditions), `root export mismatch: ${name}`);
       }
       assert.equal(lock.lockfileVersion, 3, "workspace lock version");
       for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
@@ -211,6 +359,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         }
       }
       assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
+      assertArchiveDependencyLock(manifest, lock);
     },
   });
   const blobReads = [...files.keys()];
@@ -234,7 +383,9 @@ export function resolveTools() {
     assert.equal(metadata.name, name);
     return [name, { root, version: metadata.version, manifestSha256: digest(bytes) }];
   }));
-  return { packages, identities, npmCli, pack: npmRequire.resolve("libnpmpack"), tar: npmRequire("tar") };
+  const dependencyCache = join(userInfo().homedir, ".npm", "_cacache");
+  const contentPath = npmRequire("cacache/lib/content/path");
+  return { packages, identities, npmCli, pack: npmRequire.resolve("libnpmpack"), tar: npmRequire("tar"), dependencyArtifactPath: integrity => contentPath(dependencyCache, integrity) };
 }
 
 export function copyRegularTree(source, destination, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }) {
@@ -400,7 +551,8 @@ export async function readArchive(tar, filename, expectedHash, admit, fileSystem
   const files = new Map();
   let expanded = 0;
   await new Promise((resolvePromise, reject) => {
-    const parser = new tar.Parser({ strict: true, maxMetaEntrySize: 1024 * 1024 });
+    const Parser = tar.Parser ?? tar.Parse;
+    const parser = new Parser({ strict: true, maxMetaEntrySize: 1024 * 1024 });
     parser.on("error", reject);
     parser.on("end", resolvePromise);
     parser.on("entry", entry => {

@@ -86,7 +86,7 @@ for (const command of ["grep", "rg"]) {
   }
 }
 
-for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "private-package-route", "redirected-public-entry", "redirected-peer-edge"] as const) {
+for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "private-package-route", "redirected-public-entry", "redirected-peer-edge", "dependency-metadata-bytes", "dependency-runtime-bytes", "redirected-dependency-entry", "redirected-dependency-edge"] as const) {
   test(`public cleanup refuses ${attack} before native worker creation`, { timeout: 15000 }, async context => {
     assert.ok(binding);
     assert.ok(snapshot);
@@ -97,11 +97,19 @@ for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "pri
     assert.ok(edges.length > 0);
     const fileUrl = (local: string) => pathToFileURL(`${snapshot}/${local}`).href;
     const privateRoute = "node_modules/poe-code/packages/safe-js/dist/index.js";
+    const dependency = binding.manifest.runtimeDependencies.find(dependency => dependency.name === "@noble/hashes");
+    assert.ok(dependency);
+    const dependencyEntry = dependency.entries["@noble/hashes/sha2.js"]!;
+    assert.ok(dependencyEntry);
     const configuration = attack === "metadata-bytes" ? { read: `${snapshot}/${peer.metadataPath}`, expected: "Required peer metadata changed" }
       : attack === "runtime-bytes" ? { read: `${snapshot}/${entry}`, expected: "Emitted identity" }
       : attack === "missing-runtime" ? { read: `${snapshot}/${entry}`, missing: true, expected: "injected missing runtime" }
       : attack === "private-package-route" ? { specifier: "poe-code/safe-fs", redirect: fileUrl(privateRoute), expected: `Unexpected product import: ${snapshot}/${privateRoute}` }
       : attack === "redirected-public-entry" ? { specifier: "poe-code/safe-fs", redirect: fileUrl(edges[0]![1]), expected: "Unadmitted peer public route" }
+      : attack === "dependency-metadata-bytes" ? { read: `${snapshot}/node_modules/${dependency.name}/package.json`, expected: "Emitted identity" }
+      : attack === "dependency-runtime-bytes" ? { read: `${snapshot}/${dependencyEntry}`, expected: "Emitted identity" }
+      : attack === "redirected-dependency-entry" ? { specifier: "@noble/hashes/sha2.js", redirect: fileUrl(`node_modules/${dependency.name}/utils.js`), expected: "Unadmitted dependency public route" }
+      : attack === "redirected-dependency-edge" ? { specifier: "./_md.js", parent: fileUrl(dependencyEntry), redirect: fileUrl(`node_modules/${dependency.name}/utils.js`), expected: "Uncaptured dependency runtime edge" }
       : { specifier: edges[0]![0], parent: fileUrl(entry), redirect: fileUrl(entry), expected: "Uncaptured peer runtime edge" };
     const preload = `
       import fs from "node:fs";

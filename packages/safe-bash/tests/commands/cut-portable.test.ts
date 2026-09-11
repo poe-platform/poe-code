@@ -5,7 +5,7 @@ import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
 
-type BrowserShell = typeof import("../../src/browser.js");
+type BrowserShell = typeof import("../../src/index.js");
 let browser: BrowserShell;
 
 before(async () => {
@@ -19,7 +19,7 @@ before(async () => {
   });
   const bundle = await build(resolveBrowserShellBuild(root));
   const emitted = new Map(bundle.outputFiles!.map(output => [output.path, output.text]));
-  const entry = bundle.outputFiles!.find(output => output.path.endsWith("browser.js"))!;
+  const entry = bundle.outputFiles!.find(output => output.path.endsWith("core.browser.js"))!;
   const compiled = await build({
     entryPoints: [entry.path], bundle: true, platform: "browser", format: "cjs", write: false,
     plugins: [{
@@ -39,7 +39,7 @@ before(async () => {
   });
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, performance, crypto: globalThis.crypto,
   });
   sandbox.canonical = runInContext(`(function(){ const module = { exports: {} }; ${filesystem.outputFiles![0]!.text}; return module.exports; })()`, sandbox);
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "poe-code/safe-fs/core") throw new Error(name); return canonical; }; ${compiled.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as BrowserShell;
@@ -70,7 +70,7 @@ for (const source of ["stdin", "file"] as const) {
   for (const specimen of cases) {
     test(`portable cut: ${specimen.name} from ${source}`, async () => {
       const fs = new browser.MemoryFileSystem();
-      const shell = new browser.Shell({ fs }).use(browser.browserCommands());
+      const shell = new browser.Shell({ fs }).use(browser.agentCommands());
       try {
         const bytes = new TextEncoder().encode(specimen.input);
         if (source === "file") await fs.writeFile("/input", bytes);
@@ -84,7 +84,7 @@ for (const source of ["stdin", "file"] as const) {
 }
 
 test("portable cut: explicit delimiter in a browser shell pipeline", async () => {
-  const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(browser.browserCommands());
+  const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(browser.agentCommands());
   try {
     const result = await shell.exec("printf 'one,two,three\\n' | cut -d , -f 2");
     assert.equal(result.stderr, "");

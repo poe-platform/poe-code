@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../../src/shell/index.js";
@@ -44,7 +45,7 @@ test("regex capture output preserves partial C bytes and waits for backpressure"
 
 test("actual Shell expr plugin evaluates regex in pipelines and redirections", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(standardCommands());
-  shell.use(exprCommands());
+  shell.use(exprCommands({ regexExecutor: createNodeRegexProvider() }));
   try {
     const capture = await shell.exec("expr '/tmp/report.txt' : '.*/\\(.*\\)' > /name; cat /name");
     assert.equal(capture.exitCode, 0); assert.equal(capture.stdout, "report.txt\n");

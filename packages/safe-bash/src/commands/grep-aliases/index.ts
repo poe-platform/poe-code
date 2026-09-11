@@ -1,25 +1,27 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { grepCommands } from "../grep.js";
 import type { RegexExecutionOptions } from "../regex-execution/protocol.js";
+import type { BoundedRegexProvider } from "../regex-execution/provider.js";
 
 export interface GrepAliasOptions {
   readonly regex?: RegexExecutionOptions;
+  readonly regexExecutor?: BoundedRegexProvider;
   readonly replace?: boolean;
 }
 
 import { alias, createGrepAliases } from "./aliases.js";
 
 export function createGrepAliasCommands(options: GrepAliasOptions = {}): readonly CommandDefinition[] {
-  const grep = grepCommands(options.regex)[0]!;
+  const grep = grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!;
   return createGrepAliases(grep);
 }
 
 export function egrepCommand(options: GrepAliasOptions = {}): CommandDefinition {
-  return alias("egrep", grepCommands(options.regex)[0]!);
+  return alias("egrep", grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!);
 }
 
 export function fgrepCommand(options: GrepAliasOptions = {}): CommandDefinition {
-  return alias("fgrep", grepCommands(options.regex)[0]!);
+  return alias("fgrep", grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!);
 }
 
 export function grepAliasCommands(options: GrepAliasOptions = {}): VirtualShellPlugin {

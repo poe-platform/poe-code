@@ -95,7 +95,9 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       let filename = parsed.file;
       if (source === undefined) {
         if (!fromStdin) filename = pathOf(context, parsed.file);
-        const bytes = fromStdin ? context.stdin : context.fs.readStream && context.fs.capabilities.streamingRead !== false
+        const capabilities = fromStdin ? undefined : await withSignal(signal, async () =>
+          await context.fs.capabilitiesFor?.(filename, { signal }) ?? context.fs.capabilities);
+        const bytes = fromStdin ? context.stdin : context.fs.readStream && capabilities?.streamingRead !== false
           ? context.fs.readStream(filename, { signal, chunkSize: 65536 })
           : toByteSource(await withSignal(signal, () => context.fs.readFile(filename, { signal, maxBytes: limits.maxSourceBytes })));
         const reader = new GuestInput(bytes, limits.maxSourceBytes, signal, fail, "maxSourceBytes");

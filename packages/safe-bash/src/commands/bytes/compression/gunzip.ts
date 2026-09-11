@@ -1,9 +1,7 @@
 import { PublicDiagnostic } from "../../../diagnostics.js";
-import { FsError } from "../../../contracts/errors.js";
-import { compressionDiagnostic } from "./errors.js";
 import { yieldTurn } from "../../../contracts/yield.js";
-import { createInflateRaw } from "node:zlib";
 import { readBytes, type ByteSource } from "../../../contracts/index.js";
+import { codec } from "./codec.js";
 
 const crcTable = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
@@ -73,42 +71,9 @@ async function header(input: Input, magic: Uint8Array): Promise<void> {
   }
 }
 
-async function* inflate(input: Input, signal: AbortSignal): ByteSource {
-  const options = { chunkSize: 64 * 1024, highWaterMark: 64 * 1024 };
-  const codec = createInflateRaw(options);
-  const abort = (): void => { codec.destroy(signal.reason instanceof Error ? signal.reason : new Error("aborted")); };
-  signal.addEventListener("abort", abort, { once: true });
-  const writing = (async () => {
-    try {
-      for (;;) {
-        const chunk = await input.chunk();
-        if (!chunk) { codec.end(); return; }
-        const before = codec.bytesWritten;
-        await new Promise<void>((resolve, reject) => codec.write(chunk, error => error ? reject(compressionDiagnostic(error)) : resolve()));
-        const consumed = codec.bytesWritten - before;
-        if (consumed < chunk.length) { input.restore(chunk.subarray(consumed)); codec.end(); return; }
-      }
-    } catch (error) {
-      const failure = error instanceof PublicDiagnostic || error instanceof FsError ? error : new PublicDiagnostic("internal error", { cause: error });
-      codec.destroy(failure);
-      throw failure;
-    }
-  })();
-  void writing.catch(() => {});
-  try {
-    for await (const chunk of readBytes(codec, signal)) yield chunk;
-    await writing;
-  } catch (error) {
-    signal.throwIfAborted();
-    throw compressionDiagnostic(error);
-  } finally {
-    codec.destroy();
-    signal.removeEventListener("abort", abort);
-    await writing.catch(() => {});
-  }
-}
-
-export async function* gunzipMembers(source: ByteSource, signal: AbortSignal, force: boolean, warn: () => void): ByteSource {
+export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSignal, force: boolean, warn: () => void): ByteSource {
+  const controller = new AbortController();
+  const signal = AbortSignal.any([parentSignal, controller.signal]);
   const input = new Input(source, signal);
   let members = 0;
   try {
@@ -142,7 +107,7 @@ export async function* gunzipMembers(source: ByteSource, signal: AbortSignal, fo
       await header(input, Uint8Array.of(first, second));
       let crc = 0xffffffff;
       let size = 0;
-      for await (const chunk of inflate(input, signal)) {
+      for await (const chunk of codec(input, { mode: "inflate-raw" }, signal)) {
         crc = updateCrc(crc, chunk);
         size = (size + chunk.length) >>> 0;
         yield chunk;
@@ -153,5 +118,5 @@ export async function* gunzipMembers(source: ByteSource, signal: AbortSignal, fo
       if (size !== view.getUint32(4, true)) throw new PublicDiagnostic("incorrect length check");
       members++;
     }
-  } finally { await input.close(); }
+  } finally { controller.abort(); await input.close(); }
 }

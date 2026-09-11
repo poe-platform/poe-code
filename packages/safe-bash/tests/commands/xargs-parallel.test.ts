@@ -4,10 +4,10 @@ import { CommandRegistry, collectBytes, createCommandArguments, toByteSource, ty
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { createAgentCommands, agentCommands } from "../../src/plugins/index.js";
-import { createBrowserCommands, browserCommands } from "../../src/browser.js";
+import { createAgentCommands as createDefaultCommands, agentCommands as defaultCommands } from "../../src/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import type { ExecutionCommandsOptions as RootExecutionOptions } from "../../src/index.js";
-import type { ExecutionCommandsOptions as BrowserExecutionOptions } from "../../src/browser.js";
+import type { ExecutionCommandsOptions as DefaultExecutionOptions } from "../../src/index.js";
 
 function deferred<Value = void>() {
   let resolve!: (value: Value) => void;
@@ -90,7 +90,7 @@ for (const entry of [
 });
 
 for (const cap of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, null, "2"]) {
-  for (const [name, factory] of [["standard", createStandardCommands], ["agent", createAgentCommands], ["browser", createBrowserCommands]] as const) {
+  for (const [name, factory] of [["standard", createStandardCommands], ["agent", createAgentCommands], ["browser", createDefaultCommands]] as const) {
     test(`${name} rejects invalid execution cap ${String(cap)}`, () => {
       assert.throws(() => factory({ execution: { maxParallelProcesses: cap as number } }), /maxParallelProcesses/u);
     });
@@ -416,12 +416,14 @@ test("reused producer buffers and split UTF-8 cannot change admitted argv", asyn
   } finally { release.resolve(); await run.completion.catch(() => {}); }
 });
 
-test("browser default inventory is unchanged; opt-in local fallback really dispatches", async () => {
-  const defaults = createBrowserCommands().map(command => command.name);
-  assert.equal(defaults.includes("xargs"), false);
-  assert.equal(defaults.includes("env"), false);
-  const enabled = createBrowserCommands({ execution: { maxParallelProcesses: 2 } });
-  assert.deepEqual(enabled.filter(command => command.name !== "xargs" && command.name !== "env").map(command => command.name), defaults);
+test("default inventory includes execution commands; parallel local fallback really dispatches", async () => {
+  const defaults = createDefaultCommands().map(command => command.name);
+  assert.equal(defaults.includes("xargs"), true);
+  assert.equal(defaults.includes("env"), true);
+  assert.equal(defaults.length, 110);
+  for (const name of ["sha512sum", "sha384sum", "sha224sum", "xq", "xmllint"]) assert.equal(defaults.includes(name), true);
+  const enabled = createDefaultCommands({ execution: { maxParallelProcesses: 2 } });
+  assert.deepEqual(enabled.map(command => command.name), defaults);
   const run = launch(["-P0", "-n1", "echo"], {}, enabled);
   assert.equal((await run.completion).exitCode, 0);
   assert.equal(new TextDecoder().decode(Uint8Array.from(run.stdout)), "one\ntwo\nthree\n");
@@ -429,14 +431,14 @@ test("browser default inventory is unchanged; opt-in local fallback really dispa
 
 for (const family of ["standard", "agent", "browser"] as const) {
   for (const plugin of [false, true]) test(`${family} ${plugin ? "plugin" : "factory"} forwards execution cap and invoke`, async () => {
-    const option = { execution: { maxParallelProcesses: 2 } satisfies RootExecutionOptions & BrowserExecutionOptions };
+    const option = { execution: { maxParallelProcesses: 2 } satisfies RootExecutionOptions & DefaultExecutionOptions };
     let definitions: readonly CommandDefinition[];
     if (plugin) {
       const commands = new CommandRegistry();
-      const selected = family === "standard" ? standardCommands(option) : family === "agent" ? agentCommands(option) : browserCommands(option);
+      const selected = family === "standard" ? standardCommands(option) : family === "agent" ? agentCommands(option) : defaultCommands(option);
       await selected.setup({ commands, use() {}, registerFileSystem() {} });
       definitions = commands.list();
-    } else definitions = family === "standard" ? createStandardCommands(option) : family === "agent" ? createAgentCommands(option) : createBrowserCommands(option);
+    } else definitions = family === "standard" ? createStandardCommands(option) : family === "agent" ? createAgentCommands(option) : createDefaultCommands(option);
     const release = deferred();
     let starts = 0;
     const run = launch(["-P0", "-n1", "capture"], { invoke: async () => { starts++; await release.promise; return { exitCode: 0 }; } }, definitions);

@@ -130,7 +130,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
     archivePath = await operation(context, () => context.fs.realpath(vfsPath(context.cwd, options.archive), { signal: context.signal }));
     archiveStat = await operation(context, () => context.fs.stat(archivePath!, { signal: context.signal }));
   }
-  if (options.mode === "x") await checkRoot(context, resolvePath(options.cwd));
+  if (options.mode === "x") await checkRoot(context, options.cwd);
   try {
     while (true) {
       const block = await reader.exact(512);
@@ -185,7 +185,10 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         const operand = options.operands[index]!;
         const wanted = operand.name.replace(/^\/+/u, "").replace(/\/+$/u, "");
         if (name.replace(/\/+$/u, "") === wanted || name.startsWith(`${wanted}/`)) {
-          if (!selected) root = resolvePath(operand.cwd);
+          if (!selected) {
+            if (options.mode === "x") await checkRoot(context, operand.cwd);
+            root = resolvePath(operand.cwd);
+          }
           selected = true;
           matched.add(index);
         }

@@ -28,26 +28,47 @@ import type { ExprCommandsOptions } from "../commands/expr/internal.js";
 import { createWhichCommands, type WhichCommandsOptions } from "../commands/which/index.js";
 import { createTimeoutCommands, type TimeoutCommandsOptions } from "../commands/timeout/index.js";
 import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../commands/apply-patch/index.js";
+import { createXmlCommands, type XmlCommandsOptions } from "../commands/xml/index.js";
+import { createCsplitCommandWithExecutor } from "../commands/csplit/command.js";
+import type { CsplitCommandsOptions } from "../commands/csplit/internal.js";
+import { createPrCommands, type PrCommandsOptions } from "../commands/pr/index.js";
+import { createTsortCommands, type TsortCommandsOptions } from "../commands/tsort/index.js";
+import { createFactorCommands, type FactorCommandsOptions } from "../commands/factor/index.js";
+import { createGetoptCommands, type GetoptCommandsOptions } from "../commands/getopt/index.js";
+import { createHexdumpCommands, type HexdumpCommandsOptions } from "../commands/hexdump/index.js";
+import { createIconvCommands, type IconvCommandsOptions } from "../commands/iconv/index.js";
+import { createLineEndingCommands, type LineEndingCommandsOptions } from "../commands/line-endings/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
+import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
 export interface AgentCommandsOptions {
   readonly execution?: ExecutionCommandsOptions;
   readonly bytes?: Omit<ByteCommandsOptions, "replace">;
   readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;
+  readonly xml?: Omit<XmlCommandsOptions, "replace">;
   readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
   readonly which?: Omit<WhichCommandsOptions, "replace">;
-  readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex">;
+  readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex" | "regexExecutor">;
+  readonly csplit?: Omit<CsplitCommandsOptions, "replace" | "regex" | "regexExecutor">;
+  readonly pr?: Omit<PrCommandsOptions, "replace">;
+  readonly tsort?: Omit<TsortCommandsOptions, "replace">;
+  readonly factor?: Omit<FactorCommandsOptions, "replace">;
+  readonly getopt?: Omit<GetoptCommandsOptions, "replace">;
+  readonly hexdump?: Omit<HexdumpCommandsOptions, "replace">;
+  readonly iconv?: Omit<IconvCommandsOptions, "replace">;
+  readonly lineEndings?: Omit<LineEndingCommandsOptions, "replace">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
   readonly execute?: CommandHandler;
   readonly regex?: RegexExecutionOptions;
+  readonly regexExecutor?: BoundedRegexProvider;
   readonly maxDirectoryEntries?: number;
   readonly maxTeeTargets?: number;
   readonly maxTailFollowHandles?: number;
   readonly text?: Omit<TextProgramOptions, "replace">;
   readonly structured?: Omit<StructuredCommandsOptions, "replace">;
-  readonly search?: Omit<SearchOptions, "replace">;
+  readonly search?: Omit<SearchOptions, "replace" | "regexExecutor">;
   readonly diffPatch?: Omit<DiffPatchOptions, "replace">;
   readonly metadata?: Omit<MetadataCommandsOptions, "replace">;
   readonly archive?: Omit<ArchiveCommandsOptions, "replace">;
@@ -74,6 +95,7 @@ export interface AgentRegexExecutors {
   readonly grep: RegexExecutor;
   readonly aliases: RegexExecutor;
   readonly expr: RegexExecutor;
+  readonly csplit: RegexExecutor;
   readonly search: RegexExecutor;
 }
 
@@ -81,9 +103,20 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
   const commands: CommandDefinition[] = [];
   const grep = createGrepCommands(executors.grep);
   const exprLimits = options.expr?.limits;
+  const csplitLimits = options.csplit?.limits;
+  const prOptions = options.pr;
+  const prLimits = prOptions?.limits;
+  const prClock = prOptions?.clock;
+  const tsortLimits = options.tsort?.limits;
+  const factorLimits = options.factor?.limits;
+  const getoptLimits = options.getopt?.limits;
+  const hexdumpLimits = options.hexdump?.limits;
+  const iconvLimits = options.iconv?.limits;
+  const lineEndingLimits = options.lineEndings?.limits;
   const whichLimits = options.which?.limits;
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
+  const xmlLimits = options.xml?.limits;
   commands.push(
     ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep),
     ...createTextProgramCommands({ ...options.text }),
@@ -112,6 +145,15 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
       maxTimerMilliseconds: timeoutOptions.maxTimerMilliseconds,
     }),
     ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
+    ...createXmlCommands(xmlLimits === undefined ? {} : { limits: xmlLimits }),
+    createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
+    ...createPrCommands({ ...(prLimits === undefined ? {} : { limits: prLimits }), ...(prClock === undefined ? {} : { clock: prClock }) }),
+    ...createTsortCommands(tsortLimits === undefined ? {} : { limits: tsortLimits }),
+    ...createFactorCommands(factorLimits === undefined ? {} : { limits: factorLimits }),
+    ...createGetoptCommands(getoptLimits === undefined ? {} : { limits: getoptLimits }),
+    ...createHexdumpCommands(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }),
+    ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
+    ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
   );
   return new CommandRegistry(commands).list();
 }

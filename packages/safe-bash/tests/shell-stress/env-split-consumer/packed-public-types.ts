@@ -1,26 +1,25 @@
-import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, standardCommands, createStandardCommands, ShellLimitError, type AgentCommandsOptions, type StandardCommandsOptions, type ReadDirectoryOptions as BashReadDirectoryOptions } from 'virtual-bash';
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createBoundedRegexProvider, standardCommands, createStandardCommands, ShellLimitError, type AgentCommandsOptions, type StandardCommandsOptions, type ReadDirectoryOptions as BashReadDirectoryOptions } from 'virtual-bash';
 import { FsError, type CommandInvokeOptions, type CommandContext, type ByteSource, type CommandDefinition, type VirtualShellPlugin, type ReadDirectoryOptions } from 'virtual-bash/contracts';
-import { browserCommands, createBrowserCommands, type BrowserCommandsOptions, type ReadDirectoryOptions as BrowserReadDirectoryOptions } from 'virtual-bash/browser';
 import type { FileSystem as RootFileSystem, ReadDirectoryOptions as RootReadDirectoryOptions } from 'poe-code/safe-fs';
 
 const directoryOptions: RootReadDirectoryOptions = { maxEntries: 1, signal: new AbortController().signal };
 const contractDirectoryOptions: ReadDirectoryOptions = directoryOptions;
 const bashDirectoryOptions: BashReadDirectoryOptions = contractDirectoryOptions;
-const browserDirectoryOptions: BrowserReadDirectoryOptions = bashDirectoryOptions;
+const browserDirectoryOptions: BashReadDirectoryOptions = bashDirectoryOptions;
 const zeroDirectoryOptions: ReadDirectoryOptions = { maxEntries: 0 };
 const legacyDirectoryOptions: RootReadDirectoryOptions = {};
 const standardOptions: StandardCommandsOptions = { maxDirectoryEntries: 0 };
 const agentOptions: AgentCommandsOptions = { maxDirectoryEntries: 1 };
-const browserOptions: BrowserCommandsOptions = { maxDirectoryEntries: 2 };
+const injectedOptions: AgentCommandsOptions = { maxDirectoryEntries: 2, regexExecutor: createBoundedRegexProvider() };
 const commandSets: readonly (readonly CommandDefinition[])[] = [
   createStandardCommands(), createStandardCommands(standardOptions),
   createAgentCommands(), createAgentCommands(agentOptions),
-  createBrowserCommands(), createBrowserCommands(browserOptions),
+  createAgentCommands(injectedOptions),
 ];
 const plugins: readonly VirtualShellPlugin[] = [
   standardCommands(), standardCommands(standardOptions),
   agentCommands(), agentCommands(agentOptions),
-  browserCommands(), browserCommands(browserOptions),
+  agentCommands(injectedOptions),
 ];
 // @ts-expect-error Directory entry limits are numeric, not strings.
 const invalidDirectoryOptions: ReadDirectoryOptions = { maxEntries: '1' };
@@ -28,8 +27,8 @@ const invalidDirectoryOptions: ReadDirectoryOptions = { maxEntries: '1' };
 const invalidStandardOptions: StandardCommandsOptions = { maxDirectoryEntries: '1' };
 // @ts-expect-error Agent command entry limits are numeric, not strings.
 const invalidAgentOptions: AgentCommandsOptions = { maxDirectoryEntries: '1' };
-// @ts-expect-error Browser command entry limits are numeric, not strings.
-const invalidBrowserOptions: BrowserCommandsOptions = { maxDirectoryEntries: '1' };
+// @ts-expect-error Injected command entry limits are numeric, not strings.
+const invalidInjectedOptions: AgentCommandsOptions = { maxDirectoryEntries: '1', regexExecutor: createBoundedRegexProvider() };
 
 const filesystem = new MemoryFileSystem();
 await filesystem.writeFile('/fixture', new Uint8Array([0, 255]));
@@ -52,5 +51,5 @@ const status: number = result.exitCode;
 const reason: Error = new FsError('ENOENT', { path: '/cancel' });
 const limit: Error = new ShellLimitError('maxCommands');
 void [bytes, status, reason, limit, zeroDirectoryOptions, legacyDirectoryOptions, commandSets, plugins,
-  invalidDirectoryOptions, invalidStandardOptions, invalidAgentOptions, invalidBrowserOptions];
+  invalidDirectoryOptions, invalidStandardOptions, invalidAgentOptions, invalidInjectedOptions];
 await shell.dispose();

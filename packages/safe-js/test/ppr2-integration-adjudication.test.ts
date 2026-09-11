@@ -100,7 +100,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         host.release();
       }
       const original = await execution;
-      expect(original).toMatchObject({ ok: true, returnValue: native });
+      expect(original.ok).toBe(true);
       if (!original.ok) throw Error(original.error.message);
       expect(original.returnValue).toEqual(native);
       expect(host.calls).toEqual(nativeHost.calls);
@@ -118,7 +118,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
           budget: new Budget({ maxSteps: 150_000 }),
           hostCallResumeProvider: receiptsProvider(original.snapshot.hostCalls ?? [], requests)
         });
-        expect(resumed).toMatchObject({ ok: true, returnValue: native });
+        expect(resumed.ok).toBe(true);
         if (!resumed.ok) throw Error(resumed.error.message);
         expect(resumed.returnValue).toEqual(native);
         expect(rebound.calls).toEqual(index === 2 ? [] : scenario.resumeCalls);
@@ -128,13 +128,14 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         expect(recaptured.executionSemantics).toBe(expectedFresh);
         const finalHost = makeFixture(scenario.id, false, scenario.policy);
         const finalProvider = vi.fn();
-        expect(
-          await run(scenario.source, {
-            snapshot: recaptured,
-            bindings: finalHost.bindings,
-            hostCallResumeProvider: finalProvider
-          })
-        ).toMatchObject({ ok: true, returnValue: native });
+        const final = await run(scenario.source, {
+          snapshot: recaptured,
+          bindings: finalHost.bindings,
+          hostCallResumeProvider: finalProvider
+        });
+        expect(final.ok).toBe(true);
+        if (!final.ok) throw Error(final.error.message);
+        expect(final.returnValue).toEqual(native);
         expect(finalHost.calls).toEqual([]);
         expect(finalProvider).not.toHaveBeenCalled();
       }

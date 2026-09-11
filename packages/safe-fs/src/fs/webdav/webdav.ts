@@ -7,7 +7,7 @@ import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem, FileSystemCapabilities,
-  FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { davChild, davChildren, parseXml, scalar, XmlResponseLimitError } from "./xml.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
@@ -186,7 +186,7 @@ export class WebDavFileSystem implements FileSystem {
   readonly capabilities = Object.freeze({
     read: true, stat: true, readdir: true, realpath: true, access: true,
     write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
-    mkdir: true, recursiveMkdir: true, remove: true, recursiveRemove: true, rename: true, copy: true,
+    mkdir: true, recursiveMkdir: true, remove: true, recursiveRemove: true, rename: true, atomicRenameNoReplace: false, copy: true,
     exclusiveCopy: true, readlink: false, truncate: false, randomAccessWrite: false,
     removeDirectory: false as boolean, streamingAppend: false as boolean,
     symlinks: false, hardlinks: false, permissions: false, timestamps: true,
@@ -1093,7 +1093,11 @@ export class WebDavFileSystem implements FileSystem {
     }
   }
 
-  async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {
+  async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
+    if (options.noReplace) {
+      options.signal?.throwIfAborted();
+      fail("ENOTSUP", "rename", source, "atomic no-replace rename is unsupported");
+    }
     await this.transfer("MOVE", source, destination, options);
   }
 

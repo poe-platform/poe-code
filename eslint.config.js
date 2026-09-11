@@ -343,6 +343,20 @@ function policyConfig(safeBashInputs, compatibility = []) {
     },
   },
   {
+    // Compiler output retains ABI bindings and intentional switch fallthrough.
+    // Keep the authenticated artifacts parsed and all other rules enabled.
+    name: 'safe-bash/generated-compression-codecs',
+    files: [
+      'packages/safe-bash/src/commands/bytes/compression/native/generated/bz2.mjs',
+      'packages/safe-bash/src/commands/bytes/compression/native/generated/xz.mjs',
+      'packages/safe-bash/src/commands/bytes/compression/native/generated/zstd.mjs',
+    ],
+    rules: {
+      'no-unused-vars': 'off',
+      'no-fallthrough': 'off',
+    },
+  },
+  {
     name: 'safe-bash/deferred-construction',
     files: [
       'packages/safe-bash/src/commands/network/transport.ts',

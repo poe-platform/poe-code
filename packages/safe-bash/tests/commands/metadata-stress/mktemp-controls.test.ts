@@ -45,22 +45,55 @@ test("mktemp 64 concurrent creations reserve distinct names with virtual umasks"
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), results.sort());
 });
 
-test("mktemp crypto provenance remains node randomInt with no native/host filesystem fallback", async () => {
-  const source = await readFile(new URL("../../../src/commands/metadata/mktemp.ts", import.meta.url), "utf8");
-  const syntax = ts.createSourceFile("mktemp.ts", source, ts.ScriptTarget.Latest, true);
+test("mktemp uses unbiased Web Crypto with no native/host filesystem fallback", async context => {
+  const syntaxes = await Promise.all(["metadata/mktemp.ts", "portable-random.ts"].map(async filename => {
+    const source = await readFile(new URL(`../../../src/commands/${filename}`, import.meta.url), "utf8");
+    return ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true);
+  }));
   const imports: string[] = [];
   const calls: string[] = [];
+  const alphabetIndices: ts.Expression[] = [];
   function inspect(node: ts.Node): void {
     if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) imports.push(node.moduleSpecifier.text);
-    if (ts.isCallExpression(node)) calls.push(node.expression.getText(syntax));
+    if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
+      const expression = node.expression;
+      const regexExec = ts.isPropertyAccessExpression(expression) && ts.isRegularExpressionLiteral(expression.expression) && expression.name.text === "exec";
+      if (!regexExec) calls.push(expression.getText());
+    }
+    if (ts.isElementAccessExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "alphabet") alphabetIndices.push(node.argumentExpression);
     ts.forEachChild(node, inspect);
   }
-  inspect(syntax);
-  assert.ok(imports.includes("node:crypto"));
-  assert.ok(calls.includes("randomInt"));
-  assert.ok(!calls.some(call => ["Math.random", "eval", "Function", "exec", "execSync", "spawn", "spawnSync"].includes(call)));
-  assert.ok(!imports.some(specifier => /child_process|node:fs/u.test(specifier)));
-  assert.match(source, /alphabet\[randomInt\(alphabet\.length\)\]/u);
+  for (const syntax of syntaxes) inspect(syntax);
+  assert.ok(imports.includes("../portable-random.js"));
+  assert.ok(calls.includes("globalThis.crypto.getRandomValues"));
+  assert.ok(!calls.some(call => ["random", "eval", "Function", "exec", "execSync", "execFile", "execFileSync", "spawn", "spawnSync", "fork", "require", "createRequire", "getBuiltinModule"].includes(call.split(".").at(-1)!)));
+  assert.ok(!imports.some(specifier => specifier.startsWith("node:") || specifier.includes("child_process") || ["fs", "fs/promises", "crypto"].includes(specifier)));
+  assert.equal(alphabetIndices.length, 1);
+  const index = alphabetIndices[0]!;
+  assert.ok(ts.isCallExpression(index));
+  assert.equal(index.expression.getText(), "randomInteger");
+  assert.deepEqual(index.arguments.map(argument => argument.getText()), ["alphabet.length"]);
+
+  const samples = [4294967295, 4294967292, 62, 25, 26, 51, 52, 61];
+  const crypto = globalThis.crypto;
+  context.mock.method(crypto, "getRandomValues", function(this: unknown, bytes: Uint32Array) {
+    assert.equal(this, crypto);
+    assert.ok(bytes instanceof Uint32Array);
+    assert.equal(bytes.length, 1);
+    assert.ok(samples.length > 0);
+    bytes[0] = samples.shift()!;
+    return bytes;
+  });
+  context.mock.method(Math, "random", () => assert.fail("insecure entropy fallback"));
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const result = await run("mktemp", ["private.XXXXXX"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout.toString(), "private.azAZ09\n");
+  assert.equal(samples.length, 0);
+  assert.equal((await fs.stat("/work/private.azAZ09")).mode & 0o777, 0o600);
+  assert.deepEqual(await fs.readFile("/work/private.azAZ09"), new Uint8Array());
 });
 
 test("mktemp directory collision retries never delete competing entries", async () => {

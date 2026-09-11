@@ -55,10 +55,10 @@ test("heredoc expansion cancellation stops waiting on host work", { timeout: 200
   await assert.rejects(shell.exec("pass <<EOF\n$(blocked)\nEOF\n", { signal: controller.signal }), (error) => error === reason);
 });
 
-test("heredoc substitutions use UTF-8 strings, discard NUL, and retain literal Unicode", async () => {
+test("heredoc substitutions preserve bytes, discard NUL, and retain literal Unicode", async () => {
   const { shell } = setup();
   const result = await shell.exec("pass <<EOF\n$(bytes)\né\nEOF\n");
-  assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("�é�\né\n"));
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 195, 169, 128, 10, 195, 169, 10));
   assert.equal(result.exitCode, 0);
 });
 

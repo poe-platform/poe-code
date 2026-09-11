@@ -35,6 +35,7 @@ establish support. `readOnly: true` takes precedence over all mutation flags.
 | `copy`, `exclusiveCopy` | Ordinary and exclusive `copyFile` operations |
 | `rename` | Configured rename primitive, not necessarily atomic |
 | `atomicRename` | Existing stronger atomic-rename guarantee |
+| `atomicRenameNoReplace` | Atomic rename with destination nonexistence as a publication precondition |
 | `readlink`, `symlinks`, `hardlinks` | Link inspection, symbolic-link creation, and hard-link creation |
 | `timestamps`, `permissions` | Timestamp and permission mutation |
 | `randomAccessWrite` | Eligibility for the shell's existing bounded descriptor-offset update strategy |
@@ -111,6 +112,37 @@ append fallback costs are not repaired by this capability. There is no new
 global allocation limit, heap amplification claim, OOM protection, or arbitrary
 host deadline/preemption guarantee.
 
+## Atomic no-replace rename
+
+`rename(source, destination, { noReplace: true, signal })` requests an atomic
+move that must not replace an existing destination entry. `RenameOptions`
+extends `FsOptions`; omission or `noReplace: false` retains ordinary rename
+semantics. An existing destination, including a dangling symlink, rejects with
+`EEXIST` without changing either entry. The destination condition and publication
+must belong to the same atomic operation; stat followed by ordinary rename is
+not an implementation of this contract.
+
+Callers must require `atomicRenameNoReplace === true` before requesting this
+mode. `atomicRename`, method presence, exclusive creation, and exclusive copy
+do not establish support. Adapters that cannot provide the guarantee must reject
+`ENOTSUP` before mutation. Faithful wrappers must preserve the option and admit
+the actual backing operation, or refuse it. The capability does not promise
+cross-device moves: `EXDEV` remains an error and must not trigger an overwriting
+rename or copy/delete fallback for this mode.
+
+The memory adapter supports the operation. The real adapter refuses it because
+its portable Node rename primitive does not expose atomic no-replace semantics.
+An injected native filesystem may advertise support when its authoritative
+native operation implements the destination precondition atomically. This is a
+trusted provider assertion, not a guarantee inferred from an extra existence
+check in an adapter.
+
+`mv -n` skips an already existing target and treats an atomic `EEXIST` race as
+a successful skip, preserving the source and competing destination. For an
+absent target, it requires the affirmative no-replace capability and propagates
+the option. Unsupported or cross-device no-replace moves fail without a
+copy/delete fallback. Ordinary overwriting `mv` retains its existing behavior.
+
 ## Adapter and wrapper declarations
 
 Memory and real declare their supported primitives explicitly. S3 conditions
@@ -129,11 +161,172 @@ same mount path rules, including symlinks and a missing final entry, without
 creating anything. Synthetic directories return a readonly profile. It is a
 point-in-time observation, not a lease, and can fail with normal resolution errors.
 
+`OpenReadFileOptions.allowDirectory` is an explicit retained-read admission
+request. Omission and `false` preserve regular-file admission and directory
+`EISDIR` failures. With `true`, a supporting backend may retain a directory for
+metadata operations without granting byte-read access: its handle returns the
+original directory's metadata across rename, removal and path replacement,
+rejects byte reads with `EISDIR`, and releases its retained resource on close.
+This option does not grant writes, create an entry, or promise end-seek support.
+`seekEnd` remains independently optional; neither directory stat size nor an
+invented offset is a substitute. Unsupported or synthetic directory backends
+may still reject acquisition. Normal path-based `readFile` and `readStream`
+semantics do not change.
+
+Retained-read capability queries carry the original `OpenReadFileOptions`,
+including `allowDirectory` when supplied. This is separate from writable-file
+creation intent; readonly views may forward it without enabling mutation.
+
+`CapabilityQueryOptions.create` optionally selects writable-file-open resolution.
+Omission retains the generic query above; explicit `false` selects an existing
+target and explicit `true` permits creation. The retained-resize admission helper
+always supplies this intent, including `false` for its default no-create mode.
+This query never creates anything or grants authority from a parent directory.
+Actual acquisition still requires the selected target's affirmative capability.
+
+For creation-enabled resolution, a terminal separator requires parent traversal
+and search checks, then fails EISDIR before following the final component. For
+no-create resolution, the final target must be a directory but the separator
+does not add a search-permission check inside that final directory. Literal
+`/.` and `/..` retain their traversal checks. Separator provenance must survive
+symlink expansion; checking only the original operand is insufficient. An early
+error is not permission to return parent-derived positive capabilities or skip
+mount confinement. These rules apply to backends implementing this open profile;
+the separate ReadOnly policy view retains its unconditional mutation denial,
+not native readonly-mount diagnostic ordering.
+
 Readonly and quota views preserve selected-path resolution. Quota stream flags
 describe its actual incremental append-based route, not the backing atomic
 writer's flags. Overlay declarations conservatively include upper staging and
 copy-up prerequisites; missing required declarations remain unknown. Wrappers
 must not manufacture support from delegated mandatory methods.
+
+## Atomic resize operations
+
+Backends that cannot retain a writable object across requests may instead offer
+`resizeFile(path, operation, { create?, mode?, signal? })` and declare
+`atomicResize: true`. This is one atomic target resolution, write-permission
+check, size computation and resize transaction. It must never be implemented as
+an unguarded pathname stat/read followed by a later whole-file write.
+
+`operation.size` is a signed 64-bit bigint. `modifier` is `absolute`, `relative`,
+`minimum` (at least), `maximum` (at most), `down` or `up` (round to a multiple).
+Only `relative` accepts a negative operand; rounding requires a positive divisor.
+`referenceSize`, when present, is a nonnegative signed 64-bit bigint snapshot
+supplied by the caller and replaces the current target size as the modifier base.
+`ioBlocks: true` multiplies the operand by the target's positive preferred I/O
+block size before applying the modifier; missing block metadata is unsupported.
+Signed overflow rejects, and a negative relative result clamps to zero. Providers
+validate the final logical length and storage quotas before allocation or mutation.
+The operation preserves the prefix and zero-fills extension. Refusals leave existing
+bytes unchanged; write permission is checked even for unchanged lengths.
+
+Creation defaults to false. Missing no-create targets reject with `ENOENT`;
+creation does not create parents, and `mode` affects new files only. The operation
+has a single linearization point against the target selected by the backend,
+not retained-handle identity after rename or unlink. Cancellation does not undo a
+committed resize; callers must await admitted work and must not replay blindly.
+
+`truncate` keeps its retained-handle path when available and otherwise uses this
+explicit atomic operation, passing the modifier rather than calculating from a
+stale target size. Its reference is sampled once before processing targets.
+Device and mount views forward supported operations, scoped views charge and
+check cancellation, and readonly views deny them. Quota and overlay views do
+not advertise atomic resize because their existing composition cannot preserve
+its transaction guarantee. The retained resizing contract remains unchanged.
+
+## Retained writable resizing
+
+`openResizeFile(path, { create?, mode?, signal? })` is optional and requires
+affirmative selected-path `retainedResize` support plus a callable method.
+Readonly status overrides that support. It opens one supported file object for writing
+without truncation or append; read permission is not required. `create` defaults
+to false. When true, a missing referent is created without creating parents;
+`mode` applies only to that creation, with the backend's existing mode/umask
+rules. Symlink and trailing-directory resolution follow the backend contract.
+
+The returned `FileResizeHandle` exposes `stat`, `truncate(length)` and
+`close`, with optional `seekEnd` support described below. All operations address
+the acquired object after rename, unlink or
+pathname replacement. `truncate` accepts a nonnegative safe integer, preserves
+the retained prefix, and zero-fills extension within the backend's existing
+logical and allocation limits. Initial acquisition checks write permission even
+when the requested eventual size is unchanged. An acquired handle retains that
+write authority; a later chmod is not a new pathname open or a permission
+recheck. Same-size resizing retains the backend's timestamp semantics.
+
+An explicitly supported nonregular target may expose the same retained protocol
+with its native-equivalent operation failures. In particular, the virtual null
+device opens for writing, reports its character-device stat, and rejects a valid
+truncate operation with EINVAL; it is not rejected as an unsupported open or
+disguised as a regular zero-length file. Its explicit virtual preferred-I/O hint
+is 4,096 bytes. `retainedResize` promises retained acquisition and operations,
+not that every target/length combination can be resized successfully.
+
+Both `FileReadHandle` and `FileResizeHandle` may expose `seekEnd(options)`. When
+available, this performs the backend's end-seek operation on the already acquired
+object, including its cursor effects, and returns its exact nonnegative end
+position as a bigint. It is not a pathname stat, a reopen, a read-until-EOF
+approximation, or permission to invent a directory/device size. Missing or
+undefined means unsupported. Neither retained-read nor retained-resize support
+alone promises end-seeking or acquisition of every nonregular file type.
+
+End-seeking follows the same cancellation, operation-admission and draining-close
+contract as other retained operations. Wrappers preserve the original handle
+receiver, scope signals and operation charges; they must not erase available
+end-seeking or expose an unmetered operation. A consumer needing a nonregular
+reference must acquire and seek that object, while a consumer whose regular-file
+reference requires only stat must not introduce an unnecessary read-permission
+check. Concrete directory/device and native-runtime implementations require their
+own justified semantics; this optional protocol does not establish them.
+
+`RealFileSystem` provides retained end-seeking through a private asynchronous
+Node-API implementation, currently targeting Linux x64 with glibc 2.31 or newer.
+Other runtime/asset combinations fail explicitly with ENOTSUP; a missing or
+corrupt expected asset is a loading failure, not a stat-size fallback. Ordinary
+filesystem imports and handle acquisition do not load the addon. Lazy binding
+initialization is opaque metadata work, not a descriptor-retirement barrier;
+cancellation observes its late settlement without dispatching a later seek.
+Once native work is actually admitted, close retains the descriptor until that
+work finishes. Cancellation cannot forcibly stop a running native syscall.
+
+Memory retained read and resize handles support end-seeking. Regular-file
+handles return the current byte length of the pinned inode as a bigint;
+positional reads remain independent of the end-seek result. Explicitly admitted
+directory handles use the selected 64-bit Linux ext4 indexed-directory profile:
+the terminal htree cookie is `9223372036854775807n`, independent of directory
+entry count or stat size. This is a virtual compatibility policy, not observed
+host metadata or a claim about XFS, non-indexed ext4, or 32-bit directory cookies.
+Obtaining the cookie does not allocate file bytes; consumers must still enforce
+their size and quota limits before any requested growth. The operation retains
+inode identity through namespace changes and follows ordinary cancellation and
+closed-handle checks.
+
+Close synchronously stops admission, returns one shared promise and drains
+already admitted resource work before releasing the handle. Later operations
+fail with EBADF. Caller cancellation does not undo completed effects. A late
+acquisition is closed before its canceled operation settles; preserve the
+original failure when cleanup also fails, including falsey rejection values.
+Opaque pre-acquisition capability queries are interruptible, cannot admit a
+later open after cancellation, and are not resource-retirement barriers.
+
+Wrappers must enforce path-specific support, readonly denial, operation charges
+and quota admission rather than forwarding an unmetered writable handle. Quota
+growth uses the pinned object's identity, not its potentially replaced opening
+pathname. Creation and resizing remain separately observable effects. Neither
+`truncate`, `randomAccessWrite` nor `descriptorWriteStream` alone implies this
+retained-resize promise. Object replacement is not an implementation of it.
+
+### Preferred I/O blocks
+
+`FileStat.preferredIoBlockSize?: number` is an optional positive safe-integer
+byte count for the same observed entry. Absence means unknown. It is a preferred
+transfer-size hint, not allocated bytes, allocation granularity or a reference
+file's block size. Real reports only valid native `Stats.blksize` observations.
+Memory's selected virtual policy is 4,096 bytes, consistent with its existing
+Node-stat bridge profile; this is an explicit virtual hint, not a measured host
+or physical-storage claim. The 64 KiB stream-read chunk default does not define
+this metadata. Wrappers preserve known observations and do not invent unknowns.
 
 ## Quota accounting
 
@@ -481,3 +674,75 @@ permitted. Replacing that historical generic row's explicit-mode/X_OK ENOTSUP
 expectations is an intentional profile delta, **not a source bug fix**. Preserve
 the red historical cohort, exact bytes, exclusivity, invalid-mode, chmod,
 authorization, cancellation and read-only assertions when revising backend tests.
+# Conditional file mutations
+
+`atomicFileMutation` requires `writeFileConditional(path, data, options)` and
+`removeFileConditional(path, options)`. Each operation atomically checks the
+parent's scoped identity and directory type, and the file's scoped identity,
+type, and revision. `expected: null` on a write requires absence and creates the
+file, including with `append: true`; an expected existing file is never silently
+recreated. Current permissions and ordinary provider write restrictions still
+apply. `mode` affects creation only.
+
+A write replaces or appends the complete supplied byte array, or changes
+nothing. Quota and allocation refusals happen before mutation. It returns the
+original committed `FileStat`, not a subsequent path lookup. A pre-commit abort
+refuses the operation; an abort arriving after commit must not suppress its
+receipt. Removal only removes the exact expected file. Changed conditions fail
+with `EAGAIN`; unavailable identity/revision guarantees fail with `ENOTSUP`.
+Implementations must not substitute a read/check followed by an unconditional
+mutation. Retained cleanup exposes only conditional removal and preserves its
+existing operation budget and lifetime rules.
+
+
+## Atomic owned staging
+
+`atomicFileStaging: true` requires `createStagedFile`, `publishStagedFile`, and
+`removeStagedFile`. Creation atomically checks the supplied parent identity,
+creates a private mode-0700 directory and an exclusive regular file or symlink,
+and returns the original parent, directory, and file snapshots as a `FileStaging`
+receipt. Once creation commits, the provider and forwarding views must return
+the original receipt even if cancellation arrives before the promise settles;
+the caller can then retain cleanup before honoring cancellation. It must not
+derive ownership from a later path lookup. Allocation,
+quota, permission, and unsupported-metadata failures must precede publication of
+any staging entry. Implementations retain their existing file and aggregate
+limits; this contract adds no larger byte allowance.
+
+Publication atomically verifies the original staging file, its private directory,
+both parents, and the destination's supplied snapshot or explicit absence before
+renaming. Parent and directory conditions compare stable identity and type;
+child mutations may legitimately change their timestamps. File conditions also
+compare `revision`, size, mode, link count, modification time, and change time.
+`FileStat.revision`, when present, is a nonnegative safe integer that changes for
+each content write or explicit metadata mutation, including same-tick same-size
+writes. Access-time updates caused solely by reads need not change it.
+Unknown identity or revision cannot satisfy a conditional file mutation.
+
+Cleanup atomically removes only the original staging file, if still present,
+and its empty original private directory. A replacement entry, changed source,
+or unexpected child must survive. An absent file after successful publication
+is allowed. Cleanup never follows a replacement symlink or recursively removes
+a directory. `retainFileSystemCleanup` exposes only this narrow cleanup method
+in addition to its existing methods; its lifetime, operation limit, scope charge,
+and pending-operation drain still apply after cancellation.
+
+`atomicDirectoryMetadata: true` requires `prepareDirectory`. With `expected: null`
+it exclusively creates a directory after checking its parent's original
+identity and returns the creation snapshot atomically. With an existing snapshot
+it verifies the directory and parent identities before applying metadata and
+returning the updated snapshot. Child writes do not invalidate this directory
+identity condition. Unsupported timestamp fields must reject before mutation;
+a caller must not infer timestamp support from this capability.
+
+These operations reject changed conditions with `EAGAIN` and unavailable
+identity with `ENOTSUP`. A backend must withhold capabilities it cannot implement
+atomically. Mount/device views preserve the original snapshots while translating
+paths; cross-mount publication is refused. Read-only, quota, and overlay views
+withhold unsupported owned staging rather than bypassing their policies.
+
+ZIP creation/update and unzip file extraction require `atomicFileStaging`.
+Unzip directory creation and supported directory metadata restoration also
+require `atomicDirectoryMetadata`. Listing an archive does not require mutation capabilities. Providers without these guarantees reject the
+corresponding mutation; they must not fall back to check-then-rename or
+check-then-delete operations.

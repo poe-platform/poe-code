@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../../src/node.js";
 import assert from "node:assert/strict";
 import { EventEmitter, getEventListeners } from "node:events";
 import { createRequire, syncBuiltinESMExports } from "node:module";
@@ -136,7 +137,7 @@ for (const failure of ["messageerror", "match"] as const) test(`public ignore ${
     },
   });
   requestFailure = failure;
-  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ regexExecutor: createNodeRegexProvider() }));
   try {
     const result = await shell.exec("rg --files");
     assert.equal(result.exitCode, 2);
@@ -164,7 +165,7 @@ test("errno-shaped abort during ignore loading preserves identity and stops VFS 
       };
     },
   });
-  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ regexExecutor: createNodeRegexProvider() }));
   try {
     await assert.rejects(shell.exec("rg --files", { signal: controller.signal }), error => error === reason);
     await tick();

@@ -12,19 +12,51 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": {
+        "workerd": "./dist/core.d.ts",
+        "browser": "./dist/core.d.ts",
+        "default": "./dist/index.d.ts"
+      },
+      "workerd": "./dist/core.browser.js",
+      "browser": "./dist/core.browser.js",
       "import": "./dist/index.js"
     },
     "./contracts": {
-      "types": "./dist/contracts/index.d.ts",
-      "import": "./dist/contracts/index.js"
+      "types": {
+        "browser": "./dist/contracts/index.d.ts",
+        "default": "./dist/contracts/node.d.ts"
+      },
+      "browser": "./dist/contracts/index.js",
+      "import": "./dist/contracts/node.js"
+    },
+    "./contracts/index": {
+      "types": {
+        "browser": "./dist/contracts/index.d.ts",
+        "default": "./dist/contracts/node.d.ts"
+      },
+      "browser": "./dist/contracts/index.js",
+      "import": "./dist/contracts/node.js"
+    },
+    "./contracts/path": {
+      "types": {
+        "browser": "./dist/contracts/path.d.ts",
+        "default": "./dist/contracts/node-path.d.ts"
+      },
+      "browser": "./dist/contracts/path.js",
+      "import": "./dist/contracts/node-path.js"
     },
     "./contracts/*": {
       "types": "./dist/contracts/*.d.ts",
       "import": "./dist/contracts/*.js"
     },
     "./commands/network": {
-      "types": "./dist/commands/network/index.d.ts",
+      "types": {
+        "workerd": "./dist/commands/network/public.d.ts",
+        "browser": "./dist/commands/network/public.d.ts",
+        "default": "./dist/commands/network/index.d.ts"
+      },
+      "workerd": "./dist/commands/network/index.browser.js",
+      "browser": "./dist/commands/network/index.browser.js",
       "import": "./dist/commands/network/index.js"
     },
     "./commands/node": {
@@ -54,6 +86,48 @@
     "./commands/split": {
       "types": "./dist/commands/split/index.d.ts",
       "import": "./dist/commands/split/index.js"
+    },
+    "./commands/csplit": {
+      "types": "./dist/commands/csplit/index.d.ts",
+      "workerd": "./dist/commands/csplit/index.browser.js",
+      "browser": "./dist/commands/csplit/index.browser.js",
+      "import": "./dist/commands/csplit/index.js"
+    },
+    "./commands/pr": {
+      "types": "./dist/commands/pr/index.d.ts",
+      "workerd": "./dist/commands/pr/index.browser.js",
+      "browser": "./dist/commands/pr/index.browser.js",
+      "import": "./dist/commands/pr/index.js"
+    },
+    "./commands/tsort": {
+      "types": "./dist/commands/tsort/index.d.ts",
+      "workerd": "./dist/commands/tsort/index.browser.js",
+      "browser": "./dist/commands/tsort/index.browser.js",
+      "import": "./dist/commands/tsort/index.js"
+    },
+    "./commands/factor": {
+      "types": "./dist/commands/factor/index.d.ts",
+      "workerd": "./dist/commands/factor/index.browser.js",
+      "browser": "./dist/commands/factor/index.browser.js",
+      "import": "./dist/commands/factor/index.js"
+    },
+    "./commands/getopt": {
+      "types": "./dist/commands/getopt/index.d.ts",
+      "workerd": "./dist/commands/getopt/index.browser.js",
+      "browser": "./dist/commands/getopt/index.browser.js",
+      "import": "./dist/commands/getopt/index.js"
+    },
+    "./commands/hexdump": {
+      "types": "./dist/commands/hexdump/index.d.ts",
+      "workerd": "./dist/commands/hexdump/index.browser.js",
+      "browser": "./dist/commands/hexdump/index.browser.js",
+      "import": "./dist/commands/hexdump/index.js"
+    },
+    "./commands/iconv": {
+      "types": "./dist/commands/iconv/index.d.ts",
+      "workerd": "./dist/commands/iconv/index.browser.js",
+      "browser": "./dist/commands/iconv/index.browser.js",
+      "import": "./dist/commands/iconv/index.js"
     },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
@@ -99,6 +173,18 @@
       "types": "./dist/commands/which/index.d.ts",
       "import": "./dist/commands/which/index.js"
     },
+    "./commands/xml": {
+      "types": "./dist/commands/xml/index.d.ts",
+      "workerd": "./dist/commands/xml/index.browser.js",
+      "browser": "./dist/commands/xml/index.browser.js",
+      "import": "./dist/commands/xml/index.js"
+    },
+    "./commands/yq": {
+      "types": "./dist/commands/yq/index.d.ts",
+      "workerd": "./dist/commands/yq/index.browser.js",
+      "browser": "./dist/commands/yq/index.browser.js",
+      "import": "./dist/commands/yq/index.js"
+    },
     "./fs/s3": {
       "types": "./dist/fs/s3/index.d.ts",
       "import": "./dist/fs/s3/index.js"
@@ -123,18 +209,40 @@
       "types": "./dist/fs/overlay/index.d.ts",
       "import": "./dist/fs/overlay/index.js"
     },
-    "./browser": {
-      "types": "./dist/browser.d.ts",
-      "import": "./dist/browser.js"
-    },
-    "./portable": {
-      "types": "./dist/portable.d.ts",
-      "import": "./dist/portable.js"
-    },
     "./node": {
       "types": "./dist/node.d.ts",
       "browser": null,
       "import": "./dist/node.js"
+    },
+    "./commands/node/host": {
+      "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
+        "worker": "./dist/node-unavailable.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/commands/node/worker-provider.d.ts"
+      },
+      "workerd": null,
+      "worker": null,
+      "browser": null,
+      "import": "./dist/commands/node/worker-provider.js"
+    },
+    "./commands/llm": {
+      "types": "./dist/commands/llm/index.d.ts",
+      "workerd": "./dist/commands/llm/index.browser.js",
+      "browser": "./dist/commands/llm/index.browser.js",
+      "import": "./dist/commands/llm/index.js"
+    },
+    "./commands/llm/providers": {
+      "types": "./dist/commands/llm/providers/index.d.ts",
+      "workerd": "./dist/commands/llm/providers/index.browser.js",
+      "browser": "./dist/commands/llm/providers/index.browser.js",
+      "import": "./dist/commands/llm/providers/index.js"
+    },
+    "./commands/line-endings": {
+      "types": "./dist/commands/line-endings/index.d.ts",
+      "workerd": "./dist/commands/line-endings/index.browser.js",
+      "browser": "./dist/commands/line-endings/index.browser.js",
+      "import": "./dist/commands/line-endings/index.js"
     }
   },
   "files": [
@@ -142,7 +250,7 @@
   ],
   "scripts": {
     "benchmark": "node --import tsx benchmarks/run.ts",
-    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs",
+    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:all": "node scripts/typecheck.mjs --build",
     "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
@@ -150,8 +258,12 @@
     "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
     "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
     "verify:release:whole": "node scripts/verify-whole-gate.mjs",
-    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs",
+    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/copy-compression-assets.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs",
     "test:unit": "npm run test:runner && node scripts/test.mjs"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0",
+    "pako": "3.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
@@ -164,7 +276,6 @@
   "poeCode": {
     "packageLint": {
       "sourceExclude": [
-        "src/commands/structured/query-core.ts",
         "src/commands/xan/argv.ts",
         "src/commands/xan/budget.ts",
         "src/commands/xan/commands.ts",
@@ -174,12 +285,7 @@
         "src/commands/xan/options.ts",
         "src/commands/xan/selector.ts",
         "src/commands/xan/sort.ts",
-        "src/commands/xan/writer.ts",
-        "src/commands/yq/accounting.ts",
-        "src/commands/yq/encoder.ts",
-        "src/commands/yq/errors.ts",
-        "src/commands/yq/index.ts",
-        "src/commands/yq/parser.ts"
+        "src/commands/xan/writer.ts"
       ]
     },
     "integration": {

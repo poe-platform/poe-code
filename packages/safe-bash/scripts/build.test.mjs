@@ -60,6 +60,40 @@ function afterInputRead(owned, path, action) {
   };
 }
 
+for (const defect of ["none", "version", "name", "dependency", "link", "unapproved-import"]) test(`build pinned portable dependency declaration admission: ${defect}`, async () => {
+  const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", dependencies }),
+    "src/index.ts": 'import { value } from "@noble/hashes/sha2.js"; import { inflate } from "pako"; export const answer = inflate(value);',
+    "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0", type: "module", exports: { "./sha2.js": "./sha2.js" } }),
+    "node_modules/@noble/hashes/sha2.d.ts": "export declare const value: number;",
+    "node_modules/pako/package.json": JSON.stringify({ name: "pako", version: "3.0.1", types: "./dist/pako.d.ts" }),
+    "node_modules/pako/dist/pako.d.ts": "export declare function inflate(value: number): number;",
+    "node_modules/unapproved/package.json": JSON.stringify({ name: "unapproved", types: "index.d.ts" }),
+    "node_modules/unapproved/index.d.ts": "export declare const secret: number;",
+  });
+  if (defect === "none") {
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.ok(owned.reads.includes(root + "/node_modules/@noble/hashes/sha2.d.ts"));
+    assert.ok(owned.reads.includes(root + "/node_modules/pako/dist/pako.d.ts"));
+  } else if (defect === "unapproved-import") {
+    owned.memory.writeFileSync(root + "/src/index.ts", 'export { secret } from "unapproved";');
+    assert.notEqual((await owned.run()).status, 0);
+    assert.equal(owned.reads.some(path => path.includes("/unapproved/")), false);
+  } else if (defect === "link") {
+    owned.memory.unlinkSync(root + "/node_modules/pako/dist/pako.d.ts");
+    owned.memory.symlinkSync(root + "/node_modules/unapproved/index.d.ts", root + "/node_modules/pako/dist/pako.d.ts");
+    await assert.rejects(owned.run(), /symlink/);
+  } else if (defect === "dependency") {
+    owned.memory.writeFileSync(root + "/package.json", JSON.stringify({ name: "virtual-bash", type: "module", dependencies: { ...dependencies, unapproved: "1.0.0" } }));
+    await assert.rejects(owned.run(), /portable dependency contract/);
+  } else {
+    owned.memory.writeFileSync(root + "/node_modules/pako/package.json", JSON.stringify({ name: defect === "name" ? "other" : "pako", version: defect === "version" ? "3.0.0" : "3.0.1", types: "./dist/pako.d.ts" }));
+    await assert.rejects(owned.run(), /portable dependency identity/);
+  }
+  assert.equal(owned.descriptors.size, 0);
+});
+
 for (const defect of ["none", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {
   const owned = fixture({
     "package.json": JSON.stringify({ name: "virtual-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),

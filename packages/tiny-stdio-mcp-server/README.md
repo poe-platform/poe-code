@@ -95,6 +95,8 @@ Successful structured results must satisfy `outputSchema`. Validation failures u
 
 Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
 
+Handlers can throw `ToolError` to return a JSON-RPC tool error with a specific code, message, and optional structured `data` payload. The server forwards that `data` field in the JSON-RPC error response so clients can inspect machine-readable failure details.
+
 ### `.listen()`
 
 Start listening on stdin/stdout (standard MCP stdio transport).
@@ -158,7 +160,7 @@ import { Image } from "tiny-stdio-mcp-server";
 
 server.tool("screenshot", "Take a screenshot", schema, async () => {
   return Image.fromBase64(base64Data, "image/png");
-  // or: await Image.fromUrl("https://example.com/image.png")
+  // or: await Image.fromUrl("https://example.com/image.png", { maxBytes: 2 * 1024 * 1024 })
   // or: Image.fromBytes(uint8Array)
 });
 ```
@@ -172,12 +174,16 @@ import { Audio } from "tiny-stdio-mcp-server";
 
 server.tool("speak", "Text to speech", schema, async () => {
   return Audio.fromBase64(base64Data, "audio/mpeg");
-  // or: await Audio.fromUrl("https://example.com/audio.mp3")
+  // or: await Audio.fromUrl("https://example.com/audio.mp3", { maxBytes: 2 * 1024 * 1024 })
   // or: Audio.fromBytes(uint8Array, "mp3")
 });
 ```
 
 Supported formats: MP3, WAV, OGG, M4A.
+
+Remote helpers (`Image.fromUrl`, `Audio.fromUrl`, and `File.fromUrl`) cap downloads at
+`DEFAULT_FROM_URL_MAX_BYTES` (5 MiB). Pass `{ maxBytes }` to set a positive integer byte limit per
+call; responses that exceed the limit are rejected before being converted to content blocks.
 
 ### Files
 
@@ -187,7 +193,7 @@ import { File } from "tiny-stdio-mcp-server";
 server.tool("export", "Export data", schema, async () => {
   return File.fromText(csvContent, "text/csv");
   // or: File.fromBytes(uint8Array, "application/pdf")
-  // or: await File.fromUrl("https://example.com/report.pdf")
+  // or: await File.fromUrl("https://example.com/report.pdf", { maxBytes: 2 * 1024 * 1024 })
 });
 ```
 
@@ -225,6 +231,16 @@ await cleanup();
 ```
 
 Requires `@modelcontextprotocol/sdk` as a dev dependency.
+
+## Environment variables
+
+This package exposes no environment variables. Remote content helpers use the runtime `fetch`
+implementation and do not read package-level configuration.
+
+## Configuration
+
+There are no package-level config files. Configure each server in code with `createServer(options)`,
+per-tool schemas, and per-call content helper options such as `maxBytes` for remote files.
 
 ## License
 

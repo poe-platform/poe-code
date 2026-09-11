@@ -96,13 +96,14 @@ afterEach(() => { vi.restoreAllMocks(); });
 
 for (const adapter of ["Memory", "Real"] as const) {
   describe(`${adapter} retained reader`, () => {
-    it("exposes only stat/read/close and preserves the existing stat identity", async () => {
+    it("exposes stat/read/seekEnd/close and preserves the existing stat identity", async () => {
       const filesystem = await fixture(adapter);
       const before = await filesystem.stat("/file");
       const handle = await open(filesystem);
       try {
         expect(filesystem.capabilities.retainedRead).toBe(true);
-        expect(Object.keys(handle).sort()).toEqual(["close", "read", "stat"]);
+        expect(Object.keys(handle).sort()).toEqual(["close", "read", "seekEnd", "stat"]);
+        if (adapter === "Memory") expect(await handle.seekEnd!()).toBe(3n);
         expect(await handle.stat()).toMatchObject({ size: 3, type: "file", identityScope: before.identityScope, dev: before.dev, ino: before.ino });
         expect(before.identityScope).toBeDefined();
       } finally { await handle.close(); }

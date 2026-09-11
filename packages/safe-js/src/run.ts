@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "node:async_hooks";
+import { createHostCallbackContext } from "#safe-js-platform";
 import { runWithExtensions, type RealmOptions } from "./realm.js";
 
 import { hashParsedAst, hashSource } from "./parse/hash.js";
@@ -178,7 +178,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
     return runWithExtensions(source, options);
   const lifecycle = {
     hostCallbackDepth: 0,
-    hostCallbackContext: new AsyncLocalStorage<boolean>()
+    hostCallbackContext: createHostCallbackContext()
   };
   const dumpController = createDumpController(lifecycle);
   const promiseTracker = createSandboxPromiseRejectionTracker();

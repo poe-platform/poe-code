@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-import { lstat, readdir, readFile, realpath, stat } from "node:fs/promises";
+import { lstat, open, readdir, readFile, realpath, stat } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { loadBuildView, loadWorkspace, type LintFs } from "./model.js";
 import { createNpmPacklistProvider } from "./packlist.js";
 import { formatReport } from "./report.js";
 import { runRules } from "./rules/index.js";
+import { readBoundedNativeBytes } from "./native-assets.js";
 
 const nodeFs: LintFs = {
   readFile: (p) => readFile(p, "utf8"),
+  readBytes: (p, maxBytes) => readBoundedNativeBytes(open, p, maxBytes),
   readdir: (p) =>
     readdir(p, { withFileTypes: true }) as Promise<{ name: string; isDirectory(): boolean }[]>,
   async stat(p) {

@@ -1,4 +1,4 @@
-import type { FileSystem, FsOptions } from "../contracts/filesystem.js";
+import type { FileSystem, FileType, FsOptions } from "../contracts/filesystem.js";
 import { composeAbortSignals } from "../contracts/abort.js";
 import { bridgeDirent, bridgeStats } from "./stats.js";
 import { booleanValue, checkSignal, onlyKeys, record, withSignal } from "./values.js";
@@ -197,7 +197,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     const withFileTypes = booleanValue(options.withFileTypes);
     const recursive = booleanValue(options.recursive);
     const root = this.#path(path);
-    const entries: { name: string; parentPath: string; relative: string; type: "file" | "directory" | "symlink" }[] = [];
+    const entries: { name: string; parentPath: string; relative: string; type: FileType }[] = [];
     const pending = [root];
     while (pending.length > 0) {
       const directory = pending.shift();

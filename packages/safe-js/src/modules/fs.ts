@@ -2,7 +2,7 @@ import { constants as nodeFsConstants, type Dirent, type PathLike, type Stats } 
 import * as nodeFsPromises from "node:fs/promises";
 import { dirname, isAbsolute, resolve, sep } from "node:path";
 import { inspect } from "node:util";
-import * as nodeUtil from "node:util";
+import { accessDeniedSystemError } from "#safe-js-platform";
 import {
   createNodeFsBridge,
   type EntryComparison,
@@ -277,7 +277,7 @@ const NULL_BYTE = "\u0000";
 
 // libuv numbers errno differently per platform, so the errno and message paired
 // with EACCES come from node's own table rather than a hardcoded -13.
-const [ACCESS_DENIED_ERRNO, ACCESS_DENIED_MESSAGE] = readSystemError(ACCESS_DENIED_CODE);
+const [ACCESS_DENIED_ERRNO, ACCESS_DENIED_MESSAGE] = accessDeniedSystemError;
 
 export type FsImplementation = Pick<typeof nodeFsPromises, FsOperationName>;
 
@@ -873,20 +873,6 @@ function createAccessDeniedError(
   }
 
   return error;
-}
-
-function readSystemError(code: string): [number, string] {
-  const fallback = new Map<number, [string, string]>([
-    [process.platform === "win32" ? -4092 : -13, ["EACCES", "permission denied"]]
-  ]);
-  const systemErrors = nodeUtil.getSystemErrorMap?.() ?? fallback;
-  for (const [errno, [name, message]] of systemErrors) {
-    if (name === code) {
-      return [errno, message];
-    }
-  }
-
-  throw new Error(`node does not define the ${code} system error.`);
 }
 
 // node ignores an option key it does not know, which leaves a script unable to tell

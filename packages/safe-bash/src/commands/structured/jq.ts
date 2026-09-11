@@ -1,4 +1,5 @@
-import { FsError, readBytes, resolvePath, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
 import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
@@ -72,10 +73,14 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
   return options;
 }
 async function readProgram(context: CommandContext, path: string, limits: JqLimits): Promise<string> {
-  const absolute = resolvePath(context.cwd, path);
+  const absolute = pathOf(context, path);
   const chunks: Uint8Array[] = [];
   let size = 0;
-  if (context.fs.readStream) {
+  const capabilities = context.fs.capabilitiesFor
+    ? await interruptible(() => context.fs.capabilitiesFor!(absolute, { signal: context.signal }), context.signal)
+    : context.fs.capabilities;
+  context.signal.throwIfAborted();
+  if (context.fs.readStream && capabilities.streamingRead !== false) {
     for await (const chunk of readBytes(context.fs.readStream(absolute, { signal: context.signal }), context.signal)) {
       size += chunk.byteLength;
       if (size > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
@@ -100,9 +105,14 @@ async function* inputSources(context: CommandContext, options: Options, budget: 
       source = context.stdin;
     }
     else {
-      const absolute = resolvePath(context.cwd, file);
+      const absolute = pathOf(context, file);
       const remaining = budget.limits.maxInputBytes - budget.inputBytes;
-      if (context.fs.readStream) source = context.fs.readStream(absolute, { signal: context.signal });
+      await budget.tick();
+      const capabilities = context.fs.capabilitiesFor
+        ? await interruptible(() => context.fs.capabilitiesFor!(absolute, { signal: context.signal }), context.signal)
+        : context.fs.capabilities;
+      context.signal.throwIfAborted();
+      if (context.fs.readStream && capabilities.streamingRead !== false) source = context.fs.readStream(absolute, { signal: context.signal });
       else source = toByteSource(await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: remaining }), context.signal));
     }
     budget.inputLocation = { name: file === "-" ? "<stdin>" : file, line: 0, complete: false };

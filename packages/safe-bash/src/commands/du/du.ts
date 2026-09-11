@@ -1,4 +1,5 @@
-import { createOutputOperation, resolvePath, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "../../contracts/index.js";
+import { createOutputOperation, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 import { parse, helpText, type Arguments } from "./arguments.js";
 import { Budget, DuLimitError } from "./budget.js";
@@ -85,7 +86,7 @@ class Walker {
     let stat: FileStat;
     try {
       stat = await this.budget.fs(() => context.fs.lstat(path, { signal: context.signal }));
-      if (!stat || !["file", "directory", "symlink"].includes(stat.type)) throw new PublicDiagnostic("invalid entry type");
+      if (!stat || !["file", "directory", "symlink", "character"].includes(stat.type)) throw new PublicDiagnostic("invalid entry type");
     } catch (error) { await this.failure(error, display); return { bytes: 0, complete: false }; }
     const bytes = this.args.apparent ? stat.type === "directory" ? 0 : stat.size : stat.allocatedBytes;
     let amount: Amount;
@@ -115,10 +116,9 @@ class Walker {
     const { context } = this.budget;
     this.budget.text(context.cwd);
     const paths = this.args.operands.map(operand => {
-      const path = resolvePath(context.cwd, operand);
-      const resolved = operand.endsWith("/") && path !== "/" ? path + "/" : path;
-      this.budget.text(resolved);
-      return resolved;
+      const path = pathOf(context, operand === "" ? "." : operand);
+      this.budget.text(path);
+      return path;
     });
     for (let index = 0; index < paths.length; index++) {
       const amount = await this.walk(paths[index]!, this.args.operands[index]!, 0);

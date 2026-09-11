@@ -14,6 +14,7 @@ function commandText(command: Command, indent: string): string {
   switch (command.kind) {
     case "simple": text = command.words.map(spelling).join(" "); break;
     case "arithmetic": text = `(( ${command.source} ))`; break;
+    case "arithmetic-for": text = `for (( ${command.expressions.map(expression => expression?.source ?? "").join("; ")} ));\ndo\n${nested}${scriptText(command.body, nested)};\n${indent}done`; break;
     case "conditional": text = `[[${command.source}]]`; break;
     case "group": text = `{ \n${nested}${scriptText(command.body, nested)}\n${indent}}`; break;
     case "subshell": text = `( ${scriptText(command.body, indent)} )`; break;
@@ -24,7 +25,8 @@ function commandText(command: Command, indent: string): string {
       text += `\n${indent}fi`;
       break;
     case "while": case "until": text = `${command.kind} ${scriptText(command.condition, indent)}; do\n${nested}${scriptText(command.body, nested)};\n${indent}done`; break;
-    case "for": text = `for ${command.name}${command.words ? ` in ${command.words.map(spelling).join(" ")}` : ""};\ndo\n${nested}${scriptText(command.body, nested)};\n${indent}done`; break;
+    case "for":
+    case "select": text = `${command.kind} ${command.name}${command.words ? ` in ${command.words.map(spelling).join(" ")}` : ""};\ndo\n${nested}${scriptText(command.body, nested)};\n${indent}done`; break;
     case "case": text = `case ${spelling(command.subject)} in\n${command.clauses.map(clause => `${nested}${clause.patterns.map(spelling).join(" | ")})\n${nested}    ${scriptText(clause.body, `${nested}    `)}\n${nested}${clause.terminator === "esac" ? "" : clause.terminator}`).join("\n")}\n${indent}esac`; break;
   }
   for (const redirect of command.redirects) {

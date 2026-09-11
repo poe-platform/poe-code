@@ -30,15 +30,17 @@ for (const backend of ["memory", "real", "readonly", "mount", "overlay", "mock-s
     if (backend === "mount") { fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/data": fs } }); cwd = "/data"; }
     if (backend === "overlay") fs = createOverlayFileSystem({ lower: fs, upper: createMemoryFileSystem() });
     const shell = new Shell({ fs, cwd }).use(treeCommands());
+    const baselineShell = new Shell({ cwd, fs: backend === "mount"
+      ? createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/data": expected } }) : expected }).use(treeCommands());
     try {
       for (const args of [["-a"], ["-Ji"], ["-d", "-L1"], ["-fi", "-P", "*.txt", "--noreport"]]) {
-        const baseline = await shellRun(expected, args);
+        const baseline = await baselineShell.exec(`tree ${args.map(quote).join(" ")}`);
         const result = await shell.exec(`tree ${args.map(quote).join(" ")}`);
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stdout, baseline.stdout);
         assert.equal(result.stderr, "");
       }
-    } finally { await shell.dispose(); }
+    } finally { await shell.dispose(); await baselineShell.dispose(); }
   });
 }
 

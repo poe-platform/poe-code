@@ -3,7 +3,7 @@ import test from "node:test";
 import { sedCommand } from "../../../src/commands/text-programs/sed.js";
 import { textProgramCommands, type TextProgramOptions } from "../../../src/commands/text-programs/index.js";
 import { agentCommands } from "../../../src/plugins/index.js";
-import { portableSearchCommands } from "../../../src/commands/search/portable.js";
+import { agentCommands as defaultCommands } from "../../../src/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { makeFileSystem, runVirtual } from "./helpers.js";
 
@@ -164,11 +164,11 @@ test("direct sed definition enforces program admission before input reads", asyn
   assert.equal(Buffer.concat(errors).toString(), "sed: program instruction limit exceeded\n");
 });
 
-for (const route of ["text", "aggregate", "portable"] as const) {
+for (const route of ["text", "aggregate", "default"] as const) {
   test(`sed shell command and subsequent invocations honor the ${route} family configuration`, async () => {
     const options: TextProgramOptions = { maxProgramInstructions: 1 };
     const plugin = route === "text" ? textProgramCommands(options) : route === "aggregate" ? agentCommands({ text: options })
-      : portableSearchCommands({ sed: options, provider: { createWorker() { throw new Error("sed must not create a worker"); } } });
+      : defaultCommands({ text: options, regexExecutor: { createWorker() { throw new Error("sed must not create a worker"); } } });
     const shell = new Shell({ fs: await makeFileSystem(), cwd: "/work" }).use(plugin);
     try {
       const rejected = await shell.exec("sed 's/a/b/;s/b/c/'", { stdin: "a\n" });

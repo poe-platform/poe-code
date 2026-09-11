@@ -8,7 +8,7 @@ import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
 import { loadBoundaries } from "./integration-inputs.mjs";
 import { readRegularInput } from "./typecheck-integration-inputs.mjs";
-import { admitHistoricalTypeModels, createHistoricalCompilerHost, historicalTypeModelDefinitions, checkHistoricalSources } from "./historical-type-models.mjs";
+import { admitHistoricalTypeModels, createHistoricalCompilerHost, historicalTypeModelDefinitions, historicalMemoryTypeModelDefinition, checkHistoricalSources } from "./historical-type-models.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const actualBoundaries = loadBoundaries(packageRoot);
@@ -22,12 +22,15 @@ function fixture() {
     "/package/tsconfig.json": JSON.stringify({ compilerOptions: { strict: true, module: "NodeNext", target: "ES2023", types: [], noLib: true }, files: ["tests/check.ts"] }),
     "/package/tests/check.ts": 'export const wrong: string = 1;\nexport function untyped(value) { return value; }\n',
     "/package/tests/normal.ts": "export const ordinary = 1;\n",
+    "/package/src/fs/memory/index.ts": 'export type FileType = "file" | "directory" | "symlink" | "character"; export interface FileSystem { lstat(path: string): Promise<{ type: FileType; mode: number }>; } export declare function createDeviceFileSystem(filesystem: FileSystem): FileSystem; export declare class MemoryFileSystem implements FileSystem { private identity; lstat(path: string, options?: { signal?: AbortSignal }): Promise<{ type: FileType; mode: number }>; stat(path: string): Promise<{ type: FileType }>; }\n',
   };
   for (const definition of historicalTypeModelDefinitions) {
     for (const input of [definition, ...definition.callers]) {
       files[join(root, input.path)] = readRegularInput(packageRoot, input.path, input.bytes, fs, actualBoundaries);
     }
   }
+  const model = historicalMemoryTypeModelDefinition;
+  files[join(root, model.path)] = readRegularInput(packageRoot, model.path, model.bytes, fs, actualBoundaries);
   const fileSystem = createFsFromVolume(Volume.fromJSON(files));
   const system = {
     ...ts.sys,
@@ -74,10 +77,10 @@ function resolveImport(host, path, specifier, compilerOptions = options) {
   return host.resolveModuleNameLiterals([literal], path, undefined, compilerOptions, source, undefined)[0].resolvedModule;
 }
 
-test("historical models admit exactly six pinned callers and two declaration-only texts", () => {
+test("historical models admit exactly six pinned callers and three declaration-only texts", () => {
   const { admission, host, fileSystem, baseHost } = admittedFixture();
   assert.equal(admission.callers.size, 6);
-  assert.equal(admission.models.size, 2);
+  assert.equal(admission.models.size, 3);
   assert.equal(host.fileExists, baseHost.fileExists);
   for (const [path, caller] of admission.callers) {
     const resolved = resolveImport(host, path, caller.specifier);
@@ -90,12 +93,116 @@ test("historical models admit exactly six pinned callers and two declaration-onl
   }
 });
 
+test("only the authenticated lab memory import uses the compile-only raw-memory model", () => {
+  const { admission, host } = admittedFixture();
+  const path = join(root, "tests/commands/diff-patch-stress/gnu-revised-acceptance/lab.ts");
+  const specifier = "../../../../src/fs/memory/index.js";
+  const model = join(root, "scripts/historical-type-models/memory-filesystem.d.mts");
+  assert.equal(resolveImport(host, path, specifier)?.resolvedFileName, model);
+  assert.equal(admission.models.has(model), true);
+  assert.equal(host.fileExists(model), false);
+  for (const current of [path + ".new.ts", join(dirname(path), "current.ts"), path.toUpperCase()]) {
+    assert.notEqual(resolveImport(host, current, specifier)?.resolvedFileName, model);
+  }
+  assert.notEqual(resolveImport(host, path, specifier.replace("/src/", "/src/./"))?.resolvedFileName, model);
+  const original = join(root, "src/fs/memory/index.ts");
+  assert.equal(resolveImport(host, join(dirname(path), "current.ts"), specifier).resolvedFileName, original);
+  assert.equal(resolveImport(host, path, specifier.replace("/src/", "/src/./")).resolvedFileName, original);
+  assert.equal(resolveImport(host, model, "../../src/fs/memory/index.js").resolvedFileName, original);
+});
+
+test("raw-memory lstat narrowing retains private lineage and leaves current filesystem/device character types intact", () => {
+  const specimen = admittedFixture();
+  addStandardLibrary(specimen.fileSystem);
+  const lab = join(root, historicalMemoryTypeModelDefinition.caller);
+  const current = join(root, "src/fs/memory/index.ts");
+  const compilerOptions = { ...options, target: ts.ScriptTarget.ES5, noLib: false };
+  const program = ts.createProgram({ rootNames: [lab, current], options: compilerOptions,
+    host: createHistoricalCompilerHost(compilerOptions, specimen.admission, specimen.baseHost) });
+  const checker = program.getTypeChecker();
+  const exportsOf = path => new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(program.getSourceFile(path))).map(symbol => [symbol.name, symbol]));
+  const modeledExports = exportsOf(join(root, "scripts/historical-type-models/memory-filesystem.d.mts"));
+  const currentExports = exportsOf(current);
+  const modeled = checker.getDeclaredTypeOfSymbol(modeledExports.get("MemoryFileSystem"));
+  const ordinary = checker.getDeclaredTypeOfSymbol(currentExports.get("MemoryFileSystem"));
+  const resultType = (owner, method) => checker.getAwaitedType(checker.getReturnTypeOfSignature(checker.getTypeOfSymbolAtLocation(owner.getProperty(method), program.getSourceFile(current)).getCallSignatures()[0]));
+  const nodeKinds = owner => checker.getTypeOfSymbolAtLocation(owner.getProperty("type"), program.getSourceFile(current)).types.map(type => type.value).sort();
+  assert.deepEqual(nodeKinds(resultType(modeled, "lstat")), ["directory", "file", "symlink"]);
+  assert.deepEqual(nodeKinds(resultType(modeled, "stat")), ["character", "directory", "file", "symlink"]);
+  assert.deepEqual(nodeKinds(resultType(ordinary, "lstat")), ["character", "directory", "file", "symlink"]);
+  const filesystem = checker.getDeclaredTypeOfSymbol(currentExports.get("FileSystem"));
+  assert.deepEqual(nodeKinds(resultType(filesystem, "lstat")), ["character", "directory", "file", "symlink"]);
+  const device = checker.getReturnTypeOfSignature(checker.getTypeOfSymbolAtLocation(currentExports.get("createDeviceFileSystem"), program.getSourceFile(current)).getCallSignatures()[0]);
+  assert.deepEqual(nodeKinds(resultType(device, "lstat")), ["character", "directory", "file", "symlink"]);
+  assert.equal(checker.isTypeAssignableTo(modeled, ordinary), true);
+  assert.equal(checker.isTypeAssignableTo(ordinary, modeled), false);
+  assert.equal(modeled.getProperty("identity"), ordinary.getProperty("identity"));
+  assert.equal(checker.typeToString(checker.getTypeOfSymbolAtLocation(resultType(modeled, "lstat").getProperty("mode"), program.getSourceFile(current))), "number");
+  assert.deepEqual(checker.getDeclaredTypeOfSymbol(currentExports.get("FileType")).types.map(type => type.value).sort(), ["character", "directory", "file", "symlink"]);
+});
+
+test("current raw MemoryNode excludes devices while the public FileType includes character", () => {
+  const memoryPath = join(packageRoot, "../safe-fs/src/fs/memory/index.ts");
+  const memory = ts.createSourceFile(memoryPath, fs.readFileSync(memoryPath, "utf8"), ts.ScriptTarget.Latest, true);
+  const nodes = memory.statements.find(statement => ts.isTypeAliasDeclaration(statement) && statement.name.text === "MemoryNode");
+  assert.ok(ts.isUnionTypeNode(nodes.type));
+  const kinds = nodes.type.types.map(reference => {
+    assert.ok(ts.isTypeReferenceNode(reference));
+    const declaration = memory.statements.find(statement => ts.isInterfaceDeclaration(statement) && statement.name.text === reference.typeName.getText(memory));
+    const property = declaration.members.find(member => ts.isPropertySignature(member) && member.name.getText(memory) === "type");
+    assert.ok(ts.isLiteralTypeNode(property.type) && ts.isStringLiteral(property.type.literal));
+    return property.type.literal.text;
+  });
+  assert.deepEqual(kinds.sort(), ["directory", "file", "symlink"]);
+  const contractPath = join(packageRoot, "../safe-fs/src/contracts/filesystem.ts");
+  const contract = ts.createSourceFile(contractPath, fs.readFileSync(contractPath, "utf8"), ts.ScriptTarget.Latest, true);
+  const fileType = contract.statements.find(statement => ts.isTypeAliasDeclaration(statement) && statement.name.text === "FileType");
+  assert.deepEqual(fileType.type.types.map(type => type.literal.text).sort(), ["character", "directory", "file", "symlink"]);
+});
+
+test("raw-memory compatibility rejects remapped current import resolution", () => {
+  const { host, fileSystem } = admittedFixture();
+  const target = join(root, "src/fs/memory/index.ts");
+  const replacement = join(root, "redirect/src/fs/memory/index.ts");
+  fileSystem.mkdirSync(dirname(replacement), { recursive: true });
+  fileSystem.renameSync(target, replacement);
+  assert.throws(() => resolveImport(host, join(root, historicalMemoryTypeModelDefinition.caller), historicalMemoryTypeModelDefinition.specifier, {
+    ...options, rootDirs: [root, join(root, "redirect")],
+  }), /historical memory import must retain its current resolution/);
+});
+
+test("current imports cannot borrow the warmed raw-memory compatibility declaration", () => {
+  const specimen = fixture();
+  const currentPath = join(root, "tests/current.ts");
+  specimen.fileSystem.writeFileSync(currentPath, [
+    'import { MemoryFileSystem } from "../scripts/historical-type-models/memory-filesystem.mjs";',
+    'import type { MemoryFileSystem as Model } from "../scripts/historical-type-models/memory-filesystem.d.mts";',
+    'void MemoryFileSystem; export type Borrowed = Model;',
+  ].join("\n"));
+  specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify({
+    compilerOptions: { strict: true, module: "NodeNext", types: [], noLib: true },
+    files: [historicalMemoryTypeModelDefinition.caller, "tests/current.ts"],
+  }));
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.ok(result.program.getSourceFile(join(root, "scripts/historical-type-models/memory-filesystem.d.mts")));
+  const current = result.program.getSourceFile(currentPath);
+  for (const declaration of current.statements.filter(ts.isImportDeclaration)) {
+    assert.equal(result.program.getTypeChecker().getSymbolAtLocation(declaration.moduleSpecifier), undefined);
+    assert.ok(result.diagnostics.some(diagnostic => diagnostic.code === 2307 && diagnostic.file === current && diagnostic.start === declaration.moduleSpecifier.getStart(current)));
+  }
+});
+
 test("models contain only exported declarations, with no ambient modules, any types or implementations", () => {
   const { admission, host } = admittedFixture();
   for (const path of admission.models.keys()) {
     const source = host.getSourceFile(path, ts.ScriptTarget.ES2023);
     assert.deepEqual(source.parseDiagnostics, []);
     for (const statement of source.statements) {
+      if (ts.isImportDeclaration(statement)) {
+        assert.equal(path, join(root, "scripts/historical-type-models/memory-filesystem.d.mts"));
+        assert.equal(statement.moduleSpecifier.text, "../../src/fs/memory/index.js");
+        continue;
+      }
       assert.ok(ts.isFunctionDeclaration(statement) || ts.isInterfaceDeclaration(statement) || ts.isClassDeclaration(statement));
       assert.ok(statement.modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword));
     }
@@ -118,7 +225,7 @@ test("admission uses the existing guarded read capability with exact per-input b
     return fileSystem.readFileSync(path);
   };
   admitHistoricalTypeModels(root, fileSystem, boundaries);
-  assert.deepEqual(reads, historicalTypeModelDefinitions.flatMap(definition => [definition, ...definition.callers].map(input => [join(root, input.path), input.bytes])));
+  assert.deepEqual(reads, [...historicalTypeModelDefinitions.flatMap(definition => [definition, ...definition.callers].map(input => [join(root, input.path), input.bytes])), [join(root, historicalMemoryTypeModelDefinition.path), historicalMemoryTypeModelDefinition.bytes]]);
 });
 
 test("a dangling symlink at a retired runtime name is not treated as absence", () => {
@@ -150,8 +257,8 @@ test("cached authenticated caller bytes are the bytes parsed by the compiler", (
   assert.equal(host.getSourceFile(path, ts.ScriptTarget.ES2023).text, caller.text);
 });
 
-for (const definition of historicalTypeModelDefinitions) {
-  for (const input of [definition, ...definition.callers]) {
+for (const definition of [...historicalTypeModelDefinitions, historicalMemoryTypeModelDefinition]) {
+  for (const input of [definition, ...definition.callers ?? []]) {
     test(`historical admission refuses hash drift: ${input.path}`, () => {
       const { fileSystem } = fixture();
       const bytes = fileSystem.readFileSync(join(root, input.path));
@@ -290,6 +397,7 @@ test("current direct imports cannot use a virtual module already loaded for a hi
 });
 
 for (const reference of [
+  "../scripts/historical-type-models/memory-filesystem.d.mts",
   "../scripts/historical-type-models/native-delivery.d.mts",
   "../scripts/historical-type-models/../historical-type-models/native-delivery.d.mts",
   "..\\scripts\\historical-type-models\\native-delivery.d.mts",
@@ -307,11 +415,11 @@ for (const reference of [
   });
 }
 
-test("explicit virtual model roots are rejected, not appended to or removed from config membership", () => {
+for (const model of ["native-delivery", "memory-filesystem"]) test(`explicit ${model} model roots are rejected, not appended to or removed from config membership`, () => {
   const specimen = fixture();
   specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify({
     compilerOptions: { strict: true, module: "NodeNext", types: [], noLib: true },
-    files: ["tests/check.ts", "scripts/historical-type-models/native-delivery.d.mts"],
+    files: ["tests/check.ts", `scripts/historical-type-models/${model}.d.mts`],
   }));
   assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries }), /historical model cannot be a source root/);
 });

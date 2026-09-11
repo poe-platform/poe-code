@@ -7,7 +7,7 @@ import { createStandardCommandsWithGrep, type StandardCommandsOptions } from "./
 export type { StandardCommandsOptions, ExecutionCommandsOptions } from "./standard.js";
 
 export function createStandardCommands(options: StandardCommandsOptions = {}): readonly CommandDefinition[] {
-  return createStandardCommandsWithGrep(options, grepCommands(options.regex));
+  return createStandardCommandsWithGrep(options, grepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) }));
 }
 
 export function standardCommands(options: StandardCommandsOptions = {}): VirtualShellPlugin {

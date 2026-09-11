@@ -34,6 +34,7 @@ const descriptions: Readonly<Record<ErrnoCode, string>> = {
   EPERM: "operation not permitted",
   EPIPE: "broken pipe",
   EROFS: "read-only file system",
+  ESPIPE: "invalid seek",
   ETIMEDOUT: "operation timed out",
   EXDEV: "cross-device link not permitted",
 };

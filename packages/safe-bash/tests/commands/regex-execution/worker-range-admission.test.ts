@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createStandardCommands, MemoryFileSystem, toByteSource, type CommandContext } from "../../../src/index.js";
@@ -59,20 +60,28 @@ test("actual regex worker preserves empty, non-all and unrelated expr requests",
   } finally { await session.close(); }
 });
 
-for (const length of [100_000, 100_001]) {
-  test(`public standard grep -oc applies the worker range cap at ${length}`, async () => {
-    const command = createStandardCommands().find(definition => definition.name === "grep")!;
-    let stdout = "", stderr = "";
+for (const [flag, length] of [["-o", 100_000], ["-o", 100_001], ["-oc", 100_001]] as const) {
+  test(`public standard grep ${flag} ${flag === "-o" ? "applies the worker range cap" : "selects without enumerating"} at ${length}`, async () => {
+    const command = createStandardCommands({ regexExecutor: createNodeRegexProvider() }).find(definition => definition.name === "grep")!;
+    const refused = flag === "-o" && length > 100_000;
+    const expectedBytes = refused ? 0 : flag === "-oc" ? 2 : length * 2;
+    let stdoutBytes = 0, stderr = "";
     const context: CommandContext = {
-      command: "grep", args: ["-oc", "a"], fs: new MemoryFileSystem(), cwd: "/", env: {},
+      command: "grep", args: [flag, "a"], fs: new MemoryFileSystem(), cwd: "/", env: {},
       signal: new AbortController().signal, stdinIsDefault: false, stdin: toByteSource(Buffer.alloc(length, 97)),
-      stdout: { async write(bytes) { stdout += Buffer.from(bytes).toString(); } },
+      stdout: { async write(bytes) {
+        assert.ok(bytes.length <= expectedBytes - stdoutBytes, "output must remain within the exact byte count");
+        for (const byte of bytes) {
+          assert.equal(byte, stdoutBytes % 2 === 0 ? flag === "-oc" ? 49 : 97 : 10);
+          stdoutBytes++;
+        }
+      } },
       stderr: { async write(bytes) { stderr += Buffer.from(bytes).toString(); } },
     };
     const result = await command.execute(context);
-    assert.equal(result.exitCode, length === 100_000 ? 0 : 2);
-    assert.equal(stdout, length === 100_000 ? "1\n" : "");
-    if (length === 100_000) assert.equal(stderr, "");
-    else assert.match(stderr, /matches.*limit exceeded/u);
+    assert.equal(result.exitCode, refused ? 2 : 0);
+    assert.equal(stdoutBytes, expectedBytes);
+    if (refused) assert.match(stderr, /matches.*limit exceeded/u);
+    else assert.equal(stderr, "");
   });
 }

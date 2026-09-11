@@ -4,6 +4,7 @@ import { FsError } from "../../../src/contracts/index.js";
 import { WalkBudget } from "../../../src/commands/tree/io.js";
 import { settings, type TreeLimits } from "../../../src/commands/tree/options.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { run, shellRun, wrapped } from "./helpers.js";
 
 async function measuredSteps(operation: () => Promise<void>): Promise<number> {
@@ -187,15 +188,16 @@ test("control-heavy text and JSON honor exact completed-output bounds", async ()
   const fs = createMemoryFileSystem();
   const name = `${"\u001b".repeat(8)}\u202e雪`;
   await fs.writeFile(`/${name}`, new Uint8Array());
+  const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/fixture": fs } });
   for (const args of [["-i", "--noreport"], ["-Ji", "--noreport"], ["-J", "--noreport"]]) {
-    const baseline = await shellRun(fs, args);
+    const baseline = await shellRun(mounted, args, {}, "/fixture");
     const bytes = baseline.stdoutBytes.length;
     assert.equal(baseline.exitCode, 0);
     assert.doesNotMatch(baseline.stdout, /[\u001b\u202e]/u);
-    const exact = await shellRun(fs, args, { limits: { maxOutputBytes: bytes } });
+    const exact = await shellRun(mounted, args, { limits: { maxOutputBytes: bytes } }, "/fixture");
     assert.equal(exact.exitCode, 0, exact.stderr);
     assert.equal(exact.stdout, baseline.stdout);
-    await assert.rejects(run(args, { limits: { maxOutputBytes: bytes - 1 } }, { fs }), /output limit/u);
+    await assert.rejects(run(args, { limits: { maxOutputBytes: bytes - 1 } }, { fs: mounted, cwd: "/fixture" }), /output limit/u);
   }
   const original = JSON.stringify;
   let serializations = 0;

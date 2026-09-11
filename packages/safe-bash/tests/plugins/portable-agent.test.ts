@@ -2,19 +2,18 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
-import * as browser from "../../src/portable.js";
-import { portableAgentCommands, portableAgentCommandNames } from "../../src/portable.js";
-import { agentCommands, createAgentCommands } from "../../src/plugins/index.js";
+import * as browser from "../../src/index.js";
+import { agentCommands, createAgentCommands } from "../../src/index.js";
 import { RegexExecutor } from "../../src/commands/regex-execution/portable.js";
 
 const expected = [
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
-  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
-  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
-  "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
+  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
 ].sort();
 
 const portableFamilyCases = [
@@ -55,7 +54,7 @@ const portableFamilyCases = [
 
 for (const [family, source, stdout] of portableFamilyCases) {
   test(`portable family ${family} executes its VFS workflow`, async () => {
-    const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(portableAgentCommands({ provider: browser.createBoundedRegexProvider() }));
+    const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(agentCommands({ regexExecutor: browser.createBoundedRegexProvider() }));
     try {
       const result = await shell.exec(source);
       assert.equal(result.exitCode, 0, `${family}: ${result.stderr}`);
@@ -66,7 +65,7 @@ for (const [family, source, stdout] of portableFamilyCases) {
 }
 
 for (const kind of ["definitions", "plugin"] as const) {
-  test(`Node ${kind} preserve independent regex family pools without creating workers`, async context => {
+  test(`Default ${kind} share general regex pools without creating workers`, async context => {
     const opened: RegexExecutor[] = [];
     const stopped = new Error("stop before worker acquisition");
     context.mock.method(RegexExecutor.prototype, "open", function (this: RegexExecutor) {
@@ -85,31 +84,33 @@ for (const kind of ["definitions", "plugin"] as const) {
     }
     assert.equal(opened.length, 5);
     const [grep, egrep, fgrep, expr, search] = opened;
-    assert.equal(egrep, fgrep, "aliases retain their own shared family pool");
-    assert.equal(new Set([grep, egrep, expr, search]).size, 4, "grep, aliases, expr and search require distinct pools");
+    assert.equal(egrep, fgrep, "aliases share the general family pool");
+    assert.equal(grep, egrep);
+    assert.equal(grep, expr);
+    assert.notEqual(grep, search, "explicit search policy retains its own executor");
     assert.deepEqual(opened.map(executor => executor.options.maxWorkers), [1, 1, 1, 1, 3]);
   });
 }
 
 test("complete portable agent preset accepts an omitted provider", async () => {
-  assert.equal(typeof portableAgentCommands, "function");
+  assert.equal(typeof agentCommands, "function");
   const commands = new browser.CommandRegistry();
-  const plugin = portableAgentCommands({});
+  const plugin = agentCommands({});
   await plugin.setup({ commands, use() {}, registerFileSystem() {} });
   assert.deepEqual(commands.list().map(command => command.name).sort(), expected);
   await plugin.dispose?.();
 });
 
-test("portable inventory is authoritative, immutable, and excludes host opt-ins", () => {
-  assert.ok(Array.isArray(portableAgentCommandNames));
-  assert.equal(Object.isFrozen(portableAgentCommandNames), true);
-  assert.deepEqual([...portableAgentCommandNames].sort(), expected);
-  assert.equal(new Set(portableAgentCommandNames).size, 79);
+test("default inventory matches the independent 110 names and excludes host opt-ins", () => {
+  const names = createAgentCommands().map(command => command.name);
+  assert.equal(names.length, 110);
+  assert.deepEqual(names.sort(), expected);
+  assert.equal(new Set(names).size, 110);
 });
 
 test("portable preset graph never loads fs, native workers, or host command adapters", async () => {
   const result = await build({
-    entryPoints: [new URL("../../src/plugins/portable.ts", import.meta.url).pathname],
+    entryPoints: [new URL("../../src/plugins/index.ts", import.meta.url).pathname],
     bundle: true, platform: "node", format: "esm", write: false, metafile: true,
     external: ["node:*", "poe-code/safe-fs/core"],
   });
@@ -125,7 +126,7 @@ test("original browser graph remains buildable without Node builtin polyfills", 
   const { resolveBrowserShellBuild } = await import(new URL("../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
   const result = await build(resolveBrowserShellBuild(fileURLToPath(new URL("../../../../", import.meta.url))));
   const outputs = result.metafile!.outputs;
-  const pending = Object.keys(outputs).filter(filename => filename.endsWith("/browser.js"));
+  const pending = Object.keys(outputs).filter(filename => filename.endsWith("/core.browser.js"));
   assert.equal(pending.length, 1);
   const reachable = new Set<string>();
   while (pending.length) {
@@ -145,19 +146,19 @@ test("portable registration is atomic and replacement preserves unrelated comman
   const commands = new browser.CommandRegistry([{ name: "jq", execute: () => ({ exitCode: 17 }) }]);
   const host = { commands, use() {}, registerFileSystem() {} };
   const before = commands.list();
-  const plugin = portableAgentCommands({ provider: browser.createBoundedRegexProvider() });
+  const plugin = agentCommands({ regexExecutor: browser.createBoundedRegexProvider() });
   assert.throws(() => plugin.setup(host), /already registered: jq/);
   assert.deepEqual(commands.list(), before);
   await plugin.dispose?.();
-  const invalid = portableAgentCommands({ provider: browser.createBoundedRegexProvider(), structured: { limits: { maxSteps: 0 } } });
+  const invalid = agentCommands({ regexExecutor: browser.createBoundedRegexProvider(), structured: { limits: { maxSteps: 0 } } });
   assert.throws(() => invalid.setup(host), /positive/);
   assert.deepEqual(commands.list(), before);
   await invalid.dispose?.();
   commands.register({ name: "custom", execute: () => ({ exitCode: 23 }) });
   const custom = commands.get("custom");
-  const replacement = portableAgentCommands({ provider: browser.createBoundedRegexProvider(), replace: true });
+  const replacement = agentCommands({ regexExecutor: browser.createBoundedRegexProvider(), replace: true });
   await replacement.setup(host);
-  assert.equal(commands.list().length, 80);
+  assert.equal(commands.list().length, 111);
   assert.equal(commands.get("custom"), custom);
   await replacement.dispose?.();
   assert.throws(() => replacement.setup(host), /disposed/);
@@ -177,7 +178,7 @@ test("all regex consumers use the injected provider and retire their workers", a
     worker.terminate = async () => { await terminate(); retired++; };
     return worker;
   } };
-  const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(portableAgentCommands({ provider }));
+  const shell = new browser.Shell({ fs: new browser.MemoryFileSystem() }).use(agentCommands({ regexExecutor: provider }));
   try {
     for (const command of ["grep -E 'a+'", "egrep 'a+'", "fgrep aa", "rg -F aa"]) {
       requests.length = 0;
@@ -205,7 +206,7 @@ test("all regex consumers use the injected provider and retire their workers", a
 
 test("portable compression and archives preserve binary streams", async () => {
   const fs = new browser.MemoryFileSystem();
-  const shell = new browser.Shell({ fs }).use(portableAgentCommands({ provider: browser.createBoundedRegexProvider() }));
+  const shell = new browser.Shell({ fs }).use(agentCommands({ regexExecutor: browser.createBoundedRegexProvider() }));
   try {
     const binary = await shell.exec("printf '\\000\\377A' | base64 | base64 -d | gzip -c | gunzip -c");
     assert.equal(binary.exitCode, 0, binary.stderr);

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../../src/shell/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { portableAgentCommands } from "../../../src/plugins/portable.js";
+import { agentCommands } from "../../../src/index.js";
 import { createBoundedRegexProvider, type BoundedRegexProviderOptions } from "../../../src/commands/regex-execution/bounded-provider.js";
 import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 import { defaults, exprMatchCeilings, type ExprMatchDescriptor, type ExprMatchReply } from "../../../src/commands/regex-execution/protocol.js";
@@ -26,7 +26,7 @@ async function exchange(worker: RegexWorker, request: RegexWorkerRequest): Promi
 }
 
 test("bounded expr supports portable command length, captures and anchored nonmatches", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(portableAgentCommands({ provider: createBoundedRegexProvider() }));
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({ regexExecutor: createBoundedRegexProvider() }));
   try {
     for (const [source, stdout, exitCode] of [
       ["expr 2 + 3", "5\n", 0],

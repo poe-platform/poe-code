@@ -153,7 +153,7 @@ export async function main({ argv = process.argv.slice(2), root = fileURLToPath(
       const options = parseLintArguments(argv);
       const bootstrap = createLintInputGuard({ root, fileSystem, bootstrap: true });
       const packageBytes = bootstrap.read('package.json', 'configuration');
-      assert.equal(JSON.parse(packageBytes.toString('utf8')).scripts?.['lint:eslint'], 'node scripts/lint-eslint.mjs', 'Phase 2 root lint wiring is not installed');
+      assert.equal(JSON.parse(packageBytes.toString('utf8')).scripts?.['lint:eslint'], 'node --max-old-space-size=1024 scripts/lint-eslint.mjs', 'Phase 2 root lint wiring is not installed');
       const configBytes = bootstrap.read('eslint.config.js', 'configuration');
       const module = await (loadConfig ? loadConfig() : import(pathToFileURL(root + '/eslint.config.js').href));
       assert.ok(module.lintInputGuard && module.lintInputGuard.root === root, 'guarded configuration context required');

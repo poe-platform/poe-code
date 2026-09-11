@@ -6,6 +6,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "imports": {
+    "#safe-fs-native-seek": {
+      "types": "./src/native/loader.d.ts",
+      "workerd": null,
+      "browser": null,
+      "default": "./dist/native/fs-seek/loader.mjs"
+    },
     "#safe-fs-platform": {
       "workerd": "./src/platform/browser.ts",
       "browser": "./src/platform/browser.ts",
@@ -28,8 +34,11 @@
     "./fs/quota": { "types": "./dist/fs/quota/index.d.ts", "import": "./dist/fs/quota/index.js" }
   },
   "files": ["dist", "README.md", "PROVENANCE.json"],
+  "devDependencies": {
+    "node-api-headers": "1.9.0"
+  },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "repository": {

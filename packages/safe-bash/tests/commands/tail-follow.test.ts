@@ -6,7 +6,7 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { tailFollowScheduler } from "../../src/commands/tail-follow.js";
 import { createStandardCommands } from "../../src/commands/index.js";
-import { createBrowserCommands } from "../../src/browser.js";
+import { createAgentCommands as createDefaultCommands } from "../../src/index.js";
 import { createAgentCommands } from "../../src/plugins/index.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
@@ -127,7 +127,7 @@ test("finite tail and head remain unchanged", async () => {
   assert.equal(run.text(), "last\n");
 });
 
-for (const factory of [createStandardCommands, createBrowserCommands, createAgentCommands]) test(`${factory.name} forwards a zero named-follow cap`, async () => {
+for (const factory of [createStandardCommands, createDefaultCommands, createAgentCommands]) test(`${factory.name} forwards a zero named-follow cap`, async () => {
   assert.throws(() => factory({ maxTailFollowHandles: -1 }), /maxTailFollowHandles/u);
   const tail = factory({ maxTailFollowHandles: 0 }).find(command => command.name === "tail")!;
   const errors: number[] = [];

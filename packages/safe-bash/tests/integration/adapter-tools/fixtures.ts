@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
+import { createNodeRegexProvider } from "../../../src/node.js";
 import {
   agentCommands, createByteCommands, createDiffPatchCommands,
   createSearchCommands, createStandardCommands, createStructuredCommands,
@@ -142,7 +143,7 @@ async function davFixture(cleanups: Cleanup[], profile: FixtureProfileOptions): 
 export async function withFixture(
   name: AdapterName,
   run: (fixture: Fixture) => Promise<void>,
-  plugin: VirtualShellPlugin = agentCommands(),
+  plugin: VirtualShellPlugin = agentCommands({ regexExecutor: createNodeRegexProvider() }),
   profile: FixtureProfileOptions = {},
 ): Promise<void> {
   const cleanups: Cleanup[] = [];

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { seed, shellRun } from "./helpers.js";
 
 interface Row { args: string[]; stdout: string; stderr: string; exitCode: number }
@@ -16,7 +17,8 @@ const fixtures = JSON.parse(await readFile(new URL("./native-fixtures.json", imp
 for (const row of fixtures.exact) test(`frozen tree 2.2.1 C/ASCII exact: ${row.args.join(" ") || "default"}`, async () => {
   const fs = createMemoryFileSystem();
   await seed(fs);
-  const result = await shellRun(fs, row.args);
+  const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/fixture": fs } });
+  const result = await shellRun(mounted, row.args, {}, "/fixture");
   assert.equal(result.exitCode, row.exitCode);
   assert.equal(result.stdout, row.stdout);
   assert.equal(result.stderr, row.stderr);
@@ -25,7 +27,8 @@ for (const row of fixtures.exact) test(`frozen tree 2.2.1 C/ASCII exact: ${row.a
 for (const row of fixtures.semantic) test(`frozen tree 2.2.1 JSON semantic: ${row.args.join(" ")}`, async () => {
   const fs = createMemoryFileSystem();
   await seed(fs);
-  const result = await shellRun(fs, row.args);
+  const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/fixture": fs } });
+  const result = await shellRun(mounted, row.args, {}, "/fixture");
   assert.equal(result.exitCode, row.exitCode);
   assert.deepEqual(JSON.parse(result.stdout), JSON.parse(row.stdout));
   assert.equal(result.stderr, row.stderr);

@@ -72,13 +72,16 @@ for (const [value, expected] of [["0", "a"], ["-1", "a"], ["0x2", "b"], ["429496
   });
 }
 
-test("invalid octal assignment is fatal without inventing a general declare builtin", async () => {
+test("invalid octal assignment remains fatal with limited declaration support", async () => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('OPTIND=08; say unreachable');
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
   assert.equal(result.stderr, 'shell: line 1: 08: arithmetic syntax error: operand expected (error token is "8")\n');
-  assert.equal((await shell.exec("type -t declare")).exitCode, 1);
+  const declaration = await shell.exec("type -t declare");
+  assert.equal(declaration.exitCode, 0);
+  assert.equal(declaration.stdout, "builtin\n");
+  assert.equal((await shell.exec("declare -i value=1")).exitCode, 2);
 });
 
 test("fresh defaults preserve inherited export bits while clones do not initialize", async () => {

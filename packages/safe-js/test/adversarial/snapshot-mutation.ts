@@ -17,6 +17,7 @@ export async function runSnapshotMutationCorpus(): Promise<void> {
   const initial = await run(SOURCE, { randomSeed: 7 });
   const validDump = await dump(initial);
   const validSnapshot = JSON.parse(validDump) as Record<string, unknown>;
+  const baseline = JSON.stringify(validSnapshot);
   const resumed = await run(SOURCE, { snapshot: restore(validSnapshot, { source: SOURCE }) });
   if (resumed.returnValue !== initial.returnValue || (await dump(resumed)) !== validDump) {
     throw adversarialFailure({
@@ -30,7 +31,7 @@ export async function runSnapshotMutationCorpus(): Promise<void> {
   const random = createRandom(SNAPSHOT_MUTATION_SEED);
   const startedAt = performance.now();
   for (let index = 0; index < CASE_COUNT; index += 1) {
-    const snapshot = structuredClone(validSnapshot);
+    const snapshot = { ...validSnapshot };
     mutate(snapshot, random, index);
     try {
       restore(snapshot as never, { source: SOURCE });
@@ -46,6 +47,15 @@ export async function runSnapshotMutationCorpus(): Promise<void> {
         });
       }
     }
+  }
+
+  if (JSON.stringify(validSnapshot) !== baseline) {
+    throw adversarialFailure({
+      cause: new Error("malformed snapshot validation mutated the shared baseline"),
+      kind: "snapshot",
+      seed: SNAPSHOT_MUTATION_SEED,
+      value: validDump
+    });
   }
 
   const duration = performance.now() - startedAt;

@@ -54,10 +54,10 @@ test("here-string budgets include its appended newline and nested work", async (
   assert.equal((await shell.exec("pass <<<1234", { limits: { maxExpansionBytes: 5 } })).stdout, "1234\n");
 });
 
-test("here-string substitutions retain the UTF-8 and NUL string boundary", async () => {
+test("here-string substitutions preserve bytes and discard NUL", async () => {
   const { shell } = setup();
   const result = await shell.exec("pass <<<$(bytes)");
-  assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("�é�\n"));
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 195, 169, 128, 10));
 });
 
 test("here-string cancellation observes late host rejection", { timeout: 2000 }, async () => {

@@ -95,3 +95,95 @@ existing creation path charges once. That separate pre-existing creation case
 is not repaired here. Use an appropriately bounded backing filesystem when that
 composition is required; do not infer protection from this contract's narrower
 existing-file checks.
+
+## Retained writable resizing
+
+The quota view explicitly guards `openResizeFile`; its generic proxy forwarding
+must not expose the backing writable handle. Support requires affirmative
+selected-path `retainedResize`, a callable backing opener and no readonly
+restriction. Capability admission uses the retained-resize helper, including
+interruptible pre-acquisition capability queries. An opaque capability promise
+does not become a resource-retirement barrier or permit a late open after abort.
+
+The initial quota profile additionally requires a regular-file handle with a
+complete `identityScope/dev/ino` tuple. Unknown identity fails with `ENOTSUP`
+after retiring the acquired handle. Invalid handle sizes or subsequent identity
+changes fail with `EIO`. The wrapper copies observations before awaiting its
+census and never rebinds the handle to a later occupant of the opening pathname.
+No `compareEntry` call using that pathname can establish the retained identity.
+Known preferred-I/O-block observations are forwarded without synthesis.
+
+Retained resize handles preserve a backing `seekEnd` only when it is available.
+The method is captured once during acquisition and invoked with the original
+handle receiver, preserving its exact bigint result without content changes,
+namespace census or quota charges. End seeking shares the mutation queue and
+cancellation checks of handle metadata work; close drains an in-flight seek
+before retiring the resource. Retained read handles are forwarded unchanged,
+including their optional end-seeking support.
+
+Acquisition, handle metadata operations and resizing share the wrapper's mutation
+queue. Every resize validates a nonnegative safe-integer length and performs a
+fresh bounded namespace census before calling the same backing handle. The
+retained census validates non-directory sizes and sums them with exact integer
+arithmetic. Its entry and depth limits also apply to shrinking and same-size
+operations; no content reads or zero-buffer emulation are used for accounting.
+Backing allocation, retained-storage and permission policy remain in force.
+
+Namespace `readdir` and `lstat` promises used by the retained census are opaque
+metadata, not owned handle work. Caller cancellation interrupts those waits,
+including the pre-creation census before any handle exists. Their eventual
+fulfillment or rejection remains observed, but cannot resume the canceled
+census, open a file or resize a handle. The quota queue can then admit other
+work without waiting for that metadata to settle. The census is never skipped
+for an operation that proceeds; limits and alias accounting remain unchanged.
+Legacy pathname mutation routes retain their existing metadata-wait behavior.
+
+For each visible file with the pinned complete identity, positive admission
+covers any increase from that visible entry's observed size to the requested
+length. Every incomplete-identity file is a possible alias: it receives the
+larger of the handle's positive size delta and any positive increase from its
+own observed size to the requested length. Complete distinct identities receive
+no growth charge. Hardlinks and repeated mount views count independently;
+physical `nlink` does not limit their namespace multiplicity. When the census
+finds neither a matching nor a possible alias, positive handle growth is still
+charged once conservatively.
+
+Shrink credit is limited to one freshly confirmed visible alias and to the
+smaller of its observed size and the handle's observed size. Unknown aliases,
+replacement pathname occupants and an entirely unlinked handle supply no shrink
+credit. The remaining entries retain their full census charges. This can reject
+a resize whose actual resulting namespace would fit; it must not release quota
+using a stale opening-path size or an unsupported alias assumption.
+
+When `create` is true, a bounded exact census must fit the byte quota before the
+backing opener is entered. This conservative admission also runs if the target
+already exists. Malformed sizes, census exhaustion, cancellation and byte-quota
+failure prevent the creation effect. A conforming missing-file open creates a
+zero-length file without creating parents. Its zero-byte aliases need no growth
+reservation; every later resize censuses the now-visible aliases. Thus this
+route does not inherit the older nonzero absent-file write's single-mount charge
+gap. Creation remains visible when later growth or handle validation fails; no
+rollback or pathname replacement is attempted. Unsupported copy-up/replacement
+backends cannot gain retained support merely by forwarding the new method.
+The admitted backing opener is captured before the census and invoked with its
+original filesystem receiver after a final cancellation check. Acquisition does
+not repeat an observable method lookup after that check; a reentrant getter
+cannot cancel admission and then dispatch an already-canceled creation.
+
+Handle close synchronously stops new admissions with `EBADF`, shares one promise
+and waits for that handle's already queued operations before closing its backing
+resource once. It does not wait for unrelated later acquisitions. Failed queued
+operations retain their own rejection; close reports its own retirement failure.
+An interrupted namespace census therefore does not delay handle close. In
+contrast, actual backing acquisition, retained-handle `stat` and `truncate`,
+and backing close remain owned work that must finish; these promises are not
+raced against cancellation. A mutation completed during cancellation is not
+rolled back, and cancellation does not release its handle while it is in use.
+Late acquired resources are retired before cancelled acquisition settles. The
+original acquisition failure or caller abort wins over a secondary close failure,
+including falsey values. No completed mutation is undone by later cancellation.
+
+These guarantees remain local to one quota wrapper. External writers, independent
+wrappers and namespace remounts are not locked: identity and size observations
+are point-in-time evidence, not a transaction or a storage lease. The legacy
+path-write creation limitation described above is unchanged by this new route.

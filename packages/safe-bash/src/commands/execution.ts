@@ -1,8 +1,9 @@
 import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, replaceArgument, UsageError, value } from "./internal.js";
+import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from "./internal.js";
 import { EnvSplitError, parseEnvOptions } from "./env-split.js";
+import { delimitedArguments, replaceXargsArguments, xargsDisplay } from "./xargs-bytes.js";
 
 export interface ExecutionCommandsOptions {
   readonly maxParallelProcesses?: number;
@@ -22,7 +23,7 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
   };
 }
 
-async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter?: string, replacement = false): AsyncGenerator<string> {
+async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false): AsyncGenerator<string> {
   const utf8 = new TextDecoder("utf-8", { fatal: true });
   let current = "";
   let active = false;
@@ -30,10 +31,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter
   let quote = "";
   const parse = function* (text: string): Generator<string> {
     for (const character of text) {
-      if (delimiter !== undefined) {
-        if (character === delimiter) { yield current; current = ""; active = false; }
-        else { current += character; active = true; }
-      } else if (escaped) { current += character; active = true; escaped = false; }
+      if (escaped) { current += character; active = true; escaped = false; }
       else if (quote) {
         if (character === "\n") throw new UsageError("unmatched quote in input");
         if (character === quote) quote = "";
@@ -108,12 +106,22 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
     define("xargs", async context => {
       const argumentValues = getCommandArguments(context);
       const operandIndices: number[] = [];
-      const parsed = options(argumentValues.args, "0rn:s:I:d:tP:xE:", { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" }, true, index => { operandIndices.push(index); });
+      let replacementOrigin: { index: number; offset: number } | undefined;
+      const shortOptions = "0rn:s:I:d:tP:xE:";
+      const longOptions = { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" };
+      const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
+        (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; });
       const requested = integer(value(parsed, "P") ?? "1");
       const parallelism = requested === 0 ? maxParallelProcesses : Math.min(requested, maxParallelProcesses);
       const replacement = value(parsed, "I");
       if (replacement === "") throw new UsageError("replacement string cannot be empty");
       if (replacement !== undefined && parsed.flags.has("n")) throw new UsageError("cannot combine -I and -n");
+      let replacementPattern: Uint8Array | undefined;
+      if (replacementOrigin) {
+        const { index, offset } = replacementOrigin;
+        if (shellValueByteLength(argumentValues.values[index]!) - offset > 131072) throw new UsageError("replacement string exceeds 128 KiB limit");
+        replacementPattern = argumentValues.bytes(index)!.subarray(offset);
+      }
       const maxArgs = replacement === undefined ? integer(value(parsed, "n") ?? "5000", 1) : 1;
       const maxBytes = integer(value(parsed, "s") ?? "131072", 1);
       if (maxBytes > 131072) throw new UsageError("command size limit cannot exceed 128 KiB");
@@ -128,7 +136,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const initial = argumentValues.select(operandIndices).slice(1);
       const baseBytes = encoder.encode(command).length + 1 + initial.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
       if (baseBytes >= maxBytes) throw new UsageError("initial arguments exceed command size limit");
-      let batch: string[] = [];
+      let batch: (string | Uint8Array)[] = [];
       let bytes = baseBytes;
       let executed = false;
       let status = 0;
@@ -192,11 +200,11 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       };
       const dispatch = async () => {
         if (stop) return;
-        const childArguments = initial.withValues(replacement === undefined ? [...initial.values, ...batch] : initial.values.map((argument, index) => replaceArgument(typeof argument === "string" ? argument : initial.bytes(index)!, replacement, batch[0] ?? "")));
+        const childArguments = initial.withValues(replacementPattern === undefined ? [...initial.values, ...batch] : await replaceXargsArguments(initial.values, replacementPattern, batch[0] ?? "", maxBytes - encoder.encode(command).length - 1, context.signal));
         const args = childArguments.args;
         const size = encoder.encode(command).length + 1 + childArguments.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");
-        if (parsed.flags.has("t")) await writeDiagnostic(context.stderr, [command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n", context.signal);
+        if (parsed.flags.has("t")) await writeDiagnostic(context.stderr, [command, ...childArguments.values].map(xargsDisplay).join(" ") + "\n", context.signal);
         if (stop) return;
         context.signal.throwIfAborted();
         executed = true;
@@ -220,9 +228,13 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       };
       const eof = value(parsed, "E");
       try {
-        for await (const argument of argumentsFrom(source, inputSignal, delimiter, replacement !== undefined)) {
+        if (delimiter !== undefined && eof !== undefined && eof !== "") await writeDiagnostic(context.stderr, "xargs: warning: the -E option has no effect if -0 or -d is used.\n\n", context.signal);
+        const incoming = delimiter === undefined
+          ? argumentsFrom(source, inputSignal, replacement !== undefined)
+          : delimitedArguments(source, inputSignal, context.signal, delimiter.charCodeAt(0), replacement === undefined ? maxBytes - baseBytes - 1 : maxBytes - 1);
+        for await (const argument of incoming) {
           if (stop || delimiter === undefined && eof !== undefined && eof !== "" && argument === eof) break;
-          const size = encoder.encode(argument).length + 1;
+          const size = (typeof argument === "string" ? Buffer.byteLength(argument) : argument.byteLength) + 1;
           if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
           if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {
             if (parsed.flags.has("x") && batch.length < maxArgs) throw new UsageError("command size limit exceeded");

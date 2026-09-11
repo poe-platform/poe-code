@@ -1,0 +1,9 @@
+# Public cleanup integrity scan performance
+
+The maintained public cleanup test exceeded its 15-second deadline in the Kimi qualification run even though its attack child correctly refused the private package route and created zero native workers. The failure remains recorded in `/tmp/poe-kimi-removal-unit.log` (15,099.292 ms).
+
+Inspection found that each peer artifact scan read every admitted leaf twice: once during the complete directory walk and again to hash it. A deterministic memory-backed regression reproduced two reads where one was required (`/tmp/poe-cleanup-scans-red.log`). The scan now hashes the freshly admitted bytes during the walk and compares those invocation-local digests after checking exact inventory membership. Regular-file, symlink, byte-bound, native membership and digest checks remain active. Each subsequent scan reads fresh bytes; no timestamp cache, parse cache, integrity-boundary removal or deadline change was introduced.
+
+The regression verifies one read per leaf on each of two scans and rejects subsequent tampering. All 47 related native peer and census tests passed in 2.229 seconds (`/tmp/poe-cleanup-scans-green.log`). Independent review approved the change.
+
+The unchanged actual `tests/shell/invocation-cleanup-public.test.ts` passed all 20 tests in 180.011 seconds (`/tmp/poe-cleanup-public-scans-green.log`). The formerly failing private-package-route case passed in 9,045.105 ms. Commands used `node --import tsx --test` with those exact files from the safe-bash workspace and the previously verified identical esbuild binary override. The per-test 15-second and child 10-second deadlines remain unchanged. These observations establish this run's result, not a guaranteed wall-time reduction under arbitrary host load. A combined maintained full gate remains separate qualification.

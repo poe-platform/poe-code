@@ -1,4 +1,5 @@
 import { createSearchCommands, type SearchOptions } from "../../../src/commands/search/index.js";
+import { createNodeRegexProvider } from "../../../src/node.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import type { CommandContext } from "../../../src/contracts/index.js";
 
@@ -20,6 +21,6 @@ export async function searchInput(fs: MemoryFileSystem, input: Pick<CommandConte
     stdout: { async write(chunk) { output.push(Buffer.from(chunk)); } },
     stderr: { async write(chunk) { errors.push(Buffer.from(chunk)); } },
   };
-  const result = await createSearchCommands(options)[0]!.execute(context);
+  const result = await createSearchCommands({ regexExecutor: createNodeRegexProvider(), ...options })[0]!.execute(context);
   return { code: result.exitCode, stdout: Buffer.concat(output).toString(), stderr: Buffer.concat(errors).toString() };
 }

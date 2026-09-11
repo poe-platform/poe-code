@@ -3,14 +3,15 @@ import * as native from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { nativeAllocatedBytes } from "./allocation.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
+import { callNativeSeekEnd, loadNativeSeekBinding } from "../../node/native-seek.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import {
   FsError, collectBytes, isErrnoCode, toByteSource, toFsError, validatePath,
 } from "../../contracts/index.js";
 import type {
-  AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileReadHandle, FileStat,
-  FileSystem, FileSystemCapabilities, FileType, FsOptions, MkdirOptions,
-  ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileStat,
+  FileSystem, FileSystemCapabilities, FileType, FsOptions, RenameOptions, MkdirOptions,
+  OpenReadFileOptions, OpenResizeFileOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/index.js";
 
 export interface RealFileSystemOptions {
@@ -22,6 +23,7 @@ interface ResolutionOptions extends FsOptions {
   readonly followFinal?: boolean;
   readonly missing?: "final";
   readonly deferTrailingSeparator?: boolean;
+  readonly createFile?: boolean;
   readonly createDirectories?: { readonly mode: number };
   readonly checkTarget?: boolean;
 }
@@ -40,9 +42,11 @@ function fileType(stats: Pick<Stats, "isFile" | "isDirectory" | "isSymbolicLink"
 
 function fileStat(stats: Stats): FileStat {
   const allocatedBytes = nativeAllocatedBytes(stats.blocks, process.platform);
+  const preferredIoBlockSize = stats.blksize;
   return {
     type: fileType(stats), size: stats.size, mode: stats.mode,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(Number.isSafeInteger(preferredIoBlockSize) && preferredIoBlockSize > 0 ? { preferredIoBlockSize } : {}),
     atimeMs: stats.atimeMs, mtimeMs: stats.mtimeMs, ctimeMs: stats.ctimeMs,
     birthtimeMs: stats.birthtimeMs, ino: stats.ino, dev: stats.dev,
     ...(Number.isSafeInteger(stats.dev) && stats.dev >= 0 && Number.isSafeInteger(stats.ino) && stats.ino >= 0
@@ -111,10 +115,10 @@ export class RealFileSystem implements FileSystem {
     read: true, stat: true, readdir: true, realpath: true, access: true,
     write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
     mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
-    rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
+    rename: true, atomicRenameNoReplace: false, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
     streamingAppend: true, randomAccessWrite: true,
     readOnly: false, symlinks: true, hardlinks: true, permissions: true,
-    timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true, retainedRead: true,
+    timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true, retainedRead: true, retainedResize: true,
   });
 
   private readonly configuredRoot: string;
@@ -164,7 +168,12 @@ export class RealFileSystem implements FileSystem {
     while (pending.length > 0) {
       options.signal?.throwIfAborted();
       const { name: component, fromLink } = pending.shift()!;
-      if (component === "" || component === ".") continue;
+      if (component === "") continue;
+      if ((component === "." || component === "..") && !options.checkTarget) {
+        await native.lstat(`${current}/.`);
+        options.signal?.throwIfAborted();
+      }
+      if (component === ".") continue;
       if (component === "..") {
         if (current === root) {
           if (fromLink) throw new FsError("EACCES", { message: "symlink target escapes the configured root" });
@@ -172,6 +181,11 @@ export class RealFileSystem implements FileSystem {
           current = resolve(current, "..");
         }
         continue;
+      }
+      if (options.createFile && pending.length > 0 && pending.every((part) => part.name === "")) {
+        await native.lstat(`${current}/.`);
+        options.signal?.throwIfAborted();
+        throw new FsError("EISDIR");
       }
       const candidate = join(current, component);
       let stats: Stats;
@@ -365,8 +379,9 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
-  async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {
+  async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     return this.operation("rename", source, options, async () => {
+      if (options.noReplace) throw new FsError("ENOTSUP", { syscall: "rename", path: source, dest: destination });
       const from = await this.path(source, { ...options, followFinal: false });
       const to = await this.path(destination, { ...options, followFinal: false, missing: "final" });
       this.protectTerminal(source);
@@ -489,8 +504,115 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
-  async openReadFile(path: string, options: FsOptions = {}): Promise<FileReadHandle> {
+  async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {
     options.signal?.throwIfAborted();
+    const assertStock = (): void => {
+      const unsupported = (): never => { throw new FsError("ENOTSUP", { syscall: "openResizeFile", path }); };
+      if (Object.getPrototypeOf(this) !== RealFileSystem.prototype) unsupported();
+      for (const name of ["openResizeFile", "truncate", "writeFile", "writeStream", "appendFile", "stat", "lstat", "realpath", "access",
+        "root", "absoluteTarget", "walk", "path"]) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, name)
+          ?? Object.getOwnPropertyDescriptor(RealFileSystem.prototype, name);
+        if (!descriptor || !("value" in descriptor) || descriptor.value !== realImplementation[name]?.value) unsupported();
+      }
+      const capabilities = Object.getOwnPropertyDescriptor(this, "capabilities")?.value;
+      if (capabilities?.readOnly === true) throw new FsError("EROFS", { syscall: "openResizeFile", path });
+      if (capabilities?.retainedResize !== true) unsupported();
+    };
+    assertStock();
+    const failure = (error: unknown, syscall: string): unknown => error
+      ? new FsError(nativeError(error).code, { syscall, path }) : error;
+    let resource: native.FileHandle | undefined;
+    try {
+      if (options.mode !== undefined) integer(options.mode);
+      if (options.create !== undefined && typeof options.create !== "boolean") throw new FsError("EINVAL");
+      const target = await this.path(path, {
+        ...options, ...(options.create === true ? { missing: "final" as const } : {}),
+        deferTrailingSeparator: true, createFile: options.create === true,
+      });
+      options.signal?.throwIfAborted();
+      assertStock();
+      const flags = constants.O_WRONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK
+        | (options.create === true ? constants.O_CREAT : 0);
+      resource = await native.open(target, flags, options.mode ?? 0o666);
+      options.signal?.throwIfAborted();
+      const stats = await resource.stat();
+      options.signal?.throwIfAborted();
+      assertStock();
+      if (stats.isDirectory()) throw new FsError("EISDIR");
+      if (!stats.isFile()) throw new FsError("ENOTSUP");
+    } catch (error) {
+      await finishCleanup(async () => { await resource?.close(); }, true);
+      options.signal?.throwIfAborted();
+      throw failure(error, "openResizeFile");
+    }
+    const handle = resource;
+    const pending = new Set<Promise<void>>();
+    let accepting = true;
+    let closing: Promise<void> | undefined;
+    const assertOpen = (options: FsOptions, syscall: string): void => {
+      options.signal?.throwIfAborted();
+      if (!accepting) throw new FsError("EBADF", { syscall, path });
+    };
+    const perform = async <Value>(options: FsOptions, syscall: string, action: () => Promise<Value>): Promise<Value> => {
+      assertOpen(options, syscall);
+      let settled!: () => void;
+      const admitted = new Promise<void>(resolve => { settled = resolve; });
+      pending.add(admitted);
+      try {
+        const value = await action();
+        options.signal?.throwIfAborted();
+        return value;
+      } catch (error) {
+        options.signal?.throwIfAborted();
+        throw failure(error, syscall);
+      } finally {
+        pending.delete(admitted);
+        settled();
+      }
+    };
+    return {
+      stat(options = {}) {
+        return perform(options, "fstat", async () => fileStat(await handle.stat()));
+      },
+      async truncate(length, options = {}) {
+        assertOpen(options, "ftruncate");
+        try { integer(length); }
+        catch (error) { throw failure(error, "ftruncate"); }
+        return perform(options, "ftruncate", async () => { await handle.truncate(length); });
+      },
+      async seekEnd(options = {}) {
+        const signal = options.signal;
+        const operationOptions = signal === undefined ? {} : { signal };
+        assertOpen(operationOptions, "lseek");
+        try {
+          const binding = await loadNativeSeekBinding(signal);
+          assertOpen(operationOptions, "lseek");
+          const seek = binding.seekEnd;
+          assertOpen(operationOptions, "lseek");
+          if (typeof seek !== "function") throw new FsError("EIO");
+          const descriptor = handle.fd;
+          assertOpen(operationOptions, "lseek");
+          return await perform(operationOptions, "lseek", () => callNativeSeekEnd(binding, seek, descriptor));
+        } catch (error) {
+          signal?.throwIfAborted();
+          throw failure(error, "lseek");
+        }
+      },
+      close() {
+        accepting = false;
+        closing ??= Promise.all([...pending]).then(async () => {
+          try { await handle.close(); }
+          catch (error) { throw failure(error, "close"); }
+        });
+        return closing;
+      },
+    };
+  }
+
+  async openReadFile(path: string, options: OpenReadFileOptions = {}): Promise<FileReadHandle> {
+    const signal = options.signal;
+    signal?.throwIfAborted();
     const assertStock = (): void => {
       const unsupported = (): never => { throw new FsError("ENOTSUP", { syscall: "openReadFile", path }); };
       if (Object.getPrototypeOf(this) !== RealFileSystem.prototype) unsupported();
@@ -506,20 +628,25 @@ export class RealFileSystem implements FileSystem {
     const failure = (error: unknown, syscall: string): unknown => error
       ? new FsError(nativeError(error).code, { syscall, path }) : error;
     let resource: native.FileHandle | undefined;
+    let directory = false;
     try {
-      const target = await this.path(path, options);
-      options.signal?.throwIfAborted();
+      const allowDirectory = options.allowDirectory === true;
+      signal?.throwIfAborted();
+      const target = await this.path(path, signal === undefined ? {} : { signal });
+      signal?.throwIfAborted();
       assertStock();
       resource = await native.open(target, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
-      options.signal?.throwIfAborted();
+      signal?.throwIfAborted();
       const stats = await resource.stat();
-      options.signal?.throwIfAborted();
+      signal?.throwIfAborted();
       assertStock();
-      if (stats.isDirectory()) throw new FsError("EISDIR");
-      if (!stats.isFile()) throw new FsError("ENOTSUP");
+      directory = stats.isDirectory();
+      if (directory && !allowDirectory) throw new FsError("EISDIR");
+      if (!directory && !stats.isFile()) throw new FsError("ENOTSUP");
+      signal?.throwIfAborted();
     } catch (error) {
       await finishCleanup(async () => { await resource?.close(); }, true);
-      options.signal?.throwIfAborted();
+      signal?.throwIfAborted();
       throw failure(error, "openReadFile");
     }
     const handle = resource;
@@ -558,6 +685,7 @@ export class RealFileSystem implements FileSystem {
           integer(maxBytes, 1);
         } catch (error) { throw failure(error, "read"); }
         if (maxBytes > Number.MAX_SAFE_INTEGER - position) throw new FsError("EINVAL", { syscall: "read", path });
+        if (directory) throw new FsError("EISDIR", { syscall: "read", path });
         return perform(options, "read", async () => {
           let bytes: Uint8Array;
           try { bytes = new Uint8Array(maxBytes); }
@@ -566,6 +694,24 @@ export class RealFileSystem implements FileSystem {
           if (!Number.isSafeInteger(bytesRead) || bytesRead < 0 || bytesRead > maxBytes) throw new FsError("EIO");
           return bytes.slice(0, bytesRead);
         });
+      },
+      async seekEnd(options = {}) {
+        const signal = options.signal;
+        const operationOptions = signal === undefined ? {} : { signal };
+        assertOpen(operationOptions, "lseek");
+        try {
+          const binding = await loadNativeSeekBinding(signal);
+          assertOpen(operationOptions, "lseek");
+          const seek = binding.seekEnd;
+          assertOpen(operationOptions, "lseek");
+          if (typeof seek !== "function") throw new FsError("EIO");
+          const descriptor = handle.fd;
+          assertOpen(operationOptions, "lseek");
+          return await perform(operationOptions, "lseek", () => callNativeSeekEnd(binding, seek, descriptor));
+        } catch (error) {
+          signal?.throwIfAborted();
+          throw failure(error, "lseek");
+        }
       },
       close() {
         accepting = false;

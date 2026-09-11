@@ -94,10 +94,9 @@ describe("completed snapshot replay", () => {
       let snapshot = JSON.parse(serializeSafeJSSnapshot(original.snapshot));
       for (let iteration = 0; iteration < 3; iteration++) {
         const resumed = await run(source, { snapshot, bindings: { read } });
-        expect(resumed).toMatchObject({
-          ok: true,
-          returnValue: original.ok ? original.returnValue : undefined
-        });
+        expect(resumed.ok).toBe(true);
+        if (!original.ok || !resumed.ok) throw new Error("Expected successful replay");
+        expect(resumed.returnValue).toEqual(original.returnValue);
         expect(reads).toBe(width);
         snapshot = JSON.parse(serializeSafeJSSnapshot(resumed.snapshot));
       }

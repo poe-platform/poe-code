@@ -1,9 +1,97 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 import { gunzipSync, gzipSync } from "node:zlib";
+import { build } from "esbuild";
 import { toByteSource } from "../../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
+import { codec } from "../../../../src/commands/bytes/compression/codec.js";
+import { compressed } from "../../../../src/commands/archive/stream.js";
+import { DEFAULT_ARCHIVE_LIMITS } from "../../../../src/commands/archive/internal.js";
 import { binary, chunks, emptyMember, helloMember, run } from "./helpers.js";
+
+test("compression and archive browser graphs need no Node codecs or streams", async () => {
+  const platform = fileURLToPath(new URL("../../../../browser/platform.mjs", import.meta.url));
+  const result = await build({
+    entryPoints: ["bytes/compression/stream.ts", "archive/stream.ts"].map(path => fileURLToPath(new URL(`../../../../src/commands/${path}`, import.meta.url))),
+    outdir: "/virtual-codec-graph", bundle: true, platform: "browser", format: "esm", target: "es2022",
+    conditions: ["workerd", "worker", "browser"], write: false, metafile: true, logLevel: "silent",
+    external: ["poe-code/safe-fs/core"], inject: [platform],
+    alias: { "node:stream/web": platform, "node:path": platform },
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  assert.deepEqual([...new Set(imports.filter(entry => entry.external).map(entry => entry.path))], ["poe-code/safe-fs/core"]);
+});
+
+test("raw codec restores exact footer and next-member remainder across bounded slabs", async () => {
+  for (const payload of [Buffer.alloc(0), Buffer.from("hello\n"), Buffer.alloc(32768, 97), Buffer.from(binary)]) {
+    const member = gzipSync(payload);
+    const raw = member.subarray(10, -8);
+    const suffix = Buffer.concat([member.subarray(-8), helloMember, Buffer.from("sentinel")]);
+    const input = Buffer.concat([raw, suffix]);
+    for (const inputSize of [1, 7, 65536]) {
+      for (const chunkSize of [1, 17, 65536]) {
+        let offset = 0;
+        let restored: Uint8Array = new Uint8Array();
+        let produced = 0;
+        for await (const bytes of codec({
+          async chunk() {
+            if (offset === input.length) return undefined;
+            const next = input.subarray(offset, offset + inputSize);
+            offset += next.length;
+            return next;
+          },
+          restore(bytes) { restored = bytes; },
+        }, { mode: "inflate-raw", chunkSize }, new AbortController().signal)) {
+          assert.ok(bytes.length <= chunkSize);
+          assert.deepEqual(Buffer.from(bytes), payload.subarray(produced, produced + bytes.length));
+          produced += bytes.length;
+        }
+        assert.equal(produced, payload.length);
+        assert.equal(offset - restored.length, raw.length);
+        assert.deepEqual(Buffer.concat([restored, input.subarray(offset)]), suffix);
+      }
+    }
+  }
+});
+
+test("gzip levels preserve native headers and deflate options", async () => {
+  for (let level = 1; level <= 9; level++) {
+    const result = await run("gzip", [`-${level}`], chunks(binary));
+    const expected = gzipSync(binary, { level });
+    expected[9] = 255;
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdout, expected);
+  }
+});
+
+test("codec rejects invalid slab sizes before acquiring input", async () => {
+  for (const chunkSize of [0, -1, 1.5, NaN, Infinity]) {
+    await assert.rejects(async () => {
+      for await (const bytes of codec({
+        async chunk() { assert.fail("invalid codec options must not acquire input"); },
+        restore() { assert.fail("invalid codec options must not restore input"); },
+      }, { mode: "gzip", chunkSize }, new AbortController().signal)) assert.fail(`unexpected output: ${bytes.length}`);
+    }, { name: "RangeError" });
+  }
+});
+
+test("archive gzip retains native concatenation and trailing policy separately from CLI warnings", async () => {
+  for (const suffix of [Buffer.alloc(0), helloMember, Buffer.from([0]), Buffer.from([0, 0, 71]), Buffer.from([71]), Buffer.from([71, 72]), helloMember.subarray(0, 4)]) {
+    const input = Buffer.concat([helloMember, suffix]);
+    let expected: Buffer | undefined;
+    let expectedError: unknown;
+    try { expected = gunzipSync(input); } catch (error) { expectedError = error; }
+    for (const source of [chunks(input), chunks(...Array.from(input, byte => Uint8Array.of(byte)))]) {
+      const output: Uint8Array[] = [];
+      const collect = async () => {
+        for await (const bytes of compressed(source, true, new AbortController().signal, DEFAULT_ARCHIVE_LIMITS)) output.push(bytes);
+      };
+      if (expectedError instanceof Error) await assert.rejects(collect, { message: expectedError.message });
+      else { await collect(); assert.deepEqual(Buffer.concat(output), expected); }
+    }
+  }
+});
 
 test("registers gzip, gunzip and zcat with binary round trips", async () => {
   const encoded = await run("gzip", [], chunks(binary));

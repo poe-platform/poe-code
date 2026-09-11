@@ -1026,17 +1026,24 @@ describe("TerminalPilot", () => {
   it("keeps a session tracked when close fails so shutdown can be retried", async () => {
     const pilot = await TerminalPilot.launch();
     const session = await pilot.newSession(createSessionOptions());
+    const realClose = session.close.bind(session);
     const close = vi
       .spyOn(session, "close")
       .mockRejectedValueOnce(new Error("close temporarily failed"))
-      .mockResolvedValueOnce(0);
+      .mockImplementationOnce(realClose);
 
-    await expect(pilot.close()).rejects.toThrow("close temporarily failed");
-    expect(pilot.getSession(session.id)).toBe(session);
+    try {
+      await expect(pilot.close()).rejects.toThrow("close temporarily failed");
+      expect(pilot.getSession(session.id)).toBe(session);
 
-    await expect(pilot.close()).resolves.toBeUndefined();
-    expect(close).toHaveBeenCalledTimes(2);
-    expect(() => pilot.getSession(session.id)).toThrow(`Session not found: ${session.id}`);
+      await expect(pilot.close()).resolves.toBeUndefined();
+      expect(close).toHaveBeenCalledTimes(2);
+      expect(session.exitCode).not.toBeNull();
+      expect(() => pilot.getSession(session.id)).toThrow(`Session not found: ${session.id}`);
+    } finally {
+      close.mockRestore();
+      await realClose();
+    }
   });
 
   it("creates multiple sessions, lists them, gets them by id, and closes all sessions", async () => {

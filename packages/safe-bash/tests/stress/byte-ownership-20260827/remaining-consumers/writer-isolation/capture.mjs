@@ -4,8 +4,6 @@ import { lstatSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeF
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateBoundaries } from "../../../../../scripts/integration-inputs.mjs";
-import { isHeldInputPath } from "../../../../../scripts/typecheck-integration-inputs.mjs";
 
 if (process.argv.length !== 2) throw new Error("Capture accepts no paths or options; output is always a new OS-temp directory");
 const root = realpathSync(fileURLToPath(new URL("../../../../../", import.meta.url)));
@@ -17,6 +15,8 @@ const contained = (parent, child) => {
 if (contained(root, temporaryRoot)) {
   throw new Error("Capture temp root must be outside the repository");
 }
+const { validateBoundaries } = await import("../../../../../scripts/integration-inputs.mjs");
+const { isHeldInputPath } = await import("../../../../../scripts/typecheck-integration-inputs.mjs");
 const fixtureDirectory = "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl";
 const harnessDirectory = "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation";
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");

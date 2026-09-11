@@ -6,6 +6,70 @@ import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
 
+const portableByteScripts = [
+  ["ANSI-C quote", "printf '%s' $'\\377'"],
+  ["command substitution", "printf '%s' \"$(printf '\\377')\""],
+] as const;
+
+for (const [name, script] of portableByteScripts) {
+  test(`${name} preserves raw bytes when fatal decoding throws a standard uncoded TypeError`, async context => {
+    const decode = TextDecoder.prototype.decode;
+    let rejected = 0;
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+      try { return decode.apply(this, args); }
+      catch (error) {
+        if (!this.fatal || !(error instanceof TypeError)) throw error;
+        rejected++;
+        throw new TypeError("Failed to decode input.");
+      }
+    });
+    const { shell } = fixture();
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+      assert.equal(rejected, 1);
+      const valid = await shell.exec("printf '%s' $'\\357\\273\\277é'; printf '%s' \"$(printf '\\357\\273\\277é')\"");
+      assert.equal(valid.exitCode, 0, valid.stderr);
+      assert.deepEqual(valid.stdoutBytes, Uint8Array.of(239, 187, 191, 195, 169, 239, 187, 191, 195, 169));
+      assert.equal(rejected, 1);
+    } finally { await shell.dispose(); }
+  });
+
+  for (const failure of [new Error("decoder infrastructure failed"), Object.assign(new TypeError("different decoder failure"), { code: "OTHER_FAILURE" })]) {
+    test(`${name} preserves unrelated decoder failure ${failure.message}`, async context => {
+      const decode = TextDecoder.prototype.decode;
+      context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+        if (this.fatal) throw failure;
+        return decode.apply(this, args);
+      });
+      const { shell } = fixture();
+      const observed: unknown[] = [];
+      try {
+        try {
+          const result = await shell.exec(script, { onInternalError(error) { observed.push(error); } });
+          assert.notEqual(result.exitCode, 0);
+          assert.equal(result.stdoutBytes.length, 0);
+        } catch (error) { observed.push(error); }
+        assert.ok(observed.includes(failure));
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const reason of [false, 0, null, ""]) test(`${name} decoder cancellation preserves ${String(reason)}`, async context => {
+    const decode = TextDecoder.prototype.decode;
+    const controller = new AbortController();
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+      if (this.fatal) { controller.abort(reason); throw new TypeError("Failed to decode input."); }
+      return decode.apply(this, args);
+    });
+    const { shell } = fixture();
+    try {
+      await assert.rejects(shell.exec(script, { signal: controller.signal }), error => error === reason);
+    } finally { await shell.dispose(); }
+  });
+}
+
 function fixture(options: Parameters<typeof setup>[0] = {}) {
   const result = setup(options);
   for (const command of basicCommands()) if (command.name === "printf" || command.name === "echo") result.commands.register(command);

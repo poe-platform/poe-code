@@ -718,21 +718,20 @@ describe("configure provider resolution", () => {
   it("configures chat-completions agents against Cloudflare with a /compat base URL", async () => {
     const container = createContainer(fs);
 
-    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "kimi", {
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "goose", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
 
-    const document = parseToml(await fs.readFile(`${homeDir}/.kimi/config.toml`, "utf8"));
-    const providers = document.providers as Record<string, Record<string, unknown>>;
-    expect(providers[PROVIDER_NAME]?.base_url).toBe(
-      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat"
+    const document = JSON.parse(await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8"));
+    expect(document.base_url).toBe(
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat/chat/completions"
     );
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
-    expect(services.kimi).toMatchObject({
+    expect(services.goose).toMatchObject({
       provider: "cloudflare",
       apiShape: "openai-chat-completions"
     });

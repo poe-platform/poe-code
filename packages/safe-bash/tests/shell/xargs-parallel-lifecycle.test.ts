@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { standardCommands } from "../../src/commands/index.js";
-import { browserCommands } from "../../src/browser.js";
+import { agentCommands } from "../../src/index.js";
 import { collectBytes, toByteSource, writeBytes } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { ArrayLedger } from "../../src/shell/arrays/ledger.js";
@@ -20,7 +20,7 @@ async function until(predicate: () => boolean): Promise<void> {
 
 function fixture(browser = false) {
   const result = setup();
-  result.shell.use(browser ? browserCommands({ execution: { maxParallelProcesses: 2 } }) : standardCommands({ execution: { maxParallelProcesses: 2 } }));
+  result.shell.use(browser ? agentCommands({ execution: { maxParallelProcesses: 2 } }) : standardCommands({ execution: { maxParallelProcesses: 2 } }));
   return result;
 }
 

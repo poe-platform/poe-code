@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { randomBytes } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { test } from "node:test";
-import { gzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 import { createBytePipe, type ByteSource } from "../../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { parseOptions } from "../../../../src/commands/bytes/compression/options.js";
@@ -33,12 +33,46 @@ test("backpressure limits read-ahead while stdout write is blocked", { timeout: 
     stdout: { async write() { writes++; entered.resolve(); await release.promise; } },
   });
   await entered.promise;
+  const blockedPulls = produced;
   await delay(30);
+  assert.equal(produced, blockedPulls, "no additional source pulls while the sink is blocked");
   assert.ok(produced < 12, `read ahead ${produced} chunks`);
   assert.equal(writes, 1);
   release.resolve();
   assert.equal((await pending).exitCode, 0);
   assert.equal(produced, 80);
+});
+
+test("compression owns bounded slabs before advancing a reused producer Buffer", async () => {
+  const expected = Buffer.concat(Array.from({ length: 8 }, (_, index) => Buffer.alloc(70001, index + 1)));
+  const encoded = await run("gzip", [], (async function* () {
+    const borrowed = Buffer.alloc(70001);
+    for (let index = 1; index <= 8; index++) { borrowed.fill(index); yield borrowed; }
+  })());
+  assert.equal(encoded.exitCode, 0, encoded.stderr);
+  assert.deepEqual(gunzipSync(encoded.stdout), expected);
+  const decoded = await run("gunzip", [], (async function* () {
+    const borrowed = Buffer.alloc(7);
+    for (let offset = 0; offset < encoded.stdout.length; offset += borrowed.length) {
+      const length = encoded.stdout.copy(borrowed, 0, offset, offset + borrowed.length);
+      yield borrowed.subarray(0, length);
+    }
+  })());
+  assert.equal(decoded.exitCode, 0, decoded.stderr);
+  assert.deepEqual(decoded.stdout, expected);
+});
+
+test("no-output inflate work yields a task and preserves cancellation identity", { timeout: 3000 }, async () => {
+  const blocks = Buffer.alloc(5 * 30000);
+  for (let offset = 0; offset < blocks.length; offset += 5) { blocks[offset + 3] = 255; blocks[offset + 4] = 255; }
+  const input = Buffer.concat([helloMember.subarray(0, 10), blocks, Buffer.from([1, 0, 0, 255, 255]), Buffer.alloc(8)]);
+  const controller = new AbortController();
+  const reason = new Error("cancel no-output codec work");
+  const pending = run("gunzip", [], chunks(input), { signal: controller.signal, stdout: { async write() { assert.fail("empty members produce no output"); } } });
+  const rejected = assert.rejects(pending, error => error === reason);
+  // Queue a task, not a timer whose minimum delay can outlast the whole decode.
+  const task = setImmediate(() => controller.abort(reason));
+  try { await rejected; } finally { clearImmediate(task); }
 });
 
 test("source cancellation returns the original reason and observes late next rejection", { timeout: 3_000 }, async () => {

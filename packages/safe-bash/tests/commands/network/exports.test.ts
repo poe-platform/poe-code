@@ -32,7 +32,7 @@ test("root exposes the explicit usable network capability without altering aggre
     },
   };
   assert.equal(createCurlCommand(options).name, "curl");
-  assert.deepEqual(createNetworkCommands(options).map(command => command.name), ["curl"]);
+  assert.deepEqual(createNetworkCommands(options).map(command => command.name), ["curl", "wget"]);
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands()).use(networkCommands(options));
   try {
     const result = await shell.exec("curl http://allowed.test/data | cat");

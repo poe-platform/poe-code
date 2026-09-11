@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setImmediate as turn } from "node:timers/promises";
@@ -64,7 +65,7 @@ function direct(stdin: ByteSource, args: readonly string[] = ["foo", "-"], optio
   };
   return {
     controller, context,
-    execute: () => Promise.resolve(createSearchCommands(options)[0]!.execute(context)),
+    execute: () => Promise.resolve(createSearchCommands({ regexExecutor: createNodeRegexProvider(), ...options })[0]!.execute(context)),
     stdout: () => Buffer.concat(stdout), stderr: () => Buffer.concat(stderr),
   };
 }
@@ -167,7 +168,7 @@ test("explicit file input never acquires unrelated stdin", { timeout: 4000 }, as
 test("public Shell already closes its structural owner before rejection", { timeout: 4000 }, async () => {
   const source = stalled();
   const controller = new AbortController(); const reason = new Error("public abort");
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   const execution = outcome(shell.exec("rg foo -", { stdin: source.source, signal: controller.signal }));
   try {
     await bounded(source.entered.promise); controller.abort(reason);
@@ -198,7 +199,7 @@ test("nonreturnable borrowed input leaves close authority with its direct owner"
 
 test("nested Shell invocation and sibling retain parent input until owner settlement", { timeout: 4000 }, async () => {
   const owner = input([Buffer.from("foo\n"), Buffer.from("bar\n")]);
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   shell.commands.register({ name: "nested", async execute(context) {
     assert(context.invoke);
     const result = await context.invoke("rg", ["-q", "foo", "-"], { stdin: context.stdin, stdinIsDefault: false });
@@ -236,7 +237,7 @@ for (const mode of ["direct", "public"] as const) test(`${mode} opaque generator
     return() { returns++; return closing = generator.return(undefined); },
   }; } };
   const command = direct(source); const reason = new Error(`${mode} opaque abort`);
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   const execution = outcome(mode === "direct" ? command.execute() : shell.exec("rg foo -", { stdin: source, signal: command.controller.signal }));
   try {
     await bounded(entered.promise); command.controller.abort(reason);

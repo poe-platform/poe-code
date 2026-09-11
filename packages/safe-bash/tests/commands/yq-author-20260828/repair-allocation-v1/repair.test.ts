@@ -69,8 +69,9 @@ async function run(input: string): Promise<{ status: number; stderr: string }> {
 
 test("WRK-06 raw document admission precedes retained copy and decode", async () => {
   const text = await source("src/commands/yq/index.ts");
-  ordered(text, "framer.admit(chunk)", "new Uint8Array(chunk)");
-  ordered(text, "frame.rawBytes", "decodeDocument(frame.bytes)");
+  ordered(text, "framer?.admit(chunk)", "new Uint8Array(chunk)");
+  ordered(text, 'inputFormat === "toml" && chunk.byteLength > yqCaps.maxDocumentBytes - size', "new Uint8Array(chunk)");
+  ordered(text, "ledger.admitDocumentBytes(frame.rawBytes)", "decodeDocument(frame.bytes, options.inputFormat)");
 });
 
 test("WRK-07 scalar projection/admission precedes scalar construction", async () => {

@@ -29,6 +29,7 @@ const descriptions = {
   EPERM: "operation not permitted",
   EPIPE: "broken pipe",
   EROFS: "read-only file system",
+  ESPIPE: "invalid seek",
   ETIMEDOUT: "operation timed out",
   EXDEV: "cross-device link not permitted",
 } as const;

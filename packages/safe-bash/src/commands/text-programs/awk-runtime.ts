@@ -330,8 +330,14 @@ export class AwkRuntime {
       const useStdin = file === "-";
       const source = (async function* () {
         if (useStdin) yield* context.stdin;
-        else if (context.fs.readStream) yield* context.fs.readStream(name, { signal: context.signal });
-        else yield await context.fs.readFile(name, { signal: context.signal, maxBytes: budget.maxBufferBytes });
+        else {
+          budget.step();
+          await budget.checkpoint();
+          const capabilities = await context.fs.capabilitiesFor?.(name, { signal: context.signal }) ?? context.fs.capabilities;
+          context.signal.throwIfAborted();
+          if (context.fs.readStream && capabilities.streamingRead !== false) yield* context.fs.readStream(name, { signal: context.signal });
+          else yield await context.fs.readFile(name, { signal: context.signal, maxBytes: budget.maxBufferBytes });
+        }
       })();
       try {
         reader = new Reader(source, budget, this.retention);

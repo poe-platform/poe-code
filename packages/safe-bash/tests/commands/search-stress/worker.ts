@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { dirname } from "node:path";
 import { readFileSync } from "node:fs";
+import { createNodeRegexProvider } from "../../../src/node.js";
 import { createSearchCommands, searchCommands } from "../../../src/commands/search/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
@@ -34,12 +35,13 @@ for (const probe of probes) {
     stderr: { async write(chunk) { errors.push(Buffer.from(chunk)); } },
   };
   let code: number;
+  const regexExecutor = createNodeRegexProvider();
   if (probe.script !== undefined) {
-    const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(searchCommands(probe.options));
+    const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor })).use(searchCommands({ regexExecutor, ...probe.options }));
     const result = await shell.exec(probe.script, probe.stdin === undefined ? {} : { stdin: bytes(probe.stdin) });
     code = result.exitCode;
     output.push(Buffer.from(result.stdout)); errors.push(Buffer.from(result.stderr));
-  } else code = (await createSearchCommands(probe.options)[0]!.execute(context)).exitCode;
+  } else code = (await createSearchCommands({ regexExecutor, ...probe.options })[0]!.execute(context)).exitCode;
   for (const [name, value] of Object.entries(probe.files ?? {})) assert.deepEqual(Buffer.from(await fs.readFile(`/work/${name}`)), bytes(value), `mutation: ${name}`);
   outcomes.push({ code, stdout: Buffer.concat(output).toString("base64"), stderr: Buffer.concat(errors).toString("base64") });
 }

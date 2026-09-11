@@ -224,15 +224,21 @@ test("ls sorting yields to scheduled cancellation before rendering", async conte
 test("ls preserves the directory-entry cap before collecting child metadata", async context => {
   const fs = await sortableFixture();
   const lstat = fs.lstat.bind(fs);
-  let reads = 0;
-  context.mock.method(fs, "lstat", async (path: string, options?: FsOptions) => { reads++; return lstat(path, options); });
+  const reads: string[] = [];
+  context.mock.method(fs, "lstat", async (path: string, options?: FsOptions) => { reads.push(path); return lstat(path, options); });
+  const direct = await run("true", [], { fs });
+  const command = createStandardCommands({ maxDirectoryEntries: 1 }).find(definition => definition.name === "ls")!;
+  const directResult = await command.execute({ ...direct.context, command: "ls", args: ["-S"] });
+  assert.equal(directResult.exitCode, 1);
+  assert.deepEqual(reads, ["/work/."]);
+  reads.length = 0;
   const shell = new Shell({ fs, cwd: "/work", commands: new CommandRegistry(createStandardCommands({ maxDirectoryEntries: 1 })) });
   context.after(() => shell.dispose());
   const result = await shell.exec("ls -S");
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /directory entry limit/u);
   assert.equal(result.stdout, "");
-  assert.equal(reads, 1);
+  assert.deepEqual(reads, ["/work", "/work", "/work/.", "/work", "/work", "/work"]);
 });
 
 test("ls human sorting preserves shell output and invocation budgets", async context => {

@@ -1,45 +1,28 @@
-import { createGunzip, createGzip } from "node:zlib";
-import { FsError, readBytes, type ByteSource } from "../../contracts/index.js";
-import { PublicDiagnostic } from "../../diagnostics.js";
+import { readBytes, type ByteSource } from "../../contracts/index.js";
 import { compressionDiagnostic } from "../bytes/compression/errors.js";
-import { bounded, fail, wait, type ArchiveLimits } from "./internal.js";
+import { codec, CodecReader } from "../bytes/compression/codec.js";
+import { bounded, fail, type ArchiveLimits } from "./internal.js";
 
 export async function* compressed(source: ByteSource, decode: boolean, signal: AbortSignal, limits: ArchiveLimits): ByteSource {
   signal.throwIfAborted();
   const controller = new AbortController();
   const combined = AbortSignal.any([signal, controller.signal]);
-  const streamOptions = { chunkSize: limits.chunkSize, highWaterMark: limits.chunkSize };
-  const transform = decode ? createGunzip(streamOptions) : createGzip(streamOptions);
-  transform.on("error", () => {});
-  const destroy = () => { transform.destroy(new Error("archive compression cancelled")); };
-  combined.addEventListener("abort", destroy, { once: true });
-  const pump = (async () => {
-    try {
-      for await (const chunk of bounded(source, limits.maxArchiveBytes, combined, limits.chunkSize)) {
-        await wait(combined, () => new Promise<void>((resolve, reject) => {
-          transform.write(chunk, error => error ? reject(compressionDiagnostic(error)) : resolve());
-        }));
-      }
-      combined.throwIfAborted();
-      transform.end();
-    } catch (error) {
-      const failure = error instanceof PublicDiagnostic || error instanceof FsError ? error : new PublicDiagnostic("internal error", { cause: error });
-      transform.destroy(failure);
-      throw failure;
-    }
-  })();
-  void pump.catch(() => {});
+  const reader = new CodecReader(bounded(source, limits.maxArchiveBytes, combined, limits.chunkSize), combined);
+  let hasFailure = false;
+  let failure: unknown;
   try {
-    yield* bounded(transform, limits.maxArchiveBytes, combined, limits.chunkSize);
-    await pump;
+    yield* bounded(codec(reader, {
+      mode: decode ? "gunzip" : "gzip", chunkSize: limits.chunkSize,
+      onFailure(error) {
+        if (!hasFailure) { hasFailure = true; failure = error; controller.abort(error); }
+      },
+    }, combined), limits.maxArchiveBytes, combined, limits.chunkSize);
   } catch (error) {
     signal.throwIfAborted();
-    throw compressionDiagnostic(error);
+    throw compressionDiagnostic(hasFailure ? failure : error);
   } finally {
     controller.abort(new Error("archive compression finished"));
-    combined.removeEventListener("abort", destroy);
-    transform.destroy();
-    await pump.catch(() => {});
+    await reader.close();
   }
 }
 

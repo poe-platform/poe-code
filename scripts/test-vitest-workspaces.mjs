@@ -13,7 +13,7 @@ export function sharedVitestStages(plan, fileSystem = fs) {
     return plan.testStages;
   }
   const selections = new Map(workspaceUnitSelections(plan.root, fileSystem)
-    .filter(selection => !selection.hasHooks).map(selection => [selection.path, selection]));
+    .filter(selection => !selection.hasHooks && !selection.requiresNativePool).map(selection => [selection.path, selection]));
   const compatible = plan.testStages.filter(stage => stage.path === null || selections.has(stage.path));
   if (compatible.length < 2) return plan.testStages;
   const root = compatible.find(stage => stage.path === null)
@@ -41,15 +41,8 @@ export async function runSharedVitest(root, phases) {
   process.env.VITEST = "true";
   process.env.NODE_ENV ??= "test";
   try {
-    const { createVitest, DefaultReporter } = await import("vitest/node");
-    class WorkspaceReporter extends DefaultReporter {
-      constructor() {
-        super({ summary: false });
-      }
-      printTestModule(module) {
-        if (module.state() === "failed") super.printTestModule(module);
-      }
-    }
+    const { createVitest } = await import("vitest/node");
+    const { default: ImmediateReporter } = await import("./vitest-immediate-reporter.mjs");
     const discovery = await createVitest("test", {
       root, config: path.join(root, "vitest.root.config.ts"), watch: false, reporters: []
     });
@@ -59,7 +52,7 @@ export async function runSharedVitest(root, phases) {
     assert.equal(rootFiles.size, rootSpecifications.length, "Multiple root specifications per file are unsupported");
     contexts.pop();
     await discovery.close();
-    const reporter = new WorkspaceReporter();
+    const reporter = new ImmediateReporter({ summary: false }, true);
     const context = await createVitest("test", {
       root, config: path.join(root, "vitest.config.ts"), watch: false, reporters: [reporter]
     });

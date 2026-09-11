@@ -102,6 +102,8 @@ test("PATH lookup consumes the existing shared filesystem ledger, including cach
   await fs.writeFile("/first/tool", script, { mode: 0o755 });
   const access = context.mock.method(fs, "access");
   await assert.rejects(shell.exec("command -v tool; command -v tool", { limits: { maxFileSystemOperations: 2 } }), limitIs("maxFileSystemOperations"));
+  assert.equal(access.mock.callCount(), 0);
+  await assert.rejects(shell.exec("command -v tool; command -v tool", { limits: { maxFileSystemOperations: 3 } }), limitIs("maxFileSystemOperations"));
   assert.equal(access.mock.callCount(), 1);
 });
 

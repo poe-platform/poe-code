@@ -32,6 +32,24 @@ async function maybeStat(context: CommandContext, path: string, follow = true): 
   catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
 }
 
+async function admitNoReplaceRename(context: CommandContext, target: string): Promise<void> {
+  let candidate = target;
+  while (true) {
+    try {
+      const capabilities = await context.fs.capabilitiesFor?.(candidate, { signal: context.signal }) ?? context.fs.capabilities;
+      context.signal.throwIfAborted();
+      if (capabilities.atomicRenameNoReplace !== true) {
+        throw new FsError("ENOTSUP", { syscall: "mv", path: target, message: "atomic no-replace rename is unavailable" });
+      }
+      return;
+    } catch (error) {
+      context.signal.throwIfAborted();
+      if (codeOf(error) !== "ENOENT" || candidate === "/") throw error;
+      candidate = dirname(candidate);
+    }
+  }
+}
+
 async function canonicalMissing(
   context: CommandContext, path: string, mode: "copy" | "preflight" | "realpath" = "copy",
 ): Promise<string> {
@@ -75,6 +93,8 @@ function needCapability(context: CommandContext, capability: "symlink" | "link" 
 }
 
 async function admitEmptyDirectory(context: CommandContext, path: string, readDirectory: DirectoryReader): Promise<void> {
+  const stat = await maybeStat(context, path, false);
+  if (stat && stat.type !== "directory") throw new FsError("ENOTDIR", { syscall: "rmdir", path });
   try { await admitFilesystemModes(context, "rmdir", ["directory"], [path]); }
   catch (error) {
     context.signal.throwIfAborted();
@@ -162,13 +182,14 @@ async function copy(
     }
     if (!preflight) await context.fs.symlink!(linkTarget, target, { signal: context.signal });
   } else {
-    await admitFilesystemModes(context, "cp", ["file", ...flags.has("f") && targetStat ? ["replace", "exclusive"] : []], [target]);
+    const replace = flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
+    await admitFilesystemModes(context, "cp", ["file", ...replace ? ["replace", "exclusive"] : []], [target]);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
     if (preflight) return;
     try { await context.fs.copyFile(source, target, { signal: context.signal }); }
     catch (error) {
       context.signal.throwIfAborted();
-      if (!flags.has("f") || !targetStat || codeOf(error) !== "EACCES") throw error;
+      if (!replace || codeOf(error) !== "EACCES") throw error;
       const existing = await maybeStat(context, target, false);
       if (existing) {
         const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
@@ -188,7 +209,7 @@ async function copy(
 }
 
 function modeText(stat: FileStat): string {
-  let text = stat.type === "directory" ? "d" : stat.type === "symlink" ? "l" : "-";
+  let text = stat.type === "directory" ? "d" : stat.type === "symlink" ? "l" : stat.type === "character" ? "c" : "-";
   for (const shift of [6, 3, 0]) {
     const mode = stat.mode >> shift;
     text += (mode & 4 ? "r" : "-") + (mode & 2 ? "w" : "-") + (mode & 1 ? "x" : "-");
@@ -207,12 +228,22 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       requireOperands(parsed.operands);
       const mode = value(parsed, "m");
       if (mode !== undefined && !/^[0-7]{1,4}$/u.test(mode)) throw new UsageError(`invalid mode '${mode}' (octal required)`);
-      await preflightOperands(context, parsed.operands, operand => admitFilesystemModes(context, "mkdir",
-        [parsed.flags.has("p") ? "parents" : "directory"], [pathOf(context, operand)]));
-      return eachOperand(context, parsed.operands, async operand => {
-        await context.fs.mkdir(pathOf(context, operand), { recursive: parsed.flags.has("p"), ...(mode === undefined ? {} : { mode: parseInt(mode, 8) }), signal: context.signal });
-        if (parsed.flags.has("v")) await output(context, `mkdir: created directory '${escapeText(operand, "display")}'\n`);
-      });
+      const createDirectory = async (operand: string, preflight: boolean): Promise<void> => {
+        const path = pathOf(context, operand);
+        const recursive = parsed.flags.has("p");
+        const stat = await maybeStat(context, path, recursive);
+        if (stat) {
+          if (recursive && stat.type === "directory") return;
+          throw new FsError("EEXIST", { syscall: "mkdir", path });
+        }
+        await admitFilesystemModes(context, "mkdir", [recursive ? "parents" : "directory"], [path]);
+        if (!preflight) {
+          await context.fs.mkdir(path, { recursive, ...(mode === undefined ? {} : { mode: parseInt(mode, 8) }), signal: context.signal });
+          if (parsed.flags.has("v")) await output(context, `mkdir: created directory '${escapeText(operand, "display")}'\n`);
+        }
+      };
+      await preflightOperands(context, parsed.operands, operand => createDirectory(operand, true));
+      return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
     }),
     define("touch", async context => {
       const parsed = options(context.args, "camr:", { "no-create": "c", reference: "r" });
@@ -269,14 +300,20 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
         if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
         await admitFilesystemModes(context, "mv", ["rename"], [source, target]);
+        if (parsed.flags.has("n")) await admitNoReplaceRename(context, target);
       });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
         if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
-        try { await context.fs.rename(source, target, { signal: context.signal }); }
+        if (parsed.flags.has("n")) await admitNoReplaceRename(context, target);
+        try { await context.fs.rename(source, target, { signal: context.signal, ...(parsed.flags.has("n") ? { noReplace: true } : {}) }); }
         catch (error) {
           context.signal.throwIfAborted();
+          if (parsed.flags.has("n")) {
+            if (codeOf(error) === "EEXIST") return;
+            throw error;
+          }
           if (codeOf(error) !== "EXDEV") throw error;
           if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) {
             if (!parsed.flags.has("n")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });

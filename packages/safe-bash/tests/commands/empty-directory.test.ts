@@ -200,9 +200,22 @@ for (const { command, flags } of consumers) {
     await observed.backing.mkdir("/work/kept");
     await observed.backing.writeFile("/work/file", Uint8Array.of(5));
     for (const [path, code] of [["missing/../kept", "ENOENT"], ["file/../kept", "ENOTDIR"]]) {
+      await assert.rejects(native.rmdir(`${observed.root}/work/${path}`), { code });
+      const removalsBefore = observed.removals.length;
+      const nativeErrorsBefore = observed.nativeErrors.length;
+      const internalErrorsBefore = observed.internalErrors.length;
       const result = await run(command, [...flags, path!], { fs: observed.fs, onInternalError: observed.onInternalError });
       assert.equal(result.exitCode, 1);
-      if (command === "rmdir") assertNativeFailure(command, result, observed, code!);
+      if (command === "rmdir" && code === "ENOENT") {
+        assertNativeFailure(command, result, observed, code);
+        assert.deepEqual(observed.removals.slice(removalsBefore).map(entry => entry.path), [`/work/${path}`]);
+      }
+      else if (command === "rmdir") {
+        assert.equal(result.stderr, `rmdir: ENOTDIR: not a directory, lstat '/work/${path}'\n`);
+        assert.equal(observed.removals.length, removalsBefore);
+        assert.equal(observed.nativeErrors.length, nativeErrorsBefore);
+        assert.equal(observed.internalErrors.length, internalErrorsBefore);
+      }
       else {
         assert.match(result.stderr, new RegExp(code!, "u"));
         assert.deepEqual(observed.internalErrors, []);
@@ -242,13 +255,20 @@ test("rmdir never unlinks a final symlink or file and reports missing paths", as
   await observed.backing.writeFile("/work/file", Uint8Array.of(9));
   await observed.backing.symlink!("directory", "/work/link");
   for (const path of ["file", "link"]) {
+    await assert.rejects(native.rmdir(`${observed.root}/work/${path}`), { code: "ENOTDIR" });
     const result = await run("rmdir", [path], { fs: observed.fs, onInternalError: observed.onInternalError });
     assert.equal(result.exitCode, 1);
-    assertNativeFailure("rmdir", result, observed, "ENOTDIR");
+    assert.equal(result.stderr, `rmdir: ENOTDIR: not a directory, rmdir '/work/${path}'\n`);
+    assert.deepEqual(observed.removals, []);
+    assert.deepEqual(observed.nativeErrors, []);
+    assert.deepEqual(observed.internalErrors, []);
   }
+  await assert.rejects(native.rmdir(`${observed.root}/work/missing`), { code: "ENOENT" });
   const missing = await run("rmdir", ["missing"], { fs: observed.fs, onInternalError: observed.onInternalError });
   assert.equal(missing.exitCode, 1);
   assertNativeFailure("rmdir", missing, observed, "ENOENT");
+  assert.deepEqual(observed.removals.map(({ path }) => path), ["/work/missing"]);
+  assert.equal((await observed.backing.stat("/work/directory")).type, "directory");
   assert.equal((await observed.backing.lstat("/work/link")).type, "symlink");
   assert.deepEqual(await observed.backing.readFile("/work/file"), Uint8Array.of(9));
   assert.deepEqual(observed.ordinary, []);

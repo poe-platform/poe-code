@@ -7,12 +7,16 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/commands/bytes/compression/native/generated/bz2.d.mts",
+    "src/commands/bytes/compression/native/generated/xz.d.mts",
+    "src/commands/bytes/compression/native/generated/zstd.d.mts"
+  ],
   "exclude": [
     "tests",
     "dist",
     "node_modules",
-    "src/commands/structured/query-core.ts",
     "src/commands/xan/argv.ts",
     "src/commands/xan/budget.ts",
     "src/commands/xan/commands.ts",
@@ -22,11 +26,6 @@
     "src/commands/xan/options.ts",
     "src/commands/xan/selector.ts",
     "src/commands/xan/sort.ts",
-    "src/commands/xan/writer.ts",
-    "src/commands/yq/accounting.ts",
-    "src/commands/yq/encoder.ts",
-    "src/commands/yq/errors.ts",
-    "src/commands/yq/index.ts",
-    "src/commands/yq/parser.ts"
+    "src/commands/xan/writer.ts"
   ]
 }

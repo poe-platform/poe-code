@@ -2,9 +2,10 @@ import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js"
 import { writeDiagnostic } from "../../escaping.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import {
-  collectBytes, isFsError, readBytes, resolvePath,
+  collectBytes, isFsError, readBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type FileStat,
 } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 
 export interface DiffPatchOptions {
   readonly replace?: boolean;
@@ -92,9 +93,11 @@ export class Budget {
   async read(path: string): Promise<string> {
     this.context.signal.throwIfAborted();
     const remaining = this.limits.maxInputBytes - this.inputBytes;
+    const capabilities = path === "-" ? undefined : await host(this.context, async () =>
+      await this.context.fs.capabilitiesFor?.(path, { signal: this.context.signal }) ?? this.context.fs.capabilities);
     const bytes = path === "-"
       ? await collectBytes(this.chunks(this.context.stdin), { signal: this.context.signal, maxBytes: remaining })
-      : this.context.fs.readStream
+      : this.context.fs.readStream && capabilities?.streamingRead !== false
         ? await collectBytes(this.chunks(this.context.fs.readStream(path, { signal: this.context.signal })), { signal: this.context.signal, maxBytes: remaining })
         : await host(this.context, () => this.context.fs.readFile(path, { signal: this.context.signal, maxBytes: remaining }));
     this.inputBytes += bytes.byteLength;
@@ -136,7 +139,7 @@ export async function host<Result>(context: CommandContext, operation: () => Pro
 export async function inspect(budget: Budget, path: string): Promise<FileStat | undefined> {
   const context = budget.context;
   if (path.length > 4096) throw new ToolError("path length limit exceeded");
-  const absolute = resolvePath(context.cwd, path);
+  const absolute = pathOf(context, path);
   const parts = absolute.split("/").filter(Boolean);
   if (absolute.length > 4096 || parts.length > 256) throw new ToolError("path length/depth limit exceeded");
   let current = "";

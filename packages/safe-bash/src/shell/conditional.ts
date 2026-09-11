@@ -1,6 +1,7 @@
 import { yieldTurn } from "../contracts/yield.js";
 import type { FileSystem } from "../contracts/index.js";
-import { isFsError, resolvePath } from "../contracts/index.js";
+import { isFsError } from "../contracts/index.js";
+import { pathOf } from "../commands/internal.js";
 import type { Word } from "./parser.js";
 import { matchesPattern } from "./pattern.js";
 import type { StringWork } from "./string-operations.js";
@@ -105,19 +106,21 @@ async function unary(operator: string, value: string, context: ConditionalContex
     return context.present(value);
   }
   if (operator === "-o") return context.option(value);
-  if (!["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
+  if (!["-e", "-a", "-f", "-c", "-d", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
   if (value === "") return false;
   if (/^\/dev\/(?:fd(?:\/|$)|stdin$|stdout$|stderr$)/u.test(value)) unsupported("descriptor predicate");
   const access = ["-r", "-w", "-x"].includes(operator);
-  if (access && context.fs.capabilities.permissions !== true) unsupported("unobservable access permission");
   try {
     if (access) {
-      await context.fs.access(resolvePath(context.cwd, value), operator === "-r" ? 4 : operator === "-w" ? 2 : 1, { signal: context.signal });
+      const capabilities = await context.fs.capabilitiesFor?.(pathOf(context, value), { signal: context.signal }) ?? context.fs.capabilities;
+      if (capabilities.permissions !== true) unsupported("unobservable access permission");
+      await context.fs.access(pathOf(context, value), operator === "-r" ? 4 : operator === "-w" ? 2 : 1, { signal: context.signal });
       context.signal.throwIfAborted(); return true;
     }
-    const metadata = await (operator === "-L" || operator === "-h" ? context.fs.lstat(resolvePath(context.cwd, value), { signal: context.signal }) : context.fs.stat(resolvePath(context.cwd, value), { signal: context.signal }));
+    const metadata = await (operator === "-L" || operator === "-h" ? context.fs.lstat(pathOf(context, value), { signal: context.signal }) : context.fs.stat(pathOf(context, value), { signal: context.signal }));
     context.signal.throwIfAborted();
     if (operator === "-f") return metadata.type === "file";
+    if (operator === "-c") return metadata.type === "character";
     if (operator === "-d") return metadata.type === "directory";
     if (operator === "-s") return metadata.size > 0;
     if (operator === "-L" || operator === "-h") return metadata.type === "symlink";

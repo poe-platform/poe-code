@@ -81,7 +81,7 @@ test("foundation: script-file syntax preflight precedes all command effects", { 
   const instance = new AuthorShell({ fs });
   let effects = 0;
   instance.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
-  await fs.writeFile("/invalid", new TextEncoder().encode("effect\na[01]=bad\n"));
+  await fs.writeFile("/invalid", new TextEncoder().encode("effect\na[0=bad\n"));
   try {
     const result = await instance.exec("a=(outer); bash /invalid");
     assert.equal(result.exitCode, 2);
@@ -114,7 +114,7 @@ test("foundation: static overflow suppresses RHS, dynamic zero arity does not co
 });
 
 test("foundation: syntax refusal includes inactive branches and ordinary argv remains literal", { timeout: 5000 }, async () => {
-  await output('false && a[01]=bad', "", 2);
+  await output('false && a[0=bad', "", 2);
   await output('a=(x) echo nope', "", 2);
   await output('printf "%s" "a[1]=x"', "a[1]=x");
   await output('printf "%s" a[01]=x', "a[01]=x");

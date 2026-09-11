@@ -1,4 +1,4 @@
-import type { AsyncLocalStorage } from "node:async_hooks";
+import type { HostCallbackContext } from "../interp/host-callback-context.js";
 
 import type { RunResult, RunSnapshot } from "../run.js";
 import { serializeSafeJSSnapshot } from "./dump-format.js";
@@ -21,7 +21,7 @@ type DumpController = {
 };
 
 export type RunLifecycle = {
-  hostCallbackContext: AsyncLocalStorage<boolean>;
+  hostCallbackContext: HostCallbackContext;
   hostCallbackDepth: number;
 };
 

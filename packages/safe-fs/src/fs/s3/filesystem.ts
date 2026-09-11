@@ -4,7 +4,7 @@ import { composeAbortSignals } from "../../contracts/abort.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
-  FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -137,6 +137,7 @@ export class S3FileSystem implements FileSystem {
       append: options.transport.capabilities?.conditionalPut === true,
       exclusiveCreate: options.transport.capabilities?.conditionalPut === true,
       truncate: options.transport.capabilities?.conditionalPut === true,
+      atomicRenameNoReplace: false,
       rename: this.allowRename && options.transport.capabilities?.conditionalDelete === true
         && (options.transport.capabilities?.conditionalCopy === true || options.transport.capabilities?.conditionalPut === true),
       streamingAppend: options.transport.capabilities?.streamingWrite === true
@@ -631,7 +632,11 @@ export class S3FileSystem implements FileSystem {
     }
   }
 
-  async rename(sourceInput: string, destinationInput: string, options: FsOptions = {}): Promise<void> {
+  async rename(sourceInput: string, destinationInput: string, options: RenameOptions = {}): Promise<void> {
+    if (options.noReplace) {
+      options.signal?.throwIfAborted();
+      this.unsupported("atomic no-replace rename", sourceInput);
+    }
     const source = this.path(sourceInput);
     const destination = this.path(destinationInput);
     this.writable(destination);

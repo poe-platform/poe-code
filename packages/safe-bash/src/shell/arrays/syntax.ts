@@ -4,6 +4,8 @@ import type { Word, WordPart } from "../parser.js";
 
 export interface LiteralIndex {
   readonly decimal: string;
+  readonly source?: string;
+  readonly word?: Word;
 }
 
 export type ArraySelector =
@@ -22,6 +24,7 @@ export type ArrayAssignment =
 const assignments = new WeakMap<Word, ArrayAssignment>();
 const selectors = new WeakMap<WordPart, ArraySelector>();
 const quoteMarkers = new WeakSet<WordPart>();
+export const prefixNameQuoteGroups = new WeakMap<WordPart, object>();
 
 export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
   if (synthetic) quoteMarkers.add(part);
@@ -44,15 +47,23 @@ export function literalIndex(source: string, offset: number, budget = new ParseB
 }
 
 export function numericIndex(index: LiteralIndex): number | undefined {
+  if (index.source !== undefined) {
+    try { return numericIndex(literalIndex(index.source, 0)); } catch { return undefined; }
+  }
   if (index.decimal.length > 10 || index.decimal.length === 10 && index.decimal > "2147483647") return undefined;
   return Number(index.decimal);
 }
 
-export function arraySelector(source: string, offset: number, budget = new ParseBudget()): ArraySelector {
+export function stringIndex(source: string, budget: ParseBudget, word?: Word): LiteralIndex {
+  budget.admit(2);
+  return { decimal: source, source, ...(word ? { word } : {}) };
+}
+
+export function arraySelector(source: string, offset: number, budget = new ParseBudget(), word?: Word): ArraySelector {
   budget.admit();
   return source === "@" || source === "*"
     ? { kind: "members", separator: source }
-    : { kind: "element", index: literalIndex(source, offset, budget) };
+    : { kind: "element", index: word ? stringIndex(source, budget, word) : literalIndex(source, offset, budget) };
 }
 
 export function setArraySelector(part: WordPart, selector: ArraySelector): void {
@@ -67,6 +78,8 @@ export function copyArraySelector(original: WordPart, copy: WordPart): WordPart 
   const selector = selectors.get(original);
   if (selector) selectors.set(copy, selector);
   setQuoteMarker(copy, isQuoteMarker(original));
+  const group = prefixNameQuoteGroups.get(original);
+  if (group) prefixNameQuoteGroups.set(copy, group);
   return copy;
 }
 
@@ -97,21 +110,22 @@ function removePrefix(word: Word, length: number, budget: ParseBudget): Word {
   return { offset: word.offset, parts };
 }
 
-export function elementAssignment(word: Word, budget = new ParseBudget()): Extract<ArrayAssignment, { kind: "element" }> | undefined {
+export function elementAssignment(word: Word, budget = new ParseBudget(), parseWord?: (source: string) => Word, subscriptEnd?: (source: string, start: number) => number): Extract<ArrayAssignment, { kind: "element" }> | undefined {
   const source = word.spelling;
   const first = word.parts[0];
   if (source === undefined || first?.kind !== "text" || first.quoted) return undefined;
   const name = /^([a-zA-Z_][a-zA-Z_0-9]*)\[/u.exec(source)?.[1];
   if (!name) return undefined;
-  const end = source.indexOf("]", name.length + 1);
+  const end = subscriptEnd ? subscriptEnd(source, name.length + 1) : source.indexOf("]", name.length + 1);
   if (end < 0 || !/^(?:\+?=)/u.test(source.slice(end + 1))) {
     if (source.includes("=")) throw new ShellSyntaxError("Invalid indexed-array assignment", word.offset);
     return undefined;
   }
   budget.admit();
-  const index = literalIndex(source.slice(name.length + 1, end), word.offset + name.length + 1, budget);
+  const keySource = source.slice(name.length + 1, end);
+  const index = parseWord ? stringIndex(keySource, budget, parseWord(keySource)) : literalIndex(keySource, word.offset + name.length + 1, budget);
   const append = source[end + 1] === "+";
-  const value = removePrefix(word, name.length + index.decimal.length + (append ? 4 : 3), budget);
+  const value = parseWord ? parseWord(source.slice(end + (append ? 3 : 2))) : removePrefix(word, name.length + index.decimal.length + (append ? 4 : 3), budget);
   return { kind: "element", name, index, append, value };
 }
 

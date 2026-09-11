@@ -53,3 +53,13 @@ test("duplicate DAV children and mixed scalar content reject ambiguity", () => {
   assert.throws(() => davChild(parseXml('<root xmlns="DAV:"><href/><href/></root>'), "href"), SyntaxError);
   assert.throws(() => scalar(parseXml("<href>a<other/>b</href>")), SyntaxError);
 });
+
+test("structural limit failures preserve the plain WebDAV SyntaxError profile", () => {
+  let failure: unknown;
+  try { parseXml('<root a="1" b="2"/>', { maxAttributes: 1 }); }
+  catch (error) { failure = error; }
+  assert.ok(failure instanceof SyntaxError);
+  assert.equal(Object.getPrototypeOf(failure), SyntaxError.prototype);
+  assert.equal(failure.message, "Invalid WebDAV XML: XML attribute limit exceeded");
+  assert.equal(Object.hasOwn(failure, "limit"), false);
+});

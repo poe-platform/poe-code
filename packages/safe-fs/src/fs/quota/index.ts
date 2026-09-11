@@ -1,7 +1,8 @@
-import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
+import type { FileResizeHandle, FileStat, FileSystem, FsOptions, OpenReadFileOptions, OpenResizeFileOptions } from "../../contracts/filesystem.js";
 import { FsError } from "../../contracts/errors.js";
+import { finishCleanup } from "../../contracts/cleanup.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { openRetainedReadFile, quotaCapabilities, retainedReadCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, openRetainedResizeFile, quotaCapabilities, retainedReadCapabilities, retainedResizeCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries } from "../directory-admission.js";
 
 export interface FileSystemQuotaOptions {
@@ -17,8 +18,28 @@ export class FileSystemQuotaError extends Error {
   }
 }
 
-async function usedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxScanDepth: number }, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number }): Promise<number> {
+function completeIdentity(stat: FileStat): boolean {
+  return (typeof stat.identityScope === "symbol" || typeof stat.identityScope === "object" && stat.identityScope !== null)
+    && [stat.dev, stat.ino].every(value => typeof value === "number" && Number.isSafeInteger(value) && value >= 0);
+}
+
+function namespaceMetadata<Value>(metadata: Promise<Value>, signal?: AbortSignal): Promise<Value> {
+  if (!signal) return metadata;
+  return new Promise<Value>((resolve, reject) => {
+    const abort = (): void => { signal.removeEventListener("abort", abort); reject(signal.reason); };
+    signal.addEventListener("abort", abort, { once: true });
+    metadata.then(
+      value => { signal.removeEventListener("abort", abort); resolve(value); },
+      error => { signal.removeEventListener("abort", abort); reject(error); },
+    );
+    if (signal.aborted) abort();
+  });
+}
+
+async function usedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxScanDepth: number }, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number; retained?: boolean }, retained = change?.retained === true): Promise<number> {
   let total = 0;
+  let retainedTotal = 0n;
+  let shrinkCredited = false;
   let possibleAliases = 0;
   let remaining = limits.maxScanEntries;
   const pending = [{ path: "/", depth: 0 }];
@@ -27,7 +48,8 @@ async function usedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxSc
     const directory = pending.pop();
     if (!directory) break;
     const signal = options?.signal;
-    const entries = await fs.readdir(directory.path, { ...options, ...(signal ? { signal } : {}), maxEntries: remaining });
+    const listing = fs.readdir(directory.path, { ...options, ...(signal ? { signal } : {}), maxEntries: remaining });
+    const entries = await (retained ? namespaceMetadata(listing, signal) : listing);
     options?.signal?.throwIfAborted();
     const count = entries.length;
     admitDirectoryEntries(count, remaining, directory.path);
@@ -47,7 +69,29 @@ async function usedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxSc
         pending.push({ path, depth });
       }
       else {
-        const stat = await fs.lstat(path, options);
+        const metadata = fs.lstat(path, options);
+        const stat = await (retained ? namespaceMetadata(metadata, signal) : metadata);
+        if (retained) {
+          options?.signal?.throwIfAborted();
+          if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new FsError("EIO", { syscall: "lstat", path, message: "invalid quota entry size" });
+          retainedTotal += BigInt(stat.size);
+          if (!change || stat.type !== "file") continue;
+          const known = completeIdentity(stat);
+          const same = known && change.stat.identityScope === stat.identityScope && change.stat.dev === stat.dev && change.stat.ino === stat.ino;
+          const nextBytes = change.stat.size + change.delta;
+          if (same) {
+            possibleAliases++;
+            retainedTotal += BigInt(Math.max(0, nextBytes - stat.size));
+            if (!shrinkCredited && change.delta < 0) {
+              retainedTotal -= BigInt(Math.max(0, Math.min(stat.size, change.stat.size) - nextBytes));
+              shrinkCredited = true;
+            }
+          } else if (!known) {
+            possibleAliases++;
+            retainedTotal += BigInt(Math.max(0, change.delta, nextBytes - stat.size));
+          }
+          continue;
+        }
         total += stat.size;
         if (!change || stat.type !== "file") continue;
         const scope = change.stat.identityScope;
@@ -63,6 +107,10 @@ async function usedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxSc
         else if (comparison !== "distinct") { total += Math.max(0, change.delta); possibleAliases++; }
       }
     }
+  }
+  if (retained) {
+    if (change && possibleAliases === 0) retainedTotal += BigInt(Math.max(0, change.delta));
+    return Number(retainedTotal);
   }
   if (change && possibleAliases === 0) total += Math.max(0, change.delta);
   return total;
@@ -93,6 +141,22 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     queue = result.catch(() => undefined);
     return result;
   };
+  const resizeBackend = new Proxy(Object.create(fs) as FileSystem, {
+    get(_target, property) {
+      const original: unknown = Reflect.get(fs, property);
+      if (property === "openResizeFile" && typeof original === "function") return async (path: string, resizeOptions: OpenResizeFileOptions) => {
+        resizeOptions.signal?.throwIfAborted();
+        if (resizeOptions.create) {
+          const total = await usedBytes(fs, scanLimits, resizeOptions, undefined, true);
+          resizeOptions.signal?.throwIfAborted();
+          if (total > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
+        }
+        resizeOptions.signal?.throwIfAborted();
+        return Reflect.apply(original as NonNullable<FileSystem["openResizeFile"]>, fs, [path, resizeOptions]);
+      };
+      return typeof original === "function" ? original.bind(fs) : original;
+    },
+  });
   const assertDelta = async (path: string, nextBytes: number, fsOptions?: FsOptions): Promise<void> => {
     fsOptions?.signal?.throwIfAborted();
     let current: FileStat | undefined;
@@ -107,6 +171,67 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
   };
   const mutations: Partial<FileSystem> = {
+    openResizeFile(path, resizeOptions = {}) {
+      return mutate(async () => {
+        let retained: FileResizeHandle | undefined;
+        try {
+          retained = await openRetainedResizeFile(resizeBackend, path, resizeOptions);
+          const pinned = { ...await retained.stat(resizeOptions) };
+          resizeOptions.signal?.throwIfAborted();
+          if (pinned.type !== "file" || !completeIdentity(pinned)) throw new FsError("ENOTSUP", { syscall: "openResizeFile", path, message: "quota requires complete retained file identity" });
+          if (!Number.isSafeInteger(pinned.size) || pinned.size < 0) throw new FsError("EIO", { syscall: "stat", path, message: "invalid retained file size" });
+          const handle = retained;
+          const seekEnd = handle.seekEnd;
+          resizeOptions.signal?.throwIfAborted();
+          let pending: Promise<unknown> = Promise.resolve();
+          let closing: Promise<void> | undefined;
+          const admit = <Result>(operation: () => Promise<Result>, operationOptions?: FsOptions): Promise<Result> => {
+            if (closing) return Promise.reject(new FsError("EBADF", { path }));
+            const result = mutate(async () => {
+              operationOptions?.signal?.throwIfAborted();
+              const value = await operation();
+              operationOptions?.signal?.throwIfAborted();
+              return value;
+            });
+            pending = result.catch(() => undefined);
+            return result;
+          };
+          const current = async (operationOptions?: FsOptions): Promise<FileStat> => {
+            const stat = { ...await handle.stat(operationOptions) };
+            operationOptions?.signal?.throwIfAborted();
+            if (stat.type !== "file" || !completeIdentity(stat) || stat.identityScope !== pinned.identityScope || stat.dev !== pinned.dev || stat.ino !== pinned.ino
+              || !Number.isSafeInteger(stat.size) || stat.size < 0) throw new FsError("EIO", { syscall: "stat", path, message: "invalid retained quota identity or size" });
+            return stat;
+          };
+          return {
+            stat(operationOptions) { return admit(() => current(operationOptions), operationOptions); },
+            ...(typeof seekEnd === "function" ? {
+              seekEnd(operationOptions?: FsOptions) {
+                return admit(() => Reflect.apply(seekEnd, handle, [operationOptions]), operationOptions);
+              },
+            } : {}),
+            truncate(length, operationOptions) {
+              return admit(async () => {
+                if (!Number.isSafeInteger(length) || length < 0) throw new FsError("EINVAL", { syscall: "truncate", path });
+                const stat = await current(operationOptions);
+                const projected = await usedBytes(fs, scanLimits, operationOptions, { path, stat, delta: length - stat.size, retained: true });
+                operationOptions?.signal?.throwIfAborted();
+                if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
+                await handle.truncate(length, operationOptions);
+              }, operationOptions);
+            },
+            close() {
+              closing ??= pending.then(() => handle.close());
+              return closing;
+            },
+          };
+        } catch (error) {
+          if (retained) await finishCleanup(() => retained!.close(), true);
+          resizeOptions.signal?.throwIfAborted();
+          throw error;
+        }
+      });
+    },
     writeFile(path, data, writeOptions) {
       return mutate(async () => {
         const append = writeOptions?.flag === "a" || writeOptions?.flag === "ax";
@@ -120,6 +245,15 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
         await assertDelta(path, await existingBytes(fs, path, appendOptions) + data.length, appendOptions);
         await fs.appendFile(path, data, appendOptions);
       });
+    },
+    async rename(source, destination, renameOptions) {
+      if (renameOptions?.noReplace) {
+        renameOptions.signal?.throwIfAborted();
+        const capabilities = await fs.capabilitiesFor?.(destination, renameOptions) ?? fs.capabilities;
+        renameOptions?.signal?.throwIfAborted();
+        if (capabilities.atomicRenameNoReplace !== true) throw new FsError("ENOTSUP", { syscall: "rename", path: source, dest: destination });
+      }
+      await fs.rename(source, destination, renameOptions);
     },
     copyFile(source, destination, copyOptions) {
       return mutate(async () => {
@@ -160,13 +294,13 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   // capabilities and methods without violating invariants on own properties.
   return new Proxy(Object.create(fs) as FileSystem, {
     get(_target, property) {
-      if (property === "canonicalizeMissingTarget") return undefined;
-      if (property === "capabilities") return quotaCapabilities(retainedReadCapabilities(fs));
+      if (property === "writeFileConditional" || property === "removeFileConditional" || property === "resizeFile" || property === "canonicalizeMissingTarget" || property === "createStagedFile" || property === "publishStagedFile" || property === "removeStagedFile" || property === "prepareDirectory") return undefined;
+      if (property === "capabilities") return quotaCapabilities(retainedResizeCapabilities(fs, retainedReadCapabilities(fs)));
       if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) => {
         const capabilities = await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities;
-        return quotaCapabilities(retainedReadCapabilities(fs, capabilities));
+        return quotaCapabilities(retainedResizeCapabilities(fs, retainedReadCapabilities(fs, capabilities)));
       };
-      if (property === "openReadFile") return (path: string, fsOptions: FsOptions = {}) => openRetainedReadFile(fs, path, fsOptions);
+      if (property === "openReadFile") return (path: string, fsOptions: OpenReadFileOptions = {}) => openRetainedReadFile(fs, path, fsOptions);
       const replacement = Reflect.get(mutations, property) as unknown;
       if (typeof replacement === "function") return replacement;
       const original = Reflect.get(fs, property) as unknown;

@@ -85,6 +85,32 @@ export interface ExprMatchResult {
   readonly capture: Match | null;
   readonly steps: number;
 }
+export interface BreSearchDescriptor {
+  readonly kind: "bre-search";
+  readonly pattern: Uint8Array;
+  readonly profile: "byte" | "utf8-scalar";
+  readonly limits: ExprMatchLimits;
+}
+export interface BreSearchResult {
+  readonly offsetUnit: "byte";
+  readonly matched: boolean;
+  readonly overall: Match | null;
+  readonly steps: number;
+}
+export function breSearchSymbolWidth(bytes: Uint8Array, offset: number): number {
+  const first = bytes[offset]!;
+  const width = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
+  if (width > bytes.length - offset) return 1;
+  for (let continuation = 1; continuation < width; continuation++) {
+    const value = bytes[offset + continuation]!;
+    if (value < 0x80 || value > 0xbf || continuation === 1 && (first === 0xe0 && value < 0xa0
+      || first === 0xed && value > 0x9f || first === 0xf0 && value < 0x90 || first === 0xf4 && value > 0x8f)) return 1;
+  }
+  return width;
+}
+export interface BreSearchRequest { readonly id: number; readonly descriptor: BreSearchDescriptor; readonly rows: readonly Row[] }
+export type BreSearchReply = { readonly id: number; readonly operation: "bre-search"; readonly result: BreSearchResult }
+  | { readonly id: number; readonly operation: "bre-search"; readonly error: string; readonly category: "syntax" | "unsupported" | "limit" };
 export interface ExprMatchRequest { readonly id: number; readonly descriptor: ExprMatchDescriptor; readonly rows: readonly Row[] }
 export type ExprMatchReply = { readonly id: number; readonly operation: "expr-match"; readonly result: ExprMatchResult }
   | { readonly id: number; readonly operation: "expr-match"; readonly error: string; readonly category: "syntax" | "unsupported" | "limit" };
@@ -96,6 +122,14 @@ export class ExprMatchError extends Error {
 function exactObject(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+}
+
+function breSearchRecord(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value) || Reflect.ownKeys(value).length !== keys.length) return false;
+  return keys.every(key => {
+    const property = Object.getOwnPropertyDescriptor(value, key);
+    return property !== undefined && "value" in property;
+  });
 }
 
 export function validateExprInput(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal): void {
@@ -114,6 +148,62 @@ export function validateExprInput(descriptor: ExprMatchDescriptor, rows: readonl
   if (descriptor.pattern.length > descriptor.limits.maxPatternBytes || row.bytes.length > descriptor.limits.maxSubjectBytes) {
     throw new ExprMatchError("limit", "regex input bytes limit exceeded");
   }
+}
+
+export function validateBreSearchInput(descriptor: BreSearchDescriptor, rows: readonly Row[], signal: AbortSignal): void {
+  signal.throwIfAborted();
+  if (!breSearchRecord(descriptor, ["kind", "pattern", "profile", "limits"]) || descriptor.kind !== "bre-search"
+    || !breSearchRecord(descriptor.limits, Object.keys(exprMatchCeilings)) || !Array.isArray(rows)
+    || rows.length !== 1 || Reflect.ownKeys(rows).length !== 2) {
+    throw new RegexExecutionError("PROTOCOL", "invalid BRE search request");
+  }
+  const row = Object.getOwnPropertyDescriptor(rows, "0");
+  if (!row || !("value" in row) || !breSearchRecord(row.value, ["bytes", "all", "terminated"])) {
+    throw new RegexExecutionError("PROTOCOL", "invalid BRE search subject");
+  }
+  validateExprInput({ ...descriptor, kind: "expr-match" }, rows, signal);
+}
+
+export function validateBreSearchRequest(value: unknown): asserts value is BreSearchRequest {
+  if (!breSearchRecord(value, ["id", "descriptor", "rows"]) || !Number.isSafeInteger(value.id) || (value.id as number) < 1) {
+    throw new RegexExecutionError("PROTOCOL", "invalid BRE search request identity");
+  }
+  validateBreSearchInput(value.descriptor as BreSearchDescriptor, value.rows as readonly Row[], new AbortController().signal);
+}
+
+export function validateBreSearchReply(value: unknown, id: number, descriptor: BreSearchDescriptor, subject: Uint8Array, signal: AbortSignal): BreSearchResult {
+  signal.throwIfAborted();
+  const invalid = (): never => { throw new RegexExecutionError("PROTOCOL", "invalid BRE search reply"); };
+  if (!breSearchRecord(value, Object.hasOwn(value ?? {}, "error") ? ["id", "operation", "error", "category"] : ["id", "operation", "result"])) return invalid();
+  const reply = value as Record<string, unknown>;
+  if (reply.id !== id || reply.operation !== "bre-search") return invalid();
+  if ("error" in reply) {
+    if (!breSearchRecord(reply, ["id", "operation", "error", "category"]) || typeof reply.error !== "string"
+      || reply.error.length > 512 || !["syntax", "unsupported", "limit"].includes(reply.category as string)) return invalid();
+    throw new ExprMatchError(reply.category as "syntax" | "unsupported" | "limit", reply.error);
+  }
+  if (!breSearchRecord(reply, ["id", "operation", "result"])) return invalid();
+  const result = reply.result;
+  if (!breSearchRecord(result, ["offsetUnit", "matched", "overall", "steps"]) || result.offsetUnit !== "byte"
+    || typeof result.matched !== "boolean" || !Number.isSafeInteger(result.steps)
+    || (result.steps as number) < 1 || (result.steps as number) > descriptor.limits.maxSteps) return invalid();
+  let overall: Match | null = null;
+  if (result.overall !== null) {
+    if (!breSearchRecord(result.overall, ["start", "end"])) return invalid();
+    const { start, end } = result.overall;
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || (start as number) < 0
+      || (end as number) < (start as number) || (end as number) > subject.length) return invalid();
+    if (descriptor.profile === "utf8-scalar") {
+      for (const offset of [start as number, end as number]) {
+        for (let previous = Math.max(0, offset - 3); previous < offset; previous++) {
+          if (previous + breSearchSymbolWidth(subject, previous) > offset) return invalid();
+        }
+      }
+    }
+    overall = { start: start as number, end: end as number };
+  }
+  if (result.matched !== (overall !== null)) return invalid();
+  return { offsetUnit: "byte", matched: result.matched, overall, steps: result.steps as number };
 }
 
 export function validateExprRequest(value: unknown): asserts value is ExprMatchRequest {

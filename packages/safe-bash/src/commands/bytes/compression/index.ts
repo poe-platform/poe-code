@@ -2,14 +2,14 @@ import { PublicDiagnostic } from "../../../diagnostics.js";
 import { readBytes, writeBytes, type CommandDefinition } from "../../../contracts/index.js";
 import { define, diagnostic, output } from "../../internal.js";
 import { planOperands, unchangedSource, writeFileOperand } from "./files.js";
-import { parseOptions } from "./options.js";
+import { parseOptions, profiles } from "./options.js";
 import { chunkBytes, transform } from "./stream.js";
 
 export function createCompressionCommands(): readonly CommandDefinition[] {
-  return ["gzip", "gunzip", "zcat"].map((name) => define(name, async (context) => {
+  return profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {
     const options = parseOptions(name, context.args);
     if (options.help) {
-      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\n-n, --no-name (always enabled)\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
+      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\n${options.format === "gzip" ? "-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}; 64 MiB codec allocation cap.\nHigh presets may exceed the cap and fail explicitly.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
       return { exitCode: 0 };
     }
     const plans = await planOperands(context, options);

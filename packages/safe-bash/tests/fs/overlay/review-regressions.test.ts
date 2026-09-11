@@ -16,10 +16,12 @@ class GetterStat implements FileStat {
   get type() { return this.#values.type; }
   get size() { return this.#values.size; }
   get allocatedBytes() { return this.#values.allocatedBytes; }
+  get preferredIoBlockSize() { return this.#values.preferredIoBlockSize; }
   get mode() { return this.#values.mode; }
   get mtimeMs() { return this.#values.mtimeMs; }
   get atimeMs() { return this.#values.atimeMs; }
   get ctimeMs() { return this.#values.ctimeMs; }
+  get revision() { return this.#values.revision; }
   get birthtimeMs() { return this.#values.birthtimeMs; }
   get identityScope() { return this.#values.identityScope; }
   get ino() { return this.#values.ino; }
@@ -30,8 +32,8 @@ class GetterStat implements FileStat {
 }
 
 const metadata: MutableStat = {
-  type: "file", size: 5, allocatedBytes: 4096, mode: 0o100640, mtimeMs: 101, atimeMs: 102,
-  ctimeMs: 103, birthtimeMs: 104, identityScope: Symbol(), ino: 105, dev: 0, nlink: 1, uid: 0, gid: 0,
+  type: "file", size: 5, allocatedBytes: 4096, preferredIoBlockSize: 4096, mode: 0o100640, mtimeMs: 101, atimeMs: 102,
+  ctimeMs: 103, revision: 7, birthtimeMs: 104, identityScope: Symbol(), ino: 105, dev: 0, nlink: 1, uid: 0, gid: 0,
 };
 
 const shapes: Record<string, (values: MutableStat) => FileStat> = {
@@ -74,6 +76,7 @@ for (const [name, shape] of Object.entries(shapes)) {
       values.type = "directory";
       values.size = 1234;
       values.allocatedBytes = 8192;
+      values.preferredIoBlockSize = 8192;
       values.mode = 0o40700;
       values.mtimeMs = values.atimeMs = values.ctimeMs = 987;
       values.birthtimeMs = values.ino = values.dev = values.nlink = values.uid = values.gid = 654;

@@ -28,11 +28,27 @@ export function executeInWorker(
       finished = true;
       clearTimeout(timeout);
       controller.abort();
-      worker?.terminate();
-      for (const resource of auxiliary.values()) resource.close();
+      let cleanupFailure: { error: unknown } | undefined;
+      try { worker?.terminate(); }
+      catch (error) { cleanupFailure ??= { error }; }
+      for (const resource of auxiliary.values()) {
+        try { resource.close(); }
+        catch (error) { cleanupFailure ??= { error }; }
+      }
       auxiliary.clear();
-      await filesystem.close();
-      resolve(result);
+      try { await filesystem.close(); }
+      catch (error) { cleanupFailure ??= { error }; }
+      if (result.exitCode !== 0 || !cleanupFailure) resolve(result);
+      else {
+        let message: string;
+        try { message = cleanupFailure.error instanceof Error ? cleanupFailure.error.message : String(cleanupFailure.error); }
+        catch { message = "Unknown cleanup failure"; }
+        resolve({
+          stdout: result.stdout,
+          stderr: `${result.stderr}${result.stderr && !result.stderr.endsWith("\n") ? "\n" : ""}Filesystem cleanup failed: ${message}\n`,
+          exitCode: 1
+        });
+      }
     }
     const fail = (error: unknown): void => {
       void finish({ stdout: "", stderr: `${error instanceof Error ? error.message : String(error)}\n`, exitCode: 1 });

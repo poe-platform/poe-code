@@ -346,8 +346,11 @@ export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): C
       try {
         for (const operand of parsed.operands) {
           try {
-            assertCommandRequirements(context, teeRequirements, [parsed.flags.has("a") ? "append" : "overwrite"]);
-            targets.add(await openFileOutput(context, pathOf(context, operand), parsed.flags.has("a") ? "a" : "w"));
+            const path = pathOf(context, operand);
+            const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+            assertCommandRequirements(context, teeRequirements, [parsed.flags.has("a") ? "append" : "overwrite"],
+              context.fs.capabilities.readOnly === true ? { ...capabilities, readOnly: true } : capabilities);
+            targets.add(await openFileOutput(context, path, parsed.flags.has("a") ? "a" : "w"));
           }
           catch (error) {
             context.signal.throwIfAborted();

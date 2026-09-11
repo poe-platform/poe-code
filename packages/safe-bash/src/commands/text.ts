@@ -272,9 +272,10 @@ async function keyBytes(line: Uint8Array, key: SortKey, separator: number | unde
 async function emitRecords(context: CommandContext, records: ByteSource, destination?: string): Promise<void> {
   if (destination === undefined) { for await (const bytes of records) await output(context, bytes); return; }
   await admitTextOutput(context, destination);
-  if (context.fs.writeStream && context.fs.capabilities.streamingWrite !== false) await context.fs.writeStream(pathOf(context, destination), records, { signal: context.signal });
+  const capabilities = await context.fs.capabilitiesFor?.(pathOf(context, destination), { signal: context.signal }) ?? context.fs.capabilities;
+  if (context.fs.writeStream && capabilities.streamingWrite !== false) await context.fs.writeStream(pathOf(context, destination), records, { signal: context.signal });
   else {
-    if (context.fs.capabilities.write === false) throw new FsError("ENOTSUP", { syscall: "writeFile", path: pathOf(context, destination) });
+    if (capabilities.write === false) throw new FsError("ENOTSUP", { syscall: "writeFile", path: pathOf(context, destination) });
     let size = 0;
     const chunks: Uint8Array[] = [];
     for await (const bytes of records) {

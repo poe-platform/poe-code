@@ -91,8 +91,8 @@ test("exclusive publication failure never deletes a concurrently created target"
   const memory = createMemoryFileSystem();
   await memory.writeFile("/input", binary);
   const fs = wrap(memory, {
-    async copyFile(_source, destination, options) {
-      assert.equal(options?.exclusive, true);
+    async rename(_source, destination, options) {
+      assert.equal(options?.noReplace, true);
       await memory.writeFile(destination, Buffer.from("concurrent"));
       throw new FsError("EEXIST");
     },
@@ -155,8 +155,8 @@ test("source mutation after publication is not deleted", async () => {
   const memory = createMemoryFileSystem();
   await memory.writeFile("/input", binary);
   const fs = wrap(memory, {
-    async copyFile(source, destination, options) {
-      await memory.copyFile(source, destination, options);
+    async rename(source, destination, options) {
+      await memory.rename(source, destination, options);
       await memory.writeFile("/input", Buffer.from("changed"));
     },
   });

@@ -162,11 +162,155 @@ test("committed batches validate bootstrap authority before requesting source bo
   }
 });
 
-test("archive peer contract admits the exact current required peer without admitting runtime dependencies", () => {
+test("archive peer contract admits the exact current required peer and approved pinned runtime dependencies", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
   assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" });
   distChecks.assertArchiveDependencyContract(manifest);
   distChecks.assertArchiveDependencyContract({ ...manifest, peerDependenciesMeta: { "poe-code": { optional: false } } });
+});
+
+function dependencyFixture() {
+  const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
+  const lock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
+  const tools = resolveTools();
+  const artifacts = {};
+  const files = {};
+  for (const [index, name] of ["@noble/hashes", "pako"].entries()) {
+    const source = tools.dependencyArtifactPath(lock.packages[`node_modules/${name}`].integrity);
+    artifacts[name] = `/artifacts/dependency-${index}.tgz`;
+    files[artifacts[name]] = readRegularInput(dirname(source), source.slice(dirname(source).length + 1), 8 * 1024 * 1024);
+  }
+  const fileSystem = createFsFromVolume(Volume.fromJSON(files));
+  fileSystem.mkdirSync("/owned");
+  return { manifest, lock, tools, artifacts, fileSystem };
+}
+
+test("private archive dependency contract binds only the approved exact versions and committed registry integrity", () => {
+  const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
+  const lock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
+  distChecks.assertArchiveDependencyContract(manifest);
+  distChecks.assertArchiveDependencyLock(manifest, lock);
+  for (const dependencies of [
+    { ...manifest.dependencies, other: "1.0.0" },
+    { ...manifest.dependencies, pako: "^3.0.1" },
+    { ...manifest.dependencies, pako: "npm:pako@3.0.1" },
+    { "@noble/hashes": "2.4.0" },
+  ]) assert.throws(() => distChecks.assertArchiveDependencyContract({ ...manifest, dependencies }), /runtime dependency/);
+  for (const change of [
+    entry => { entry.version = "3.0.2"; },
+    entry => { entry.integrity = `sha512-${Buffer.alloc(64).toString("base64")}`; },
+    entry => { entry.resolved = "https://unapproved.invalid/pako-3.0.1.tgz"; },
+    entry => { entry.dependencies = { hidden: "1.0.0" }; },
+    entry => { entry.optionalDependencies = { hidden: "1.0.0" }; },
+    entry => { entry.peerDependencies = { hidden: "1.0.0" }; },
+    entry => { entry.link = true; },
+    entry => { entry.hasInstallScript = true; },
+  ]) {
+    const changed = structuredClone(lock);
+    change(changed.packages["node_modules/pako"]);
+    assert.throws(() => distChecks.assertArchiveDependencyLock(manifest, changed), /dependency/);
+  }
+  const shadowed = structuredClone(lock);
+  shadowed.packages[`${packagePrefix}/node_modules/pako`] = { ...lock.packages["node_modules/pako"] };
+  assert.throws(() => distChecks.assertArchiveDependencyLock(manifest, shadowed), /dependency/);
+});
+
+test("committed export mirroring preserves nested type/browser condition keys and rejects invalid targets", () => {
+  const source = { types: { browser: "./dist/core.d.ts", default: "./dist/index.d.ts" }, browser: "./dist/core.browser.js", import: "./dist/index.js", custom: null };
+  assert.deepEqual(distChecks.mirrorArchiveExportTargets(source), {
+    types: { browser: "./packages/safe-bash/dist/core.d.ts", default: "./packages/safe-bash/dist/index.d.ts" },
+    browser: "./packages/safe-bash/dist/core.browser.js", import: "./packages/safe-bash/dist/index.js", custom: null,
+  });
+  for (const target of [true, 1, ["./dist/index.js"], "../outside.js", "./../outside.js"]) {
+    assert.throws(() => distChecks.mirrorArchiveExportTargets({ types: { default: target } }), /export|path/);
+  }
+});
+
+test("committed export mirroring preserves single filename patterns without admitting path globs", () => {
+  assert.deepEqual(distChecks.mirrorArchiveExportTargets({ types: { default: "./dist/contracts/*.d.ts" }, import: "./dist/contracts/*.js" }), {
+    types: { default: "./packages/safe-bash/dist/contracts/*.d.ts" }, import: "./packages/safe-bash/dist/contracts/*.js",
+  });
+  for (const target of ["./dist/**.js", "./dist/*/*.js", "./dist/*/index.js", "./dist/../*.js", "./dist/[abc]*.js", "./dist/{a,b}*.js", "./dist/*?.js", "./dist/\\*.js", "./dist/*.js\n"]) {
+    assert.throws(() => distChecks.mirrorArchiveExportTargets(target), /export|path/);
+  }
+});
+
+test("private archive dependency artifacts stage exact authenticated bytes and reject installed drift", async () => {
+  const fixture = dependencyFixture();
+  const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/hashes", "pako"]);
+  fixture.fileSystem.mkdirSync("/snapshot");
+  distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
+  distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
+  const files = {
+    "node_modules/virtual-bash/package.json": '{"type":"module"}',
+    "node_modules/virtual-bash/dist/index.js": 'export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako";',
+    "node_modules/virtual-bash/dist/fs/s3/http/index.js": "export {};",
+    "node_modules/poe-code/package.json": '{"type":"module"}',
+    "node_modules/poe-code/index.js": "export {};",
+  };
+  for (const [path, bytes] of Object.entries(files)) {
+    fixture.fileSystem.mkdirSync(dirname(`/snapshot/${path}`), { recursive: true });
+    fixture.fileSystem.writeFileSync(`/snapshot/${path}`, bytes);
+  }
+  const peer = { entries: { "poe-code/safe-fs": "index.js" }, files: ["package.json", "index.js"].map(path => ({ path, sha256: digest(files[`node_modules/poe-code/${path}`]) })) };
+  const packed = Object.keys(files).filter(path => path.startsWith("node_modules/virtual-bash/")).map(path => path.slice("node_modules/virtual-bash/".length));
+  const bind = () => verifier.bindPackedConsumer("/snapshot", packed, peer, { publicEntries: new Map(), declarations: new Map() }, ts, fixture.fileSystem, bindings);
+  const closure = bind();
+  assert.equal(closure.entries["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
+  assert.equal(closure.entries.pako, "node_modules/pako/dist/pako.mjs");
+  assert.equal(closure.entries["@noble/hashes/argon2.js"], undefined);
+  fixture.fileSystem.writeFileSync("/snapshot/node_modules/virtual-bash/dist/index.js", 'import "pako/dist/pako.mjs";');
+  assert.throws(bind, /Unbound runtime dependency/);
+  const changed = "/snapshot/node_modules/pako/dist/pako.mjs";
+  const original = fixture.fileSystem.readFileSync(changed);
+  fixture.fileSystem.writeFileSync(changed, "export const changed = true;");
+  assert.throws(() => distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem), /dependency.*drift/);
+  fixture.fileSystem.writeFileSync(changed, original);
+  fixture.fileSystem.writeFileSync("/snapshot/node_modules/pako/unbound.js", "export {};");
+  assert.throws(() => distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem), /dependency.*inventory/);
+});
+
+test("private archive offline installation uses only owned pinned tarballs without host module fallback", async () => {
+  await withRepository(() => {}, async fixture => {
+    const tools = resolveTools();
+    const bindings = await distChecks.prepareArchiveDependencies(fixture, tools, fixture.output);
+    const staging = join(fixture.output, "private");
+    mkdirSync(join(staging, "package/dist"), { recursive: true });
+    writeFileSync(join(staging, "package/package.json"), JSON.stringify(fixture.manifest));
+    writeFileSync(join(staging, "package/dist/index.js"), 'import { sha256 } from "@noble/hashes/sha2.js"; import { gzip } from "pako"; export const verified = sha256(new Uint8Array()).length === 32 && gzip(new Uint8Array()).length > 0;');
+    const archive = join(fixture.output, "private.tgz");
+    tools.tar.c({ cwd: staging, file: archive, gzip: true, sync: true, portable: true, noPax: true }, ["package/package.json", "package/dist/index.js"]);
+    const consumer = join(fixture.output, "consumer");
+    mkdirSync(consumer);
+    writeFileSync(join(consumer, "package.json"), '{"name":"private-dependency-control","private":true,"type":"module"}');
+    const environment = cleanEnvironment(fixture.output);
+    const installed = spawnSync(process.execPath, [tools.npmCli, "install", "--prefix", consumer, "--workspaces=false", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", "--legacy-peer-deps", archive, ...bindings.map(binding => binding.tarball)], { cwd: consumer, env: environment, encoding: "utf8", timeout: 90000, maxBuffer: 2 * 1024 * 1024 });
+    assert.ifError(installed.error);
+    assert.equal(installed.status, 0, installed.stderr);
+    distChecks.assertArchiveDependencies(bindings, consumer);
+    const runtime = spawnSync(process.execPath, ["--input-type=module", "-e", 'import { verified } from "virtual-bash"; if (!verified) process.exitCode = 1;'], { cwd: consumer, env: environment, encoding: "utf8", timeout: 10000, maxBuffer: 1048576 });
+    assert.ifError(runtime.error);
+    assert.equal(runtime.status, 0, runtime.stderr);
+    assert.equal(existsSync(fixture.marker), false);
+  });
+});
+
+test("private archive dependency artifacts reject corrupt bytes and unapproved provenance before parsing", async () => {
+  for (const defect of ["bytes", "registry", "extra artifact", "symlink", "hardlink"]) {
+    const fixture = dependencyFixture();
+    const artifact = fixture.artifacts.pako;
+    if (defect === "bytes") fixture.fileSystem.writeFileSync(artifact, "not the pinned registry tarball");
+    if (defect === "registry") fixture.lock.packages["node_modules/pako"].resolved = "file:/host/pako.tgz";
+    if (defect === "extra artifact") fixture.artifacts.other = artifact;
+    if (defect === "symlink") {
+      fixture.fileSystem.renameSync(artifact, `${artifact}.target`);
+      fixture.fileSystem.symlinkSync(`${artifact}.target`, artifact);
+    }
+    if (defect === "hardlink") fixture.fileSystem.linkSync(artifact, `${artifact}.alias`);
+    await assert.rejects(distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture));
+    assert.equal(fixture.fileSystem.existsSync("/owned/dependency-artifacts/pako.tgz"), false);
+  }
 });
 
 test("archive peer contract retains the explicit historical zero-peer profile", () => {
@@ -874,6 +1018,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
     writeFileSync(join(directory, "exports.test.mjs"), launcher);
     assert.deepEqual(readFileSync(join(directory, "exports.test.mjs")), launcher);
     writeFileSync(join(directory, "archive-controls.test.mjs"), "export {};\n");
+    writeFileSync(join(directory, "archive-parser.test.mjs"), "export {};\n");
     writeFileSync(join(directory, "committed-archive.mjs"), `export { cleanEnvironment } from ${JSON.stringify(new URL("./committed-archive.mjs", import.meta.url).href)};\n`);
     const startupMarker = join(directory, "startup-ran");
     const verifierMarker = join(directory, "synthetic-verifier-ran");
@@ -940,25 +1085,41 @@ async function withRepository(change, run, { localTypes = false } = {}) {
   try {
     const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
-    const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "virtual-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, `./${packagePrefix}/${target.slice(2)}`]))])) };
+    const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "virtual-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
     root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
     const marker = join(directory, "unexpected-lifecycle");
     root.scripts = Object.fromEntries(["prepare", "prepack", "postpack", "preinstall", "postinstall"].map(name => [name, `node -e ${JSON.stringify(`require("node:fs").writeFileSync(${JSON.stringify(marker)}, ${JSON.stringify(name)})`)}`]));
     const lock = { name: root.name, version: root.version, lockfileVersion: 3, packages: {
       "": { name: root.name, version: root.version, workspaces: root.workspaces, devDependencies: root.devDependencies },
-      [packagePrefix]: { name: manifest.name, version: manifest.version, devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), engines: manifest.engines },
+      [packagePrefix]: { name: manifest.name, version: manifest.version, dependencies: structuredClone(manifest.dependencies), devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), engines: manifest.engines },
       "node_modules/virtual-bash": { resolved: packagePrefix, link: true },
       "node_modules/poe-code": { resolved: "", link: true },
     } };
+    const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
+    for (const name of ["@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
-    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
+    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
       put(`${packagePrefix}/${path}`, readRegularInput(authority, path, 300000, undefined, boundaries));
     }
+    const native = "src/commands/bytes/compression/native";
+    const artifacts = [];
+    for (const name of ["bz2", "xz", "zstd"]) {
+      const path = `generated/${name}.mjs`;
+      const bytes = Buffer.from("export default function create() { throw new Error('synthetic codec must not execute'); }\n");
+      put(`${packagePrefix}/${native}/${path}`, bytes);
+      artifacts.push({ path, bytes: bytes.length, sha256: digest(bytes) });
+      put(`${packagePrefix}/${native}/generated/${name}.d.mts`, readRegularInput(authority, `${native}/generated/${name}.d.mts`, 32768));
+    }
+    put(`${packagePrefix}/${native}/types.ts`, readRegularInput(authority, `${native}/types.ts`, 32768));
+    put(`${packagePrefix}/${native}/sources.json`, JSON.stringify({ artifacts }));
+    put(`${packagePrefix}/${native}/LICENSES.txt`, "Synthetic archive admission fixtures; not native codec qualification.\n");
     put("scripts/guard-package-dist.mjs", readRegularInput(join(authority, "../.."), "scripts/guard-package-dist.mjs", 300000));
     put(`${packagePrefix}/README.md`, "Synthetic committed archive control, not a product qualification.\n");
     for (const path of boundaries.heldSourceFiles) put(`${packagePrefix}/${path}`, "SYNTHETIC_WITHHELD_SENTINEL\n");
     for (const path of boundaries.heldEvidenceDirectories) put(`${packagePrefix}/${path}/synthetic-held.ts`, "SYNTHETIC_WITHHELD_EVIDENCE_SENTINEL\n");
-    put(`${packagePrefix}/src/index.ts`, 'export * from "./fs/s3/http/index.js";\nexport { FsError, MemoryFileSystem } from "poe-code/safe-fs";\nexport type { S3Transport } from "./fs/s3/index.js";\n');
+    put(`${packagePrefix}/src/index.ts`, 'export * from "./fs/s3/http/index.js";\nexport { FsError, MemoryFileSystem } from "poe-code/safe-fs";\nexport type { S3Transport } from "./fs/s3/index.js";\nimport { sha256 } from "@noble/hashes/sha2.js";\nimport { gzip } from "pako";\nexport const dependencyControl = sha256(new Uint8Array()).length + gzip(new Uint8Array()).length;\n');
+    put(`${packagePrefix}/src/core.ts`, 'export * from "./index.js";\n');
+    put(`${packagePrefix}/src/core.browser.ts`, 'export * from "./core.js";\n');
     const transport = 'export interface S3Transport { headObject(): void; getObject(): void; putObject(): void; copyObject(): void; deleteObject(): void; listObjectsV2(): void }\n';
     put(`${packagePrefix}/src/fs/s3/index.ts`, transport);
     const types = `import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
@@ -1057,7 +1218,7 @@ test("committed admission batches exact object IDs while retaining raw admitted 
     };
     const candidate = inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute);
     assert.deepEqual(candidate.files.get(path), payload);
-    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs"].map(input => `${packagePrefix}/${input}`)]) {
+    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/copy-compression-assets.mjs"].map(input => `${packagePrefix}/${input}`)]) {
       const expected = readRegularInput(resolve(authority, "../.."), input, 300000);
       const actual = candidate.files.get(input);
       assert.ok(Buffer.isBuffer(actual) && Buffer.isBuffer(expected), input);
@@ -1095,20 +1256,22 @@ test("committed archive requires the committed output guard and matching workspa
   });
 });
 
-for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded build rejects ${defect} before execution`, async () => {
-  const entrypoint = `${packagePrefix}/scripts/build.mjs`;
+for (const script of ["build.mjs", "copy-compression-assets.mjs"]) for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded ${script} rejects ${defect} before execution`, async () => {
+  const entrypoint = `${packagePrefix}/scripts/${script}`;
   for (const mutation of defect === "drift" ? ["same-length", "short"] : ["short"]) await withRepository(fixture => {
     if (defect === "missing") {
       rmSync(join(fixture.repository, entrypoint));
       fixture.paths.splice(fixture.paths.indexOf(entrypoint), 1);
     } else if (defect === "drift") {
-      const bytes = mutation === "short" ? Buffer.from("throw new Error('unreviewed compiler must not execute');\n") : readRegularInput(authority, "scripts/build.mjs", 300000);
+      const bytes = mutation === "short" ? Buffer.from("throw new Error('unreviewed compiler must not execute');\n") : readRegularInput(authority, `scripts/${script}`, 300000);
       if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
       fixture.put(entrypoint, bytes);
     } else if (defect === "symlink") {
       rmSync(join(fixture.repository, entrypoint));
       symlinkSync("integration-inputs.mjs", join(fixture.repository, entrypoint));
-    } else fixture.manifest.scripts.build = "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json";
+    } else fixture.manifest.scripts.build = script === "build.mjs"
+      ? "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json"
+      : "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs";
   }, fixture => {
     const tree = fixture.git(["ls-tree", "-rz", "--full-tree", "HEAD"], { raw: true });
     assert.equal(tree.at(-1), 0);
@@ -1118,23 +1281,25 @@ for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`co
     else assert.ok(entry);
     if (defect === "symlink") { assert.ok(entry.startsWith("120000 blob ")); assert.ok(forbidden); }
     let admittedBlobReads = 0;
+    const sourceOids = new Set(fixture.git(["ls-tree", "-r", "--format=%(objectname)", "HEAD", "--", `${packagePrefix}/src`]).split("\n"));
     const execute = (command, args, options) => {
       for (const oid of requestedBodies(args, options)) {
         admittedBlobReads += 1;
         assert.notEqual(oid, forbidden, "nonregular compiler body must not be read");
+        assert.ok(!sourceOids.has(oid), "untrusted bootstrap must not request product source bodies");
       }
       return spawnSync(command, args, options);
     };
-    const expected = defect === "missing" ? /missing committed input: packages\/safe-bash\/scripts\/build.mjs/
-      : defect === "drift" ? /committed build input differs from reviewed authority: scripts\/build.mjs/
-        : defect === "symlink" ? /not a regular committed input: packages\/safe-bash\/scripts\/build.mjs/
-          : /unreviewed committed build command/;
+    const expected = defect === "missing" ? `missing committed input: ${entrypoint}`
+      : defect === "drift" ? `committed build input differs from reviewed authority: scripts/${script}`
+        : defect === "symlink" ? `not a regular committed input: ${entrypoint}`
+          : "unreviewed committed build command";
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), error => {
-      assert.match(error.message, expected);
+      assert.equal(defect === "legacy-command" ? error.message.split("\n")[0] : error.message, expected);
       if (defect === "drift") {
         assert.ok(error instanceof assert.AssertionError);
         assert.equal(error.code, "ERR_ASSERTION");
-        assert.equal(error.message, "committed build input differs from reviewed authority: scripts/build.mjs");
+        assert.equal(error.message, `committed build input differs from reviewed authority: scripts/${script}`);
       }
       return true;
     });
@@ -1262,6 +1427,11 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.equal(report.status, "pass", JSON.stringify(report));
     assert.equal(report.qualification, "synthetic-committed-fixture-not-release-qualification");
     assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0" });
+    assert.deepEqual(report.package.runtimeDependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
+    assert.deepEqual(report.dependencies.map(binding => binding.name), ["@noble/hashes", "pako"]);
+    assert.ok(report.steps.find(step => step.label === "offline tarball install without lifecycles").args.includes(report.dependencies[0].tarball));
+    assert.equal(report.peerRuntimeBinding.edges["node_modules/virtual-bash/dist/index.js"]["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
+    assert.equal(report.peerRuntimeBinding.edges["node_modules/virtual-bash/dist/index.js"].pako, "node_modules/pako/dist/pako.mjs");
     assert.equal(report.peer.profile, profile);
     assert.equal(report.peer.version, fixture.root.version);
     assert.equal(report.peer.integrity, null);
@@ -1278,6 +1448,18 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.deepEqual(build.args, ["scripts/build.mjs"]);
     assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/build.mjs`));
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/build.mjs`));
+    const copy = report.steps.find(step => step.label === "isolated committed codec asset copy");
+    assert.ok(copy);
+    assert.deepEqual(copy.args, ["scripts/copy-compression-assets.mjs"]);
+    assert.ok(report.steps.indexOf(copy) > report.steps.indexOf(build));
+    assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/copy-compression-assets.mjs`));
+    assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/copy-compression-assets.mjs`));
+    for (const path of ["sources.json", "LICENSES.txt", ...["bz2", "xz", "zstd"].flatMap(name => [`generated/${name}.mjs`, `generated/${name}.d.mts`])]) {
+      const local = `commands/bytes/compression/native/${path}`;
+      assert.ok(report.package.files.includes(`dist/${local}`), `missing copied codec artifact: ${path}`);
+      const expected = digest(readRegularInput(fixture.repository, `${packagePrefix}/src/${local}`, 65536));
+      assert.equal(report.distBaseline.files.find(entry => entry.path === `dist/${local}`)?.sha256, expected, `copied codec artifact differs: ${path}`);
+    }
     assert.equal(report.distBaseline.sourceCommit, report.sourceCommit);
     assert.equal(report.distBaseline.archiveSha256, report.archive.sha256);
     assert.deepEqual(report.distBaseline.files.map(entry => entry.path), report.package.files.filter(path => path.startsWith("dist/")));

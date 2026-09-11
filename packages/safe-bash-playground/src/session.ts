@@ -1,5 +1,4 @@
-import { browserLimits, createMemoryFileSystem, supportedCommands } from "./engine/index.js";
-import type { FileSystem } from "./engine/index.js";
+import { browserLimits, createMemoryFileSystem, supportedCommands, withFileSystemQuota } from "./engine/index.js";
 import { executeInWorker } from "./execution.js";
 import { sampleFiles } from "./samples.js";
 
@@ -141,13 +140,7 @@ export async function createSession(): Promise<PlaygroundSession> {
   for (const [path, text] of Object.entries(sampleFiles))
     await fs.writeFile(path, encoder.encode(text));
 
-  let mutationQueue: Promise<unknown> = Promise.resolve();
-  const mutate = (operation: () => Promise<void>): Promise<void> => {
-    const result = mutationQueue.then(operation);
-    mutationQueue = result.catch(() => undefined);
-    return result;
-  };
-  async function checkCapacity(path: string, size: number, append = false): Promise<void> {
+  async function checkCapacity(path: string, size: number): Promise<void> {
     let previousSize = 0;
     let links = 1;
     try {
@@ -158,59 +151,14 @@ export async function createSession(): Promise<PlaygroundSession> {
       if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") throw error;
     }
     const total = (await entries()).reduce((sum, entry) => sum + entry.size, 0);
-    if (total + (append ? size : size - previousSize) * links > MAX_WORKSPACE_BYTES) {
+    if (total + (size - previousSize) * links > MAX_WORKSPACE_BYTES) {
       throw new Error("Workspace must not exceed 16 MiB");
     }
   }
-  const mutations: Partial<FileSystem> = {
-    writeFile(path, data, options) {
-      return mutate(async () => {
-        await checkCapacity(path, data.length, options?.flag === "a" || options?.flag === "ax");
-        await fs.writeFile(path, data, options);
-      });
-    },
-    appendFile(path, data, options) {
-      return mutate(async () => {
-        await checkCapacity(path, data.length, true);
-        await fs.appendFile(path, data, options);
-      });
-    },
-    copyFile(source, destination, options) {
-      return mutate(async () => {
-        await checkCapacity(destination, (await fs.stat(source)).size);
-        await fs.copyFile(source, destination, options);
-      });
-    },
-    truncate(path, length = 0, options) {
-      return mutate(async () => {
-        await checkCapacity(path, length);
-        await fs.truncate!(path, length, options);
-      });
-    },
-    link(source, destination, options) {
-      return mutate(async () => {
-        await checkCapacity(destination, (await fs.stat(source)).size);
-        await fs.link!(source, destination, options);
-      });
-    },
-    symlink(target, path, options) {
-      return mutate(async () => {
-        await checkCapacity(path, encoder.encode(target).length);
-        await fs.symlink!(target, path, options);
-      });
-    },
-    async writeStream(path, source, options) {
-      await guardedFs.writeFile(path, new Uint8Array(), options);
-      for await (const chunk of source) await guardedFs.appendFile(path, chunk, options);
-    }
-  };
-  const guardedFs: FileSystem = new Proxy(fs, {
-    get(target, property) {
-      const replacement = Reflect.get(mutations, property);
-      if (replacement) return replacement;
-      const original = Reflect.get(target, property);
-      return typeof original === "function" ? original.bind(target) : original;
-    }
+  const guardedFs = withFileSystemQuota(fs, {
+    maxBytes: MAX_WORKSPACE_BYTES,
+    maxScanEntries: Number.MAX_SAFE_INTEGER,
+    maxScanDepth: Number.MAX_SAFE_INTEGER
   });
   const commands = supportedCommands;
   const tasks = sampleFiles["/home/WELCOME.md"]!.split("\n")

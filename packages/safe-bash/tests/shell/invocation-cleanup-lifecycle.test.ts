@@ -103,6 +103,29 @@ test("noncallable registration and cleanup-time registration fail synchronously"
   await shell.dispose();
 });
 
+for (const source of ["observer", "f() { observer; }; f", "parent", "/script"]) test(`private invocation resources stay outside middleware and command contexts: ${source}`, async () => {
+  const { shell, commands, fs } = setup();
+  const observed: { name: string; symbols: symbol[] }[] = [];
+  const retained: CommandContext[] = [];
+  shell.use(async (context, next) => {
+    retained.push(context);
+    observed.push({ name: `middleware:${context.command}`, symbols: Object.getOwnPropertySymbols(context) });
+    return next();
+  });
+  commands.register({ name: "observer", execute(context) {
+    observed.push({ name: "command", symbols: Object.getOwnPropertySymbols(context) });
+    return { exitCode: 0 };
+  } });
+  commands.register({ name: "parent", execute(context) { return context.invoke!("observer", []); } });
+  await fs.writeFile("/script", new TextEncoder().encode("#!/usr/bin/env observer\nignored\n"), { mode: 0o755 });
+  try {
+    assert.equal((await shell.exec(source)).exitCode, 0);
+    assert.ok(observed.some(entry => entry.name === "command"));
+    for (const entry of observed) assert.deepEqual(entry.symbols, [], entry.name);
+    for (const context of retained) assert.deepEqual(Object.getOwnPropertySymbols(context), [], "private scopes must not be added later to exposed contexts");
+  } finally { await shell.dispose(); }
+});
+
 test("all hooks start while an earlier hook is pending; finally shares the owned close", { timeout: 2000 }, async () => {
   const { shell, commands } = setup();
   const controller = new AbortController();

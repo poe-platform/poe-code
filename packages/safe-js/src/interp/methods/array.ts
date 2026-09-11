@@ -825,7 +825,8 @@ async function appendArrayValues(
   if (length + values.length > Number.MAX_SAFE_INTEGER)
     throw new TypeError("Array-like length exceeds the safe integer limit.");
   for (const value of values) {
-    await writeArrayProperty(target, length++, value, options);
+    const pending = writeArrayProperty(target, length++, value, options);
+    if (pending !== undefined) await pending;
   }
   await writeArrayProperty(target, "length", length, options);
   return length;

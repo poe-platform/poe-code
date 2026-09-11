@@ -10,8 +10,8 @@ import { compareIdentity } from "../mount/identity.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry,
-  FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions,
+  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
+  FileStat, FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions,
   ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 
@@ -54,11 +54,13 @@ interface LinkOrigin {
 type LinkMetadata = Pick<FileStat, "mode" | "atimeMs" | "mtimeMs">;
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
+    ...(revision === undefined ? {} : { revision }),
     ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
@@ -163,13 +165,15 @@ export class OverlayFileSystem implements FileSystem {
     ].filter(([, value]) => value !== undefined));
     this.capabilities = Object.freeze({
       ...semantics,
+      atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,
       ...(upper.readOnly === undefined ? {} : { readOnly: upper.readOnly }),
       ...(effectiveAppend === undefined ? {} : { append: effectiveAppend }),
-      atomicRename: false,
+      atomicRename: false, atomicRenameNoReplace: false,
       descriptorWriteStream: false,
+      retainedResize: false, atomicResize: false,
       hardlinks: false,
       symlinks: writable && this.#upper.capabilities.symlinks === true
         && typeof this.#upper.symlink === "function" && typeof this.#upper.readlink === "function"
@@ -202,7 +206,7 @@ export class OverlayFileSystem implements FileSystem {
     }
   }
 
-  capabilitiesFor(path: string, options: FsOptions = {}): Promise<FileSystemCapabilities> {
+  capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
     return this.run(options, async () => {
       const location = await this.resolve(path, options, true, true);
       const backend = location.entry?.backend ?? this.#upper;
@@ -214,10 +218,14 @@ export class OverlayFileSystem implements FileSystem {
     }, false);
   }
 
-  openReadFile(path: string, options: FsOptions = {}) {
+  openReadFile(path: string, options: OpenReadFileOptions = {}) {
     return this.run(options, async () => {
       const entry = await this.required(path, options);
-      if (entry.stat.type !== "file") fail("EISDIR", path);
+      if (entry.stat.type !== "file") {
+        const allowDirectory = options.allowDirectory === true;
+        options.signal?.throwIfAborted();
+        if (entry.stat.type !== "directory" || !allowDirectory) fail("EISDIR", path);
+      }
       this.permission(entry, 4);
       return openRetainedReadFile(entry.backend, entry.path, options);
     }, false);
@@ -706,8 +714,9 @@ export class OverlayFileSystem implements FileSystem {
     if (entry.stat.type === "directory") await this.preserve(entry.path, entry.stat, options);
   }
 
-  async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {
+  async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     return this.run(options, async () => {
+      if (options.noReplace) fail("ENOTSUP", source, "atomic no-replace rename is unsupported");
       this.writable(source);
       const original = await this.required(source, options, false);
       const target = await this.resolve(destination, options, false, true);

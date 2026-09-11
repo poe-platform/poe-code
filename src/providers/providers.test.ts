@@ -12,7 +12,6 @@ import { createLoggerFactory } from "../cli/logger.js";
 import {
   createMockFs,
   parseToml,
-  serializeToml,
   type MockFileSystem
 } from "@poe-code/config-mutations/testing";
 import { createCliContainer } from "../cli/container.js";
@@ -21,7 +20,6 @@ import { createProviderStub } from "../../tests/provider-stub.js";
 import { getCurrentExecutionContext } from "../utils/execution-context.js";
 import * as claudeService from "./claude-code.js";
 import * as codexService from "./codex.js";
-import * as kimiService from "./kimi.js";
 import * as opencodeService from "./opencode.js";
 import * as geminiCliService from "./gemini-cli.js";
 import * as gooseService from "./goose.js";
@@ -992,341 +990,6 @@ describe("codex service", () => {
   });
 });
 
-describe("kimi service", () => {
-  let mockFsObj: FileSystem;
-  const homeDir = "/home/user";
-  const configPath = path.join(homeDir, ".kimi", "config.toml");
-  let env = createCliEnvironment({ cwd: homeDir, homeDir });
-
-  it("advertises kimi-cli as an alias", () => {
-    expect(kimiService.kimiService.aliases).toContain("kimi-cli");
-  });
-
-  beforeEach(() => {
-    mockFsObj = createMockFs({}, homeDir);
-    env = createCliEnvironment({ cwd: homeDir, homeDir });
-  });
-
-  function createProviderTestContext(
-    runCommand: ReturnType<typeof vi.fn>,
-    options: { dryRun?: boolean } = {}
-  ): { context: ProviderContext; logs: string[] } {
-    const logs: string[] = [];
-    const logger = createLoggerFactory((message) => {
-      logs.push(message);
-    }).create({
-      dryRun: options.dryRun ?? false,
-      verbose: true,
-      scope: "test:kimi"
-    });
-
-    const context = {
-      env,
-      command: {
-        runCommand,
-        fs: mockFsObj
-      },
-      logger,
-      async runCheck(check) {
-        await check.run({
-          isDryRun: logger.context.dryRun,
-          verbose: logger.context.verbose,
-          runCommand,
-          logDryRun: (message) => logger.dryRun(message)
-        });
-      }
-    } as ProviderContext;
-
-    return { context, logs };
-  }
-
-  type ConfigureOptions = Parameters<typeof kimiService.kimiService.configure>[0]["options"];
-
-  const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
-    env,
-    provider: {
-      id: PROVIDER_NAME,
-      apiShape: "openai-chat-completions",
-      baseUrl: "https://api.poe.com/v1",
-      credential: "sk-test",
-      extraEnv: {}
-    },
-    ...overrides
-  });
-
-  type UnconfigureOptions = Parameters<typeof kimiService.kimiService.unconfigure>[0]["options"];
-
-  const buildUnconfigureOptions = (
-    overrides: Partial<UnconfigureOptions> = {}
-  ): UnconfigureOptions => ({
-    env,
-    ...overrides
-  });
-
-  async function configureKimi(overrides: Partial<ConfigureOptions> = {}): Promise<void> {
-    await kimiService.kimiService.configure({
-      fs: mockFsObj,
-      env,
-      command: createTestCommandContext(mockFsObj),
-      options: buildConfigureOptions(overrides)
-    });
-  }
-
-  async function unconfigureKimi(overrides: Partial<UnconfigureOptions> = {}): Promise<boolean> {
-    return kimiService.kimiService.unconfigure({
-      fs: mockFsObj,
-      env,
-      command: createTestCommandContext(mockFsObj),
-      options: buildUnconfigureOptions(overrides)
-    });
-  }
-
-  it("configures the Kimi provider without configuring models", async () => {
-    await configureKimi();
-
-    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    expect(config.default_model).toBeUndefined();
-    expect(config.default_thinking).toBeUndefined();
-    expect(config.models).toBeUndefined();
-    expect(config.providers).toMatchObject({
-      [PROVIDER_NAME]: {
-        type: "openai_legacy",
-        base_url: "https://api.poe.com/v1",
-        api_key: "sk-test"
-      }
-    });
-  });
-
-  it("merges with existing config and preserves other providers", async () => {
-    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
-    await mockFsObj.writeFile(
-      configPath,
-      serializeToml({
-        providers: {
-          local: {
-            type: "openai_legacy",
-            base_url: "http://localhost:8080",
-            api_key: "local-key"
-          }
-        },
-        models: {
-          "local/test-model": {
-            provider: "local",
-            model: "test-model",
-            max_context_size: 4096
-          }
-        }
-      })
-    );
-
-    await configureKimi();
-
-    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const providers = config.providers as Record<string, unknown>;
-    const models = config.models as Record<string, unknown>;
-    expect(providers.local).toEqual({
-      type: "openai_legacy",
-      base_url: "http://localhost:8080",
-      api_key: "local-key"
-    });
-    expect(providers[PROVIDER_NAME]).toMatchObject({
-      type: "openai_legacy",
-      base_url: "https://api.poe.com/v1",
-      api_key: "sk-test"
-    });
-    expect(models["local/test-model"]).toEqual({
-      provider: "local",
-      model: "test-model",
-      max_context_size: 4096
-    });
-  });
-
-  it("preserves user-created Poe-prefixed models while reconfiguring", async () => {
-    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
-    await mockFsObj.writeFile(
-      configPath,
-      serializeToml({
-        models: {
-          "poe/user-custom": {
-            provider: "custom-poe",
-            model: "user-custom",
-            max_context_size: 12345
-          },
-          "external/keep": {
-            provider: "external",
-            model: "keep",
-            max_context_size: 67890
-          }
-        }
-      })
-    );
-
-    await configureKimi();
-
-    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const models = config.models as Record<string, unknown>;
-    expect(models["poe/user-custom"]).toBeDefined();
-    expect(models["external/keep"]).toBeDefined();
-  });
-
-  it("replaces the Poe provider entry while keeping other providers", async () => {
-    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
-    await mockFsObj.writeFile(
-      configPath,
-      serializeToml({
-        providers: {
-          poe: {
-            type: "openai_legacy",
-            base_url: "https://api.poe.com/v1",
-            api_key: "old-key"
-          },
-          openai: {
-            type: "openai_legacy",
-            base_url: "https://api.openai.com/v1",
-            api_key: "openai-key"
-          }
-        }
-      })
-    );
-
-    await configureKimi();
-
-    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const providers = config.providers as Record<string, Record<string, unknown>>;
-    expect(providers[PROVIDER_NAME].api_key).toBe("sk-test");
-    expect(providers.openai).toEqual({
-      type: "openai_legacy",
-      base_url: "https://api.openai.com/v1",
-      api_key: "openai-key"
-    });
-  });
-
-  it("spawns the kimi CLI with the provided prompt and args", async () => {
-    const runCommand = vi.fn(async () => ({
-      stdout: "kimi-output\n",
-      stderr: "",
-      exitCode: 0
-    }));
-    const providerContext = {
-      env: {} as any,
-      command: {
-        runCommand,
-        fs: mockFsObj
-      },
-      logger: {
-        context: { dryRun: false, verbose: true }
-      }
-    } as unknown as import("../cli/service-registry.js").ProviderContext;
-
-    const result = await kimiService.kimiService.spawn(providerContext, {
-      prompt: "List all files",
-      args: ["--format", "markdown"]
-    });
-
-    expect(runCommand).toHaveBeenCalledWith("kimi", [
-      "--quiet",
-      "-p",
-      "List all files",
-      "--format",
-      "markdown"
-    ]);
-    expect(result).toEqual({
-      stdout: "kimi-output\n",
-      stderr: "",
-      exitCode: 0
-    });
-  });
-
-  it("passes a model to Kimi only when explicitly provided", async () => {
-    const runCommand = vi.fn().mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 });
-    const providerContext = {
-      env: {} as any,
-      command: { runCommand, fs: mockFsObj },
-      logger: { context: { dryRun: false, verbose: true } }
-    } as unknown as ProviderContext;
-
-    await kimiService.kimiService.spawn(providerContext, {
-      prompt: "hello",
-      model: "moonshot/kimi-current"
-    });
-
-    expect(runCommand).toHaveBeenCalledWith("kimi", [
-      "--quiet",
-      "-p",
-      "hello",
-      "--model",
-      "moonshot/kimi-current"
-    ]);
-  });
-
-  it("runs the Kimi health check via runCommand when test is invoked", async () => {
-    const runCommand = vi.fn().mockResolvedValue({
-      stdout: '{"type":"text","text":"KIMI_OK"}\n',
-      stderr: "",
-      exitCode: 0
-    });
-    const { context } = createProviderTestContext(runCommand);
-
-    await kimiService.kimiService.test?.(context);
-
-    expect(runCommand).toHaveBeenCalledWith(
-      "kimi",
-      expect.arrayContaining(["-p", "Output exactly: KIMI_OK"])
-    );
-  });
-
-  it("skips the Kimi health check during dry runs", async () => {
-    const runCommand = vi.fn();
-    const { context } = createProviderTestContext(runCommand, { dryRun: true });
-
-    await kimiService.kimiService.test?.(context);
-
-    expect(runCommand).not.toHaveBeenCalled();
-  });
-
-  it("includes stdout and stderr when the Kimi health check command fails", async () => {
-    const runCommand = vi.fn().mockResolvedValue({
-      stdout: "KIMI_FAIL_STDOUT\n",
-      stderr: "KIMI_FAIL_STDERR\n",
-      exitCode: 1
-    });
-    const { context } = createProviderTestContext(runCommand);
-
-    await expect(kimiService.kimiService.test?.(context)).rejects.toThrow(/KIMI_FAIL_STDOUT/);
-  });
-
-  it("includes stdout and stderr when the Kimi health check output is unexpected", async () => {
-    const runCommand = vi.fn().mockResolvedValue({
-      stdout: "MISCONFIG\n",
-      stderr: "ALERT\n",
-      exitCode: 0
-    });
-    const { context } = createProviderTestContext(runCommand);
-
-    await expect(kimiService.kimiService.test?.(context)).rejects.toThrow(/KIMI_OK/);
-  });
-
-  it("removes the Poe provider from config on remove", async () => {
-    await configureKimi();
-
-    const before = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const beforeProviders = before.providers as Record<string, unknown>;
-    expect(beforeProviders[PROVIDER_NAME]).toBeDefined();
-
-    const removed = await unconfigureKimi();
-    expect(removed).toBe(true);
-
-    const after = parseToml(await mockFsObj.readFile(configPath, "utf8"));
-    const afterProviders = after.providers as Record<string, unknown> | undefined;
-    expect(afterProviders?.[PROVIDER_NAME]).toBeUndefined();
-    expect(after.default_model).toBeUndefined();
-    expect(after.default_thinking).toBeUndefined();
-    expect(after.models).toBeUndefined();
-    await expect(
-      mockFsObj.readFile(path.join(homeDir, ".kimi", "credentials", "kimi-code.json"), "utf8")
-    ).rejects.toThrow();
-  });
-});
 
 describe("opencode service", () => {
   let mockFsObj: FileSystem;
@@ -2195,7 +1858,7 @@ describe("goose service", () => {
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
     expect(provider.headers).toBeUndefined();
-    expect(provider.models).toBeUndefined();
+    expect(provider.models).toEqual([]);
 
     const secrets = parseYaml(await mockFsObj.readFile(secretsPath, "utf8")) as Record<
       string,
@@ -2225,6 +1888,18 @@ describe("goose service", () => {
     expect(
       ((config.extensions as Record<string, unknown>).custom as Record<string, unknown>).enabled
     ).toBe(true);
+  });
+
+  it("preserves an existing Goose provider model catalog", async () => {
+    const models = [{ name: "personal-model", context_limit: 64000 }];
+    await mockFsObj.mkdir(path.dirname(providerPath), { recursive: true });
+    await mockFsObj.writeFile(providerPath, JSON.stringify({ models, headers: { "X-Custom": "keep" } }), "utf8");
+
+    await configureGoose();
+
+    const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8"));
+    expect(provider.models).toEqual(models);
+    expect(provider.headers).toEqual({ "X-Custom": "keep" });
   });
 
   it("uses provider.baseUrl when building the custom provider config", async () => {

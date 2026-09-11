@@ -5,6 +5,7 @@ import { gzipSync } from "node:zlib";
 import test from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
+import { createAgentCommands } from "../../../src/index.js";
 
 const peerModule = new URL("../../plugins/qualified-current-release/peer.mjs", import.meta.url).href;
 const metadataModule = new URL("../../commands/metadata-stress/canonical-env/runner.mjs", import.meta.url).href;
@@ -15,12 +16,12 @@ const declarationPath = "packages/safe-fs/dist/index.d.ts";
 const expectedCurrentCommands = [
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
-  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
-  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
-  "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
+  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
   "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown",
-  "du", "expr", "which", "timeout", "apply_patch",
+  "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
 ];
 
 async function generatedCatalogGuards() {
@@ -44,8 +45,8 @@ async function generatedCatalogGuards() {
   assert.ok(initializer && ts.isArrayLiteralExpression(initializer));
   assert.ok(initializer.elements.every(ts.isStringLiteral));
   assert.deepEqual(initializer.elements.map(element => (element as ts.StringLiteral).text), expectedCurrentCommands);
-  assert.equal(expectedCurrentCommands.length, 79);
-  assert.equal(new Set(expectedCurrentCommands).size, 79);
+  assert.equal(expectedCurrentCommands.length, 110);
+  assert.equal(new Set(expectedCurrentCommands).size, 110);
   assert.equal(guards.length, 3, "factory, registered dispatch, and final factory each verify the full catalog");
   return guards.map(guard => {
     const script = `const expectedCurrentCommands = ${initializer.getText(parsed)};\n${guard.getText(parsed)}`;
@@ -54,7 +55,8 @@ async function generatedCatalogGuards() {
   });
 }
 
-test("generated current stream catalog accepts the independent exact 79 names at all three boundaries", async () => {
+test("generated current stream catalog accepts the independent exact 110 names at all three boundaries", async () => {
+  assert.deepEqual(createAgentCommands().map(command => command.name), expectedCurrentCommands);
   for (const guard of await generatedCatalogGuards()) {
     const definitions = expectedCurrentCommands.map(name => ({ name }));
     guard(assert, () => definitions, { commands: { list: () => definitions } });

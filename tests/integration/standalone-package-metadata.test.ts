@@ -185,18 +185,27 @@ describe("standalone package publish metadata", () => {
       "./credentials",
       "./memory",
       "./safe-bash",
-      "./safe-bash/browser",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",
+      "./safe-bash/commands/csplit",
       "./safe-bash/commands/du",
       "./safe-bash/commands/expr",
+      "./safe-bash/commands/factor",
       "./safe-bash/commands/file",
+      "./safe-bash/commands/getopt",
       "./safe-bash/commands/grep-aliases",
+      "./safe-bash/commands/hexdump",
       "./safe-bash/commands/html-to-markdown",
+      "./safe-bash/commands/iconv",
+      "./safe-bash/commands/line-endings",
+      "./safe-bash/commands/llm",
+      "./safe-bash/commands/llm/providers",
       "./safe-bash/commands/metadata",
       "./safe-bash/commands/network",
       "./safe-bash/commands/node",
+      "./safe-bash/commands/node/host",
+      "./safe-bash/commands/pr",
       "./safe-bash/commands/split",
       "./safe-bash/commands/stream-format",
       "./safe-bash/commands/stream-inspection",
@@ -204,9 +213,14 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/time-env",
       "./safe-bash/commands/timeout",
       "./safe-bash/commands/tree",
+      "./safe-bash/commands/tsort",
       "./safe-bash/commands/which",
+      "./safe-bash/commands/xml",
+      "./safe-bash/commands/yq",
       "./safe-bash/contracts",
       "./safe-bash/contracts/*",
+      "./safe-bash/contracts/index",
+      "./safe-bash/contracts/path",
       "./safe-bash/fs/mount",
       "./safe-bash/fs/overlay",
       "./safe-bash/fs/readonly",
@@ -214,18 +228,52 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/fs/s3/http",
       "./safe-bash/fs/webdav",
       "./safe-bash/node",
-      "./safe-bash/portable",
       "./safe-fs",
       "./safe-fs/core",
       "./safe-fs/node",
       "./safe-js",
       "./safe-js/cli",
       "./safe-js/core",
+      "./safe-js/workerd",
       "./safejs",
       "./safejs/cli",
       "./safejs/core",
+      "./safejs/workerd",
       "./skills"
     ]);
+  });
+
+  it("keeps browser contracts portable and Node contracts native across declared paths", () => {
+    for (const [manifest, prefix, directory] of [
+      ["package.json", "./safe-bash", "./packages/safe-bash/dist"],
+      ["packages/safe-bash/package.json", ".", "./dist"]
+    ]) {
+      const exportsField = readPackageJson(manifest!).exports ?? {};
+      for (const [suffix, browser, node] of [
+        ["/contracts", "index", "node"],
+        ["/contracts/index", "index", "node"],
+        ["/contracts/path", "path", "node-path"]
+      ]) {
+        expect(Object.keys(exportsField[`${prefix}${suffix}`] as object)).toEqual(["types", "browser", "import"]);
+        expect(exportsField[`${prefix}${suffix}`]).toEqual({
+          types: {
+            browser: `${directory}/contracts/${browser}.d.ts`,
+            default: `${directory}/contracts/${node}.d.ts`
+          },
+          browser: `${directory}/contracts/${browser}.js`,
+          import: `${directory}/contracts/${node}.js`
+        });
+      }
+    }
+  });
+
+  it("declares portable byte dependencies for the root safe-bash entry", () => {
+    const rootPackage = readPackageJson("package.json");
+    const shellPackage = readPackageJson("packages/safe-bash/package.json");
+    for (const [name, version] of Object.entries(shellPackage.dependencies ?? {})) {
+      expect(rootPackage.dependencies?.[name]).toBe(version);
+    }
+    expect(shellPackage.dependencies).toEqual({ "@noble/hashes": "2.4.0", pako: "3.0.1" });
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

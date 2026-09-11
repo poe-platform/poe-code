@@ -12,8 +12,6 @@ class Agent(str, Enum):
     GEMINI_CLI = "gemini-cli"
     GEMINI = "gemini"
     GOOSE = "goose"
-    KIMI = "kimi"
-    KIMI_CLI = "kimi-cli"
     OPENCODE = "opencode"
     PI = "pi"
     PI_AGENT = "pi-agent"

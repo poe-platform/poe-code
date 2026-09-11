@@ -67,6 +67,20 @@ export const historicalTypeModelDefinitions = Object.freeze([
   callers: Object.freeze(definition.callers.map(caller => Object.freeze(caller))),
 })));
 
+export const historicalMemoryTypeModelDefinition = Object.freeze({
+  path: "scripts/historical-type-models/memory-filesystem.d.mts.fixture",
+  bytes: 348,
+  sha256: "61f69dedb613ca7fd9980ba03ce6dc2fc71a7ae42ef50fbb7c2efe45d53fb522",
+  caller: "tests/commands/diff-patch-stress/gnu-revised-acceptance/lab.ts",
+  specifier: "../../../../src/fs/memory/index.js",
+  resolvedPath: "src/fs/memory/index.ts",
+  absentPaths: Object.freeze([
+    "scripts/historical-type-models/memory-filesystem.d.mts",
+    "scripts/historical-type-models/memory-filesystem.mts",
+    "scripts/historical-type-models/memory-filesystem.mjs",
+  ]),
+});
+
 function assertAbsentInput(root, path, fileSystem, boundaries) {
   assertAdmittedInputPath(path, boundaries);
   let directory = root;
@@ -102,6 +116,18 @@ export function admitHistoricalTypeModels(root, fileSystem = fs, boundaries = lo
       callers.set(path, Object.freeze({ text, specifier: caller.specifier, modelFileName }));
     }
   }
+  const definition = historicalMemoryTypeModelDefinition;
+  for (const path of definition.absentPaths) assertAbsentInput(root, path, fileSystem, boundaries);
+  const modelFileName = join(root, definition.path.slice(0, -".fixture".length));
+  models.set(modelFileName, readBoundInput(root, definition, fileSystem, boundaries));
+  const callerPath = join(root, definition.caller);
+  const caller = callers.get(callerPath);
+  assert.ok(caller, "raw-memory model requires an authenticated historical caller");
+  const source = ts.createSourceFile(callerPath, caller.text, ts.ScriptTarget.Latest, true);
+  assert.equal(source.statements.filter(statement => ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === definition.specifier).length, 1, `historical memory import edge changed: ${definition.caller}`);
+  callers.set(callerPath, Object.freeze({ ...caller, memory: Object.freeze({
+    specifier: definition.specifier, resolvedPath: join(root, definition.resolvedPath), modelFileName,
+  }) }));
   return { callers, models };
 }
 
@@ -122,6 +148,11 @@ export function createHistoricalCompilerHost(options, admission, baseHost = ts.c
       return literals.map(literal => {
         const resolution = ts.resolveModuleName(literal.text, containingFile, compilerOptions, host, undefined, redirectedReference, ts.getModeForUsageLocation(containingSourceFile, literal, compilerOptions));
         const caller = admission.callers.get(containingFile);
+        if (caller?.memory && literal.text === caller.memory.specifier) {
+          assert.equal(containingSourceFile.text, caller.text, `historical compiler caller changed: ${containingFile}`);
+          assert.equal(resolution.resolvedModule?.resolvedFileName, caller.memory.resolvedPath, `historical memory import must retain its current resolution: ${containingFile}`);
+          return { resolvedModule: { resolvedFileName: caller.memory.modelFileName, extension: ts.Extension.Dmts, isExternalLibraryImport: false } };
+        }
         if (!caller || literal.text !== caller.specifier) return resolution;
         assert.equal(containingSourceFile.text, caller.text, `historical compiler caller changed: ${containingFile}`);
         assert.equal(resolution.resolvedModule, undefined, `retired historical import must remain unresolved: ${containingFile}`);
@@ -167,7 +198,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       getCurrentDirectory: () => root,
       getNewLine: () => ts.sys.newLine,
     }));
-    process.stdout.write("historical models: six authenticated compile-only caller edges; no runtime availability or qualification\n");
+    process.stdout.write("historical models: six authenticated retired edges and one raw-memory type edge; compile-only, no runtime availability or qualification\n");
     process.exitCode = result.status;
   } catch (error) {
     process.stderr.write(`historical source typecheck: ${error.message}\n`);

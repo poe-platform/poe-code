@@ -220,6 +220,24 @@ function compilerInputs(root, tools, fileSystem) {
           peerPaths["poe-code/safe-fs/core"] = [resolve(peerRoot, coreTarget)];
         }
       }
+      if (Object.keys(manifest.dependencies ?? {}).length) {
+        const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
+        assert.deepEqual(manifest.dependencies, dependencies, "portable dependency contract");
+        const dependencyBase = manifest.poeCode?.integration?.peerProfile === "checkout-root" ? resolve(root, "../..") : root;
+        peerPaths ??= {};
+        for (const [name, version] of Object.entries(dependencies)) {
+          const dependencyRoot = join(dependencyBase, "node_modules", name);
+          const metadataPath = join(dependencyRoot, "package.json");
+          peerMetadata.add(metadataPath);
+          const dependency = JSON.parse(read(metadataPath, 64 * 1024));
+          assert.equal(dependency.name, name, "portable dependency identity");
+          assert.equal(dependency.version, version, "portable dependency identity");
+          assert.deepEqual(dependency.dependencies ?? {}, {}, "portable dependency must not introduce declaration dependencies");
+          toolRoots.push(dependencyRoot);
+          if (name === "pako") peerPaths[name] = [join(dependencyRoot, "dist/pako.d.ts")];
+          else peerPaths[name + "/*"] = [join(dependencyRoot, "*")];
+        }
+      }
       return peerPaths;
     },
     admitSources(paths) {

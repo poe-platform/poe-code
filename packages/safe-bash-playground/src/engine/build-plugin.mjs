@@ -14,8 +14,9 @@ const require = createRequire(import.meta.url);
 function kernelExports(bash, filesystem) {
   return [
     `export { Shell } from ${JSON.stringify(resolve(bash, "shell/index.js"))};`,
-    `export { createMemoryFileSystem, resolvePath, normalizePath, readBytes, FsError } from ${JSON.stringify(filesystem)};`,
-    `export { createAgentCommands } from ${JSON.stringify(resolve(bash, "plugins/index.js"))};`
+    `export { createMemoryFileSystem, resolvePath, normalizePath, readBytes, withFileSystemQuota, FsError } from ${JSON.stringify(filesystem)};`,
+    `export { createAgentCommands } from ${JSON.stringify(resolve(bash, "plugins/index.js"))};`,
+    `export { createNodeRegexProvider as createWorkerRegexProvider } from ${JSON.stringify(resolve(bash, "commands/regex-execution/client.js"))};`
   ].join("\n");
 }
 
@@ -169,7 +170,7 @@ export function safeBashBrowserPlugin() {
     async load(id) {
       if (!["\0safe-bash-browser-kernel", "\0safe-bash-browser-workers", "\0safe-bash-browser-filesystem"].includes(id)) return;
       const result = await prepare();
-      for (const file of [...result.inputs.map(input => resolve(input)), result.filesystem]) {
+      for (const file of [...result.inputs.map(input => resolve(input)).filter(file => existsSync(file)), result.filesystem]) {
         this.addWatchFile(file);
         watched.add(file);
       }

@@ -130,8 +130,9 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   for (const entry of [...plan].reverse()) {
     context.signal.throwIfAborted();
     if (entry.stat.type !== "symlink") {
-      if (context.fs.capabilities.permissions === true && context.fs.chmod) await context.fs.chmod(entry.target, entry.stat.mode & 0o7777, { signal: context.signal });
-      if (context.fs.capabilities.timestamps === true && context.fs.utimes) {
+      const capabilities = await context.fs.capabilitiesFor?.(entry.target, { signal: context.signal }) ?? context.fs.capabilities;
+      if (capabilities.permissions === true && context.fs.chmod) await context.fs.chmod(entry.target, entry.stat.mode & 0o7777, { signal: context.signal });
+      if (capabilities.timestamps === true && context.fs.utimes) {
         try { await context.fs.utimes(entry.target, entry.stat.atimeMs, entry.stat.mtimeMs, { signal: context.signal }); }
         catch (error) {
           context.signal.throwIfAborted();

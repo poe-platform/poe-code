@@ -198,6 +198,8 @@ describe("compile checkpoint hash compatibility", () => {
         decodeURIComponent: { kind: "fn", name: "decodeURIComponent" },
         escape: { kind: "fn", name: "escape" },
         unescape: { kind: "fn", name: "unescape" },
+        WeakMap: { kind: "fn", name: "WeakMap" },
+        WeakSet: { kind: "fn", name: "WeakSet" },
         Function: { kind: "fn", name: "Function" },
         Object: { kind: "fn", name: "Object" },
         JSON: {
@@ -249,7 +251,7 @@ describe("compile checkpoint hash compatibility", () => {
       expect(pair[1]).toBe(regex);
       const serialized: SafeJSSnapshot = JSON.parse(await dump(result));
       expect(restore(serialized, { source })).toBe(serialized);
-      expectLegacyDumpGraph(serialized, expectedCompleted, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer"]);
+      expectLegacyDumpGraph(serialized, expectedCompleted, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer", "WeakRef", "FinalizationRegistry", "Temporal"]);
       for (const field of [
         "hostCalls",
         "replay",

@@ -266,6 +266,8 @@ describe("Math.f16round independent review", () => {
         decodeURIComponent: { kind: "fn", name: "decodeURIComponent" },
         escape: { kind: "fn", name: "escape" },
         unescape: { kind: "fn", name: "unescape" },
+        WeakMap: { kind: "fn", name: "WeakMap" },
+        WeakSet: { kind: "fn", name: "WeakSet" },
         Function: { kind: "fn", name: "Function" },
         Object: { kind: "fn", name: "Object" },
         JSON: {
@@ -311,7 +313,7 @@ describe("Math.f16round independent review", () => {
       expect(pair[1]).toBe(regex);
       const serialized = JSON.parse(await dump(result));
       expect(restore(serialized, { source: capture.source })).toBe(serialized);
-      expectLegacyDumpGraph(serialized, expected, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer"]);
+      expectLegacyDumpGraph(serialized, expected, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer", "WeakRef", "FinalizationRegistry", "Temporal"]);
       const { version: ignoredVersion, bindings: ignoredBindings, heap: ignoredHeap, ...legacyMetadata } = expected;
       const { version, bindings: ignoredNewBindings, heap: ignoredNewHeap, ...metadata } = serialized;
       expect(version).toBe(2);

@@ -1,4 +1,4 @@
-import type { Expression } from "../ast.js";
+import type { Expression,SourceSpan } from "../ast.js";
 import { createExpressionContinuation, evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeMutateSubscription } from "./runtime-subscription.js";
@@ -6,6 +6,8 @@ import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./ru
 import type { IntegerIndexContext } from "./index-protocol.js";
 
 export interface RuntimeReferenceWrites {
+  /** Restore the retained access site after receiver/key or RHS evaluation. */
+  position?(site:SourceSpan):void;
   readonly subscription?: BuiltinInvocationContext;
   readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
   deleteName(name: string): void;
@@ -41,26 +43,28 @@ export function createRuntimeReferenceContinuation(target: Expression, context: 
 
 function* referenceContinuation(target: Expression, context: ExpressionContext<RuntimeValue>, writes: RuntimeReferenceWrites, values: RuntimeValues, meter: ExecutionMeter, suspended: boolean): Generator<RuntimeValue, RuntimeReference, RuntimeValue> {
   meter.checkpoint(0);
+  const site=(target.kind==="attribute"?target.nameSpan:undefined)??target.contentSpan??target;
+  const locate=()=>{if(writes.position!==undefined){try{writes.position(site);}finally{meter.checkpoint(0);}}};
   switch (target.kind) {
     case "name": return {
-      get() { meter.checkpoint(); return context.load(target.name); },
-      set(value) { meter.checkpoint(); context.store(target.name, value); },
-      remove() { meter.checkpoint(); writes.deleteName(target.name); }
+      get() { meter.checkpoint(); locate(); return context.load(target.name); },
+      set(value) { meter.checkpoint(); locate(); context.store(target.name, value); },
+      remove() { meter.checkpoint(); locate(); writes.deleteName(target.name); }
     };
     case "attribute": {
       const object = suspended ? yield* createExpressionContinuation(target.object, context, meter, values.none) : evaluateExpression(target.object, context, meter);
       return {
-        get() { meter.checkpoint(); return context.attribute(object, target.name); },
-        set(value) { meter.checkpoint(); writes.setAttribute(object, target.name, value); },
-        remove() { meter.checkpoint(); writes.deleteAttribute(object, target.name); }
+        get() { meter.checkpoint(); locate(); return context.attribute(object, target.name); },
+        set(value) { meter.checkpoint(); locate(); writes.setAttribute(object, target.name, value); },
+        remove() { meter.checkpoint(); locate(); writes.deleteAttribute(object, target.name); }
       };
     }
     case "subscript": {
       const { object, key } = suspended ? yield* createExpressionContinuation(target, context, meter, values.none, "subscript-reference") : evaluateExpression(target, context, meter, "subscript-reference");
       return {
-        get() { meter.checkpoint(); return context.getItem(object, key); },
-        set(value) { meter.checkpoint(1, 96); runtimeMutateSubscription(object, key, { kind: "set", value }, values, meter, writes.subscription, writes.integerIndex, context.iterate.bind(context)); },
-        remove() { meter.checkpoint(1, 16); runtimeMutateSubscription(object, key, { kind: "delete" }, values, meter, writes.subscription, writes.integerIndex); }
+        get() { meter.checkpoint(); locate(); return context.getItem(object, key); },
+        set(value) { meter.checkpoint(1, 96); locate(); runtimeMutateSubscription(object, key, { kind: "set", value }, values, meter, writes.subscription, writes.integerIndex, context.iterate.bind(context)); },
+        remove() { meter.checkpoint(1, 16); locate(); runtimeMutateSubscription(object, key, { kind: "delete" }, values, meter, writes.subscription, writes.integerIndex); }
       };
     }
     default: throw new Error(`invalid reference target: ${target.kind}`);

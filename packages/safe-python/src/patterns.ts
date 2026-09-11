@@ -111,7 +111,7 @@ function readNamePath(cursor: TokenCursor): Expression {
   while (cursor.peek().text === ".") {
     cursor.take();
     const attribute = readName(cursor);
-    value = { kind: "attribute", object: value, ...attribute, start: value.start };
+    value = { kind: "attribute", object: value, ...attribute, nameSpan:{start:attribute.start,end:attribute.end}, start: value.start };
   }
   return value;
 }

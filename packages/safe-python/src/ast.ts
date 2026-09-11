@@ -60,7 +60,7 @@ export type Expression = SourceSpan & {
   | { readonly kind: "dictionary-comprehension"; readonly key: Expression; readonly value: Expression; readonly clauses: readonly ComprehensionClause[] }
   | { readonly kind: "tuple" | "list" | "set"; readonly items: readonly CollectionItem[] }
   | { readonly kind: "dictionary"; readonly entries: readonly DictionaryEntry[] }
-  | { readonly kind: "attribute"; readonly object: Expression; readonly spelling: string; readonly name: string }
+  | { readonly kind: "attribute"; readonly object: Expression; readonly spelling: string; readonly name: string; readonly nameSpan?:SourceSpan }
   | { readonly kind: "call"; readonly callee: Expression; readonly arguments: readonly CallArgument[] }
   | { readonly kind: "subscript"; readonly object: Expression; readonly items: readonly SubscriptItem[]; readonly tuple: boolean }
   | { readonly kind: "unary"; readonly operator: string; readonly operand: Expression }

@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { parseExpression } from "./expression.js";
 
 describe("Python primary expressions", () => {
+  it("retains the original attribute token span through receiver and outer grouping",()=>{
+    const node=parseExpression("(\n (\n obj\n ).𝒙\n)");
+    expect(node).toMatchObject({kind:"attribute",name:"x",nameSpan:{start:{line:4,column:3},end:{line:4,column:4}}});
+  });
   it("chains calls, attributes, and subscripts before arithmetic", () => {
     expect(parseExpression("-service.make(1).items[0] ** 2")).toMatchObject({
       kind: "unary", operand: { kind: "binary", operator: "**", left: {

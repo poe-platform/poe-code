@@ -15,7 +15,7 @@ export function readTrailers(cursor: TokenCursor, value: Expression, read: ReadE
       const name = cursor.peek();
       if (name.kind !== "name" || reservedWords.has(name.text)) throw cursor.error("expected attribute name");
       cursor.take();
-      value = { kind: "attribute", object: value, spelling: name.text, name: normalizeNfkc(name.text), start: value.start, end: name.end };
+      value = { kind: "attribute", object: value, spelling: name.text, name: normalizeNfkc(name.text), nameSpan:{start:name.start,end:name.end}, start: value.start, end: name.end };
     } else if (cursor.peek().text === "(") {
       const opening = cursor.take();
       const args = readArguments(cursor, read, opening);

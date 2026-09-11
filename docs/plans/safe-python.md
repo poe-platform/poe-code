@@ -11160,6 +11160,26 @@ extension, integration, or validation requirement is missing or unverified.
   (172.32s; test bodies 10.59s). Full instruction/leaf-operation location coverage,
   native module/class frame publication, f_lasti, tracing and automatic traceback
   capture remain unfinished.
+- Deferred native reference locations (2026-09-10): a twelve-case CPython audit
+  exposed six mismatches in multiline attribute access and augmented write-back.
+  Five failing parser/native regressions reproduced missing attribute token spans
+  and stale RHS/receiver locations. Attribute AST nodes now retain optional
+  nameSpan metadata from primary and pattern parsing; runtime attribute execution
+  uses that token site while preserving original expression observer arguments.
+  Retained name/attribute/subscript references restore their access site before
+  get/set/delete, including resumable references after RHS evaluation. Three
+  further tests cover cancellation, observer failure and their priority before
+  all reference operations. The focused four-file suite passed 943 tests before
+  these final three safety cases; the final reference file passes all 13 tests.
+  All 160 expanded CPython comparisons match across read/set/delete/augmented
+  write-back, grouping, Unicode names, source padding and resumable execution.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,906 tests in 527 files (144.81s;
+  test bodies 9.75s). A separate read-only probe verifies the next remaining gap:
+  native __iadd__ itself reports RHS line 5 instead of statement line 4 for
+  `a += (\n 2\n)`; correcting reference write-back does not fix that operator
+  callback site. Augmented operators, unpacking and other leaf-operation sites
+  still require their own audits, alongside instruction maps and tracebacks.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

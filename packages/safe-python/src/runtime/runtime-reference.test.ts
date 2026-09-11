@@ -72,6 +72,20 @@ describe("resumable runtime references", () => {
 });
 
 describe("runtime target references", () => {
+  it.each(["get","set","remove"] as const)("checks position callback failures before reference %s",operation=>{
+    for(const mode of ["abort","throw","both"]){
+      const state=fixture(),controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal});
+      state.names.set("x",state.v.none);
+      const reference=resolveRuntimeReference(parseExpression("(\n x\n).member"),state.context,{...state.writes,position(site){
+        expect(site.start.line).toBe(3);
+        if(mode!=="throw")controller.abort();
+        if(mode!=="abort")throw Error("position failure");
+      }},state.v,meter);
+      state.events.length=0;
+      expect(()=>operation==="set"?reference.set(state.v.true):reference[operation]()).toThrow(mode==="throw"?"position failure":"execution cancelled");
+      expect(state.events).toEqual([]);
+    }
+  });
   it("defers name reads and retains the binding destination", () => {
     const { v, names, events, resolve } = fixture(); names.set("x", v.true);
     const reference = resolve("x"); expect(events).toEqual([]);

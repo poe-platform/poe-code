@@ -405,7 +405,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     };
     const expressions = createRuntimeExpressionContext(values, {
       position(site){
-        frame.executionPosition=site.contentSpan??site;
+        frame.executionPosition=(site.kind==="attribute"?site.nameSpan:undefined)??site.contentSpan??site;
         expressionHooks.position?.(site);
       },
       beginMethodCall: expressionHooks.attribute === undefined ? (receiver, name) => {

@@ -95,6 +95,22 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it.each([
+  ["i[\n 1\n]",10],["(\n i\n).x",12],["(\n i.x\n)",11],["i.x",10]
+] as const)("locates deferred native target operations at %s",(target,line)=>{
+  for(const suspended of [false,true])for(const action of ["read","set","augment","delete"]){
+    const state=exceptionFixture(),events:Array<[string,number]>=[];
+    for(const name of ["get","set","delete"])state.builtins.set(name,state.v.builtinFunction({name,invoke(){
+      const frame=state.calls.current as RuntimeFrame;
+      if(frame.executionPosition===undefined)throw Error("missing position");
+      events.push([name,frame.executionPosition.start.line]);return name==="get"?state.v.integer(1):state.v.none;
+    }}));
+    const statement=action==="read"?"result="+target:action==="delete"?"del "+target:target+(action==="augment"?" +=":" =")+" (\n 2\n)";
+    state.run("class I:\n __getitem__=get\n __setitem__=set\n __delitem__=delete\n __getattribute__=get\n __setattr__=set\n __delattr__=delete\ni=I()\ndef f():\n "+statement.split("\n").join("\n ")+(suspended?"\n if False:yield\ng=f()\ntry:g.__next__()\nexcept StopIteration:pass":"\nf()"));
+    expect(events,JSON.stringify({target,action,suspended})).toEqual(action==="augment"?[["get",line],["set",line]]:[[action==="read"?"get":action,line]]);
+  }
+});
+
 it("stores native module, class and function positions without observer hooks",()=>{
   const state=exceptionFixture(),frames:RuntimeFrame[]=[],lines:number[]=[];
   state.builtins.set("record",state.v.builtinFunction({name:"record",invoke(){

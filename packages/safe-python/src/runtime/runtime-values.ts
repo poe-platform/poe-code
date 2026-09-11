@@ -366,6 +366,7 @@ export type RuntimeValue =
  * separate concerns; this is not yet the complete Python object model.
  */
 export class RuntimeValues extends ConstantValues {
+  #cells?:WeakMap<CellStorage<RuntimeValue>,CellValue>;
   #identity?: ExecutionIdentity;
   #descriptorQualifiedNames?: WeakMap<NativeDescriptorValue, Extract<PrimitiveConstant, { kind: "str" }>>;
   #nativeImplementations?: WeakMap<MethodDescriptorCapability["invoke"], NativeMethodDescriptorValue>;
@@ -454,11 +455,19 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "dict", items });
   }
 
-  /** Adopt shared closure storage, including an empty cell. The publishing
-   * object layer retains this wrapper when exposing the same cell again. */
+  /** Canonical publication of shared closure storage, including empty cells and
+   * compiler ownership views. Never reads the current cell contents. */
   cell(value: CellValue["value"]): CellValue {
-    this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind: "cell", value });
+    this.runtimeMeter.checkpoint();
+    try {
+      const storage=value.original??value;
+      this.runtimeMeter.checkpoint();
+      const existing=this.#cells?.get(storage);if(existing!==undefined)return existing;
+      if(this.#cells===undefined){this.runtimeMeter.checkpoint(0,64);this.#cells=new WeakMap();}
+      this.runtimeMeter.checkpoint(1,80);
+      const result=Object.freeze({kind:"cell" as const,value:storage});
+      this.#cells.set(storage,result);return result;
+    } finally {this.runtimeMeter.checkpoint();}
   }
 
   /** Adopt a validated layout and explicit metaclass. "self" is a host-only

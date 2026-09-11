@@ -32,6 +32,7 @@ export interface FunctionState<Value> extends LexicalNamespaces<Value> {
   /** Lazily reflected guest containers; None is distinct from unreflected. */
   positionalDefaults?: Value;
   keywordDefaults?: Value;
+  closureObject?:Value;
   attributes: FunctionAttributes<Value>;
   name: Value;
   qualifiedName: Value;

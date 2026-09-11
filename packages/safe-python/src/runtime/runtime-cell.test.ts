@@ -10,13 +10,18 @@ import { runtimeBinary } from "./runtime-binary.js";
 import { ClassFrame } from "./class-frame.js";
 import { analyzeModule } from "../analysis.js";
 
-function fixture() {
-  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
+function fixture(maxAllocatedBytes=1000000) {
+  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes }), v = new RuntimeValues(meter);
   const compare = (op: string, a: RuntimeValue, b: RuntimeValue, depth = 1000) => runtimeComparison(op, a, b, v, meter, depth).value;
   return { meter, v, compare };
 }
 
 describe("concrete closure cell values", () => {
+  it("publishes one identity per canonical cell storage without reading contents",()=>{
+    const {v}=fixture(),storage={get content():{value:RuntimeValue}|undefined{throw Error("must not read contents");}};
+    const cell=v.cell(storage);expect(v.cell(storage)===cell).toBe(true);
+    const view={original:storage};expect(v.cell(view)).toBe(cell);
+  });
   it("retains shared storage without reading it on wrapping", () => {
     const { v, meter } = fixture(), storage: { content?: { value: RuntimeValue } } = {};
     const cell = v.cell(storage); expect(cell.value).toBe(storage); expect(Object.isFrozen(cell)).toBe(true);
@@ -53,7 +58,8 @@ describe("concrete closure cell values", () => {
     expect(() => compare("==", a, a, 10)).toThrow(expect.objectContaining({ name: "RecursionError" }));
   });
   it("compares deeply nested cells without using the host call stack", () => {
-    const { v, compare } = fixture(); let a: RuntimeValue = v.integer(1), b: RuntimeValue = v.integer(1);
+    // Ten thousand published cells now include canonical identity cache entries.
+    const { v, compare } = fixture(2000000); let a: RuntimeValue = v.integer(1), b: RuntimeValue = v.integer(1);
     for (let index = 0; index < 5000; index++) {
       a = v.cell({ content: { value: a } }); b = v.cell({ content: { value: b } });
     }

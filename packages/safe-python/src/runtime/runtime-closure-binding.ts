@@ -15,11 +15,11 @@ export function bindRuntimeCodeClosure(code:RuntimeCompiledCode,closure:Extract<
     if((closure?.items.length??0)!==names.length)throw Error("closure binding requires validated cells");
     const result=new Map<string,LexicalCell<RuntimeValue>>();
     for(let index=0;index<names.length;index++){
-      meter.checkpoint(1,176);
+      meter.checkpoint(1,184);
       const name=names[index],cell=closure!.items[index],owner=code.scope.free.get(name);
       if(cell.kind!=="cell"||owner===undefined)throw Error("closure binding requires validated cells");
       const storage=cell.value;
-      result.set(name,Object.freeze({owner,get content(){return storage.content;},set content(value){storage.content=value;}}));
+      result.set(name,Object.freeze({owner,original:storage,get content(){return storage.content;},set content(value){storage.content=value;}}));
     }
     return result;
   } finally {meter.checkpoint();}

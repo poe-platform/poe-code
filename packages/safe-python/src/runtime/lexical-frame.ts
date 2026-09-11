@@ -15,6 +15,8 @@ import type {CompiledGeneratorExpression} from "./generator-expression-compilati
  * Clear via assignment to undefined so ownership views retain their accessors.
  */
 export interface CellStorage<Value> {
+  /** Ownership views point directly to canonical storage, never another view. */
+  readonly original?:CellStorage<Value>;
   content?: { readonly value: Value };
 }
 

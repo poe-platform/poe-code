@@ -14,6 +14,7 @@ export function executeRuntimeFunctionCode(code:CompiledFunction<RuntimeValue>,c
     if(code.body.kind==="class")throw Error("function code execution does not accept synthetic class wrappers");
     const captured=bindRuntimeCodeClosure(code,closure,meter);
     const state=createFunctionState(code,new Map(),{...context,closure:captured},meter);
+    state.closureObject=closure??values.none;
     return invocation.call(values.function(state),[]);
   } finally {meter.checkpoint();}
 }

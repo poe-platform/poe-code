@@ -64,6 +64,7 @@ import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import { readRuntimeNativeMethodMetadata, type NativeMethodMetadataContext } from "./runtime-native-method-metadata.js";
 import { runtimeFunctionDefaults } from "./runtime-function-defaults.js";
+import {runtimeFunctionClosure} from "./runtime-function-closure.js";
 import {readRuntimeCell} from "./runtime-cell.js";
 import type {CompiledFunction} from "./function-compilation.js";
 import { readRuntimeDescriptorMethod } from "./runtime-descriptor-method.js";
@@ -84,6 +85,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     try{return methods.actualType(receiver);}finally{meter.checkpoint();}
   }
   if (receiver.kind === "function") {
+    if(name==="__closure__")return runtimeFunctionClosure(receiver,values,meter);
     if(name==="__globals__"||name==="__builtins__"){
       try {
         const namespace=name==="__globals__"?receiver.value.globals:receiver.value.builtins;

@@ -12982,6 +12982,23 @@ extension, integration, or validation requirement is missing or unverified.
   remain separate unfinished work. Build, typecheck, scoped lint and whitespace
   checks pass. The uncached full thread-pool suite passes 9,099 tests in 603 files
   (144.38s; bodies 17.47s).
+- Function closure introspection (2026-09-11): failing identity and native
+  attribute regressions established missing canonical cell publication and
+  __closure__ reflection. Functions now retain stable closure tuples in compiler
+  free-variable order; closure-free functions expose None. A metered execution-owned
+  weak cache publishes one guest identity per canonical cell storage without reading
+  contents. Compiler ownership views retain the original storage directly, so
+  nested functions created through exec share the supplied guest cells. Closure
+  reassignment/deletion raises AttributeError and ordinary function attributes
+  cannot shadow the intrinsic tuple. Tests cover empty cells, shared mutation and
+  deletion, supplied tuple identity, cancellation and failed publication. Both
+  native scenarios also pass CPython. The existing 10,000-cell stress test retains
+  its depth and assertions; only its allocation allowance increased from 1MB to
+  2MB to cover newly accounted canonical cache entries. Canonical CellType and
+  function descriptor publication remain unfinished, alongside broader execution
+  integration and compatibility work. Build, typecheck, scoped lint and whitespace
+  checks pass. The uncached full thread-pool suite passes 9,107 tests in 604 files
+  (126.93s; bodies 12.64s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

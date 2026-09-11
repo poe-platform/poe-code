@@ -11,9 +11,9 @@ export function runtimeMutateFunctionAttribute(fn: FunctionValue, name: string, 
   meter.checkpoint();
   switch (name) {
     case "__class__": case "__code__":
-    case "__closure__": case "__annotate__": case "__type_params__":
+    case "__annotate__": case "__type_params__":
       return false;
-    case "__globals__": case "__builtins__":
+    case "__globals__": case "__builtins__": case "__closure__":
       throw new PythonRuntimeError("AttributeError","readonly attribute");
     case "__defaults__": case "__kwdefaults__": {
       const value = change.kind === "delete" ? values.none : change.value;

@@ -233,6 +233,19 @@ it("reflects original function globals and captured builtins as read-only refere
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(state.events).toEqual(["called"]);
 });
 
+it("reflects stable closure tuples and shared mutable cell identities",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  globals.items.set(v.string("AttributeError"),state.registry.exceptionType("AttributeError"));
+  state.run("def outer(z,a):\n def f():return a,z\n def h():return a,z\n return f,h\nf,h=outer(2,1)\ncells=f.__closure__\nstable=cells is f.__closure__ and cells is not h.__closure__ and cells[0] is h.__closure__[0] and cells[1] is h.__closure__[1]\ncells[0].cell_contents=9\nshared=f()==(9,2) and h()==(9,2)\ndel cells[1].cell_contents\ntry:f()\nexcept NameError:unbound=True\ncells[1].cell_contents=3\nexec(f.__code__,closure=cells)\nf.__dict__['__closure__']=None\ntry:f.__closure__=()\nexcept AttributeError:readonly=True\ndef plain():pass\ncorrect=stable and shared and unbound and readonly and f.__closure__ is cells and f()==(9,3) and plain.__closure__ is None\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("retains supplied guest cell identities through nested code execution",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("def outer(x):\n def maker():\n  global made\n  def nested():return x\n  made=nested\n return maker\nmaker=outer(7)\noriginal=maker.__closure__\nexec(maker.__code__,closure=original)\ncorrect=made.__closure__[0] is original[0] and made()==7\noriginal[0].cell_contents=9\nupdated=made()==9\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(globals.items.lookup(v.string("updated"))?.value).toBe(v.true);
+});
+
 it("uses fresh function locals and live module/class namespaces for dynamic execution",()=>{
   const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
   state.run("def snapshots():\n x=7\n first=locals()\n exec('x=99; created=1')\n seen=eval('x')\n second=locals()\n first['x']=42\n return x==7 and seen==7 and second['x']==7 and first is not second and 'created' not in second\ncorrect_snapshots=snapshots()\nmodule_identity=locals() is globals()\ncomprehension=[locals() for hidden in (1,)]\nclass C:\n x=8\n names=locals()\n exec('x=9')\n correct=names['x']==9 and eval('x')==9\ncorrect_class=C.correct\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));

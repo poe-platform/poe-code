@@ -1915,6 +1915,10 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/iconv-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/line-ending-commands.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/native.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/core.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/core-lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/providers.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/exports.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/extra-native.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/safety.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/publication.test.ts"));

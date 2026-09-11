@@ -226,6 +226,18 @@
       "browser": null,
       "import": "./dist/commands/node/worker-provider.js"
     },
+    "./commands/llm": {
+      "types": "./dist/commands/llm/index.d.ts",
+      "workerd": "./dist/commands/llm/index.browser.js",
+      "browser": "./dist/commands/llm/index.browser.js",
+      "import": "./dist/commands/llm/index.js"
+    },
+    "./commands/llm/providers": {
+      "types": "./dist/commands/llm/providers/index.d.ts",
+      "workerd": "./dist/commands/llm/providers/index.browser.js",
+      "browser": "./dist/commands/llm/providers/index.browser.js",
+      "import": "./dist/commands/llm/providers/index.js"
+    },
     "./commands/line-endings": {
       "types": "./dist/commands/line-endings/index.d.ts",
       "workerd": "./dist/commands/line-endings/index.browser.js",

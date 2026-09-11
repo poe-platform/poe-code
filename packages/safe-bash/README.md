@@ -85,6 +85,7 @@ These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`
 | `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Node uses the native HTTP transport; Workers can inject `createFetchTransport()`. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
 | `node` | `nodeCommands({ runtime, limits?, replace? })`: runs JavaScript with an injected SafeJS runtime, virtual files, and shell streams. [Usage and supported subset](src/commands/node/README.md). |
 | `safejs` | `safeJsCommands({ runtime, limits?, replace? })`: inject `run`, `createBudget`, `makeFsModule`, and `declareHostOperation` to execute programs. [Runtime contract](src/commands/safejs/types.ts). |
+| `llm` | `llmCommands({ providers, defaultModel?, replace? })`: injected model providers, sandbox attachments, and streamed text or binary output. [Configuration and reference providers](src/commands/llm/README.md). |
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
 with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;

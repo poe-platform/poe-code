@@ -342,6 +342,18 @@
       "browser": null,
       "import": "./packages/safe-js/dist/workerd.js"
     },
+    "./safe-bash/commands/llm": {
+      "types": "./packages/safe-bash/dist/commands/llm/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/llm/index.js"
+    },
+    "./safe-bash/commands/llm/providers": {
+      "types": "./packages/safe-bash/dist/commands/llm/providers/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/llm/providers/index.js"
+    },
     "./safe-bash/commands/line-endings": {
       "types": "./packages/safe-bash/dist/commands/line-endings/index.d.ts",
       "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",

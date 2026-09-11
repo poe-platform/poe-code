@@ -20,6 +20,14 @@ change `CommandInvokeOptions` or create a separate runtime budget. See
 
 # Shared command input
 
+`CommandContext.inputBudget` optionally exposes the host's `maxBytes` input
+allowance and `check(totalBytes)`. A command can check a combined stdin and VFS
+byte count before retaining bytes and bound reads by the remaining allowance;
+`llm` uses this for stdin and attachments. The check preserves the shell's normal
+`maxInputBytes` failure and cancellation. It does not consume a global counter
+or change existing per-source accounting; forwarding or rereading an input does
+not independently debit a cumulative shell ledger. Custom hosts may omit it.
+
 `CommandContext.stdinInput?: CommandInput` is an optional byte-oriented view of
 the same input cursor as `stdin`. It does not change the generic `ByteSource`
 contract. Direct/custom hosts may omit it; consumers must not assume a pipe or

@@ -99,4 +99,6 @@ import { verifyIconvCommands } from "./safe-packages-iconv.mjs";
 await verifyIconvCommands();
 
 import { verifyLineEndingCommands } from "./safe-packages-line-endings.mjs";
+import { verifyLlmCommands } from "./safe-packages-llm.mjs";
+await verifyLlmCommands();
 await verifyLineEndingCommands();

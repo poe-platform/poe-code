@@ -10847,6 +10847,22 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 520 files (148.83s; test bodies 9.75s). Frame namespace
   descriptors/identity publication remain separate work, using this shared
   storage contract rather than snapshot dictionaries.
+- Frame namespace identity (2026-09-10): native frames now expose read-only
+  f_globals and f_builtins descriptors backed by the original guest objects in
+  the existing dictionary/mapping namespace adapters. Reflection neither copies
+  dictionaries nor invokes guest item protocols. Functions retain their selected
+  builtins after globals['__builtins__'] changes; new functions select the new
+  object. Nonmapping selected builtins, including None, retain their identity.
+  Trusted low-level Map namespaces without an original guest identity report a
+  missing reflection capability rather than fabricating a dictionary. Public
+  runtime assembly must supply dictionary-backed globals and original builtins.
+  The original missing-descriptor failure is covered by a native integration
+  regression; five boundary tests cover absent identity, None, and cancellation
+  after successful/failing identity callbacks. Focused checks pass 870 tests;
+  all 256 native builtin-selection cases match CPython. A separate CPython
+  reference check confirms None identity. Selected build, typecheck, scoped
+  lint and diff whitespace checks pass. The final uncached one-worker package
+  suite passes 7,732 tests in 520 files (131.62s; test bodies 8.84s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

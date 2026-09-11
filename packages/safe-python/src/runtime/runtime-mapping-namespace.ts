@@ -9,7 +9,7 @@ import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./ru
  * attributes. Only KeyError becomes a missing name; frame deletion separately
  * implements DELETE_NAME's replacement of guest failures with NameError. */
 export class RuntimeMappingNamespace implements LocalNamespace<RuntimeValue> {
-  constructor(private readonly mapping: RuntimeValue, private readonly values: RuntimeValues,
+  constructor(readonly object: RuntimeValue, private readonly values: RuntimeValues,
     private readonly meter: ExecutionMeter, private readonly invocation: BuiltinInvocationContext) {
     meter.checkpoint(1, 64); Object.freeze(this);
   }
@@ -17,7 +17,7 @@ export class RuntimeMappingNamespace implements LocalNamespace<RuntimeValue> {
   lookup(name: string): { readonly value: RuntimeValue } | undefined {
     const key = this.values.string(name);
     try {
-      const value = runtimeGetItem(this.mapping, key, this.values, this.meter, this.invocation);
+      const value = runtimeGetItem(this.object, key, this.values, this.meter, this.invocation);
       this.meter.checkpoint(1, 16); return { value };
     } catch (error) {
       this.meter.checkpoint();
@@ -28,12 +28,12 @@ export class RuntimeMappingNamespace implements LocalNamespace<RuntimeValue> {
 
   store(name: string, value: RuntimeValue): void {
     const key = this.values.string(name);
-    runtimeMutateSubscription(this.mapping, key, { kind: "set", value }, this.values, this.meter, this.invocation);
+    runtimeMutateSubscription(this.object, key, { kind: "set", value }, this.values, this.meter, this.invocation);
   }
 
   delete(name: string): boolean {
     const key = this.values.string(name);
-    try { runtimeMutateSubscription(this.mapping, key, { kind: "delete" }, this.values, this.meter, this.invocation); return true; }
+    try { runtimeMutateSubscription(this.object, key, { kind: "delete" }, this.values, this.meter, this.invocation); return true; }
     catch (error) {
       this.meter.checkpoint();
       if (runtimeExceptionMatches(error,"KeyError",this.invocation)) return false;

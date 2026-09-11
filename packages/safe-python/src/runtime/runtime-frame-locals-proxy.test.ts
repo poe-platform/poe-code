@@ -8,6 +8,7 @@ import {OrderedKeyMap} from "./ordered-key-map.js";
 import {runtimeHash} from "./runtime-hash.js";
 import {runtimeComparison} from "./runtime-comparison.js";
 import {RuntimeTypeRegistry} from "./runtime-type-registry.js";
+import {RuntimeMappingNamespace} from "./runtime-mapping-namespace.js";
 import {RuntimeValues,type RuntimeValue,type BuiltinInvocationContext} from "./runtime-values.js";
 
 function fixture(){
@@ -20,6 +21,31 @@ function fixture(){
   function method(name:string){const descriptor=proxy.type.value.namespace.items.lookup(values.string(name))!.value;if(descriptor.kind!=="method_descriptor"&&descriptor.kind!=="wrapper_descriptor")throw Error("expected descriptor");return (args:RuntimeValue[])=>descriptor.value.invoke(proxy,args,empty,meter,context);}
   return {controller,meter,values,frame,proxy,empty,context,method,registry};
 }
+
+it.each(["f_globals","f_builtins"] as const)("requires original guest identity for %s reflection",name=>{
+  const {registry,frame,values,meter}=fixture(),native=registry.frame(frame);
+  const descriptor=native.type.value.namespace.items.lookup(values.string(name))!.value;
+  if(descriptor.kind!=="getset_descriptor")throw Error("expected frame descriptor");
+  expect(()=>descriptor.value.get(native,meter)).toThrow("frame namespace reflection requires an original guest object");
+});
+
+it("reflects nonmapping selected builtins without invoking their item protocol",()=>{
+  const {registry,values,meter,context}=fixture();
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new RuntimeMappingNamespace(values.none,values,meter,context)},meter),native=registry.frame(frame);
+  const descriptor=native.type.value.namespace.items.lookup(values.string("f_builtins"))!.value;
+  if(descriptor.kind!=="getset_descriptor")throw Error("expected frame descriptor");
+  expect(descriptor.value.get(native,meter)).toBe(values.none);
+});
+
+it.each([false,true])("checks cancellation after namespace identity callbacks (throws=%s)",throws=>{
+  const {registry,values,meter,controller}=fixture();
+  const builtins={lookup:vi.fn(),get object(){controller.abort();if(throws)throw Error("identity failure");return values.none;}};
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins},meter),native=registry.frame(frame);
+  const descriptor=native.type.value.namespace.items.lookup(values.string("f_builtins"))!.value;
+  if(descriptor.kind!=="getset_descriptor")throw Error("expected frame descriptor");
+  expect(()=>descriptor.value.get(native,meter)).toThrow(ExecutionLimitError);
+  expect(builtins.lookup).not.toHaveBeenCalled();
+});
 
 it.each(["steps","allocation","cancelled"] as const)("does not classify a host %s termination as a missing local",reason=>{
   const {context,method,values}=fixture(),fatal=new ExecutionLimitError(reason),get=method("get"),key=values.string("missing");

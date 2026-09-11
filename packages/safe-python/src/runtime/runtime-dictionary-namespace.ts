@@ -12,7 +12,7 @@ import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeVa
  */
 export class RuntimeDictionaryNamespace implements LocalNamespace<RuntimeValue> {
   constructor(
-    private readonly dictionary: DictionaryValue,
+    readonly object: DictionaryValue,
     private readonly values: RuntimeValues,
     private readonly meter: ExecutionMeter,
     private readonly invocation?:Pick<BuiltinInvocationContext,"isException">
@@ -23,20 +23,20 @@ export class RuntimeDictionaryNamespace implements LocalNamespace<RuntimeValue> 
 
   lookup(name: string): { readonly value: RuntimeValue } | undefined {
     const key = this.values.string(name);
-    const result = this.dictionary.items.lookup(key);
+    const result = this.object.items.lookup(key);
     this.meter.checkpoint();
     return result;
   }
 
   store(name: string, value: RuntimeValue): void {
     const key = this.values.string(name);
-    this.dictionary.items.set(key, value);
+    this.object.items.set(key, value);
     this.meter.checkpoint();
   }
 
   delete(name: string): boolean {
     const key = this.values.string(name);
-    const result = this.dictionary.items.delete(key);
+    const result = this.object.items.delete(key);
     this.meter.checkpoint();
     return result;
   }

@@ -82,8 +82,8 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       native.set(value.kind, type); return type;
     } })
   };
-  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals:executionGlobals, builtins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
+  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins) {
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
@@ -200,6 +200,19 @@ it("shares exact Python dictionary globals across module, function and class exe
   dictionary.items.set(v.string("backing"),dictionary);
   const globals=new RuntimeDictionaryNamespace(dictionary,v,state.meter);
   state.run("g=1\ndef f():\n global g\n g+=2\n return g\nclass C:\n global g\n g=4\nfirst=f()\nbacking['g']=9\nsecond=f()\ndel backing['g']\ntry:f()\nexcept NameError:missing=True\ng=7\ndef remove():\n global g\n del g\nremove()\ncorrect=first==6 and second==11 and missing and 'g' not in backing and f.__module__=='example'\n",globals);
+  expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("reflects original live frame globals and selected builtins without copying",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.hooks.resolveBuiltins=value=>{if(value.kind!=="dict")throw Error("expected dictionary builtins");return new RuntimeDictionaryNamespace(value,v,state.meter);};
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));
+  const dictionary=v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,state.meter)),builtinDictionary=v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,state.meter));
+  for(const [name,value] of state.globals)dictionary.items.set(v.string(name),value);
+  for(const [name,value] of state.builtins)builtinDictionary.items.set(v.string(name),value);
+  dictionary.items.set(v.string("backing"),dictionary);dictionary.items.set(v.string("selected"),builtinDictionary);
+  state.run("def f():\n frame=current_frame()\n frame.f_globals['g']=7\n frame.f_builtins['fallback']=9\n return frame,g+fallback\nnext_builtins={'marker':11}\nbacking['__builtins__']=next_builtins\ndef second(cur=current_frame):return cur().f_builtins,marker\nframe,result=f()\nnew_builtins,value=second()\ntry:frame.f_globals={}\nexcept AttributeError:readonly=True\ntry:del frame.f_builtins\nexcept AttributeError:protected=True\ncorrect=frame.f_globals is backing and frame.f_builtins is selected and result==16 and new_builtins is next_builtins and value==11 and readonly and protected\n",new RuntimeDictionaryNamespace(dictionary,v,state.meter),new RuntimeDictionaryNamespace(builtinDictionary,v,state.meter));
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 

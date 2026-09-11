@@ -43,7 +43,8 @@ export class LexicalFrame<Value> {
 
   constructor(
     readonly scope: ResolvedScope,
-    private readonly namespaces: LexicalNamespaces<Value>,
+    /** Host-owned backing namespaces; never exposed as host objects to guests. */
+    readonly namespaces: LexicalNamespaces<Value>,
     private readonly meter: ExecutionMeter,
     private readonly localLayout?:FunctionLocalLayout
   ) {

@@ -2,17 +2,17 @@
  * translates only KeyError to absence; other guest/host failures propagate. It
  * owns protocol-call metering and must preserve present undefined values.
  */
-export type NameNamespace<Value> = ReadonlyMap<string, Value> | {
+export type NameNamespace<Value> = (ReadonlyMap<string, Value> | {
   lookup(name: string): { readonly value: Value } | undefined;
-};
+}) & {/** Original guest object, required only for namespace reflection. */readonly object?:Value};
 
 /** Trusted mutable backing storage. Public exec/global argument validation must
  * still require a Python dictionary, not accept arbitrary guest mappings. */
-export type MutableNameNamespace<Value> = Map<string,Value> | {
+export type MutableNameNamespace<Value> = (Map<string,Value> | {
   lookup(name:string):{readonly value:Value}|undefined;
   store(name:string,value:Value):void;
   delete(name:string):boolean;
-};
+}) & {readonly object?:Value};
 
 export function storeNamespace<Value>(namespace:MutableNameNamespace<Value>,name:string,value:Value):void {
   if("store" in namespace)namespace.store(name,value);

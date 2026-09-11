@@ -13525,6 +13525,24 @@ extension, integration, or validation requirement is missing or unverified.
   suite pass: 9,361 tests in 616 files (160.84s; test bodies 18.10s). String
   splitting, remaining methods, public assembly, imports and safe-fs are still
   unfinished. Local change only; no push or release.
+- String splitting descriptors: published canonical `str.split`, `str.rsplit`
+  and `str.splitlines`, with native subtype receivers and separators. Shared
+  bytes behavior is preserved. Integer limit conversion precedes separator
+  validation; line retention uses guest truth conversion. Ordinary overrides
+  remain active while explicit base descriptors inspect native payloads.
+  Subtype split results normally become exact strings with Latin-1 caching;
+  CPython probes additionally established that an impossible separator (longer
+  than input or requiring wider Unicode storage) retains the original subtype,
+  even for zero limits or empty input. A metered subtype-only check implements
+  that shortcut without extra scans for exact receivers. Ten new source tests
+  cover identity, subtype arguments, overrides, callback ordering, Unicode line
+  boundaries, errors and descriptor ownership. Initial descriptor tests and the
+  subsequent impossible-separator regressions failed before their fixes.
+  A 1,920-case in-memory CPython comparison now has zero differences in values,
+  types, identity, errors and documentation. Maintained build, typecheck, scoped
+  lint and whitespace checks pass; full uncached suite passes 9,371 tests in 616
+  files (105.99s; bodies 12.57s). Remaining string methods, interpreter assembly,
+  imports, codecs, safe-fs and broad audits are unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

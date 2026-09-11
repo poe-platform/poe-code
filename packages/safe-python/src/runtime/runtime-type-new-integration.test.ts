@@ -6001,6 +6001,38 @@ it("publishes string join with native subtype members and guest iteration", () =
   for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
 });
 
+it.each(["split","rsplit"])("publishes string %s with subtype separators and integer limits",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass Limit:\n def __index__(self):\n  visit('index')\n  return 1\ns=S('a-b-c')\nparts=str.${name}(s,sep=S('-'),maxsplit=Limit())\ncorrect=parts==${name==="split"?"['a','b-c']":"['a-b','c']"}\nbase=type(parts[0]) is str and type(parts[1]) is str\nowner=str.${name}.__objclass__ is str\n`);
+  for(const flag of ["correct","base","owner"])expect(state.globals.get(flag)).toBe(state.v.true);
+  expect(state.events).toEqual(["index"]);
+});
+
+it.each(["split","rsplit","splitlines"])("exactifies %s subtype results while retaining exact unsplit strings",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):pass\ns=S('abc')\na=s.${name}()[0]\nb=s.${name}()[0]\nfresh=type(a) is str and a is not s and a is not b\nshort=S('a')\ncached=short.${name}()[0] is short.${name}()[0]\nbase='abc'\nretained=base.${name}()[0] is base\n`);
+  for(const flag of ["fresh","cached","retained"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("publishes string splitlines with Unicode boundaries and guest truth conversion",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):pass\nclass Keep:\n def __bool__(self):\n  visit('truth')\n  return True\ns=S('a\\r\\nb\\u2028c\\x85')\nparts=str.splitlines(s,keepends=Keep())\ncorrect=parts==['a\\r\\n','b\\u2028','c\\x85']\nbase=type(parts[0]) is str\nowner=str.splitlines.__objclass__ is str\n");
+  for(const flag of ["correct","base","owner"])expect(state.globals.get(flag)).toBe(state.v.true);
+  expect(state.events).toEqual(["truth"]);
+});
+
+it.each(["split","rsplit"])("preserves %s argument precedence and ordinary overrides",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):\n def ${name}(self,*args):return 'override'\nclass Limit:\n def __index__(self):raise ValueError('index first')\nclass Bad:pass\ns=S('a-b')\nordinary=s.${name}()=='override'\nexplicit=str.${name}(s,'-')==['a','b']\ntry:str.${name}(s,Bad(),Limit())\nexcept ValueError as e:order=str(e)=='index first'\ntry:str.${name}(s,Bad())\nexcept TypeError as e:bad=str(e)=='must be str or None, not Bad'\ntry:str.${name}(s,'')\nexcept ValueError as e:empty=str(e)=='empty separator'\ntry:str.${name}(s,'-',sep='-')\nexcept TypeError as e:duplicate=str(e)=="argument for ${name}() given by name ('sep') and position (1)"\n`);
+  for(const flag of ["ordinary","explicit","order","bad","empty","duplicate"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it.each(["split","rsplit"])("retains %s subtype receivers on impossible separator fast paths",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):pass\nempty=S('')\nx=S('abc')\nbmp=S('Ā')\nastral=S('😀')\nlong=str.${name}(x,'abcd')[0] is x\nwide=str.${name}(x,'Ā',0)[0] is x\nempty_same=str.${name}(empty,'x')[0] is empty\nbmp_same=str.${name}(bmp,'😀')[0] is bmp\nbase=type(str.${name}(x,'é')[0]) is str and type(str.${name}(astral,'Ā')[0]) is str\n`);
+  for(const flag of ["long","wide","empty_same","bmp_same","base"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
 it("materializes string join iterables before diagnosing subclass members", () => {
   const state=exceptionFixture(); state.globals.set("str",state.registry.stringType());
   state.run("class Bad:\n pass\nclass Items:\n def __iter__(self):\n  yield Bad()\n  visit('consumed')\n");

@@ -8,6 +8,8 @@ import {createRuntimeStringCutMethod} from "./runtime-string-cut-method.js";
 import {createRuntimeStringStripMethod} from "./runtime-string-strip-method.js";
 import {createRuntimeStringJoinMethod} from "./runtime-string-join-method.js";
 import {runtimeIterate} from "./runtime-iteration.js";
+import {createRuntimeSplitMethod} from "./runtime-split-method.js";
+import {createRuntimeSplitlinesMethod} from "./runtime-splitlines-method.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -54,9 +56,15 @@ const cutMethods=[
   ["partition","Partition the string into three parts using the given separator.\n\nThis will search for the separator in the string.  If the separator\nis found, returns a 3-tuple containing the part before the\nseparator, the separator itself, and the part after it.\n\nIf the separator is not found, returns a 3-tuple containing\nthe original string and two empty strings."],
   ["rpartition","Partition the string into three parts using the given separator.\n\nThis will search for the separator in the string, starting at the\nend.  If the separator is found, returns a 3-tuple containing the\npart before the separator, the separator itself, and the part after\nit.\n\nIf the separator is not found, returns a 3-tuple containing two\nempty strings and the original string."]
 ] as const;
+const splitMethods=[
+  ["split","Return a list of the substrings in the string, using sep as the separator string.\n\n  sep\n    The separator used to split the string.\n\n    When set to None (the default value), will split on any\n    whitespace character (including \\n \\r \\t \\f and spaces) and\n    will discard empty strings from the result.\n  maxsplit\n    Maximum number of splits.\n    -1 (the default value) means no limit.\n\nSplitting starts at the front of the string and works to the end.\n\nNote, str.split() is mainly useful for data that has been\nintentionally delimited.  With natural text that includes\npunctuation, consider using the regular expression module."],
+  ["rsplit","Return a list of the substrings in the string, using sep as the separator string.\n\n  sep\n    The separator used to split the string.\n\n    When set to None (the default value), will split on any\n    whitespace character (including \\n \\r \\t \\f and spaces) and\n    will discard empty strings from the result.\n  maxsplit\n    Maximum number of splits.\n    -1 (the default value) means no limit.\n\nSplitting starts at the end of the string and works to the front."]
+] as const;
 const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const})),...classificationMethods.map(([name,doc])=>({name,doc,kind:"classification" as const})),
   ...searchMethods.map(([name,doc])=>({name,doc,kind:"search" as const})),...affixMethods.map(([name,doc])=>({name,doc,kind:"affix" as const})),
   ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const})),
+  ...splitMethods.map(([name,doc])=>({name,doc,kind:"split" as const})),
+  {name:"splitlines",kind:"splitlines" as const,doc:"Return a list of the lines in the string, breaking at line boundaries.\n\nLine breaks are not included in the resulting list unless keepends\nis given and true."},
   {name:"join",kind:"join" as const,doc:"Concatenate any number of strings.\n\nThe string whose method is called is inserted in between each given\nstring.  The result is returned as a new string.\n\nExample: '.'.join(['ab', 'pq', 'rs']) -> 'ab.pq.rs'"}];
 export const runtimeStringMethodNames:ReadonlySet<string>=new Set(methods.map(method=>method.name));
 
@@ -80,6 +88,8 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
             case "strip":bound=createRuntimeStringStripMethod(receiver,method.name,values,meter);break;
             case "cut":bound=createRuntimeStringCutMethod(receiver,method.name,values,meter);break;
             case "join":bound=createRuntimeStringJoinMethod(payload,values,meter,source=>runtimeIterate(source,values,meter,invocation?.iteration));break;
+            case "split":bound=createRuntimeSplitMethod(receiver,method.name,values,meter,invocation?.integerIndex);break;
+            case "splitlines":bound=createRuntimeSplitlinesMethod(receiver,values,meter,invocation?.truth?.bind(invocation));break;
           }
           return bound.value.invoke(positional,keywords,meter,invocation);
         } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}

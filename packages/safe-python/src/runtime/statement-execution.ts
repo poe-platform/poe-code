@@ -1,5 +1,6 @@
 import type { Expression,SourceSpan } from "../ast.js";
 import type { Statement } from "../statement-ast.js";
+import type {Pattern} from "../pattern-ast.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 
 export type LeafStatement = Extract<
@@ -45,6 +46,9 @@ export interface StatementContext<Value> {
   assign(target: Expression, value: Value): void;
   /** Definitions execute a separate scope; they cannot transfer control here. */
   execute(statement: LeafStatement): void;
+  /** Patterns contain no yield/await expressions. Successful captures must be
+   * published before guard evaluation and survive a false guard. */
+  match?(pattern:Pattern,subject:Value):boolean;
   assertions?: {
     /** Compilation optimization policy; disabled assertions evaluate neither operand. */
     enabled: boolean;
@@ -146,7 +150,7 @@ type StatementExecution<Value> =
 /** Synchronous execution of statically validated suites using explicit frames.
  * Finally suites run during normal and abrupt completion; guest exception state
  * is scoped to exception-triggered cleanup and ordinary except handlers. Except*
- * groups and match are not implemented here yet;
+ * groups are not implemented here yet; pattern protocols are supplied by context;
  * unsupported compounds fail
  * before evaluating their operands. Contexts own guest protocols and internal
  * metering; frame allocation still requires full heap accounting.
@@ -447,8 +451,24 @@ function* statementContinuation<Value>(
             if (statement.async ? execution.kind!=="resumable"||!execution.context.asyncManagers : !context.managers) throw new UnsupportedStatementError(statement.kind);
             frames.push({ kind: "with-items", statement, index: 0 });
             break;
-          case "match":
-            throw new UnsupportedStatementError(statement.kind);
+          case "match":{
+            if(context.match===undefined)throw new UnsupportedStatementError(statement.kind);
+            locate(statement.subject);
+            const subject=execution.kind==="synchronous"?execution.context.evaluate(statement.subject):yield* execution.context.evaluate(statement.subject);
+            meter.checkpoint();
+            for(const branch of statement.cases){
+              locate(branch.pattern);let matched:boolean;
+              try{matched=context.match(branch.pattern,subject);}finally{meter.checkpoint();}
+              if(!matched)continue;
+              if(branch.guard!==null){
+                locate(branch.guard);
+                const accepted=execution.kind==="synchronous"?execution.context.test(branch.guard):yield* execution.context.test(branch.guard);
+                meter.checkpoint();if(!accepted)continue;
+              }
+              meter.checkpoint(0,40);frames.push({kind:"block",body:branch.body,index:0});break;
+            }
+            break;
+          }
           default:
             if (execution.kind === "synchronous") execution.context.execute(statement);
             else yield* execution.context.execute(statement);

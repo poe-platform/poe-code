@@ -13,6 +13,7 @@ import { runtimeInPlace } from "./runtime-inplace.js";
 import { createRuntimeReferenceContinuation, resolveRuntimeReference, type RuntimeReferenceWrites } from "./runtime-reference.js";
 import { UnsupportedStatementError, type LeafStatement, type ResumableStatementContext, type StatementContext } from "./statement-execution.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import {matchPattern,type PatternContext} from "./pattern-execution.js";
 
 export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expression-statement" | "assignment" | "annotated-assignment" | "augmented-assignment" | "delete" }>;
 
@@ -84,10 +85,17 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
     }
   };
   const deletion = { position:bindings.position?.bind(bindings),removeName: bindings.deleteName.bind(bindings), resolve };
+  meter.checkpoint(0,256);
+  const patterns:PatternContext<RuntimeValue>={
+    position:bindings.position?.bind(bindings),evaluate:assignment.evaluate,store:assignment.store,
+    equal(left,right){const result=expressions.compare("==",left,right);meter.checkpoint();return expressions.truth(result);},
+    identical(left,right){const result=expressions.compare("is",left,right);meter.checkpoint();return expressions.truth(result);}
+  };
   const context: RuntimeStatementContext = {
     invocation:bindings.invocation,
     position:bindings.position?.bind(bindings),
     evaluate: assignment.evaluate,
+    match:(pattern,subject)=>matchPattern(pattern,subject,patterns,meter),
     test: expression => evaluateExpression(expression, expressions, meter, "branch"),
     iterate: expressions.iterate.bind(expressions),
     assign(target, value) { meter.checkpoint(0, 8); assignTargets([target], value, assignment, meter); },
@@ -125,6 +133,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
       }
       return {
         position:context.position,
+        match:context.match,
         evaluate: suspended.evaluate,
         test: expression => createExpressionContinuation(expression, expressions, meter, values.none, "branch"),
         iterate: context.iterate, assertions: context.assertions, managers: context.managers, exceptions: context.exceptions,

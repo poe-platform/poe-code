@@ -11495,6 +11495,40 @@ extension, integration, or validation requirement is missing or unverified.
   __classdict__ slot remains absent. Its absence is not counted as a pass; class
   dictionary capture and Python 3.14 annotation-scope interactions need review
   against the requested ignored-type behavior.
+- Annotation-cell audit (2026-09-11): revisited the retained-class probe against
+  the existing type-erasure requirement and the earlier module/class metadata
+  audit. CPython 3.14 symtable_visit_annotations introduces an AnnotationBlock
+  and __classdict__ reference even for unannotated methods in class scope;
+  type-parameter and lazy class-annotation scopes also request this capture.
+  This is the intentional annotation-related metadata difference already recorded
+  above, not a reason to reintroduce erased annotation scopes. The original raw
+  probe remains a non-exact CPython comparison, but its runtime cell-identity
+  failures are resolved. The recent notes calling classdict absence unfinished
+  are superseded by this audit. Source:
+  https://raw.githubusercontent.com/python/cpython/v3.14.0/Python/symtable.c
+- Core match execution (2026-09-11): three failing native statement tests
+  reproduced the unconditional UnsupportedStatementError for match. The shared
+  synchronous/resumable statement machine now evaluates the subject once, tries
+  ordered cases, publishes successful captures before guards, preserves captures
+  after false guards and executes only the selected suite. Subjects and captures
+  survive guard suspension; injected exceptions use existing handler/finally
+  machinery. A separate value-agnostic pattern engine handles captures, wildcards,
+  literal/value/singleton patterns, OR and AS patterns. Explicit work/choice stacks
+  avoid recursive host calls; failed alternatives discard pending captures and
+  guest comparison failures propagate. Runtime adapters use existing equality,
+  identity, truth, expression and scope-storage protocols. No filesystem or host
+  execution capability is introduced. New work, captures and adapters are metered;
+  tests cover cancellation overriding callback faults and depth/allocation limits.
+  The focused four-file suite passes 1,013 tests. All 384 scoped CPython
+  comparisons match: 336 subject/pattern/guard cases and 48 suspended-guard cases
+  with send/throw and finally cleanup. Native tests also cover dotted-value
+  lookup, custom equality/truth methods and nonlocal/private captures.
+  Workspace build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker full suite passes 8,072 tests in 531 files
+  (131.33s; test bodies 9.91s).
+  This is the first match-runtime stage, not complete structural matching:
+  sequence, mapping and class patterns still fail explicitly and are next.
+  Pattern semantics reference: https://peps.python.org/pep-0634/
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

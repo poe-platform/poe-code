@@ -43,6 +43,27 @@ function fixture(source: string, maxSteps = 100000) {
   };
 }
 
+describe("native pattern control flow",()=>{
+  it("distinguishes singleton identity from value equality and binds before guards",()=>{
+    const state=fixture("match 1:\n case True:result=0\n case (1|2) as x if x==2:result=1\n case y if x==1:result=y+2\n");
+    state.run();expect(state.globals.get("result")).toEqual(state.v.integer(3));
+    expect(state.globals.get("x")).toEqual(state.v.integer(1));expect(state.globals.get("y")).toEqual(state.v.integer(1));
+  });
+  it("evaluates the subject once and leaves unmatched case captures absent",()=>{
+    const state=fixture("n=0\nmatch (n:=n+1):\n case 3 as missing:result=0\n case 1:result=n\n case _:result=99\n");
+    state.run();expect(state.globals.get("result")).toEqual(state.v.integer(1));expect(state.globals.has("missing")).toBe(false);
+  });
+  it("retains a match subject and captures across suspended guards",()=>{
+    const state=fixture(""),{v}=state;
+    const cursor=state.continuation("match (yield 1):\n case 7 as x if (yield x):return 8\n case y:return y\n");
+    expect(cursor.next()).toEqual({done:false,value:v.integer(1)});
+    expect(cursor.next(v.integer(7))).toEqual({done:false,value:v.integer(7)});
+    expect(state.globals.get("x")).toEqual(v.integer(7));
+    expect(cursor.next(v.false)).toEqual({done:true,value:{kind:"return",value:v.integer(7)}});
+    expect(state.globals.get("y")).toEqual(v.integer(7));
+  });
+});
+
 describe("native suspended mutation operations", () => {
   it("keeps the evaluated RHS and unpacked starred list across a target yield", () => {
     const state = fixture(""), { v, globals } = state, obj = v.list([v.none]); globals.set("obj", obj);

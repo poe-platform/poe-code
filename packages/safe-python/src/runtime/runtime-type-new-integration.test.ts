@@ -486,6 +486,16 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("uses native equality and truth protocols for value patterns but not singleton patterns",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  return True\nclass Subject:\n def __eq__(self,value):\n  events.append(value)\n  return Truth()\nclass Holder:\n def __getattribute__(self,name):\n  events.append(name)\n  return 4\npath=Holder()\nmatch Subject():\n case True:result=0\n case path.value:result=1\ncorrect=result==1 and events==['value',4,'truth']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("routes match captures through nonlocal and private-name scope bindings",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def outer(x):\n def f(subject):\n  nonlocal x\n  match subject:\n   case x:pass\n f(7)\n return x\nclass C:\n def f(self,subject):\n  match subject:\n   case __x:return __x\ncorrect=outer(1)==7 and C().f(9)==9\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("separates inline fast slots from same-named free cells before and after execution",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));

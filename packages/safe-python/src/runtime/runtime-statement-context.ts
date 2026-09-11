@@ -81,7 +81,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
       return runtimeInPlace(operator, left, right, values, meter, expressions, bindings.invocation);
     }
   };
-  const deletion = { removeName: bindings.deleteName.bind(bindings), resolve };
+  const deletion = { position:bindings.position?.bind(bindings),removeName: bindings.deleteName.bind(bindings), resolve };
   const context: RuntimeStatementContext = {
     position:bindings.position?.bind(bindings),
     evaluate: assignment.evaluate,

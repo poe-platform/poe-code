@@ -95,6 +95,13 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it.each([false,true])("retains the failed name deletion line in native frames (suspended=%s)",suspended=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));
+  state.run("def f():\n global frame\n frame=current_frame()\n a=1\n"+(suspended?" yield frame\n":"")+" del (\n  a,\n  missing\n )\n"+(suspended?"g=f()\ng.__next__()\ntry:g.__next__()":"try:f()")+"\nexcept NameError:pass\ncorrect=frame.f_lineno=="+(suspended?8:7)+" and 'a' not in frame.f_locals\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it.each([false,true])("restores native unpacking locations after RHS evaluation (suspended=%s)",suspended=>{
   const state=exceptionFixture(),events:number[]=[];
   state.builtins.set("begin",state.v.builtinFunction({name:"begin",invoke(_args,_keywords,_meter,invocation){const frame=state.calls.current as RuntimeFrame;if(frame.executionPosition===undefined)throw Error("missing position");events.push(frame.executionPosition.start.line);return invocation!.call(state.globals.get("values")!,[]);}}));

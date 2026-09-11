@@ -11212,6 +11212,20 @@ extension, integration, or validation requirement is missing or unverified.
   Remaining leaf-operation and instruction metadata audits, tracing and automatic
   traceback capture are still required; these location fixes do not establish
   complete frame or traceback behavior.
+- Name deletion locations (2026-09-10): five failing generic/native regressions
+  confirmed missing individual name sites and stale del-statement lines retained
+  in failed native frames. Shared synchronous/resumable deletion traversal now
+  publishes each name's content span before removal; structural tuple/list nodes
+  do not create execution sites, and retained references still own attribute and
+  subscription removal sites. Cancellation during later position bookkeeping
+  preserves earlier deletions and prevents the remaining operations, including
+  when the callback also throws. The focused three-file suite passes 920 tests.
+  All 96 CPython comparisons match for retained failure lines and surviving locals
+  across grouped/nested targets, source padding and suspended generators.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,921 tests in 527 files (190.13s;
+  test bodies 10.80s). Complete instruction metadata, module/class native frames,
+  tracing and automatic traceback capture remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

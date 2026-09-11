@@ -20,6 +20,19 @@ function fixture(maxSteps = 100000) {
 }
 
 describe("deletion target traversal", () => {
+  it("locates individual names without visiting structural target lists",()=>{
+    const state=fixture();state.context.position=site=>{state.events.push(`position:${site.start.line}`);};
+    deleteTargets(targets("(\n a,\n [b,\n c]\n)"),state.context,state.meter);
+    expect(state.events).toEqual(["position:2","delete:a","position:3","delete:b","position:4","delete:c"]);
+  });
+  it.each([false,true])("retains earlier deletions when position bookkeeping cancels (throws=%s)",throws=>{
+    const state=fixture(),controller=new AbortController();let count=0;
+    state.context.position=()=>{if(++count===2){controller.abort();if(throws)throw Error("position failure");}};
+    const meter=new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:10000,signal:controller.signal});
+    expect(()=>deleteTargets(targets("a,b,c"),state.context,meter)).toThrow("execution cancelled");
+    expect(state.events).toEqual(["delete:a"]);
+    expect([...state.names.keys()]).toEqual(["b","c"]);
+  });
   it.each([["a", 71], ["(a,)", 72]] as const)("charges traversal frames before deletion: %s", (source, maxAllocatedBytes) => {
     const state = fixture(), meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 224 + maxAllocatedBytes });
     expect(() => deleteTargets(targets(source), state.context, meter)).toThrow("execution allocation limit exceeded");

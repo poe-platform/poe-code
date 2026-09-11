@@ -1,7 +1,9 @@
-import type { CollectionItem, Expression } from "../ast.js";
+import type { CollectionItem, Expression,SourceSpan } from "../ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 
 export interface DeletionContext {
+  /** Name deletion sites; retained references own attribute/subscript sites. */
+  position?(site:SourceSpan):void;
   removeName(name: string): void;
   /** Evaluate receiver/key now without reading the target's current value.
    * Scope storage, descriptors, subscriptions and internal metering are owned
@@ -10,7 +12,7 @@ export interface DeletionContext {
   resolve(target: Extract<Expression, { kind: "attribute" | "subscript" }>): { remove(): void };
 }
 
-export interface ResumableDeletionContext<Value> extends Pick<DeletionContext, "removeName"> {
+export interface ResumableDeletionContext<Value> extends Pick<DeletionContext, "removeName" | "position"> {
   resolve(target: Extract<Expression, { kind: "attribute" | "subscript" }>): Generator<Value, { remove(): void }, Value>;
 }
 
@@ -42,7 +44,10 @@ function* deletionContinuation<Value>(targets: readonly Expression[], execution:
     const frame = frames[frames.length - 1];
     if (frame.index === frame.items.length) { frames.pop(); continue; }
     const target = frame.items[frame.index++];
-    if (target.kind === "name") execution.context.removeName(target.name);
+    if (target.kind === "name") {
+      if(execution.context.position!==undefined){try{execution.context.position(target.contentSpan??target);}finally{meter.checkpoint(0);}}
+      execution.context.removeName(target.name);
+    }
     else if (target.kind === "attribute" || target.kind === "subscript") {
       const reference = execution.kind === "synchronous" ? execution.context.resolve(target) : yield* execution.context.resolve(target);
       meter.checkpoint();

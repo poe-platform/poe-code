@@ -486,6 +486,26 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("exposes default type instance and subclass checks without reentering virtual overrides",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Meta(type):\n def __instancecheck__(cls,value):\n  events.append('instance')\n  return type.__instancecheck__(cls,value)\n def __subclasscheck__(cls,value):\n  events.append('subclass')\n  return type.__subclasscheck__(cls,value)\nclass C(metaclass=Meta):pass\nclass D(C):pass\ncorrect=C.__instancecheck__(D()) and C.__subclasscheck__(D) and not C.__instancecheck__(7) and not C.__subclasscheck__(object) and events==['instance','subclass','instance','subclass']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("uses apparent classes and abstract bases in default type checks",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class C:pass\nclass Proxy:\n __class__=C\nclass Bases:\n __bases__=(C,)\ncorrect=C.__instancecheck__(Proxy()) and C.__subclasscheck__(Bases()) and not C.__instancecheck__(Bases())\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("retains class-qualified diagnostics for immediate and stored metaclass methods",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class Outer:\n class C:pass\nerrors=[]\ntry:Outer.C.__instancecheck__()\nexcept TypeError as e:errors.append(e.args[0])\nf=Outer.C.__subclasscheck__\ntry:f()\nexcept TypeError as e:errors.append(e.args[0])\ntry:type.__instancecheck__(Outer.C)\nexcept TypeError as e:errors.append(e.args[0])\ncorrect=errors==['Outer.C.__instancecheck__() takes exactly one argument (0 given)','Outer.C.__subclasscheck__() takes exactly one argument (0 given)','type.__instancecheck__() takes exactly one argument (0 given)']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("traverses abstract tuple-subclass bases in order and rereads the validated root",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("tuple",state.registry.tupleType());
+  state.run("events=[]\nclass T(tuple):pass\nclass C:pass\nclass Leaf:\n def __getattribute__(self,name):\n  events.append('leaf')\n  return ()\nleaf=Leaf()\nclass Root:\n def __getattribute__(self,name):\n  events.append('root')\n  return T((leaf,C))\ncorrect=C.__subclasscheck__(Root()) and events==['root','root','leaf']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("matches positional and keyword class attributes with nested patterns",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("class C:\n __match_args__=('x','y')\n def __init__(self):\n  self.x=[1,2]\n  self.y=3\nmatch C():\n case C([a,b],y=c):result=(a,b,c)\n case _:result=None\ncorrect=result==(1,2,3)\n");

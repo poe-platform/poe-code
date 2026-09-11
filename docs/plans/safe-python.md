@@ -11619,6 +11619,33 @@ extension, integration, or validation requirement is missing or unverified.
   assembly, modules and the other runtime/integration work remain unfinished.
   Protocol references: https://peps.python.org/pep-0634/ and
   https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/abstract.c
+- Default type checks (2026-09-11): two failing integration tests reproduced
+  missing type.__instancecheck__ and type.__subclasscheck__ descriptors. A shared
+  default-check module now supplies real MRO/apparent-class instance checks and
+  real-MRO/abstract-__bases__ subclass checks without reentering virtual metaclass
+  overrides. Class-pattern virtual dispatch reuses the default instance policy;
+  custom metaclasses can delegate explicitly to the installed type descriptors.
+  Abstract bases accept tuple-subclass storage, validate the derived class before
+  the target, reread the root during traversal and preserve left-to-right branch
+  lookup/error order. Explicit heap work avoids host recursion; a 10,000-node
+  chain succeeds and cyclic graphs terminate under the execution meter.
+  Callback cancellation tests caught and fixed an actual-type fault masking
+  termination; apparent-class and abstract-base callback faults are covered too.
+  A further failing diagnostic test and CPython comparison exposed immediate
+  native method calls on classes being optimized as generic instance calls.
+  Class receivers now retain bound native methods, preserving class-qualified
+  diagnostics while explicit type descriptor calls remain unbound.
+  The focused three-file suite passes 1,007 tests. All 210 new scoped CPython
+  comparisons match: 128 default instance/subclass cases, 42 descriptor argument
+  cases and 40 abstract-base lookup/error-order cases. The earlier 1,670 matching
+  comparisons also pass, for 1,880 scoped CPython comparisons in total. Workspace
+  build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker suite passes 8,130 tests in 532 files (144.25s; test bodies 11.66s).
+  General isinstance/issubclass builtins, including tuple/union class arguments,
+  remain separate work; this milestone implements their default type protocols,
+  not their public argument-dispatch surface or ABC registration.
+  References: https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/abstract.c
+  and https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/object.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

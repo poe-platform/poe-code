@@ -29,6 +29,7 @@ import { installObjectOrderingWrappers } from "./builtin-object-ordering.js";
 import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeNewBuiltin } from "./builtin-type-new.js";
 import { createTypePrepareDescriptor } from "./builtin-type-prepare.js";
+import {createTypeCheckDescriptor} from "./builtin-type-check.js";
 import { createTypeReprWrapper } from "./builtin-type-repr.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
@@ -152,6 +153,7 @@ export class RuntimeTypeRegistry {
     objectLayout.namespace.items.set(values.string("__new__"), createObjectNewBuiltin(values, meter, keys, this.object, type => this.#entries.get(type.value)?.type === type));
     typeLayout.namespace.items.set(values.string("__new__"), createTypeNewBuiltin(values, meter, this));
     typeLayout.namespace.items.set(values.string("__prepare__"), createTypePrepareDescriptor(values, meter, keys, this.type));
+    for(const name of ["__instancecheck__","__subclasscheck__"] as const){meter.checkpoint();typeLayout.namespace.items.set(values.string(name),createTypeCheckDescriptor(name,this.type,values,meter));}
     typeLayout.namespace.items.set(values.string("__repr__"), createTypeReprWrapper(values, meter, this.type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
     objectLayout.namespace.items.set(values.string("__format__"), createObjectFormatDescriptor(this.object, values, meter));

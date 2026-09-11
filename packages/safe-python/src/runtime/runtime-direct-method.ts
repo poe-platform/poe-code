@@ -3,8 +3,10 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinInvocationContext, MethodDescriptorValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** An immediate attribute call can invoke a native method descriptor directly.
- * Custom attribute lookup, instance shadows and aliases retain bound calls. */
+ * Class receivers, custom attribute lookup, instance shadows and aliases retain
+ * bound calls; type attribute lookup is not the generic instance fast path. */
 export function runtimeDirectMethod(receiver: RuntimeValue, name: string, callee: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, invocation: BuiltinInvocationContext): MethodDescriptorValue | undefined {
+  if(receiver.kind==="type")return undefined;
   if (callee.kind !== "builtin_function_or_method" || callee.binding?.instance !== receiver || callee.binding.descriptor.kind !== "method_descriptor") return undefined;
   const type = invocation.actualType?.(receiver); meter.checkpoint();
   if (type === undefined) return undefined;

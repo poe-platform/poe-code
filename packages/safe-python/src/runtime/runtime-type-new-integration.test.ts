@@ -95,6 +95,14 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it.each([false,true])("restores native augmented operator locations after RHS evaluation (suspended=%s)",suspended=>{
+  const state=exceptionFixture(),events:number[]=[];
+  state.builtins.set("add",state.v.builtinFunction({name:"add",invoke(args){const frame=state.calls.current as RuntimeFrame;if(frame.executionPosition===undefined)throw Error("missing position");events.push(frame.executionPosition.start.line);return args[0];}}));
+  state.run("class A:\n __iadd__=add\na=A()\ndef f():\n global a\n (\n  a\n ) += (\n  "+(suspended?"(yield 2)":"2")+"\n )\n"+(suspended?"g=f()\ng.__next__()":"f()"));
+  if(suspended){expect(events).toEqual([]);state.run("try:g.send(3)\nexcept StopIteration:pass");}
+  expect(events).toEqual([6]);
+});
+
 it.each([
   ["i[\n 1\n]",10],["(\n i\n).x",12],["(\n i.x\n)",11],["i.x",10]
 ] as const)("locates deferred native target operations at %s",(target,line)=>{

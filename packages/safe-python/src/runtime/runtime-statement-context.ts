@@ -71,6 +71,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
     }
   };
   const augmented: AugmentedAssignmentContext<RuntimeValue> = {
+    position:bindings.position?.bind(bindings),
     evaluate: assignment.evaluate, resolve,
     inplace(operator, left, right) {
       const result = bindings.inplace === undefined ? values.notImplemented : bindings.inplace(operator, left, right);

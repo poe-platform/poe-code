@@ -26,6 +26,19 @@ function fixture(failure?: string) {
 const budget = (maxSteps = 100) => new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000 });
 
 describe("augmented assignment execution", () => {
+  it("restores the entire augmented statement site after RHS evaluation",()=>{
+    const state=fixture(),node=statement("(\n obj\n).x += (\n rhs\n)");
+    state.context.position=site=>{expect(site).toBe(node);state.events.push("position");};
+    executeAugmentedAssignment(node,state.context,budget());
+    expect(state.events).toEqual(["resolve","get","rhs","position","inplace","set"]);
+  });
+  it.each([false,true])("prioritizes location callback cancellation before the operator (throws=%s)",throws=>{
+    const state=fixture(),controller=new AbortController();
+    state.context.position=()=>{controller.abort();if(throws)throw Error("position failure");};
+    expect(()=>executeAugmentedAssignment(statement(),state.context,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:1000,signal:controller.signal}))).toThrow("execution cancelled");
+    expect(state.events).toEqual(["resolve","get","rhs"]);
+    expect(state.old).toEqual([1]);
+  });
   it.each(["a += rhs", "obj.x += rhs", "obj[key] += rhs"])("loads before RHS and writes to the retained target: %s", source => {
     const state = fixture();
     executeAugmentedAssignment(statement(source), state.context, budget());

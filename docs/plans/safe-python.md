@@ -11180,6 +11180,22 @@ extension, integration, or validation requirement is missing or unverified.
   `a += (\n 2\n)`; correcting reference write-back does not fix that operator
   callback site. Augmented operators, unpacking and other leaf-operation sites
   still require their own audits, alongside instruction maps and tracebacks.
+- Augmented operator locations (2026-09-10): five failing regressions confirmed
+  stale RHS locations for native in-place calls, including a grouped target and
+  a yielding RHS. The shared synchronous/resumable augmented-assignment kernel
+  now restores the whole statement span before in-place/binary negotiation;
+  reference write-back continues to restore its distinct target access site.
+  Optional position callbacks are forwarded by native statement contexts, and
+  cancellation after callbacks takes priority before operator mutation.
+  The focused three-file suite passes 932 tests. All 832 CPython comparisons
+  match across thirteen operators, in-place/binary fallback, four target forms,
+  source padding and suspended RHS evaluation. Selected build, typecheck, scoped
+  lint and whitespace checks pass. The final uncached one-worker package suite
+  passes 7,911 tests in 527 files (133.80s; test bodies 10.37s).
+  A read-only follow-up probe confirms an unpacking location gap: iterator
+  acquisition for a multiline `a,b=(\n i\n)` reports RHS line 8 rather than
+  target line 7. That target traversal, other remaining leaf operations,
+  instruction maps, tracing and automatic traceback capture remain required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

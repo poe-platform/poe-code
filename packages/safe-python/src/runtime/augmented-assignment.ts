@@ -1,8 +1,10 @@
-import type { Expression } from "../ast.js";
+import type { Expression,SourceSpan } from "../ast.js";
 import type { Statement } from "../statement-ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 
 export interface AugmentedAssignmentContext<Value> {
+  /** The operator belongs to the whole statement, not its last RHS operand. */
+  position?(site:SourceSpan):void;
   /** Resolve once, retaining receiver/key identity, not a cached value or setter.
    * Get/set must perform the current guest lookup when invoked. Name references
    * retain their lexical binding destination, even if loading uses a fallback.
@@ -13,7 +15,7 @@ export interface AugmentedAssignmentContext<Value> {
   inplace(operator: string, left: Value, right: Value): Value;
 }
 
-export interface ResumableAugmentedAssignmentContext<Value> extends Pick<AugmentedAssignmentContext<Value>, "inplace"> {
+export interface ResumableAugmentedAssignmentContext<Value> extends Pick<AugmentedAssignmentContext<Value>, "inplace" | "position"> {
   resolve(target: Expression): Generator<Value, { get(): Value; set(value: Value): void }, Value>;
   evaluate(expression: Expression): Generator<Value, Value, Value>;
 }
@@ -49,6 +51,7 @@ function* augmentedContinuation<Value>(statement: Extract<Statement, { kind: "au
   meter.checkpoint();
   const right = execution.kind === "synchronous" ? execution.context.evaluate(statement.value) : yield* execution.context.evaluate(statement.value);
   meter.checkpoint();
+  if(execution.context.position!==undefined){try{execution.context.position(statement);}finally{meter.checkpoint(0);}}
   const result = execution.context.inplace(statement.operator, left, right);
   meter.checkpoint();
   reference.set(result);

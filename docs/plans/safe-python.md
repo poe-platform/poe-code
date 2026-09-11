@@ -10918,6 +10918,24 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,760 tests in 521 files (148.86s;
   test bodies 9.63s).
+- Explicit exception traceback attachment (2026-09-10): a failing native test
+  demonstrated missing __traceback__ storage and with_traceback. Exception state
+  now retains an independently metered traceback reference. A getset descriptor
+  accepts native traceback objects or None, rejects deletion and invalid writes
+  without losing the old value, and takes precedence over instance dictionary
+  entries. with_traceback shares validation, mutates native storage without guest
+  __setattr__ hooks, and returns the original exception. Reinitialization leaves
+  traceback storage intact, and attachment does not change args, cause, context
+  or suppression. Bound/unbound argument diagnostics preserve the correct type
+  names, including long Unicode names. Nine new tests cover native behavior,
+  descriptor ownership, invalid writes and exhausted-budget atomicity. All
+  1,000 mixed mutation sequences and 120 method argument/name cases match
+  CPython. The focused three-file suite passes 842 tests. Automatic traceback
+  construction during raising/unwinding, code-location metadata, sys/traceback
+  modules and traceback-aware context-manager arguments remain unfinished.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,769 tests in 522 files (210.34s;
+  test bodies 21.36s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

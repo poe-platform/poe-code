@@ -8,14 +8,16 @@ export class RuntimeExceptionState {
   #args:TupleConstant<RuntimeValue>;
   #cause:InstanceValue|null=null;
   #context:InstanceValue|null=null;
+  #traceback:InstanceValue|null=null;
   #suppressContext=false;
   #members:Map<string,RuntimeValue>|undefined;
   constructor(args:TupleConstant<RuntimeValue>,meter:ExecutionMeter) {
-    meter.checkpoint(1,64);this.#args=args;Object.freeze(this);
+    meter.checkpoint(1,72);this.#args=args;Object.freeze(this);
   }
   get args():TupleConstant<RuntimeValue>{return this.#args;}
   get cause():InstanceValue|null{return this.#cause;}
   get context():InstanceValue|null{return this.#context;}
+  get traceback():InstanceValue|null{return this.#traceback;}
   get suppressContext():boolean{return this.#suppressContext;}
   member(name:string,meter:ExecutionMeter):RuntimeValue|undefined {
     meter.checkpoint();return this.#members?.get(name);
@@ -35,6 +37,9 @@ export class RuntimeExceptionState {
   }
   assignContext(value:InstanceValue|null,meter:ExecutionMeter):void {
     meter.checkpoint();this.#context=value;
+  }
+  assignTraceback(value:InstanceValue|null,meter:ExecutionMeter):void {
+    meter.checkpoint();this.#traceback=value;
   }
   assignSuppression(value:boolean,meter:ExecutionMeter):void {
     meter.checkpoint();this.#suppressContext=value;

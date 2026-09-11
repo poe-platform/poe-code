@@ -204,6 +204,14 @@ it("shares exact Python dictionary globals across module, function and class exe
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
+it("stores native exception tracebacks and returns self without invoking attribute overrides",()=>{
+  const state=exceptionFixture(),{v,meter,registry}=state;
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);
+  state.globals.set("tb",registry.traceback(new Traceback(null,frame,0,1,meter),()=>null));
+  state.run("e=ValueError('x')\ncorrect=e.__traceback__ is None and e.with_traceback(tb) is e and e.__traceback__ is tb\ne.__init__('y')\ncorrect=correct and e.__traceback__ is tb and e.args==('y',)\ntry:e.__traceback__=1\nexcept TypeError as x:invalid=x.args\ntry:del e.__traceback__\nexcept TypeError as x:deleted=x.args\ncorrect=correct and e.__traceback__ is tb and invalid==('__traceback__ must be a traceback or None',) and deleted==('__traceback__ may not be deleted',)\ne.__traceback__=None\ncorrect=correct and e.__traceback__ is None\nclass E(Exception):\n def __setattr__(self,n,v):raise AssertionError(n)\na=E()\ncorrect=correct and a.with_traceback(tb) is a and BaseException.__traceback__.__get__(a,E) is tb\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("constructs native tracebacks with index conversion before next-link validation",()=>{
   const state=exceptionFixture(),{v,meter,registry}=state;
   const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);

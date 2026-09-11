@@ -7,6 +7,7 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeExceptionPayload } from "./runtime-exception-state.js";
 import { installRuntimeExceptionLinkDescriptors } from "./runtime-exception-link-descriptors.js";
+import {installRuntimeExceptionTracebackDescriptors} from "./runtime-exception-traceback-descriptors.js";
 import { collectIterator } from "./iterator-collection.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { createExceptionRepresentationDescriptor } from "./builtin-exception-representation.js";
@@ -16,6 +17,7 @@ import type { RuntimeValues,TypeValue } from "./runtime-values.js";
  * mutations through guest attributes cannot substitute for native args. */
 export function installRuntimeExceptionDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
   installRuntimeExceptionLinkDescriptors(owner,values,meter);
+  installRuntimeExceptionTracebackDescriptors(owner,values,meter);
   owner.value.namespace.items.set(values.string("__setstate__"),createExceptionSetstateDescriptor(owner,values,meter));
   owner.value.namespace.items.set(values.string("__reduce__"),createExceptionReduceDescriptor(owner,values,meter));
   owner.value.namespace.items.set(values.string("__dict__"),createInstanceDictionaryDescriptor(owner,values,meter,{deleteError:"cannot delete __dict__"}));

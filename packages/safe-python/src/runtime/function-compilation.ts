@@ -49,7 +49,8 @@ export function compileFunction<Value>(
   scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "functionKinds"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures">>,
   options: CodeCompilationOptions, constants: CodeConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,scopeFlags?:number
 ): CompiledFunction<Value> {
-  meter.checkpoint();
+  try {
+  meter.checkpoint(1, 192);
   const node = scope.scope.node;
   if ((scope.scope.kind !== "function" || node.kind !== "function") && (scope.scope.kind !== "lambda" || node.kind !== "lambda"))
     throw new Error("function code requires a function or lambda scope");
@@ -70,4 +71,5 @@ export function compileFunction<Value>(
   const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
   if(flags!==undefined&&suite.docstring!==undefined)flags|=0x4000000;
   return { flags,source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: suite.docstring, body: { kind: "suite", statements: suite.statements } };
+  } finally { meter.checkpoint(); }
 }

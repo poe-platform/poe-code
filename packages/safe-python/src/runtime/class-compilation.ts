@@ -34,7 +34,8 @@ export function compileClassBody<Value>(
   scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "staticAttributes"> & Partial<Pick<ModuleAnalysis,"scopes"|"futureFeatures">>,
   options: CodeCompilationOptions, constants: ClassConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>,flags?:number
 ): CompiledClassBody<Value> {
-  meter.checkpoint();
+  try {
+  meter.checkpoint(1, 160);
   const node = scope.scope.node;
   if (scope.scope.kind !== "class" || node.kind !== "class") throw new Error("class bodies require a class scope");
   const name = analysis.qualifiedNames.get(scope.scope), attributes = analysis.staticAttributes.get(scope.scope);
@@ -46,9 +47,10 @@ export function compileClassBody<Value>(
   const decorator = node.decorators[0];
   const firstLine = constants.integer(decorator?.contentSpan?.start.line ?? decorator?.start.line ?? node.start.line);
   const names: Value[] = [];
-  for (const attribute of attributes) { meter.checkpoint(); names.push(constants.string(attribute)); }
+  for (const attribute of attributes) { meter.checkpoint(1, 8); names.push(constants.string(attribute)); }
   meter.checkpoint();
   const staticAttributes = constants.tuple(names);
   const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
   return { flags,source,scope, qualifiedName, firstLine, staticAttributes, ...suite };
+  } finally { meter.checkpoint(); }
 }

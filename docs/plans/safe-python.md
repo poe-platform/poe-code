@@ -12141,6 +12141,23 @@ extension, integration, or validation requirement is missing or unverified.
   lint and whitespace checks pass. The final uncached one-worker full suite
   passes 8,432 tests in 556 files (155.39s; test bodies 13.36s). Remaining
   compiler metadata construction and AST allocation audits are still required.
+- Function/class metadata resource boundaries (2026-09-11): ten failing tests
+  reproduced cancellation masked by throwing name, qualified-name, first-line,
+  static-attribute and tuple factories; metadata callbacks occurring before
+  result storage was reserved; and uncharged static-attribute array slots.
+  Function/lambda compilation reserves its result/body storage at entry, class
+  compilation reserves result/array storage and charges each attribute slot,
+  and both paths preserve cancellation with final checkpoints. Constant value
+  allocation remains adapter-metered. Two further tests cover cancelled lambda
+  factories and legitimate undefined lambda constants. The initial focused
+  four-file suite passes 52 tests. All 48 comparisons against 547cfb212 preserve
+  full compiled metadata and factory-call order across functions, lambdas,
+  classes, nesting, decorators, suspension kinds and both docstring policies;
+  these are baseline regressions, not new CPython compatibility claims. Build
+  and typecheck pass, as do scoped lint and whitespace checks. The final uncached
+  one-worker full suite passes 8,444 tests in 557 files (147.76s; test bodies
+  11.68s). Whole-program registries/traversal, class-wrapper constants and
+  remaining AST/compiler allocation accounting still require auditing.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

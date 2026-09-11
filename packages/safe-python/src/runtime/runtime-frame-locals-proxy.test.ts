@@ -62,3 +62,16 @@ it("does not publish a default after classification cancels execution",()=>{
   try{expect(()=>setdefault([key,values.integer(9)])).toThrow(ExecutionLimitError);expect(write).not.toHaveBeenCalled();}
   finally{write.mockRestore();}
 });
+
+it.each(["update","__ior__"])("never converts host termination from %s sources",name=>{
+  const {context,method,proxy}=fixture(),invoke=method(name),fatal=new ExecutionLimitError("steps");
+  context.attribute=()=>{throw fatal;};context.isException=vi.fn(()=>true);context.causeException=vi.fn();
+  expect(()=>invoke([proxy])).toThrow(fatal);expect(context.isException).not.toHaveBeenCalled();expect(context.causeException).not.toHaveBeenCalled();
+});
+
+it.each([false,true])("checks cancellation after bulk exception wrapping (throws=%s)",throws=>{
+  const {context,method,proxy,controller}=fixture(),invoke=method("__ior__"),guest=Object.freeze({});
+  context.attribute=()=>{throw guest;};context.isException=()=>true;
+  context.causeException=()=>{controller.abort();if(throws)throw Error("wrapping failure");return guest;};
+  expect(()=>invoke([proxy])).toThrow(ExecutionLimitError);
+});

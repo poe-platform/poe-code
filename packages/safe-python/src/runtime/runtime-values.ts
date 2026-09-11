@@ -92,6 +92,8 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Replace a guest protocol failure while retaining explicit cause/context. */
+  causeException?(error:unknown,name:"SystemError",message:string):unknown;
   wrapAnext?(awaitable:RuntimeValue,defaultValue:RuntimeValue):RuntimeValue;
   /** Internal exception inheritance, never guest instance/subclass hooks.
    * Ordinary host failures must remain false. Native operation faults may also

@@ -129,6 +129,27 @@ it("implements native locals defaults and extra-key removal without deleting slo
   expect(frame.load("y")).toEqual(v.integer(2));
 });
 
+it("updates native locals from dictionaries and proxies and creates independent unions",()=>{
+  const state=exceptionFixture(),{v}=state,scope=analyzeModule("def f(x,y):return x+y").scopes.children[0];
+  for(const name of ["p","q"]){const frame=new LexicalFrame(scope,{globals:new Map(),builtins:new Map()},state.meter);frame.store("x",v.integer(name==="p"?1:2));state.globals.set(name,state.registry.frameLocalsProxy(frame));}
+  state.run("q['extra']=3\nnone=p.update(q)\nleft=p|{'x':9,'last':4}\nright={'x':9,'first':5}|p\noriginal=p\np|={'y':7}\ncorrect=none is None and p is original and p['y']==7 and left=={'x':9,'extra':3,'last':4} and right=={'x':2,'first':5,'extra':3} and 'last' not in p\ntry:p.update([('x',8)])\nexcept TypeError as error:invalid=error.args==('update() argument must be dict or another FrameLocalsProxy',)\n");
+  for(const name of ["correct","invalid"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("retains partial native locals updates and exposes operation-specific failure chaining",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f(x):return x").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  state.globals.set("p",state.registry.frameLocalsProxy(frame));state.globals.set("SystemError",state.registry.exceptionType("SystemError"));
+  state.run("Dict=type({})\nclass D(Dict):\n def keys(self):return ['x','extra','bad']\n def __getitem__(self,key):\n  if key=='bad':raise ValueError('bad')\n  return 7\ntry:p.update(D())\nexcept TypeError as error:update_error=error.args==('update() argument must be dict or another FrameLocalsProxy',) and error.__context__ is None\npartial=p['x']==7 and p['extra']==7\ntry:p.__ior__(D())\nexcept SystemError as error:inplace_error=error.args==(\"<slot wrapper '__ior__' of 'FrameLocalsProxy' objects> returned a result with an exception set\",) and error.__cause__.args==('bad',) and error.__context__ is error.__cause__\n");
+  for(const name of ["update_error","partial","inplace_error"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("supports reflected locals unions with general mappings and live update key lists",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f(x):return x").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  frame.store("x",v.integer(1));state.globals.set("p",state.registry.frameLocalsProxy(frame));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class M:\n def keys(self):return ['extra','x']\n def __getitem__(self,key):return 7\ncombined=M()|p\nDict=type({})\nkeys=['x']\nclass D(Dict):\n def keys(self):return keys\n def __getitem__(self,key):\n  if key=='x':keys.append('extra')\n  return 8\np.update(D())\ncorrect=combined=={'extra':7,'x':1} and p.copy()=={'x':8,'extra':8}\ntry:p.__ror__('bad')\nexcept AttributeError as error:invalid=error.args==(\"'str' object has no attribute 'keys'\",)\n");
+  for(const name of ["correct","invalid"])expect(state.globals.get(name)).toBe(v.true);
+});
+
 it("reflects live locals through compiled calls, suspension and retained closures",()=>{
   const state=exceptionFixture(),{v}=state,snapshots:Map<string,RuntimeValue>[]=[];
   state.builtins.set("reflect",v.builtinFunction({name:"reflect",invoke(args){

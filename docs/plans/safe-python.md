@@ -10767,6 +10767,29 @@ extension, integration, or validation requirement is missing or unverified.
   build, typecheck and scoped lint pass. This isolated mapping/
   descriptor change uses focused verification, not a new full-package run.
   Update/union methods, repr and native frame construction/exposure remain.
+- Native frame-locals bulk operations (2026-09-10): added update and forward,
+  reflected and in-place union descriptors after two failing integration tests.
+  Updates accept dictionaries/subclasses or other frame proxies, call subclass
+  keys/items, retain live exact-list key iteration, and materialize other key
+  iterables before writing. Earlier writes survive later failures. Ordinary
+  unions make independent dictionaries and use native dictionary-copy behavior
+  when iteration is inherited. Reflected union accepts general mappings, unlike
+  the forward operand restriction. Update replaces guest source failures with
+  its prescribed TypeError. Direct __ior__ failure preserves the original
+  exception as the cause/context of SystemError through an explicit execution
+  capability; host termination bypasses replacement. Four cancellation tests
+  cover fatal classification and successful/failing exception wrapping.
+  Three native integration tests cover unions, partial writes, general reflected
+  mappings and mutable key lists. Focused verification passes 836 tests. All 140
+  argument/operation and 80 direct bulk comparisons match CPython. A separate
+  20-case augmented-assignment comparison has 14 known mismatches: CPython leaves
+  a C-level exception pending after failed in-place union, then detects it at
+  a later fallback keys call; this runtime currently reports the direct wrapper
+  SystemError immediately. These are unresolved compatibility cases, not passes.
+  Selected workspace build, typecheck and scoped lint pass. The final uncached
+  one-worker package suite passes 7,705 tests in 519 files (332.75s; test bodies
+  17.56s). Repr, native frame construction/exposure and the pending
+  augmented-failure distinction remain required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -114,6 +114,7 @@ export class SandboxJobQueue {
   finish(): void {
     if (this.finished) return;
     this.finished = true;
+    this.controlled = false;
     this.detachSignal?.();
     this.detachSignal = undefined;
     this.interrupt(new Error("Execution is finished."));
@@ -142,8 +143,6 @@ export class SandboxJobQueue {
   }
 
   acquire(job: ExecutionJob): Promise<void> {
-    if (this.finished)
-      return Promise.reject(this.interruption?.reason ?? new Error("Execution is finished."));
     return new Promise((resolve) => {
       this.pending.push(() => {
         this.running = true;

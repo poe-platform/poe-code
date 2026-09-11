@@ -12175,6 +12175,20 @@ extension, integration, or validation requirement is missing or unverified.
   whitespace checks pass. The final uncached one-worker full suite passes 8,451
   tests in 559 files (134.96s; test bodies 11.65s). AST construction and remaining compiler helper audits
   still precede enabling guest eager compilation.
+- Comprehension compiler resource boundaries (2026-09-11): four failing tests
+  reproduced unmetered scans of 10,000 defaultless lambda parameters and literal
+  interpolation parts, cancellation lost on an early async-clause result, and
+  cancellation lost while freezing generator metadata. Async classification now
+  reserves its worklist/enqueue helper, meters parameter scans, forwards the
+  meter into expression-child traversal and checks termination in finally.
+  Generator compilation also checks termination after final result publication.
+  The focused four-file suite passes 30 tests. All 48 CPython comparisons match
+  generator async flags across outer/inner awaits, async clauses, materialized
+  comprehensions, lazy nested generators, lambda defaults/bodies and formatted
+  fields. Build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker full suite passes 8,455 tests in 560 files (138.95s; test
+  bodies 12.12s). Remaining
+  AST allocation accounting is still required before guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -21,6 +21,7 @@ export interface CompiledGeneratorExpression<Value> {
  * outer iterator is an implicit argument, not a source-language parameter. */
 export function compileGeneratorExpression<Value>(scope:ResolvedScope,analysis:Pick<ModuleAnalysis,"qualifiedNames">,
   source:CompilationSource<Value>,scopeFlags:number|undefined,constants:CodeConstants<Value>,meter:ExecutionMeter):CompiledGeneratorExpression<Value> {
+  try {
   meter.checkpoint();const node=scope.scope.node;
   if(node.kind!=="comprehension"||node.collection!=="generator")throw Error("generator-expression compilation requires a generator scope");
   const qualified=analysis.qualifiedNames.get(scope.scope);
@@ -33,4 +34,5 @@ export function compileGeneratorExpression<Value>(scope:ResolvedScope,analysis:P
   try{firstLine=constants.integer((node.contentSpan??node).start.line);}finally{meter.checkpoint();}
   return Object.freeze({scope,source,kind:asynchronous?"async-generator":"generator",flags:scopeFlags|(asynchronous?0x200:0x20),
     name,qualifiedName,firstLine,localLayout});
+  } finally { meter.checkpoint(); }
 }

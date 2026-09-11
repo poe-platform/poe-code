@@ -7,7 +7,8 @@ import type {ComprehensionNode} from "./comprehension-execution.js";
  * source belongs to its caller; nested generator bodies and lambda bodies are
  * lazy scopes, unlike materialized comprehensions and lambda defaults. */
 export function comprehensionIsAsynchronous(root:ComprehensionNode,meter:ExecutionMeter):boolean {
-  meter.checkpoint(1,64);
+  try {
+  meter.checkpoint(1,128);
   const pending:Expression[]=[root];
   const enqueue=(node:Expression)=>{meter.checkpoint(1,8);pending.push(node);};
   while(pending.length) {
@@ -15,7 +16,7 @@ export function comprehensionIsAsynchronous(root:ComprehensionNode,meter:Executi
     const node=pending.pop()!;
     if(node.kind==="await")return true;
     if(node.kind==="lambda") {
-      for(const parameter of node.parameters)if(parameter.default)enqueue(parameter.default);
+      for(const parameter of node.parameters){meter.checkpoint();if(parameter.default)enqueue(parameter.default);}
       continue;
     }
     if(node.kind==="comprehension"||node.kind==="dictionary-comprehension") {
@@ -33,7 +34,8 @@ export function comprehensionIsAsynchronous(root:ComprehensionNode,meter:Executi
       continue;
     }
     meter.checkpoint(0,192);
-    for(const child of expressionChildren(node))enqueue(child);
+    for(const child of expressionChildren(node,meter))enqueue(child);
   }
   return false;
+  } finally { meter.checkpoint(); }
 }

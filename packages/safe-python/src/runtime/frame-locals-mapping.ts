@@ -13,33 +13,41 @@ export interface FrameLocalsKeyOperations<Key> extends KeyOperations<Key> {
  * Arbitrary extras retain dictionary identity/order separately from local slots.
  * Native descriptors own missing-key diagnostics, bulk operations and views. */
 export class FrameLocalsMapping<Key,Value> {
-  readonly #names:Array<{readonly name:string;readonly key:Key}>=[];
+  readonly #names:Array<{readonly name:string;readonly key:Key;readonly index:number}>=[];
   readonly #keys:KeyOperations<Key>;
   #extra:OrderedKeyMap<Key,Value>|undefined;
   constructor(private readonly slots:FrameLocals<Value>,operations:FrameLocalsKeyOperations<Key>,private readonly meter:ExecutionMeter){
     meter.checkpoint(1,192);
     this.#keys={hash(key){try{return operations.hash(key);}finally{meter.checkpoint();}},equal(left,right){try{return operations.equal(left,right);}finally{meter.checkpoint();}}};
+    meter.checkpoint(0,64);const keys=new Map<string,Key>();
     for(const name of slots.names){
       meter.checkpoint(1,48);let key:Key;
-      try{key=operations.name(name);}finally{meter.checkpoint();}
-      this.#names.push({name,key});
+      if(keys.has(name))key=keys.get(name)!;
+      else {
+        try{key=operations.name(name);}finally{meter.checkpoint();}
+        meter.checkpoint(0,48);keys.set(name,key);
+      }
+      this.#names.push({name,key,index:this.#names.length});
     }
     Object.freeze(this);
   }
-  #find(key:Key,read:boolean):{readonly name:string;readonly value?:{readonly value:Value}}|undefined {
+  #find(key:Key,read:boolean):{readonly name:string;readonly index:number;readonly value?:{readonly value:Value}}|undefined {
     this.meter.checkpoint();const hash=this.#keys.hash(key);
+    let found=false;
     for(const slot of this.#names){
       this.meter.checkpoint();if(slot.key!==key)continue;
-      const value=read?this.slots.lookup(slot.name):undefined;
-      if(read?value===undefined:!this.slots.writable(slot.name))return undefined;
-      this.meter.checkpoint(0,32);return {name:slot.name,value};
+      found=true;
+      const value=read?this.slots.lookup(slot.name,slot.index):undefined;
+      if(read?value===undefined:!this.slots.writable(slot.name,slot.index))continue;
+      this.meter.checkpoint(0,32);return {name:slot.name,index:slot.index,value};
     }
+    if(found)return undefined;
     for(const slot of this.#names){
       this.meter.checkpoint();
       if(this.#keys.hash(slot.key)!==hash||!this.#keys.equal(slot.key,key))continue;
-      const value=read?this.slots.lookup(slot.name):undefined;
-      if(read?value===undefined:!this.slots.writable(slot.name))continue;
-      this.meter.checkpoint(0,32);return {name:slot.name,value};
+      const value=read?this.slots.lookup(slot.name,slot.index):undefined;
+      if(read?value===undefined:!this.slots.writable(slot.name,slot.index))continue;
+      this.meter.checkpoint(0,32);return {name:slot.name,index:slot.index,value};
     }
     return undefined;
   }
@@ -49,29 +57,29 @@ export class FrameLocalsMapping<Key,Value> {
   }
   set(key:Key,value:Value):void {
     const slot=this.#find(key,false);
-    if(slot!==undefined){this.slots.store(slot.name,value);return;}
+    if(slot!==undefined){this.slots.store(slot.name,value,slot.index);return;}
     this.#extra??=new OrderedKeyMap(this.#keys,this.meter);
     this.#extra.set(key,value);
   }
   delete(key:Key):boolean {
     const slot=this.#find(key,false);
-    if(slot!==undefined)return this.slots.delete(slot.name);
+    if(slot!==undefined)return this.slots.delete(slot.name,slot.index);
     return this.#extra?.delete(key)??false;
   }
   pop(key:Key):{readonly value:Value}|undefined {
     const slot=this.#find(key,false);
-    if(slot!==undefined){this.slots.delete(slot.name);return undefined;}
+    if(slot!==undefined){this.slots.delete(slot.name,slot.index);return undefined;}
     return this.#extra?.pop(key);
   }
   get size():number {
     this.meter.checkpoint();let size=this.#extra?.size??0;
-    for(const slot of this.#names){if(this.slots.lookup(slot.name)!==undefined)size++;}
+    for(const slot of this.#names){if(this.slots.lookup(slot.name,slot.index)!==undefined)size++;}
     return size;
   }
   entries():Array<readonly [Key,Value]> {
     this.meter.checkpoint(1,64);const entries:Array<readonly [Key,Value]>=[];
     for(const slot of this.#names){
-      const value=this.slots.lookup(slot.name);if(value===undefined)continue;
+      const value=this.slots.lookup(slot.name,slot.index);if(value===undefined)continue;
       this.meter.checkpoint(0,32);entries.push([slot.key,value.value]);
     }
     if(this.#extra!==undefined){

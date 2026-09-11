@@ -4,6 +4,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { LexicalFrame, type LexicalCell } from "./lexical-frame.js";
 import { ClassFrame, type ClassNamespaces } from "./class-frame.js";
+import {FrameLocalsMapping} from "./frame-locals-mapping.js";
 
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
 function fixture(source: string) {
@@ -27,6 +28,23 @@ function fixture(source: string) {
 }
 
 describe("class body namespace storage", () => {
+  it("reflects duplicate owned and free cells in physical order without merging them",()=>{
+    const state=fixture("def outer(__class__):\n class C:\n  seen=__class__\n  def method(self):return __class__"),view=state.frame.reflectLocals();
+    const mapping=new FrameLocalsMapping(view,{name:(name:string)=>name,hash:()=>1n,equal:(a:string,b:string)=>a===b},budget());
+    expect(mapping.lookup("__class__")).toEqual({value:10});
+    expect(mapping.entries()).toEqual([["__class__",10]]);
+    mapping.set("__class__",11);
+    expect(state.frame.classCell!.content).toEqual({value:11});
+    expect(state.closure.get("__class__")!.content).toEqual({value:10});
+    expect(mapping.lookup("__class__")).toEqual({value:11});
+    expect(mapping.entries()).toEqual([["__class__",11],["__class__",10]]);
+    expect(mapping.size).toBe(2);
+    expect(view.snapshot().get("__class__")).toBe(11);
+    expect(()=>mapping.delete("__class__")).toThrow("cannot remove local variables");
+    delete state.frame.classCell!.content;
+    expect(mapping.lookup("__class__")).toEqual({value:10});
+    expect(mapping.size).toBe(1);
+  });
   it("falls back from unbound class locals to globals and builtins", () => {
     const state = fixture("class C:\n x=x");
     state.builtins.set("x", 1); state.globals.set("x", 2);

@@ -486,6 +486,19 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("separates inline fast slots from same-named free cells before and after execution",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  state.run("def outer(x):\n def f():\n  nonlocal x\n  p=current_frame().f_locals\n  before=[v for k,v in p.items() if k=='x']\n  r=[(x,[v for k,v in p.items() if k=='x']) for x in [1]]\n  after=[v for k,v in p.items() if k=='x']\n  p['x']=12\n  return before,r,after,x,[v for k,v in p.items() if k=='x']\n return f()\ncorrect=outer(9)==([9],[(1,[1,9])],[9],9,[12,9])\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("keeps duplicate reflected class cells live through construction and proxy writes",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("dict",state.registry.dictionaryType());
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  state.run("def proxy_type():return type(current_frame().f_locals)\nP=proxy_type()\ndef outer(__class__):\n class C:\n  seen=__class__\n  frame=current_frame()\n  p=P(frame)\n  before=p['__class__']\n  p['__class__']=11\n  written=(p['__class__'],__class__)\n  def method(self):return __class__\n return C,lambda:__class__\nC,outer_cell=outer(9)\np=C.p\na=[v for k,v in p.items() if k=='__class__']\ncorrect=C.before==9 and C.written==(11,9) and a==[C,9] and p.copy()['__class__'] is C and dict(p)['__class__'] is C\np['__class__']=12\nb=[v for k,v in p.items() if k=='__class__']\ncorrect=correct and b==[12,9] and C().method()==12 and outer_cell()==9\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it.each(["seen=__class__","if False:seen=__class__","nonlocal __class__"])("separates existing suite cells from nested class-cell captures: %s",before=>{
   const state=exceptionFixture(),{v}=state;
   state.run("__class__=7\ndef outer(__class__):\n class C:\n  "+before+"\n  r=[(__class__,lambda:__class__) for x in [1]]\n return C\nC=outer(9)\ncorrect=C.r[0][0]==9 and C.r[0][1]() is C\n");

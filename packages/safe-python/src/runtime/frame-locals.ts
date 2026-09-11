@@ -4,30 +4,46 @@ import type {ExecutionMeter} from "./execution-budget.js";
 import {PythonRuntimeError} from "./error.js";
 
 /** Execution-owned reflective access to optimized slots. Names are literal,
- * never normalized or privately mangled here. A native mapping adapter owns
- * arbitrary extra keys, key protocols and fresh guest proxy identities; false
+ * never normalized or privately mangled here.
+ * Optional indices select physical slots for that adapter; name-only reads
+ * prefer the first bound slot; name-only writes target the first slot.
+ * The adapter owns arbitrary extra keys, key protocols and fresh guest proxy identities; false
  * or undefined results here allow it to consult that shared extra dictionary. */
 export class FrameLocals<Value> {
-  readonly #names=new Set<string>();
+  readonly #names=new Map<string,number>();
+  readonly #freeStart:number;
   readonly #inline:FrameLocals<Value>[];
   readonly #hidden:ReadonlySet<string>;
   readonly #free:ReadonlySet<string>;
+  readonly #cellNames:ReadonlySet<string>;
   readonly names:readonly string[];
-  constructor(layout:CodeLocalLayout,private readonly locals:Map<string,Value>,private readonly cells:ReadonlyMap<string,CellStorage<Value>>,private readonly meter:ExecutionMeter,hiddenLocals=false,inline:FrameLocals<Value>[]=[]){
-    meter.checkpoint(1,288+layout.freeNames.length*40+(hiddenLocals?layout.variableNames.length*40:0));
+  constructor(layout:CodeLocalLayout,private readonly locals:Map<string,Value>,private readonly cells:ReadonlyMap<string,CellStorage<Value>>,private readonly meter:ExecutionMeter,hiddenLocals=false,inline:FrameLocals<Value>[]=[],private readonly freeCells:ReadonlyMap<string,CellStorage<Value>>=cells){
+    meter.checkpoint(1,352+(layout.freeNames.length+layout.cellNames.length)*40+(hiddenLocals?layout.variableNames.length*40:0));
     this.#inline=inline;
     this.#hidden=new Set(hiddenLocals?layout.variableNames:[]);
     this.#free=new Set(layout.freeNames);
-    for(const names of [layout.variableNames,layout.cellNames,layout.freeNames])for(const name of names){
+    this.#cellNames=new Set(layout.cellNames);
+    const physical:string[]=[];
+    for(const names of [layout.variableNames,layout.cellNames])for(const name of names){
       meter.checkpoint();if(this.#names.has(name))continue;
-      meter.checkpoint(0,40);this.#names.add(name);
+      meter.checkpoint(0,48);this.#names.set(name,physical.length);physical.push(name);
     }
-    meter.checkpoint(0,32+this.#names.size*8);this.names=Object.freeze([...this.#names]);
+    this.#freeStart=physical.length;
+    // Fast/cell parameters share a physical slot; free cells never do, even
+    // when a class construction cell has the same name as an enclosing cell.
+    for(const name of layout.freeNames){
+      meter.checkpoint(1,8);
+      if(!this.#names.has(name)){meter.checkpoint(0,40);this.#names.set(name,physical.length);}
+      physical.push(name);
+    }
+    meter.checkpoint(0,32);this.names=Object.freeze(physical);
     Object.freeze(this);
   }
-  lookup(name:string):{readonly value:Value}|undefined {
+  lookup(name:string,index?:number):{readonly value:Value}|undefined {
     this.meter.checkpoint();
-    if(!this.#names.has(name))return undefined;
+    const slot=index??this.#names.get(name);
+    if(slot===undefined||this.names[slot]!==name)return undefined;
+    if(slot>=this.#freeStart)return this.freeCells.get(name)?.content;
     for(let index=this.#inline.length-1;index>=0;index--){
       this.meter.checkpoint();const inner=this.#inline[index];
       if(inner.#names.has(name)){
@@ -36,37 +52,43 @@ export class FrameLocals<Value> {
         break;
       }
     }
-    const cell=this.cells.get(name);
-    if(cell!==undefined)return cell.content;
-    if(!this.locals.has(name))return undefined;
+    const cell=this.#free.has(name)&&!this.#cellNames.has(name)?undefined:this.cells.get(name);
+    if(cell!==undefined&&cell.content!==undefined)return cell.content;
+    if(cell!==undefined||!this.locals.has(name))return index===undefined&&this.#free.has(name)?this.freeCells.get(name)?.content:undefined;
     this.meter.checkpoint(0,24);return {value:this.locals.get(name)!};
   }
-  store(name:string,value:Value):boolean {
+  store(name:string,value:Value,index?:number):boolean {
     this.meter.checkpoint();
-    if(!this.#names.has(name))return false;
+    const slot=index??this.#names.get(name);
+    if(slot===undefined||this.names[slot]!==name)return false;
+    if(slot>=this.#freeStart){
+      const cell=this.freeCells.get(name);if(cell===undefined)return false;
+      this.meter.checkpoint(0,24);cell.content={value};return true;
+    }
     if(this.#hidden.has(name)){
-      const cell=this.cells.get(name);if(cell===undefined)return false;
+      const cell=this.#free.has(name)&&!this.#cellNames.has(name)?undefined:this.cells.get(name);if(cell===undefined)return false;
       this.meter.checkpoint(0,24);cell.content={value};return true;
     }
     for(let index=this.#inline.length-1;index>=0;index--){
       this.meter.checkpoint();const inner=this.#inline[index];if(inner.#names.has(name))return inner.store(name,value);
     }
-    const cell=this.cells.get(name);
+    const cell=this.#free.has(name)&&!this.#cellNames.has(name)?undefined:this.cells.get(name);
     if(cell!==undefined){this.meter.checkpoint(0,24);cell.content={value};}
     else {if(!this.locals.has(name))this.meter.checkpoint(0,48);this.locals.set(name,value);}
     return true;
   }
-  writable(name:string):boolean {
-    this.meter.checkpoint();return this.#names.has(name)&&(!this.#hidden.has(name)||this.cells.has(name));
+  writable(name:string,index?:number):boolean {
+    this.meter.checkpoint();const slot=index??this.#names.get(name);
+    return slot!==undefined&&this.names[slot]===name&&(slot>=this.#freeStart||!this.#hidden.has(name)||(!this.#free.has(name)||this.#cellNames.has(name))&&this.cells.has(name));
   }
-  delete(name:string):false {
+  delete(name:string,index?:number):false {
     this.meter.checkpoint();
-    if(this.#names.has(name)&&(!this.#hidden.has(name)||this.cells.has(name)))throw new PythonRuntimeError("ValueError","cannot remove local variables from FrameLocalsProxy");
+    if(this.writable(name,index))throw new PythonRuntimeError("ValueError","cannot remove local variables from FrameLocalsProxy");
     return false;
   }
   snapshot():Map<string,Value> {
     this.meter.checkpoint(1,64);const result=new Map<string,Value>();
-    for(const name of this.#names){
+    for(const name of this.#names.keys()){
       const item=this.lookup(name);
       if(item===undefined)continue;
       this.meter.checkpoint(0,48);result.set(name,item.value);

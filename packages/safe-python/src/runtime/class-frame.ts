@@ -53,9 +53,8 @@ export class ClassFrame<Value> extends ExecutionFrame {
   reflectLocals():FrameLocals<Value> {
     this.meter.checkpoint();
     if(this.#reflectiveLocals===undefined){
-      this.meter.checkpoint(0,96);const cells=new Map<string,LexicalCell<Value>>();
-      for(const source of [this.#owned,this.#free])for(const [name,cell]of source){this.meter.checkpoint(1,48);cells.set(name,cell);}
-      this.#reflectiveLocals=new FrameLocals(compileCodeLocalLayout(this.scope,this.meter),new Map(),cells,this.meter,true);
+      this.meter.checkpoint(0,96);
+      this.#reflectiveLocals=new FrameLocals(compileCodeLocalLayout(this.scope,this.meter),new Map(),this.#owned,this.meter,true,[],this.#free);
     }
     return this.#reflectiveLocals;
   }

@@ -11465,6 +11465,36 @@ extension, integration, or validation requirement is missing or unverified.
   of the constructed class and collapses duplicate physical names. CPython also
   exposes a __classdict__ slot absent here. This probe is not counted as a pass;
   physical slot reflection and class-dictionary capture require a separate audit.
+- Physical frame-local slot identity (2026-09-11): a failing class-frame test
+  reproduced proxy writes mutating the enclosing free cell rather than the
+  owned construction cell. Reflective storage now retains physical slot order:
+  shared fast/cell parameters remain one slot, while free cells are separate
+  even when names coincide. Class frames retain their owned/free maps instead
+  of merging them. Mapping operations carry physical indices, skip unbound
+  duplicates on reads and target the first eligible slot on writes. Iteration
+  and length expose all bound physical slots; snapshots keep first-bound lookup
+  semantics. Native comparisons exposed a second issue: duplicate compiler names
+  need shared key identity for live copy lookups. Failing native coverage preceded
+  reusing keys per name during proxy-map construction.
+  A further failing native regression distinguished temporary inline fast slots
+  from same-named free cells. Reflection now preserves their separate storage,
+  including unbound fast slots before/after comprehension execution and proxy
+  writes that must not mutate the enclosing free cell. Compiler cell membership
+  distinguishes true shared fast/cell slots from this case. New name/index/key
+  metadata remains metered. The focused four-file suite passes 987 tests.
+  All 2,651 scoped CPython comparisons match: 72 duplicate class-cell operation
+  cases, 144 duplicate inline/free-slot cases, 192 inline-frame regressions,
+  2,241 ordinary frame-local/closure/mapping regressions and two individual
+  inline free-cell probes. Duplicate-class operation comparisons deliberately
+  inspect __class__ entries; they do not establish missing classdict coverage.
+  Workspace build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker full suite passes 8,058 tests in 530 files
+  (94.56s; test bodies 7.88s).
+  The original retained-class probe now selects the construction cell and exposes
+  both __class__ slots correctly, but still fails full comparison because the
+  __classdict__ slot remains absent. Its absence is not counted as a pass; class
+  dictionary capture and Python 3.14 annotation-scope interactions need review
+  against the requested ignored-type behavior.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

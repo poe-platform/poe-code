@@ -105,7 +105,7 @@ describe("makeExecuteCommand", () => {
   });
 
   it("returns lint diagnostics instead of throwing on lint failure", async () => {
-    const result = await runExecute("eval('1');");
+    const result = await runExecute("const = 1;");
 
     expect(result).toMatchObject({
       ok: false,
@@ -118,6 +118,10 @@ describe("makeExecuteCommand", () => {
         })
       ]
     });
+  });
+
+  it("accepts supported eval expressions", async () => {
+    expect(await runExecute("return eval('1');")).toMatchObject({ ok: true, returnValue: 1 });
   });
 
   it("accepts ordinary functions with invocation-local arguments", async () => {

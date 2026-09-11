@@ -12328,6 +12328,21 @@ extension, integration, or validation requirement is missing or unverified.
   13.56s). Delegated simple,
   assignment, definition, import, try/with/match and type-statement allocation
   remains to be audited before guest eager compilation.
+- Simple/assignment statement allocation (2026-09-11): twenty-seven failing tests
+  isolated expression, normalization and target-validation costs, reproducing
+  uncharged declaration/delete/control statement records, assignment results,
+  target/value arrays and tuple/unpack nodes, plus cancellation hidden through
+  each exported reader. These paths now charge their own records, arrays and
+  entries before allocation and preserve termination in finally. Augmented
+  operator slicing charges text work/storage; statement-value delimiter checks
+  no longer construct a temporary array. The focused file passes 27 tests.
+  All 54 AST/diagnostic comparisons against d5f6800e4 preserve behavior; 108
+  complete module/nested-function cases match CPython compile acceptance across
+  declarations, control statements, chained/annotated/augmented assignments,
+  tuple/unpack targets, yield values and invalid forms. Build, typecheck, scoped
+  lint and whitespace checks pass. The final uncached one-worker full suite passes
+  8,616 tests in 569 files (198.13s; test bodies 13.65s). Delegated definition/import/try/with/match
+  and type-statement allocation still require auditing before guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

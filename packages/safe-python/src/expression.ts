@@ -36,7 +36,7 @@ export function parseExpression(text: string, options: LexerOptions = {}): Expre
     }
     while (cursor.peek().kind === "newline") cursor.take();
     if (cursor.peek().kind !== "end") throw cursor.error("unexpected token after expression");
-    validateExpression(result, options.filename);
+    validateExpression(result, options.filename,undefined,options.meter);
     return result;
   } catch (error) {
     if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);

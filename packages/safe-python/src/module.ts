@@ -14,7 +14,7 @@ export function parseModule(text: string, options: LexerOptions = {}): Module {
     const body = readStatements(cursor);
     if (cursor.peek().kind !== "end") throw cursor.error("unexpected dedent");
     for (const statement of body) {
-      for (const expression of statementExpressions(statement)) validateExpression(expression, options.filename);
+      for (const expression of statementExpressions(statement)) validateExpression(expression, options.filename,undefined,options.meter);
     }
     return { kind: "module", body, start, end: cursor.peek().end };
   } catch (error) {

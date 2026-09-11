@@ -22,7 +22,7 @@ export interface StructuralToken {
 export type Token = NameToken | NumberToken | StringToken | StructuralToken | InterpolatedToken;
 
 export interface LexerOptions {
-  /** Accounts source scanning and parser cursor work, not all AST/analysis work. */
+  /** Accounts scanning, cursor work and expression validation, not all AST/analysis work. */
   readonly meter?:SourceMeter;
   /** Host-owned expression recursion guard. Successful entry returns an
    * unmetered restoration; resource failures must not be syntax errors. */

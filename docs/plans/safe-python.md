@@ -11848,6 +11848,28 @@ extension, integration, or validation requirement is missing or unverified.
   analysis accounting remain required before enabling guest eager compilation.
   References: https://raw.githubusercontent.com/python/cpython/v3.14.7/Parser/lexer/lexer.c
   and https://raw.githubusercontent.com/python/cpython/v3.14.7/Parser/lexer/state.h
+- Metered expression validation (2026-09-11): seven failing tests reproduced
+  ignored validation budgets/cancellation and uncharged child enumeration,
+  lambda parameter scanning and comprehension scope work. Expression and module
+  parsing now pass the existing SourceMeter into expression validation. Pending
+  frames, temporary child arrays, comprehension context/set copies, collected
+  binding names and diagnostic allocations are charged before allocation.
+  Additional red tests exposed empty slice entries that yield no children and
+  syntax-error allocation after an exhausted budget; both paths are charged.
+  Formatted-string child enumeration now uses an explicit frame stack instead of
+  recursively delegating nested format generators. It charges literal-only
+  parts and bounds cyclic externally supplied format trees with the same meter.
+  Tests cover 10,000-wide child/default/slice inputs, a 10,000-level format tree,
+  cycles, entry cancellation and allocation/step limits. The focused three-file
+  suite passes 87 tests. All 34 maintained comprehension examples agree with
+  CPython on acceptance/rejection with metering enabled; these are outcome
+  comparisons, not claims of identical ASTs or all diagnostic text.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,264 tests in 541 files
+  (139.47s; test bodies 13.62s).
+  AST construction, normalization and remaining module analysis passes still
+  require accounting before guest eager compilation/ForwardRef conversion is
+  enabled. This milestone does not claim a complete parser sandbox.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

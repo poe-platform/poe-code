@@ -5,7 +5,7 @@ export interface SourcePosition {
   readonly column: number;
 }
 
-/** Cooperative source/cursor accounting, structurally compatible with runtime
+/** Cooperative parser-work accounting, structurally compatible with runtime
  * execution meters without coupling the parser to a runtime implementation. */
 export interface SourceMeter {
   checkpoint(steps?:number,allocatedBytes?:number):void;

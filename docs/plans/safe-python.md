@@ -13029,6 +13029,18 @@ extension, integration, or validation requirement is missing or unverified.
   module integration remain unfinished. Build, typecheck, scoped lint and whitespace
   checks pass. The uncached full thread-pool suite passes 9,112 tests in 604 files
   (103.04s; bodies 12.26s).
+- Cell representation (2026-09-11): a failing native scenario established that
+  cells inherited generic object repr. Added a cell-owned wrapper using original
+  cell/content identities from the execution identity policy, never host addresses
+  or content __repr__ calls. Empty cells avoid type inspection; occupied cells use
+  intrinsic type names limited to 80 UTF-8 bytes. Self-containing cells require no
+  recursive representation. CPython cellobject.c and direct probes confirmed the
+  format, non-dispatching content behavior and type-name limit. Native integration
+  verifies empty/occupied/recursive output and inherited __str__; eight unit cases
+  cover shared id identity, argument validation, ASCII/multibyte name limits,
+  allocation exhaustion and fatal cancellation during storage/type access. Build,
+  typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
+  suite passes 9,121 tests in 605 files (95.69s; bodies 11.72s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

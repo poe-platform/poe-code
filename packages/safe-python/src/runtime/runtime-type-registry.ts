@@ -94,6 +94,7 @@ import { installRuntimeAsyncGeneratorDescriptors } from "./runtime-async-generat
 import { installRuntimeAnextAwaitableDescriptors } from "./runtime-anext-awaitable.js";
 import { createNoneNewBuiltin } from "./builtin-none-new.js";
 import {createCellNewBuiltin} from "./builtin-cell-new.js";
+import {createCellReprWrapper} from "./builtin-cell-repr.js";
 import {readRuntimeCell,mutateRuntimeCell} from "./runtime-cell.js";
 import type {CellValue} from "./runtime-values.js";
 
@@ -648,6 +649,7 @@ export class RuntimeTypeRegistry {
     const layout=new RuntimeTypeLayout("cell",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     namespace.items.set(this.values.string("__new__"),createCellNewBuiltin(type,this.values,this.meter));
+    namespace.items.set(this.values.string("__repr__"),createCellReprWrapper(type,this.values,this.meter));
     installRuntimeComparisonMethods("cell",type,this.values,this.meter);
     namespace.items.set(this.values.string("__hash__"),this.values.none);
     namespace.items.set(this.values.string("cell_contents"),this.values.getsetDescriptor({owner:type,name:"cell_contents",accepts:receiver=>receiver.kind==="cell",

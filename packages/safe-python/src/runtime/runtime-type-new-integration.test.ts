@@ -111,6 +111,12 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("represents cells with opaque identities without representing their contents",()=>{
+  const state=fixture({id:()=>42n}),{v,registry,globals}=state;globals.set("Cell",registry.cellType());
+  state.run("class V:\n def __repr__(self):return 1/0\na=Cell()\nb=Cell(V())\nempty=a.__repr__()=='<cell at 0x2a: empty>'\noccupied=b.__repr__()=='<cell at 0x2a: V object at 0x2a>'\nstring=b.__str__()==b.__repr__()\nb.cell_contents=b\nrecursive=b.__repr__()=='<cell at 0x2a: cell object at 0x2a>'\n");
+  for(const name of ["empty","occupied","string","recursive"])expect(globals.get(name)).toBe(v.true);
+});
+
 it("publishes cell comparison slots preserving raw guest results",()=>{
   const state=exceptionFixture(),{v,registry,globals}=state;
   globals.set("Cell",registry.cellType());globals.set("NotImplemented",v.notImplemented);

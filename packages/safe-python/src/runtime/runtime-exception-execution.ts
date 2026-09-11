@@ -86,6 +86,7 @@ export class RuntimeExceptionExecution {
       catch(error){throw this.prepare(error);}
     },{
       none:values.none,frame,kind:executionKind,delegation,enterDelegated:activate=>calls.enter(frame,{activate,retainCaller:false}),
+      finish:()=>{if(frame instanceof LexicalFrame)frame.inlineLocals.length=0;},
       enter:()=>{
         meter.checkpoint(0,64);
         const leave=calls.enter(frame,{retainCaller:false});

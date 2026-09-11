@@ -11382,6 +11382,38 @@ extension, integration, or validation requirement is missing or unverified.
   This establishes compiler slot metadata, not complete runtime inlining:
   materialized comprehensions still need shared enclosing activation, temporary
   storage/cell isolation, live locals reflection and restoration on every exit.
+- Inlined-comprehension runtime frames (2026-09-10): failing native tests
+  established that materialized comprehensions published separate activations
+  and did not expose the enclosing frame's live locals. Runtime body assembly
+  now separates binding environments from the visible frame. List/set/dict
+  comprehensions share their enclosing module/class/function/coroutine frame;
+  generator expressions retain their own activations. Cached temporary layouts
+  cover nested shadow slots without clearing directly referenced outer names.
+  Frame-local overlays preserve outer storage and captured cell identities,
+  remain live during suspension, and restore in reverse order without metering.
+  Differential checks exposed hidden module/class slots: writes/deletions route
+  to extra mapping storage or existing closure cells, while reads prefer bound
+  inline values and fall through unbound hidden slots to enclosing cells.
+  Failing tests preceded those fixes and promoted-cell isolation. Further failing
+  tests found abandoned overlays when delegated throw lookup fails fatally;
+  generator termination now has a trusted unmetered cleanup hook and discards
+  temporary views without resuming guest continuations. Ordinary completion,
+  close, throw and fatal body evaluation also restore locals.
+  All 353 CPython comparisons match: 96 synchronous frame/locals cases across
+  module/class/function/nested contexts, 96 async suspension/termination cases,
+  the earlier 160 generator-iterator regressions, and an additional unbound
+  nonlocal fallback probe. That probe reproduced another missing read fallback;
+  a failing regression preceded the fix. The focused four-file suite
+  passed 970 tests before the two additional fatal-delegation regressions; those
+  two also pass. Workspace build, typecheck, scoped lint and whitespace checks
+  pass. The final uncached one-worker full suite passes 8,035 tests in 530 files
+  (94.46s; test bodies 7.40s), including the nonlocal fallback change.
+  One separate read-only probe remains a verified failure, not a pass: in
+  outer(x), an f containing keep=lambda:x followed by [x for x in [1]] retains
+  the enclosing x here, while CPython promotes an unbound local cell in f.
+  Static ownership promotion for such nested-only references remains required.
+  No zero-allocation/performance equivalence is claimed: internal binding views
+  remain allocated, and physical slot optimization still needs measurement.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

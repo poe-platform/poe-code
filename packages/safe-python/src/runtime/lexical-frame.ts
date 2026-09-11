@@ -43,6 +43,9 @@ export class LexicalFrame<Value> extends ExecutionFrame {
   readonly #locals = new Map<string, Value>();
   readonly #cells = new Map<string, LexicalCell<Value>>();
   #reflectiveLocals:FrameLocals<Value>|undefined;
+  /** Host-owned temporary views; generator termination may discard them without
+   * resuming abandoned guest continuations or consulting an exhausted meter. */
+  readonly inlineLocals:FrameLocals<Value>[]=[];
 
   constructor(
     readonly scope: ResolvedScope,
@@ -53,18 +56,25 @@ export class LexicalFrame<Value> extends ExecutionFrame {
     readonly code?:CompiledFunction<Value>|CompiledGeneratorExpression<Value>
   ) {
     super();
-    meter.checkpoint();
+    meter.checkpoint(1,32);
     if (scope.scope.kind !== "function" && scope.scope.kind !== "lambda" && scope.scope.kind !== "comprehension")
       throw new Error("lexical frames require a function, lambda or comprehension scope");
     for (const name of scope.cells) {
       meter.checkpoint();
       this.#cells.set(name, { owner: scope.scope });
     }
+    const node=scope.scope.node;
+    let isolated:Set<string>|undefined;
+    if(localLayout!==undefined&&(node.kind==="dictionary-comprehension"||node.kind==="comprehension"&&node.collection!=="generator")){
+      meter.checkpoint(0,64);isolated=new Set();
+      for(const name of localLayout.variableNames){meter.checkpoint(1,40);isolated.add(name);}
+    }
     for (const [name, owner] of scope.free) {
       meter.checkpoint();
       const cell = namespaces.closure?.get(name);
       if (!cell || cell.owner !== owner) throw new Error(`missing or invalid closure cell: ${name}`);
-      this.#cells.set(name, cell);
+      if(isolated?.has(name)){meter.checkpoint(0,48);this.#cells.set(name,{owner});}
+      else this.#cells.set(name, cell);
     }
   }
 
@@ -72,7 +82,7 @@ export class LexicalFrame<Value> extends ExecutionFrame {
    * lazy and normal name access does not pay its indexing/allocation costs. */
   reflectLocals():FrameLocals<Value> {
     this.meter.checkpoint();
-    if(this.#reflectiveLocals===undefined)this.#reflectiveLocals=new FrameLocals(this.localLayout??compileCodeLocalLayout(this.scope,this.meter),this.#locals,this.#cells,this.meter);
+    if(this.#reflectiveLocals===undefined)this.#reflectiveLocals=new FrameLocals(this.localLayout??compileCodeLocalLayout(this.scope,this.meter),this.#locals,this.#cells,this.meter,false,this.inlineLocals);
     return this.#reflectiveLocals;
   }
 

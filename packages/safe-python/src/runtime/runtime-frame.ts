@@ -36,7 +36,7 @@ export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeVal
           return "firstLine" in frame.code?frame.code.firstLine:values.integer(1);
         }
         if(name==="f_locals"){
-          if(frame instanceof LexicalFrame)return locals(frame);
+          if(frame instanceof LexicalFrame||frame.reflectLocals().hasHiddenLocals)return locals(frame);
           const object=(frame.namespaces.locals??frame.namespaces.globals).object;
           meter.checkpoint();
           if(object===undefined)throw Error("frame locals reflection requires an original guest mapping");

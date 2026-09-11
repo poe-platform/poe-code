@@ -55,3 +55,22 @@ it("preserves cell and unbound-slot contents when allocation limits reject a wri
   expect(()=>view.store("x",2)).toThrow(ExecutionLimitError);expect(()=>view.store("y",2)).toThrow(ExecutionLimitError);
   reject=false;expect(view.lookup("x")).toEqual({value:1});expect(view.lookup("y")).toBeUndefined();
 });
+it("overlays isolated inline slots while keeping enclosing locals live",()=>{
+  const outer=fixture("def f(x,y):return x+y").frame,inner=fixture("def f(x):return x").frame;
+  outer.store("x",1);outer.store("y",2);
+  const view=outer.reflectLocals(),leave=view.enterInline(inner.reflectLocals());
+  expect(view.inlineActive).toBe(true);expect(view.lookup("x")).toBeUndefined();
+  view.store("x",3);view.store("y",4);
+  expect(inner.load("x")).toBe(3);expect(outer.load("x")).toBe(1);expect(outer.load("y")).toBe(4);
+  leave();expect(view.inlineActive).toBe(false);expect(view.lookup("x")).toEqual({value:1});
+  expect(inner.load("x")).toBe(3);leave();
+});
+it("restores nested inline views in order even after cancellation",()=>{
+  const controller=new AbortController(),scope=analyzeModule("def f(x):return x").scopes.children[0];
+  const meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal});
+  const outer=new LexicalFrame(scope,{globals:new Map(),builtins:new Map()},meter).reflectLocals();
+  const a=fixture("def f(x):return x").frame.reflectLocals(),b=fixture("def f(x):return x").frame.reflectLocals();
+  const leaveA=outer.enterInline(a),leaveB=outer.enterInline(b);
+  expect(()=>leaveA()).toThrow("inline locals must leave in reverse order");
+  controller.abort();leaveB();leaveA();expect(outer.inlineActive).toBe(false);
+});

@@ -38,6 +38,9 @@ import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-fu
 import { createRuntimeStatementContext, type RuntimeStatementBindings, type RuntimeStatementContext } from "./runtime-statement-context.js";
 import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type DictionaryValue, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { ClassFrame } from "./class-frame.js";
+import {compileInlineLocalLayout} from "./inline-local-layout.js";
+import type {CodeLocalLayout} from "./code-local-layout.js";
+import type {ResolvedScope} from "../symbol-resolution.js";
 import { executeClassBody } from "./class-body.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
 import {lookupNamespace,storeNamespace} from "./namespace-lookup.js";
@@ -120,9 +123,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
   const { values, keys, hooks, calls } = context;
   meter.checkpoint(0, 16);
   const representationState: RuntimeRepresentationState = {};
+  const inlineLayouts=new WeakMap<ResolvedScope,CodeLocalLayout>();
   let defaultFormatting: FormatContext<RuntimeValue> | undefined;
   const getDefaultFormatting = () => defaultFormatting ??= createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } }, representationState);
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions, suspension?:RuntimeGeneratorDelegation,generatorExpressions=program.generatorExpressions):RuntimeStatementContext => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null, comprehensions = program.comprehensions, suspension?:RuntimeGeneratorDelegation,generatorExpressions=program.generatorExpressions,bindings:RuntimeFrame=frame):RuntimeStatementContext => {
     meter.checkpoint(1, 512);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -372,10 +376,10 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     };
     const definitionBindings: RuntimeFunctionDefinitionBindings = {
       globals: namespaces.globals, builtins: namespaces.builtins,
-      capture: frame instanceof LexicalFrame || frame instanceof ClassFrame ? frame.capture.bind(frame) : undefined,
+      capture: bindings instanceof LexicalFrame || bindings instanceof ClassFrame ? bindings.capture.bind(bindings) : undefined,
       resolveBuiltins: hooks.resolveBuiltins?.bind(hooks),
       evaluate: expression => evaluateExpression(expression, expressions, meter),
-      beginCall, store: frame.store.bind(frame)
+      beginCall, store: bindings.store.bind(bindings)
     };
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
@@ -446,7 +450,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (!literals.has(node)) throw new Error("literal is missing from originating compiled code");
         return literals.get(node)!;
       },
-      load: frame.load.bind(frame), store: frame.store.bind(frame),
+      load: bindings.load.bind(bindings), store: bindings.store.bind(bindings),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
       instanceAttribute: specialMethods === undefined ? undefined : (instance, name) => runtimeInstanceAttribute(instance, name, values, meter, specialMethods, builtinCalls),
       typeAttribute: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods, builtinCalls),
@@ -471,30 +475,32 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if(node.kind!=="comprehension"||node.collection!=="generator")for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
         const scope=comprehensions?.get(node);
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
-        let leave=calls.enter(frame);
+        const leave=calls.enter(frame);
         try {
           const source=evaluateExpression(node.clauses[0].iterable,expressions,meter);
           meter.checkpoint(0,192);
-          const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
+          const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
           const code=generatorExpressions?.get(node);
-          const child=new LexicalFrame(scope,{...namespaces,closure},meter,code?.localLayout,code);
+          const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code);
           if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
           const outer=expressions.iterate(source);
-          leave();leave=calls.enter(child);
-          const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions);
-          if(node.kind==="dictionary-comprehension") {
-            const result=expressions.beginDictionary([]);
-            executeComprehensionClauses(node.clauses,outer,inner,()=>{const key=inner.evaluate(node.key),value=inner.evaluate(node.value);result.set(key,value);},meter);
-            return result.finish();
-          }
-          if(node.collection==="set") {
-            const result=expressions.beginSet([]);
-            executeComprehensionClauses(node.clauses,outer,inner,()=>result.add(inner.evaluate(node.element)),meter);
-            return result.finish();
-          }
-          const result=values.list([]);
-          executeComprehensionClauses(node.clauses,outer,inner,()=>result.items.append(inner.evaluate(node.element)),meter);
-          return result;
+          const restore=frame.reflectLocals().enterInline(child.reflectLocals());
+          try {
+            const inner=body(frame,namespaces,functions,classFunctions,literals,comprehensions,undefined,generatorExpressions,child);
+            if(node.kind==="dictionary-comprehension") {
+              const result=expressions.beginDictionary([]);
+              executeComprehensionClauses(node.clauses,outer,inner,()=>{const key=inner.evaluate(node.key),value=inner.evaluate(node.value);result.set(key,value);},meter);
+              return result.finish();
+            }
+            if(node.collection==="set") {
+              const result=expressions.beginSet([]);
+              executeComprehensionClauses(node.clauses,outer,inner,()=>result.add(inner.evaluate(node.element)),meter);
+              return result.finish();
+            }
+            const result=values.list([]);
+            executeComprehensionClauses(node.clauses,outer,inner,()=>result.items.append(inner.evaluate(node.element)),meter);
+            return result;
+          }finally{restore();}
         } finally {
           leave();
         }
@@ -509,31 +515,34 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
         const source=yield* createExpressionContinuation(node.clauses[0].iterable,expressions,meter,values.none);
         meter.checkpoint(0,256);
-        const closure=frame instanceof LexicalFrame||frame instanceof ClassFrame?frame.capture(scope):undefined;
+        const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
         const code=generatorExpressions?.get(node);
-        const child=new LexicalFrame(scope,{...namespaces,closure},meter,code?.localLayout,code);
+        const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code);
         if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
         const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
           ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>suspension.delegate(value,builtinCalls,"anext"),values,meter)}
           :{kind:"sync",value:expressions.iterate(source)};
         // Comprehension locals are isolated, but their awaits belong to the
         // enclosing coroutine's active frame and handled-exception state.
-        const inner=body(child,namespaces,functions,classFunctions,literals,comprehensions,suspension,generatorExpressions).suspend();
-        if(node.kind==="dictionary-comprehension") {
-          const result=expressions.beginDictionary([]);
-          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){
-            const key=yield* inner.evaluate(node.key),value=yield* inner.evaluate(node.value);result.set(key,value);
-          },meter);
-          return result.finish();
-        }
-        if(node.collection==="set") {
-          const result=expressions.beginSet([]);
-          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.add(yield* inner.evaluate(node.element));},meter);
-          return result.finish();
-        }
-        const result=values.list([]);
-        yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.items.append(yield* inner.evaluate(node.element));},meter);
-        return result;
+        const restore=frame.reflectLocals().enterInline(child.reflectLocals());
+        try {
+          const inner=body(frame,namespaces,functions,classFunctions,literals,comprehensions,suspension,generatorExpressions,child).suspend();
+          if(node.kind==="dictionary-comprehension") {
+            const result=expressions.beginDictionary([]);
+            yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){
+              const key=yield* inner.evaluate(node.key),value=yield* inner.evaluate(node.value);result.set(key,value);
+            },meter);
+            return result.finish();
+          }
+          if(node.collection==="set") {
+            const result=expressions.beginSet([]);
+            yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.add(yield* inner.evaluate(node.element));},meter);
+            return result.finish();
+          }
+          const result=values.list([]);
+          yield* createComprehensionContinuation(node.clauses,outer,inner,function*(){result.items.append(yield* inner.evaluate(node.element));},meter);
+          return result;
+        }finally{restore();}
       };
     }
     keys.bindInvocation?.(frame, builtinCalls); meter.checkpoint();
@@ -550,7 +559,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       invocation: builtinCalls,
       subscription: statementHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
       get integerIndex() { return getIntegerIndex(); },
-      deleteName: frame.delete.bind(frame),
+      deleteName: bindings.delete.bind(bindings),
       inplace,
       setAttribute: builtinCalls.setAttribute!.bind(builtinCalls), deleteAttribute: builtinCalls.deleteAttribute!.bind(builtinCalls),
       assertions: statementHooks.assertions ?? context.exceptions?.assertions(),

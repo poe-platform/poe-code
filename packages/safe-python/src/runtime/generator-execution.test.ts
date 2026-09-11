@@ -36,6 +36,14 @@ it("retains owned frame metadata through rejected sends and suspension",()=>{
   state.resume({kind:"send",value:null});
   expect(state.frame).toBe(frame);
 });
+it("runs trusted termination cleanup once after fatal delegated preflight",()=>{
+  const meter=budget(),finish=vi.fn(),policy={...context(),finish};
+  const state=new GeneratorExecution<Value>(()=>({done:false,value:1}),policy,meter);
+  policy.delegation={active:true,resume(){meter.checkpoint(10001);throw Error("unreachable");}};
+  state.resume({kind:"send",value:null});expect(finish).not.toHaveBeenCalled();
+  expect(()=>state.resume({kind:"throw",error:Error("stop")})).toThrow(ExecutionLimitError);
+  expect(state.phase).toBe("closed");expect(finish).toHaveBeenCalledTimes(1);
+});
 
 it("starts lazily, sends values, and exposes a return value only on the completing resume",()=>{
   const requests:GeneratorRequest<Value>[]=[],policy=context();

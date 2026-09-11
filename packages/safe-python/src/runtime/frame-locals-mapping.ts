@@ -31,14 +31,14 @@ export class FrameLocalsMapping<Key,Value> {
     for(const slot of this.#names){
       this.meter.checkpoint();if(slot.key!==key)continue;
       const value=read?this.slots.lookup(slot.name):undefined;
-      if(read&&value===undefined)return undefined;
+      if(read?value===undefined:!this.slots.writable(slot.name))return undefined;
       this.meter.checkpoint(0,32);return {name:slot.name,value};
     }
     for(const slot of this.#names){
       this.meter.checkpoint();
       if(this.#keys.hash(slot.key)!==hash||!this.#keys.equal(slot.key,key))continue;
       const value=read?this.slots.lookup(slot.name):undefined;
-      if(read&&value===undefined)continue;
+      if(read?value===undefined:!this.slots.writable(slot.name))continue;
       this.meter.checkpoint(0,32);return {name:slot.name,value};
     }
     return undefined;

@@ -33,6 +33,9 @@ export interface GeneratorExecutionContext<Value> {
   /** Delegated throw/close retains caller exception state. Close also skips
    * activation of the suspended delegating frame while retaining depth guards. */
   enterDelegated?(activateFrame:boolean):()=>void;
+  /** Trusted, unmetered and non-throwing storage cleanup. Runs once when the
+   * body is discarded, including failures before a suspended driver resumes. */
+  finish?():void;
   generatorExit():unknown;
   isGeneratorExit(error:unknown):boolean;
   isStopIteration(error:unknown):boolean;
@@ -75,7 +78,9 @@ export class GeneratorExecution<Value> {
   }
 
   #finish():void {
+    const context=this.#context;
     this.#phase="closed";this.#driver=undefined;this.#context=undefined;
+    context?.finish?.();
   }
 
   resume(request:GeneratorRequest<Value>):IteratorResult<Value,Value> {

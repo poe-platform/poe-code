@@ -486,6 +486,67 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("discards suspended inline storage after fatal delegated throw lookup",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("fatal",v.builtinFunction({name:"fatal",invoke(){throw new ExecutionLimitError("steps");}}));
+  state.run("class A:\n def __await__(self):return self\n def __next__(self):return 7\n def __getattribute__(self,name):\n  if name=='throw':fatal()\n  return object.__getattribute__(self,name)\nasync def f():\n x=99\n return [await A() for x in [1]]\nc=f()\nframe=c.cr_frame\nc.send(None)\n");
+  const frame=state.globals.get("frame");
+  if(frame?.kind!=="instance"||frame.native?.kind!=="frame"||!(frame.native.frame instanceof LexicalFrame))throw Error("expected lexical frame");
+  expect(()=>state.run("c.throw(ValueError('stop'))\n")).toThrow(ExecutionLimitError);
+  expect(frame.native.frame.reflectLocals().inlineActive).toBe(false);
+  expect(frame.native.frame.load("x")).toEqual(v.integer(99));
+});
+it("falls through unbound inline fast slots to explicit nonlocal cells",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  state.run("seen=[]\nclass I:\n def __iter__(self):\n  self.i=0\n  return self\n def __next__(self):\n  seen.append(current_frame().f_back.f_locals.get('x'))\n  self.i+=1\n  if self.i>1:raise StopIteration\n  return 1\ndef outer(x):\n def f():\n  nonlocal x\n  r=[x for x in I()]\n  return x,r\n return f()\nresult=outer(9)\ncorrect=result==(9,[1]) and seen==[9,1]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("falls through unbound hidden class slots to enclosing closure cells",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  state.run("def proxy_type():return type(current_frame().f_locals)\nP=proxy_type()\nseen=[]\ndef outer(x):\n class I:\n  def __iter__(self):\n   self.i=0\n   return self\n  def __next__(self):\n   seen.append(P(current_frame().f_back).get('x'))\n   self.i+=1\n   if self.i>1:raise StopIteration\n   return 1\n class C:\n  keep=lambda:x\n  r=[x for x in I()]\n return C.keep()\nresult=outer(9)\ncorrect=seen==[9,1] and result==9\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it.each(["finish","close","throw"])("restores inline locals after coroutine %s",end=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("GeneratorExit",state.registry.exceptionType("GeneratorExit"));
+  state.run("class Pause:\n def __await__(self):yield 7\nasync def f():\n x=99\n r=[(await Pause(),x) for x in [1,2]]\n return x,r\nc=f()\nframe=c.cr_frame\np=frame.f_locals\nfirst=c.send(None)\na=p['x']\np['x']=11\nsecond=c.send(None)\nb=p['x']\np['x']=12\n"+(end==="finish"?"try:c.send(None)\nexcept StopIteration as e:result=e.value== (99,[(None,11),(None,12)])\n":end==="close"?"c.close()\nresult=True\n":"try:c.throw(ValueError('stop'))\nexcept ValueError:result=True\n")+"correct=first==7 and second==7 and a==1 and b==2 and p['x']==99 and c.cr_frame is None and result\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("restores enclosing locals after fatal inline evaluation without running guest cleanup",()=>{
+  const state=exceptionFixture(),{v}=state;
+  let saved:LexicalFrame<RuntimeValue>|undefined;
+  state.builtins.set("fatal",v.builtinFunction({name:"fatal",invoke(){saved=state.calls.current as LexicalFrame<RuntimeValue>;throw new ExecutionLimitError("steps");}}));
+  expect(()=>state.run("def f():\n x=99\n return [fatal() for x in [1]]\nf()\n")).toThrow(ExecutionLimitError);
+  expect(saved?.reflectLocals().inlineActive).toBe(false);
+  expect(saved?.load("x")).toEqual(v.integer(99));expect(state.calls.current).toBeUndefined();
+});
+it.each([false,true])("keeps unoptimized inline slots hidden from proxy writes and deletions: class=%s",classBody=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  const body="x=99\nr=[touch() for x in [1]]\nafter=x";
+  state.run("saved=[]\ndef touch():\n p=current_frame().f_back.f_locals\n saved.append(p)\n p['x']=11\n first=p['x']\n del p['x']\n second=p['x']\n p['x']=12\n return first,second\n"+(classBody?"class C:\n "+body.split("\n").join("\n ")+"\nr=C.r\nafter=C.after":body)+"\ncorrect=r==[(1,1)] and after==99 and saved[0]['x']==12\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("isolates cells promoted from nested inlined comprehensions",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("def f(xs,y):\n got=[(lambda:y,[y for y in x]) for x in xs]\n return got,y\ngot,y=f([[1]],9)\ncorrect=False\ntry:got[0][0]()\nexcept NameError:correct=y==9 and got[0][1]==[1]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("shares the enclosing native frame and write-through locals inside list comprehensions",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  state.run("def f():\n x=99\n y=7\n frame=current_frame()\n def mutate():\n  p=frame.f_locals\n  p['x']=p['x']+10\n  p['y']=8\n  return current_frame().f_back is frame\n got=[(mutate(),x,lambda:x,current_frame() is frame) for x in [1,2]]\n return x,y,got\nx,y,got=f()\ncorrect=x==99 and y==8 and got[0][0] and got[0][1]==11 and got[0][2]()==12 and got[0][3] and got[1][1]==12 and got[1][2]()==12 and got[1][3]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it.each(["[current_frame() for x in [1]]","{current_frame() for x in [1]}","{x:current_frame() for x in [1]}"])("uses module code identity inside an inlined collection: %s",expression=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  const selection=expression.startsWith("{x:")?"got[1]":expression.startsWith("{")?"got.__iter__().__next__()":"got[0]";
+  state.run("frame=current_frame()\ngot="+expression+"\ncorrect="+selection+" is frame\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("publishes stable native frame identities with fresh write-through locals views",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));

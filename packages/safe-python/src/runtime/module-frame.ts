@@ -63,7 +63,7 @@ export class ModuleFrame<Value> extends ExecutionFrame {
     this.meter.checkpoint();
     if(this.#reflectiveLocals===undefined){
       this.meter.checkpoint(0,96);
-      this.#reflectiveLocals=new FrameLocals(compileCodeLocalLayout(this.scope,this.meter),new Map(),new Map(),this.meter);
+      this.#reflectiveLocals=new FrameLocals(compileCodeLocalLayout(this.scope,this.meter),new Map(),new Map(),this.meter,true);
     }
     return this.#reflectiveLocals;
   }

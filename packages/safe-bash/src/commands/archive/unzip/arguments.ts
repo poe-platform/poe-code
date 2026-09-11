@@ -22,6 +22,7 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
     for (const value of argumentsValue.values) text(shellValueBytes(value));
   }
   let list = false;
+  let pipe = false;
   let overwrite = false;
   let destination: string | undefined;
   let archive: string | undefined;
@@ -34,6 +35,7 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset];
         if (flag === "l") list = true;
+        else if (flag === "p") pipe = true;
         else if (flag === "o") overwrite = true;
         else if (flag === "d") {
           if (destination !== undefined) fail("-d may only be specified once");
@@ -46,9 +48,9 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
     } else if (archive === undefined) archive = argument;
     else patterns.push(argument);
   }
-  if (archive === undefined) fail("usage: unzip [-l] [-o] [-d DIR] ARCHIVE [FILES...]");
+  if (archive === undefined) fail("usage: unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]");
   checkPath(archive, limits);
-  return { list, overwrite, destination, archive, patterns };
+  return { list: list && !pipe, pipe, overwrite, destination, archive, patterns };
 }
 
 type Token = { kind: "star" | "any" | "never" } | { kind: "literal"; value: string }
@@ -97,7 +99,7 @@ export class Selection {
   private step(): void {
     if (++this.work > this.limits.maxPatternSteps) fail("pattern work limit exceeded");
   }
-  async matches(name: string): Promise<boolean> {
+  async matches(name: string, firstMatchOnly = false): Promise<boolean> {
     if (!this.patterns.length) return true;
     const characters = Array.from(name);
     let selected = false;
@@ -127,7 +129,11 @@ export class Selection {
         }
         states = next;
       }
-      if (states[characters.length]) { this.matched.add(pattern); selected = true; }
+      if (states[characters.length]) {
+        this.matched.add(pattern);
+        if (firstMatchOnly) return true;
+        selected = true;
+      }
     }
     return selected;
   }

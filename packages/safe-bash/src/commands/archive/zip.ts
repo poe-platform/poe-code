@@ -11,6 +11,7 @@ import { publishZip, ZipScope } from "./zip/safety.js";
 interface ZipOptions {
   readonly archive: string;
   readonly recursive: boolean;
+  readonly quiet: boolean;
   readonly operands: readonly string[];
   readonly firstOperand: number;
 }
@@ -39,6 +40,7 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
   }
   let archive: string | undefined;
   let recursive = false;
+  let quiet = false;
   let literal = false;
   let firstOperand = -1;
   const operands: string[] = [];
@@ -48,8 +50,11 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
       if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "can't use -- before archive name");
       literal = true;
     } else if (!literal && argument.startsWith("-") && argument !== "-") {
-      if (argument.length > 1 && [...argument.slice(1)].every(flag => flag === "r")) recursive = true;
-      else throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
+      for (const flag of argument.slice(1)) {
+        if (flag === "r") recursive = true;
+        else if (flag === "q") quiet = true;
+        else throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
+      }
     } else if (archive === undefined) archive = argument;
     else {
       if (operands.length >= limits.maxMembers) fail("operand limit exceeded");
@@ -57,11 +62,11 @@ function parse(context: CommandContext, limits: ArchiveLimits): ZipOptions {
       operands.push(argument);
     }
   }
-  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] ARCHIVE FILES...");
+  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] ARCHIVE FILES...");
   if (archive === "-" || operands.includes("-")) throw new ZipFailure(16, "Invalid command arguments", "standard input/output archives are unsupported");
   if (!archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
   checkPath(archive, limits);
-  return { archive, recursive, operands, firstOperand };
+  return { archive, recursive, quiet, operands, firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -123,13 +128,13 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     } catch (error) {
       context.signal.throwIfAborted();
       if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error;
-      if (!old.has(name)) await budget.output(`\tzip warning: name not matched: ${source}\n`);
+      if (!parsed.quiet && !old.has(name)) await budget.output(`\tzip warning: name not matched: ${source}\n`);
       return;
     }
     checkPath(canonical, limits);
     if (canonical === output || (existing && sameIdentity(existing, stat))) return;
     if (stat.type !== "file" && stat.type !== "directory") {
-      await budget.output(`\tzip warning: ignoring special file: ${source}\n`);
+      if (!parsed.quiet) await budget.output(`\tzip warning: ignoring special file: ${source}\n`);
       return;
     }
     if (existing && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
@@ -139,7 +144,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       checkPath(name, limits);
       const previous = selected.get(name);
       if (previous && previous.source !== source) {
-        await budget.output(`\tzip warning:   first full name: ${previous.source}\n                      second full name: ${source}\n                     name in zip file repeated: ${name}\n`);
+        if (!parsed.quiet) await budget.output(`\tzip warning:   first full name: ${previous.source}\n                      second full name: ${source}\n                     name in zip file repeated: ${name}\n`);
         throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
       }
       if (!previous) {
@@ -183,6 +188,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const progress: string[] = [];
   let progressBytes = 0;
   const append = (entry: ZipEntry, update: boolean) => {
+    if (parsed.quiet) return;
     const percentage = entry.size ? Math.trunc((Math.trunc(200 * (entry.size - entry.data.length) / entry.size) + 1) / 2) : 0;
     const message = `${update ? "updating:" : "  adding:"} ${entry.name} (${entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`;
     const size = Buffer.byteLength(message);

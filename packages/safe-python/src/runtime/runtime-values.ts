@@ -196,6 +196,8 @@ export interface BuiltinFunctionCapability extends NativeDocumentation {
   /** A fixed type receiver is metadata only; native allocators still receive
    * their requested allocation class explicitly in positional arguments. */
   readonly owner?: TypeValue;
+  /** Defining class metadata for a native static function; never a bound self. */
+  readonly staticOwner?: TypeValue;
   /** Native keyword-dict calling conventions may validate names after their
    * positional work. Opted-in callees must perform their own keyword checks. */
   readonly keywordValidation?: "callee";

@@ -51,12 +51,12 @@ export function readRuntimeNativeMethodMetadata(receiver: RuntimeValue, name: st
     }
     return qualifiedName(owner, binding.descriptor.value.name, "method", values, meter, context);
   }
-  if (receiver.kind === "builtin_function_or_method" && receiver.value.owner !== undefined) {
+  if (receiver.kind === "builtin_function_or_method" && (receiver.value.owner !== undefined || receiver.value.staticOwner !== undefined)) {
     meter.checkpoint();
-    if (name === "__self__") return receiver.value.owner;
+    if (name === "__self__") return receiver.value.owner ?? values.none;
     if (name === "__name__") return values.string(receiver.value.name);
     if (name === "__module__") return values.none;
-    if (name === "__qualname__") return qualifiedName(receiver.value.owner, receiver.value.name, "method", values, meter, context);
+    if (name === "__qualname__") return qualifiedName((receiver.value.owner ?? receiver.value.staticOwner)!, receiver.value.name, "method", values, meter, context);
   }
   if (receiver.kind === "method-wrapper" && name === "__self__") { meter.checkpoint(); return receiver.value.instance; }
   const descriptor = receiver.kind === "method-wrapper" ? receiver.value.descriptor : receiver;

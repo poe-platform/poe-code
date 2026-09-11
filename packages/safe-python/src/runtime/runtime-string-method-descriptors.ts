@@ -14,6 +14,7 @@ import {createRuntimePadMethod} from "./runtime-pad-method.js";
 import {createRuntimeExpandtabsMethod} from "./runtime-expandtabs-method.js";
 import {createRuntimeStringReplaceMethod} from "./runtime-string-replace-method.js";
 import {createRuntimeStringTranslateMethod} from "./runtime-string-translate-method.js";
+import {createRuntimeStringMaketransMethod} from "./runtime-string-maketrans-method.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -80,12 +81,13 @@ const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const}
   {name:"expandtabs",kind:"expandtabs" as const,doc:"Return a copy where all tab characters are expanded using spaces.\n\nIf tabsize is not given, a tab size of 8 characters is assumed."},
   {name:"splitlines",kind:"splitlines" as const,doc:"Return a list of the lines in the string, breaking at line boundaries.\n\nLine breaks are not included in the resulting list unless keepends\nis given and true."},
   {name:"join",kind:"join" as const,doc:"Concatenate any number of strings.\n\nThe string whose method is called is inserted in between each given\nstring.  The result is returned as a new string.\n\nExample: '.'.join(['ab', 'pq', 'rs']) -> 'ab.pq.rs'"}];
-export const runtimeStringMethodNames:ReadonlySet<string>=new Set(methods.map(method=>method.name));
+export const runtimeStringMethodNames:ReadonlySet<string>=new Set([...methods.map(method=>method.name),"maketrans"]);
 
 /** Canonical descriptors adapt owned subtype storage to the shared Unicode
  * kernels. Native methods bypass guest overrides only when explicitly selected;
  * ordinary method lookup remains the object layer's responsibility. */
 export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):void {
+  owner.value.namespace.items.set(values.string("maketrans"),values.methodDecorator("staticmethod",createRuntimeStringMaketransMethod(values,meter,owner)));
   for(const method of methods){
     meter.checkpoint(0,96);
     owner.value.namespace.items.set(values.string(method.name),values.methodDescriptor({owner,name:method.name,doc:method.doc,accepts:receiver=>runtimeStringPayload(receiver)!==undefined,

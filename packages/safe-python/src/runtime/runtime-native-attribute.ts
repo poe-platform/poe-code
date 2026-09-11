@@ -150,6 +150,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
     if (name === "__hash__" && member?.kind === "none") return member;
     if (name === "mapping" && member?.kind === "getset_descriptor") return readRuntimeGetsetDescriptor(member, receiver, type, meter);
+    if (member?.kind === "staticmethod") return member.value;
     if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor" || member?.kind === "classmethod_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }
   if ((name === "__eq__" || name === "__ne__" || name === "__lt__" || name === "__le__" || name === "__gt__" || name === "__ge__" || name === "__hash__" || name === "__repr__" || name === "__str__" || name === "__format__"

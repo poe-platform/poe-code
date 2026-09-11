@@ -13584,6 +13584,22 @@ extension, integration, or validation requirement is missing or unverified.
   uncached suite passes 9,384 tests in 616 files (83.02s; bodies 10.71s).
   Maketrans, remaining string methods, codecs, interpreter assembly, imports,
   safe-fs and broad audits remain unfinished. No push or release.
+- String translation-table construction: published canonical static
+  `str.maketrans`, shared through base/subclass/exact-instance lookup. Added
+  explicit static defining-class metadata without inventing a bound receiver;
+  native attribute lookup now returns static functions from canonical catalogs.
+  Two/three-argument forms inspect native string-subtype payloads, with ordered
+  argument diagnostics and CPython's 50-byte type-name bound. One-argument input
+  deliberately remains exact-dict-only, as verified against CPython; integer
+  subtype keys and arbitrary values retain identity, while character-subtype keys
+  become ordinals. Three source integration tests cover metadata, static identity,
+  values/keys, validation and duplicate/deletion precedence. Initial publication
+  tests and the exact-instance static-sharing check failed before their fixes.
+  An 800-case in-memory CPython comparison has zero value/error/documentation
+  differences. Maintained build, typecheck, scoped lint and whitespace checks
+  pass. Full uncached suite passes 9,387 tests in 616 files (145.45s; bodies
+  16.83s). Remaining string methods, codecs, public assembly, imports, safe-fs and
+  broad audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

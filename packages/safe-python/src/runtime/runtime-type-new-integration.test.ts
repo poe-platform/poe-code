@@ -6001,6 +6001,24 @@ it("publishes string join with native subtype members and guest iteration", () =
   for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
 });
 
+it("publishes static string maketrans with subtype strings and native metadata",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nx=S('ab')\na=str.maketrans(x,S('xy'),S('b'))\nb=x.maketrans('ab','xy','b')\ncorrect=a=={97:120,98:None} and b==a\nstatic=str.maketrans is S.maketrans and x.maketrans is str.maketrans\nmetadata=str.maketrans.__name__=='maketrans' and str.maketrans.__qualname__=='str.maketrans' and str.maketrans.__self__ is None\n");
+  for(const flag of ["correct","static","metadata"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("preserves maketrans integer subtype keys and opaque values but rejects dictionary subtypes",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());state.globals.set("int",state.registry.integerType());state.globals.set("dict",state.registry.dictionaryType());
+  state.run("class I(int):pass\nclass S(str):pass\nclass D(dict):pass\nk=I(100)\nv=[]\nt=str.maketrans({k:v,S('a'):v})\nkeys=[key for key in t]\ncorrect=keys[0] is k and type(keys[1]) is int and keys[1]==97 and t[k] is v and t[97] is v\ntry:str.maketrans(D())\nexcept TypeError as e:rejected=str(e)=='if you give only one argument to maketrans it must be a dict'\n");
+  for(const flag of ["correct","rejected"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("keeps maketrans validation order, duplicate keys and exact-instance static access",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class Bad:pass\nshared=''.maketrans is str.maketrans\nduplicates=str.maketrans('aa','xy','a')=={97:None}\ntry:str.maketrans(None,Bad())\nexcept TypeError as e:second=str(e)=='maketrans() argument 2 must be str, not Bad'\ntry:str.maketrans(None,'x',Bad())\nexcept TypeError as e:third=str(e)=='maketrans() argument 3 must be str, not Bad'\ntry:str.maketrans({'ab':None})\nexcept ValueError as e:key=str(e)=='string keys in translatetable must be of length 1'\ntry:str.maketrans({'a':None},extra=1)\nexcept TypeError as e:keyword=str(e)=='str.maketrans() takes no keyword arguments'\n");
+  for(const flag of ["shared","duplicates","second","third","key","keyword"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
 it("publishes string translate with native subtype mapping results",()=>{
   const state=exceptionFixture();state.globals.set("str",state.registry.stringType());state.globals.set("int",state.registry.integerType());
   state.run("class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass I(int):\n def __index__(self):raise TypeError('index forbidden')\ns=S('abc')\na=str.translate(s,{97:S('🐍x'),98:None,99:I(100)})\ncorrect=a=='🐍xd' and type(a) is str\nfirst=s.translate({})\nsecond=s.translate({})\nfresh=first is not s and first is not second\nempty=S('')\nempty_result=str.translate(empty,None)\nempty_base=type(empty_result) is str and empty_result==''\nowner=str.translate.__objclass__ is str\n");

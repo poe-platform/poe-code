@@ -12,6 +12,8 @@ import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
+import {prepareDynamicNamespaces} from "./dynamic-namespaces.js";
+import {RuntimeMappingNamespace} from "./runtime-mapping-namespace.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
 import {decodeRuntimeFileSystemName,runtimeFileSystemPath} from "./runtime-filesystem-path.js";
 import { compileProgram } from "./program-compilation.js";
@@ -102,6 +104,39 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it.each(["eval","exec"] as const)("retains %s dictionary-subclass namespace identity and bypasses item overrides",mode=>{
+  const state=exceptionFixture(),{v,meter}=state,builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));
+  state.globals.set("Dict",state.registry.dictionaryType());state.globals.set("B",builtins);
+  state.builtins.set("select_names",v.builtinFunction({name:"select_names",invoke(args,_keywords,_meter,invocation){
+    const selected=prepareDynamicNamespaces({mode,globals:args[0],locals:v.none},v,meter,{globals(){throw Error("unexpected default globals");},locals(){throw Error("unexpected default locals");},builtins:()=>builtins,isMapping:value=>invocation!.hasSpecial!(value,"__getitem__"),typeName:value=>invocation!.typeName!(value)});
+    return v.boolean(selected.globals===args[0]&&selected.locals===args[0]);
+  }}));
+  state.run("class G(Dict):\n def __getitem__(self,key):raise RuntimeError('must not read')\n def __setitem__(self,key,value):raise RuntimeError('must not write')\ng=G()\ncorrect=select_names(g) and Dict.__getitem__(g,'__builtins__') is B\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("selects dynamic execution globals, locals and builtins before compiling source",()=>{
+  const state=exceptionFixture(),{v,meter}=state;
+  const globals=v.dictionary(new OrderedKeyMap(state.keys,meter)),builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));
+  for(const [name,value] of state.globals)globals.items.set(v.string(name),value);
+  globals.items.set(v.string("B"),builtins);globals.items.set(v.string("SyntaxError"),state.registry.exceptionType("SyntaxError"));
+  for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,v,meter,{execute(request,invocation){
+    if(invocation===undefined)throw Error("expected invocation");
+    const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>globals,locals:()=>globals,builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
+    if(request.source.kind!=="str"||request.closure.kind!=="none"||selected.globals.kind!=="dict")throw Error("fixture supports text and exact dictionary globals");
+    const source=runtimeCompilationSource(request.source,meter,invocation);if(typeof source!=="string")throw Error("expected text");
+    const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
+    const localNames=selected.locals.kind==="dict"?new RuntimeDictionaryNamespace(selected.locals,v,meter,invocation):new RuntimeMappingNamespace(selected.locals,v,meter,invocation);
+    const builtinNames=selected.builtins.kind==="dict"?new RuntimeDictionaryNamespace(selected.builtins,v,meter,invocation):new RuntimeMappingNamespace(selected.builtins,v,meter,invocation);
+    return executeRuntimeProgram(compileSourceProgram(source,{stripDocstring:false,mode:request.mode,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter),{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
+  }}));
+  for(const [name,value] of state.builtins)builtins.items.set(v.string(name),value);
+  state.run("g={'y':7}\nl={}\nexec('x=5',g,l)\nvalue=eval('x+y',globals=g,locals=l)\nexec('z=9',g)\nbad={}\ntry:eval('x=',bad)\nexcept SyntaxError:inserted='__builtins__' in bad\ncorrect=value==12 and l['x']==5 and 'x' not in g and g['z']==9 and g['__builtins__'] is B and inserted\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+  state.run("class Locals:\n def __getitem__(self,key):\n  if key=='x':return 11\n  raise KeyError(key)\ncustom=eval('x+y',g,Locals())\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("custom"))?.value).toEqual(v.integer(18));
+});
 
 it("executes guest eval/exec through an explicitly supplied source execution backend",()=>{
   const state=exceptionFixture();

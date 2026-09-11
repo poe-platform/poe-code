@@ -12833,6 +12833,24 @@ extension, integration, or validation requirement is missing or unverified.
   default locals/builtin insertion, closure/code-object execution, eval whitespace
   handling, and canonical default registration remain backend work, not claimed
   by the call adapter or its explicitly restricted integration fixture.
+- Dynamic namespace selection (2026-09-11): introduced a metered selector after
+  its missing-module red test. It preserves eval/exec's distinct validation order,
+  dictionary-vs-subscriptable-mapping diagnostics, caller-default laziness,
+  globals-as-default-locals behavior, no-frame errors and existing __builtins__
+  values including None. Missing builtins are inserted through intrinsic dictionary
+  storage before source admission, but not after invalid locals or cancellation.
+  Original dictionary-subclass objects remain selected identities; item overrides
+  are bypassed for builtin insertion. Default frame locals and mapping-slot checks
+  remain explicit host policies rather than implicit reflection. Sixteen unit tests
+  and the 1,051-test focused run pass. Native integration verifies separate globals
+  and locals, global fallback, custom mapping locals, writes, namespace keywords,
+  insertion before syntax failure and dictionary-subclass identity/override bypass.
+  All 128 CPython namespace validation/insertion comparisons match. CPython's
+  builtin implementations were inspected for ordering and frame-default rules.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 9,041 tests in 597 files (83.56s; bodies 9.48s). Optimized
+  caller-local snapshots, canonical backend registration, code/closure handling and
+  general globals-subclass namespace adapters remain unfinished integration work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

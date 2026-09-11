@@ -523,6 +523,12 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/text-programs/substitution-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/nfa-work.test.ts"));
   assert.ok(files.includes("tests/commands/network/private-addresses.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/command.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/openai.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/elevenlabs.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/exports.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/review.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/provider-acceptance.test.ts"));
   assert.ok(files.includes("tests/commands/network/private-address-integration.test.ts"));
   assert.ok(files.includes("tests/commands/network/address-policy.test.ts"));
   assert.ok(files.includes("tests/commands/network/dns-pinning.test.ts"));

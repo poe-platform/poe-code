@@ -212,6 +212,7 @@ export interface CommandContext {
   readonly stdinInput?: CommandInput;
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
+  readonly inputByteLimit?: number;
   readonly stdoutFile?: { readonly path: string };
   readonly stderr: ByteSink;
   cwd: string;

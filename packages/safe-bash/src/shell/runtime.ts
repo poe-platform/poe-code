@@ -2724,6 +2724,7 @@ export class Runtime {
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
+      inputByteLimit: this.budget.limits.maxInputBytes,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
       registerCleanup: (cleanup) => { scope.register(cleanup); },
@@ -3266,6 +3267,7 @@ export class Runtime {
       const invocationOverride: { current: CommandInvoker | undefined } = { current: undefined };
       const context: ShellCommandContext = {
         ...incoming, args: argumentValues.args, argumentValues,
+        inputByteLimit: this.budget.limits.maxInputBytes,
         executionScope: this.budget.executionScope,
         onInternalError: this.budget.onInternalError,
         env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),

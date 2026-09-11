@@ -59,6 +59,12 @@
       "browser": "./dist/commands/network/index.browser.js",
       "import": "./dist/commands/network/index.js"
     },
+    "./commands/llm": {
+      "types": "./dist/commands/llm/index.d.ts",
+      "workerd": "./dist/commands/llm/index.browser.js",
+      "browser": "./dist/commands/llm/index.browser.js",
+      "import": "./dist/commands/llm/index.js"
+    },
     "./commands/node": {
       "types": "./dist/commands/node/index.d.ts",
       "import": "./dist/commands/node/index.js"

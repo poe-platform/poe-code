@@ -20,6 +20,16 @@ change `CommandInvokeOptions` or create a separate runtime budget. See
 
 # Shared command input
 
+`CommandContext.inputByteLimit?: number` exposes the current execution's
+configured `maxInputBytes` to commands that combine stdin with additional
+filesystem input. It is a nonnegative safe-integer byte ceiling, not a mutable
+counter or a new execution budget. Shell-created contexts supply it, including
+nested invocations and interpreter dispatch. Transparent context adapters should
+preserve it; direct/custom hosts may omit it and use command-owned defaults.
+The `llm` command admits stdin and all attachments cumulatively against this
+ceiling, independently of its argument/buffer guard. Shell input cursor accounting
+and output budgets remain unchanged.
+
 `CommandContext.stdinInput?: CommandInput` is an optional byte-oriented view of
 the same input cursor as `stdin`. It does not change the generic `ByteSource`
 contract. Direct/custom hosts may omit it; consumers must not assume a pipe or

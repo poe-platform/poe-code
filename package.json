@@ -107,6 +107,12 @@
       "browser": "./packages/safe-bash/dist/commands/network/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/network/index.js"
     },
+    "./safe-bash/commands/llm": {
+      "types": "./packages/safe-bash/dist/commands/llm/index.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/llm/index.js"
+    },
     "./safe-bash/commands/node": {
       "types": "./packages/safe-bash/dist/commands/node/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/node/index.js"

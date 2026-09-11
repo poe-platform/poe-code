@@ -35,7 +35,7 @@ async function bundlePublicConsumer(contents: string) {
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|llm|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -51,7 +51,7 @@ async function bundlePublicConsumer(contents: string) {
   return consumer.outputFiles![0]!.text;
 }
 
-it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]])("shares the public %s command factory across portable root and subpath entries", async (command, factory) => {
+it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]])("shares the public %s command factory across portable root and subpath entries", async (command, factory) => {
   const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
   expect(manifest.exports[`./commands/${command}`]?.browser).toBe(`./dist/commands/${command}/index.browser.js`);
   expect(manifest.exports[`./commands/${command}`]?.workerd).toBe(`./dist/commands/${command}/index.browser.js`);
@@ -70,6 +70,102 @@ it.each([["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "
   });
   const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
   expect(consumer.shared).toBe(true);
+});
+
+it("runs injected llm providers and binary pipelines through the browser command subpath", async () => {
+  const compiled = await bundlePublicConsumer(`
+    import { Shell, agentCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";
+    import { llmCommands } from "@poe-platform/safe-bash/commands/llm";
+    export async function run() {
+      const requests = [];
+      const providers = [{
+        name: "captions", models: [{ id: "describe", attachmentTypes: ["image/*"] }],
+        async *complete(request) { requests.push(request); yield "a fox"; }
+      }, {
+        name: "audio", models: [{ id: "voice", aliases: ["tts"], outputType: "audio/mpeg" }],
+        async *complete(request) { requests.push(request); yield new Uint8Array([255, 0, 128]); }
+      }];
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/fox.png", new Uint8Array([137,80,78,71,13,10,26,10]));
+      const shell = new Shell({ fs }).use(agentCommands()).use(llmCommands({ providers, defaultModel: "describe" }));
+      try {
+        const result = await shell.exec("llm -a /fox.png 'caption' | llm -m tts > /voice.mp3; base64 /voice.mp3");
+        return { result, requests };
+      } finally { await shell.dispose(); }
+    }
+  `);
+  const sandbox = createContext({
+    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
+    require(name: string) {
+      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
+      return filesystem;
+    },
+  });
+  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
+  const { result, requests } = await consumer.run();
+  expect(result).toMatchObject({ exitCode: 0, stdout: "/wCA\n", stderr: "" });
+  expect(requests).toHaveLength(2);
+  expect(requests[0]).toMatchObject({ model: "describe", prompt: "caption", attachments: [{ mimeType: "image/png" }] });
+  expect(requests[1]).toMatchObject({ model: "voice", prompt: "a fox\n" });
+});
+
+it("runs both reference llm transports without Node globals in a browser consumer", async () => {
+  const compiled = await bundlePublicConsumer(`
+    import { Shell, agentCommands, createMemoryFileSystem, toByteSource } from "@poe-platform/safe-bash";
+    import { llmCommands, createOpenAiProvider, createElevenLabsProvider } from "@poe-platform/safe-bash/commands/llm";
+    export async function run() {
+      const requests = [];
+      let disposed = 0;
+      let temperature;
+      const transport = async request => {
+        requests.push(request.url);
+        if (request.url.includes("chat/completions")) {
+          const chunks = [];
+          for await (const chunk of request.body) chunks.push(Uint8Array.from(chunk));
+          temperature = JSON.parse(await new Blob(chunks).text()).temperature;
+        }
+        const content = request.url.includes("chat/completions")
+          ? 'data: {"choices":[{"delta":{"content":"fox"}}]}\\n\\ndata: [DONE]\\n\\n'
+          : request.url.includes("images") ? '{"data":[{"b64_json":"iVBORw=="}]}' : new Uint8Array([255,0,128]);
+        return { status:200, statusText:"OK", headers:[], body:toByteSource(content), async dispose() { disposed++; } };
+      };
+      const providers = [createOpenAiProvider({ transport, apiKey:"fixture", models:[
+        { id:"caption", endpoint:"chat", attachmentTypes:["image/*"] },
+        { id:"draw", endpoint:"images", attachmentTypes:["image/*"], outputType:"image/png" }
+      ] }), createElevenLabsProvider({ transport, apiKey:"fixture", models:[
+        { id:"voice", endpoint:"tts", defaultVoiceId:"speaker", outputType:"audio/mpeg" }
+      ] })];
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/fox.png", new Uint8Array([137,80,78,71,13,10,26,10]));
+      const shell = new Shell({ fs }).use(agentCommands()).use(llmCommands({ providers, defaultModel:"caption" }));
+      try {
+        const audio = await shell.exec("llm --at /fox.png Image/PNG -o temperature 0.7 caption | llm -m voice | base64");
+        const image = await shell.exec("llm -m draw -a /fox.png edit | base64");
+        return { audio, image, requests, disposed, temperature };
+      } finally { await shell.dispose(); }
+    }
+  `);
+  const sandbox = createContext({
+    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
+    URL, FormData, Blob, Response, btoa, atob,
+    require(name: string) {
+      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
+      return filesystem;
+    },
+  });
+  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
+  const result = await consumer.run();
+  expect(result.audio).toMatchObject({ exitCode: 0, stdout: "/wCA\n", stderr: "" });
+  expect(result.image).toMatchObject({ exitCode: 0, stdout: "iVBORw==\n", stderr: "" });
+  expect(result.requests).toEqual([
+    "https://api.openai.com/v1/chat/completions",
+    "https://api.elevenlabs.io/v1/text-to-speech/speaker?output_format=mp3_44100_128",
+    "https://api.openai.com/v1/images/edits",
+  ]);
+  expect(result.disposed).toBe(3);
+  expect(result.temperature).toBe(0.7);
 });
 
 it("runs nested env/xargs, truncate, csplit, pr, tsort, factor, getopt, hexdump and hd through the public default browser entry", async () => {
@@ -138,7 +234,8 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
     "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),
     "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
-    "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
+      "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
+      "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/csplit/index.browser": path.join(root, "packages/safe-bash/src/commands/csplit/index.ts"),
     "commands/pr/index.browser": path.join(root, "packages/safe-bash/src/commands/pr/index.ts"),
     "commands/tsort/index.browser": path.join(root, "packages/safe-bash/src/commands/tsort/index.ts"),

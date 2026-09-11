@@ -197,6 +197,7 @@ it.each([
         "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),
         "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
     "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),
+    "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
         "commands/csplit/index.browser": path.join(root, "packages/safe-bash/src/commands/csplit/index.ts"),
         "commands/pr/index.browser": path.join(root, "packages/safe-bash/src/commands/pr/index.ts"),
         "commands/tsort/index.browser": path.join(root, "packages/safe-bash/src/commands/tsort/index.ts"),

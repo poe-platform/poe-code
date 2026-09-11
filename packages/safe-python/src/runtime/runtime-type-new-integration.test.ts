@@ -486,6 +486,21 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("matches sequence subclasses with length, indexed wildcard and unpacking protocols",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("list",state.registry.listType());
+  state.run("events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 3\n def __iter__(self):\n  events.append('iter')\n  return [1,2,3].__iter__()\n def __getitem__(self,key):\n  events.append(key)\n  return [1,2,3][key]\ns=S()\nmatch s:\n case [a,*_,z]:first=(a,z)\nmatch s:\n case [x,*middle,y]:second=(x,middle,y)\ncorrect=first==(1,3) and second==(1,[2],3) and events==['len',0,'len',2,'len','iter']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("does not use duck typing or textual type names for sequence pattern eligibility",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass list:\n def __len__(self):\n  events.append('len')\n  return 0\n def __getitem__(self,key):return 1\nmatch list():\n case [*_]:result=True\n case _:result=False\ncorrect=result is False and events==[]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("does not enumerate or size a huge range for a star-only wildcard pattern",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("range",state.registry.rangeType());
+  state.run("subject=range(2**80)\nmatch subject:\n case [*_]:correct=True\n case _:correct=False\ntry:\n match subject:\n  case [_,*_]:correct=False\nexcept Exception as e:correct=correct and type(e).__name__=='OverflowError'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("uses native equality and truth protocols for value patterns but not singleton patterns",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("events=[]\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  return True\nclass Subject:\n def __eq__(self,value):\n  events.append(value)\n  return Truth()\nclass Holder:\n def __getattribute__(self,name):\n  events.append(name)\n  return 4\npath=Holder()\nmatch Subject():\n case True:result=0\n case path.value:result=1\ncorrect=result==1 and events==['value',4,'truth']\n");

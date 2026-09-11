@@ -44,6 +44,18 @@ function fixture(source: string, maxSteps = 100000) {
 }
 
 describe("native pattern control flow",()=>{
+  it("matches nested sequences and produces fresh starred capture lists",()=>{
+    const state=fixture("subject=[1,[2,3],4,5]\nmatch subject:\n case [1,[a,b],*middle,last]:result=(a,b,middle,last)\n case _:result=None\n");
+    state.run();const value=state.globals.get("result");
+    expect(value?.kind).toBe("tuple");if(value?.kind!=="tuple")throw Error("expected tuple");
+    expect(value.items[0]).toEqual(state.v.integer(2));expect(value.items[1]).toEqual(state.v.integer(3));
+    const middle=value.items[2];expect(middle.kind).toBe("list");if(middle.kind!=="list")throw Error("expected list");
+    expect(middle.items.snapshot()).toEqual([state.v.integer(4)]);expect(value.items[3]).toEqual(state.v.integer(5));
+  });
+  it.each(["'ab'","b'ab'","{1:2}","1","[1]"])("rejects nonsequences or incorrect fixed lengths: %s",subject=>{
+    const state=fixture("match "+subject+":\n case [a,b]:result=True\n case _:result=False\n");
+    state.run();expect(state.globals.get("result")).toBe(state.v.false);
+  });
   it("distinguishes singleton identity from value equality and binds before guards",()=>{
     const state=fixture("match 1:\n case True:result=0\n case (1|2) as x if x==2:result=1\n case y if x==1:result=y+2\n");
     state.run();expect(state.globals.get("result")).toEqual(state.v.integer(3));

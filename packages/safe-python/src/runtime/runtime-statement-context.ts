@@ -14,6 +14,7 @@ import { createRuntimeReferenceContinuation, resolveRuntimeReference, type Runti
 import { UnsupportedStatementError, type LeafStatement, type ResumableStatementContext, type StatementContext } from "./statement-execution.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import {matchPattern,type PatternContext} from "./pattern-execution.js";
+import {prepareRuntimeSequencePattern} from "./runtime-sequence-pattern.js";
 
 export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expression-statement" | "assignment" | "annotated-assignment" | "augmented-assignment" | "delete" }>;
 
@@ -85,9 +86,10 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
     }
   };
   const deletion = { position:bindings.position?.bind(bindings),removeName: bindings.deleteName.bind(bindings), resolve };
-  meter.checkpoint(0,256);
+  meter.checkpoint(0,320);
   const patterns:PatternContext<RuntimeValue>={
     position:bindings.position?.bind(bindings),evaluate:assignment.evaluate,store:assignment.store,
+    sequence:(pattern,subject)=>prepareRuntimeSequencePattern(pattern,subject,assignment.unpack,values,meter,bindings.invocation),
     equal(left,right){const result=expressions.compare("==",left,right);meter.checkpoint();return expressions.truth(result);},
     identical(left,right){const result=expressions.compare("is",left,right);meter.checkpoint();return expressions.truth(result);}
   };

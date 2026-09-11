@@ -8,6 +8,9 @@ export interface PatternContext<Value> {
   equal(left:Value,right:Value):boolean;
   identical(left:Value,right:Value):boolean;
   store(name:string,value:Value):void;
+  /** Undefined means ineligible or wrong length. Iteration supplies selected
+   * subpatterns in order and owns extraction, never guest iterator cleanup. */
+  sequence?(pattern:Extract<Pattern,{kind:"sequence"}>,subject:Value):Iterator<{pattern:Pattern;value:Value}>|undefined;
 }
 
 export class UnsupportedPatternError extends Error {
@@ -18,10 +21,11 @@ export class UnsupportedPatternError extends Error {
  * until success, then published before the guard; a false guard does not undo
  * them. Failed alternatives discard only their own pending captures. Guest
  * protocol failures propagate instead of selecting another alternative.
- * Structured sequence/mapping/class protocols remain an explicit gap.
+ * Native sequence extraction is supplied separately; mapping/class protocols
+ * remain an explicit gap.
  */
 export function matchPattern<Value>(pattern:Pattern,subject:Value,context:PatternContext<Value>,meter:ExecutionMeter):boolean {
-  type Task={kind:"pattern";pattern:Pattern;value:Value}|{kind:"bind";name:string;value:Value}|{kind:"choice-end"};
+  type Task={kind:"pattern";pattern:Pattern;value:Value}|{kind:"bind";name:string;value:Value}|{kind:"choice-end"}|{kind:"sequence";iterator:Iterator<{pattern:Pattern;value:Value}>};
   type Choice={patterns:readonly Pattern[];index:number;value:Value;depth:number;captures:number};
   meter.checkpoint(1,256);
   const work:Task[]=[{kind:"pattern",pattern,value:subject}],choices:Choice[]=[],captures:Array<{name:string;value:Value}>=[];
@@ -29,11 +33,17 @@ export function matchPattern<Value>(pattern:Pattern,subject:Value,context:Patter
     meter.checkpoint();const task=work.pop()!;
     if(task.kind==="choice-end"){choices.pop();continue;}
     if(task.kind==="bind"){meter.checkpoint(0,40);captures.push(task);continue;}
+    if(task.kind==="sequence"){
+      let next:IteratorResult<{pattern:Pattern;value:Value}>;
+      try{next=task.iterator.next();}finally{meter.checkpoint();}
+      if(!next.done){meter.checkpoint(0,48);work.push(task,{kind:"pattern",...next.value});}
+      continue;
+    }
     const {pattern:node,value}=task;
     if(context.position)try{context.position(node);}finally{meter.checkpoint(0);}
     let accepted=true;
     switch(node.kind){
-      case "capture":
+      case "capture":case "star":
         if(node.name){meter.checkpoint(0,40);captures.push({name:node.name.name,value});}
         break;
       case "as":
@@ -46,6 +56,14 @@ export function matchPattern<Value>(pattern:Pattern,subject:Value,context:Patter
         let expected:Value;
         try{expected=context.evaluate(node.value);}finally{meter.checkpoint();}
         try{accepted=node.kind==="singleton"?context.identical(value,expected):context.equal(value,expected);}finally{meter.checkpoint();}
+        break;
+      }
+      case "sequence":{
+        if(context.sequence===undefined)throw new UnsupportedPatternError(node.kind);
+        let iterator:Iterator<{pattern:Pattern;value:Value}>|undefined;
+        try{iterator=context.sequence(node,value);}finally{meter.checkpoint();}
+        if(iterator===undefined)accepted=false;
+        else {meter.checkpoint(0,40);work.push({kind:"sequence",iterator});}
         break;
       }
       default:throw new UnsupportedPatternError(node.kind);

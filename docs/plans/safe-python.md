@@ -11529,6 +11529,31 @@ extension, integration, or validation requirement is missing or unverified.
   This is the first match-runtime stage, not complete structural matching:
   sequence, mapping and class patterns still fail explicitly and are next.
   Pattern semantics reference: https://peps.python.org/pep-0634/
+- Sequence match execution (2026-09-11): six failing native statement tests
+  reproduced missing sequence support for nested/starred patterns, wrong lengths
+  and ineligible subjects. The pattern work machine now consumes ordered
+  subpattern extractions without recursive calls and restores pending captures
+  when a sequence alternative fails. A separate runtime sequence adapter uses
+  exact list/tuple/range eligibility and trusted MRO pattern-kind metadata for
+  subclasses or explicitly provided host types. Sequence protocol table presence,
+  textual names and duck typing do not grant eligibility. ABC registration and
+  additional standard-library sequence types remain part of the module work.
+  Length checks precede extraction; fixed wildcard-only patterns avoid iteration,
+  and a star-only wildcard skips sizing entirely. Ignored-star patterns use
+  indexed prefix/suffix access and skip wildcard reads, while capture-star and
+  ordinary patterns reuse metered assignment unpacking. Star captures receive
+  fresh guest lists. Protocol failures propagate, including inconsistent lengths,
+  and failed pattern extraction does not close guest iterators. New metadata,
+  iterator work and binding adapters are accounted to the execution meter.
+  The focused four-file suite passes 1,011 tests, including subclass protocol
+  order, fake sequence rejection, enormous range wildcard handling, alternative
+  capture rollback and cancellation during extraction. Mapping/class patterns
+  still fail explicitly and remain next; this is not complete match coverage.
+  All 852 scoped CPython comparisons match: 324 sequence subject/pattern cases,
+  144 subclass protocol cases and the earlier 384 core/suspended-guard cases.
+  Workspace build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker full suite passes 8,083 tests in 531 files
+  (132.80s; test bodies 10.10s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -30,6 +30,23 @@ it("does not treat a comparison error as a failed alternative",()=>{
   expect(()=>matchPattern(parsePattern("1|2"),2n,state.context,state.meter)).toThrow(failure);
   expect(calls).toBe(1);
 });
+it("discards failed sequence-alternative captures without closing extraction iterators",()=>{
+  const state=fixture(),writes:string[]=[];let closed=0;
+  state.context.store=(name,value)=>{writes.push(name);state.names.set(name,value);};
+  state.context.sequence=(pattern,subject)=>{
+    if(!Array.isArray(subject))return undefined;
+    let index=0;
+    return {next(){return index===pattern.items.length?{done:true,value:undefined}:{done:false,value:{pattern:pattern.items[index],value:subject[index++]}};},return(){closed++;return {done:true,value:undefined};}};
+  };
+  expect(matchPattern(parsePattern("([x,1]|[x,2])"),[7n,2n],state.context,state.meter)).toBe(true);
+  expect(writes).toEqual(["x"]);expect(state.names.get("x")).toBe(7n);expect(closed).toBe(0);
+});
+it("checks cancellation when sequence extraction throws before captures publish",()=>{
+  const state=fixture(),controller=new AbortController();
+  state.context.sequence=()=>({next(){controller.abort();throw Error("extract");}});
+  expect(()=>matchPattern(parsePattern("[x]"),[],state.context,new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:100000,signal:controller.signal}))).toThrow(ExecutionLimitError);
+  expect(state.names.size).toBe(0);
+});
 it.each(["position","evaluate","equal","identical","store"] as const)("preserves cancellation over %s callback faults",operation=>{
   const state=fixture(),controller=new AbortController();
   state.context[operation]=()=>{controller.abort();throw Error("callback");};

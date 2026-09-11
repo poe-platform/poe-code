@@ -298,7 +298,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#tupleType !== undefined) return this.#tupleType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("tuple", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
+    const layout = new RuntimeTypeLayout("tuple", [this.object.value], namespace, this.meter, { patternKind:"sequence",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, variableSized: true });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeTupleSlots(type, this.values, this.meter);
     installRuntimeTupleArithmeticSlots(type, this.values, this.meter);
@@ -423,7 +423,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#rangeType !== undefined) return this.#rangeType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("range", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false });
+    const layout = new RuntimeTypeLayout("range", [this.object.value], namespace, this.meter, { patternKind:"sequence",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     namespace.items.set(this.values.string("__new__"), createRangeNewBuiltin(type, this.values, this.meter));
     namespace.items.set(this.values.string("__doc__"), this.values.string("range(stop) -> range object\nrange(start, stop[, step]) -> range object\n\nReturn an object that produces a sequence of integers from start (inclusive)\nto stop (exclusive) by step.  range(i, j) produces i, i+1, i+2, ..., j-1.\nstart defaults to 0, and stop is omitted!  range(4) produces 0, 1, 2, 3.\nThese are exactly the valid indices for a list of 4 elements.\nWhen step is given, it specifies the increment (or decrement)."));
@@ -626,7 +626,7 @@ export class RuntimeTypeRegistry {
     this.meter.checkpoint();
     if (this.#listType !== undefined) return this.#listType;
     const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
-    const layout = new RuntimeTypeLayout("list", [this.object.value], namespace, this.meter, { sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
+    const layout = new RuntimeTypeLayout("list", [this.object.value], namespace, this.meter, { patternKind:"sequence",sequenceTable: true, instanceDictionary: false, objectLayout: false, weakReferences: false });
     const type = this.values.type(layout, this.type, { immutable: true });
     installRuntimeListMethodDescriptors(type, this.values, this.meter);
     installRuntimeListSequenceSlots(type, this.values, this.meter);

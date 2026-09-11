@@ -471,8 +471,9 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       createLambda: definitions.create.bind(definitions),
       comprehension(node) {
         meter.checkpoint();
-        if(node.kind==="comprehension"&&node.collection==="generator"&&context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
-        if(node.kind!=="comprehension"||node.collection!=="generator")for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
+        const generator=node.kind==="comprehension"&&node.collection==="generator";
+        if(generator&&context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
+        if(!generator)for(const clause of node.clauses){meter.checkpoint();if(clause.async)throw new UnsupportedExpressionError(node.kind);}
         const scope=comprehensions?.get(node);
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
         const leave=calls.enter(frame);
@@ -481,8 +482,8 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           meter.checkpoint(0,192);
           const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
           const code=generatorExpressions?.get(node);
-          const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,node.kind==="comprehension"&&node.collection==="generator"?scope.scope:frame.scope.scope);
-          if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
+          const child=new LexicalFrame(scope,{...namespaces,closure,enclosingClosure:generator?undefined:namespaces.closure},meter,generator?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,generator?scope.scope:frame.scope.scope);
+          if(generator)return generatorComprehension(node,source,child);
           const outer=expressions.iterate(source);
           const restore=frame.reflectLocals().enterInline(child.reflectLocals());
           try {
@@ -511,14 +512,15 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       expressions.delegate=source=>suspension.delegate(source,builtinCalls);
       expressions.awaitValue=source=>suspension.delegate(source,builtinCalls,true);
       expressions.comprehensionContinuation=function*(node) {
+        const generator=node.kind==="comprehension"&&node.collection==="generator";
         const scope=comprehensions?.get(node);
         if(scope===undefined)throw Error("comprehension has no matching compiled scope");
         const source=yield* createExpressionContinuation(node.clauses[0].iterable,expressions,meter,values.none);
         meter.checkpoint(0,256);
         const closure=bindings instanceof LexicalFrame||bindings instanceof ClassFrame?bindings.capture(scope):undefined;
         const code=generatorExpressions?.get(node);
-        const child=new LexicalFrame(scope,{...namespaces,closure},meter,node.kind==="comprehension"&&node.collection==="generator"?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,node.kind==="comprehension"&&node.collection==="generator"?scope.scope:frame.scope.scope);
-        if(node.kind==="comprehension"&&node.collection==="generator")return generatorComprehension(node,source,child);
+        const child=new LexicalFrame(scope,{...namespaces,closure,enclosingClosure:generator?undefined:namespaces.closure},meter,generator?code?.localLayout:compileInlineLocalLayout(scope,meter,inlineLayouts),code,generator?scope.scope:frame.scope.scope);
+        if(generator)return generatorComprehension(node,source,child);
         const outer:ComprehensionIterator<RuntimeValue>=node.clauses[0].async
           ?{kind:"async",value:createRuntimeAsyncIterator(source,builtinCalls,value=>suspension.delegate(value,builtinCalls,"anext"),values,meter)}
           :{kind:"sync",value:expressions.iterate(source)};

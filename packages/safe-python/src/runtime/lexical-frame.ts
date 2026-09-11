@@ -33,6 +33,9 @@ export interface LexicalNamespaces<Value> {
    */
   readonly builtins: NameNamespace<Value>;
   readonly closure?: ReadonlyMap<string, LexicalCell<Value>>;
+  /** Enclosing code's captures remain available to inline binding environments.
+   * A suite free cell and a forwarded construction cell may share a name. */
+  readonly enclosingClosure?:ReadonlyMap<string,LexicalCell<Value>>;
 }
 
 /** Storage for analyzed optimized scopes. A fresh instance represents one call
@@ -75,8 +78,13 @@ export class LexicalFrame<Value> extends ExecutionFrame {
     }
     for (const [name, owner] of scope.free) {
       meter.checkpoint();
-      const cell = namespaces.closure?.get(name);
+      let cell = namespaces.closure?.get(name);
       if (!cell || cell.owner !== owner) throw new Error(`missing or invalid closure cell: ${name}`);
+      const direct=scope.bindings.get(name);
+      if(direct?.kind==="free"&&direct.owner!==owner){
+        cell=namespaces.enclosingClosure?.get(name);
+        if(!cell||cell.owner!==direct.owner)throw new Error(`missing or invalid direct closure cell: ${name}`);
+      }
       if(isolated?.has(name)){meter.checkpoint(0,48);this.#cells.set(name,{owner,codeScope});}
       else this.#cells.set(name, cell);
     }
@@ -160,7 +168,9 @@ export class LexicalFrame<Value> extends ExecutionFrame {
     const closure = new Map<string, LexicalCell<Value>>();
     for (const [name, owner] of child.free) {
       this.meter.checkpoint();
-      const cell = this.#cells.get(name);
+      let cell = this.#cells.get(name);
+      if(cell?.owner!==owner)cell=this.namespaces.closure?.get(name);
+      if(cell?.owner!==owner)cell=this.namespaces.enclosingClosure?.get(name);
       if (!cell || cell.owner !== owner) throw new Error(`missing or invalid closure cell: ${name}`);
       closure.set(name, cell);
     }

@@ -88,7 +88,22 @@ export function resolveSymbols(scope: SymbolScope, filename = "<string>"): Resol
   }
   for (const frame of frames) {
     for (const name of frame.events.keys()) {
-      const binding = resolve(frame, name);
+      let binding = resolve(frame, name);
+      if(name==="__class__"&&binding.kind==="free"&&binding.owner.kind==="class"){
+        let codeFrame=frame;
+        while(codeFrame.parent){
+          const node=codeFrame.result.scope.node;
+          if(node.kind!=="dictionary-comprehension"&&(node.kind!=="comprehension"||node.collection==="generator"))break;
+          codeFrame=codeFrame.parent;
+        }
+        // A class suite cannot read its own construction cell. Inlining moves
+        // direct comprehension reads into that suite, but real nested code
+        // (methods, lambdas and generator expressions) still captures the cell.
+        if(codeFrame.result.scope===binding.owner){
+          const existing=codeFrame.bindings.get(name);
+          binding=existing?.kind==="free"?existing:{kind:"global",owner:root.result.scope};
+        }
+      }
       frame.bindings.set(name, binding);
     }
   }

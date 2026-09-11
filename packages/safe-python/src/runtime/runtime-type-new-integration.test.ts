@@ -486,6 +486,22 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it.each(["seen=__class__","if False:seen=__class__","nonlocal __class__"])("separates existing suite cells from nested class-cell captures: %s",before=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("__class__=7\ndef outer(__class__):\n class C:\n  "+before+"\n  r=[(__class__,lambda:__class__) for x in [1]]\n return C\nC=outer(9)\ncorrect=C.r[0][0]==9 and C.r[0][1]() is C\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it.each([false,true])("uses global __class__ in direct class comprehensions: nested=%s",nested=>{
+  const state=exceptionFixture(),{v}=state;
+  const expression=nested?"[(__class__,[__class__ for y in [1]],lambda:__class__) for x in [1]]":"[(__class__,lambda:__class__) for x in [1]]";
+  state.run("__class__=7\nclass C:\n r="+expression+"\n def method(self):return [__class__ for x in [1]]\n g=(__class__ for x in [1])\ncorrect=C.r[0][0]==7 and C.r[0]["+(nested?"2":"1")+"]() is C and C().method()==[C] and C.g.__next__() is C"+(nested?" and C.r[0][1]==[7]":"")+"\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("reports missing global __class__ rather than an unbound class cell",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("correct=False\ntry:\n class C:\n  r=[__class__ for x in [1]]\nexcept NameError as e:correct=e.args==(\"name '__class__' is not defined\",)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("reports unbound inline reads as locals while keeping nested closure reads free",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("def outer(x):\n def f():\n  [x for x in [1]]\n  keep=lambda:x\n  return [x for y in [1]]\n return f()\ncorrect=False\ntry:outer(9)\nexcept NameError as e:correct=type(e).__name__=='UnboundLocalError' and e.args==(\"cannot access local variable 'x' where it is not associated with a value\",)\n");

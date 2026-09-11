@@ -4,6 +4,27 @@ import { collectSymbols } from "./symbol-collection.js";
 import { resolveSymbols } from "./symbol-resolution.js";
 
 describe("lexical binding resolution", () => {
+  it("preserves an existing class-suite free binding separately from nested class-cell capture",()=>{
+    const root=resolveSymbols(collectSymbols(parseModule("def outer(__class__):\n class C:\n  seen=__class__\n  r=[(__class__,lambda:__class__) for x in [1]]\n return C"))),outer=root.children[0],cls=outer.children[0],inline=cls.children[0];
+    expect(inline.bindings.get("__class__")).toEqual({kind:"free",owner:outer.scope});
+    expect(inline.children[0].bindings.get("__class__")).toEqual({kind:"free",owner:cls.scope});
+  });
+  it("uses globals for direct class-inline __class__ reads while retaining nested captures",()=>{
+    const root=resolveSymbols(collectSymbols(parseModule("class C:\n r=[(__class__,lambda:__class__) for x in [1]]\n def f(self):return [__class__ for x in [1]]\n g=(__class__ for x in [1])")));
+    const cls=root.children[0],inline=cls.children[0],lambda=inline.children[0],method=cls.children[1],generator=cls.children[2];
+    expect(inline.bindings.get("__class__")).toEqual({kind:"global",owner:root.scope});
+    for(const scope of [lambda,method.children[0],generator])expect(scope.bindings.get("__class__")).toEqual({kind:"free",owner:cls.scope});
+    expect(cls.cells.has("__class__")).toBe(true);
+  });
+  it("does not allocate class cells for direct-only nested inline reads",()=>{
+    const root=resolveSymbols(collectSymbols(parseModule("class C:\n r=[[__class__ for y in [1]] for x in [1]]"))),cls=root.children[0];
+    expect(cls.children[0].children[0].bindings.get("__class__")).toEqual({kind:"global",owner:root.scope});
+    expect(cls.cells.has("__class__")).toBe(false);
+  });
+  it("keeps a comprehension's own __class__ target lexical",()=>{
+    const root=resolveSymbols(collectSymbols(parseModule("class C:\n r=[[__class__ for y in [1]] for __class__ in [1]]"))),outer=root.children[0].children[0];
+    expect(outer.children[0].bindings.get("__class__")).toEqual({kind:"free",owner:outer.scope});
+  });
   it("promotes inlined locals to owners of already-free nested references",()=>{
     const root=resolveSymbols(collectSymbols(parseModule("def outer(x):\n def f():\n  keep=lambda:x\n  r=[x for x in [1]]\n  return keep\n return f")));
     const outer=root.children[0],fn=outer.children[0],lambda=fn.children[0];

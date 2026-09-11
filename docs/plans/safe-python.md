@@ -11444,6 +11444,27 @@ extension, integration, or validation requirement is missing or unverified.
   scope-resolution audit target. Performance, instruction metadata, automatic
   tracebacks, imports/stdlib, public interpreter and safe-fs integration remain
   unfinished; this does not establish full Python compatibility.
+- Class-body inline class-cell resolution (2026-09-11): failing symbol and
+  native regressions established that direct materialized-comprehension reads
+  of __class__ must use globals unless the class suite already has an enclosing
+  free binding. Actual nested lambdas, methods and generator expressions retain
+  the construction cell; comprehension loop targets remain lexical. Resolution
+  now distinguishes those reads before inline symbol promotion. Broader CPython
+  comparisons exposed simultaneous suite-free and construction cells with the
+  same name. Inline binding environments retain enclosing captures separately
+  and select cells by exact static owner, without changing real generator
+  expression capture boundaries. Failing regressions preceded both fixes.
+  All 480 CPython comparisons match: 288 lookup variants and 192 mixed capture
+  variants, covering nested comprehensions, outer inputs, declarations, suite
+  reads, lambda defaults and generator-expression captures.
+  Workspace build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker full package suite passes 8,055 tests in 530 files
+  (83.95s; test bodies 7.62s).
+  A separate reflective-locals probe remains a verified failure: an explicit
+  proxy for a retained class frame exposes the enclosing __class__ value instead
+  of the constructed class and collapses duplicate physical names. CPython also
+  exposes a __classdict__ slot absent here. This probe is not counted as a pass;
+  physical slot reflection and class-dictionary capture require a separate audit.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

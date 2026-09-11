@@ -6,6 +6,7 @@ on:
     paths:
       - "packages/safe-js/**"
       - "packages/safe-bash/**"
+      - "packages/safe-bash-optional/**"
       - "packages/safe-fs/**"
       - "scripts/package-safe*"
       - "scripts/fixtures/safe-packages-*"
@@ -39,35 +40,83 @@ jobs:
           node --version
           npm --version
           bun --revision
+      - name: Require the optional package documentation
+        run: test -s packages/safe-bash-optional/README.md
       - name: Compute the next shared version
         id: version
         shell: bash
         run: |
           set -euo pipefail
-          JS=$(npm view @poe-platform/safe-js version)
-          FS=$(npm view @poe-platform/safe-fs version)
-          BASH_VERSION_REMOTE=$(npm view @poe-platform/safe-bash version)
-          NEXT=$(node --input-type=module -e 'import semver from "semver"; const versions = process.argv.slice(1); if (!versions.every(version => semver.valid(version))) throw new Error("Invalid registry version"); console.log(semver.inc(versions.sort(semver.rcompare)[0], "patch"));' "$FS" "$JS" "$BASH_VERSION_REMOTE")
-          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from "node:fs";
+          import semver from "semver";
+          const versions = [];
+          for (const name of ["safe-fs", "safe-js", "safe-bash", "safe-bash-optional"]) {
+            const fullName = `@poe-platform/${name}`;
+            const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(fullName)}/latest`, {
+              signal: AbortSignal.timeout(30_000), redirect: "error",
+            });
+            if (response.status === 404) {
+              await response.body?.cancel();
+              throw new Error(`${fullName}: registry HTTP 404; external package/bootstrap setup remains required. Absence does not establish publishing permission.`);
+            }
+            if (!response.ok) {
+              await response.body?.cancel();
+              throw new Error(`${fullName}: registry HTTP ${response.status}; not a missing-package fallback`);
+            }
+            const chunks = [];
+            let size = 0;
+            for await (const chunk of response.body) {
+              size += chunk.byteLength;
+              if (size > 1_048_576) throw new Error(`${fullName}: registry metadata exceeds 1 MiB`);
+              chunks.push(chunk);
+            }
+            const metadata = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+            if (metadata.name !== fullName || !semver.valid(metadata.version)) throw new Error(`${fullName}: invalid registry metadata`);
+            versions.push(metadata.version);
+          }
+          const next = semver.inc(versions.sort(semver.rcompare)[0], "patch");
+          appendFileSync(process.env.GITHUB_OUTPUT, `next=${next}\n`);
+          NODE
       - run: npm run build
       - run: npx vitest run scripts/package-safe.test.ts
+      - run: npm run test:unit --workspace=@poe-code/safe-bash-optional
       - run: npm run lint:packages
       - name: Prepare scoped artifacts
         env:
           VERSION: ${{ steps.version.outputs.next }}
-        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version "$VERSION"
+        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version "$VERSION" --include-optional
       - name: Verify installed tarballs
         shell: bash
         run: |
           set -euo pipefail
+          TARBALLS=$(mktemp -d)
+          npm pack "$RUNNER_TEMP/safe-npm/safe-fs" --ignore-scripts --pack-destination "$TARBALLS"
+          npm pack "$RUNNER_TEMP/safe-npm/safe-js" --ignore-scripts --pack-destination "$TARBALLS"
+          npm pack "$RUNNER_TEMP/safe-npm/safe-bash" --ignore-scripts --pack-destination "$TARBALLS"
+          npm pack "$RUNNER_TEMP/safe-npm/safe-bash-optional" --ignore-scripts --pack-destination "$TARBALLS"
+          OPTIONAL_CONSUMER=$(mktemp -d)
+          cp scripts/fixtures/safe-packages-optional.mjs scripts/fixtures/safe-packages-optional-no-yaml.mjs scripts/fixtures/safe-packages-optional-types.mts "$OPTIONAL_CONSUMER/"
+          cd "$OPTIONAL_CONSUMER"
+          npm init --yes
+          npm install --ignore-scripts --omit=optional --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz "$TARBALLS"/poe-platform-safe-bash-optional-*.tgz
+          node safe-packages-optional-no-yaml.mjs
+          bun safe-packages-optional-no-yaml.mjs
+          "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module NodeNext --moduleResolution NodeNext --target ES2023 --typeRoots "$GITHUB_WORKSPACE/node_modules/@types" --types node safe-packages-optional-types.mts
+          npm install --ignore-scripts --no-audit --no-fund --save-exact yaml@2.9.0
+          SECOND_CONSUMER=$(mktemp -d)
+          cd "$SECOND_CONSUMER"
+          npm init --yes
+          npm install --ignore-scripts --no-audit --no-fund --save-exact "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz "$TARBALLS"/poe-platform-safe-bash-optional-*.tgz yaml@2.9.0
+          cd "$OPTIONAL_CONSUMER"
+          node safe-packages-optional.mjs "$SECOND_CONSUMER"
+          bun safe-packages-optional.mjs "$SECOND_CONSUMER"
+          "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module NodeNext --moduleResolution NodeNext --target ES2023 --typeRoots "$GITHUB_WORKSPACE/node_modules/@types" --types node safe-packages-optional-types.mts
           CONSUMER=$(mktemp -d)
-          npm pack "$RUNNER_TEMP/safe-npm/safe-fs" --ignore-scripts --pack-destination "$CONSUMER"
-          npm pack "$RUNNER_TEMP/safe-npm/safe-js" --ignore-scripts --pack-destination "$CONSUMER"
-          npm pack "$RUNNER_TEMP/safe-npm/safe-bash" --ignore-scripts --pack-destination "$CONSUMER"
-          cp scripts/fixtures/safe-packages-* "$CONSUMER/"
+          cp "$GITHUB_WORKSPACE"/scripts/fixtures/safe-packages-* "$CONSUMER/"
           cd "$CONSUMER"
           npm init --yes
-          npm install --ignore-scripts --no-audit --no-fund ./*.tgz
+          npm install --ignore-scripts --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-js-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
           node safe-packages-smoke.mjs
           bun safe-packages-smoke.mjs
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 safe-packages-types.mts
@@ -79,7 +128,7 @@ jobs:
           cp "$GITHUB_WORKSPACE/scripts/fixtures/safe-packages-fs-only.mjs" "$FS_ONLY/"
           cd "$FS_ONLY"
           npm init --yes
-          npm install --ignore-scripts --no-audit --no-fund "$CONSUMER"/poe-platform-safe-fs-*.tgz
+          npm install --ignore-scripts --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz
           node safe-packages-fs-only.mjs
           bun safe-packages-fs-only.mjs
       - name: Publish SafeFS with provenance
@@ -88,3 +137,24 @@ jobs:
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-js" --provenance --access public
       - name: Publish Safe Bash with provenance
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public
+      - name: Verify the published prerequisite versions
+        env:
+          VERSION: ${{ steps.version.outputs.next }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for PACKAGE in safe-fs safe-js safe-bash; do
+            ACTUAL=$(npm view "@poe-platform/$PACKAGE@$VERSION" version --json --registry=https://registry.npmjs.org/)
+            node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]), process.argv[2]);' "$ACTUAL" "$VERSION"
+          done
+      - name: Publish optional Safe Bash with provenance
+        run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash-optional" --provenance --access public
+      - name: Verify the optional publication
+        env:
+          VERSION: ${{ steps.version.outputs.next }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL=$(npm view "@poe-platform/safe-bash-optional@$VERSION" version --json --registry=https://registry.npmjs.org/)
+          node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]), process.argv[2]);' "$ACTUAL" "$VERSION"
+          printf 'Published and registry-verified safe-fs, safe-js, safe-bash and safe-bash-optional at %s\n' "$VERSION" >> "$GITHUB_STEP_SUMMARY"

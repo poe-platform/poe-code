@@ -1,5 +1,18 @@
 # Installable opt-in scripting distribution
 
+## September 11 shipping authorization
+
+The user authorized committing and releasing the current WIP. This supersedes
+the historical commit and README permission blockers below. The required
+optional-package README now documents usage, configuration, and environment.
+Full local tests, lint, and build are running; their completion is not yet
+claimed. Integration with newer remote main remains necessary.
+
+The public optional package still returns HTTP 404 from the npm registry.
+GitHub-only bootstrap and trusted publishing remain publication prerequisites;
+no local publication or credential fallback is authorized or attempted.
+The prior dated checkpoints remain historical evidence, not current acceptance.
+
 ## Status and authority
 
 September 6, 2026: design for root adjudication, not an implemented or published
@@ -171,3 +184,113 @@ proposed future write sets, not permissions to edit those files now.
 Unit packaging tests remain memfs-only. Installed archive tests and publication
 are future separately admitted integration work; no new native oracle is needed
 to reproduce the packaging defect.
+
+## September 6 implementation checkpoint
+
+The separately authorized core host now directly re-exports five canonical
+runtime helpers and twenty types through `./optional-host`; its four-file
+source/manifest freeze has independent approval
+(`/tmp/optional-host-independent-w9MHtU/approval.json`, SHA256
+`bda77b85b0cd0375f8e153395c3cf2394ebdbf64b66f295dcef3522c5b21cf4a`).
+The source test is now literally enrolled after the separate trapped-wait
+commit closed. This does not establish installed or published identity.
+
+The new private checkout workspace is `@poe-code/safe-bash-optional`, distinct
+from the proposed generated public name. Its build dependency declarations
+use only existing private `virtual-bash` and `@poe-code/safe-fs` workspaces;
+there are no unpublished public peers to resolve during installation. Its
+declared unit task owns the optional workspace tests, while the maintained
+build planner orders the filesystem and core prerequisites first. The lifecycle
+passes the actual maintained `buildPackage` callback to the separate graph
+stage, rejects CLI option overrides and preserves failed-stage outcomes.
+
+The initial ten integration controls failed before these files existed, then
+the nine lifecycle controls and task-discovery control passed. A further
+memfs integration control exposes a remaining interface mismatch: the frozen
+graph stage requires the publication manifest's public name and peers before
+calling the compiler, so it rejects this install-safe private manifest. That
+red is retained in `/tmp/optional-workspace-integration-cC98sL`; the graph-stage
+owner must resolve the private-build versus publication-manifest boundary.
+Mocked lifecycle success is not a real optional compilation result.
+
+The lockfile was updated by npm in package-lock-only, ignore-scripts, offline
+mode; exactly the workspace record and its local link were added, with no
+existing package records changed. Actual compilation, generated artifacts,
+installed consumers, README permission and release workflow integration remain
+pending. The observed anonymous public-name 404 does not prove namespace
+availability, publishing permission or trusted-publisher bootstrap. Publication
+must use the separately approved GitHub-only route, without a token fallback
+or an assumption that OIDC can bootstrap a new npm package.
+
+## September 6 release-workflow integration
+
+The authorized workflow delta adds the optional workspace path trigger and
+uses the maintained workspace build plus explicit generator
+`--include-optional`. Its installed optional fixture interface is
+`node safe-packages-optional.mjs <absolute-second-installed-consumer>` (also
+run with Bun), with adjacent no-YAML and strict TypeScript fixtures. These
+fixtures and the generator remain owned by their separate authors. No build,
+pack, installation or registry operation was run to validate this workflow
+edit; syntax validation is not installed-artifact acceptance.
+
+The no-YAML consumer installs only the three matching filesystem/core/optional
+tarballs before YAML or the legacy root package can enter that graph. A
+second, independently installed graph supplies the identity-rejection control.
+The YAML profile pins `2.9.0`. Existing scoped core, browser, legacy coexistence
+and filesystem-only consumers are retained. The generator's unflagged
+three-artifact contract remains unchanged.
+
+Version selection requires valid public metadata for all four packages and
+distinguishes actual HTTP 404 from other HTTP, network and metadata failures;
+there is no zero-version fallback. An absent optional name blocks this route
+pending external setup. The optional README is an explicit prerequisite, not
+permission to write it. Existing three publication commands remain ordered;
+their exact versions must be registry-visible before the optional fourth
+publish, whose exact version is also required before the success summary.
+No optional-publish skip, token fallback or automatic trust/bootstrap mutation
+is introduced. The separate original-worktree workflow is not yet a published
+optional distribution and does not alter the frozen delivery clone.
+
+## September 6 compiled optional candidate checkpoint
+
+The canonical optional-host interface is locally committed as
+`2e25b9d121c614c242773e2fd52427c9e298b1eb`; its five paths are excluded from
+the remaining optional-distribution commit inventory. The private-manifest
+admission red above is resolved by the separately reviewed builder/compiler
+interface: the unchanged workspace cohort passes 71/71, enrollment 98/98,
+and discovery 27/27. These controls do not substitute for installed consumers.
+
+The maintained selected build
+`npm run build:workspaces -- --workspace=@poe-code/safe-bash-optional`
+now passes through the filesystem, core, and optional lifecycle stages.
+Receipt `/tmp/optional-selected-build-Qs4xsL/final.json` has SHA256
+`bf2ff172d25783977733f1c758774871913b285d56e25146f545d1d5f48a452d`:
+959 inputs remained stable; the optional output contains 39 JavaScript and
+20 declaration files with 180 resolved module edges, no core vendoring and
+no emitted maps. This is actual compilation, not pack/install acceptance or
+proof that default scoped artifacts exclude optional compiler leftovers.
+
+The installed fixtures have static review only. The workflow now runs their
+exact strict TypeScript profile both before and after adding YAML 2.9.0;
+the no-YAML runtime profile still precedes legacy-root installation.
+Workflow-delta approval `/tmp/optional-workflow-delta-independent-mdqSqb/approval.json`
+has SHA256 `d2bc84451576c0f169a7b8ae2902336144040f7f86d35e5fa2fdb50dde4fe979`;
+maintained workflow lint passes, but no installed execution is implied.
+
+The remaining source inventory is 17 paths: the workflow, publishing guide,
+this plan, lockfile, two core compiler files, five optional workspace files,
+two generator files, workspace test ownership, and three installed fixtures.
+Exact current bindings are captured under `/tmp/optional-consolidated-NENFKI`.
+Generated outputs, committed host paths and unrelated working-tree changes
+are excluded. The generator has a newer OG1 path-admission repair frozen at
+`/tmp/optional-generator-OG1-6xa0ji/freeze.json`; its independent rereview is
+pending rather than inherited from the earlier generator candidate.
+
+README permission/content and generator approval still block this source
+commit. Actual default/optional pack inspection, fresh matching-tarball
+Node/Bun consumers, before/after-YAML declaration checks and foreign-graph
+rejection remain pending. Public-name ownership, bootstrap and trusted
+publisher configuration remain external prerequisites; anonymous 404 is not
+permission or availability evidence. No commit, push, registry mutation or
+publication is authorized by this checkpoint, and broader Bash/tool parity
+remains outside these distribution results.

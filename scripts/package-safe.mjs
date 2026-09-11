@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { builtinModules } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import semver from "semver";
 import glob from "fast-glob";
@@ -9,6 +9,11 @@ import ts from "typescript";
 import { build } from "esbuild";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
 
+/**
+ * @param {string} filename
+ * @param {string} text
+ * @param {(specifier: string) => string} rewrite
+ */
 export function rewriteModuleSpecifiers(filename, text, rewrite) {
   const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true);
   const replacements = [];
@@ -47,7 +52,157 @@ function publicSpecifier(specifier) {
   return specifier;
 }
 
-export async function packageSafeLibraries({ rootDir, outDir, version, files = fs, bundle = build }) {
+async function prepareOptionalPackage({ rootDir, version, files, root, workspaces, excluded }) {
+  const name = "safe-bash-optional";
+  const packageDir = path.join(rootDir, "packages", name);
+  const dist = path.join(packageDir, "dist");
+  const source = workspaces.find(workspace => workspace.dir === name)?.pkg;
+  if (!source || source.name !== "@poe-code/safe-bash-optional" || source.private !== true || source.type !== "module"
+    || Object.keys(source.exports ?? {}).join() !== "." || source.exports["."].import !== "./dist/optional.js"
+    || source.exports["."].types !== "./dist/optional.d.ts" || Object.keys(source.exports["."]).sort().join() !== "import,types") {
+    throw new Error("Optional workspace must declare its single built dist/optional.js and dist/optional.d.ts entry");
+  }
+  const peers = new Map(["safe-bash", "safe-fs"].map(peer => ["@poe-platform/" + peer, workspaces.find(workspace => workspace.dir === peer)]));
+  const core = peers.get("@poe-platform/safe-bash");
+  if (core?.pkg.peerDependencies?.yaml !== "2.9.0" || core.pkg.peerDependenciesMeta?.yaml?.optional !== true) {
+    throw new Error("Optional package requires the qualified optional yaml 2.9.0 peer");
+  }
+  const read = async filename => {
+    if (!filename.startsWith(packageDir + path.sep)) throw new Error(`Optional file escapes workspace: ${filename}`);
+    let current = packageDir;
+    const segments = ["", ...path.relative(packageDir, filename).split(path.sep)];
+    for (const segment of segments) {
+      current = path.join(current, segment);
+      let stat;
+      try { stat = await files.lstat(current); }
+      catch (error) {
+        if (error.code === "ENOENT") throw new Error(`Missing optional package prerequisite: ${path.relative(packageDir, filename)}`, { cause: error });
+        throw error;
+      }
+      if (stat.isSymbolicLink() || (current === filename ? !stat.isFile() : !stat.isDirectory())) throw new Error(`Expected regular optional input: ${filename}`);
+    }
+    return files.readFile(filename);
+  };
+  const readme = await read(path.join(packageDir, "README.md"));
+  const peerTarget = async (specifier, declaration) => {
+    const peerName = specifier.split("/").slice(0, 2).join("/");
+    const peer = peers.get(peerName);
+    if (!peer) throw new Error(`Unmapped optional peer: ${specifier}`);
+    const key = "." + specifier.slice(peerName.length);
+    const routes = Object.entries(peer.pkg.exports ?? {}).sort(([left], [right]) => Number(left.includes("*")) - Number(right.includes("*")) || right.split("*")[0].length - left.split("*")[0].length || right.length - left.length);
+    for (const [route, value] of routes) {
+      const parts = route.split("*");
+      const match = route === key ? "" : parts.length === 2 && key.startsWith(parts[0]) && key.endsWith(parts[1]) ? key.slice(parts[0].length, key.length - parts[1].length) : undefined;
+      if (match === undefined) continue;
+      let target = value;
+      while (target && typeof target === "object" && !Array.isArray(target)) target = declaration && target.types !== undefined ? target.types : target.import ?? target.default;
+      if (typeof target !== "string" || !target.startsWith("./dist/")) break;
+      for (const value of [match, target.slice(2)]) {
+        for (const segment of value.replaceAll("\\", "/").split("/")) {
+          let decoded = segment.toLowerCase();
+          for (const character of ".node_modules") {
+            for (const spelling of [character, character.toUpperCase()]) decoded = decoded.replaceAll("%" + spelling.charCodeAt(0).toString(16), character);
+          }
+          if ([".", "..", "node_modules"].includes(decoded)) throw new Error(`Invalid optional peer subpath: ${specifier}`);
+        }
+      }
+      const template = new URL(target, pathToFileURL(path.join(rootDir, "packages", peer.dir, "package.json")));
+      const completed = new URL(template.href.replaceAll("*", () => match));
+      if (["%2f", "%5c"].some(encoded => completed.pathname.toLowerCase().includes(encoded))) throw new Error(`Invalid optional peer subpath: ${specifier}`);
+      fileURLToPath(completed);
+      target = target.replaceAll("*", match);
+      if (declaration && target.endsWith(".js")) target = target.slice(0, -3) + ".d.ts";
+      const filename = path.resolve(rootDir, "packages", peer.dir, target);
+      if (!filename.startsWith(path.join(rootDir, "packages", peer.dir, "dist") + path.sep) || excluded(filename)) break;
+      const stat = await files.lstat(filename);
+      if (!stat.isFile() || stat.isSymbolicLink()) break;
+      return;
+    }
+    throw new Error(`Unexported optional peer route: ${specifier}`);
+  };
+  const contents = new Map();
+  const inspected = new Set();
+  const pending = ["optional.js", "optional.d.ts"].map(relative => ({ filename: path.join(dist, relative), asset: false }));
+  while (pending.length) {
+    const { filename, asset } = pending.pop();
+    if (!filename.startsWith(dist + path.sep)) throw new Error(`Optional module escapes owned output: ${filename}`);
+    if (!excluded(path.join(rootDir, "packages/safe-bash/dist", path.relative(dist, filename)))) throw new Error(`Not an optional-owned artifact: ${filename}`);
+    const bytes = contents.get(filename) ?? await read(filename);
+    contents.set(filename, bytes);
+    if (![".js", ".mjs", ".cjs", ".d.ts", ".d.mts", ".d.cts"].some(extension => filename.endsWith(extension))) {
+      if (asset || filename.endsWith(".json")) continue;
+      throw new Error(`Unsupported optional module: ${filename}`);
+    }
+    if (inspected.has(filename)) continue;
+    inspected.add(filename);
+    const declaration = [".d.ts", ".d.mts", ".d.cts"].some(extension => filename.endsWith(extension));
+    const parsed = ts.createSourceFile(filename, bytes.toString(), ts.ScriptTarget.Latest, true);
+    if (parsed.parseDiagnostics.length || parsed.referencedFiles.length || parsed.typeReferenceDirectives.length) throw new Error(`Unsupported optional module syntax: ${filename}`);
+    const edges = [];
+    const visit = node => {
+      if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) throw new Error(`Unsupported optional external import-equals: ${filename}`);
+      let literal, asset = false, edge = false;
+      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) { literal = node.moduleSpecifier; edge = literal !== undefined; }
+      else if (ts.isImportTypeNode(node)) { literal = ts.isLiteralTypeNode(node.argument) ? node.argument.literal : undefined; edge = true; }
+      else if (ts.isCallExpression(node) && (node.expression.kind === ts.SyntaxKind.ImportKeyword || ts.isIdentifier(node.expression) && node.expression.text === "require")) { literal = node.arguments[0]; edge = true; }
+      else if (ts.isNewExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "URL") {
+        const base = node.arguments?.[1];
+        if (base && ts.isPropertyAccessExpression(base) && base.name.text === "url" && ts.isMetaProperty(base.expression) && base.expression.keywordToken === ts.SyntaxKind.ImportKeyword) {
+          literal = node.arguments?.[0]; edge = true; asset = true;
+        }
+      }
+      if (edge) {
+        if (!literal || !ts.isStringLiteral(literal)) throw new Error(`Nonliteral optional module reference: ${filename}`);
+        edges.push({ specifier: literal.text, asset });
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(parsed);
+    for (const { specifier, asset } of edges) {
+      if (specifier.startsWith("./") || specifier.startsWith("../")) {
+        let target = path.resolve(path.dirname(filename), specifier);
+        if (declaration && !asset) {
+          for (const [runtime, types] of [[".js", ".d.ts"], [".mjs", ".d.mts"], [".cjs", ".d.cts"]]) if (target.endsWith(runtime)) { target = target.slice(0, -runtime.length) + types; break; }
+        }
+        pending.push({ filename: target, asset });
+      } else if (asset) throw new Error(`Unmapped optional asset: ${specifier}`);
+      else if (builtinModules.includes(specifier) || specifier.startsWith("node:") && builtinModules.includes(specifier.slice(5))) continue;
+      else if (specifier === "yaml") continue;
+      else await peerTarget(specifier, declaration);
+    }
+  }
+  return {
+    name, readme, contents: new Map([...contents].map(([filename, bytes]) => [path.relative(packageDir, filename), bytes])),
+    manifest: {
+      name: "@poe-platform/safe-bash-optional", version, description: source.description,
+      type: "module", license: root.license, engines: source.engines ?? { node: ">=22" }, files: ["dist"],
+      exports: { ".": { types: "./dist/optional.d.ts", import: "./dist/optional.js" } },
+      repository: { type: "git", url: "git+https://github.com/poe-platform/poe-code.git", directory: "packages/safe-bash-optional" },
+      publishConfig: { access: "public" },
+      peerDependencies: { "@poe-platform/safe-bash": version, "@poe-platform/safe-fs": version, yaml: "2.9.0" },
+      peerDependenciesMeta: { yaml: { optional: true } },
+    },
+  };
+}
+
+/**
+ * @param {{
+ * rootDir: string, outDir: string, version: string, includeOptional?: boolean,
+ * files?: {
+ *   readFile(path: string, encoding?: "utf8"): Promise<string | Buffer>,
+ *   stat(path: string): Promise<{ isFile(): boolean }>,
+ *   lstat(path: string): Promise<{ isFile(): boolean, isDirectory(): boolean, isSymbolicLink(): boolean }>,
+ *   readdir(path: string, options: { withFileTypes: true }): Promise<(string | Buffer | { name: string | Buffer, isDirectory(): boolean })[]>,
+ *   mkdir(path: string, options?: { recursive: boolean }): Promise<unknown>,
+ *   writeFile(path: string, data: string | Uint8Array): Promise<void>,
+ *   copyFile(source: string, destination: string): Promise<void>,
+ *   chmod(path: string, mode: number): Promise<void>
+ * },
+ * bundle?: (options: import("esbuild").BuildOptions & { write: false }) => Promise<{ outputFiles: { path: string, contents: Uint8Array }[] }>
+ * }} options
+ */
+export async function packageSafeLibraries({ rootDir, outDir, version, includeOptional = false, files = fs, bundle = build }) {
+  if (typeof includeOptional !== "boolean") throw new TypeError("includeOptional must be a boolean");
   if (!semver.valid(version)) throw new Error("A valid explicit package version is required");
   if (path.resolve(outDir) === path.resolve(rootDir) || path.resolve(outDir).startsWith(path.join(rootDir, "packages") + path.sep)) throw new Error("Output must not overwrite workspace packages");
   const readJson = async filename => JSON.parse(await files.readFile(filename, "utf8"));
@@ -90,6 +245,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
   };
   const results = [];
   const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
+  const optional = includeOptional ? await prepareOptionalPackage({ rootDir, version, files, root, workspaces, excluded }) : undefined;
   for (const name of ["safe-fs", "safe-js", "safe-bash"]) {
     const packageDir = path.join(rootDir, "packages", name);
     const source = await readJson(path.join(packageDir, "package.json"));
@@ -221,11 +377,28 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     for (const target of Object.values(manifest.bin ?? {})) await files.chmod(path.join(directory, target), 0o755);
     results.push({ name: manifest.name, directory, version, files: copied.size });
   }
+  if (optional) {
+    const directory = path.join(outDir, optional.name);
+    await files.mkdir(directory);
+    for (const [filename, bytes] of optional.contents) {
+      const target = path.join(directory, filename);
+      await files.mkdir(path.dirname(target), { recursive: true });
+      await files.writeFile(target, bytes);
+    }
+    await files.writeFile(path.join(directory, "package.json"), JSON.stringify(optional.manifest, null, 2) + "\n");
+    await files.writeFile(path.join(directory, "README.md"), optional.readme);
+    if (await exists(path.join(rootDir, "LICENSE"))) await files.copyFile(path.join(rootDir, "LICENSE"), path.join(directory, "LICENSE"));
+    results.push({ name: optional.manifest.name, directory, version, files: optional.contents.size });
+  }
   return results;
 }
 
+export function parsePackageSafeArguments(args = process.argv.slice(2)) {
+  const { values } = parseArgs({ args, options: { "out-dir": { type: "string" }, version: { type: "string" }, "include-optional": { type: "boolean", default: false } } });
+  if (!values["out-dir"] || !values.version) throw new Error("Usage: node scripts/package-safe.mjs --out-dir <directory> --version <version> [--include-optional]");
+  return { outDir: path.resolve(values["out-dir"]), version: values.version, includeOptional: values["include-optional"] };
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const { values } = parseArgs({ options: { "out-dir": { type: "string" }, version: { type: "string" } } });
-  if (!values["out-dir"] || !values.version) throw new Error("Usage: node scripts/package-safe.mjs --out-dir <directory> --version <version>");
-  console.log(JSON.stringify(await packageSafeLibraries({ rootDir: fileURLToPath(new URL("../", import.meta.url)), outDir: path.resolve(values["out-dir"]), version: values.version }), null, 2));
+  console.log(JSON.stringify(await packageSafeLibraries({ rootDir: fileURLToPath(new URL("../", import.meta.url)), ...parsePackageSafeArguments() }), null, 2));
 }

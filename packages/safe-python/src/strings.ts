@@ -1,4 +1,4 @@
-import type { PythonSource, SourcePosition } from "./source.js";
+import type { PythonSource, SourcePosition,SourceMeter } from "./source.js";
 import { lookupUnicodeName } from "./unicode-names.js";
 
 export type StringToken = {
@@ -20,12 +20,15 @@ export function readString(
   source: PythonSource,
   onWarning?: (message: string, position: SourcePosition) => void
 ): StringToken {
+  try {
+  source.meter?.checkpoint(1,240);
   const start = source.position;
   let prefix = "";
   while (prefix.length < 2 && "rRuUbB".includes(source.peek()) && !source.done) {
+    source.meter?.checkpoint(0,80);
     prefix += source.advance().toLowerCase();
   }
-  if (!["", "r", "u", "b", "br", "rb"].includes(prefix)) {
+  if (prefix!==""&&prefix!=="r"&&prefix!=="u"&&prefix!=="b"&&prefix!=="br"&&prefix!=="rb") {
     throw source.error("invalid string prefix", start);
   }
   const quote = source.advance();
@@ -37,8 +40,10 @@ export function readString(
   const points: number[] = [];
   let warning: { message: string; position: SourcePosition } | undefined;
   const warn = (escape: string, position: SourcePosition, octal = false): void => {
-    warning ??= {
-      message: escapeWarning(escape, octal),
+    if(warning)return;
+    source.meter?.checkpoint(0,48);
+    warning = {
+      message: escapeWarning(escape, octal,source.meter),
       position
     };
   };
@@ -47,8 +52,11 @@ export function readString(
     if (character === quote && (!triple || (source.peek(1) === quote && source.peek(2) === quote))) {
       source.advance();
       if (triple) { source.advance(); source.advance(); }
-      const span = { start, end: source.position, text: source.text.slice(start.offset, source.position.offset) };
+      const end=source.position;
+      source.meter?.checkpoint(1+end.offset-start.offset,32+2*(end.offset-start.offset));
+      const span = { start, end, text: source.text.slice(start.offset, end.offset) };
       if (warning) onWarning?.(warning.message, warning.position);
+      source.meter?.checkpoint(1+points.length,64+points.length*(bytes?1:4));
       return bytes
         ? { ...span, kind: "bytes", value: Uint8Array.from(points) }
         : { ...span, kind: "string", value: Uint32Array.from(points) };
@@ -60,20 +68,27 @@ export function readString(
     const position = source.position;
     source.advance();
     if (character !== "\\") {
+      source.meter?.checkpoint(0,8);
       points.push(character.codePointAt(0)!);
     } else {
       if (source.done) break;
       if (bytes && source.peek().codePointAt(0)! > 127) {
         throw source.error("bytes can only contain ASCII literal characters", start);
       }
-      if (raw) points.push(92, source.advance().codePointAt(0)!);
-      else points.push(...readEscape(source, bytes, position, warn));
+      if (raw) {source.meter?.checkpoint(0,16);points.push(92, source.advance().codePointAt(0)!);}
+      else {
+        const escaped=readEscape(source,bytes,position,warn);
+        source.meter?.checkpoint(escaped.length,8*escaped.length);
+        for(let index=0;index<escaped.length;index++)points.push(escaped[index]);
+      }
     }
   }
   throw source.error(triple ? "unterminated triple-quoted string literal" : "unterminated string literal", start);
+  } finally {source.meter?.checkpoint();}
 }
 
-export function escapeWarning(escape: string, octal = false): string {
+export function escapeWarning(escape: string, octal = false,meter?:SourceMeter): string {
+  meter?.checkpoint(1+escape.length,1024+8*escape.length);
   return `"\\${escape}" is an invalid ${octal ? "octal " : ""}escape sequence. ` +
     `Such sequences will not work in the future. Did you mean "\\\\${escape}"? A raw string is also an option.`;
 }

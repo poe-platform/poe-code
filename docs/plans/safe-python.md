@@ -12517,6 +12517,21 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and whitespace checks pass. The uncached full thread-pool suite
   passes 8,763 tests in 581 files (109.74s; test bodies 12.72s).
   String and interpolation storage remain to audit before guest compilation.
+- String token resource accounting (2026-09-11): fourteen failing tests
+  reproduced uncharged string records/point arrays, final decoded buffers after
+  warning callbacks, dynamic warning text and cancellation masked by a throwing
+  warning callback. Ordinary/raw text and byte readers now reserve token/span
+  records, point slots, prefix/spelling strings and final typed buffers. Escape
+  results are copied by an indexed loop rather than argument spreading. Warning
+  construction accepts an optional source meter, preserving the existing message
+  and first-warning behavior. Final checks preserve cancellation; the prefix
+  validity test no longer allocates an array. All fourteen focused tests pass.
+  All 104 token/warning/diagnostic comparisons against 65ad167c4 and 104 CPython
+  decoded-value/error cases pass across raw/byte prefixes, Unicode, escapes and
+  malformed strings. Build, typecheck, scoped lint and whitespace checks pass.
+  The uncached full thread-pool suite passes 8,777 tests in 582 files (105.75s;
+  test bodies 11.66s). Escape decoding and interpolation storage remain
+  before checked guest compilation ingress.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -12343,6 +12343,21 @@ extension, integration, or validation requirement is missing or unverified.
   lint and whitespace checks pass. The final uncached one-worker full suite passes
   8,616 tests in 569 files (198.13s; test bodies 13.65s). Delegated definition/import/try/with/match
   and type-statement allocation still require auditing before guest compilation.
+- Function/class definition AST allocation (2026-09-11): seven failing tests
+  isolated delegated metadata readers, reproducing uncharged definition/name
+  storage and cancellation lost when suite readers returned or threw. Function
+  and class readers now reserve their own records, with class empty-argument
+  storage included, and preserve cancellation in finally. Default decorator
+  arrays are created only after their allocation checkpoint, using an undefined
+  default to preserve host reader arities. Two positive tests retain supplied
+  decorator/suite identities. The focused file passes nine tests. All 45
+  AST/diagnostic comparisons against 49def9497 preserve definition metadata and
+  reader arities; 30 decorated/undecorated cases match CPython compile acceptance,
+  including type parameters, annotations, normalized names and invalid headers.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  suite passes 8,625 tests in 570 files (249.15s; test bodies 15.26s). Ignored
+  type syntax, imports and try/with/match grammar allocation still require auditing
+  before guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

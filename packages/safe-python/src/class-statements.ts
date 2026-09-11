@@ -7,7 +7,10 @@ import { reservedWords } from "./keywords.js";
 import { normalizeNfkc } from "./normalization.js";
 import { readIgnoredTypeParameters } from "./type-parameters.js";
 
-export function readClass(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[], decorators: readonly Expression[] = []): Statement {
+export function readClass(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[], decorators: readonly Expression[] | undefined = undefined): Statement {
+  try {
+  cursor.meter?.checkpoint(1,192);
+  if(decorators===undefined){cursor.meter?.checkpoint(0,32);decorators=[];}
   const opening = cursor.expect("class");
   const token = cursor.peek();
   if (token.kind !== "name" || reservedWords.has(token.text)) throw cursor.error("expected class name");
@@ -24,4 +27,5 @@ export function readClass(cursor: TokenCursor, readSuite: (cursor: TokenCursor) 
   const body = readSuite(cursor);
   return { kind: "class", name: { name, spelling: token.text, start: token.start, end: token.end },
     arguments: args, decorators, body, start: opening.start, end: body[body.length - 1]!.end };
+  } finally {cursor.meter?.checkpoint();}
 }

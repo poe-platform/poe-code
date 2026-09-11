@@ -8,7 +8,10 @@ import { reservedWords } from "./keywords.js";
 import { normalizeNfkc } from "./normalization.js";
 import { readIgnoredTypeParameters } from "./type-parameters.js";
 
-export function readFunction(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[], asyncStart?: SourcePosition, decorators: readonly Expression[] = []): Statement {
+export function readFunction(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[], asyncStart?: SourcePosition, decorators: readonly Expression[] | undefined = undefined): Statement {
+  try {
+  cursor.meter?.checkpoint(1,160);
+  if(decorators===undefined){cursor.meter?.checkpoint(0,32);decorators=[];}
   const opening = cursor.expect("def");
   const token = cursor.peek();
   if (token.kind !== "name" || reservedWords.has(token.text)) throw cursor.error("expected function name");
@@ -22,4 +25,5 @@ export function readFunction(cursor: TokenCursor, readSuite: (cursor: TokenCurso
   const body = readSuite(cursor);
   return { kind: "function", name: { name, spelling: token.text, start: token.start, end: token.end },
     async: asyncStart !== undefined, decorators, parameters, body, start: asyncStart ?? opening.start, end: body[body.length - 1]!.end };
+  } finally {cursor.meter?.checkpoint();}
 }

@@ -6,6 +6,7 @@ import type { CodeConstants } from "./code-constants.js";
 import { compileSuite } from "./suite-compilation.js";
 import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
 import {compileCodeScopeFlags} from "./code-scope-flags.js";
+import {compilationOptimization} from "./compilation-optimization.js";
 
 export interface ClassConstants<Value> extends CodeConstants<Value> {
   /** Builtin constant allocation only, without invoking guest conversion hooks. */
@@ -36,6 +37,7 @@ export function compileClassBody<Value>(
 ): CompiledClassBody<Value> {
   try {
   meter.checkpoint(1, 160);
+  const optimize=compilationOptimization(options.optimize,meter),stripDocstring=options.stripDocstring||optimize===2;
   const node = scope.scope.node;
   if (scope.scope.kind !== "class" || node.kind !== "class") throw new Error("class bodies require a class scope");
   const name = analysis.qualifiedNames.get(scope.scope), attributes = analysis.staticAttributes.get(scope.scope);
@@ -50,7 +52,7 @@ export function compileClassBody<Value>(
   for (const attribute of attributes) { meter.checkpoint(1, 8); names.push(constants.string(attribute)); }
   meter.checkpoint();
   const staticAttributes = constants.tuple(names);
-  const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
+  const suite = compileSuite(node.body, stripDocstring, constants, meter,optimize>0);
   return { flags,source,scope, qualifiedName, firstLine, staticAttributes, ...suite };
   } finally { meter.checkpoint(); }
 }

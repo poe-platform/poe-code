@@ -12797,6 +12797,25 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 594 files (75.07s; bodies 8.89s). Optimization levels
   1/2 still need __debug__=False, assertion elimination and shared nested-code policy;
   this prerequisite fix does not claim that compile(optimize=...) is implemented.
+- Compiler optimization levels (2026-09-11): eight failing source/native tests
+  established ignored optimization and invalid host levels before implementation.
+  Resolved host levels 0/1/2 are validated and snapshotted before compiler callbacks;
+  the guest fixture resolves its default -1 to its baseline 0. Levels
+  1/2 omit executable assertions, pool __debug__ as False, and skip assertion literal
+  allocations. Level 2 additionally strips module/function/class docstrings. The
+  iterative assertion pass rebuilds compound suites without mutating the analyzed
+  AST or function/class identity keys. Original scope analysis preserves generator
+  classification and locals bound inside removed assertions. All compound suite
+  forms, a 20,000-level supplied AST, allocation limits and option mutation have
+  focused coverage. The focused 1,085-test run passes; build, typecheck and scoped
+  lint pass. Thirty CPython execution comparisons across all three levels match
+  assertion effects, nested debug values, docstrings, generator return values,
+  unbound locals, context managers, match, loops and try suites. The first two
+  differential attempts exposed fixture setup differences (__doc__ fallback and
+  missing next), corrected explicitly before counting comparisons. Whitespace
+  checks pass. The uncached full thread-pool suite passes 9,004 tests in 595 files
+  (74.00s; bodies 8.33s). General dead-code/constant optimization, complete guest code metadata,
+  default builtin registration, AST/single modes and additional codecs remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

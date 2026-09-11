@@ -2,6 +2,7 @@ import type { Statement } from "../statement-ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { CodeConstants } from "./code-constants.js";
 import { cleanDocstring } from "./docstring.js";
+import {eliminateAssertions} from "./assertion-elimination.js";
 
 /** Prepare noninteractive suite statements and a retained, cleaned docstring.
  * The AST remains unchanged. Even stripped docstrings are omitted from executable
@@ -10,7 +11,7 @@ import { cleanDocstring } from "./docstring.js";
  */
 export function compileSuite<Value>(
   body: readonly Statement[], stripDocstring: boolean,
-  constants: Pick<CodeConstants<Value>, "string">, meter: ExecutionMeter
+  constants: Pick<CodeConstants<Value>, "string">, meter: ExecutionMeter, removeAssertions=false
 ): { readonly docstring: { readonly value: Value } | undefined; readonly statements: readonly Statement[] } {
   try {
   meter.checkpoint(1, 80);
@@ -26,6 +27,6 @@ export function compileSuite<Value>(
   for (let index = hasDocstring ? 1 : 0; index < body.length; index++) {
     meter.checkpoint(1, 8); statements.push(body[index]);
   }
-  return { docstring, statements };
+  return { docstring, statements:removeAssertions?eliminateAssertions(statements,meter):statements };
   } finally { meter.checkpoint(); }
 }

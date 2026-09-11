@@ -90,8 +90,8 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       native.set(value.kind, type); return type;
     } })
   };
-  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins,filename?:string,mode:"exec"|"eval"="exec") {
-    return executeRuntimeProgram(compileSourceProgram<RuntimeValue>(source, { stripDocstring: false,filename,mode,enterRecursiveCall:()=>calls.enter(globals) }, v, meter), { objectType:registry.object,values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
+  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins,filename?:string,mode:"exec"|"eval"="exec",optimize?:0|1|2) {
+    return executeRuntimeProgram(compileSourceProgram<RuntimeValue>(source, { stripDocstring: false,filename,mode,optimize,enterRecursiveCall:()=>calls.enter(globals) }, v, meter), { objectType:registry.object,values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
@@ -101,6 +101,12 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it.each([1,2] as const)("executes optimized nested code at level %s without assertion effects",optimize=>{
+  const state=exceptionFixture();
+  state.run("assert missing()\ndef f(default=__debug__):\n assert missing()\n return default,__debug__\nclass C:\n assert missing()\n value=__debug__\n def method(self):\n  assert missing()\n  return __debug__\nresult=(__debug__,f(),C.value,C().method(),[__debug__ for x in (1,2)])\ncorrect=result==(False,(False,False),False,False,[False,False])\n",undefined,undefined,undefined,"exec",optimize);
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
 
 it("uses compiled __debug__ constants throughout nested scopes despite namespace shadowing",()=>{
   const state=exceptionFixture();state.globals.set("__debug__",state.v.false);state.builtins.set("__debug__",state.v.false);
@@ -119,7 +125,7 @@ it("calls compile from guest code and publishes compiler metadata",()=>{
     compile(request,invocation){
       if((request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires exec/eval with future flags only");
       const source=runtimeCompilationSource(request.source,meter,invocation);
-      const program=compileSourceProgram(source,{mode:request.mode,filename:request.filename,stripDocstring:request.optimize===2,futureFlags:request.flags,enterRecursiveCall:()=>state.calls.enter(state.globals)},v,meter);
+      const program=compileSourceProgram(source,{mode:request.mode,filename:request.filename,stripDocstring:request.optimize===2,optimize:(request.optimize<0?0:request.optimize) as 0|1|2,futureFlags:request.flags,enterRecursiveCall:()=>state.calls.enter(state.globals)},v,meter);
       return state.registry.code(program.module);
     }
   }));

@@ -12,6 +12,7 @@ import type { ComprehensionNode } from "./comprehension-execution.js";
 import {compileCodeLocalLayout,type CodeLocalLayout} from "./code-local-layout.js";
 import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
 import {compileCodeScopeFlags} from "./code-scope-flags.js";
+import {compilationOptimization} from "./compilation-optimization.js";
 import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
 export interface CompiledFunction<Value> {
@@ -51,6 +52,7 @@ export function compileFunction<Value>(
 ): CompiledFunction<Value> {
   try {
   meter.checkpoint(1, 192);
+  const optimize=compilationOptimization(options.optimize,meter),stripDocstring=options.stripDocstring||optimize===2;
   const node = scope.scope.node;
   if ((scope.scope.kind !== "function" || node.kind !== "function") && (scope.scope.kind !== "lambda" || node.kind !== "lambda"))
     throw new Error("function code requires a function or lambda scope");
@@ -68,7 +70,7 @@ export function compileFunction<Value>(
   let flags=scopeFlags;
   if(flags!==undefined)flags|=(localLayout.varPositional?4:0)|(localLayout.varKeyword?8:0)|(kind==="generator"?0x20:kind==="coroutine"?0x80:kind==="async-generator"?0x200:0);
   if (node.kind === "lambda") return { flags,source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: undefined, body: { kind: "expression", expression: node.body } };
-  const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
+  const suite = compileSuite(node.body, stripDocstring, constants, meter,optimize>0);
   if(flags!==undefined&&suite.docstring!==undefined)flags|=0x4000000;
   return { flags,source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: suite.docstring, body: { kind: "suite", statements: suite.statements } };
   } finally { meter.checkpoint(); }

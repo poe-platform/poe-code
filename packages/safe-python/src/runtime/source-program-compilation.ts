@@ -8,6 +8,7 @@ import {compileProgram,type CompiledProgram} from "./program-compilation.js";
 import {normalizeFutureFlags} from "../future-flags.js";
 import {decodeByteSource,type SourceByteDecoder} from "./byte-source-decoding.js";
 import {PythonSyntaxError} from "../source.js";
+import {compilationOptimization} from "./compilation-optimization.js";
 
 export interface SourceCompilationOptions<Value=unknown> extends CodeCompilationOptions<Value>,Pick<LexerOptions,"onWarning"|"onComment"|"futureFlags"> {
   /** Module suites by default; eval preserves and returns one expression. */
@@ -34,10 +35,11 @@ export function compileSourceProgram<Value>(source:string|Uint8Array,options:Sou
     const mode=options.mode??"exec";
     if(mode!=="exec"&&mode!=="eval")throw new TypeError("unsupported source compilation mode");
     const futureFlags=normalizeFutureFlags(options.futureFlags,meter);
+    const optimize=compilationOptimization(options.optimize,meter);
     const filename=snapshotCompilationFilename(options.filename??"<string>",meter);
-    const settings={filename:typeof filename==="string"?filename:filename.displayName,stripDocstring:options.stripDocstring,onWarning:options.onWarning,onComment:options.onComment,enterRecursiveCall,meter,futureFlags};
+    const settings={filename:typeof filename==="string"?filename:filename.displayName,stripDocstring:options.stripDocstring||optimize===2,optimize,onWarning:options.onWarning,onComment:options.onComment,enterRecursiveCall,meter,futureFlags};
     let compilation:CodeCompilationOptions<Value>=settings;
-    if(typeof filename!=="string"){meter.checkpoint(1,48);compilation={filename,stripDocstring:settings.stripDocstring};}
+    if(typeof filename!=="string"){meter.checkpoint(1,56);compilation={filename,stripDocstring:settings.stripDocstring,optimize};}
     const text=typeof source==="string"?source:decodeByteSource(source,settings.filename,meter,options.decodeSource);
     if(typeof source==="string"&&source.startsWith("\ufeff")){
       meter.checkpoint(1+source.length);

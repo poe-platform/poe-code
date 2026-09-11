@@ -19,7 +19,7 @@ interface TuplePool<Value> { readonly children: Map<ConstantRecord<Value>, Tuple
  * displays and the default __debug__ constant can share the same pool without
  * guest equality or AST mutation.
  * General folding and metadata/docstring pooling remain separate compiler work. */
-export function compileLiteralPool<Value>(body: readonly Statement[], literal: (node: LiteralExpression) => Value, meter: ExecutionMeter, tuple?: (values: readonly Value[]) => Value,skipRootDocstring=true): LiteralPool<Value> {
+export function compileLiteralPool<Value>(body: readonly Statement[], literal: (node: LiteralExpression) => Value, meter: ExecutionMeter, tuple?: (values: readonly Value[]) => Value,skipRootDocstring=true,debug=true): LiteralPool<Value> {
   try {
   meter.checkpoint(1, 352 + body.length * 8);
   const folded = new Map<Expression, Value>(), records = new Map<Expression, ConstantRecord<Value>>();
@@ -41,6 +41,7 @@ export function compileLiteralPool<Value>(body: readonly Statement[], literal: (
   const statements = [...body], first = body[0];
   while (statements.length) {
     meter.checkpoint(); const statement = statements.pop()!;
+    if(!debug&&statement.kind==="assert")continue;
     if (skipRootDocstring && statement === first && isDocstring(statement)) continue;
     meter.checkpoint(1, 160);
     const expressions: { node: Expression; after: boolean }[] = [];
@@ -54,7 +55,7 @@ export function compileLiteralPool<Value>(body: readonly Statement[], literal: (
         meter.checkpoint(1, 48); result.set(expression, record.value);
       } else if(expression.kind==="name"&&expression.name==="__debug__") {
         meter.checkpoint(1,64);
-        record=scalar({kind:"literal",literalKind:"boolean",value:true,start:expression.start,end:expression.end});
+        record=scalar({kind:"literal",literalKind:"boolean",value:debug,start:expression.start,end:expression.end});
       } else if (!after) {
         meter.checkpoint(0, 40); expressions.push({ node: expression, after: true });
         meter.checkpoint(0, 128);

@@ -10,6 +10,7 @@ export interface CompilationFilename<Value> {
 
 export interface CodeCompilationOptions<Value=unknown> {
   readonly stripDocstring:boolean;
+  readonly optimize?:0|1|2;
   /** Diagnostic identity only: no path resolution, normalization or file I/O. */
   readonly filename?:string|CompilationFilename<Value>;
 }

@@ -7,6 +7,13 @@ import { RuntimeValues } from "./runtime-values.js";
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
 
 describe("compiled scalar literal pools", () => {
+  it("pools optimized debug reads as False without materializing assertion operands",()=>{
+    const body=analyzeModule('assert "unused", "message"\na=__debug__\nb=False').module.body,allocated:LiteralExpression[]=[];
+    const pool=compileLiteralPool(body,node=>{allocated.push(node);return {node};},budget(),undefined,true,false);
+    expect(allocated).toHaveLength(1);expect(allocated[0]).toMatchObject({literalKind:"boolean",value:false});
+    const assignment=body[1];if(assignment.kind!=="assignment")throw Error("expected assignment");
+    expect(pool.folded!.get(assignment.value)).toBe([...pool.values()][0]);
+  });
   it("folds __debug__ into the same typed constant as True without changing the AST",()=>{
     const body=analyzeModule('a=__debug__\nb=True\nc=(__debug__,True)').module.body;
     const meter=budget(),values=new RuntimeValues(meter),pool=compileLiteralPool(body,values.literal.bind(values),meter,values.tuple.bind(values));

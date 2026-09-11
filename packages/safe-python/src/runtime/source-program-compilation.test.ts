@@ -6,6 +6,28 @@ const constants={string:(value:string):unknown=>value,integer:(value:number):unk
 const options={stripDocstring:false,enterRecursiveCall:()=>()=>{}};
 const budget=()=>new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:2000000});
 
+it.each([1,2] as const)("eliminates assertions at optimization level %s without changing generator classification",optimize=>{
+  const program=compileSourceProgram('"doc"\nassert missing\nif True:\n assert missing\ndef f():\n "function doc"\n assert (yield 1)\n return __debug__\nclass C:\n "class doc"\n assert missing\n',{...options,optimize},constants,budget());
+  expect(program.module.statements.map(statement=>statement.kind)).toEqual(["if","function","class"]);
+  const conditional=program.module.statements[0];if(conditional.kind!=="if")throw Error("expected if");
+  expect(conditional.branches[0].body).toEqual([]);
+  const fn=[...program.functions.values()][0];expect(fn.kind).toBe("generator");
+  expect(fn.body).toMatchObject({kind:"suite",statements:[{kind:"return"}]});
+  expect([...program.classes.values()][0].statements).toEqual([]);
+  expect(program.module.docstring).toEqual(optimize===2?undefined:{value:"doc"});
+  expect(fn.docstring).toEqual(optimize===2?undefined:{value:"function doc"});
+  expect([...program.classes.values()][0].docstring).toEqual(optimize===2?undefined:{value:"class doc"});
+});
+it.each([-1,3,0.5,NaN])("rejects unresolved/invalid host optimization levels: %s",optimize=>{
+  expect(()=>compileSourceProgram('pass',{...options,optimize:optimize as 0},constants,budget())).toThrow(RangeError);
+});
+it("snapshots optimization before compilation callbacks",()=>{
+  const settings={...options,optimize:1 as 0|1|2};
+  const program=compileSourceProgram('assert x\ndef f():assert x',settings,{...constants,string(value){settings.optimize=0;return value;}},budget());
+  expect(program.module.statements.map(statement=>statement.kind)).toEqual(["function"]);
+  expect([...program.functions.values()][0].body).toMatchObject({kind:"suite",statements:[]});
+});
+
 it.each([
   [[0x22,0xc3,0xa9,0x22],"é"],
   [[0xef,0xbb,0xbf,0x22,0xf0,0x9f,0x90,0x8d,0x22],"🐍"],

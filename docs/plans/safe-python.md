@@ -13305,6 +13305,24 @@ extension, integration, or validation requirement is missing or unverified.
   pass; the full uncached thread-pool suite passes 9,217 tests in 611 files
   (107.08s; bodies 11.78s). Native string/bytes/iterator types, public interpreter
   assembly, imports, safe-fs and broad audits remain unfinished. No push/release.
+- String construction backend (2026-09-11): added constructRuntimeString with
+  object/encoding/errors argument binding, empty/default construction, exact-string
+  identity, shared str representation conversion, explicit codec delegation and
+  fatal callback cancellation. Canonical str/subclass allocation remains separate.
+  Encoding/error name conversion rejects NUL and UTF-8-unencodable surrogate
+  points even without a source, preserving original guest Unicode error objects
+  when an exception-preparation policy is provided. Eleven focused tests cover
+  identity, native representation, keyword/duplicate admission, codec settings,
+  missing source, string decoding rejection, name validation and cancellation.
+  A 120-case in-memory CPython argument-binding comparison initially found the
+  positional NoneType versus keyword None diagnostic distinction; its new failing
+  regression was fixed and the rerun has zero differences. Additional CPython
+  probes established surrogate/NUL validation. Build, typecheck, scoped lint and
+  whitespace checks pass; the full uncached thread-pool suite passes 9,228 tests
+  in 612 files (89.81s; bodies 11.17s). This is construction orchestration, not
+  completed str registration or a default codec implementation; buffer decoding,
+  string subtype payloads/type allocation, public interpreter assembly, imports,
+  safe-fs and broad audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

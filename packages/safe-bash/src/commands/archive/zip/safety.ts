@@ -90,7 +90,7 @@ export interface ZipPublication {
 
 export async function publishZip(scope: ZipScope, prepared: ZipPublication): Promise<void> {
   const { fs, signal } = scope.context;
-  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.output, { signal }) ?? fs.capabilities);
+  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.output, { signal, create: true }) ?? fs.capabilities);
   if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("ZIP publication requires atomic owned file staging");
   let staging: FileStaging | undefined;
   let failure: { reason: unknown } | undefined;

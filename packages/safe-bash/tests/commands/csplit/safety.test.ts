@@ -12,6 +12,26 @@ async function fixture() {
   return fs;
 }
 
+test("new split outputs request atomic mutation capabilities with create intent", async () => {
+  const fs = await fixture();
+  const creations = new Set<string>();
+  const view = wrap(fs, {
+    async capabilitiesFor(path, options) {
+      try { await fs.lstat(path); }
+      catch (error) {
+        if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+        if (!options?.create) return { ...fs.capabilities, atomicFileMutation: false };
+        creations.add(path);
+      }
+      return fs.capabilities;
+    },
+  });
+  assert.deepEqual(await run(view, ["-", "2"]), { exitCode: 0, stdout: "2\n4\n", stderr: "" });
+  assert.deepEqual(await fs.readFile("/work/xx00"), new TextEncoder().encode("a\n"));
+  assert.deepEqual(await fs.readFile("/work/xx01"), new TextEncoder().encode("b\nc\n"));
+  assert.deepEqual([...creations].sort(), ["/work/xx00", "/work/xx01"]);
+});
+
 for (const boundary of ["writeFile", "appendFile", "rm"] as const) test(`replacement at the ${boundary} boundary preserves foreign output bytes`, async () => {
   const fs = await fixture();
   const path = "/work/xx00";

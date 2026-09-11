@@ -84,7 +84,7 @@ export class Extraction {
   }
   async createDirectory(path: string, parent: FileStat): Promise<FileStat> {
     const { fs, signal } = this.context;
-    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
+    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
     if (capabilities.atomicDirectoryMetadata !== true || !fs.prepareDirectory) fail("extraction requires atomic directory creation");
     return this.operation(() => fs.prepareDirectory!(path, {
       signal, parent, expected: null,
@@ -172,7 +172,7 @@ export class Extraction {
   }
   private async stage(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target: string | undefined): Promise<void> {
     const { fs, signal } = this.context;
-    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
+    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
     if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic owned file staging");
     let staging: FileStaging | undefined;
     let failure: { reason: unknown } | undefined;

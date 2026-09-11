@@ -213,7 +213,7 @@ export class Outputs {
     budget.check(name.length, limits.maxPathBytes, "output filename bytes");
     const path = resolvePath(context.cwd, pathText(name));
     try {
-    const capabilities = await this.lifecycle.operation(async () => await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+    const capabilities = await this.lifecycle.operation(async () => await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
     if (capabilities.atomicFileMutation !== true || !context.fs.writeFileConditional || !context.fs.removeFileConditional) throw new CsplitError("atomic output mutations are not supported");
     const parents = await this.parents(path);
     let existing: FileStat | undefined;

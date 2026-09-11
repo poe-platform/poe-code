@@ -10,6 +10,34 @@ function intercept(fs: FileSystem, before: (method: PropertyKey, args: unknown[]
   } });
 }
 
+test("archive creation and extraction request capabilities for missing outputs with create intent", async context => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work/source", { recursive: true });
+  await fs.writeFile("/work/source/input", Buffer.from("payload"));
+  const creations = new Set<string>();
+  const wrapped = new Proxy(fs, { get(target, method) {
+    if (method === "capabilitiesFor") return (async (path, options) => {
+      try { await fs.lstat(path); }
+      catch (error) {
+        if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+        if (!options?.create) return { ...fs.capabilities, atomicFileStaging: false, atomicDirectoryMetadata: false };
+        creations.add(path);
+      }
+      return fs.capabilities;
+    }) satisfies NonNullable<FileSystem["capabilitiesFor"]>;
+    const value: unknown = Reflect.get(target, method);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const shell = new Shell({ fs: wrapped, cwd: "/work" }).use(archiveCommands());
+  context.after(() => shell.dispose());
+  const archive = await shell.exec("zip -r archive.zip source");
+  assert.equal(archive.exitCode, 0, archive.stderr);
+  const extraction = await shell.exec("unzip archive.zip -d recovered");
+  assert.equal(extraction.exitCode, 0, extraction.stderr);
+  assert.equal(Buffer.from(await fs.readFile("/work/recovered/source/input")).toString(), "payload");
+  for (const path of ["/work/archive.zip", "/work/recovered", "/work/recovered/source/input"]) assert.ok(creations.has(path), path);
+});
+
 for (const command of ["zip", "unzip"]) {
   test(`${command} refuses a destination replaced inside publication and preserves its bytes`, async context => {
     const fs = createMemoryFileSystem();

@@ -778,9 +778,10 @@ export function measureSandboxData(
     }
     if (!isGuestHostObject(value)) {
       const symbols = Object.getOwnPropertySymbols(value);
-      const descriptors = symbols.length === 0 ? [] : symbols
-        .filter(key => !internalSymbols.has(key))
-        .map(key => [key, Object.getOwnPropertyDescriptor(value, key)!] as const);
+      const descriptors: [symbol, PropertyDescriptor][] = [];
+      for (const key of symbols) {
+        if (!internalSymbols.has(key)) descriptors.push([key, Object.getOwnPropertyDescriptor(value, key)!]);
+      }
       for (const [key, descriptor] of descriptors) {
         usage += 1;
         visit(key, depth + 1);

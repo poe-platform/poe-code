@@ -93,6 +93,47 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("constructs canonical strings and preserves exact versus subtype identity",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("text='🐍x'\nexact=str(text) is text and type(text) is str\nclass S(str):pass\na=S(text)\nb=S(text)\nsubtype=type(a) is S and a is not b and str(a)==text and type(str(a)) is str\na.tag=7\nattrs=a.tag==7\ndecoded=str(b'abc','utf-8')=='abc'\n");
+  for(const name of ["exact","subtype","attrs","decoded"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("retains string conversion overrides without confusing native payload inspection",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):pass\nreturned=S('override')\nclass C(str):\n def __str__(self):return returned\nx=C('original')\ncorrect=str(x) is returned and str.__str__(x)=='original'\ncopy=S(x)\nwrapped=type(copy) is S and copy is not returned and str(copy)=='override'\nrepr_ok=str.__repr__(x)==\"'original'\"\n");
+  for(const name of ["correct","wrapped","repr_ok"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("keeps exact string call diagnostics distinct from explicit allocator and type calls",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("try:str('x',None)\nexcept TypeError as e:fast=str(e)==\"str() argument 'encoding' must be str, not NoneType\"\ntry:str.__new__(str,'x',None)\nexcept TypeError as e:direct=str(e)==\"str() argument 'encoding' must be str, not None\"\ntry:type.__call__(str,'x',None)\nexcept TypeError as e:explicit=str(e)==\"str() argument 'encoding' must be str, not None\"\n");
+  for(const name of ["fast","direct","explicit"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("binds string protocols to canonical descriptor owners for exact and subtype values",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.globals.set("NotImplemented",v.notImplemented);
+  state.run("class S(str):pass\na=S('🐍abc')\nowner='x'.__str__.__objclass__ is str\nsequence=a.__len__()==4 and a[0]=='🐍' and a[1:]=='abc' and 'bc' in a\ncomparison=a=='🐍abc' and a<'🐍abd' and str.__eq__(a,1) is NotImplemented\nitems=[x for x in a]\niterated=items==['🐍','a','b','c']\n");
+  for(const name of ["owner","sequence","comparison","iterated"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("uses string payload hashing consistently in hash, dictionaries and sets",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.builtins.set("hash",createHashBuiltin(v,state.meter,state.hash));
+  state.run("class S(str):pass\ns=S('key')\nconsistent=hash(s)==hash('key') and str.__hash__(s)==hash('key')\nd={s:1}\nd['key']=2\nmapping=d[s]==2 and d.__len__()==1\nunique={s,'key'}\nset_ok=unique.__len__()==1\n");
+  for(const name of ["consistent","mapping","set_ok"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("preserves string subtype slots and metaclass call overrides",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("class M(type):\n def __call__(cls,*args,**kwargs):return 'intercepted'\nclass Intercepted(str,metaclass=M):pass\noverride=Intercepted('x')=='intercepted'\nclass S(str):\n __slots__=('tag',)\n def __len__(self):return 0\ns=S('abc')\ns.tag=7\nslots=s.tag==7 and not s and str.__len__(s)==3\nformatted=str.__format__(s,'>5')=='  abc' and f'{s:>5}'=='  abc'\n");
+  for(const name of ["override","slots","formatted"])expect(state.globals.get(name)).toBe(v.true);
+});
+it("allocates fresh exact strings when converting or fully slicing nonempty string subtypes",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):pass\ns=S('abc')\na=str(s)\nb=str(s)\nconverted=a==b and a is not b\nx=s[:]\ny=s[:]\nsliced=x==y and x is not y and x is not a\nempty=S('')\nempty_ok=str(empty) is '' and empty[:] is ''\n");
+  for(const name of ["converted","sliced","empty_ok"])expect(state.globals.get(name)).toBe(v.true);
+});
+it.each(["__str__","__repr__","__hash__","__len__","__iter__"])("validates canonical string zero-argument slot admission: %s",name=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run(`try:str.${name}(1)\nexcept TypeError:receiver=True\ntry:'x'.${name}(1)\nexcept TypeError:arity=True\ntry:'x'.${name}(unknown=1)\nexcept TypeError:keyword=True\n`);
+  for(const flag of ["receiver","arity","keyword"])expect(state.globals.get(flag)).toBe(v.true);
+});
 it.each(["not-implemented","ellipsis"] as const)("constructs canonical singleton types without creating instances: %s",kind=>{
   const state=exceptionFixture(),value=kind==="ellipsis"?state.v.ellipsis:state.v.notImplemented;
   state.globals.set("singleton",value);

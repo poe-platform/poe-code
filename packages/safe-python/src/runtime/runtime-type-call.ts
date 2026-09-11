@@ -21,6 +21,7 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
     const result = call.invoke(); meter.checkpoint(); return result;
   };
   if (mode === "dispatch") {
+    if(type.directCall!==undefined)return invoke(type.directCall,positional,keywords);
     const override = lookupRuntimeSpecialMethod(type, type.metaclass, values.string("__call__"), special, values, meter);
     meter.checkpoint();
     if (override !== undefined) return invoke(override, positional, keywords);

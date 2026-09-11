@@ -27,13 +27,29 @@ describe("canonical runtime type registry", () => {
       [v.true,registry.booleanType()],[v.integer(7),registry.integerType()],[v.float(1),registry.floatType()],
       [v.list([]),registry.listType()],[v.tuple([]),registry.tupleType()],[v.cell({}),registry.cellType()]
     ] as const)expect(registry.nativeType(value)).toBe(expected);
-    expect(registry.nativeType(v.string("needs a string type"))).toBeUndefined();
+    expect(registry.nativeType(v.string("canonical string"))).toBe(registry.stringType());
     expect(registry.nativeType(v.bytes(new Uint8Array()))).toBeUndefined();
   });
   it("retains published instance and metaclass identities during type selection",()=>{
     const {registry,values:v,layout}=fixture(),owner=registry.publish(layout("Owned"),registry.type),instance=v.instance(owner);
     expect(registry.nativeType(instance)).toBe(owner);expect(registry.nativeType(owner)).toBe(registry.type);
     expect(registry.nativeType(registry.type)).toBe(registry.type);
+  });
+  it("publishes canonical string allocation and core descriptors atomically",()=>{
+    const state=fixture();state.fail(true);expect(()=>state.registry.stringType()).toThrow(ExecutionLimitError);state.fail(false);
+    const owner=state.registry.stringType();expect(state.registry.stringType()).toBe(owner);
+    expect(owner.value.variableSized).toBe(false);expect(owner.value.matchSelf).toBe(true);
+    for(const name of ["__str__","__repr__","__hash__","__len__","__getitem__","__iter__","__contains__","__eq__","__ne__","__lt__","__le__","__gt__","__ge__"]){
+      const slot=owner.value.namespace.items.lookup(state.values.string(name))?.value;
+      expect(slot?.kind).toBe("wrapper_descriptor");
+    }
+  });
+  it.each([false,true])("preserves cancellation through canonical string hashing (throws=%s)",throws=>{
+    const {registry,values:v}=fixture(),owner=registry.stringType(),slot=owner.value.namespace.items.lookup(v.string("__hash__"))?.value;
+    if(slot?.kind!=="wrapper_descriptor")throw Error("expected string hash slot");
+    const controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal});
+    const keywords=v.dictionary(owner.value.namespace.items.emptyCopy());
+    expect(()=>slot.value.invoke(v.string("x"),[],keywords,meter,{call(){throw Error("unexpected call");},nativeHash(){controller.abort();if(throws)throw Error("hash failed");return 17n;}})).toThrow(ExecutionLimitError);
   });
   it.each(["staticmethod","classmethod"] as const)("selects canonical or published %s ownership without inspecting its callable",kind=>{
     const {registry,values:v,layout}=fixture(),base=registry.methodDecoratorType(kind);

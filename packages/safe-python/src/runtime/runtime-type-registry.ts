@@ -60,6 +60,11 @@ import { installRuntimeIntegerSlots } from "./runtime-integer-slots.js";
 import { installRuntimeIntegerMethodDescriptors } from "./runtime-integer-method-descriptors.js";
 import { installRuntimeIntegerByteDescriptors } from "./runtime-integer-byte-descriptors.js";
 import { createFloatNewBuiltin } from "./builtin-float-new.js";
+import {createStringNewBuiltin} from "./builtin-string-new.js";
+import {constructRuntimeString} from "./runtime-string-construction.js";
+import {createRuntimeStringDecoder} from "./runtime-string-decoding.js";
+import {createRuntimeTextDecoder} from "./runtime-text-decoding.js";
+import {installRuntimeStringSlots} from "./runtime-string-slots.js";
 import { installRuntimeFloatSlots } from "./runtime-float-slots.js";
 import { installRuntimeFloatMethodDescriptors } from "./runtime-float-method-descriptors.js";
 import { createComplexNewBuiltin } from "./builtin-complex-new.js";
@@ -137,6 +142,7 @@ export class RuntimeTypeRegistry {
   #rangeType: TypeValue | undefined;
   #integerType: TypeValue | undefined;
   #floatType: TypeValue | undefined;
+  #stringType:TypeValue|undefined;
   #complexType: TypeValue | undefined;
   #baseExceptionType:TypeValue|undefined;
   #generatorType:TypeValue|undefined;
@@ -263,6 +269,7 @@ export class RuntimeTypeRegistry {
       case "range":return this.rangeType();
       case "int":return this.integerType();
       case "float":return this.floatType();
+      case "str":return this.stringType();
       case "complex":return this.complexType();
       case "bool":return this.booleanType();
       case "set":case "frozenset":return this.setType(value.kind);
@@ -431,6 +438,21 @@ export class RuntimeTypeRegistry {
     installRuntimeComplexMethodDescriptors(type,this.values,this.meter);
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#complexType=type;
+    return type;
+  }
+
+  stringType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#stringType!==undefined)return this.#stringType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("str",[this.object.value],namespace,this.meter,{matchSelf:true,sequenceTable:true,instanceDictionary:false,objectLayout:false,weakReferences:false,variableSized:false});
+    const decode=createRuntimeStringDecoder(createRuntimeTextDecoder(this.values),this.values);
+    const directCall=this.values.builtinFunction({name:"str",keywordValidation:"callee",invoke:(positional,keywords,meter,invocation)=>constructRuntimeString(positional,keywords,this.values,meter,{invocation,decode})});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee",directCall});
+    namespace.items.set(this.values.string("__new__"),createStringNewBuiltin(type,this.values,this.meter,requested=>this.#entries.get(requested.value)?.type===requested,decode));
+    installRuntimeStringSlots(type,this.values,this.meter);
+    this.meter.checkpoint(1,64);
+    this.#entries.set(layout,{type});this.#stringType=type;
     return type;
   }
 

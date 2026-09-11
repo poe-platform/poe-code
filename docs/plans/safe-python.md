@@ -13403,6 +13403,31 @@ extension, integration, or validation requirement is missing or unverified.
   backend, not completed canonical str registration: descriptor/slot publication,
   execution assembly, additional codecs, imports, safe-fs and audits remain.
   No push or release.
+- Canonical string type and core protocols (2026-09-11): RuntimeTypeRegistry now
+  lazily publishes str with the string allocator, native decoder composition and
+  native type selection. Added an exact-type directCall capability, invoked
+  through normal call boundaries and not inherited by heap subtypes; explicit
+  type.__call__ still takes the ordinary allocation/init path. This preserves
+  CPython's distinct str(...) versus str.__new__/type.__call__ diagnostics.
+  Published canonical representation, hashing, length, iteration, indexing,
+  containment, six comparisons and formatting descriptors over native string
+  payloads. Heap subtype overrides, metaclass calls and slot storage stay under
+  ordinary dispatch. Fifteen new tests cover publication recovery, construction,
+  conversion-result identity, descriptor ownership/admission, hash/dictionary/set
+  consistency, slots/formatting and hash-callback cancellation. Six in-memory
+  CPython runs of the same source scenarios passed all 20 boolean checks.
+  Additional CPython probes and a failing regression established fresh exact
+  results for nonempty subtype str conversion/full slices, with canonical empty
+  results. An initial full run exposed three unrelated-method lookup regressions;
+  canonical lookup is now gated by the actual published slot catalog, retaining
+  existing bound-method capabilities without demanding extra type lookups.
+  All four affected integration/registry files passed 1,522 tests before two
+  additional hash-cancellation checks; the final full uncached thread-pool suite
+  passes 9,308 tests in 616 files (97.07s; bodies 10.55s). Maintained workspace
+  build, typecheck, scoped lint and whitespace checks pass. String arithmetic and
+  ordinary method descriptor publication, further codecs/extension wiring,
+  public interpreter assembly, imports, safe-fs and broad audits remain unfinished.
+  No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

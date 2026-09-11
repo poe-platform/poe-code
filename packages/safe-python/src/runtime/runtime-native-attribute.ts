@@ -70,6 +70,7 @@ import type {CompiledFunction} from "./function-compilation.js";
 import { readRuntimeDescriptorMethod } from "./runtime-descriptor-method.js";
 import { lookupMroAttribute } from "./class-attributes.js";
 import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
+import {runtimeStringSlotNames} from "./runtime-string-slots.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
  * exposed; host payload fields and JavaScript prototypes are never inspected.
@@ -142,7 +143,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (member?.kind === "member_descriptor" || member?.kind === "getset_descriptor") return readRuntimeGetsetDescriptor(member, receiver, type, meter);
     if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor" || member?.kind === "classmethod_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }
-  if ((receiver.kind === "cell" || receiver.kind === "none" || receiver.kind === "not-implemented" || receiver.kind === "ellipsis" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") && methods?.actualType !== undefined) {
+  if (((receiver.kind === "str" && runtimeStringSlotNames.has(name)) || receiver.kind === "cell" || receiver.kind === "none" || receiver.kind === "not-implemented" || receiver.kind === "ellipsis" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();
     const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
     if (name === "__hash__" && member?.kind === "none") return member;

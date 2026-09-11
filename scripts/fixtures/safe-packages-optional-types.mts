@@ -1,7 +1,7 @@
 import { Shell, CommandRegistry, agentCommands } from "@poe-platform/safe-bash";
 import type { CommandDefinition, VirtualShellPlugin, ShellOptions } from "@poe-platform/safe-bash";
-import { createMemoryFileSystem, createMountFileSystem, prepareExclusiveFile } from "@poe-platform/safe-fs";
-import type { ByteSource, FileSystem, FsOptions, PreparedExclusiveFile } from "@poe-platform/safe-fs";
+import { createMemoryFileSystem, createMountFileSystem } from "@poe-platform/safe-fs";
+import type { FileDescriptor, FileSystem, FsOptions, OpenFileOptions } from "@poe-platform/safe-fs";
 import type { FileOutputOpenOptions } from "@poe-platform/safe-bash/contracts/filesystem-output";
 import {
   Shell as OptionalShell, agentCommands as optionalAgentCommands,
@@ -94,20 +94,18 @@ export async function installedWaitBridge(context: ShellExtensionContext): Promi
 }
 
 export type InstalledExclusiveFileIdentity = [
-  Assert<Same<ReturnType<typeof prepareExclusiveFile>, PreparedExclusiveFile>>,
-  Assert<Same<PreparedExclusiveFile["createStream"], (source: ByteSource, options?: FsOptions) => Promise<void>>>,
-  Assert<Same<PreparedExclusiveFile["retain"], () => Promise<void>>>,
-  Assert<Same<NonNullable<FileOutputOpenOptions["createExclusiveStream"]>, (source: ByteSource, options: FsOptions) => Promise<void>>>,
+  Assert<Same<ReturnType<NonNullable<FileSystem["open"]>>, Promise<FileDescriptor>>>,
+  Assert<Same<FileDescriptor["write"], (buffer: Uint8Array, position: number | null, options?: FsOptions) => Promise<number>>>,
+  Assert<Same<NonNullable<FileOutputOpenOptions["descriptor"]>, boolean>>,
 ];
 
-export async function installedExclusiveFileConsumer(fs: FileSystem, source: ByteSource, signal: AbortSignal): Promise<void> {
-  const owner: PreparedExclusiveFile = prepareExclusiveFile(fs, "/stage", { mode: 0o600, signal });
+export async function installedExclusiveFileConsumer(fs: FileSystem, bytes: Uint8Array, signal: AbortSignal): Promise<number> {
+  if (!fs.open) throw new Error("Descriptor opening is required");
+  const openOptions: OpenFileOptions = { access: "write", creation: "exclusive", mode: 0o600, signal };
+  const owner: FileDescriptor = await fs.open("/stage", openOptions);
   try {
-    const createExclusiveStream: NonNullable<FileOutputOpenOptions["createExclusiveStream"]> = owner.createStream;
-    const options: FileOutputOpenOptions = { flag: "wx", mode: 0o600, createExclusiveStream };
-    await createExclusiveStream(source, { signal });
-    const retained: Promise<void> = owner.retain();
-    await retained;
+    const options: FileOutputOpenOptions = { flag: "wx", mode: 0o600, descriptor: true };
     void options;
+    return await owner.write(bytes, null, { signal });
   } finally { await owner.close(); }
 }

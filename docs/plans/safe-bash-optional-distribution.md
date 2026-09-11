@@ -13,6 +13,14 @@ GitHub-only bootstrap and trusted publishing remain publication prerequisites;
 no local publication or credential fallback is authorized or attempted.
 The prior dated checkpoints remain historical evidence, not current acceptance.
 
+The local workspace build and four-artifact generator passed. Installed Node
+and Bun consumers passed the no-YAML profile. The first strict TypeScript
+consumer exposed references to unimplemented `prepareExclusiveFile` and
+`createExclusiveStream` APIs. The fixture now checks the existing exported
+`FileDescriptor`, exclusive `OpenFileOptions`, and descriptor output option;
+the same strict installed type check passes. Full installed-consumer validation
+and final unit/lint completion remain pending.
+
 ## Status and authority
 
 September 6, 2026: design for root adjudication, not an implemented or published

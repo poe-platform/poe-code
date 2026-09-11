@@ -312,7 +312,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       setAttribute(object, name, value) {
         if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"set",value},meter);return;}
-        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter)) return;
+        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter,keys,expressionHooks.warn?.bind(expressionHooks))) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, (object, name, change) => {

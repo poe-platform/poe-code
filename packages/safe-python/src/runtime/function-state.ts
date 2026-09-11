@@ -26,8 +26,8 @@ export interface FunctionAttributes<Value> extends Iterable<readonly [string, Va
  * descriptors validate special metadata and expose ordinary guest storage.
  * Code replacement and default/closure introspection remain runtime concerns. */
 export interface FunctionState<Value> extends LexicalNamespaces<Value> {
-  readonly code: CompiledFunction<Value>;
-  readonly closure: ReadonlyMap<string, LexicalCell<Value>>;
+  code: CompiledFunction<Value>;
+  closure: ReadonlyMap<string, LexicalCell<Value>>;
   readonly defaults: ReadonlyMap<string, Value>;
   /** Lazily reflected guest containers; None is distinct from unreflected. */
   positionalDefaults?: Value;

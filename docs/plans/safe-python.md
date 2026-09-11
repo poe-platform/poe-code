@@ -13041,6 +13041,26 @@ extension, integration, or validation requirement is missing or unverified.
   allocation exhaustion and fatal cancellation during storage/type access. Build,
   typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
   suite passes 9,121 tests in 605 files (95.69s; bodies 11.72s).
+- Function-to-function code replacement (2026-09-11): a failing native test
+  demonstrated that __code__ assignment escaped into the unfinished extension
+  path. Replacement now validates code objects and closure arity, retains the
+  existing closure tuple/cell identities, and binds cells positionally to the new
+  compiler owners/names. Definition defaults are reflected before code replacement
+  so changed parameter names cannot reinterpret their original values. Function
+  names, namespaces, annotations and other metadata remain unchanged. Preparation
+  and allocation precede the executable-state update. Native tests verify renamed
+  parameters/free variables, unchanged defaults, code/closure identity, live cell
+  mutation, invalid/deleted code rejection and closure mismatch. The exact scenario
+  also passes CPython. Additional native coverage proves existing generators retain
+  their old activation code while future calls use the replacement. CPython source
+  and probes established the execution-kind DeprecationWarning; two failing unit
+  tests preceded adding warning dispatch and fatal cancellation preservation.
+  Warning rejection and allocation failure leave code and closure binding unchanged.
+  Module, class-body and generator-expression code assignment still use the explicit
+  unfinished extension boundary pending their execution adapters; this is not full
+  arbitrary-code assignment support. Audit-event integration also remains pending.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 9,126 tests in 606 files (88.18s; bodies 10.53s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

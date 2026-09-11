@@ -111,6 +111,21 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("retains existing generator activations when function code changes",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture(),warnings:string[]=[];
+  const expressions=state.hooks.expressions;
+  state.hooks.expressions=(...args)=>({...expressions(...args),warn:(_category,message)=>{warnings.push(message);}});
+  state.run("def f():yield 1\ndef g():yield 2\nsaved=f()\nf.__code__=g.__code__\ncorrect=saved.__next__()==1 and f().__next__()==2\ndef plain():return 3\nf.__code__=plain.__code__\nchanged=f()==3\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(globals.items.lookup(v.string("changed"))?.value).toBe(v.true);
+  expect(warnings).toEqual(["Assigning a code object of non-matching type is deprecated (e.g., from a generator to a plain function)"]);
+});
+
+it("replaces function code while retaining positional closure cells and original defaults",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("def outer(x):\n def f(a=3,*,k=4):return x+a+k\n return f\ndef other(y):\n def g(b=99,*,k=88):return y*b+k\n return g\nf=outer(2)\ng=other(7)\ncells=f.__closure__\noriginal_name=f.__name__\nf.__code__=g.__code__\ncorrect=f()==10 and f(5,k=1)==11 and f.__name__ is original_name and f.__closure__ is cells and f.__code__ is g.__code__\ncells[0].cell_contents=3\nupdated=f()==13\ndef plain():return 42\ntry:f.__code__=plain.__code__\nexcept ValueError:mismatch=True\ntry:del f.__code__\nexcept TypeError:deletion=True\ntry:f.__code__=None\nexcept TypeError:invalid=True\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  for(const name of ["correct","updated","mismatch","deletion","invalid"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+});
+
 it("represents cells with opaque identities without representing their contents",()=>{
   const state=fixture({id:()=>42n}),{v,registry,globals}=state;globals.set("Cell",registry.cellType());
   state.run("class V:\n def __repr__(self):return 1/0\na=Cell()\nb=Cell(V())\nempty=a.__repr__()=='<cell at 0x2a: empty>'\noccupied=b.__repr__()=='<cell at 0x2a: V object at 0x2a>'\nstring=b.__str__()==b.__repr__()\nb.cell_contents=b\nrecursive=b.__repr__()=='<cell at 0x2a: cell object at 0x2a>'\n");

@@ -39,12 +39,16 @@ for (const declaration of [undefined, false] as const) test(`undeclared terminal
 });
 
 test("nonterminal declaration does not invent deadline provenance", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [readExtension({ nonTerminalInput: true })] });
+  const failures: unknown[] = [];
+  const shell = new Shell({ fs: createMemoryFileSystem(), onInternalError: reason => { failures.push(reason); }, extensions: [readExtension({ nonTerminalInput: true })] });
   context.after(() => shell.dispose());
   for (const command of basicCommands()) shell.register(command);
   const result = await shell.exec("read -Et.01 value; printf '%s;' \"$?\"; read -r tail; printf '<%s>' \"$tail\"", {
     stdin: { async *[Symbol.asyncIterator]() { yield Buffer.from("first\n"); } },
   });
   assert.equal(result.stdout, "1;<first>");
-  assert.match(result.stderr, /Read timeout requires explicit input provenance/u);
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(failures.length, 1);
+  assert.ok(failures[0] instanceof TypeError);
+  assert.equal(failures[0].message, "Read timeout requires explicit input provenance");
 });

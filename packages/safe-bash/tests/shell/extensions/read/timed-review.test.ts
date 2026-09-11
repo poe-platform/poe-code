@@ -61,7 +61,8 @@ function fixture(initial: Uint8Array = new Uint8Array(), readiness?: InputReadin
     provenance: "stream", clock,
     poll: () => readiness ?? (chunks.length ? "ready" : ended ? "eof" : "blocked"),
   });
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [readExtension()] });
+  const failures: unknown[] = [];
+  const shell = new Shell({ fs: createMemoryFileSystem(), onInternalError: reason => { failures.push(reason); }, extensions: [readExtension()] });
   for (const command of basicCommands()) shell.register(command);
   function send(bytes?: Uint8Array): void {
     const receiver = pending;
@@ -70,7 +71,7 @@ function fixture(initial: Uint8Array = new Uint8Array(), readiness?: InputReadin
     if (receiver) receiver.resolve(bytes === undefined ? { done: true, value: undefined } : { done: false, value: bytes });
     else if (bytes) chunks.push(bytes);
   }
-  return { shell, clock, controller, waiting, marker, send,
+  return { shell, clock, controller, waiting, marker, send, failures,
     get pulls() { return pulls; }, get returns() { return returns; },
     fail(reason: unknown) { assert.ok(pending); const receiver = pending; pending = undefined; receiver.reject(reason); },
     exec(script: string) {
@@ -296,6 +297,7 @@ for (const reason of [false, 0, "", null]) test(`timed review: falsey producer f
   const result = await execution;
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "1:<old>");
-  assert.equal(result.stderr, `shell: line 1: ${String(reason)}\n`);
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.deepEqual(subject.failures, [reason]);
   assert.equal(subject.clock.timers.size, 0);
 });

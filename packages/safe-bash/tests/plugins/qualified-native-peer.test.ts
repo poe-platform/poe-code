@@ -105,7 +105,7 @@ function fixture(empty = false) {
   ]);
   const lock = {
     packages: {
-      "packages/safe-bash": { devDependencies: bash.devDependencies },
+      "packages/safe-bash": { peerDependencies: bash.peerDependencies, devDependencies: bash.devDependencies },
       "node_modules/poe-code": { resolved: "", link: true }
     }
   };

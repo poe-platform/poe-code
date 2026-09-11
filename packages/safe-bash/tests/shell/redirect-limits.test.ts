@@ -149,6 +149,7 @@ test("eager buffered profiles survive nested execution and filesystem overrides"
   const { shell, fs } = fixture(t, { maxInputBytes: 8 });
   const override = new MemoryFileSystem();
   await override.writeFile("/input", new Uint8Array(8));
+  Object.defineProperty(override, "capabilities", { value: { ...override.capabilities, open: false, retainedRead: false } });
   Object.defineProperty(override, "readStream", { value: undefined });
   const read = t.mock.method(override, "readFile");
   for (const source of [": 3<input", "(: 3<input)", "f() { : 3<input; }; f", "bash -c ': 3<input'", "eval ': 3<input'", ": 3<input | :"]) {
@@ -168,7 +169,7 @@ test("method-present mixed mounted buffers stay lazy while raw disabled profiles
   await backing.writeFile("/input", new Uint8Array(8));
   const read = t.mock.method(backing, "readFile");
   const disabled = new Proxy(backing, { get(target, key) {
-    if (key === "capabilities") return { ...target.capabilities, streamingRead: false };
+    if (key === "capabilities") return { ...target.capabilities, streamingRead: false, open: false, retainedRead: false };
     if (key === "readStream") return () => { assert.fail("declared-disabled stream must not open"); };
     const member = Reflect.get(target, key);
     return typeof member === "function" ? member.bind(target) : member;
@@ -186,6 +187,7 @@ test("method-present mixed mounted buffers stay lazy while raw disabled profiles
 test("input acquisition observes host optional-method changes within one execution", async t => {
   const { shell, fs, commands } = fixture(t);
   await fs.writeFile("/input", new Uint8Array(8));
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, retainedRead: false } });
   const read = t.mock.method(fs, "readFile");
   const stream = fs.readStream;
   commands.register({ name: "disable-reader", execute() {

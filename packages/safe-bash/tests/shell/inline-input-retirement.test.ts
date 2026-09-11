@@ -54,7 +54,7 @@ for (const cancellation of [undefined, null, false, 0, ""]) {
     let outputSignal: AbortSignal | undefined;
     let settled = false;
     let consumed = false;
-    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, randomAccessWrite: false } });
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, randomAccessWrite: false } });
     const writeStream = fs.writeStream.bind(fs);
     context.mock.method(fs, "writeStream", async (...args: Parameters<typeof writeStream>) => {
       outputSignal = args[2]?.signal;

@@ -20,7 +20,8 @@ function setup(hooks: { beforeProbe?: () => Promise<void>; beforeWait?: () => Pr
   const fs = createMemoryFileSystem();
   const trace = { borrows: 0, observations: 0, probes: 0, waits: 0, releases: 0, indexedWrites: 0, assignments: [] as string[], deadlines: [] as number[] };
   const definition = readExtension();
-  const shell = new Shell({ fs, limits: { maxWallClockMs: 2000 }, extensions: [arraysExtension(), { ...definition, create() {
+  const failures: unknown[] = [];
+  const shell = new Shell({ fs, onInternalError: reason => { failures.push(reason); }, limits: { maxWallClockMs: 2000 }, extensions: [arraysExtension(), { ...definition, create() {
     const instance = definition.create();
     return { ...instance, builtins: instance.builtins.map(builtin => ({ ...builtin, execute(invocation) {
       return builtin.execute({ ...invocation,
@@ -54,7 +55,7 @@ function setup(hooks: { beforeProbe?: () => Promise<void>; beforeWait?: () => Pr
   const cat = streamCommands().find(command => command.name === "cat");
   assert.ok(cat);
   shell.register(cat);
-  return { shell, fs, trace };
+  return { shell, fs, trace, failures };
 }
 
 test("read observer review: zero timeout preserves raw variables and the entire unread stdin without borrowing", async context => {
@@ -171,7 +172,8 @@ test("read observer review: genuine undefined metadata failure is not converted 
   const result = await subject.shell.exec("value=OLD; read -t.003 -u3 value 3>/out; printf '%s:<%s>' \"$?\" \"$value\"");
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "1:<OLD>");
-  assert.equal(result.stderr, "shell: line 1: undefined\n");
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.deepEqual(subject.failures, [undefined]);
   assert.equal(subject.trace.assignments.length, 0);
   assert.equal(subject.trace.indexedWrites, 0);
   assert.equal(subject.trace.waits, 0);

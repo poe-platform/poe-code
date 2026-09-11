@@ -11,12 +11,13 @@ import { readCases, readErrors, readUsage } from "./cases.js";
 function setup(transform?: (context: ShellExtensionContext) => ShellExtensionContext) {
   const fs = createMemoryFileSystem();
   const definition = readExtension();
-  const shell = new Shell({ fs, extensions: [{ ...definition, create() {
+  const failures: unknown[] = [];
+  const shell = new Shell({ fs, onInternalError: reason => { failures.push(reason); }, extensions: [{ ...definition, create() {
     const instance = definition.create();
     return { ...instance, builtins: instance.builtins.map(builtin => ({ ...builtin, name: "read_probe", execute: (context: ShellExtensionContext) => builtin.execute(transform?.(context) ?? context) })) };
   } }] });
   for (const command of basicCommands()) shell.register(command);
-  return { shell, fs };
+  return { shell, fs, failures };
 }
 
 for (const entry of readCases) test(`read leaf: ${entry.name}`, async context => {
@@ -60,13 +61,21 @@ test("read replacement is explicit and disabling it preserves collision rejectio
 
 for (const args of ["-t0 value", "-t .01 -a values", "-t+1 value", "-t. value", "-t-0 value", "-t '' value", "-t+ value", "-t-0.0000001 value", "-t1.000000extra value", "-p prompt value", "-s value", "-e value"]) {
   test(`unavailable input capability refuses before consuming or clearing: ${args}`, async context => {
-    const { shell } = setup();
+    const { shell, failures } = setup();
     context.after(() => shell.dispose());
     const actual = await shell.exec(`values=(old keep); read_probe ${args}; printf '%s:' "$?"; read -r tail; printf '<%s><%s>' "\${values[*]}" "$tail"`, { stdin: { async *[Symbol.asyncIterator]() { yield Buffer.from("first\nsecond\n"); } } });
     assert.equal(actual.exitCode, 0);
     assert.equal(actual.stdout, "1:<old keep><first>");
     if (args.startsWith("-p") || args.startsWith("-s") || args.startsWith("-e")) assert.match(actual.stderr, /terminal input capabilities unavailable/u);
-    else assert.match(actual.stderr, /input readiness is unknown|Read timeout requires explicit input provenance/u);
+    else if (["-t .01 -a values", "-t+1 value", "-t1.000000extra value"].includes(args)) {
+      assert.equal(actual.stderr, "shell: line 1: internal error\n");
+      assert.equal(failures.length, 1);
+      assert.ok(failures[0] instanceof TypeError);
+      assert.equal(failures[0].message, "Read timeout requires explicit input provenance");
+    } else {
+      assert.match(actual.stderr, /input readiness is unknown/u);
+      assert.deepEqual(failures, []);
+    }
   });
 }
 

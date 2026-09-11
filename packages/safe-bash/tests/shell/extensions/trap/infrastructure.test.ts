@@ -72,7 +72,7 @@ test("generic named and short options agree with conditionals and listings", asy
   context.after(() => shell.dispose());
   for (const command of basicCommands()) shell.register(command);
   const result = await shell.exec("set -Z; [[ -o custom ]]; printf '%s;' $?; set -o; set +o custom; [[ -o custom ]]; printf '%s' $?");
-  assert.equal(result.stdout, "0;errexit\toff\nnounset\toff\npipefail\toff\ncustom\ton\n1");
+  assert.equal(result.stdout, "0;braceexpand\ton\nerrexit\toff\nnounset\toff\npipefail\toff\ncustom\ton\n1");
   assert.equal(result.stderr, "");
 });
 

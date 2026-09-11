@@ -186,7 +186,7 @@ for (const completion of [{ kind: "normal" }, { kind: "abort", reason: false }, 
     const release = deferred();
     let settled = false;
     const writeStream = fs.writeStream.bind(fs);
-    Object.assign(fs, { capabilitiesFor: async () => ({ ...fs.capabilities, randomAccessWrite: false }) });
+    Object.assign(fs, { capabilitiesFor: async () => ({ ...fs.capabilities, open: false, randomAccessWrite: false }) });
     context.mock.method(fs, "writeStream", async (...args: Parameters<typeof fs.writeStream>) => {
       await writeStream(...args);
       entered.resolve();

@@ -554,9 +554,10 @@ class PreparedDescriptorFrame {
   #bindings = new Map<number, { lifetime: DescriptorLifetime; release(): Promise<void> }>();
   #work: Promise<void> = Promise.resolve();
   #closing: Promise<void> | undefined;
+  readonly #retireCleanup: () => void;
 
   constructor(private readonly references: PipeDescriptorFrame, private readonly budget: Budget) {
-    references.scope.register(() => this.close());
+    this.#retireCleanup = references.scope.register(() => this.close());
   }
 
   acquire(descriptors: ReadonlyMap<number, Descriptor>): void {
@@ -602,6 +603,7 @@ class PreparedDescriptorFrame {
       this.#bindings.clear();
       failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
       throwCleanupFailures(failures);
+      this.#retireCleanup();
     });
   }
 }
@@ -3740,9 +3742,13 @@ export class Runtime {
           };
           let target;
           let outputScope: InvocationScope | undefined;
+          const retireOutputCleanups: (() => void)[] = [];
           try {
             if (!canonical) outputScope = io[invocationScope].child();
-            const context = { fs: this.fs, signal: this.signal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: (cleanup: () => void | Promise<void>) => (outputScope ?? io[invocationScope]).register(cleanup) };
+            const context = { fs: this.fs, signal: this.signal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: (cleanup: () => void | Promise<void>) => {
+              const retire = (outputScope ?? io[invocationScope]).register(cleanup);
+              if (canonical) retireOutputCleanups.push(retire);
+            } };
             if (canonical) bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal), (chunk, write) => this.budget.writeCounted(chunk, write, this.signal));
             target = await openFileOutput(context, path, canonical ? { flag: append ? "a" : "w", descriptor: true } : append ? "a" : "w", !canonical && random ? incremental : undefined);
           } catch (error) {
@@ -3755,7 +3761,10 @@ export class Runtime {
               if (this.signal.aborted) await target.abort(this.signal.reason);
               else if ("reason" in completion) await target.abort(completion.reason);
               else {
-                try { await target.finish(); }
+                try {
+                  await target.finish();
+                  for (const retire of retireOutputCleanups) retire();
+                }
                 catch (error) {
                   this.signal.throwIfAborted();
                   if (completion.status === 0 || target.descriptor && !target.signal.aborted) throw error;

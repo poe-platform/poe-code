@@ -106,6 +106,7 @@ export class Shell implements PluginHost {
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
+    if (options.deviceView !== undefined && options.deviceView !== "default" && options.deviceView !== "provided") throw new TypeError("deviceView must be default or provided");
     const commands = options.commands ?? new CommandRegistry();
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
@@ -287,7 +288,7 @@ export class Shell implements PluginHost {
         const admission = Runtime.rootCancellationAdmission(budget);
         const filesystem = options.fs ?? this.#options.fs;
         runtime = new Runtime(
-          createDeviceFileSystem(filesystem),
+          this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem),
           this.commands,
           [...this.#middleware],
           budget,

@@ -44,9 +44,10 @@ export interface PipeDescriptorReference {
 export class PipeDescriptorFrame {
   readonly references = new Set<PipeDescriptorReference>();
   #closing: Promise<void> | undefined;
+  readonly #retireCleanup: () => void;
 
   constructor(readonly scope: InvocationScope) {
-    scope.register(() => this.close());
+    this.#retireCleanup = scope.register(() => this.close());
   }
 
   open(endpoint: PipeReadEndpoint | PipeWriteEndpoint, budget: Budget): PipeDescriptorReference {
@@ -77,6 +78,7 @@ export class PipeDescriptorFrame {
     void Promise.allSettled(work).then(results => {
       this.references.clear();
       throwCleanupFailures(results.filter(result => result.status === "rejected").map(result => result.reason));
+      this.#retireCleanup();
     }).then(resolve, reject);
     return this.#closing;
   }

@@ -108,7 +108,8 @@ test("readable ready input with unknown provenance still refuses a positive mult
   const budget = new Budget({ ...defaultLimits, maxWallClockMs: 2000 });
   let pulls = 0;
   const source = new ShellInput({ async *[Symbol.asyncIterator]() { pulls++; yield Buffer.from("first\nsecond\n"); } }, budget, budget.signal, { provenance: "unknown", poll: () => "ready" });
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [readExtension()] });
+  const failures: unknown[] = [];
+  const shell = new Shell({ fs: createMemoryFileSystem(), onInternalError: reason => { failures.push(reason); }, extensions: [readExtension()] });
   context.after(async () => {
     try { await shell.dispose(); await source.close(); }
     finally { budget.close(); budget.values.close(); }
@@ -116,7 +117,10 @@ test("readable ready input with unknown provenance still refuses a positive mult
   const result = await shell.exec("read -t.02 -N12 value", { stdin: source });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "shell: line 1: Read timeout requires explicit input provenance\n");
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(failures.length, 1);
+  assert.ok(failures[0] instanceof TypeError);
+  assert.equal(failures[0].message, "Read timeout requires explicit input provenance");
   assert.equal(pulls, 0);
 });
 

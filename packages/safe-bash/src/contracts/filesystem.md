@@ -1,3 +1,18 @@
+# Shell device view selection
+
+`ShellOptions.deviceView?: "default" | "provided"` selects the device overlay
+for the constructor filesystem and every `exec` filesystem override. Omission
+means `"default"`: synthetic `/dev/null` shadows backing entries, including
+ordinary files, without writing their contents. `"provided"` omits that overlay
+and preserves the supplied filesystem's device paths and canonical descriptor
+capabilities. It does not manufacture missing devices or protect ordinary files
+at `/dev/null` from writes. Nested execution retains the selected filesystem.
+
+The option does not bypass filesystem normalization, operation budgets,
+cancellation, or retained cleanup admission. Invalid values throw before any
+filesystem operation. Selection is explicit; no metadata probe decides whether
+a replaceable pathname should bypass the default overlay.
+
 # Optional retained file readers
 
 `FileSystem.openReadFile?(path, options?: FsOptions): Promise<FileReadHandle>`

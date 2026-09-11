@@ -1,9 +1,9 @@
 # Optional release integration candidate
 
 This is an unfinished integration candidate on `main` in
-`/tmp/poe-optional-integration-aHlAip`. Nothing in this candidate has been pushed
-or published, and the merge must not be committed as release-ready while
-validation failures remain.
+`/tmp/poe-optional-integration-aHlAip`. Local checkpoints preserve both histories;
+nothing in this candidate has been pushed or published. It is not release-ready
+while validation failures remain.
 
 ## Inputs and delivery boundary
 
@@ -21,13 +21,14 @@ validation failures remain.
   binary digest. Captured evidence remains unchanged.
 - Native jobs reproduction correction `ceacf3910` applies the same supplied
   binary/version authentication while retaining historical capture hashes.
-- Root delivered SafeJS main `edb7ce8c2`; after this initial merge commit, both
-  that delivered ancestry and original main `ceacf3910` must be merged before
-  delivery so the original checkout can fast-forward without losing commits.
+- Local integration checkpoint `efa6c2efa` merges the original and remote trees.
+  `f0df68ad9` includes delivered SafeJS `edb7ce8c2` ancestry with equivalent
+  import placement. `a2bcb6210` includes original repair ancestry `ceacf3910`
+  without changing the reviewed tree. Both heads are verified ancestors, so the
+  original checkout can eventually fast-forward without losing commits.
 
 The source checkout and root SafeJS delivery clone remain untouched by this
-integration. Both histories remain available. All source conflict markers are
-resolved; resolutions are staged by explicit path. This is not validation.
+integration. All source conflict markers are resolved. This is not validation.
 
 ## Packaging milestone
 
@@ -134,7 +135,43 @@ omitted the automatic null device; and command-name diagnostics expected the
 generic octal escape instead of native Bash's ANSI-C `\\E` rendering. The
 reconciled fixtures retain exact outputs and duplicate-registration rejection.
 Ten cmp/shuf tests pass with five explicit native-prerequisite skips; all 71
-device/diagnostic controls pass. The full run remains active for discovery.
+device/diagnostic controls pass.
+
+That run completed Bash discovery at 1,072 files: 37,781 tests passed, 187 failed,
+42 were cancelled, and 414 explicitly skipped. Those results are not a gate
+pass. The failure audit covers 26 files; a stable final run remains required.
+The live source/config authentication gates correctly rejected source edits
+during execution. The frozen diagnostic compatibility suite passes all 99
+controls when rerun unchanged; public cleanup authentication remains intact.
+
+Further corrections preserve exact existing contracts:
+
+- Synthetic null devices truthfully advertise independent stream lifetimes;
+  73 SafeFS controls and four explicit mounted-device controls pass.
+- Descriptor callback owners retire completed cleanup registrations, avoiding
+  accumulation during one execution; 213 lifetime/output controls pass.
+- Stream-only buffered/retained fixtures explicitly decline canonical open,
+  keeping every original timing, traffic, cancellation, and identity assertion.
+- Synthetic peer lock records include their required peer map. The three
+  independent peer qualification selections pass 65, 93, and 68 tests.
+- Portable descriptors import canonical errors through the portable core route;
+  all 42 portable graph and browser controls pass without relaxed denylists.
+- Read diagnostic fixtures require generic public errors and exact internal
+  reason identity, while retaining no-consumption and deadline assertions.
+
+The strict committed S3 export verifier passes against `a2bcb6210`. Its earlier
+failure correctly rejected old HEAD missing a new committed build input;
+the verifier was not weakened to admit uncommitted source.
+
+Eleven frozen native write-only null-descriptor cases require the supplied
+canonical device view. Generic metadata autodetection was rejected after a
+replacement test proved path truncation could precede descriptor validation.
+The explicit constructor policy `deviceView: "default" | "provided"` preserves
+the synthetic overlay by default and lets callers select their supplied device
+namespace. It bypasses only the overlay; Runtime filesystem scopes, accounting,
+cancellation, and canonical descriptor handling remain. The policy applies to
+exec filesystem overrides and nested execution. All 299 focused controls pass,
+including the eleven unchanged native scripts and default shadowing controls.
 
 The maintained Bash source/test/consumer typecheck, root type lint, workflow
 lint, and package lint have passed. Guarded ESLint reported zero errors and one

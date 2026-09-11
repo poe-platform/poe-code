@@ -232,6 +232,7 @@ For SafeJS host integration, `makeSafeJsShellModule` exposes shell execution and
 | `new Shell(...)` option | Behavior |
 | --- | --- |
 | `fs` | Required filesystem; no implicit host access. |
+| `deviceView` | `"default"` (the default) adds synthetic `/dev/null` and shadows ordinary backing files there. `"provided"` uses the supplied filesystem's paths and capabilities, including an `exec` filesystem override, without adding devices. Nested commands retain the selected view. |
 | `cwd` | Initial virtual directory; defaults to `/`. |
 | `env` | Initial exported variables; defaults to an empty map, with `PWD` set from `cwd`. No host environment inheritance. Never pass host `process.env` or any secret-bearing object: everything in `env` is readable by executed scripts (`env`, `printenv`, `$VAR`), and on Cloudflare Workers with `nodejs_compat` `process.env` contains the Worker's secret bindings. The shell warns only for the identical host `process.env` object, not copies, and does not filter values. |
 | `commands` | Existing `CommandRegistry`; defaults to an empty registry. |

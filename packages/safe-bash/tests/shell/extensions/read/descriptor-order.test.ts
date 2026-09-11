@@ -61,7 +61,7 @@ const cases: readonly ReadCase[] = [
 
 function setup(extensions: readonly ShellExtension[] = [readExtension(), arraysExtension()]) {
   const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": createDeviceFileSystem() } });
-  const shell = new Shell({ fs, extensions, limits: { maxWallClockMs: 2000, maxInputBytes: 4096, maxOutputBytes: 65536, maxCommands: 64 } });
+  const shell = new Shell({ fs, deviceView: "provided", extensions, limits: { maxWallClockMs: 2000, maxInputBytes: 4096, maxOutputBytes: 65536, maxCommands: 64 } });
   for (const command of [...basicCommands(), ...streamCommands()]) shell.register(command);
   return { shell, fs };
 }

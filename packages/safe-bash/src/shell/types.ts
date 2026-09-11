@@ -46,6 +46,8 @@ export interface ShellParseOptions {
 export interface ShellOptions {
   readonly onInternalError?: InternalErrorHandler;
   readonly fs: FileSystem;
+  /** Default adds a synthetic null device; provided uses the supplied filesystem's device paths. */
+  readonly deviceView?: "default" | "provided";
   readonly commands?: CommandRegistry;
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;

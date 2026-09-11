@@ -32,7 +32,12 @@ explicitly when using yq. Missing YAML produces an explicit command failure.
 `arraysExtension`, `jobsExtension`, `mapfileExtension`, `readExtension`, and
 `trapExtension` opt into shell features through `Shell`'s `extensions` option.
 `createDeviceFileSystem()` creates a separate device filesystem for explicit
-mounting. Importing this package does not register tools, install extensions,
+mounting. When mounting it at `/dev`, construct `Shell` with `deviceView: "provided"`
+to retain its canonical descriptors and readiness observations. This option uses
+the supplied filesystem as-is, including `exec` filesystem overrides; ordinary
+files at `/dev/null` remain ordinary files and missing devices are not added.
+The default view supplies synthetic `/dev/null` and shadows backing entries there.
+Importing this package does not register tools, install extensions,
 or mount devices. Convenience exports `Shell` and `agentCommands` refer to the
 installed core peer. Do not mix factories with a second copy of that runtime.
 

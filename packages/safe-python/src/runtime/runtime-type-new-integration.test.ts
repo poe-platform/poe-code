@@ -13,6 +13,7 @@ import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
 import {createNamespaceBuiltin} from "./builtin-namespace.js";
+import {RuntimeCodePrograms} from "./runtime-code-programs.js";
 import {prepareDynamicNamespaces} from "./dynamic-namespaces.js";
 import {RuntimeMappingNamespace} from "./runtime-mapping-namespace.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
@@ -143,6 +144,8 @@ it("uses subclass global reads, intrinsic writes and deletes, and original frame
 
 function dynamicNamespaceFixture(){
   const state=exceptionFixture(),{v,meter}=state;
+  const programs=new RuntimeCodePrograms(meter);
+  state.hooks.code=state.registry.code.bind(state.registry);
   state.hooks.resolveBuiltins=value=>new RuntimeDictionaryNamespace(value,v,meter);
   const globals=v.dictionary(new OrderedKeyMap(state.keys,meter)),builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));
   for(const [name,value] of state.globals)globals.items.set(v.string(name),value);
@@ -150,15 +153,25 @@ function dynamicNamespaceFixture(){
   const currentFrame=()=>{const frame=state.calls.current;if(!(frame instanceof ModuleFrame||frame instanceof LexicalFrame||frame instanceof ClassFrame))throw Error("expected guest frame");return frame;};
   state.builtins.set("locals",createNamespaceBuiltin("locals",v,meter,()=>state.registry.frameLocals(currentFrame())));
   state.builtins.set("globals",createNamespaceBuiltin("globals",v,meter,()=>{const object=currentFrame().namespaces.globals.object;if(object===undefined)throw Error("expected original globals");return object;}));
+  state.builtins.set("compile",createCompileBuiltin(v,meter,{
+    filename(value){if(value.kind!=="str")throw Error("fixture requires a string filename");return {displayName:Array.from(value.value,p=>String.fromCodePoint(p)).join(""),value};},
+    compile(request,invocation){
+      if(request.mode!=="exec"&&request.mode!=="eval")throw Error("fixture supports exec/eval compilation");
+      const program=compileSourceProgram(runtimeCompilationSource(request.source,meter,invocation),{stripDocstring:false,mode:request.mode,filename:request.filename,optimize:(request.optimize<0?0:request.optimize) as 0|1|2,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter);
+      programs.register(program);return state.registry.code(program.module);
+    }
+  }));
   for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,v,meter,{execute(request,invocation){
     if(invocation===undefined)throw Error("expected invocation");
     const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>currentFrame().namespaces.globals.object,locals:()=>state.registry.frameLocals(currentFrame()),builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
     if(request.closure.kind!=="none")throw Error("fixture does not support closure");
-    const source=runtimeCompilationSource(request.source,meter,invocation,request.mode);
+    const code=request.source.kind==="instance"&&request.source.native?.kind==="code"?request.source.native.code:undefined;
+    const program=code===undefined?compileSourceProgram(runtimeCompilationSource(request.source,meter,invocation,request.mode),{stripDocstring:false,mode:request.mode,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter):programs.lookup(code);
+    if(program===undefined||code!==undefined&&code!==program.module)throw Error("fixture requires registered module code");
     const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
     const localNames=selected.locals.kind==="dict"?new RuntimeDictionaryNamespace(selected.locals,v,meter,invocation):new RuntimeMappingNamespace(selected.locals,v,meter,invocation);
     const builtinNames=selected.builtins.kind==="dict"?new RuntimeDictionaryNamespace(selected.builtins,v,meter,invocation):new RuntimeMappingNamespace(selected.builtins,v,meter,invocation);
-    return executeRuntimeProgram(compileSourceProgram(source,{stripDocstring:false,mode:request.mode,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter),{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
+    return executeRuntimeProgram(program,{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
   }}));
   for(const [name,value] of state.builtins)builtins.items.set(v.string(name),value);
   return {state,v,meter,globals,builtins};
@@ -175,6 +188,12 @@ it("selects dynamic execution globals, locals and builtins before compiling sour
   expect(globals.items.lookup(v.string("correct_subclass"))?.value).toBe(v.true);
   state.run("whitespace=eval(' \\t6*7')==42 and eval(b' \\t6*7')==42\ntry:exec(' \\t1')\nexcept SyntaxError:exec_indent=True\ntry:eval(1)\nexcept TypeError:invalid_source=True\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   for(const name of ["whitespace","exec_indent","invalid_source"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+});
+
+it("executes registered compiled module code in fresh namespaces without recompilation",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("expression=compile('x+y','child.py','eval')\na=eval(expression,{'x':2,'y':3})\nb=eval(expression,{'x':7,'y':8})\nstatement=compile(\"def f():return 'child'\\ncreated=f()\",'nested.py','exec')\nenv={}\nresult=eval(statement,env)\nstatus=exec(expression,{'x':1,'y':2})\ncorrect=a==5 and b==15 and result is None and status is None and env['created']=='child' and env['f'].__code__.co_filename=='nested.py' and expression.co_filename=='child.py'\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
 it("uses fresh function locals and live module/class namespaces for dynamic execution",()=>{

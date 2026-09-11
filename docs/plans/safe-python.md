@@ -12902,6 +12902,24 @@ extension, integration, or validation requirement is missing or unverified.
   interpreter integration work. Build, typecheck, scoped lint and whitespace
   checks pass. The final uncached full thread-pool suite passes 9,065 tests in
   598 files (81.21s; bodies 9.73s), including all restored protocol tests.
+- Compiled code/program association (2026-09-11): introduced an execution-owned
+  WeakMap registry after a missing-module regression. Module, function, class
+  body/wrapper and generator-expression code identities retain the originating
+  program's literal and definition environment. Conflicting registrations are
+  rejected before publication; metering and validation precede the callback-free
+  insertion batch so failures do not leave partial associations. Five unit tests
+  cover identity, repeat registration, conflicts and early/late budget failure.
+  The dynamic integration fixture now publishes compile results through this
+  registry and executes registered module code without source conversion or
+  recompilation. A native scenario verifies repeated execution against different
+  dictionaries, exec-compiled code through eval, eval-compiled code through exec,
+  nested definitions and filename retention; the same source passes CPython
+  3.14.7. Function code reflection required explicitly wiring the existing code
+  publication hook in this fixture. Nested code is registered, but direct execution
+  of function/class/generator code, closure admission and canonical default backend
+  registration remain unfinished and are not claimed by this module-code test.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 9,071 tests in 599 files (89.92s; bodies 11.21s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

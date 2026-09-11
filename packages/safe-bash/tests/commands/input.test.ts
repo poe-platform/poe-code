@@ -222,6 +222,7 @@ for (const streaming of [false, true]) {
   for (const size of [65_537, 65_538]) {
     test(`redirected input has an independent bound: streaming=${streaming}, size=${size}`, async () => {
       const fs: FileSystem = new MemoryFileSystem();
+      Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
       if (!streaming) Object.defineProperty(fs, "readStream", { value: undefined });
       await fs.writeFile("/large", new Uint8Array(size));
       const shell = new Shell({ fs, limits: { maxInputBytes: 65_537, maxOutputBytes: 65_536 } }).use(standardCommands());
@@ -241,6 +242,7 @@ for (const streaming of [false, true]) {
 
   test(`redirected input preserves cancellation: streaming=${streaming}`, async () => {
     const fs: FileSystem = new MemoryFileSystem();
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
     await fs.writeFile("/input", new Uint8Array([1]));
     const controller = new AbortController();
     const reason = new Error("cancel redirected read");
@@ -270,6 +272,7 @@ for (const streaming of [false, true]) {
 test("redirected input rejects oversized adapter results and counts stream chunks cumulatively", async () => {
   for (const streaming of [false, true]) {
     const fs: FileSystem = new MemoryFileSystem();
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
     await fs.writeFile("/input", new Uint8Array([1]));
     let closed = false;
     if (streaming) {

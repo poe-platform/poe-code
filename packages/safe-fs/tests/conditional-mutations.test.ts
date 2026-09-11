@@ -7,6 +7,40 @@ import { ReadOnlyFileSystem } from "../src/fs/readonly/index.js";
 import { withFileSystemQuota } from "../src/fs/quota/index.js";
 import { retainFileSystemCleanup, scopeFileSystem } from "../src/fs/scoped.js";
 import type { FileSystem } from "../src/contracts/filesystem.js";
+import { FsError } from "../src/contracts/errors.js";
+
+for (const kind of ["scope", "mount", "devices"] as const) test(`${kind} preserves create intent for owned mutations without marking deletion as creation`, async () => {
+  const memory = new MemoryFileSystem();
+  const queries: { path: string; create: boolean }[] = [];
+  const backend = new Proxy(memory, { get(target, property) {
+    if (property === "capabilitiesFor") return (async (path, options) => {
+      queries.push({ path, create: options?.create === true });
+      try { await memory.lstat(path); }
+      catch (error) {
+        if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+        if (!options?.create) return { ...memory.capabilities, atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false };
+      }
+      return memory.capabilities;
+    }) satisfies NonNullable<FileSystem["capabilitiesFor"]>;
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const fs = kind === "scope" ? scopeFileSystem(backend, () => {}, new AbortController().signal)
+    : kind === "mount" ? new MountFileSystem({ root: backend }) : new DeviceFileSystem(backend);
+  const parent = await fs.lstat("/");
+  const file = await fs.writeFileConditional!("/file", Uint8Array.of(1), { parent, expected: null });
+  await fs.prepareDirectory!("/directory", { parent, expected: null });
+  const staging = await fs.createStagedFile!("/.stage", "payload", { type: "file", data: Uint8Array.of(2) }, { parent });
+  await fs.publishStagedFile!(staging, "/published", { parent, destination: null });
+  assert.deepEqual(await memory.readFile("/published"), Uint8Array.of(2));
+  for (const path of ["/file", "/directory", "/.stage"]) assert.ok(queries.some(query => query.path === path && query.create), path);
+  queries.length = 0;
+  await fs.removeFileConditional!("/file", { parent, expected: file });
+  await fs.removeStagedFile!(staging);
+  assert.ok(queries.length > 0);
+  assert.ok(queries.every(query => !query.create));
+  await assert.rejects(memory.lstat("/file"), { code: "ENOENT" });
+});
 
 for (const kind of ["memory", "mount", "devices"] as const) test(`conditional raw writes and removal preserve committed receipts through ${kind}`, async () => {
   const memory = new MemoryFileSystem();

@@ -556,7 +556,7 @@ export class MountFileSystem implements FileSystem {
       if (this.protected(location.path)) fail("EBUSY");
       this.mutable(location);
       const backend = location.mount.backend;
-      await requireOwnedMutation(backend, location.local, "atomicFileMutation", options);
+      await requireOwnedMutation(backend, location.local, "atomicFileMutation", options, options.expected === null);
       if (!backend.writeFileConditional) fail("ENOTSUP");
       return snapshotStat(await backend.writeFileConditional(location.local, data, options));
     }, undefined, true);
@@ -580,7 +580,7 @@ export class MountFileSystem implements FileSystem {
       if (this.protected(location.path)) fail("EBUSY");
       this.mutable(location);
       const backend = location.mount.backend;
-      await requireOwnedMutation(backend, location.local, "atomicFileStaging", options);
+      await requireOwnedMutation(backend, location.local, "atomicFileStaging", options, true);
       if (!backend.createStagedFile) fail("ENOTSUP");
       const receipt = await backend.createStagedFile(location.local, name, content, options);
       const map = (entry: FileStagingEntry): FileStagingEntry => Object.freeze({
@@ -618,7 +618,7 @@ export class MountFileSystem implements FileSystem {
       const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true, missingDirectory: true });
       if (this.protected(location.path)) fail("EBUSY");
       this.mutable(location);
-      await requireOwnedMutation(location.mount.backend, location.local, "atomicDirectoryMetadata", options);
+      await requireOwnedMutation(location.mount.backend, location.local, "atomicDirectoryMetadata", options, options.expected === null);
       if (!location.mount.backend.prepareDirectory) fail("ENOTSUP");
       return snapshotStat(await location.mount.backend.prepareDirectory(location.local, options));
     }, undefined, true);

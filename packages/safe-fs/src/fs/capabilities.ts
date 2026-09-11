@@ -132,9 +132,9 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
 }
 
 export async function requireOwnedMutation(filesystem: FileSystem, path: string,
-  capability: "atomicFileMutation" | "atomicFileStaging" | "atomicDirectoryMetadata", options: FsOptions): Promise<void> {
+  capability: "atomicFileMutation" | "atomicFileStaging" | "atomicDirectoryMetadata", options: FsOptions, create = false): Promise<void> {
   options.signal?.throwIfAborted();
-  const capabilities = ownedMutationCapabilities(filesystem, await filesystem.capabilitiesFor?.(path, options) ?? filesystem.capabilities);
+  const capabilities = ownedMutationCapabilities(filesystem, await filesystem.capabilitiesFor?.(path, create ? { ...options, create: true } : options) ?? filesystem.capabilities);
   options.signal?.throwIfAborted();
   if (capabilities[capability] !== true) throw new FsError("ENOTSUP", { path, syscall: capability });
 }

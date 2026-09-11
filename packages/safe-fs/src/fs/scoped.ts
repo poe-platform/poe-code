@@ -141,7 +141,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         if (["writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
           const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
           const options = args[property === "createStagedFile" ? 3 : property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1] as FsOptions | undefined;
-          await requireOwnedMutation(original, path, property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {});
+          const create = property === "createStagedFile" || (property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
+          await requireOwnedMutation(original, path, property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
           assertOpen(options);
           return Reflect.apply(method, original, args);
         })();

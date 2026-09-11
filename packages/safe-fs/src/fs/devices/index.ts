@@ -336,7 +336,7 @@ export class DeviceFileSystem implements FileSystem {
 
   async writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
     await this.#mutable(path, options, false);
-    await requireOwnedMutation(this.#filesystem, path, "atomicFileMutation", options);
+    await requireOwnedMutation(this.#filesystem, path, "atomicFileMutation", options, options.expected === null);
     if (!this.#filesystem.writeFileConditional) throw new FsError("ENOTSUP", { path });
     return this.#filesystem.writeFileConditional(path, data, options);
   }
@@ -350,7 +350,7 @@ export class DeviceFileSystem implements FileSystem {
 
   async createStagedFile(path: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
     await this.#mutable(path, options, false);
-    await requireOwnedMutation(this.#filesystem, path, "atomicFileStaging", options);
+    await requireOwnedMutation(this.#filesystem, path, "atomicFileStaging", options, true);
     if (!this.#filesystem.createStagedFile) throw new FsError("ENOTSUP", { path });
     return this.#filesystem.createStagedFile(path, name, content, options);
   }
@@ -371,7 +371,7 @@ export class DeviceFileSystem implements FileSystem {
 
   async prepareDirectory(path: string, options: PrepareDirectoryOptions): Promise<FileStat> {
     await this.#mutable(path, options, false);
-    await requireOwnedMutation(this.#filesystem, path, "atomicDirectoryMetadata", options);
+    await requireOwnedMutation(this.#filesystem, path, "atomicDirectoryMetadata", options, options.expected === null);
     if (!this.#filesystem.prepareDirectory) throw new FsError("ENOTSUP", { path });
     return this.#filesystem.prepareDirectory(path, options);
   }

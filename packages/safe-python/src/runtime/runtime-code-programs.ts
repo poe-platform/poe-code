@@ -2,6 +2,7 @@ import type {ExecutionMeter} from "./execution-budget.js";
 import type {CompiledProgram} from "./program-compilation.js";
 import type {RuntimeCompiledCode} from "./runtime-code.js";
 import type {RuntimeValue} from "./runtime-values.js";
+import type {CompiledFunction} from "./function-compilation.js";
 
 /** Execution-owned association, keyed by compiler identity rather than source
  * text or reflected fields. Retaining nested code retains its literal/definition
@@ -31,5 +32,17 @@ export class RuntimeCodePrograms {
 
   lookup(code:RuntimeCompiledCode):CompiledProgram<RuntimeValue>|undefined {
     this.meter.checkpoint();return this.#programs.get(code);
+  }
+
+  /** Ordinary functions carry their environment directly. Class suites resolve
+   * through their originating compilation, never by matching metadata text. */
+  functionCode(code:RuntimeCompiledCode):CompiledFunction<RuntimeValue>|undefined {
+    this.meter.checkpoint();
+    if("body" in code)return code;
+    const node=code.scope.scope.node;
+    if(node.kind!=="class")return undefined;
+    const wrapper=this.#programs.get(code)?.classFunctions.get(node);
+    this.meter.checkpoint();
+    return wrapper?.body.kind==="class"&&wrapper.body.code===code?wrapper:undefined;
   }
 }

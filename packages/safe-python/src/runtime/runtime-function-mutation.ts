@@ -5,17 +5,20 @@ import { hasRuntimeInstanceAttributes } from "./runtime-values.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
 import {replaceRuntimeFunctionCode} from "./runtime-function-code.js";
 import type {KeyOperations} from "./ordered-key-map.js";
+import type {RuntimeCodePrograms} from "./runtime-code-programs.js";
 
 /** Apply implemented native function writes. False preserves the extension
  * boundary for unfinished intrinsic fields instead of creating a misleading
  * ordinary attribute that would shadow their eventual data descriptors. */
-export function runtimeMutateFunctionAttribute(fn: FunctionValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }, values: RuntimeValues, meter: ExecutionMeter,keys?:KeyOperations<RuntimeValue>,warn?:BuiltinInvocationContext["warn"]): boolean {
+export function runtimeMutateFunctionAttribute(fn: FunctionValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }, values: RuntimeValues, meter: ExecutionMeter,keys?:KeyOperations<RuntimeValue>,warn?:BuiltinInvocationContext["warn"],resolveCode?:RuntimeCodePrograms["functionCode"]): boolean {
   meter.checkpoint();
   switch (name) {
     case "__code__": {
       if(change.kind==="delete"||change.value.kind!=="instance"||change.value.native?.kind!=="code")throw new PythonRuntimeError("TypeError","__code__ must be set to a code object");
-      const code=change.value.native.code;
-      if(!("body" in code)||code.body.kind==="class")return false;
+      const original=change.value.native.code;
+      let code;
+      try {code="body" in original?original:resolveCode?.(original);}finally{meter.checkpoint();}
+      if(code===undefined)return false;
       replaceRuntimeFunctionCode(fn,code,values,meter,keys,warn);return true;
     }
     case "__class__":

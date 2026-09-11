@@ -16,6 +16,13 @@ it("associates all compiled code identities with their originating program",()=>
   expect(registry.lookup({...program.module})).toBeUndefined();
   registry.register(program);expect(registry.lookup(program.module)).toBe(program);
 });
+it("resolves original class suites to their compiler-owned callable wrappers",()=>{
+  const {meter,program}=fixture(),registry=new RuntimeCodePrograms(meter),code=[...program.classes.values()][0],wrapper=[...program.classFunctions.values()][0];
+  expect(registry.functionCode(code)).toBeUndefined();registry.register(program);
+  expect(registry.functionCode(code)).toBe(wrapper);expect(registry.functionCode(wrapper)).toBe(wrapper);
+  expect(registry.functionCode({...code})).toBeUndefined();expect(registry.functionCode(program.module)).toBeUndefined();
+  expect(registry.functionCode([...program.functions.values()][0])).toBe([...program.functions.values()][0]);
+});
 it("rejects conflicting associations without publishing any partial entries",()=>{
   const {meter,program}=fixture(),registry=new RuntimeCodePrograms(meter);registry.register(program);
   const other={...program,module:{...program.module}};

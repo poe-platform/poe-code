@@ -111,6 +111,22 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("binds existing function closure cells into replacement class code",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("def outer(x):\n class C:\n  y=x\n  def method(self):return x,__class__\n return C\n",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("ClassCode"),state.registry.code([...program.classes.values()][0]));
+  state.run("def outer(z):\n def f():return z\n return f\nf=outer(8)\ncells=f.__closure__\nf.__code__=ClassCode\nresult=f()\nresult.cell_contents=42\ncorrect=y==8 and method(None)==(8,42) and f.__closure__ is cells\ncells[0].cell_contents=9\nupdated=method(None)==(9,42)\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(globals.items.lookup(v.string("updated"))?.value).toBe(v.true);
+});
+
+it("assigns class-body code while retaining its nested definitions and code identity",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("class C:\n x=7\n def method(self):return __class__\n",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("ClassCode"),state.registry.code([...program.classes.values()][0]));
+  state.run("def f():pass\nf.__code__=ClassCode\nresult=f()\ncorrect=x==7 and __qualname__=='C' and result is __classcell__ and f.__code__ is ClassCode\nresult.cell_contents=42\ncaptured=method(None)==42\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(globals.items.lookup(v.string("captured"))?.value).toBe(v.true);
+});
+
 it("retains existing generator activations when function code changes",()=>{
   const {state,v,meter,globals,builtins}=dynamicNamespaceFixture(),warnings:string[]=[];
   const expressions=state.hooks.expressions;
@@ -185,6 +201,7 @@ function dynamicNamespaceFixture(){
   const state=exceptionFixture(),{v,meter}=state;
   const programs=new RuntimeCodePrograms(meter);
   state.hooks.code=state.registry.code.bind(state.registry);
+  state.hooks.functionCode=programs.functionCode.bind(programs);
   state.hooks.resolveBuiltins=value=>new RuntimeDictionaryNamespace(value,v,meter);
   const globals=v.dictionary(new OrderedKeyMap(state.keys,meter)),builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));
   for(const [name,value] of state.globals)globals.items.set(v.string(name),value);
@@ -214,7 +231,7 @@ function dynamicNamespaceFixture(){
     return executeRuntimeProgram(program,{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
   }}));
   for(const [name,value] of state.builtins)builtins.items.set(v.string(name),value);
-  return {state,v,meter,globals,builtins};
+  return {state,v,meter,globals,builtins,programs};
 }
 
 it("selects dynamic execution globals, locals and builtins before compiling source",()=>{

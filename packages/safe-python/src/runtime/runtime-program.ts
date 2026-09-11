@@ -70,6 +70,7 @@ import {acquireRuntimeIterator} from "./runtime-iterator-acquisition.js";
 import {PreparedIterator} from "./prepared-iterator.js";
 import { comprehensionIsAsynchronous } from "./comprehension-asynchronous.js";
 import type {CompiledFunction} from "./function-compilation.js";
+import type {RuntimeCodePrograms} from "./runtime-code-programs.js";
 import {prepareRuntimeContextManager} from "./runtime-context-manager.js";
 import {prepareRuntimeAsyncContextManager} from "./runtime-async-context-manager.js";
 
@@ -85,6 +86,8 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
   /** Share the execution's canonical code publisher with frame reflection. */
   code?(code:CompiledFunction<RuntimeValue>):RuntimeValue;
+  /** Recover compiler-owned callable adapters without rebuilding code identities. */
+  functionCode?:RuntimeCodePrograms["functionCode"];
   expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "position" | "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "multiplication" | "numeric" | "unary" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex" | "bytes" | "translation" | "buffers" | "subscription" | "mapping" | "percent">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
   specialMethods?(frame: RuntimeFrame): RuntimeSpecialMethodContext;
@@ -312,7 +315,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       setAttribute(object, name, value) {
         if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"set",value},meter);return;}
-        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter,keys,expressionHooks.warn?.bind(expressionHooks))) return;
+        if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter,keys,expressionHooks.warn?.bind(expressionHooks),hooks.functionCode?.bind(hooks))) return;
         if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
         else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, (object, name, change) => {

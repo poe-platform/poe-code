@@ -13061,6 +13061,23 @@ extension, integration, or validation requirement is missing or unverified.
   arbitrary-code assignment support. Audit-event integration also remains pending.
   Build, typecheck, scoped lint and whitespace checks pass. The uncached full
   thread-pool suite passes 9,126 tests in 606 files (88.18s; bodies 10.53s).
+- Class-body code assignment adapters (2026-09-11): failing registry and native
+  tests established the missing association between canonical class-suite code
+  objects and their already compiled callable wrappers. RuntimeCodePrograms now
+  resolves those adapters by exact registered compiler identity and class node,
+  retaining originating literals, nested definitions and comprehension metadata.
+  Cloned/unregistered class suites do not resolve by matching text. A runtime hook
+  supplies the resolver to function code assignment; ordinary functions remain
+  self-contained and do not require registration. The existing class-body invocation
+  executes in function globals and returns its class cell, while canonical __code__
+  reflection remains the original class-suite object. Native tests cover metadata,
+  nested methods, returned class-cell identity and rebinding an existing function's
+  closure cells to differently named class free variables. Both exact scenarios
+  also pass CPython. Focused checks pass 1,066 tests. Direct eval/exec class code with
+  separate locals, module/generator-expression adapters and audit events remain
+  unfinished; this checkpoint covers class code assigned to a function. Build,
+  typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
+  suite passes 9,129 tests in 606 files (94.83s; bodies 10.91s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

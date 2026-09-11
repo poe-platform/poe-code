@@ -10736,6 +10736,20 @@ extension, integration, or validation requirement is missing or unverified.
   test bodies 11.46s). Bulk methods/operators, repr recursion,
   native frame construction/public exposure and callback-boundary hardening
   remain required; this core is not the complete FrameLocalsProxy API.
+- Native frame-locals callback audit (2026-09-10): ten failing direct-descriptor
+  tests reproduced cancellation hidden by failed representation callbacks,
+  successful/failed comparison and exception-classification callbacks, and
+  extension classification swallowing host execution limits. Every descriptor
+  exit now checkpoints in finally; get uses the shared fatal-safe exception
+  matcher, which never offers host termination to extension classifiers.
+  Ordinary failures and raw rich-comparison results preserve their identities.
+  Eleven new boundary tests pass; the focused proxy/native-integration/mapping
+  route passes 839 tests. All 110 native operation/argument and 1,000 mutation
+  sequence comparisons still match CPython. Selected workspace build and
+  typecheck and scoped lint pass. This isolated descriptor change does
+  not alter compiler/program assembly; the previous full-package baseline is
+  7,684 passing tests. Remaining proxy methods and native frame exposure are
+  still required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

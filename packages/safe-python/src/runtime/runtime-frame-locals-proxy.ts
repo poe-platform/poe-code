@@ -5,6 +5,7 @@ import {runtimeDictionaryStorage} from "./runtime-dictionary-storage.js";
 import {runtimeDictionaryPayload} from "./runtime-dictionary-payload.js";
 import {PythonKeyError,runtimeDictionaryAccess} from "./runtime-dictionary-access.js";
 import {PythonRuntimeError} from "./error.js";
+import {runtimeExceptionMatches} from "./runtime-exception-matches.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import {representationObject} from "./representation-protocol.js";
 import {runtimeIterate} from "./runtime-iteration.js";
@@ -43,6 +44,7 @@ export function installRuntimeFrameLocalsProxyDescriptors(owner:TypeValue,values
     const descriptor={owner,name,accepts:(value:RuntimeValue)=>value.kind==="instance"&&value.type===owner&&value.native?.kind==="frame_locals_proxy",
       invoke(receiver:RuntimeValue,args:readonly RuntimeValue[],keywords:Extract<RuntimeValue,{kind:"dict"}>,meter:ExecutionMeter,invocation?:BuiltinInvocationContext):RuntimeValue {
         meter.checkpoint();
+        try {
         if(keywords.items.size)throw new PythonRuntimeError("TypeError",wrapper?`wrapper ${name}() takes no keyword arguments`:`FrameLocalsProxy.${name}() takes no keyword arguments`);
         const count=name==="__setitem__"?2:["__getitem__","__delitem__","__contains__","__eq__","__ne__"].includes(name)?1:0;
         if(name==="get"){
@@ -53,7 +55,7 @@ export function installRuntimeFrameLocalsProxyDescriptors(owner:TypeValue,values
         if(name==="__getitem__")return getLocal(state,args[0],values,meter,invocation);
         if(name==="get"){
           try{return getLocal(state,args[0],values,meter,invocation);}
-          catch(error){meter.checkpoint();if(invocation?.isException?.(error,"KeyError")||(error instanceof PythonRuntimeError&&error.name==="KeyError"))return args[1]??values.none;throw error;}
+          catch(error){meter.checkpoint();if(runtimeExceptionMatches(error,"KeyError",invocation))return args[1]??values.none;throw error;}
         }
         if(name==="__setitem__"){mapping.set(args[0],args[1]);return values.none;}
         if(name==="__delitem__"){if(!mapping.delete(args[0]))throw new PythonKeyError(args[0],meter);return values.none;}
@@ -72,6 +74,8 @@ export function installRuntimeFrameLocalsProxyDescriptors(owner:TypeValue,values
         if(name==="__reversed__")items.reverse();
         const list=values.list(items);
         return name==="__iter__"?values.iterator(runtimeIterate(list,values,meter,invocation?.iteration,undefined,false),"list_iterator"):list;
+        // Direct native calls must observe termination even when callbacks fail.
+        } finally {meter.checkpoint();}
       }
     };
     owner.value.namespace.items.set(values.string(name),wrapper?values.wrapperDescriptor(descriptor):values.methodDescriptor(descriptor));

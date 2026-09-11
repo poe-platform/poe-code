@@ -11794,6 +11794,29 @@ extension, integration, or validation requirement is missing or unverified.
   checked union construction, ForwardRef conversion/validation, native generic
   alias construction and fast paths, and typing publication remain required.
   Reference: https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/genericaliasobject.c
+- Cooperative source and parser-cursor accounting (2026-09-11): ForwardRef
+  conversion requires eager expression compilation, but inspection found that
+  public parser entry points had no execution-budget input. Ten failing tests
+  reproduced ignored limits/cancellation during lexing, buffered-token lookups,
+  cursor allocation and speculative syntax recovery. LexerOptions now accepts
+  an optional structurally typed SourceMeter, compatible with ExecutionBudget
+  without importing the runtime into the parser. Source scanning, lookahead,
+  positions, diagnostic-line extraction, cursor buffering, comment retention,
+  source-text extraction and speculative cursor work are charged. Source text
+  is charged before the native NUL scan and extracted ranges before copying.
+  Parser/lexer final checkpoints preserve cancellation over callback faults and
+  syntax recovery. Ordinary callers remain source-compatible without a meter;
+  SourceMeter is exported through the package API. The focused five-file suite
+  passes 128 tests, including 20 metered/unmetered AST or syntax-error comparisons,
+  cancelled expression/module/analysis entry and failing comment callbacks.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,233 tests in 539 files
+  (126.19s; test bodies 10.55s).
+  This is source/cursor accounting, not a complete parser sandbox: AST creation,
+  validation/analysis passes, normalization and recursion-depth controls still
+  require audit/instrumentation before guest-driven eager compilation is enabled.
+  Checked unions and ForwardRef conversion remain unfinished; no unchecked
+  parser call was added to guest execution to bypass this safety prerequisite.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

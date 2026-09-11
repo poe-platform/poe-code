@@ -39,9 +39,9 @@ export function parseExpression(text: string, options: LexerOptions = {}): Expre
     validateExpression(result, options.filename);
     return result;
   } catch (error) {
-    if (error instanceof PythonSyntaxError) error.withSource(text);
+    if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);
     throw error;
-  }
+  } finally {options.meter?.checkpoint();}
 }
 
 /** Shared Pratt reader for expression-bearing grammar productions. */

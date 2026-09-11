@@ -18,7 +18,7 @@ export function parseModule(text: string, options: LexerOptions = {}): Module {
     }
     return { kind: "module", body, start, end: cursor.peek().end };
   } catch (error) {
-    if (error instanceof PythonSyntaxError) error.withSource(text);
+    if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);
     throw error;
-  }
+  } finally {options.meter?.checkpoint();}
 }

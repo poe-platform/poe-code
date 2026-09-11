@@ -1,5 +1,5 @@
 import { PythonSource } from "./source.js";
-import type { SourcePosition } from "./source.js";
+import type { SourcePosition,SourceMeter } from "./source.js";
 import { Indentation } from "./indentation.js";
 import { isIdentifierStart, readIdentifier } from "./identifiers.js";
 import type { NameToken } from "./identifiers.js";
@@ -21,6 +21,8 @@ export interface StructuralToken {
 export type Token = NameToken | NumberToken | StringToken | StructuralToken | InterpolatedToken;
 
 export interface LexerOptions {
+  /** Accounts source scanning and parser cursor work, not all AST/analysis work. */
+  readonly meter?:SourceMeter;
   readonly filename?: string;
   readonly onWarning?: (message: string, position: SourcePosition) => void;
   readonly onComment?: (span: SourceSpan) => void;
@@ -38,7 +40,9 @@ const interpolatedPrefixes = new Set(["f", "fr", "rf", "t", "tr", "rt"]);
 
 /** Lazily emits significant tokens; comments and non-logical newlines are omitted. */
 export function* lex(text: string, options: LexerOptions = {}): Generator<Token, void> {
-  const source = new PythonSource(text, options.filename);
+  options.meter?.checkpoint(1,96);
+  try {
+  const source = new PythonSource(text, options.filename,options.meter);
   const indentation = new Indentation();
   const interpolation = new Interpolation();
   const delimiters: Array<{ text: string; start: SourcePosition }> = [];
@@ -144,6 +148,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
   const dedents = indentation.finish().length;
   for (let index = 0; index < dedents; index++) yield { kind: "dedent", text: "", start: end, end };
   yield { kind: "end", text: "", start: end, end };
+  } finally {options.meter?.checkpoint();}
 }
 
 function isSpace(character: string): boolean {

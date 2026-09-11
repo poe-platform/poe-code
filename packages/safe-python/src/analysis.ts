@@ -37,7 +37,7 @@ export function analyzeModule(text: string, options: LexerOptions = {}): ModuleA
     const staticAttributes = collectStaticAttributes(scopes.scope);
     return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
   } catch (error) {
-    if (error instanceof PythonSyntaxError) error.withSource(text);
+    if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);
     throw error;
-  }
+  } finally {options.meter?.checkpoint();}
 }

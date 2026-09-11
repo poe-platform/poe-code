@@ -12088,6 +12088,25 @@ extension, integration, or validation requirement is missing or unverified.
   suite passes 8,414 tests in 553 files (129.79s; test bodies 10.25s).
   AST allocation and downstream
   compiler traversal audits remain required before guest eager compilation.
+- Stack-safe compiler local layout (2026-09-11): three failing tests reproduced
+  host recursion on 10,000 nested inline scopes, unmetered private-parameter
+  mangling and lost cancellation immediately before publishing a frozen layout.
+  Inline slot reservation now uses indexed active-path frames while retaining
+  parent-before-child and sibling order. Private-name mangling receives the
+  compiler meter, capture/event/binding/name lookups charge string length, and
+  capture-child iteration checks even empty metadata collections. Final
+  checkpoints preserve cancellation through layout publication. A separate
+  baseline probe processed a 10,000-character local name for only five steps;
+  a fourth regression now verifies that lookup is budgeted. The focused three-
+  file suite passes 51 tests. All 52 CPython comparisons match ordered variable,
+  cell and free names, argument counts and variadic flags through the production
+  layout API; the deliberately omitted annotation-only __classdict__ cell is
+  excluded consistently with the ignored-types policy. Build and typecheck pass;
+  scoped lint and whitespace checks pass. The final uncached one-worker full
+  suite passes 8,418 tests in 554 files (217.30s; test bodies 21.51s).
+  AST construction and remaining
+  downstream compilation still require safety accounting/audit before guest
+  eager compilation is enabled.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

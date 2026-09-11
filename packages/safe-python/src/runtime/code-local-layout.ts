@@ -19,6 +19,7 @@ export interface CodeLocalLayout {
 
 export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter):CodeLocalLayout {
   meter.checkpoint();
+  try {
   const node=scope.scope.node;
   const generator=node.kind==="comprehension"&&node.collection==="generator";
   if(node.kind!=="function"&&node.kind!=="lambda"&&node.kind!=="module"&&node.kind!=="class"&&!generator)throw Error("local layout requires a code-owning scope");
@@ -39,10 +40,13 @@ export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter)
   // Nested code capture requirements, rather than lexical-only inline reads,
   // determine cell storage. Requirements may survive inline cell promotion.
   const captured=new Set<string>(),rootCaptured=new Set<string>();
-  for(const child of codeChildren)for(const [name,owner] of child.closureRequirements??child.free){
-    meter.checkpoint();if(!owned.has(owner))continue;
+  for(const child of codeChildren){
+    meter.checkpoint(1,64);
+    for(const [name,owner] of child.closureRequirements??child.free){
+    meter.checkpoint(1+name.length);if(!owned.has(owner))continue;
     if(!captured.has(name)){meter.checkpoint(0,40);captured.add(name);}
     if(owner===scope.scope&&!rootCaptured.has(name)){meter.checkpoint(0,40);rootCaptured.add(name);}
+    }
   }
   let positionalCount=0,positionalOnlyCount=0,keywordOnlyCount=0,varPositional=false,varKeyword=false;
   if(generator){meter.checkpoint(0,48);variables.push(".0");seen.add(".0");positionalCount=1;}
@@ -51,7 +55,7 @@ export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter)
     meter.checkpoint();
     const kind=parameter.kind;
     if((kind==="var-positional"||kind==="var-keyword"?kind:"ordinary")!==group)continue;
-    const name=manglePrivateName(parameter.name,scope.scope.privateName);
+    const name=manglePrivateName(parameter.name,scope.scope.privateName,meter);
     meter.checkpoint(0,48);variables.push(name);seen.add(name);
     if(kind==="positional-only"){positionalCount++;positionalOnlyCount++;}
     else if(kind==="positional-or-keyword")positionalCount++;
@@ -60,16 +64,26 @@ export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter)
     else varKeyword=true;
   }
   const reserveInline=(child:ResolvedScope):void=>{
+    meter.checkpoint(0,96);const frames=[{child,index:-1}];
+    while(frames.length){
+      meter.checkpoint();const frame=frames[frames.length-1],current=frame.child;
+      if(frame.index>=0){
+        if(frame.index===current.children.length){frames.pop();continue;}
+        const nested=current.children[frame.index++];
+        if(inlined(nested)){meter.checkpoint(0,64);frames.push({child:nested,index:-1});}
+        continue;
+      }
+      frame.index=0;
     meter.checkpoint(1,64);
     const globalWrites=new Set<string>();
-    for(const event of child.scope.events){
-      meter.checkpoint();if(event.kind==="write-outer"&&child.bindings.get(event.name)?.kind==="global"){meter.checkpoint(0,40);globalWrites.add(event.name);}
+    for(const event of current.scope.events){
+      meter.checkpoint(1+event.name.length);if(event.kind==="write-outer"&&current.bindings.get(event.name)?.kind==="global"){meter.checkpoint(0,40);globalWrites.add(event.name);}
     }
-    for(const [name,binding] of child.bindings){
-      meter.checkpoint();if(binding.kind!=="local"&&!globalWrites.has(name)||seen.has(name))continue;
+    for(const [name,binding] of current.bindings){
+      meter.checkpoint(1+name.length);if(binding.kind!=="local"&&!globalWrites.has(name)||seen.has(name))continue;
       meter.checkpoint(0,48);variables.push(name);seen.add(name);
     }
-    for(const nested of child.children){meter.checkpoint();if(inlined(nested))reserveInline(nested);}
+    }
   };
   let childIndex=0;
   for(let index=0;index<=scope.scope.events.length;index++){
@@ -79,11 +93,12 @@ export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter)
     }
     if(!optimized||index===scope.scope.events.length)continue;
     const event=scope.scope.events[index];
+    meter.checkpoint(event.name.length);
     if(event.kind==="annotation"||event.kind==="global"||event.kind==="nonlocal"||seen.has(event.name)||rootCaptured.has(event.name)||scope.bindings.get(event.name)?.kind!=="local")continue;
     meter.checkpoint(0,48);variables.push(event.name);seen.add(event.name);
   }
-  for(const name of variables){meter.checkpoint();if(captured.has(name)){meter.checkpoint(0,8);sharedCells.push(name);}}
-  for(const name of captured){meter.checkpoint();if(!seen.has(name)){meter.checkpoint(0,8);cells.push(name);}}
+  for(const name of variables){meter.checkpoint(1+name.length);if(captured.has(name)){meter.checkpoint(0,8);sharedCells.push(name);}}
+  for(const name of captured){meter.checkpoint(1+name.length);if(!seen.has(name)){meter.checkpoint(0,8);cells.push(name);}}
   for(const name of scope.free.keys()){meter.checkpoint(1,8);free.push(name);}
   meter.checkpoint(0,128);
   const order={key:(name:string)=>name,less(left:string,right:string){
@@ -99,4 +114,5 @@ export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter)
   for(const name of orderedCells){meter.checkpoint(1,8);sharedCells.push(name);}
   const orderedFree=free.length>1?stableSort(free,order,meter):free;
   return Object.freeze({variableNames:Object.freeze(variables),cellNames:Object.freeze(sharedCells),freeNames:Object.freeze(orderedFree),positionalCount,positionalOnlyCount,keywordOnlyCount,varPositional,varKeyword});
+  } finally {meter.checkpoint();}
 }

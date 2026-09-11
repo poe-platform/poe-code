@@ -1,4 +1,5 @@
 import { createHostCallbackContext } from "#safe-js-platform";
+import { attachExecutionControl, SandboxJobQueue, type ExecutionControl } from "./interp/jobs.js";
 import { runWithExtensions, type RealmOptions } from "./realm.js";
 
 import { hashParsedAst, hashSource } from "./parse/hash.js";
@@ -170,18 +171,27 @@ type WithRunSnapshot<TResult extends InterpreterResult> = TResult extends unknow
   : never;
 
 export type RunResult = WithRunSnapshot<InterpreterResult>;
+export type RunPromise = Promise<RunResult> & ExecutionControl;
 
 const DEFAULT_MAX_CALL_DEPTH = 1_000;
 
-export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
-  if (options.extensions !== undefined || options.builtinOverrides !== undefined)
-    return runWithExtensions(source, options);
+export function run(source: string, options: RunOptions = {}): RunPromise {
+  const jobs = new SandboxJobQueue();
+  if (options.extensions !== undefined || options.builtinOverrides !== undefined) {
+    const result = runWithExtensions(source, options, jobs).finally(() => jobs.finish());
+    return attachExecutionControl(result, jobs, options.signal);
+  }
+  let capturePausedSnapshot: (() => RunSnapshot) | undefined;
   const lifecycle = {
     hostCallbackDepth: 0,
     hostCallbackContext: createHostCallbackContext()
   };
-  const dumpController = createDumpController(lifecycle);
+  const dumpController = createDumpController(lifecycle, {
+    isPaused: () => jobs.executionState === "paused",
+    snapshot: () => capturePausedSnapshot?.()
+  });
   const promiseTracker = createSandboxPromiseRejectionTracker();
+  const detachExecutionFailure = promiseTracker.onFatalRejection((error) => jobs.interrupt(error));
   let completedSnapshot: RunSnapshot | undefined;
   const execute = async () => {
     const budget = options.budget ?? new Budget({ maxCallDepth: DEFAULT_MAX_CALL_DEPTH });
@@ -409,9 +419,11 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               random,
               sourceHash
             });
+          capturePausedSnapshot = createFailureSnapshot;
           let snapshotIteration = 0;
 
           const topLevelResult = await interpret(createExecutableNode(module), {
+            jobs,
             compilation,
             budget,
             captureReplayState: random.generator.snapshot,
@@ -458,6 +470,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             entryPointArgs === undefined || !topLevelResult.ok
               ? topLevelResult
               : await callEntryPoint({
+                  jobs,
                   args: entryPointArgs,
                   budget,
                   compilation,
@@ -593,7 +606,12 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
     throw error;
   });
 
-  return attachDumpController(result, dumpController);
+  const controlled = result.finally(() => {
+    capturePausedSnapshot = undefined;
+    detachExecutionFailure();
+    jobs.finish();
+  });
+  return attachExecutionControl(attachDumpController(controlled, dumpController), jobs, options.signal);
 }
 
 async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promise<void> {
@@ -632,6 +650,7 @@ async function throwIfUnhandledPromiseRejected(
 }
 
 async function callEntryPoint(input: {
+  jobs: SandboxJobQueue;
   compilation: CompileScope;
   args: readonly SandboxValue[];
   budget: Budget;
@@ -662,6 +681,7 @@ async function callEntryPoint(input: {
   });
 
   return interpret(createEntryPointAwait(input.args.length, input.module.span), {
+    jobs: input.jobs,
     compilation: input.compilation,
     signal: input.signal,
     budget: input.budget,

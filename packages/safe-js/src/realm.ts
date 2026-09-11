@@ -9,7 +9,7 @@ import { CompileScope } from "./interp/regex/compile-guard.js";
 import { createBuiltinBindings } from "./interp/globals.js";
 import { releaseObjectPrototype } from "./interp/object-model.js";
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
-import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./interp/jobs.js";
+import { attachExecutionControl, SandboxJobQueue, runAsyncPrefix, suspendJob, type ExecutionControl } from "./interp/jobs.js";
 import { withCancellationSignal, awaitSandboxValue } from "./interp/cancel.js";
 import { enterRunningState } from "./interp/running-state.js";
 import { runResources } from "./interp/resources.js";
@@ -94,7 +94,7 @@ export type RealmResult =
       returnValue?: unknown;
     })
   | Omit<Extract<InterpreterResult, { ok: false }>, "snapshot">;
-export type SafeJSRealm = {
+export type SafeJSRealm = ExecutionControl & {
   readonly extensions: readonly SafeJSExtension["manifest"][];
   evaluate(source: string, options?: { filename?: string }): Promise<RealmResult>;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
@@ -119,7 +119,7 @@ class RealmState {
   readonly compilation: CompileScope;
   readonly controller = new AbortController();
   readonly phase = new AsyncLocalStorage<HostPhase>();
-  readonly queue = new SandboxJobQueue();
+  readonly queue: SandboxJobQueue;
   readonly tracker = createSandboxPromiseRejectionTracker();
   readonly bridge: RealmBridge;
   readonly limits: Required<RealmLimits>;
@@ -150,7 +150,8 @@ class RealmState {
   nestedDepth = 0;
   failure?: { reason: unknown };
 
-  constructor(readonly options: RealmOptions) {
+  constructor(readonly options: RealmOptions, queue = new SandboxJobQueue()) {
+    this.queue = queue;
     const limitInput = readDataRecord(options.limits ?? {}, "Realm limits");
     this.limits = {
       extensions: 32,
@@ -251,6 +252,7 @@ class RealmState {
           modules.set(name, occupied);
         }
       }
+      this.controller.signal.addEventListener("abort", () => this.queue.interrupt(this.controller.signal.reason), { once: true });
       options.signal?.addEventListener("abort", this.abort, { once: true });
       if (options.signal?.aborted) this.abort();
       this.budget.setRetainedValues(this, this.retainedRoots);
@@ -913,7 +915,7 @@ class RealmState {
       this.compilation.dispose();
       this.lease.release();
       if (errors.length > 0) throw new AggregateError(errors, "Realm cleanup failed.");
-    })();
+    })().finally(() => this.queue.finish());
     return this.disposal;
   }
 }
@@ -950,7 +952,7 @@ function assertNames(actual: readonly string[], expected: readonly string[], lab
 
 export function createRealm(options: RealmOptions = {}): SafeJSRealm {
   const state = new RealmState(readRealmOptions(options));
-  return Object.freeze({
+  return Object.freeze(attachExecutionControl({
     extensions: Object.freeze(state.extensions.map((extension) => extension.manifest)),
     evaluate: state.evaluate,
     startCallback: state.startCallback,
@@ -958,10 +960,10 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
     releaseCallback: state.releaseCallback,
     releaseGuestReference: state.releaseGuestReference,
     close: state.close
-  });
+  }, state.queue));
 }
 
-export async function runWithExtensions(source: string, options: RunOptions): Promise<RunResult> {
+export async function runWithExtensions(source: string, options: RunOptions, jobs?: SandboxJobQueue): Promise<RunResult> {
   if (
     options.snapshot !== undefined ||
     options.snapshotBackend !== undefined ||
@@ -971,7 +973,7 @@ export async function runWithExtensions(source: string, options: RunOptions): Pr
     throw new TypeError(
       "Live extension runs do not support snapshots or entryPointArgs; use a persistent realm."
     );
-  const state = new RealmState(readRealmOptions(options, true));
+  const state = new RealmState(readRealmOptions(options, true), jobs);
   try {
     const result = await state.perform(() => state.evaluateRaw(source, options.filename));
     if (result.ok) encodeReplayData(result.returnValue);

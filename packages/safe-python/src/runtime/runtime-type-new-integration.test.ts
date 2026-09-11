@@ -170,6 +170,28 @@ it.each(["__add__","__mul__","__rmul__","__mod__","__rmod__"])("validates canoni
   state.run(`try:str.${name}(1,1)\nexcept TypeError:receiver=True\ntry:'x'.${name}()\nexcept TypeError:arity=True\ntry:'x'.${name}(other=1)\nexcept TypeError:keyword=True\n`);
   for(const flag of ["receiver","arity","keyword"])expect(state.globals.get(flag)).toBe(v.true);
 });
+it.each([
+  ["upper","Straße","STRASSE"],["casefold","Straße","strasse"],["lower","İ","i̇"],
+  ["title","they're","They'Re"],["capitalize","ǳABC","ǲabc"],["swapcase","Σσς","σΣΣ"]
+])("publishes native string case descriptors with subtype results: %s",(name,input,output)=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("input",v.string(input));state.globals.set("expected",v.string(output));
+  state.run(`class S(str):pass\ns=S(input)\na=s.${name}()\nb=str.${name}(s)\ncorrect=a==expected and b==expected and type(a) is str and a is not b\nmetadata=s.${name}.__self__ is s and str.${name}.__objclass__ is str and str.${name}.__name__=='${name}'\nempty=S('').${name}()\nempty_ok=empty is ''\ntry:str.${name}(1)\nexcept TypeError:receiver=True\ntry:s.${name}(1)\nexcept TypeError:arity=True\ntry:s.${name}(unknown=1)\nexcept TypeError:keyword=True\n`);
+  for(const flag of ["correct","metadata","empty_ok","receiver","arity","keyword"])expect(state.globals.get(flag)).toBe(v.true);
+});
+it.each([
+  ["isascii","abc","é"],["isspace","\u2003","x"],["isidentifier","class","1x"],["isalpha","λ","1"],
+  ["isdecimal","٣","²"],["isdigit","²","⅓"],["isnumeric","⅓","x"],["isalnum","a٣","!"],
+  ["isprintable","a b","\n"],["islower","abc!","ABC"],["isupper","ABC!","abc"],["istitle","Hello World","hello World"]
+])("publishes native string classification descriptors with subtype receivers: %s",(name,positive,negative)=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());state.globals.set("positive",v.string(positive));state.globals.set("negative",v.string(negative));
+  state.run(`class S(str):pass\na=S(positive)\nb=S(negative)\ncorrect=a.${name}() and not str.${name}(b)\nmetadata=a.${name}.__self__ is a and str.${name}.__objclass__ is str\ntry:str.${name}(1)\nexcept TypeError:receiver=True\ntry:a.${name}(1)\nexcept TypeError:arity=True\ntry:a.${name}(unknown=1)\nexcept TypeError:keyword=True\n`);
+  for(const flag of ["correct","metadata","receiver","arity","keyword"])expect(state.globals.get(flag)).toBe(v.true);
+});
+it("honors string method overrides while explicit descriptors inspect native storage",()=>{
+  const state=exceptionFixture(),{v}=state;state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):\n def upper(self):return 'override'\n def isalpha(self):return False\ns=S('abc')\ncorrect=s.upper()=='override' and not s.isalpha() and str.upper(s)=='ABC' and str.isalpha(s)\ns.lower=lambda:'instance'\ninstance=s.lower()=='instance' and str.lower(s)=='abc'\n");
+  for(const flag of ["correct","instance"])expect(state.globals.get(flag)).toBe(v.true);
+});
 it.each(["not-implemented","ellipsis"] as const)("constructs canonical singleton types without creating instances: %s",kind=>{
   const state=exceptionFixture(),value=kind==="ellipsis"?state.v.ellipsis:state.v.notImplemented;
   state.globals.set("singleton",value);

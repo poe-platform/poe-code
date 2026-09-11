@@ -13450,6 +13450,25 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 616 files (65.44s; bodies 8.62s). Ordinary string method descriptors,
   broader native argument adaptation, further codecs, public interpreter assembly,
   imports, safe-fs and audits remain unfinished. No push or release.
+- Canonical string case/classification descriptors (2026-09-11): registered
+  upper, casefold, lower, title, capitalize, swapcase and all twelve implemented
+  classification predicates as native method descriptors. Catalog metadata owns
+  method names and CPython documentation; exact attribute lookup consults the
+  same published-name catalog. Descriptors inspect native subtype payloads and
+  reuse the existing Unicode kernels, preserving fresh nonempty case-conversion
+  results and canonical empty results. Ordinary guest subclass/instance overrides
+  remain effective, while explicit str methods bypass them. Nineteen new native
+  integration tests failed before publication and now pass, covering Unicode
+  cases, descriptor ownership/binding, exact result types and identity, receiver
+  admission, arity, keywords, and method overrides. An in-memory 756-case CPython
+  comparison across exact/subtype strings, empty and nonempty inputs, combining
+  characters, supplementary code points and lone surrogates has zero differences
+  in results, result types, identity or documentation. Maintained workspace build,
+  typecheck, scoped lint and whitespace checks pass. The full uncached thread-pool
+  suite passes 9,338 tests in 616 files (69.98s; bodies 8.41s). Remaining ordinary
+  string method descriptors and native argument adaptation, codecs, public
+  interpreter assembly, imports, safe-fs and broad audits remain unfinished.
+  No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

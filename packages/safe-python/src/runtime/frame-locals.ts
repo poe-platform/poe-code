@@ -9,12 +9,14 @@ import {PythonRuntimeError} from "./error.js";
  * or undefined results here allow it to consult that shared extra dictionary. */
 export class FrameLocals<Value> {
   readonly #names=new Set<string>();
+  readonly names:readonly string[];
   constructor(layout:FunctionLocalLayout,private readonly locals:Map<string,Value>,private readonly cells:ReadonlyMap<string,CellStorage<Value>>,private readonly meter:ExecutionMeter){
     meter.checkpoint(1,128);
     for(const names of [layout.variableNames,layout.cellNames,layout.freeNames])for(const name of names){
       meter.checkpoint();if(this.#names.has(name))continue;
       meter.checkpoint(0,40);this.#names.add(name);
     }
+    meter.checkpoint(0,32+this.#names.size*8);this.names=Object.freeze([...this.#names]);
     Object.freeze(this);
   }
   lookup(name:string):{readonly value:Value}|undefined {

@@ -10699,6 +10699,22 @@ extension, integration, or validation requirement is missing or unverified.
   Guest FrameLocalsProxy methods/extra-key storage,
   locals/globals builtins, comprehension reflection, frame/code objects and
   traceback/native context-manager integration remain unfinished.
+- Frame-locals mapping storage (2026-09-10): added a generic execution-owned
+  mapping over optimized slots plus a lazily allocated ordered extra dictionary.
+  Slot-name arrays are immutable. Lookup hashes incoming keys before identity
+  matching, then compares equal-hash names in compiler order; arbitrary hashable
+  alias objects can match slot names. Reads skip unbound equal names, whereas
+  writes/deletes recognize them. Equality callbacks may mutate a slot before its
+  value is read. Extra keys retain original identity and insertion order on
+  overwrite; entry snapshots and size include bound slots followed by extras.
+  Key callback failures preserve state, and post-callback checkpoints prevent
+  failures from masking cancellation. Twelve focused mapping tests plus eight
+  slot-storage tests pass. All 1,000 CPython mapping sequences match. Selected
+  build, typecheck and scoped lint pass. The final uncached one-worker suite
+  passes 7,680 tests in 518 files (122.80s; test bodies 8.91s).
+  Native frame/proxy factories must share one mapping state per frame and still
+  need descriptors, bulk methods, missing-key diagnostics and guest exposure;
+  this generic mapping kernel alone is not a completed FrameLocalsProxy API.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

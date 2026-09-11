@@ -83,8 +83,8 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       native.set(value.kind, type); return type;
     } })
   };
-  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
+  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins,filename?:string) {
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false,filename }, v, meter), { values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
@@ -202,6 +202,13 @@ it("shares exact Python dictionary globals across module, function and class exe
   const globals=new RuntimeDictionaryNamespace(dictionary,v,state.meter);
   state.run("g=1\ndef f():\n global g\n g+=2\n return g\nclass C:\n global g\n g=4\nfirst=f()\nbacking['g']=9\nsecond=f()\ndel backing['g']\ntry:f()\nexcept NameError:missing=True\ng=7\ndef remove():\n global g\n del g\nremove()\ncorrect=first==6 and second==11 and missing and 'g' not in backing and f.__module__=='example'\n",globals);
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("retains defining filenames when nested functions are created from another program",()=>{
+  const state=exceptionFixture(),{v}=state;state.hooks.code=state.registry.code.bind(state.registry);
+  state.run("def factory():\n return lambda:1\n",undefined,undefined,"../first/🐍.py");
+  state.run("f=factory()\ndef other():pass\ncorrect=f.__code__.co_filename=='../first/🐍.py' and factory.__code__.co_filename==f.__code__.co_filename and other.__code__.co_filename=='second.py'\n",undefined,undefined,"second.py");
+  expect(state.globals.get("correct")).toBe(v.true);
 });
 
 it("shares immutable compiler code identity between functions and active frames",()=>{

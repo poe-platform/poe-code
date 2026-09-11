@@ -4,6 +4,7 @@ import type { ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { CodeConstants } from "./code-constants.js";
 import { compileSuite } from "./suite-compilation.js";
+import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
 
 export interface ClassConstants<Value> extends CodeConstants<Value> {
   /** Builtin constant allocation only, without invoking guest conversion hooks. */
@@ -11,6 +12,7 @@ export interface ClassConstants<Value> extends CodeConstants<Value> {
 }
 
 export interface CompiledClassBody<Value> {
+  readonly source?:CompilationSource<Value>;
   readonly scope: ResolvedScope;
   readonly qualifiedName: Value;
   readonly firstLine: Value;
@@ -28,13 +30,14 @@ export interface CompiledClassBody<Value> {
  */
 export function compileClassBody<Value>(
   scope: ResolvedScope, analysis: Pick<ModuleAnalysis, "qualifiedNames" | "staticAttributes">,
-  options: { readonly stripDocstring: boolean }, constants: ClassConstants<Value>, meter: ExecutionMeter
+  options: CodeCompilationOptions, constants: ClassConstants<Value>, meter: ExecutionMeter,source?:CompilationSource<Value>
 ): CompiledClassBody<Value> {
   meter.checkpoint();
   const node = scope.scope.node;
   if (scope.scope.kind !== "class" || node.kind !== "class") throw new Error("class bodies require a class scope");
   const name = analysis.qualifiedNames.get(scope.scope), attributes = analysis.staticAttributes.get(scope.scope);
   if (name === undefined || attributes === undefined) throw new Error("missing analyzed class metadata");
+  source??=createCompilationSource(options.filename??"<string>",constants,meter);
   const qualifiedName = constants.string(name);
   meter.checkpoint();
   const firstLine = constants.integer(node.decorators[0]?.start.line ?? node.start.line);
@@ -43,5 +46,5 @@ export function compileClassBody<Value>(
   meter.checkpoint();
   const staticAttributes = constants.tuple(names);
   const suite = compileSuite(node.body, options.stripDocstring, constants, meter);
-  return { scope, qualifiedName, firstLine, staticAttributes, ...suite };
+  return { source,scope, qualifiedName, firstLine, staticAttributes, ...suite };
 }

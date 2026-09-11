@@ -10977,6 +10977,27 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,793 tests in 523 files (121.98s;
   test bodies 9.28s).
+- Compiler source identity and co_filename (2026-09-10): two failing regressions
+  demonstrated absent shared source metadata and lost defining filenames across
+  program invocations. Added literal filename compilation options, defaulting to
+  <string>, and one frozen source record shared by module, function, lambda,
+  class and synthetic class-function code. Standalone function/class compilation
+  also retains source identity. Whole-program compilation allocates the filename
+  constant only once; empty, relative, Unicode and newline-containing names are
+  retained without path normalization, resolution or filesystem access. Generic
+  undefined filename constants remain distinct from absent metadata. Native code
+  publishes read-only co_filename; manually assembled code lacking source
+  metadata reports the missing capability rather than inventing a filename.
+  Fifteen new tests cover provenance, sharing, default/literal filenames,
+  descriptor immutability, generic undefined and callback cancellation/failure.
+  The focused six-file route passes 903 tests. All 256 cross-program filename
+  comparisons match CPython, including nested lambdas/functions/generators and
+  class methods created after another program starts executing. Source contents,
+  instruction/line maps, public compile filename argument validation and automatic
+  traceback locations remain separate unfinished work.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,808 tests in 524 files (157.73s;
+  test bodies 11.78s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

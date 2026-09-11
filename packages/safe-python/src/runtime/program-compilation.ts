@@ -8,8 +8,10 @@ import { compileSuite } from "./suite-compilation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { compileLiteralPool, type LiteralExpression, type LiteralPool } from "./literal-pool.js";
 import type { ComprehensionNode } from "./comprehension-execution.js";
+import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
 
 export interface CompiledModule<Value> {
+  readonly source?:CompilationSource<Value>;
   readonly scope: ResolvedScope;
   readonly docstring: { readonly value: Value } | undefined;
   readonly statements: readonly Statement[];
@@ -33,13 +35,14 @@ export interface CompiledProgram<Value> {
  * accounting remain unfinished; this is not a standalone Python execution API.
  */
 export function compileProgram<Value>(
-  analysis: ModuleAnalysis, options: { readonly stripDocstring: boolean },
+  analysis: ModuleAnalysis, options: CodeCompilationOptions,
   constants: ClassConstants<Value> & { literal?(node: LiteralExpression): Value }, meter: ExecutionMeter
 ): CompiledProgram<Value> {
   meter.checkpoint();
   if (analysis.scopes.scope.kind !== "module" || analysis.scopes.scope.node !== analysis.module)
     throw new Error("program compilation requires a matching analyzed module scope");
-  const module: CompiledModule<Value> = { scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
+  const source=createCompilationSource(options.filename??"<string>",constants,meter);
+  const module: CompiledModule<Value> = { source,scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
   const literals = constants.literal ? compileLiteralPool(analysis.module.body, constants.literal.bind(constants), meter, constants.tuple.bind(constants)) : undefined;
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
   meter.checkpoint(0,48);
@@ -51,16 +54,16 @@ export function compileProgram<Value>(
     meter.checkpoint();
     const scope = pending.pop()!, node = scope.scope.node;
     if (node.kind === "function" || node.kind === "lambda") {
-      const code = compileFunction(scope, analysis, options, constants, meter);
+      const code = compileFunction(scope, analysis, options, constants, meter,source);
       meter.checkpoint(0, 104);
       functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions, comprehensions, literals });
     }
     else if (node.kind === "class") {
-      const code = compileClassBody(scope, analysis, options, constants, meter);
+      const code = compileClassBody(scope, analysis, options, constants, meter,source);
       classes.set(node, code);
       meter.checkpoint(0, 136);
       classFunctions.set(node, {
-        scope, kind: "function", name: constants.string(node.name.name),
+        source,scope, kind: "function", name: constants.string(node.name.name),
         qualifiedName: code.qualifiedName, firstLine: code.firstLine,
         docstring: undefined, body: { kind: "class", code },
         definitions: functions, classDefinitions: classFunctions, comprehensions, literals

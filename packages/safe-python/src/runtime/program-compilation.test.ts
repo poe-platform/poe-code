@@ -7,6 +7,14 @@ const budget = (maxSteps = 10000) => new ExecutionBudget({ maxSteps, maxAllocate
 const constants = { string: (value: string): unknown => value, integer: (value: number): unknown => value, tuple: (values: readonly unknown[]): unknown => [...values] };
 
 describe("whole-program code preparation", () => {
+  it("shares one literal source identity across all nested code",()=>{
+    const analysis=analyzeModule("def outer():\n class C:\n  def method(self):return lambda:1\n return C"),filename="../folder/🐍.py",allocated:string[]=[];
+    const program=compileProgram(analysis,{stripDocstring:false,filename},{...constants,string(value){allocated.push(value);return {value};}},budget());
+    expect(program.module.source?.filename).toEqual({value:filename});
+    expect(Object.isFrozen(program.module.source)).toBe(true);
+    for(const code of [...program.functions.values(),...program.classes.values(),...program.classFunctions.values()])expect(code.source).toBe(program.module.source);
+    expect(allocated.filter(value=>value===filename)).toHaveLength(1);
+  });
   it("prepares module, nested function, lambda and class code from one analysis", () => {
     const analysis = analyzeModule('"module doc"\ndef outer(x=lambda: 1):\n class C:\n  def method(self): self.x=1');
     const program = compileProgram(analysis, { stripDocstring: false }, constants, budget());

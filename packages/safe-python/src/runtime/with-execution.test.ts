@@ -38,6 +38,18 @@ function fixture(maxSteps = 100000) {
 }
 
 describe("synchronous context managers", () => {
+  it("prepares native exit failures before restoring the body exception",()=>{
+    const state=fixture();
+    state.context.exceptions!.prepare=error=>{
+      if(error instanceof Guest)return error;
+      const prepared=new Guest("native exit");prepared.context=state.active();return prepared;
+    };
+    state.context.managers!.prepare=()=>({enter:()=>undefined,exit(){throw Error("native");}});
+    let failure:Guest|undefined;
+    try{state.run("with a:\n boom");}catch(error){failure=error as Guest;}
+    expect(failure?.message).toBe("native exit");expect(failure?.context?.message).toBe("boom");
+    expect(state.active()).toBeUndefined();
+  });
   it("retains the prepared exit callback even if enter changes the adapter object", () => {
     const state = fixture();
     const manager = {

@@ -11036,6 +11036,30 @@ extension, integration, or validation requirement is missing or unverified.
   insertion or native async-with adapters; both remain required. Selected build,
   typecheck, scoped lint and whitespace checks pass. The final uncached one-worker
   package suite passes 7,837 tests in 526 files (459.34s; test bodies 39.52s).
+- Native asynchronous context managers (2026-09-10): three failing native
+  regressions reproduced the missing async-with adapter and absent contextual
+  await diagnostics. Shared acquisition now selects synchronous/asynchronous
+  special methods and opposite-protocol hints without binding hint descriptors.
+  A separate resumable adapter delays calls until entry/exit cursors advance and
+  delegates awaitables through the owning coroutine, with cancellation checks
+  around calls and resumed completion/failure. Native async-with retains cached
+  methods, stored traceback identities and host overrides. Missing __await__ gets
+  the method-specific diagnostic; existing descriptor/call/iterator failures
+  propagate without an artificial cause. Fifteen new tests cover suspended
+  entry/cleanup, argument identity, async-generator close, active bare raise,
+  await acquisition errors, lazy calls and cancellation. CPython comparisons
+  exposed ten lost-context cases during native exit protocol validation. Native
+  and generic regressions confirmed that the shared unwinder restored handled
+  state before converting native faults; it now prepares failures before restoring
+  state, preserving the body exception for both synchronous and async exits.
+  The focused five-file suite passes 915 tests. All 64 malformed-awaitable cases
+  and 192 async protocol/descriptor diagnostics match CPython. Rechecks after the
+  unwinder correction also pass all 288 async cleanup/control-flow and 144
+  synchronous cleanup/control-flow comparisons. Automatic traceback
+  frame insertion and complete code/frame location metadata remain unfinished.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,852 tests in 527 files (179.96s;
+  test bodies 10.98s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

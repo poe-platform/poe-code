@@ -214,18 +214,18 @@ function* statementContinuation<Value>(
       if(top.kind==="with-exit") {
         frames.pop();
         const pending=transfer;
+        let restore:(()=>void)|undefined;
         try {
-          const restore=pending?.kind==="throw"?context.exceptions!.enter(pending.error):undefined;
-          try {
+          restore=pending?.kind==="throw"?context.exceptions!.enter(pending.error):undefined;
+          meter.checkpoint();
+          const error=pending?.kind==="throw"?{error:pending.error}:null;
+          const result=top.asynchronous?yield* top.exit(error):top.exit(error);
+          if(pending?.kind==="throw") {
             meter.checkpoint();
-            const error=pending?.kind==="throw"?{error:pending.error}:null;
-            const result=top.asynchronous?yield* top.exit(error):top.exit(error);
-            if(pending?.kind==="throw") {
-              meter.checkpoint();
-              transfer=top.policy.truth(result)?undefined:pending;
-            }
-          } finally {restore?.();}
+            transfer=top.policy.truth(result)?undefined:pending;
+          }
         } catch(error){transfer=guestFailure(error);}
+        finally {restore?.();}
         continue;
       }
       if (transfer) {

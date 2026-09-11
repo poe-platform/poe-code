@@ -64,6 +64,7 @@ import { createRuntimeAsyncIterator } from "./runtime-async-iteration.js";
 import { comprehensionIsAsynchronous } from "./comprehension-asynchronous.js";
 import type {CompiledFunction} from "./function-compilation.js";
 import {prepareRuntimeContextManager} from "./runtime-context-manager.js";
+import {prepareRuntimeAsyncContextManager} from "./runtime-async-context-manager.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -528,7 +529,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       assertions: statementHooks.assertions ?? context.exceptions?.assertions(),
       managers: statementHooks.managers??(specialMethods===undefined?undefined:{prepare:value=>prepareRuntimeContextManager(value,builtinCalls,values,meter),truth:value=>builtinCalls.truth!(value)}),
       asyncIterate:statementHooks.asyncIterate??(suspension===undefined?undefined:value=>createRuntimeAsyncIterator(value,builtinCalls,awaitable=>suspension.delegate(awaitable,builtinCalls,"anext"),values,meter)),
-      asyncManagers:statementHooks.asyncManagers,
+      asyncManagers:statementHooks.asyncManagers??(suspension===undefined||specialMethods===undefined?undefined:{prepare:value=>prepareRuntimeAsyncContextManager(value,builtinCalls,(awaitable,method)=>suspension.delegate(awaitable,builtinCalls,method),values,meter),truth:value=>builtinCalls.truth!(value)}),
       exceptions: statementHooks.exceptions ?? context.exceptions?.statements(frame),
       executeUnhandled(statement) {
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);

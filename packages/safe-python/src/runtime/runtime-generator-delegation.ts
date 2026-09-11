@@ -8,6 +8,7 @@ import { acquireRuntimeIterator } from "./runtime-iterator-acquisition.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { YieldDelegation, type YieldDelegationResult } from "./yield-delegation.js";
 import { acquireAwaitableIterator } from "./awaitable-iterator.js";
+import {diagnosticTypeName} from "./diagnostic-type-name.js";
 
 /** Bridge suspended expression cursors to caller-side delegation handling.
  * Rejected requests never enter the host cursor; accepted returns/errors do.
@@ -30,7 +31,7 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
     return bodyActive||this.#run===undefined?prepared():this.#run(prepared,this.#throwing);
   }
 
-  *delegate(source:RuntimeValue,invocation:BuiltinInvocationContext,awaiting:boolean|"anext"=false):Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
+  *delegate(source:RuntimeValue,invocation:BuiltinInvocationContext,awaiting:boolean|"anext"|"aenter"|"aexit"=false):Generator<RuntimeValue,RuntimeValue,RuntimeValue> {
     const {values,exceptions,meter}=this;
     meter.checkpoint(0,768);
     // Initial iteration already executes inside the body. A reentrant lookup
@@ -49,6 +50,11 @@ export class RuntimeGeneratorDelegation implements GeneratorDelegation<RuntimeVa
           nativeKind:value=>value.kind==="instance"&&value.native?.kind==="coroutine"?"coroutine":undefined,
           lookupAwait:value=>{
             const method=invocation.lookupSpecial!(value,"__await__");
+            meter.checkpoint();
+            if(method===undefined&&(awaiting==="aenter"||awaiting==="aexit")){
+              const name=invocation.typeName!(value);meter.checkpoint();
+              throw new PythonRuntimeError("TypeError",`'async with' received an object from __${awaiting}__ that does not implement __await__: ${diagnosticTypeName(name,meter,100)}`);
+            }
             if(method===undefined)return undefined;
             meter.checkpoint(0,64);return ()=>invocation.call(method,[]);
           },

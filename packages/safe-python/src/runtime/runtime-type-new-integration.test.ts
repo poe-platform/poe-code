@@ -95,6 +95,42 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("suspends native async context-manager entry and cleanup with cached methods",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Pause:\n def __init__(self,n):self.n=n\n def __await__(self):\n  yield self.n\n  return 7\nclass C:\n async def __aenter__(self):\n  C.__aexit__=None\n  return await Pause('enter')\n async def __aexit__(self,t,e,tb):\n  events.append((t is ValueError,e is error,tb is e.__traceback__))\n  await Pause('exit')\n  return True\nerror=ValueError('body')\nasync def f():\n async with C() as x:\n  events.append(x)\n  raise error\n return 9\nc=f()\ncorrect=c.send(None)=='enter' and c.send(None)=='exit'\ntry:c.send(None)\nexcept StopIteration as e:correct=correct and e.value==9\ncorrect=correct and events==[7,(True,True,True)]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each(["aenter","aexit"])("reports missing await protocol specifically for native __%s__",method=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class C:\n async def __aenter__(self):pass\n async def __aexit__(self,*args):pass\nC.__"+method+"__=lambda *args:1\nasync def f():\n async with C():pass\nc=f()\ntry:c.send(None)\nexcept TypeError as e:correct=e.args==(\"'async with' received an object from __"+method+"__ that does not implement __await__: int\",) and e.__cause__ is None\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each(["aenter","aexit"])("preserves existing __await__ failures in native __%s__",method=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class Bad:\n def __await__(self):raise ValueError('acquire')\nclass C:\n async def __aenter__(self):pass\n async def __aexit__(self,*args):pass\nC.__"+method+"__=lambda *args:Bad()\nasync def f():\n async with C():pass\nc=f()\ntry:c.send(None)\nexcept ValueError as e:correct=e.args==('acquire',) and e.__cause__ is None\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("awaits native async context cleanup during async-generator close",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Pause:\n def __await__(self):yield 'cleanup'\nclass C:\n async def __aenter__(self):pass\n async def __aexit__(self,t,e,tb):\n  events.append(t.__name__)\n  await Pause()\n  events.append('done')\nasync def f():\n async with C():yield 7\ng=f()\na=g.__anext__()\ntry:a.send(None)\nexcept StopIteration as e:correct=e.value==7\nclose=g.aclose()\ncorrect=correct and close.send(None)=='cleanup' and events==['GeneratorExit']\ntry:close.send(None)\nexcept StopIteration:closed=True\ncorrect=correct and closed and events==['GeneratorExit','done']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("keeps native async exit exception context active across suspension and truth",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("events=[]\nclass Pause:\n def __await__(self):yield 'pause'\nclass Truth:\n def __bool__(self):raise\nclass C:\n async def __aenter__(self):pass\n async def __aexit__(self,t,e,tb):\n  await Pause()\n  return Truth()\nerror=ValueError('body')\nasync def f():\n async with C():raise error\nc=f()\ncorrect=c.send(None)=='pause'\ntry:c.send(None)\nexcept ValueError as e:correct=correct and e is error\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each([false,true])("chains native context-manager protocol failures before restoring handled state (async=%s)",asynchronous=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class C:\n "+(asynchronous?"async def __aenter__":"def __enter__")+"(self):pass\n "+(asynchronous?"def __aexit__(self,*args):return 1":"def __exit__(self,*args):return 1+'bad'")+"\nerror=KeyError('body')\n"+(asynchronous?"async def f():\n async with C():raise error\nc=f()\ntry:c.send(None)":"try:\n with C():raise error")+"\nexcept TypeError as e:correct=e.__context__ is error and e.__cause__ is None\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("executes native context managers with cached type-level methods and exception identity",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("events=[]\nclass C:\n def __enter__(self):\n  events.append('enter')\n  C.__exit__=None\n  return 7\n def __exit__(self,t,e,tb):\n  events.append((t is ValueError,e is error,tb is e.__traceback__))\n  return True\nc=C()\nc.__enter__=None\nc.__exit__=None\nerror=ValueError('body')\nwith c as x:\n events.append(x)\n raise error\ncorrect=events==['enter',7,(True,True,True)]\n");

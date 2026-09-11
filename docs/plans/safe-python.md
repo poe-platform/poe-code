@@ -12158,6 +12158,23 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker full suite passes 8,444 tests in 557 files (147.76s; test bodies
   11.68s). Whole-program registries/traversal, class-wrapper constants and
   remaining AST/compiler allocation accounting still require auditing.
+- Whole-program compilation resource boundaries (2026-09-11): four failing
+  regressions reproduced cancellation lost at the final class-wrapper name
+  factory, including throwing factories, and missing program/registry storage
+  reservation. Three more reproduced scope-flag cancellation hidden by throwing
+  feature lookup or final map publication, and feature/traversal storage not
+  reserved before lookup. Program compilation now reserves module/result/maps
+  and the initial worklist, charges bound factories, registry entries/wrappers
+  and pending child slots, and checks termination in finally. Scope flags reserve
+  feature/traversal storage, charge map entries and preserve final cancellation.
+  The initial focused four-file suite passes 20 tests. All 92 comparisons against
+  17e065299 preserve full program metadata, cyclic registry relationships and
+  factory-call order across 23 sources with both literal-pool and docstring
+  policies; all 23 scope-flag comparisons also match. These are prior-version
+  regressions, not new CPython coverage. Build, typecheck, scoped lint and
+  whitespace checks pass. The final uncached one-worker full suite passes 8,451
+  tests in 559 files (134.96s; test bodies 11.65s). AST construction and remaining compiler helper audits
+  still precede enabling guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

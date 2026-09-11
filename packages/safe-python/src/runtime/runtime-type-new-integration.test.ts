@@ -111,6 +111,22 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("executes closure-bearing class code through custom locals mapping protocols",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("def outer(x):\n class C:\n  y=x\n  def method(self):return x,__class__\n return C\n",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("ClassCode"),state.registry.code([...program.classes.values()][0]));
+  state.run("events=[]\nclass L:\n def __init__(self):self.data={}\n def __getitem__(self,key):return self.data[key]\n def __setitem__(self,key,value):\n  events.append(key)\n  self.data[key]=value\ndef outer(z):\n def f():return z\n return f\ncells=outer(8).__closure__\ng={'__name__':'guest'}\nl=L()\nstatus=exec(ClassCode,g,l,closure=cells)\nl.data['__classcell__'].cell_contents=42\ncorrect=status is None and l.data['y']==8 and l.data['method'](None)==(8,42) and '__module__' in events and '__classcell__' in events and 'y' not in g\ncells[0].cell_contents=9\nupdated=l.data['method'](None)==(9,42)\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(globals.items.lookup(v.string("updated"))?.value).toBe(v.true);
+});
+
+it("evaluates and executes class code with separate original globals and locals",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("class C:\n x=7\n def method(self):return __class__\n",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("ClassCode"),state.registry.code([...program.classes.values()][0]));
+  state.run("g={'__name__':'guest'}\nl={}\nresult=eval(ClassCode,g,l)\ncorrect=l['x']==7 and 'x' not in g and l['__module__']=='guest' and result is l['__classcell__'] and l['method'].__globals__ is g\nresult.cell_contents=42\ncaptured=l['method'](None)==42\nsecond={}\nstatus=exec(ClassCode,g,second)\nexecuted=status is None and second['x']==7 and second['__classcell__'] is not result\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  for(const name of ["correct","captured","executed"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+});
+
 it("binds existing function closure cells into replacement class code",()=>{
   const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
   const program=compileSourceProgram("def outer(x):\n class C:\n  y=x\n  def method(self):return x,__class__\n return C\n",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
@@ -226,7 +242,8 @@ function dynamicNamespaceFixture(){
     const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
     const localNames=selected.locals.kind==="dict"?new RuntimeDictionaryNamespace(selected.locals,v,meter,invocation):new RuntimeMappingNamespace(selected.locals,v,meter,invocation);
     const builtinNames=selected.builtins.kind==="dict"?new RuntimeDictionaryNamespace(selected.builtins,v,meter,invocation):new RuntimeMappingNamespace(selected.builtins,v,meter,invocation);
-    if(code!==undefined&&"body" in code&&code.body.kind!=="class")return executeRuntimeFunctionCode(code,closure,{globals:globalNames,builtins:builtinNames,none:v.none,resolveBuiltins:()=>builtinNames},v,meter,invocation);
+    const callableCode=code===undefined?undefined:programs.functionCode(code);
+    if(callableCode!==undefined)return executeRuntimeFunctionCode(callableCode,closure,{globals:globalNames,builtins:builtinNames,none:v.none,resolveBuiltins:()=>builtinNames},v,meter,invocation,selected.locals);
     if(program===undefined||code!==undefined&&code!==program.module)throw Error("fixture requires registered module or function code");
     return executeRuntimeProgram(program,{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
   }}));

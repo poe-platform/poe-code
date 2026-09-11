@@ -13078,6 +13078,22 @@ extension, integration, or validation requirement is missing or unverified.
   unfinished; this checkpoint covers class code assigned to a function. Build,
   typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
   suite passes 9,129 tests in 606 files (94.83s; bodies 10.91s).
+- Direct class-code eval/exec (2026-09-11): a failing native test demonstrated
+  that dynamic execution still rejected registered class code. Callable-code
+  execution now sends class wrappers through the existing class-body capability
+  with the original selected locals object rather than ordinary function calling.
+  Original globals/builtins and validated positional closure bindings remain
+  attached to the fresh activation. Eval returns the canonical class cell when
+  present (otherwise None); the existing exec builtin discards that result. Four
+  unit cases cover original namespace forwarding, optional class-cell publication
+  and fatal cancellation after either returning or throwing class execution. Native
+  scenarios cover distinct globals/locals, class metadata, nested method globals,
+  fresh cells on repeated execution and closure-bearing execution through custom
+  locals mapping item protocols. Both exact scenarios also pass CPython. Module and
+  generator-expression callable adapters, full backend registration and audit
+  events remain unfinished. Build, typecheck, scoped lint and whitespace checks
+  pass. The uncached full thread-pool suite passes 9,135 tests in 606 files
+  (98.95s; bodies 11.17s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

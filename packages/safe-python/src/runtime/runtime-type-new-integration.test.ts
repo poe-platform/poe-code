@@ -6001,6 +6001,20 @@ it("publishes string join with native subtype members and guest iteration", () =
   for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
 });
 
+it.each(["center","ljust","rjust","zfill","expandtabs"])("publishes string %s with subtype storage and index callbacks",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  const argument=name==="expandtabs"?"tabsize=Width()":"Width()";
+  state.run(`class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass Width:\n def __index__(self):\n  visit('index')\n  return 4\nx=S('a')\nresult=str.${name}(x,${argument})\ncorrect=result==${JSON.stringify(name==="center"?" a  ":name==="ljust"?"a   ":name==="rjust"?"   a":name==="zfill"?"000a":"a")}\nbase=type(result) is str\nfirst=x.${name}(0)\nsecond=x.${name}(0)\nfresh=first is not x and first is not second\nowner=str.${name}.__objclass__ is str\n`);
+  for(const flag of ["correct","base","fresh","owner"])expect(state.globals.get(flag)).toBe(state.v.true);
+  expect(state.events).toEqual(["index"]);
+});
+
+it.each(["center","ljust","rjust"])("accepts %s subtype fill characters without conversion",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nx=S('a')\nresult=str.${name}(x,3,S('🐍'))\ncorrect=result==${JSON.stringify(name==="center"?"🐍a🐍":name==="ljust"?"a🐍🐍":"🐍🐍a")}\n`);
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it.each(["split","rsplit"])("publishes string %s with subtype separators and integer limits",name=>{
   const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
   state.run(`class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass Limit:\n def __index__(self):\n  visit('index')\n  return 1\ns=S('a-b-c')\nparts=str.${name}(s,sep=S('-'),maxsplit=Limit())\ncorrect=parts==${name==="split"?"['a','b-c']":"['a-b','c']"}\nbase=type(parts[0]) is str and type(parts[1]) is str\nowner=str.${name}.__objclass__ is str\n`);

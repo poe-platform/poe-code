@@ -4,10 +4,13 @@ import { runtimeSizeIndex } from "./runtime-size-index.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import type { RuntimeBytesInputProtocol } from "./runtime-bytes-input.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "center" | "ljust" | "rjust" | "zfill", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>, bytes?: RuntimeBytesInputProtocol): BuiltinFunctionValue {
+export function createRuntimePadMethod(original: RuntimeValue, name: "center" | "ljust" | "rjust" | "zfill", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>, bytes?: RuntimeBytesInputProtocol): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
+  const receiver = original.kind === "bytes" ? original : runtimeStringPayload(original);
+  if (receiver === undefined) throw Error("padding requires native string or bytes storage");
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {
@@ -38,12 +41,13 @@ export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "
           if (storage.length !== 1) throw new PythonRuntimeError("TypeError", `${name}(): argument 2 must be a byte string of length 1, not a ${type} object of length ${storage.length}`);
           fill = storage.byteAt(0n, meter);
         } else {
-          if (character.kind !== "str") {
-            const type = character.kind === "none" ? "NoneType" : character.kind === "not-implemented" ? "NotImplementedType" : character.kind;
+          const payload = runtimeStringPayload(character);
+          if (payload === undefined) {
+            const type = diagnosticTypeName(character.kind === "none" ? "NoneType" : character.kind === "not-implemented" ? "NotImplementedType" : character.kind === "instance" ? character.type.value.diagnosticName : character.kind, meter, 100);
             throw new PythonRuntimeError("TypeError", `The fill character must be a unicode character, not ${type}`);
           }
-          if (character.value.length !== 1) throw new PythonRuntimeError("TypeError", "The fill character must be exactly one character long");
-          fill = character.value.codePointAt(0n, meter);
+          if (payload.value.length !== 1) throw new PythonRuntimeError("TypeError", "The fill character must be exactly one character long");
+          fill = payload.value.codePointAt(0n, meter);
         }
       }
       const alignment = name === "center" ? "center" : name === "ljust" ? "left" : name === "rjust" ? "right" : "sign";
@@ -52,7 +56,7 @@ export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "
         return result === receiver.value ? receiver : values.bytes(result, "fresh");
       }
       const result = receiver.value.pad(width, alignment, fill, meter);
-      return result === receiver.value ? receiver : values.stringPoints(result);
+      return original === receiver && result === receiver.value ? receiver : values.stringPoints(result);
     }
   });
 }

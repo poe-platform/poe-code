@@ -10,6 +10,8 @@ import {createRuntimeStringJoinMethod} from "./runtime-string-join-method.js";
 import {runtimeIterate} from "./runtime-iteration.js";
 import {createRuntimeSplitMethod} from "./runtime-split-method.js";
 import {createRuntimeSplitlinesMethod} from "./runtime-splitlines-method.js";
+import {createRuntimePadMethod} from "./runtime-pad-method.js";
+import {createRuntimeExpandtabsMethod} from "./runtime-expandtabs-method.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -60,10 +62,18 @@ const splitMethods=[
   ["split","Return a list of the substrings in the string, using sep as the separator string.\n\n  sep\n    The separator used to split the string.\n\n    When set to None (the default value), will split on any\n    whitespace character (including \\n \\r \\t \\f and spaces) and\n    will discard empty strings from the result.\n  maxsplit\n    Maximum number of splits.\n    -1 (the default value) means no limit.\n\nSplitting starts at the front of the string and works to the end.\n\nNote, str.split() is mainly useful for data that has been\nintentionally delimited.  With natural text that includes\npunctuation, consider using the regular expression module."],
   ["rsplit","Return a list of the substrings in the string, using sep as the separator string.\n\n  sep\n    The separator used to split the string.\n\n    When set to None (the default value), will split on any\n    whitespace character (including \\n \\r \\t \\f and spaces) and\n    will discard empty strings from the result.\n  maxsplit\n    Maximum number of splits.\n    -1 (the default value) means no limit.\n\nSplitting starts at the end of the string and works to the front."]
 ] as const;
+const padMethods=[
+  ["center","Return a centered string of length width.\n\nPadding is done using the specified fill character (default is\na space)."],
+  ["ljust","Return a left-justified string of length width.\n\nPadding is done using the specified fill character (default is\na space)."],
+  ["rjust","Return a right-justified string of length width.\n\nPadding is done using the specified fill character (default is\na space)."],
+  ["zfill","Pad a numeric string with zeros on the left, to fill a field of the given width.\n\nThe string is never truncated."]
+] as const;
 const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const})),...classificationMethods.map(([name,doc])=>({name,doc,kind:"classification" as const})),
   ...searchMethods.map(([name,doc])=>({name,doc,kind:"search" as const})),...affixMethods.map(([name,doc])=>({name,doc,kind:"affix" as const})),
   ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const})),
   ...splitMethods.map(([name,doc])=>({name,doc,kind:"split" as const})),
+  ...padMethods.map(([name,doc])=>({name,doc,kind:"pad" as const})),
+  {name:"expandtabs",kind:"expandtabs" as const,doc:"Return a copy where all tab characters are expanded using spaces.\n\nIf tabsize is not given, a tab size of 8 characters is assumed."},
   {name:"splitlines",kind:"splitlines" as const,doc:"Return a list of the lines in the string, breaking at line boundaries.\n\nLine breaks are not included in the resulting list unless keepends\nis given and true."},
   {name:"join",kind:"join" as const,doc:"Concatenate any number of strings.\n\nThe string whose method is called is inserted in between each given\nstring.  The result is returned as a new string.\n\nExample: '.'.join(['ab', 'pq', 'rs']) -> 'ab.pq.rs'"}];
 export const runtimeStringMethodNames:ReadonlySet<string>=new Set(methods.map(method=>method.name));
@@ -90,6 +100,8 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
             case "join":bound=createRuntimeStringJoinMethod(payload,values,meter,source=>runtimeIterate(source,values,meter,invocation?.iteration));break;
             case "split":bound=createRuntimeSplitMethod(receiver,method.name,values,meter,invocation?.integerIndex);break;
             case "splitlines":bound=createRuntimeSplitlinesMethod(receiver,values,meter,invocation?.truth?.bind(invocation));break;
+            case "pad":bound=createRuntimePadMethod(receiver,method.name,values,meter,invocation?.integerIndex);break;
+            case "expandtabs":bound=createRuntimeExpandtabsMethod(receiver,values,meter,invocation?.integerIndex);break;
           }
           return bound.value.invoke(positional,keywords,meter,invocation);
         } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}

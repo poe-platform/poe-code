@@ -1,11 +1,14 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeExpandtabsMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
+export function createRuntimeExpandtabsMethod(original: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
+  const receiver = original.kind === "bytes" ? original : runtimeStringPayload(original);
+  if (receiver === undefined) throw Error("tab expansion requires native string or bytes storage");
   return values.builtinFunction({
     name: "expandtabs",
     invoke(positional, keywords, meter) {
@@ -27,7 +30,7 @@ export function createRuntimeExpandtabsMethod(receiver: Extract<RuntimeValue, { 
         return values.bytes(result, result.length === 0 ? "canonical" : "fresh");
       }
       const result = receiver.value.expandTabs(Number(tabsize), meter);
-      return result === receiver.value ? receiver : values.stringPoints(result);
+      return original === receiver && result === receiver.value ? receiver : values.stringPoints(result);
     }
   });
 }

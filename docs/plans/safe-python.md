@@ -13543,6 +13543,20 @@ extension, integration, or validation requirement is missing or unverified.
   lint and whitespace checks pass; full uncached suite passes 9,371 tests in 616
   files (105.99s; bodies 12.57s). Remaining string methods, interpreter assembly,
   imports, codecs, safe-fs and broad audits are unfinished. No push or release.
+- String padding/tab descriptors: published canonical `center`, `ljust`,
+  `rjust`, `zfill` and `expandtabs` with native subtype receivers and index
+  callbacks. Padding accepts native string-subtype fill characters without
+  invoking conversion hooks; invalid fill diagnostics use actual class names
+  with CPython's 100-byte bound. Unchanged nonempty subtype results become fresh
+  exact strings while exact receivers preserve existing identity shortcuts;
+  empty results remain canonical. Shared bytes behavior is unchanged. Eight
+  source integration regressions failed before implementation and now pass.
+  A 4,000-case in-memory CPython comparison has zero differences in values,
+  types, identity, errors and method documentation. Maintained workspace build,
+  typecheck, scoped lint and whitespace checks pass. Full uncached suite passes
+  9,379 tests in 616 files (114.36s; bodies 13.40s). Remaining string methods,
+  codecs, public interpreter assembly, imports, safe-fs and broad audits remain
+  unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

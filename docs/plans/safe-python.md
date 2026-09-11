@@ -12277,6 +12277,23 @@ extension, integration, or validation requirement is missing or unverified.
   11.78s). String and
   statement grammar allocation still require auditing before guest eager
   compilation.
+- String-expression allocation and copying (2026-09-11): eleven failing tests
+  isolated lexing, reproducing uncharged string/bytes/formatted/template AST
+  storage, adjacent-buffer allocation/copy work and cancellation hidden by a
+  throwing interpolation reader. Assembly now charges temporary part/buffer
+  arrays, entries, text records, merged groups and the final node. Buffer joining
+  charges each input byte length before allocating the output and each copy's
+  element count before copying, without aggregating allocation into a potentially
+  unsafe integer multiplication. A single input buffer remains borrowed, covered
+  by a positive identity regression. Final checkpoints preserve cancellation.
+  The focused two-file suite passes 40 tests. All 85 AST/diagnostic comparisons
+  against ba5c47ea0 preserve existing assembly; 74 CPython literal-value cases
+  match prefix combinations, empty segments, raw strings, bytes, templates,
+  supplementary characters and separate surrogate code points. Build, typecheck,
+  scoped lint and whitespace checks pass. The final uncached one-worker full
+  suite passes 8,566 tests in 566 files (147.88s; test bodies 12.09s).
+  Interpolation-field and statement grammar allocation still require auditing
+  before guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

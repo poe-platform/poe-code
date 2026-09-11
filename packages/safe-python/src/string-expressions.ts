@@ -1,9 +1,12 @@
 import type { Expression, InterpolatedPart } from "./ast.js";
 import { readInterpolatedString } from "./interpolated-expression.js";
 import type { TokenCursor } from "./token-cursor.js";
+import type {SourceMeter} from "./source.js";
 
 /** Adjacent literal segments form one primary, before attributes/calls/subscripts. */
 export function readStringExpression(cursor: TokenCursor, read: (cursor: TokenCursor, minimum?: number) => Expression): Expression {
+  try {
+  cursor.meter?.checkpoint(1,144);
   const start = cursor.peek().start;
   let end = cursor.peek().end;
   let mode: "string" | "bytes" | "formatted" | "template" | undefined;
@@ -20,47 +23,55 @@ export function readStringExpression(cursor: TokenCursor, read: (cursor: TokenCu
     } else mode = incoming;
     if (token.kind === "string" || token.kind === "bytes") {
       cursor.take();
-      if (token.kind === "bytes") bytes.push(token.value);
-      else parts.push({ kind: "text", value: token.value, start: token.start, end: token.end });
+      if (token.kind === "bytes") {cursor.meter?.checkpoint(0,8);bytes.push(token.value);}
+      else {cursor.meter?.checkpoint(0,72);parts.push({ kind: "text", value: token.value, start: token.start, end: token.end });}
       end = token.end;
     } else {
       const segment = readInterpolatedString(cursor, read);
-      for (const part of segment.parts) parts.push(part);
+      for (const part of segment.parts) {cursor.meter?.checkpoint(1,8);parts.push(part);}
       end = segment.end;
     }
   }
   if (mode === undefined) throw cursor.error("expected string literal");
-  if (mode === "bytes") return { kind: "literal", literalKind: "bytes", value: joinBuffers(bytes, Uint8Array), start, end };
+  if (mode === "bytes") return { kind: "literal", literalKind: "bytes", value: joinBuffers(bytes, Uint8Array,cursor.meter), start, end };
   if (mode === "string") {
+    cursor.meter?.checkpoint(0,32);
     const values: Uint32Array[] = [];
-    for (const part of parts) if (part.kind === "text") values.push(part.value);
-    return { kind: "literal", literalKind: "string", value: joinBuffers(values, Uint32Array), start, end };
+    for (const part of parts) {cursor.meter?.checkpoint();if (part.kind === "text") {cursor.meter?.checkpoint(0,8);values.push(part.value);}}
+    return { kind: "literal", literalKind: "string", value: joinBuffers(values, Uint32Array,cursor.meter), start, end };
   }
+  cursor.meter?.checkpoint(0,32);
   const merged: InterpolatedPart[] = [];
   for (let index = 0; index < parts.length;) {
+    cursor.meter?.checkpoint();
     const first = parts[index++];
-    if (first.kind === "field") { merged.push(first); continue; }
+    if (first.kind === "field") { cursor.meter?.checkpoint(0,8);merged.push(first); continue; }
+    cursor.meter?.checkpoint(0,40);
     const values = [first.value];
     let textEnd = first.end;
     while (index < parts.length) {
+      cursor.meter?.checkpoint();
       const next = parts[index];
       if (next.kind !== "text") break;
-      values.push(next.value);
+      cursor.meter?.checkpoint(0,8);values.push(next.value);
       textEnd = next.end;
       index++;
     }
-    const value = joinBuffers(values, Uint32Array);
-    if (value.length) merged.push({ kind: "text", value, start: first.start, end: textEnd });
+    const value = joinBuffers(values, Uint32Array,cursor.meter);
+    if (value.length) {cursor.meter?.checkpoint(0,72);merged.push({ kind: "text", value, start: first.start, end: textEnd });}
   }
   return { kind: "interpolated-string", flavor: mode, parts: merged, start, end };
+  } finally {cursor.meter?.checkpoint();}
 }
 
-function joinBuffers<T extends Uint8Array | Uint32Array>(parts: readonly T[], ArrayType: new (length: number) => T): T {
+function joinBuffers<T extends Uint8Array | Uint32Array>(parts: readonly T[], ArrayType: new (length: number) => T,meter?:SourceMeter): T {
+  meter?.checkpoint();
   if (parts.length === 1) return parts[0];
   let length = 0;
-  for (const part of parts) length += part.length;
+  meter?.checkpoint(0,64);
+  for (const part of parts) {meter?.checkpoint(1,part.byteLength);length += part.length;}
   const value = new ArrayType(length);
   let offset = 0;
-  for (const part of parts) { value.set(part, offset); offset += part.length; }
+  for (const part of parts) {meter?.checkpoint(1+part.length);value.set(part, offset); offset += part.length;}
   return value;
 }

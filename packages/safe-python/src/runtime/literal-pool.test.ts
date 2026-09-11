@@ -7,6 +7,31 @@ import { RuntimeValues } from "./runtime-values.js";
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
 
 describe("compiled scalar literal pools", () => {
+  it("folds __debug__ into the same typed constant as True without changing the AST",()=>{
+    const body=analyzeModule('a=__debug__\nb=True\nc=(__debug__,True)').module.body;
+    const meter=budget(),values=new RuntimeValues(meter),pool=compileLiteralPool(body,values.literal.bind(values),meter,values.tuple.bind(values));
+    const [a,b,c]=body;
+    if(a.kind!=="assignment"||b.kind!=="assignment"||c.kind!=="assignment")throw Error("expected assignments");
+    expect(a.value.kind).toBe("name");expect(pool.folded!.get(a.value)).toBe(values.true);
+    expect([...pool.values()]).toContain(values.true);
+    expect(pool.folded!.get(c.value)).toEqual(values.tuple([values.true,values.true]));
+  });
+  it("retains a folded __debug__ constant even when the adapter returns undefined",()=>{
+    const statement=analyzeModule('a=__debug__').module.body[0];
+    if(statement.kind!=="assignment")throw Error("expected assignment");
+    const pool=compileLiteralPool([statement],()=>undefined,budget());
+    expect(pool.folded!.has(statement.value)).toBe(true);expect(pool.folded!.get(statement.value)).toBeUndefined();
+  });
+  it("allocates one boolean for repeated normalized debug names and explicit True",()=>{
+    const body=analyzeModule('a=__debug__\nb=__ｄebug__\nc=True').module.body;
+    const allocated:LiteralExpression[]=[];
+    const pool=compileLiteralPool(body,node=>{allocated.push(node);return {node};},budget());
+    expect(allocated).toHaveLength(1);expect(allocated[0]).toMatchObject({literalKind:"boolean",value:true});
+    for(const statement of body){
+      if(statement.kind!=="assignment")throw Error("expected assignment");
+      if(statement.value.kind==="name")expect(pool.folded!.get(statement.value)).toBe([...pool.values()][0]);
+    }
+  });
   it("merges nested tuple constants without conflating element types or signed zero", () => {
     const body = analyzeModule('a=((1,),-10)\nb=((1,),-10)\nc=(True,)\nd=(1.0,)\ne=(0.0,)\nf=(-0.0,)').module.body;
     const meter = budget(), values = new RuntimeValues(meter);

@@ -16,7 +16,8 @@ interface TuplePool<Value> { readonly children: Map<ConstantRecord<Value>, Tuple
 /** Per-compilation scalar literal merging, never guest equality or global
  * interning. Type-separated keys preserve integer/float/bool distinctions and
  * code-point boundaries. Unary integer/float constants and immutable tuple
- * displays can share the same pool without guest equality or AST mutation.
+ * displays and the default __debug__ constant can share the same pool without
+ * guest equality or AST mutation.
  * General folding and metadata/docstring pooling remain separate compiler work. */
 export function compileLiteralPool<Value>(body: readonly Statement[], literal: (node: LiteralExpression) => Value, meter: ExecutionMeter, tuple?: (values: readonly Value[]) => Value,skipRootDocstring=true): LiteralPool<Value> {
   try {
@@ -51,6 +52,9 @@ export function compileLiteralPool<Value>(body: readonly Statement[], literal: (
       if (expression.kind === "literal") {
         record = scalar(expression);
         meter.checkpoint(1, 48); result.set(expression, record.value);
+      } else if(expression.kind==="name"&&expression.name==="__debug__") {
+        meter.checkpoint(1,64);
+        record=scalar({kind:"literal",literalKind:"boolean",value:true,start:expression.start,end:expression.end});
       } else if (!after) {
         meter.checkpoint(0, 40); expressions.push({ node: expression, after: true });
         meter.checkpoint(0, 128);

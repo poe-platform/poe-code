@@ -12782,6 +12782,21 @@ extension, integration, or validation requirement is missing or unverified.
   thread-pool suite passes 8,987 tests in 594 files (137.22s; bodies 12.56s).
   This does not yet retrofit every other native encoder with original-object
   retention or establish full codec/interpreter completion.
+- Default __debug__ constant (2026-09-11): the optimization audit found that even
+  unoptimized __debug__ reads incorrectly consulted guest namespaces. Three failing
+  tests established missing pooled constants, undefined generic values, and wrong
+  nested runtime results when globals/builtins shadow the name. The literal pool
+  now maps normalized __debug__ name expressions to the same typed True constant
+  as explicit literals, preserving AST and analyzed scope identities and allowing
+  tuple pooling. Additional coverage verifies one allocation for repeated/debug
+  normalization spellings and explicit True. Native coverage includes module,
+  function default/body, class body/method, lambda and comprehension reads.
+  CPython directly confirms True despite shadowed globals/builtins. The focused
+  1,042-test run and the subsequent literal-pool tests pass. Build, typecheck, lint
+  and whitespace checks pass. The uncached full thread-pool suite passes 8,991
+  tests in 594 files (75.07s; bodies 8.89s). Optimization levels
+  1/2 still need __debug__=False, assertion elimination and shared nested-code policy;
+  this prerequisite fix does not claim that compile(optimize=...) is implemented.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

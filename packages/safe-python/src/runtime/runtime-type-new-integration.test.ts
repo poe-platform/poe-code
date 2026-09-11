@@ -102,6 +102,12 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("uses compiled __debug__ constants throughout nested scopes despite namespace shadowing",()=>{
+  const state=exceptionFixture();state.globals.set("__debug__",state.v.false);state.builtins.set("__debug__",state.v.false);
+  state.run("root=__debug__\ndef f(default=__debug__):return default,__debug__\nclass C:\n value=__debug__\n def method(self):return __debug__\nresult=(root,f(),C.value,C().method(),[__debug__ for x in (1,2)],(lambda:__debug__)())\ncorrect=result==(True,(True,True),True,True,[True,True],True)\n");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+});
+
 it("calls compile from guest code and publishes compiler metadata",()=>{
   const state=exceptionFixture(),{v,meter}=state;
   state.builtins.set("compile",createCompileBuiltin(v,meter,{

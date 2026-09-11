@@ -92,6 +92,13 @@ const hazardStartupMigration = {
 };
 type HazardStartupInput = { path: string; expected: string; current: Buffer };
 
+function archivedHazardStartupSource(): Buffer {
+  const bytes = readFileSync(new URL("./hazard-startup-before-diagnostics.ts.txt", import.meta.url));
+  assert.equal(bytes.length, hazardStartupMigration.after.bytes, "immutable pre-diagnostic resource image size");
+  assert.equal(digest(bytes), hazardStartupMigration.after.sha256, "immutable pre-diagnostic resource image digest");
+  return bytes;
+}
+
 function assertHazardStartupMigration(input: HazardStartupInput) {
   assert.equal(input.path, hazardStartupMigration.path, "exact hazard-startup migration path");
   assert.equal(input.expected, hazardStartupMigration.before.sha256, "sealed pre-startup source digest");
@@ -269,7 +276,7 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   const numericAsyncMigrated = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
-    let current = readFileSync(path);
+    let current = path === resourceDepthMigration.path ? archivedHazardStartupSource() : readFileSync(path);
     if (path === numericAsyncMigration.path) {
       current = assertNumericAsyncMigration({ path, expected, current, ...(snapshot ? { snapshot } : {}) });
       numericAsyncMigrated.add(path);
@@ -310,9 +317,9 @@ test("frozen historical evidence and retained non-native canonical seals remain 
       assertCurrent(path, hash);
     }
   }
-  assert.equal(compared.size, 140, "current comparisons after two native source-seal retirements");
+  assert.equal(compared.size, 140, "139 current comparisons and one immutable pre-diagnostic resource image");
   assert.deepEqual([...migrated].sort(), spellingMigrations.map(entry => entry.path).sort(), "only the four approved migrations");
-  assert.equal(compared.size - migrated.size, 136, "retained current comparisons outside spelling migrations");
+  assert.equal(compared.size - migrated.size, 136, "retained comparisons outside spelling migrations, including one archived resource image");
   assert.equal(snapshots.size, 23, "all original historical snapshots");
   assert.deepEqual([...bindingMigrated], [unusedBindingMigration.path], "only the reviewed unused-binding helper migration");
   assert.deepEqual([...depthMigrated], [resourceDepthMigration.path], "only the reviewed resource-depth fixture migration");
@@ -320,7 +327,7 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   assert.deepEqual([...numericAsyncMigrated], [numericAsyncMigration.path], "only the reviewed numeric async migration");
   const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size;
   assert.equal(unchangedComparisons, 133, "byte-unchanged retained current comparisons");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 1, archivedResourceImages: 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };
@@ -508,7 +515,7 @@ for (const [name, mutate] of resourceDepthControls) test("reviewed resource-dept
   const input: ResourceDepthInput = {
     path: resourceDepthMigration.path,
     expected: resourceDepthMigration.before.sha256,
-    current: assertHazardStartupMigration({ path: resourceDepthMigration.path, expected: resourceDepthMigration.after.sha256, current: readFileSync(resourceDepthMigration.path) }),
+    current: assertHazardStartupMigration({ path: resourceDepthMigration.path, expected: resourceDepthMigration.after.sha256, current: archivedHazardStartupSource() }),
     snapshot: readFileSync(resourceDepthMigration.snapshot),
     index: 0,
     receipt: {
@@ -547,7 +554,7 @@ const hazardStartupControls: Array<[string, ((input: HazardStartupInput) => void
 for (const [name, mutate] of hazardStartupControls) test("reviewed hazard-startup migration " + name, () => {
   const input: HazardStartupInput = {
     path: hazardStartupMigration.path, expected: hazardStartupMigration.before.sha256,
-    current: readFileSync(hazardStartupMigration.path),
+    current: archivedHazardStartupSource(),
   };
   if (mutate) {
     const before = Buffer.from(input.current);

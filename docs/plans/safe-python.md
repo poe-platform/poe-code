@@ -13646,6 +13646,21 @@ extension, integration, or validation requirement is missing or unverified.
   Additional encoding codecs and guest codec registration remain unfinished,
   alongside native type coverage, public assembly, imports, safe-fs and audits.
   No push or release.
+- Single-byte encoding kernel: added metered ASCII/Latin-1 encoding with strict,
+  ignore, replace, backslash/XML/name replacement and surrogate policies. Errors
+  group adjacent unencodable code points, while surrogateescape consumes valid
+  escaped bytes before reporting the remaining span. Canonical Unicode names are
+  an explicit callback with fatal cancellation preservation; aliases must not be
+  mistaken for canonical character names. Eleven unit cases cover payloads,
+  replacements, spans and callbacks. An initially malformed JS surrogate fixture
+  was corrected to explicit code points without weakening its expected span.
+  A 128-case CPython comparison matches bytes, diagnostics and spans, using
+  canonical name data for the name callback. Maintained build, typecheck, scoped
+  lint and whitespace checks pass. Full uncached suite passes 9,428 tests in 619
+  files (126.83s; bodies 19.28s). Runtime codec registration and canonical Unicode
+  name lookup still need wiring before ASCII/Latin-1 are available through
+  `str.encode`. Other codecs, public assembly, imports, safe-fs and audits remain
+  unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

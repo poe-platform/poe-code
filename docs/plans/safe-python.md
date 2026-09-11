@@ -13323,6 +13323,20 @@ extension, integration, or validation requirement is missing or unverified.
   completed str registration or a default codec implementation; buffer decoding,
   string subtype payloads/type allocation, public interpreter assembly, imports,
   safe-fs and broad audits remain unfinished. No push or release.
+- String decoding buffer boundary (2026-09-11): added createRuntimeStringDecoder
+  to connect string construction with an explicit execution codec policy. Exact
+  bytes retain immutable storage without buffer acquisition; other supported
+  sources acquire/copy a simple buffer and retain the lease until codec return
+  or failure. No iterable or __bytes__ fallback is used. Missing-buffer and text
+  admission errors precede codec lookup. Nine focused tests verify direct bytes,
+  leased-copy identity/lifetime, exactly-once cleanup, construction/name-validation
+  ordering, acquisition/codec failures, and cancellation during acquisition,
+  copying and decoding. An in-memory CPython custom-codec probe confirms a
+  bytearray is pinned during decoding and resizable afterward. Build, typecheck,
+  scoped lint and whitespace checks pass; the full uncached thread-pool suite
+  passes 9,237 tests in 613 files (83.98s; bodies 10.40s). Default codec catalog,
+  canonical str/subtype allocation, public interpreter assembly, imports, safe-fs
+  and broad audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

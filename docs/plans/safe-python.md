@@ -11912,6 +11912,27 @@ extension, integration, or validation requirement is missing or unverified.
   (106.59s; test bodies 10.54s).
   This does not complete module analysis accounting: control-flow/expression
   context, symbol analysis, derived metadata and AST construction remain.
+- Metered statement and pattern expression traversal (2026-09-11): thirteen
+  failing tests reproduced ignored entry limits, host recursion failures on
+  10,000-level trees, unbounded expressionless bodies/capture patterns/defaultless
+  parameters, cyclic external patterns and missing parser-meter forwarding.
+  Pattern traversal now uses indexed frames; statement traversal uses suspended
+  direct-part generators and indexed borrowed-body frames. Both retain only the
+  active path instead of eagerly copying siblings, charge frames and traversal
+  work, and check the meter when traversal finishes or closes. Pattern traversal
+  is forwarded the same meter; capture-only patterns and defaultless parameter
+  scans cannot hide unbounded work between yielded expressions. Module parsing
+  forwards its meter into statement enumeration. Seventeen further tests cover
+  source-order enumeration across fourteen statement/pattern combinations,
+  disabled body descent, cancellation on consumer close and cyclic statements.
+  The focused four-file suite passes 101 tests. All 28 comparisons against the
+  previous traversal preserve expression identity/order across fourteen fixtures
+  with descent enabled and disabled. These are regression comparisons, not a
+  CPython execution comparison. Build, typecheck, scoped lint and whitespace
+  checks pass. The final uncached one-worker full suite passes 8,335 tests in
+  545 files (125.64s; test bodies 9.77s). Control-flow/expression-context analysis,
+  symbols, derived metadata and AST construction remain separate unfinished
+  accounting work; these traversals do not establish a complete parser sandbox.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

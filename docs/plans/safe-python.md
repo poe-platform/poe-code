@@ -13290,6 +13290,21 @@ extension, integration, or validation requirement is missing or unverified.
   whitespace checks pass; final uncached thread-pool suite passes 9,211 tests in
   611 files (136.45s; bodies 13.85s). Canonical type coverage, public interpreter
   assembly, imports, safe-fs and broad audits remain unfinished. No push/release.
+- Canonical native type selection (2026-09-11): added RuntimeTypeRegistry.nativeType
+  after failing direct registry tests established the missing production selector.
+  It selects implemented scalar/container/callable/descriptor/sentinel types,
+  preserves concrete published instance and metaclass identities, and handles
+  method decorators with or without an explicitly published subclass. Unknown
+  kinds return undefined as an explicit extension boundary; the selector never
+  publishes placeholder types. The native integration fixture now delegates its
+  implemented-type selection to this production method. Six registry tests cover
+  canonical identities, unsupported string/bytes boundaries, heap ownership,
+  decorator subclasses, callable/descriptor selection without invocation, and
+  recovery after lazy initialization allocation failure. Focused registry and
+  integration checks pass. Build, typecheck, scoped lint and whitespace checks
+  pass; the full uncached thread-pool suite passes 9,217 tests in 611 files
+  (107.08s; bodies 11.78s). Native string/bytes/iterator types, public interpreter
+  assembly, imports, safe-fs and broad audits remain unfinished. No push/release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

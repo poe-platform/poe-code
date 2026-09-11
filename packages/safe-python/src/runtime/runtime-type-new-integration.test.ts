@@ -75,23 +75,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     expressions: () => ({ ...extensions, warn: extensions.warn ?? unused }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }),
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
-      if (value.kind === "none") return registry.noneType();
-      if (value.kind === "not-implemented" || value.kind === "ellipsis") return registry.sentinelType(value.kind);
-      if (value.kind === "cell") return registry.cellType();
-      if (value.kind === "list") return registry.listType();
-      if (value.kind === "tuple") return registry.tupleType();
-      if (value.kind === "dict") return registry.dictionaryType();
-      if (value.kind === "dict_keys" || value.kind === "dict_values" || value.kind === "dict_items") return registry.dictionaryViewType(value.kind);
-      if (value.kind === "mappingproxy") return registry.mappingProxyType();
-      if (value.kind === "slice") return registry.sliceType();
-      if (value.kind === "range") return registry.rangeType();
-      if (value.kind === "int") return registry.integerType();
-      if (value.kind === "float") return registry.floatType();
-      if (value.kind === "complex") return registry.complexType();
-      if (value.kind === "bool") return registry.booleanType();
-      if (value.kind === "set" || value.kind === "frozenset") return registry.setType(value.kind);
-      if (value.kind === "method" || value.kind === "method-wrapper" || value.kind === "builtin_function_or_method") return registry.boundCallableType(value.kind);
-      if (value.kind === "function" || value.kind === "method_descriptor" || value.kind === "classmethod_descriptor" || value.kind === "wrapper_descriptor" || value.kind === "getset_descriptor" || value.kind === "member_descriptor") return registry.descriptorType(value.kind);
+      const canonical=registry.nativeType(value);if(canonical!==undefined)return canonical;
       const existing = native.get(value.kind); if (existing !== undefined) return existing;
       const type = registry.publish(new RuntimeTypeLayout(value.kind, [registry.object.value], v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter, { matchSelf:value.kind==="str"||value.kind==="bytes"||value.kind==="bytearray",objectLayout: false, instanceDictionary: false }), registry.type);
       native.set(value.kind, type); return type;

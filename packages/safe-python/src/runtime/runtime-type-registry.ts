@@ -243,6 +243,36 @@ export class RuntimeTypeRegistry {
     Object.freeze(this);
   }
 
+  /** Canonical selection for implemented native types. Published heap instances
+   * and metaclasses retain their identities. Undefined is an explicit extension
+   * boundary, never permission to fabricate an incomplete guest type. */
+  nativeType(value:RuntimeValue):TypeValue|undefined {
+    this.meter.checkpoint();
+    switch(value.kind){
+      case "instance":return value.type;
+      case "type":return value.metaclass;
+      case "none":return this.noneType();
+      case "not-implemented":case "ellipsis":return this.sentinelType(value.kind);
+      case "cell":return this.cellType();
+      case "list":return this.listType();
+      case "tuple":return this.tupleType();
+      case "dict":return this.dictionaryType();
+      case "dict_keys":case "dict_values":case "dict_items":return this.dictionaryViewType(value.kind);
+      case "mappingproxy":return this.mappingProxyType();
+      case "slice":return this.sliceType();
+      case "range":return this.rangeType();
+      case "int":return this.integerType();
+      case "float":return this.floatType();
+      case "complex":return this.complexType();
+      case "bool":return this.booleanType();
+      case "set":case "frozenset":return this.setType(value.kind);
+      case "method":case "method-wrapper":case "builtin_function_or_method":return this.boundCallableType(value.kind);
+      case "function":case "method_descriptor":case "classmethod_descriptor":case "wrapper_descriptor":case "getset_descriptor":case "member_descriptor":return this.descriptorType(value.kind);
+      case "staticmethod":case "classmethod":return value.type??this.methodDecoratorType(value.kind);
+      default:return undefined;
+    }
+  }
+
   /** Lazily publish canonical native wrapper types without charging executions
    * that never request them. Heap subclasses retain their own type identity. */
   methodDecoratorType(kind: "staticmethod" | "classmethod"): TypeValue {

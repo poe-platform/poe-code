@@ -20,6 +20,40 @@ function fixture() {
 }
 
 describe("canonical runtime type registry", () => {
+  it("selects canonical native types without synthesizing placeholder types",()=>{
+    const {registry,values:v}=fixture();
+    for(const [value,expected] of [
+      [v.none,registry.noneType()],[v.notImplemented,registry.sentinelType("not-implemented")],[v.ellipsis,registry.sentinelType("ellipsis")],
+      [v.true,registry.booleanType()],[v.integer(7),registry.integerType()],[v.float(1),registry.floatType()],
+      [v.list([]),registry.listType()],[v.tuple([]),registry.tupleType()],[v.cell({}),registry.cellType()]
+    ] as const)expect(registry.nativeType(value)).toBe(expected);
+    expect(registry.nativeType(v.string("needs a string type"))).toBeUndefined();
+    expect(registry.nativeType(v.bytes(new Uint8Array()))).toBeUndefined();
+  });
+  it("retains published instance and metaclass identities during type selection",()=>{
+    const {registry,values:v,layout}=fixture(),owner=registry.publish(layout("Owned"),registry.type),instance=v.instance(owner);
+    expect(registry.nativeType(instance)).toBe(owner);expect(registry.nativeType(owner)).toBe(registry.type);
+    expect(registry.nativeType(registry.type)).toBe(registry.type);
+  });
+  it.each(["staticmethod","classmethod"] as const)("selects canonical or published %s ownership without inspecting its callable",kind=>{
+    const {registry,values:v,layout}=fixture(),base=registry.methodDecoratorType(kind);
+    expect(registry.nativeType(v.methodDecorator(kind,v.none))).toBe(base);
+    const subclass=registry.publish(layout("OwnedDecorator",[base.value]),registry.type);
+    expect(registry.nativeType(v.methodDecorator(kind,v.none,subclass))).toBe(subclass);
+  });
+  it("selects concrete callable and descriptor types without invoking their bodies",()=>{
+    const {registry,values:v}=fixture(),unused=():never=>{throw Error("unexpected invocation");};
+    expect(registry.nativeType(v.builtinFunction({name:"host",invoke:unused}))).toBe(registry.boundCallableType("builtin_function_or_method"));
+    expect(registry.nativeType(v.wrapperDescriptor({owner:registry.object,name:"__repr__",accepts:()=>true,invoke:unused}))).toBe(registry.descriptorType("wrapper_descriptor"));
+    expect(registry.nativeType(v.methodDescriptor({owner:registry.object,name:"method",accepts:()=>true,invoke:unused}))).toBe(registry.descriptorType("method_descriptor"));
+    const dictionary=v.dictionary(registry.object.value.namespace.items.emptyCopy());
+    expect(registry.nativeType(dictionary)).toBe(registry.dictionaryType());
+  });
+  it("keeps failed lazy type selection recoverable without a partially published type",()=>{
+    const state=fixture();state.fail(true);
+    expect(()=>state.registry.nativeType(state.values.none)).toThrow(ExecutionLimitError);
+    state.fail(false);expect(state.registry.nativeType(state.values.none)).toBe(state.registry.noneType());
+  });
   it("owns all six cell rich comparison descriptors",()=>{
     const {registry,values:v}=fixture(),owner=registry.cellType();
     for(const name of ["__eq__","__ne__","__lt__","__le__","__gt__","__ge__"]){

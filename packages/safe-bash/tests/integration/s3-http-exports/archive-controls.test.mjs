@@ -161,14 +161,16 @@ test("committed batches validate bootstrap authority before requesting source bo
 
 test("archive peer contract admits the exact current required peer without admitting runtime dependencies", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
-  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" });
+  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0" });
   distChecks.assertArchiveDependencyContract(manifest);
-  distChecks.assertArchiveDependencyContract({ ...manifest, peerDependenciesMeta: { "poe-code": { optional: false } } });
+  distChecks.assertArchiveDependencyContract({ ...manifest, peerDependenciesMeta: { ...manifest.peerDependenciesMeta, "poe-code": { optional: false } } });
 });
 
 test("archive peer contract retains the explicit historical zero-peer profile", () => {
   distChecks.assertArchiveDependencyContract({ dependencies: {}, devDependencies: { typescript: "5.9.2" } });
   distChecks.assertArchiveDependencyContract({ peerDependencies: {}, peerDependenciesMeta: {} });
+  distChecks.assertArchiveDependencyContract({ peerDependencies: { "poe-code": ">=13.0.0" } });
+  distChecks.assertArchiveDependencyContract({ peerDependencies: { "poe-code": ">=13.0.0" }, peerDependenciesMeta: { "poe-code": { optional: false } } });
 });
 
 for (const [name, change] of [
@@ -176,6 +178,9 @@ for (const [name, change] of [
   ["different range", manifest => { manifest.peerDependencies["poe-code"] = "^13.0.0"; }],
   ["development range", manifest => { manifest.peerDependencies["poe-code"] = "*"; }],
   ["optional canonical peer", manifest => { manifest.peerDependenciesMeta = { "poe-code": { optional: true } }; }],
+  ["different optional YAML version", manifest => { manifest.peerDependencies.yaml = "*"; }],
+  ["required YAML peer", manifest => { manifest.peerDependenciesMeta.yaml.optional = false; }],
+  ["missing YAML optional metadata", manifest => { delete manifest.peerDependenciesMeta.yaml; }],
   ["unbound peer metadata", manifest => { manifest.peerDependenciesMeta = { other: { optional: false } }; }],
   ["missing current peer", manifest => { delete manifest.peerDependencies; }],
   ["empty current peer", manifest => { manifest.peerDependencies = {}; }],
@@ -900,7 +905,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     root.scripts = Object.fromEntries(["prepare", "prepack", "postpack", "preinstall", "postinstall"].map(name => [name, `node -e ${JSON.stringify(`require("node:fs").writeFileSync(${JSON.stringify(marker)}, ${JSON.stringify(name)})`)}`]));
     const lock = { name: root.name, version: root.version, lockfileVersion: 3, packages: {
       "": { name: root.name, version: root.version, workspaces: root.workspaces, devDependencies: root.devDependencies },
-      [packagePrefix]: { name: manifest.name, version: manifest.version, devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), engines: manifest.engines },
+      [packagePrefix]: { name: manifest.name, version: manifest.version, devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta), engines: manifest.engines },
       "node_modules/virtual-bash": { resolved: packagePrefix, link: true },
       "node_modules/poe-code": { resolved: "", link: true },
     } };
@@ -972,12 +977,14 @@ function requestedBodies(args, options) {
 }
 
 for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects bad ${defect} before requesting product source bodies`, async () => {
-  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short"]) await withRepository(fixture => {
+  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short", "missing-exclusion", "widened-exclusion", "traversal-exclusion"]) await withRepository(fixture => {
     if (defect === "guard") {
       const bytes = mutation === "short" ? Buffer.from("throw new Error('untrusted guard');\n") : readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000);
       if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
       fixture.put("scripts/guard-package-dist.mjs", bytes);
-    } else fixture.manifest.files = ["src"];
+    } else if (mutation === "short") fixture.manifest.files = ["src"];
+    else if (mutation === "missing-exclusion") fixture.manifest.files.pop();
+    else fixture.manifest.files.push(mutation === "widened-exclusion" ? "!dist/fs/s3" : "!dist/../src");
   }, fixture => {
     const sourceOids = new Set(fixture.git(["ls-tree", "-r", "--format=%(objectname)", "HEAD", "--", `${packagePrefix}/src`]).split("\n"));
     const reads = [];
@@ -1215,7 +1222,7 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, "pass", JSON.stringify(report));
     assert.equal(report.qualification, "synthetic-committed-fixture-not-release-qualification");
-    assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0" });
+    assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0" });
     assert.equal(report.peer.profile, profile);
     assert.equal(report.peer.version, fixture.root.version);
     assert.equal(report.peer.integrity, null);

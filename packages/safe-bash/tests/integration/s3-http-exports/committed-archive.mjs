@@ -38,8 +38,12 @@ export function assertArchiveDependencyContract(manifest) {
     assert.deepEqual(manifest.peerDependenciesMeta ?? {}, {}, "unbound peer metadata");
     return;
   }
-  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" }, "unapproved canonical peer contract");
-  if (Object.keys(manifest.peerDependenciesMeta ?? {}).length) assert.deepEqual(manifest.peerDependenciesMeta, { "poe-code": { optional: false } }, "canonical peer must remain required");
+  const yaml = Object.hasOwn(manifest.peerDependencies, "yaml");
+  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0", ...(yaml ? { yaml: "2.9.0" } : {}) }, "unapproved canonical peer contract");
+  assert.deepEqual(manifest.peerDependenciesMeta ?? {}, {
+    ...(Object.hasOwn(manifest.peerDependenciesMeta ?? {}, "poe-code") ? { "poe-code": { optional: false } } : {}),
+    ...(yaml ? { yaml: { optional: true } } : {}),
+  }, "canonical peer must remain required and YAML must remain optional");
 }
 
 export function readCommittedBlobs(entries, hashAlgorithm, git, { bootstrapCount = entries.length, validateBootstrap } = {}) {
@@ -194,7 +198,13 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.equal(manifest.private, true);
       assert.equal(manifest.type, "module");
       assert.equal(manifest.engines.node, ">=22");
-      assert.deepEqual(manifest.files, ["dist"]);
+      assert.deepEqual(manifest.files, [
+        "dist", "!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map",
+        "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf",
+        "!dist/commands/truncate", "!dist/commands/yes", "!dist/commands/yq", "!dist/fs/devices",
+        "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs",
+        "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read",
+      ], "committed dist packaging contract drift");
       assertArchiveDependencyContract(manifest);
       for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
       assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");

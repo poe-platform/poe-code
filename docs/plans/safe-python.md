@@ -12370,6 +12370,19 @@ extension, integration, or validation requirement is missing or unverified.
   lint and whitespace checks pass. The uncached full suite passes 8,633 tests
   in 571 files (170.69s; test bodies 13.14s). This does not enable execution
   of annotations or type aliases. Import/try/with/match allocation remains next.
+- Import grammar resource accounting (2026-09-11): nine failing tests reproduced
+  uncharged import metadata and cancellation lost through normalization or final
+  future-feature publication. The reader now reserves statement/module storage,
+  import arrays/items, path arrays/slots and declared-name records. Future-feature
+  insertion charges name hashing and new set entries, preserving duplicate and
+  alias behavior. A final checkpoint preserves cancellation on success/error.
+  All ten focused tests pass. All 32 AST/diagnostic/future-feature comparisons
+  against 24bcac0e9 preserve behavior; 32 CPython compile-acceptance comparisons
+  pass when the separate future-import validator is included (the initial
+  parser-only comparison omitted that required stage). Build, typecheck, scoped
+  lint and whitespace checks pass. The uncached full suite passes 8,643 tests
+  in 572 files (159.96s; test bodies 12.66s). Module
+  loading is not introduced by this parser change. Try/with/match remain next.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

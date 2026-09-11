@@ -43,6 +43,7 @@ import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
 import {LexicalFrame} from "./lexical-frame.js";
 import type {LexicalNamespaces} from "./lexical-frame.js";
 import {RuntimeDictionaryNamespace} from "./runtime-dictionary-namespace.js";
+import {Traceback} from "./traceback.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -201,6 +202,19 @@ it("shares exact Python dictionary globals across module, function and class exe
   const globals=new RuntimeDictionaryNamespace(dictionary,v,state.meter);
   state.run("g=1\ndef f():\n global g\n g+=2\n return g\nclass C:\n global g\n g=4\nfirst=f()\nbacking['g']=9\nsecond=f()\ndel backing['g']\ntry:f()\nexcept NameError:missing=True\ng=7\ndef remove():\n global g\n del g\nremove()\ncorrect=first==6 and second==11 and missing and 'g' not in backing and f.__module__=='example'\n",globals);
   expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
+it("exposes native traceback identity, saved locations and atomic mutable links",()=>{
+  const state=exceptionFixture(),{v,meter,registry}=state;
+  state.globals.set("AttributeError",registry.exceptionType("AttributeError"));
+  const frame=new LexicalFrame<RuntimeValue>(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},meter);
+  const tail=new Traceback(null,frame,8,12,meter),head=new Traceback(tail,frame,4,-1,meter);
+  const resolve=vi.fn((_frame:LexicalFrame<RuntimeValue>,instruction:number)=>instruction===4?10:null);
+  const native=registry.traceback(head,resolve);
+  expect(registry.traceback(head,resolve)).toBe(native);
+  state.globals.set("head",native);state.globals.set("tail",registry.traceback(tail,resolve));state.globals.set("frame",registry.frame(frame));
+  state.run("correct=head.tb_next is tail and head.tb_frame is frame and head.tb_lasti==4 and head.tb_lineno==10 and tail.tb_lineno==12\ntry:tail.tb_next=head\nexcept ValueError as e:cycle=e.args\ncorrect=correct and tail.tb_next is None and cycle==('traceback loop detected',)\nhead.tb_next=None\ncorrect=correct and head.tb_next is None\nhead.tb_next=tail\ntry:del head.tb_next\nexcept TypeError as e:deleted=e.args\ntry:head.tb_next=1\nexcept TypeError as e:invalid=e.args\ntry:head.tb_frame=None\nexcept AttributeError as e:readonly=e.args\ncorrect=correct and head.tb_next is tail and deleted==(\"can't delete tb_next attribute\",) and invalid==(\"expected traceback object, got 'int'\",) and readonly==('readonly attribute',)\n");
+  expect(state.globals.get("correct")).toBe(v.true);expect(resolve).toHaveBeenCalledExactlyOnceWith(frame,4);
 });
 
 it("reflects original live frame globals and selected builtins without copying",()=>{

@@ -6,6 +6,8 @@ import {FrameLocalsMapping} from "./frame-locals-mapping.js";
 import type {LexicalFrame} from "./lexical-frame.js";
 import {installRuntimeFrameLocalsProxyDescriptors} from "./runtime-frame-locals-proxy.js";
 import {installRuntimeFrameDescriptors} from "./runtime-frame.js";
+import {installRuntimeTracebackDescriptors,type RuntimeTracebackState} from "./runtime-traceback.js";
+import type {Traceback} from "./traceback.js";
 import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new.js";
 import {RuntimeHashError} from "./runtime-hash-error.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
@@ -111,6 +113,8 @@ export class RuntimeTypeRegistry {
   #mappingProxyType: TypeValue | undefined;
   #frameLocalsProxyType:TypeValue|undefined;
   #frameType:TypeValue|undefined;
+  #tracebackType:TypeValue|undefined;
+  readonly #tracebacks=new WeakMap<Traceback<LexicalFrame<RuntimeValue>>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frames=new WeakMap<LexicalFrame<RuntimeValue>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frameLocalsMappings=new WeakMap<LexicalFrame<RuntimeValue>,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
   #sliceType: TypeValue | undefined;
@@ -492,6 +496,21 @@ export class RuntimeTypeRegistry {
     installRuntimeAnextAwaitableDescriptors(type,this.values,this.meter);
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#anextAwaitableType=type;
     return type;
+  }
+
+  /** A traceback's initial publication fixes its interpreter line resolver. */
+  traceback(traceback:Traceback<LexicalFrame<RuntimeValue>>,resolveLine:RuntimeTracebackState["resolveLine"]):Extract<RuntimeValue,{kind:"instance"}> {
+    this.meter.checkpoint();const existing=this.#tracebacks.get(traceback);if(existing!==undefined)return existing;
+    if(this.#tracebackType===undefined){
+      const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+      const layout=new RuntimeTypeLayout("traceback",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+      const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+      installRuntimeTracebackDescriptors(type,this.values,this.meter,this.frame.bind(this),this.traceback.bind(this));
+      this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#tracebackType=type;
+    }
+    this.meter.checkpoint(0,96);
+    const result=this.values.instance(this.#tracebackType,undefined,Object.freeze({kind:"traceback",traceback,resolveLine}));
+    this.#tracebacks.set(traceback,result);return result;
   }
 
   frame(frame:LexicalFrame<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {

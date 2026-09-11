@@ -10872,6 +10872,32 @@ extension, integration, or validation requirement is missing or unverified.
   isolated kernel currently has no production consumers, so the focused route
   covers the changed behavior; the last full-package baseline remains 7,732
   tests. Native traceback objects and exception attachment remain unfinished.
+- Native traceback identity and attributes (2026-09-10): a failing native
+  regression demonstrated the missing registry traceback factory. Added native
+  traceback storage and canonical per-link wrappers, exposing tb_frame/tb_lasti
+  as read-only member descriptors, tb_lineno as a read-only getset descriptor,
+  and mutable tb_next with nondeletable, type-checked, atomically acyclic links.
+  Saved line lookup uses an explicit interpreter-owned resolver fixed at first
+  publication, not the host stack or the frame's current line. An unmapped saved
+  instruction returns None. Factory callbacks and invalid-target diagnostics
+  preserve host cancellation; cycle traversal preserves old links on exhaustion.
+  Semantics were checked against the Python 3.14 data model
+  (https://docs.python.org/3.14/reference/datamodel.html#traceback-objects) and
+  local CPython 3.14.7. All 512 mixed native link/attribute sequences match
+  CPython. A further 24 long Unicode name comparisons exposed incorrect
+  diagnostic truncation; three failing regressions now verify full names with
+  allocation charging before message construction, and all 24 comparisons pass.
+  The focused three-file suite passes 856 tests. Guest construction is
+  deliberately not yet exposed: the next implementation must supply constructor
+  argument binding/index conversion and frame code-location metadata.
+  CPython constructor probes show frame validation precedes integer conversions,
+  while both integer conversions precede tb_next validation; preserve observable
+  callback order rather than validating every type up front.
+  Exception traceback attachment, with_traceback and types module publication
+  remain required; this native layer is not complete traceback support.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,749 tests in 521 files (154.52s;
+  test bodies 9.21s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

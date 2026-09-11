@@ -22,6 +22,7 @@ import type { RuntimeGeneratorState,RuntimeCoroutineWrapperState,RuntimeAsyncGen
 import type {RuntimeAnextAwaitableState} from "./runtime-anext-awaitable.js";
 import type {RuntimeFrameLocalsProxyState} from "./runtime-frame-locals-proxy.js";
 import type {RuntimeFrameState} from "./runtime-frame.js";
+import type {RuntimeTracebackState} from "./runtime-traceback.js";
 import { ExecutionIdentity } from "./execution-identity.js";
 import type { IdentityContext } from "./builtin-id.js";
 
@@ -218,7 +219,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | RuntimeAnextAwaitableState | RuntimeFrameLocalsProxyState | RuntimeFrameState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
+  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | RuntimeAnextAwaitableState | RuntimeFrameLocalsProxyState | RuntimeFrameState | RuntimeTracebackState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" }>;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute

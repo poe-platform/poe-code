@@ -120,11 +120,10 @@ test("scoped committed receipt survives cancellation and retained conditional cl
   let charges = 0;
   const scoped = scopeFileSystem(fs, () => {}, controller.signal, () => { charges++; });
   const parent = await scoped.lstat("/");
-  let receipt: Awaited<ReturnType<typeof original>> | undefined;
   const cleanup = retainFileSystemCleanup(scoped, async view => {
-    await view.removeFileConditional!("/file", { parent, expected: receipt! });
+    await view.removeFileConditional!("/file", { parent, expected: receipt });
   }, { maxOperations: 1 });
-  receipt = await scoped.writeFileConditional!("/file", Uint8Array.of(1), { parent, expected: null });
+  const receipt = await scoped.writeFileConditional!("/file", Uint8Array.of(1), { parent, expected: null });
   assert.equal(controller.signal.aborted, true);
   await cleanup();
   assert.equal(charges, 1);

@@ -36,7 +36,7 @@ export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, 
       }
       const name = cursor.peek();
       if (name.kind !== "name" || reservedWords.has(name.text)) throw cursor.error("expected parameter name");
-      const bindingName = normalizeNfkc(name.text);
+      const bindingName = normalizeNfkc(name.text,cursor.meter);
       if (bindingName === "__debug__") throw cursor.error("cannot assign to __debug__");
       if (names.has(bindingName)) throw cursor.error("duplicate argument in function definition");
       names.add(bindingName);

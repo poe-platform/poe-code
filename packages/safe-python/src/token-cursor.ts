@@ -18,7 +18,7 @@ export class TokenCursor {
   private offset = 0;
   private attempts = 0;
   private lexerFailure: unknown;
-  constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = [],private readonly meter?:SourceMeter,readonly enterRecursiveCall?:()=>()=>void) {meter?.checkpoint(1,136);}
+  constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = [],readonly meter?:SourceMeter,readonly enterRecursiveCall?:()=>()=>void) {meter?.checkpoint(1,136);}
 
   /** Retrieve original spelling, excluding lexer-identified comments only. */
   sourceBetween(start: number, end: number): string {

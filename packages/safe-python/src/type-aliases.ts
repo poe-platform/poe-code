@@ -15,7 +15,7 @@ export function readTypeAlias(cursor: TokenCursor): Statement | undefined {
     return cursor.take();
   });
   if (!token) return undefined;
-  const name = normalizeNfkc(token.text);
+  const name = normalizeNfkc(token.text,cursor.meter);
   if (name === "__debug__") throw cursor.error("cannot assign to __debug__");
   if (cursor.peek().text === "[") readIgnoredTypeParameters(cursor);
   cursor.expect("=");

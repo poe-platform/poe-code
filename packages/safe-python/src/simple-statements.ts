@@ -21,7 +21,7 @@ export function readSimpleStatement(cursor: TokenCursor): Statement {
         const name = cursor.peek();
         if (name.kind !== "name" || reservedWords.has(name.text)) throw cursor.error("expected declaration name");
         cursor.take();
-        names.push({ spelling: name.text, name: normalizeNfkc(name.text), start: name.start, end: name.end });
+        names.push({ spelling: name.text, name: normalizeNfkc(name.text,cursor.meter), start: name.start, end: name.end });
         if (cursor.peek().text !== ",") break;
         cursor.take();
       }

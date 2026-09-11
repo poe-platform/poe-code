@@ -11870,6 +11870,27 @@ extension, integration, or validation requirement is missing or unverified.
   AST construction, normalization and remaining module analysis passes still
   require accounting before guest eager compilation/ForwardRef conversion is
   enabled. This milestone does not claim a complete parser sandbox.
+- Metered Unicode identifier normalization (2026-09-11): thirteen failing
+  tests reproduced ignored entry limits/cancellation and unbounded compatibility
+  expansion, combining-class sorting and output construction. normalizeNfkc now
+  accepts the parser's structural SourceMeter and charges decomposition visits,
+  intermediate storage, combining-run copies and sort comparisons, composition,
+  code-point string construction and the final join. A final checkpoint preserves
+  cancellation. All eleven grammar normalization sites forward the cursor meter;
+  twelve integration cases verify forwarding through names, attributes,
+  declarations, imports, patterns, exception bindings and type parameters.
+  The focused three-file suite passes 81 tests. Metered normalization matches
+  Python's Unicode 16.0.0 NFKC output for all 1,114,112 individual code points,
+  including surrogates, using 272 block digests, and all 4,096 three-element
+  combinations of representative starters, combining marks, Hangul components,
+  compatibility expansions, Unicode 16 additions and surrogates. The trusted
+  decomposition graph is acyclic with maximum depth four. These comparisons do
+  not establish exhaustive multi-character normalization coverage. Build,
+  typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,289 tests in 542 files
+  (134.76s; test bodies 12.61s).
+  AST construction and remaining module analysis still require accounting before
+  guest eager compilation/ForwardRef conversion is enabled.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

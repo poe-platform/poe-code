@@ -96,7 +96,7 @@ function readName(cursor: TokenCursor): DeclaredName {
   const token = cursor.peek();
   if (token.kind !== "name" || reservedWords.has(token.text)) throw cursor.error("expected pattern name");
   cursor.take();
-  return { name: normalizeNfkc(token.text), spelling: token.text, start: token.start, end: token.end };
+  return { name: normalizeNfkc(token.text,cursor.meter), spelling: token.text, start: token.start, end: token.end };
 }
 
 function readBinding(cursor: TokenCursor, wildcard: boolean): DeclaredName | null {

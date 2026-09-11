@@ -12,7 +12,7 @@ export function readFunction(cursor: TokenCursor, readSuite: (cursor: TokenCurso
   const opening = cursor.expect("def");
   const token = cursor.peek();
   if (token.kind !== "name" || reservedWords.has(token.text)) throw cursor.error("expected function name");
-  const name = normalizeNfkc(token.text);
+  const name = normalizeNfkc(token.text,cursor.meter);
   if (name === "__debug__") throw cursor.error("cannot assign to __debug__");
   cursor.take();
   if (cursor.peek().text === "[") readIgnoredTypeParameters(cursor);

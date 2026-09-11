@@ -13,7 +13,7 @@ export function readIgnoredTypeParameters(cursor: TokenCursor): void {
     if (cursor.peek().text === "*" || cursor.peek().text === "**") prefix = cursor.take().text;
     const token = cursor.peek();
     if (token.kind !== "name" || reservedWords.has(token.text)) throw cursor.error("expected type parameter name");
-    const name = normalizeNfkc(token.text);
+    const name = normalizeNfkc(token.text,cursor.meter);
     if (name === "__debug__") throw cursor.error("cannot assign to __debug__");
     if (names.has(name)) throw cursor.error(`duplicate type parameter '${name}'`);
     names.add(name);

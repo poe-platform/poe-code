@@ -49,5 +49,5 @@ function readName(cursor: TokenCursor): DeclaredName {
   const token = cursor.peek();
   if (token.kind !== "name" || reservedWords.has(token.text)) throw cursor.error("expected import name");
   cursor.take();
-  return { spelling: token.text, name: normalizeNfkc(token.text), start: token.start, end: token.end };
+  return { spelling: token.text, name: normalizeNfkc(token.text,cursor.meter), start: token.start, end: token.end };
 }

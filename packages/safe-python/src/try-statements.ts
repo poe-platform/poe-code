@@ -41,7 +41,7 @@ export function readTry(cursor: TokenCursor, readSuite: (cursor: TokenCursor) =>
         cursor.take();
         const token = cursor.peek();
         if (token.kind !== "name" || reservedWords.has(token.text)) throw cursor.error("expected exception alias");
-        const name = normalizeNfkc(token.text);
+        const name = normalizeNfkc(token.text,cursor.meter);
         if (name === "__debug__") throw cursor.error("cannot assign to __debug__");
         cursor.take();
         alias = { name, spelling: token.text, start: token.start, end: token.end };

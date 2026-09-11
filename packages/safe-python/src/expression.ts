@@ -122,7 +122,7 @@ function readAtom(cursor: TokenCursor): Expression {
   }
   if (token.kind === "name" && !reservedWords.has(token.text)) {
     cursor.take();
-    return { kind: "name", spelling: token.text, name: normalizeNfkc(token.text), start: token.start, end: token.end };
+    return { kind: "name", spelling: token.text, name: normalizeNfkc(token.text,cursor.meter), start: token.start, end: token.end };
   }
   throw cursor.error("expected expression");
 }

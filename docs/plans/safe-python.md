@@ -12013,6 +12013,34 @@ extension, integration, or validation requirement is missing or unverified.
   this milestone does not claim active-path-only memory for static attributes.
   Symbol collection/resolution and AST construction remain unfinished accounting
   work before guest compilation.
+- Metered declaration-history validation (2026-09-11): seven failing tests
+  reproduced ignored entry budgets/cancellation, host recursion failure on
+  10,000 nested scopes, unmetered duplicate-event scans/history/diagnostics and
+  missing analysis/resolver forwarding. Validation now uses explicit active-path
+  frames with metered per-scope name/kind histories. Name scans and diagnostic
+  strings are charged before construction, and a final checkpoint preserves
+  cancellation. Two further tests cover cyclic external scopes and allocation-
+  limited distinct histories. A CPython probe exposed parent-first validation
+  masking an earlier nested-scope error with a later parent declaration error;
+  an additional failing regression reproduced it. The walker now interleaves
+  children at their recorded parentEventIndex, preserving collected event order;
+  external scopes without that optional metadata retain the prior children-last
+  fallback. Further probes found annotation diagnostics must identify global
+  versus nonlocal specifically, and conflicting global/nonlocal flags are checked
+  after immediate ordering/annotation errors, at the first directive's location.
+  Six additional failing tests cover these semantics. Histories are retained in
+  scope preorder for the deferred conflict pass, with their storage and traversal
+  charged; traversal frames alone are active-path-only, not all validation memory.
+  The focused five-file suite passes 123 tests. The initial full run was stopped
+  before these additional fixes; final verification uses a fresh uncached run.
+  All 39 comparisons match CPython acceptance, diagnostic message and line,
+  including repeated/conflicting directives and competing nested/parent errors.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,396 tests in 551 files
+  (178.24s; test bodies 13.59s). resolveSymbols accepts and
+  forwards the meter only for declaration validation in this milestone; its own
+  binding resolution/closure propagation and symbol collection/AST construction
+  remain unfinished accounting work before guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

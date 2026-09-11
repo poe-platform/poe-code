@@ -1,6 +1,6 @@
 import type { SymbolEvent, SymbolScope } from "./symbol-collection.js";
 import { validateDeclarations } from "./declaration-validation.js";
-import { PythonSyntaxError } from "./source.js";
+import { PythonSyntaxError, type SourceMeter } from "./source.js";
 
 export type ResolvedBinding = { readonly kind: "local" | "global" | "free"; readonly owner: SymbolScope };
 export type ResolvedScope = {
@@ -27,8 +27,8 @@ type Frame = {
 };
 
 /** Resolve lexical owners and propagate closure requirements across intervening scopes. */
-export function resolveSymbols(scope: SymbolScope, filename = "<string>"): ResolvedScope {
-  validateDeclarations(scope, filename);
+export function resolveSymbols(scope: SymbolScope, filename = "<string>",meter?:SourceMeter): ResolvedScope {
+  validateDeclarations(scope, filename,meter);
   const frames: Frame[] = [];
   const byScope = new Map<SymbolScope, Frame>();
   function build(scope: SymbolScope, parent?: Frame): Frame {

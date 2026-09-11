@@ -88,14 +88,24 @@ describe("completed snapshot replay", () => {
         reads += 1;
         return index + 10;
       };
-      const source = `const values = []; for (let index = 0; index < ${width}; index++) { payload.count++; values.push([payload.count, Math.random(), await read(index)]); } return values;`;
+      // Literal entries exercise replay without repeating guest loop/push machinery.
+      const values = Array.from({ length: width }, (_, index) =>
+        `[++payload.count, Math.random(), await read(${index})]`
+      );
+      const source = `return [${values.join(",\n")}];`;
       const original = await run(source, { bindings: { read, payload: { count: 3 } } });
       expect(original.ok).toBe(true);
+      if (!original.ok) throw new Error("Expected successful execution");
+      expect(original.returnValue).toHaveLength(width);
+      expect(original.returnValue).toEqual(Array.from({ length: width }, (_, index) => [
+        index + 4, expect.any(Number), index + 10
+      ]));
+      expect(reads).toBe(width);
       let snapshot = JSON.parse(serializeSafeJSSnapshot(original.snapshot));
       for (let iteration = 0; iteration < 3; iteration++) {
         const resumed = await run(source, { snapshot, bindings: { read } });
         expect(resumed.ok).toBe(true);
-        if (!original.ok || !resumed.ok) throw new Error("Expected successful replay");
+        if (!resumed.ok) throw new Error("Expected successful replay");
         expect(resumed.returnValue).toEqual(original.returnValue);
         expect(reads).toBe(width);
         snapshot = JSON.parse(serializeSafeJSSnapshot(resumed.snapshot));

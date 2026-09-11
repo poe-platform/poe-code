@@ -1,281 +1,156 @@
-# Optional release integration candidate
+# Optional Safe Bash integration qualification
 
-This is an unfinished integration candidate on `main` in
-`/tmp/poe-optional-integration-aHlAip`. Local checkpoints preserve both histories;
-nothing in this candidate has been pushed or published. It is not release-ready
-while validation failures remain.
+The candidate is validated locally on main in
+`/private/tmp/poe-optional-integration-aHlAip`. The normal full build, maintained
+full npm test including posttest, repository lint, package lint, strict Bash
+consumer checks, and installed four-package consumers passed. This candidate
+has **not been pushed or published**. Initial npm creation and trusted-publisher
+configuration for `@poe-platform/safe-bash-optional` remain external prerequisites;
+root's latest registry check returned 404.
 
-## Inputs and delivery boundary
+## History and delivery boundary
 
-- Original committed work: `57f68f67e3f7f92f9a1cb78bb58cd47b407cf2c3`.
-- Remote main merged into that history: `4af337d98df423642869a313eefa74e09a87c53e`.
-- Common ancestor: `25b940bd7293e3725cbb25f6ae3f776c0147feb4`.
-- Later original fixture corrections `47c64b1f8` and `99a789109` are applied to
-  the candidate, with current-main readonly capabilities retained.
-- Later corrections `01a83cf9e`, `e3e237b2a`, `fb12831c7` and `f7c6d40f0`
-  are adapted to the merged archive, descriptor, fixture and CI contracts.
-- The SafeJS execution-lifetime correction from `edb7ce8c2` is applied. Its
-  separate release belongs to the root delivery clone, not this candidate.
-- Native array-key reproduction correction `525ee05e9` authenticates the
-  caller-supplied Bash binary/version without requiring the historical machine's
-  binary digest. Captured evidence remains unchanged.
-- Native jobs reproduction correction `ceacf3910` applies the same supplied
-  binary/version authentication while retaining historical capture hashes.
-- Local integration checkpoint `efa6c2efa` merges the original and remote trees.
-  `f0df68ad9` includes delivered SafeJS `edb7ce8c2` ancestry with equivalent
-  import placement. `a2bcb6210` includes original repair ancestry `ceacf3910`
-  without changing the reviewed tree. Both heads are verified ancestors, so the
-  original checkout can eventually fast-forward without losing commits.
+- `efa6c2efa` merges original `57f68f67e` with remote `4af337d98`, preserving
+  both histories from common ancestor `25b940bd7`.
+- `f0df68ad9` incorporates delivered SafeJS `edb7ce8c2`.
+- `a2bcb6210` incorporates original repair ancestry `ceacf3910` without
+  changing the already reconciled tree.
+- `9b6446da1` completes device-view, descriptor-retirement, and fixture
+  reconciliation. This is the source revision qualified by the full gates below.
+- The subsequent merge includes remote `7ede49079`, a single SafeJS replay-test
+  optimization preserving 128 draws, 128 host calls, input mutations, and three
+  replay generations. Its ten affected tests and exact-file ESLint pass.
+  Product source and review artifacts are unchanged by this follow-up.
 
-The source checkout and root SafeJS delivery clone remain untouched by this
-integration. All source conflict markers are resolved. This is not validation.
+The source checkout and root SafeJS delivery clone were not edited by this work.
+Original `ceacf3910` and delivered `7ede49079` remain ancestors, permitting an
+original-checkout fast-forward without dropping user commits. Independent SafeJS
+publication does not publish this optional stack. No local npm publication was
+attempted.
 
-## Packaging milestone
+## Final behavior
 
-The four focused packaging suites pass: **221 tests** covering optional build,
-optional lifecycle, safe-library packaging and standalone metadata. Log:
-`/tmp/poe-optional-integration-package-milestone.log`.
+Current-main defaults and public conditional exports remain. Core cmp, shuf,
+truncate, and restricted yq coexist with separate optional implementations; equal
+names do not imply equivalent semantics. Duplicate registration rejects unless
+callers explicitly select `replace: true`. Optional
+`mapfileExtension({ replace: true })` similarly replaces core mapfile/readarray;
+omission retains duplicate-builtin rejection. Optional yes, dd, and install stay
+separate factories. Independently declared exact inventories, factory exclusion,
+and same/foreign runtime identity checks remain active.
 
-The tests first exposed two actual incompatibilities:
+Packaging resolves nested declaration conditions and retains browser/workerd
+entries. Only eight optional Mike-yq families are excluded from core:
+arguments, evaluate, expression, inplace, mike, native-encoder, native-work, and
+nodes. Shared restricted YAML/TOML remains in core. Optional YAML is the declared
+optional peer yaml@2.9.0. No obsolete browser alias or duplicate runtime was added.
 
-- The optional builder recognized only flat export conditions. Current main
-  uses nested declaration conditions. The builder now selects the Node import
-  and declaration/default paths while retaining the existing peer-boundary and
-  runtime-identity checks.
-- A directory-wide `commands/yq` exclusion removed current main's restricted
-  YAML/TOML implementation. Exclusions now name only the eight Mike adapter
-  source families and their emitted runtime/declaration/map files:
-  `arguments`, `evaluate`, `expression`, `inplace`, `mike`, `native-encoder`,
-  `native-work`, `nodes`. The restricted `index`, `accounting`, `encoder`,
-  `errors`, `parser`, `toml`, and shared structured query implementation remain
-  in the default build/package.
+Canonical descriptors and retained handles coexist with current-main memory
+ledgers, budget admission, cancellation, and cleanup. Canonical descriptors gain
+no invented seek operation. Core cmp uses bounded sequential reads for shared
+regular input with unequal skips while retaining opaque-stream behavior. Raw
+byte-value and IFS identity remain through parser, expansion, and runtime paths.
 
-The fixture graph now represents nested export conditions and uses `yq/mike`
-for the optional YAML fixture; it no longer mislabels the default `yq/index`
-module as optional. Assertion coverage and rejection cases remain enabled.
+Public inline Shell input keeps current-main iterator admission;
+`stdinInput.read` activates bounded cumulative accounting. The strict internal
+prepared-bytes helper remains bounded before copying. Fixtures exercising legacy
+streaming explicitly decline canonical open instead of selecting another route.
+Public generic diagnostics retain exact internal reasons via onInternalError.
 
-Current main's `cmp.ts`, `shuf.ts`, and `truncate.ts` are separate implementations
-from the optional `cmp/`, `shuf/`, and `truncate/` directories. Their names
-overlap in the registry, but their implementations and APIs are not silently
-collapsed. Optional `dd/`, `install/`, and `yes/` directories are also retained.
-Registering an overlapping optional command must keep normal duplicate rejection
-unless the caller explicitly requests `replace: true`.
+`ShellOptions.deviceView` selects default or provided. Default synthetic
+/dev/null continues shadowing backing entries. Provided omits only that overlay;
+canonical normalization, validation, budgets, cancellation, and retained cleanup
+remain. The policy applies to exec filesystem overrides and nested execution.
+API/contract documentation and the optional README describe it. Eleven frozen
+native null scripts remain unchanged alongside default shadowing controls.
 
-Installed optional runtime fixtures now use the independently maintained exact
-current-main inventory and explicit variant replacement for the three collisions.
-They retain duplicate-rejection checks and optional factory-exclusion checks.
-Browser fixtures use current-main conditional exports, with no obsolete browser
-subpath compatibility alias. Installed runtime has not passed on this candidate.
-No README content has been added.
+Completed descriptor cleanup registrations retire after successful cleanup,
+preventing accumulation in long executions. Synthetic null streams advertise
+truthful independent lifetimes. Install selects output using destination
+capabilities; install and yq capture bounded retained cleanup before mutation so
+cancellation can retire owned targets/staging files. Exact byte, mode, inode,
+admission, falsey-error, and cancellation assertions remain.
 
-## SafeFS milestone
+## Qualification
 
-The delegated SafeFS reconciliation preserves both canonical descriptors and
-current-main retained handles, bounded memory accounting and cleanup. The
-selected workspace build and typecheck pass. Its post-build full run passed
-4,176 tests in 108 files; two cross-package files could not transform at that
-stage. A later focused run passed 294 tests after the final device capability
-correction. Logs:
+The uncached maintained unit route reported 72 workspaces and 41 declared test
+tasks, with no excluded tasks. Missing test declarations were explicitly
+classified as not passes. All full-unit phases below are in
+`/tmp/poe-optional-integration-full-test-4.log`; the root command exited zero.
 
-- `/tmp/poe-safefs-merged-validation.log`
-- `/tmp/poe-safefs-final-focused.log`
-- `/tmp/poe-safefs-device-final.log`
+| Phase | Result |
+| --- | --- |
+| Shared unit workspaces | 939 files / 23,336 tests passed; 2 files/tests skipped |
+| Python workspace | 29 tests passed |
+| Bash maintained runner | 493 passed |
+| Bash full suite | 38,017 passed, 414 skipped, zero failed/cancelled; 1,072 discovered files |
+| SafeJS full suite | 1,301 files / 28,916 tests passed; 2 files / 47 tests skipped |
+| Remaining workspace suite | 8 files / 288 tests passed |
+| Native npm posttest lint stress | 2 passed |
 
-New descriptor/ledger tests validate admission before side effects, scoped
-descriptor work/cancellation, and live-byte accounting across retained and
-canonical handles. `ioBlockSize` and `preferredIoBlockSize` remain distinct
-metadata with compatible bridge handling. Neither legacy `maxBytes` nor the
-retained allocation ledger is dropped.
+Additional successful gates:
 
-## Remaining integration work
+| Check | Evidence |
+| --- | --- |
+| Normal full build, public wrappers and root suffix | `/tmp/poe-optional-integration-full-build-4.log` |
+| Repository lint: guarded ESLint, root/consumer types, workflows | `/tmp/poe-optional-integration-root-lint-stable.log` |
+| All 17 package lint rules | `/tmp/poe-optional-integration-package-lint-stable.log` |
+| Bash source/tests and 26 consumer groups; expected negative rejections | `/tmp/poe-optional-integration-typecheck-stable.log` |
+| Follow-up SafeJS replay: 10 passed, 128-draw case in 802 ms | `/tmp/poe-optional-completed-replay-final.log` |
+| Follow-up exact-file ESLint | `/tmp/poe-optional-completed-replay-eslint.log` |
 
-The parser now carries shared budgets, source values and captured extension
-syntax. Input supports canonical descriptors and retained handles without
-inventing unsupported seek capabilities. Runtime resolves associative arrays,
-brace expansion and current-main cleanup alongside optional extensions, raw
-values and descriptor ownership. These combined paths still require runtime
-validation; source compilation is not semantic compatibility evidence.
+GNU Bash 5.2.37 native checks authenticated the selected executable against
+caller-supplied SHA256
+`9285bd1f401901808d125f7585a74812963cee323fdab1b2199162dc2ab29203`.
+Historical captures remain unchanged; an earlier machine's binary digest is not
+required of a newly authenticated build. Source-authenticated tests ran with
+the tree frozen at 9b6446da1 and matched before/after hashes. Counts above are
+separate phases, not overlapping focused totals or claims that skipped cases pass.
 
-Default null-device wrapping remains. DeviceFileSystem forwards canonical open
-for ordinary backing paths, preserves descriptor identity, and refuses it for
-virtual null paths with truthful capabilities; retained stream APIs remain.
+## Installed review artifacts
 
-The first normal full build passed, including all maintained workspace tasks,
-playground site and root bundle suffix. The playground adapter now admits the
-exact assigned root-state AST form while rejecting binding drift; six adapter
-tests and its TypeScript check pass. Log:
-`/tmp/poe-optional-integration-full-build.log`.
+Four provisional review packages were generated from the successful full build
+before unit compilation could replace portable output. Version
+`0.0.0-integration.20260911` is local review metadata, not a registry release.
+Directory: `/private/tmp/poe-optional-release-stable-79PtcW`.
 
-Subsequent runtime corrections require refreshed artifacts and full validation.
-The second normal full build passed and is recorded in
-`/tmp/poe-optional-integration-full-build-2.log`.
+| Tarball in tarballs/ | SHA256 |
+| --- | --- |
+| poe-platform-safe-fs-0.0.0-integration.20260911.tgz | `350ddf04db0e7929fd2994c1a19866a8050b002ebd6fefb2f6bd672cb7bd02c0` |
+| poe-platform-safe-js-0.0.0-integration.20260911.tgz | `06791ec1c4e41f541fb683e8b9dbac3260d4821437913fc728d12094fdb9a8bd` |
+| poe-platform-safe-bash-0.0.0-integration.20260911.tgz | `137cabb074385ab7512abbff52267333675d35df404a5300f97844e8b45b3445` |
+| poe-platform-safe-bash-optional-0.0.0-integration.20260911.tgz | `159ccdfefef596b078544494f5377a44f3b7260950f8a1e26d9f8475c379fde5` |
 
-The first maintained full `npm test` ran with the authenticated GNU Bash
-5.2.37 oracle in `/tmp/poe-optional-integration-full-test.log`. Its shared phase
-completed with 937 passed files, two failed files, and two skipped files;
-23,333 tests passed, two failed, and two skipped. The two failures were the
-packed browser `cmp` regression and ownership expectation described below.
-The runner correctly stopped before subsequent workspace phases.
-The optional workspace ownership expectation also omitted current main's
-`requiresNativePool: false` field; the exact expectation now includes it and
-all 35 ownership tests pass.
-This run was failure discovery, not a completed release gate. The third normal
-full build passed: `/tmp/poe-optional-integration-full-build-3.log`.
+Complete installed workflow passed: optional Node/Bun without YAML using the
+workflow's --omit=optional install, strict exact-optional TypeScript, then YAML
+2.9.0 runtime covering all commands/extensions and same/foreign runtime identity,
+followed by strict types. Core Node/Bun smoke, declarations, browser bundle and
+execution, legacy poe-code@14.0.4 adaptation, and standalone SafeFS Node/Bun passed.
+Logs: `/tmp/poe-optional-stable-installed.log` and
+`/tmp/poe-optional-stable-core-installed.log`. SHA256SUMS accompanies the tarballs.
+Publication must regenerate the release-selected version through GitHub after
+bootstrap configuration.
 
-The second maintained run passed all shared tasks: 939 files and 23,335 tests,
-with two files/tests explicitly skipped. Bash runner then stopped at two stale
-metadata assertions: blanket optional yq exclusion and exclusion-list order.
-The fixture now checks the independent eight optional yq stems and four emitted
-suffixes, retains the shared restricted yq directory, and compares exact source
-exclusion membership independent of order. All 493 runner controls pass.
-The third full run is `/tmp/poe-optional-integration-full-test-3.log`. It passed
-the shared and runner phases, then exposed four stale Bash expectations:
-optional cmp/shuf workflows assumed absent core defaults; device enumeration
-omitted the automatic null device; and command-name diagnostics expected the
-generic octal escape instead of native Bash's ANSI-C `\\E` rendering. The
-reconciled fixtures retain exact outputs and duplicate-registration rejection.
-Ten cmp/shuf tests pass with five explicit native-prerequisite skips; all 71
-device/diagnostic controls pass.
+## Remaining delivery prerequisite
 
-That run completed Bash discovery at 1,072 files: 37,781 tests passed, 187 failed,
-42 were cancelled, and 414 explicitly skipped. Those results are not a gate
-pass. The failure audit covers 26 files; a stable final run remains required.
-The live source/config authentication gates correctly rejected source edits
-during execution. The frozen diagnostic compatibility suite passes all 99
-controls when rerun unchanged; public cleanup authentication remains intact.
+Local integration and qualification are complete. Root coordinates any
+original-checkout fast-forward, remote-main delivery, and release. Optional npm
+creation and trusted-publisher configuration are still required: npm trust
+requires an existing package. Omitting the optional artifact does not satisfy
+the four-package release. Report local commits, verified remote delivery, and
+successful registry releases separately.
 
-Further corrections preserve exact existing contracts:
+## Investigation record
 
-- Synthetic null devices truthfully advertise independent stream lifetimes;
-  73 SafeFS controls and four explicit mounted-device controls pass.
-- Descriptor callback owners retire completed cleanup registrations, avoiding
-  accumulation during one execution; 213 lifetime/output controls pass.
-- Stream-only buffered/retained fixtures explicitly decline canonical open,
-  keeping every original timing, traffic, cancellation, and identity assertion.
-- Synthetic peer lock records include their required peer map. The three
-  independent peer qualification selections pass 65, 93, and 68 tests.
-- Portable descriptors import canonical errors through the portable core route;
-  all 42 portable graph and browser controls pass without relaxed denylists.
-- Read diagnostic fixtures require generic public errors and exact internal
-  reason identity, while retaining no-consumption and deadline assertions.
+Earlier full runs were discovery. The third reported 37,781 Bash passes,
+187 failures, and 42 cancellations. Exact failures were corrected or traced to
+source-authentication rejection during concurrent edits; the frozen fourth run
+covered them successfully. Original logs remain at
+`/tmp/poe-optional-integration-full-test{,-2,-3}.log`.
 
-The strict committed S3 export verifier passes against `a2bcb6210`. Its earlier
-failure correctly rejected old HEAD missing a new committed build input;
-the verifier was not weakened to admit uncommitted source.
-
-Eleven frozen native write-only null-descriptor cases require the supplied
-canonical device view. Generic metadata autodetection was rejected after a
-replacement test proved path truncation could precede descriptor validation.
-The explicit constructor policy `deviceView: "default" | "provided"` preserves
-the synthetic overlay by default and lets callers select their supplied device
-namespace. It bypasses only the overlay; Runtime filesystem scopes, accounting,
-cancellation, and canonical descriptor handling remain. The policy applies to
-exec filesystem overrides and nested execution. All 299 focused controls pass,
-including the eleven unchanged native scripts and default shadowing controls.
-
-The maintained Bash source/test/consumer typecheck, root type lint, workflow
-lint, and package lint have passed. Guarded ESLint reported zero errors and one
-unused import warning; the import was removed, pending final lint qualification.
-Packed standalone SafeFS consumers pass on Node and Bun. Packed optional
-no-YAML consumers and strict types pass. These checks are separate from the
-remaining full optional runtime and core smoke qualification.
-
-The optional install writer regression was reproduced by existing source tests
-and corrected by choosing streaming output using admitted destination
-capabilities. Its 130 focused tests pass, with two explicit external-profile
-skips. A subsequent installed failure used stale emitted output predating this
-fix; the optional lifecycle must rebuild before final tarball qualification.
-
-Packed core smoke and the maintained browser fixture exposed a merge regression
-for `cmp -i1:2 </cmp-long - -`: the canonical descriptor-backed input has no seek
-operation, and core cmp's nonseekable shared-input fast path returns equality.
-The correction preserves the no-seek fast path for opaque/stream input while
-allowing admitted regular files with unequal skips to use existing bounded
-sequential reads. All 315 cmp tests pass, including frozen GNU native snapshots
-and new canonical/retained controls for pathname replacement, exact diagnostics,
-shared consumed position, and absent canonical seek. The frozen expected EOF
-and duplicate-close diagnostics remain unchanged. Emitted browser and installed
-fixtures still require a fresh build before qualification.
-
-Packed core declaration checks and legacy `poe-code@14.0.4` filesystem-error
-normalization pass. Eleven independently exported non-cmp command fixture groups
-pass on both default and Node entries; these 22 groups do not substitute for the
-complete core smoke fixture.
-
-Fresh build-three tarballs passed complete core smoke on Node and Bun. Browser
-packaging was attempted after `npm test` recompiled the core workspace; that
-compilation overwrites the root-suffix portable browser bundle with TypeScript's
-forwarding module. This is an invalid artifact ordering, not a browser manifest
-change. Final qualification must run tests, then normal full build, then package
-and install without concurrent compilation.
-
-Fresh optional no-YAML Node/Bun and strict type qualification pass. Full runtime
-then reproduced yq in-place staging cleanup after an output-limit cancellation.
-The optional implementation now captures current-main retained cleanup authority
-before staging and bounds it to one removal. All 128 focused yq controls pass,
-preserving exact budget, event, inode, mode, and byte assertions.
-
-The installed strip-provider cancellation contract likewise exposed normal
-scoped removal after cancellation. Install now captures one-removal cleanup
-authority before target mutation and removes a failed strip target for throwing,
-nonzero, and abort-then-return outcomes. Ten maintained new controls verify both
-buffered and streaming writes, source inode/mode/bytes, exact-once removal after
-disposal, falsey abort identity, and successful retained targets. The full
-preceding install selection passed 138 tests with two native-prerequisite skips.
-
-Repository-wide `npm run lint` passed with zero ESLint warnings/errors, root and
-consumer types, and workflow checks. The maintained Bash typecheck passed again
-after the cleanup corrections. Late product/test edits also passed focused
-ESLint; the final four fixture-only reconciliations have a separate lint run.
-
-Focused runtime milestones (overlapping selections, not an aggregate gate):
-
-- 1,176 arrays extension tests and 46 source-input tests pass serially.
-- 277 parser/native-byte/deadline and 306 input/cleanup controls pass.
-- 457 graduated-syntax controls preserve current-main default key support.
-- 113 retained-output tests check exact host-error identity through
-  `onInternalError`, generic public diagnostics, status preservation and cleanup.
-- 104 command-input/IFS and 49 length/transform tests pass.
-- 47 historical-type-model drift controls pass after an explicitly reviewed
-  current caller binding; prior caller digest/provenance remains recorded.
-
-Public inline Shell input follows current-main iterator-only admission until
-bounded `stdinInput.read` activates cumulative accounting. The strict internal
-`prepareBytesInput` helper remains independently bounded before snapshot copying.
-The command contract documents this explicit reconciliation.
-
-Raw IFS splitting retains raw FF rather than converting it to U+FFFD, with
-independently observed GNU Bash5.2.37 C/POSIX versus UTF-8 delimiter behavior.
-Duplicate delimiter storage remains bounded under the original 512-byte control.
-
-Optional `mapfileExtension({ replace: true })` explicitly replaces current-core
-`mapfile` and `readarray`; omission preserves duplicate-builtin rejection. Both
-implementations remain. Current native fixture revisions append exact inverse
-edit steps while preserving prior receipts and native records.
-
-1. Refresh emitted core and optional output after the cmp fix, and complete
-   installed optional runtime qualification.
-2. Reconcile stale documentation statements about optional command/default
-   membership, without implying that equivalent command names have equivalent
-   APIs or semantics.
-3. Run maintained build, source/tests/consumer typechecks, relevant lint,
-   full repository test route, and actual packed/installed consumer fixtures.
-   Canonical wrappers now exist from the first full build. Earlier missing-wrapper
-   attempts were unexecuted coverage, not test passes.
-
-The selected package-lint build and selected SafeJS workspace build completed.
-They do not validate the merged shell or replace the required full gates.
-
-Archive peer/dependency controls pass 16 focused tests while preserving the
-approved pinned noble/pako dependencies. The bad-manifest bootstrap test passes
-all four exact exclusion mutations before product-source reads. Optional YAML
-is pinned to 2.9.0 with optional metadata, and historical peer profiles remain.
-
-## External publication prerequisite
-
-The optional public package still requires initial npm package creation and
-trusted-publisher setup. Root verified that npm trusted-publisher configuration
-requires the package to exist. This external prerequisite is independent of the
-unfinished code integration above. Neither problem is resolved by dropping the
-optional artifact from the release or by claiming the independent SafeJS
-release shipped all local work.
+Generic metadata autodetection for supplied null devices was rejected: a
+replacement test demonstrated truncation could follow a character-device probe
+before descriptor validation. Explicit deviceView avoids that unsupported
+guarantee. Evidence: `/tmp/poe-null-composition-race-red.log`. Historical native
+captures, inverse fixture revisions, exact archive drift controls, and
+source-authentication guards remain.

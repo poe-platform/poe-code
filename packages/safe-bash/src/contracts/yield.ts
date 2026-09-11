@@ -16,6 +16,11 @@ export function registerYieldCheckpoint(signal: AbortSignal, checkpoint: () => v
   checkpoints.set(signal, checkpoint);
 }
 
+export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal): void {
+  const checkpoint = checkpoints.get(parent);
+  if (checkpoint) checkpoints.set(child, checkpoint);
+}
+
 export function scheduleTurn(callback: () => void): TurnHandle {
   const host = globalThis as ImmediateHost;
   return host.setImmediate

@@ -1,4 +1,5 @@
 import { posix } from "node:path";
+import { escapeText } from "../../escaping.js";
 import { types } from "node:util";
 import type { CommandContext } from "../../contracts/command.js";
 import { isErrnoCode, isFsError } from "../../contracts/errors.js";
@@ -229,10 +230,11 @@ export class NodeHost {
   }
   async diagnostic(value: string): Promise<void> {
     if (!this.grants.stderrWrite) return;
-    const count = Buffer.byteLength(value);
+    const escaped = escapeText(value, "diagnostic");
+    const count = Buffer.byteLength(escaped);
     if (count > nodeLimits.outputBytes - this.#output) throw new NodeProfileError("diagnostic output bytes");
     this.#output += count;
-    await this.write(this.owner.context.stderr, value);
+    await this.write(this.owner.context.stderr, escaped);
   }
   async request(value: unknown): Promise<NodeHostResponse> {
     let item: NodeHostRequest;

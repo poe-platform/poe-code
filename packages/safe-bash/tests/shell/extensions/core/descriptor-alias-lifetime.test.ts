@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setImmediate as nextTurn } from "node:timers/promises";
 import { createMemoryFileSystem } from "poe-code/safe-fs";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import { Shell } from "../../../../src/shell/shell.js";
 import { ownPipeDescriptor, pipeObservation, PipeDescriptorFrame, type PipeDescriptorReference } from "../../../../src/shell/descriptors.js";
 import { createBytePipe, outputFailure, type PipeWriteEndpoint } from "../../../../src/contracts/io.js";
@@ -59,7 +59,7 @@ for (const buffered of [false, true]) test(`write-end read observation ignores r
         return 0;
       } finally { releaseReader.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "holdreader", async execute() { await releaseReader.promise; return { exitCode: 0 }; } });
   context.after(() => shell.dispose());
   const result = await shell.exec("inspectwriter | holdreader");
@@ -83,7 +83,7 @@ test("duplicated write endpoint retains directional observation after stdout rep
         return 0;
       } finally { releaseReader.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "holdreader", async execute() { await releaseReader.promise; return { exitCode: 0 }; } });
   context.after(() => shell.dispose());
   const result = await shell.exec("{ { inspectwriter; } 3>&1 1>&4 | holdreader; } 4>&1");
@@ -108,7 +108,7 @@ test("last writer alias closure exposes EOF while its producer stage remains act
         return 0;
       } finally { releaseProducer.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "producerwaiting", async execute() {
     producerWaiting.resolve();
     await releaseProducer.promise;
@@ -138,7 +138,7 @@ for (const child of ["( : 3>&1- )", "bash -c ': 3>&1-'", "sh -c ': 3>&1-'", "./c
         return 0;
       } finally { releaseReader.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "delegate", async execute(invocation) {
     assert.ok(invocation.invoke);
     return invocation.invoke("child", []);
@@ -174,7 +174,7 @@ test("last reader alias closure makes writer read-select ready without ending it
         return 0;
       } finally { releaseReader.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "readerwaiting", async execute() {
     readerWaiting.resolve();
     await releaseReader.promise;
@@ -278,7 +278,7 @@ for (const child of ["( : )", "bash -c ':'", "sh -c ':'", "captured=$(printf cap
         return 0;
       } finally { releaseProducer.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "delegate", async execute(invocation) {
     assert.ok(invocation.invoke);
     return invocation.invoke("true", []);
@@ -323,7 +323,7 @@ for (const fixture of nativeStaticCases) test(`Bash 5.3 static live-peer qualifi
         return 0;
       } finally { observed.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: fixture.descriptor === 0 ? "producerwaiting" : "readerwaiting", async execute() {
     peerLive = true;
     started.resolve();
@@ -356,7 +356,7 @@ for (const reason of [false, 0, "", null]) test(`pipe observation local cancella
         return 0;
       } finally { releaseReader.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "holdreader", async execute(invocation) {
     await releaseReader.promise;
     const bytes: number[] = [];
@@ -393,7 +393,7 @@ test("evaluate closes a moved binding without retargeting a captured observer or
         return 0;
       } finally { observed.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("movebinding | inspectreader");
   assert.equal(result.exitCode, 0, result.stderr);
@@ -413,7 +413,7 @@ test("nested pipeline stderr retains its inherited directional endpoint", async 
         return 0;
       } finally { inspected.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "holdreader", async execute() { await inspected.promise; return { exitCode: 0 }; } });
   context.after(() => shell.dispose());
   const result = await shell.exec("{ inspecterror | :; } 2>&1 | holdreader");
@@ -435,7 +435,7 @@ test("stdin interpreter retains its pipe endpoint through the parser cursor view
         return 0;
       } finally { inspected.resolve(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "scriptwriter", async execute(invocation) {
     await invocation.stdout.write(new TextEncoder().encode("inspectreader\n"));
     await inspected.promise;
@@ -465,7 +465,7 @@ test("normal reader retirement does not cancel a writer which makes no further w
         return 0;
       } finally { await observer.release(); }
     } }] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   shell.register({ name: "readerexit", async execute() { await written.promise; return { exitCode: 0 }; } });
   context.after(() => shell.dispose());
   const result = await shell.exec("set -o pipefail; waitforpeer | readerexit");

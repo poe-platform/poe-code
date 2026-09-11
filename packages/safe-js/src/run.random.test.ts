@@ -66,8 +66,16 @@ describe("replayable default randomness", () => {
       }
     });
     const saved = await checkpoint;
-    expect(saved.bindings).toMatchObject({
-      values: Array.from({ length: savedLength }, () => expect.any(Number))
+    const values = (saved.bindings as Record<string, { kind: string; id: number }>).values;
+    expect(values).toMatchObject({ kind: "ref", id: expect.any(Number) });
+    expect((saved.heap as Record<number, unknown>)[values.id]).toMatchObject({
+      kind: "guest-array",
+      state: { properties: { properties: [
+        ...Array.from({ length: savedLength }, (_, index) => [String(index), {
+          kind: "data", value: expect.any(Number), enumerable: true, configurable: true, writable: true
+        }]),
+        ["length", { kind: "data", value: savedLength, enumerable: false, configurable: false, writable: true }]
+      ] } }
     });
     expect(saved.pendingAwaits).toMatchObject([
       { span: { start: { offset: source.indexOf("await wait") } } }

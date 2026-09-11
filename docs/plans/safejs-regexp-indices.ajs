@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const match = /(a)(b)?/d.exec('ba');
+  if (match.indices[0].join('|') !== '1|2' || match.indices[1].join('|') !== '1|2')
+    throw new Error('Match positions are incorrect');
+  if (match.indices[2] !== undefined || !Object.hasOwn(match.indices, '2'))
+    throw new Error('Missing capture lost its undefined slot');
+  const indices = Array.from('aba'.matchAll(/a/dg), entry => entry.indices[0]);
+  if (indices[1].join('|') !== '2|3') throw new Error('Iterator indices are incorrect');
+  await 0;
+  return { ok: true, title: frontmatter.title, indices };
+}

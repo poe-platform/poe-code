@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String(), capacity: S.Number() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(8, { maxByteLength: frontmatter.capacity });
+  const view = new Float32Array(buffer);
+  view.set([1, 2]);
+  const aliases = [buffer, view];
+  await 0;
+  buffer.resize(16);
+  const copied = buffer.slice();
+  if (aliases[1].buffer !== aliases[0] || buffer.maxByteLength !== frontmatter.capacity || view.length !== 4 || new Float32Array(copied).join() !== "1,2,0,0") {
+    throw new Error("Buffer capacity or alias preservation regression");
+  }
+  return { title: frontmatter.title, ok: true, capacity: buffer.maxByteLength, values: Array.from(view) };
+};

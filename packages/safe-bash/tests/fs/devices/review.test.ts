@@ -118,7 +118,8 @@ test("review independent discard streams do not serialize lifetimes or buffer co
     },
   };
   Reflect.deleteProperty(fs, "open");
-  const shell = new Shell({ fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": fs } }), commands: new CommandRegistry(basicCommands()) });
+  // Use an explicit namespace so the observed backend is not shadowed by Shell's default null view.
+  const shell = new Shell({ fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/devices": fs } }), commands: new CommandRegistry(basicCommands()) });
   shell.register({ name: "fragmented", async execute(context) {
     const payload = new Uint8Array(65536);
     for (let count = 0; count < 8; count++) {
@@ -128,7 +129,7 @@ test("review independent discard streams do not serialize lifetimes or buffer co
     return { exitCode: 0 };
   } });
   try {
-    const result = await shell.exec("fragmented >/dev/null 2>/dev/null");
+    const result = await shell.exec("fragmented >/devices/null 2>/devices/null");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(peak, 2);
     assert.equal(active, 0);
@@ -157,15 +158,15 @@ test("review failure opening a later descriptor closes earlier device streams", 
     },
   };
   Reflect.deleteProperty(fs, "open");
-  const shell = new Shell({ fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": fs } }), commands: new CommandRegistry(basicCommands()) });
+  const shell = new Shell({ fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/devices": fs } }), commands: new CommandRegistry(basicCommands()) });
   try {
-    const failure = await shell.exec("printf x >/dev/null 2>/dev/missing");
+    const failure = await shell.exec("printf x >/devices/null 2>/devices/missing");
     assert.equal(failure.exitCode, 1);
     assert.equal(active, 0);
     assert.equal(admissions, 1);
     assert.equal(peak, 2);
     peak = 0;
-    assert.equal((await shell.exec("printf x >/dev/null 2>/dev/null")).exitCode, 0);
+    assert.equal((await shell.exec("printf x >/devices/null 2>/devices/null")).exitCode, 0);
     assert.equal(active, 0);
     assert.equal(admissions, 3);
     assert.equal(peak, 2);
@@ -194,7 +195,7 @@ for (const budgetFailure of [false, true]) {
     };
     Reflect.deleteProperty(fs, "open");
     const shell = new Shell({
-      fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": fs } }),
+      fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/devices": fs } }),
       commands: new CommandRegistry(basicCommands()),
       limits: { maxOutputBytes: 4 },
     });
@@ -205,7 +206,7 @@ for (const budgetFailure of [false, true]) {
       return { exitCode: 0 };
     } });
     try {
-      await assert.rejects(shell.exec(`${budgetFailure ? "printf overflow" : "cancel-writer"} >/dev/null 2>/dev/null`, { signal: controller.signal }), error => {
+      await assert.rejects(shell.exec(`${budgetFailure ? "printf overflow" : "cancel-writer"} >/devices/null 2>/devices/null`, { signal: controller.signal }), error => {
         if (!budgetFailure) return error === reason;
         return error instanceof Error && "limit" in error && error.limit === "maxOutputBytes";
       });
@@ -213,7 +214,7 @@ for (const budgetFailure of [false, true]) {
       assert.equal(admissions, 2);
       assert.equal(peak, 2);
       peak = 0;
-      const later = await shell.exec("printf ok >/dev/null 2>/dev/null");
+      const later = await shell.exec("printf ok >/devices/null 2>/devices/null");
       assert.equal(later.exitCode, 0, later.stderr);
       assert.equal(active, 0);
       assert.equal(admissions, 4);

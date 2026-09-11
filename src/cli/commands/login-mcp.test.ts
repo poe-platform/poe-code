@@ -431,7 +431,7 @@ describe("login command", () => {
     await expect(fs.readFile(configPath, "utf8")).resolves.toBe(legacyConfig);
   });
 
-  it.each(["goose", "kimi"])("does not expose the API key while previewing login reconfiguration for %s", async (service) => {
+  it.each(["goose"])("does not expose the API key while previewing login reconfiguration for %s", async (service) => {
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
       configPath,

@@ -1,6 +1,9 @@
 import { publicationNodeBuiltins } from "./node-builtins.js";
 import path from "node:path";
 import type ts from "typescript";
+import { isCanonicalNativeClosure, type NativeClosure } from "./native-assets.js";
+export { collectCanonicalNativeAssets } from "./native-assets.js";
+export type { NativeClosure, NativeAssetFiles } from "./native-assets.js";
 
 export const canonicalFsRoutes = [
   {
@@ -117,6 +120,7 @@ export interface BundleMetafile {
   browserCanonicalBundle?: { entryPoints: string[]; metafile: BundleMetafile };
   canonicalTypes?: Record<string, string[]>;
   canonicalEmptyTypes?: string[];
+  canonicalNativeAssets?: NativeClosure;
 }
 
 export interface BundleIssue {
@@ -163,6 +167,8 @@ export function findBundleIssues(
   packedFiles: ReadonlySet<string>
 ): BundleIssue[] {
   const issues: BundleIssue[] = [];
+  const native = metafile.canonicalNativeAssets;
+  const nativeValid = isCanonicalNativeClosure(native, manifest.imports, packedFiles);
   const exported = record(manifest.exports);
   const routes = new Set<string>(canonicalFsRoutes.map((route) => route.specifier));
   const imports = new Set(
@@ -178,6 +184,20 @@ export function findBundleIssues(
   ]);
   for (const specifier of [...imports].sort()) {
     if (publicationNodeBuiltins.has(specifier)) continue;
+    if (
+      nativeValid &&
+      specifier === native.specifier &&
+      Object.entries(metafile.outputs ?? {}).every(
+        ([filename, output]) =>
+          !(output.imports ?? []).some((edge) => edge.external && edge.path === specifier) ||
+          (filename.startsWith(`${canonicalFsProfiles.node.outdir}/`) &&
+            !filename.startsWith(`${canonicalFsProfiles.browser.outdir}/`) &&
+            (metafile.canonicalBundle?.metafile.outputs?.[filename]?.imports ?? []).some(
+              (edge) => edge.external && edge.path === specifier
+            ))
+      )
+    )
+      continue;
     if (routes.has(specifier) && manifest.name === "poe-code") continue;
     const dependency = packageName(specifier);
     const reason = !dependency
@@ -203,6 +223,7 @@ export function findBundleIssues(
     if (!issues.some((issue) => issue.external === external && issue.reason === reason))
       issues.push({ external, reason });
   };
+  if (native && !nativeValid) fail("invalid-canonical-native-assets");
   for (const route of canonicalFsRoutes) {
     if (
       manifest.name !== "poe-code" ||
@@ -339,7 +360,8 @@ export function findBundleIssues(
           if (
             profile === "browser" ||
             !dependency.path ||
-            !publicationNodeBuiltins.has(dependency.path)
+            (!publicationNodeBuiltins.has(dependency.path) &&
+              !(nativeValid && dependency.path === native.specifier))
           )
             fail("external-canonical-dependency");
         } else if (dependency.path) pending.push(dependency.path);
@@ -370,6 +392,9 @@ export function findBundleIssues(
       }
       for (const edge of edges) {
         if (edge === "#safe-fs-platform") typeQueue.push(settings.types);
+        else if (nativeValid && edge === native.specifier) {
+          if (profile === "browser") fail("external-canonical-types");
+        }
         else if (publicationNodeBuiltins.has(edge)) {
           if (profile === "browser") fail("external-canonical-types");
         } else if (

@@ -14,8 +14,8 @@ import { parseModule } from "../parse/parser.js";
 describe("Float32Array", () => {
   it("rejects an incomplete backing-byte record rather than filling a missing byte", () => {
     const encoded = encodeReplayData(deepCopyToSandbox(new Float32Array([1])));
-    const storage = encoded.nodes.find((node) => node.kind === "float32array");
-    if (storage?.kind !== "float32array" || !("bytes" in storage))
+    const storage = encoded.nodes.find((node) => node.kind === "arraybuffer");
+    if (storage?.kind !== "arraybuffer" || !("bytes" in storage))
       throw new Error("Missing typed storage");
     delete storage.bytes[0];
     expect(() => decodeReplayData(encoded)).toThrowError(
@@ -209,12 +209,12 @@ describe("Float32Array", () => {
     if (!result.ok) throw result.error;
     expect(result.returnValue).toEqual({
       bounds: true,
-      arrayLike: true,
-      buffer: "undefined",
-      from: "undefined",
-      factory: "undefined",
-      arrayBuffer: "undefined",
-      other: "undefined",
+      arrayLike: false,
+      buffer: "object",
+      from: "function",
+      factory: "function",
+      arrayBuffer: "function",
+      other: "function",
       constructorLength: 3,
       width: 4,
       copy: [2, 3],
@@ -351,7 +351,7 @@ describe("Float32Array", () => {
     });
   });
 
-  it("does not invoke accessors or conversion callbacks on unsupported inputs", async () => {
+  it("rejects imported accessors without reading them while allowing guest numeric conversion", async () => {
     let reads = 0;
     const values = new Float32Array([1]);
     Object.defineProperty(values, "metadata", {
@@ -366,12 +366,12 @@ describe("Float32Array", () => {
     const result = await run(`
       let called = 0;
       const values = new Float32Array(1);
-      try { values[0] = { valueOf() { called++; return 1; } }; } catch (error) {}
+      values[0] = { valueOf() { called++; return 1; } };
       return { called, value: values[0] };
     `);
     expect(result.ok).toBe(true);
     if (!result.ok) throw result.error;
-    expect(result.returnValue).toEqual({ called: 0, value: 0 });
+    expect(result.returnValue).toEqual({ called: 1, value: 1 });
     expect(reads).toBe(0);
   });
 
@@ -399,9 +399,9 @@ describe("Float32Array", () => {
     }
   });
 
-  it("keeps generic native functions and other native typed-array kinds rejected", () => {
-    expect(() => deepCopyToSandbox(new Uint8Array([1]))).toThrow(/Unsupported sandbox value/);
-    expect(() => deepCopyToSandbox(new Float64Array([1]))).toThrow(/Unsupported sandbox value/);
+  it("accepts supported typed-array kinds and keeps generic native functions rejected", () => {
+    expect(deepCopyToSandbox(new Uint8Array([1]))).toEqual(new Uint8Array([1]));
+    expect(deepCopyToSandbox(new BigInt64Array([1n]))).toEqual(new BigInt64Array([1n]));
     const values = Object.assign(new Float32Array([1]), { callback: () => 1 });
     expect(() => deepCopyToSandbox(values)).toThrow(/Unsupported sandbox value/);
   });

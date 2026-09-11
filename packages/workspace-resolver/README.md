@@ -22,6 +22,7 @@ C:\Users\me\repo
 ```
 
 No scheme prefix. Relative paths resolve against `baseDir`. The path is used directly — no cloning or caching.
+Local paths are validated before use and must exist as directories.
 
 ### `github` — GitHub repository
 
@@ -43,6 +44,7 @@ github://owner/repo#ref:subdir
 Subdir can be specified via path (`owner/repo/sub`) or fragment (`owner/repo#ref:sub`), but not both.
 
 Cached clones live in `~/.poe-code/workspaces/github/owner-repo`. Writable (`edit`) mode creates a git-worktree under `~/.poe-code/workspaces/checkouts/`.
+Clean cached checkouts are updated before use, requested refs are checked out as revisions, and failed `git worktree add` operations clean up any directory they created.
 
 ### `ssh` — SSH workspace (parsed, not resolved)
 

@@ -32,6 +32,9 @@ test("empty invocation guidance uses the registered virtual name and help remain
     assert.equal(help.exitCode, 0);
     assert.equal(help.stderr, "");
     assert.match(help.stdout, /^Usage: expr EXPRESSION\n/u);
+    assert.ok(help.stdout.includes("Matching uses bounded provider-driven BRE.\n"));
+    assert.ok(help.stdout.includes("Profiles depend on the provider: built-in portable non-NUL ASCII; Node C/POSIX byte or C.UTF-8 scalar.\n"));
+    assert.equal(help.stdout.includes("worker-only"), false);
     assert.equal((await shell.exec("expr --version")).stdout, "expr (virtual-bash)\n");
   } finally { await shell.dispose(); }
 });

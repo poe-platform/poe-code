@@ -1,7 +1,11 @@
-import { getSandboxIterator } from "../iteration.js";
+import { generatorIterator } from "../iteration.js";
+import { enqueueAsyncGeneratorRequest } from "../async-generator-driver.js";
 import {
   allocateProducedSandboxValue,
   createSandboxClosure,
+  createSandboxPromise,
+  isSandboxGenerator,
+  type SandboxCallContext,
   type SandboxGenerator,
   type SandboxValue
 } from "../values.js";
@@ -22,13 +26,26 @@ export function getGeneratorMember(
   return createSandboxClosure({
     sandbox: true,
     name: property,
-    call: async ([value]) => {
-      const iterator = getSandboxIterator(target)!;
-      const result = await iterator[property as GeneratorMethodName]!(value);
-      return allocateProducedSandboxValue(
-        { value: result.value, done: result.done === true },
-        budget
-      );
-    }
+    call: ([value], context) => callGeneratorMethod(target, property as GeneratorMethodName, value, budget, context, target.async === true)
   });
+}
+
+export function callGeneratorMethod(
+  target: SandboxValue,
+  method: GeneratorMethodName,
+  value: SandboxValue,
+  budget: Budget,
+  context: SandboxCallContext | undefined,
+  async: boolean
+): SandboxValue | Promise<SandboxValue> {
+  if (async && isSandboxGenerator(target) && target.async === true)
+    return enqueueAsyncGeneratorRequest(target, method, value, budget, context);
+  const result = (async () => {
+    if (!isSandboxGenerator(target) || (target.async === true) !== async)
+      throw new TypeError(`${async ? "AsyncGenerator" : "Generator"}.${method} requires a matching generator receiver.`);
+    const iterator = generatorIterator(target, budget, context);
+    const result = await iterator[method]!(value);
+    return allocateProducedSandboxValue(result as unknown as SandboxValue, budget);
+  })();
+  return async ? createSandboxPromise(result) : result;
 }

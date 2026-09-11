@@ -1,20 +1,17 @@
 import type {
   ArrayPattern,
   AssignmentPattern,
-  AssignmentProperty,
   BlockStatement,
   CatchClause,
   BreakStatement,
   ContinueStatement,
-  Expression,
   Identifier,
   MemberExpression,
   ObjectPattern,
   ParseResult,
   RestElement,
   ThrowStatement,
-  TryStatement,
-  VariableDeclaration
+  TryStatement
 } from "../parse.js";
 import {
   attachErrorSpan,
@@ -28,13 +25,30 @@ import {
   type SandboxErrorName,
   type ErrorSourceSpan
 } from "../error/shape.js";
-import { SandboxError, type Budget } from "./budget.js";
+import { isFatalSandboxError, SandboxError, type Budget } from "./budget.js";
 import { HostCallResumabilityError } from "./host-call.js";
 import { withFatalPromiseCleanup } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
+import type { InterpreterError } from "./interpreter.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
+import { getSandboxDataProperty, setSandboxPrototype } from "./object-model.js";
+import { errorPrototypes } from "./error-prototypes.js";
+import { internalSymbols } from "./internal-symbols.js";
+import { containsResumeTarget } from "./resume-target.js";
+import { evaluateResourceScope, resourceSuspension } from "./resource-management.js";
+import type { AsyncSuspensionContext } from "./async.js";
+import { StatementCompletion } from "./statement-completion.js";
+import type { GeneratorExpressionState } from "./generator-expression-state.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
+export const referenceErrorDiagnostics = new WeakSet<object>();
+const referenceErrorValues = new WeakMap<Budget, WeakMap<object, SandboxObject>>();
+
+export function isSourceReferenceError(value: unknown): value is InterpreterError {
+  return typeof value === "object" && value !== null && referenceErrorDiagnostics.has(value);
+}
+const readDOMExceptionCode = Object.getOwnPropertyDescriptor(DOMException.prototype, "code")?.get;
+internalSymbols.add(capturedExceptionBrand);
 export type { SandboxErrorName } from "../error/shape.js";
 
 export type CompletionKind = "normal" | "return" | "throw" | "break" | "continue";
@@ -45,6 +59,8 @@ export type CompletionResult = {
   span?: ErrorSourceSpan;
   stackFrames?: readonly string[];
   value: SandboxValue;
+  // Internal expression state, not a guest value; only a contiguous chain consumes it.
+  optionalChainShortCircuited?: true;
   label?: string;
   node?: BreakStatement | ContinueStatement;
 };
@@ -72,16 +88,39 @@ type CapturedException = {
   readonly [capturedExceptionBrand]: true;
 };
 
-type ExceptionContext = {
+type ExceptionContext = AsyncSuspensionContext & {
+  evalCompletion?: boolean;
+  onSuspend?: () => void;
+  signal?: AbortSignal;
   budget: Budget;
   callStack: readonly string[];
   scope: Scope;
+  generatorYield?: unknown;
+  generatorResume?: { yieldNodeId: number; completed?: boolean };
+  generatorBlockScopes?: ReadonlyMap<number, Scope>;
+  restoredGeneratorBlockScopes?: ReadonlyMap<number, Scope>;
+  generatorExpressionStates?: ReadonlyMap<number, GeneratorExpressionState>;
+  restoredGeneratorExpressionStates?: ReadonlyMap<number, GeneratorExpressionState>;
+  finallyCompletions?: ReadonlyMap<number, CompletionResult>;
+  restoredFinallyCompletions?: ReadonlyMap<number, CompletionResult>;
+  toPropertyKey?: (value: SandboxValue) => string | symbol | Promise<string | symbol>;
+  getProperty?: (value: SandboxValue, key: PropertyKey) => SandboxValue | Promise<SandboxValue>;
 };
 
 type EvaluateExceptionNode<TContext, TError> = (
   node: ParseResult,
   context: TContext
 ) => Promise<EvaluationResult<TError>>;
+
+type BlockExceptionContext = ExceptionContext & {
+  instantiateBlock(node: BlockStatement, scope: Scope): void;
+};
+
+type BindCatchParameter<TContext, TError> = (
+  pattern: NonNullable<CatchClause["param"]>,
+  value: SandboxValue,
+  context: TContext
+) => Promise<PatternBindingResult<TError>>;
 
 export async function evaluateThrowStatement<TContext extends ExceptionContext, TError>(
   node: ThrowStatement,
@@ -102,16 +141,25 @@ export async function evaluateThrowStatement<TContext extends ExceptionContext, 
   };
 }
 
-export async function evaluateTryStatement<TContext extends ExceptionContext, TError>(
+export async function evaluateTryStatement<TContext extends BlockExceptionContext, TError>(
   node: TryStatement,
   context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
+  evaluateNode: EvaluateExceptionNode<TContext, TError>,
+  bindCatchParameter: BindCatchParameter<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
   let fatalBudgetError: SandboxError | undefined;
   let tryResult: EvaluationResult<TError>;
+  const resume = context.generatorResume;
+  const resumeInCatch = resume !== undefined && resume.completed !== true && node.handler !== undefined &&
+    containsResumeTarget(node.handler, new Set([resume.yieldNodeId]));
+  const resumeInFinally = resume !== undefined && resume.completed !== true && node.finalizer !== undefined &&
+    containsResumeTarget(node.finalizer, new Set([resume.yieldNodeId]));
+  const pendingCompletion = node.nodeId === undefined ? undefined : context.restoredFinallyCompletions?.get(node.nodeId);
+  if (resumeInFinally && pendingCompletion === undefined) throw new TypeError("Missing pending finally completion.");
 
   try {
-    tryResult = await evaluateBlockCompletion(node.block, context, evaluateNode);
+    tryResult = resumeInFinally ? pendingCompletion! : resumeInCatch ? { kind: "normal", hasValue: false, value: undefined }
+      : await evaluateBlockCompletion(node.block, context, evaluateNode);
   } catch (error) {
     if (!isBudgetExceeded(error) || node.finalizer === undefined) {
       throw error;
@@ -125,34 +173,104 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
     };
   }
 
-  const tryOrCatchResult =
-    fatalBudgetError === undefined && tryResult.kind === "throw" && node.handler !== undefined
-      ? await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode)
-      : tryResult;
+  tryResult = sourceReferenceCompletion(tryResult, context);
+  let tryOrCatchResult = tryResult;
+  let catchFailure: CompletionResult | undefined;
+  if (!resumeInFinally && fatalBudgetError === undefined && (resumeInCatch || tryResult.kind === "throw") && node.handler !== undefined) {
+    try {
+      tryOrCatchResult = await evaluateCatchClause(node.handler, "value" in tryResult ? tryResult.value : undefined, context, evaluateNode, bindCatchParameter);
+    } catch (error) {
+      if (isFatalSandboxError(error) || isInterpreterError(error) || error instanceof HostCallResumabilityError) {
+        throw error;
+      }
+      catchFailure = createThrowCompletion(error, context.budget, context.callStack, node.span);
+      tryOrCatchResult = catchFailure;
+    }
+  }
 
+  tryOrCatchResult = sourceReferenceCompletion(tryOrCatchResult, context);
   if (node.finalizer === undefined || tryOrCatchResult.kind === "error") {
     return tryOrCatchResult;
   }
 
+  const finalizerContext = node.nodeId === undefined || context.generatorYield === undefined ? context : {
+    ...context,
+    finallyCompletions: new Map([...(context.finallyCompletions ?? []), [node.nodeId, tryOrCatchResult]])
+  };
   const evaluateFinalizer = () =>
     fatalBudgetError?.budget === "deadline"
       ? evaluateWithoutDeadlineChecks(context, () =>
-          evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode)
+          evaluateBlockCompletion(node.finalizer as BlockStatement, finalizerContext, evaluateNode)
         )
-      : evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode);
-  const finalizerResult = await (fatalBudgetError === undefined
-    ? evaluateFinalizer()
-    : withFatalPromiseCleanup(evaluateFinalizer));
-
-  if (fatalBudgetError !== undefined) {
-    throw fatalBudgetError;
+      : evaluateBlockCompletion(node.finalizer as BlockStatement, finalizerContext, evaluateNode);
+  if (catchFailure !== undefined) {
+    const value = catchFailure.value;
+    context.budget.setRetainedValues(catchFailure, () => [value]);
   }
+  try {
+    const evaluatedFinalizer = await (fatalBudgetError === undefined
+      ? evaluateFinalizer()
+      : withFatalPromiseCleanup(evaluateFinalizer));
 
-  if (finalizerResult.kind === "normal") {
-    return tryOrCatchResult;
+    if (fatalBudgetError !== undefined) {
+      throw fatalBudgetError;
+    }
+
+    const finalizerResult = sourceReferenceCompletion(evaluatedFinalizer, context);
+    if (finalizerResult.kind === "normal") {
+      return tryOrCatchResult;
+    }
+
+    return finalizerResult;
+  } finally {
+    if (catchFailure !== undefined) context.budget.setRetainedValues(catchFailure, undefined);
   }
+}
 
-  return finalizerResult;
+function sourceReferenceCompletion<TError>(result: EvaluationResult<TError>, context: ExceptionContext): EvaluationResult<TError> {
+  if (result.kind !== "error" || !isInterpreterError(result.error) || result.error.code !== "UNBOUND_IDENTIFIER") return result;
+  const {message, stack, span} = result.error;
+  if (isSourceReferenceError(result.error)) return createThrowCompletion(result.error, context.budget, context.callStack, result.error.span);
+  const error = new ReferenceError(message);
+  error.stack = stack;
+  return createThrowCompletion(error, context.budget, context.callStack, span);
+}
+
+export function createThrowCompletion(
+  error: unknown,
+  budget: Budget,
+  stackFrames: readonly string[],
+  span?: ErrorSourceSpan
+): CompletionResult {
+  const value = isCapturedException(error)
+    ? coerceThrownValue(error.reason, budget, error.stackFrames, span, error.sandbox)
+    : coerceThrownValue(error, budget, stackFrames, span, true);
+  return {
+    kind: "throw",
+    hasValue: true,
+    span: readErrorSpan(value) ?? span,
+    stackFrames: isCapturedException(error) ? error.stackFrames : stackFrames,
+    value
+  };
+}
+
+export function isInterpreterError(value: unknown): value is InterpreterError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "code") &&
+    hasOwnProperty(value, "message") &&
+    hasOwnProperty(value, "nodeType") &&
+    hasOwnProperty(value, "span") &&
+    (value.code === "UNBOUND_IDENTIFIER" || value.code === "UNSUPPORTED_NODE")
+  );
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 export function createCapturedException(
@@ -183,17 +301,35 @@ export function coerceThrownValue(
     throw reason;
   }
 
+  if (isSourceReferenceError(reason)) {
+    let values = referenceErrorValues.get(budget);
+    if (values === undefined) {
+      values = new WeakMap();
+      referenceErrorValues.set(budget, values);
+    }
+    const existing = values.get(reason);
+    if (existing !== undefined) return existing;
+    const value = createSubsetErrorValue("ReferenceError", reason.message, stackFrames, budget, {
+      chargeBudget: false, span: reason.span ?? span, stack: reason.stack
+    });
+    values.set(reason, value);
+    return value;
+  }
+
   if (isSubsetErrorValue(reason)) {
     attachErrorSpan(reason, readErrorSpan(reason) ?? span);
     return reason;
   }
 
   if (reason instanceof Error) {
-    return createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
+    const error = createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
       chargeBudget: false,
       cause: readErrorCause(reason),
       span
     });
+    if (readDOMExceptionCode !== undefined && reason instanceof DOMException)
+      Object.defineProperty(error, "code", { value: Reflect.apply(readDOMExceptionCode, reason, []), enumerable: true });
+    return error;
   }
 
   if (sandbox) {
@@ -222,8 +358,7 @@ export function surfaceThrownValue(
   }
 
   if (isSubsetErrorValue(reason)) {
-    normalizeSurfacedSubsetError(reason, budget, stackFrames, span);
-    return reason;
+    return normalizeSurfacedSubsetError(reason, budget, stackFrames, span);
   }
 
   if (reason instanceof Error) {
@@ -238,8 +373,7 @@ export function surfaceThrownValue(
         span
       }
     );
-    normalizeSurfacedSubsetError(error, budget, stackFrames, span);
-    return error;
+    return normalizeSurfacedSubsetError(error, budget, stackFrames, span);
   }
 
   if (isErrorLikeValue(reason)) {
@@ -254,14 +388,14 @@ export function surfaceThrownValue(
         span
       }
     );
-    normalizeSurfacedSubsetError(error, budget, stackFrames, span);
-    return error;
+    return normalizeSurfacedSubsetError(error, budget, stackFrames, span);
   }
 
-  return createSubsetErrorValue("Error", describeThrownValue(reason), stackFrames, budget, {
+  const error = createSubsetErrorValue("Error", describeThrownValue(reason), stackFrames, budget, {
     chargeBudget: false,
     span
   });
+  return normalizeSurfacedSubsetError(error, budget, stackFrames, span);
 }
 
 export function createSubsetErrorValue(
@@ -269,7 +403,7 @@ export function createSubsetErrorValue(
   message: SandboxValue,
   stackFrames: readonly string[],
   budget: Budget,
-  options: { cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan } = {}
+  options: { cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; transport?: boolean; stack?: string } = {}
 ): SandboxObject {
   const resumeChecks = options.chargeBudget === false ? budget.suspendChecks() : undefined;
 
@@ -277,12 +411,16 @@ export function createSubsetErrorValue(
     const errorName = budget.allocateString(name === "" ? "Error" : name);
     const errorMessage = budget.allocateString(coerceErrorMessage(message));
     const header = errorMessage === "" ? errorName : `${errorName}: ${errorMessage}`;
-    const stack = budget.allocateString([header, ...[...stackFrames].reverse()].join("\n"));
-    const error = {
-      name: errorName,
-      message: errorMessage,
-      stack
-    };
+    const stack = budget.allocateString(options.stack ?? [header, ...[...stackFrames].reverse()].join("\n"));
+    const prototype = options.transport ? undefined : errorPrototypes.get(budget)?.get(toSandboxErrorName(errorName));
+    const error: SandboxObject = prototype === undefined ? { name: errorName, message: errorMessage, stack } : {};
+    if (prototype !== undefined) {
+      if (message !== undefined) Object.defineProperty(error, "message", { value: errorMessage, writable: true, configurable: true });
+      if (!errorPrototypes.get(budget)!.has(errorName as SandboxErrorName))
+        Object.defineProperty(error, "name", { value: errorName, writable: true, configurable: true });
+      Object.defineProperty(error, "stack", { value: stack, writable: true, configurable: true });
+      setSandboxPrototype(error, prototype, budget);
+    }
 
     sandboxErrorTypes.set(error, toSandboxErrorName(errorName));
     attachErrorSpan(error, options.span);
@@ -313,6 +451,8 @@ function isSubsetErrorValue(value: unknown): value is SandboxObject {
     return false;
   }
 
+  if (sandboxErrorTypes.has(value)) return true;
+
   const prototype = Object.getPrototypeOf(value);
   return (
     (prototype === Object.prototype || prototype === null) &&
@@ -327,30 +467,47 @@ function normalizeSurfacedSubsetError(
   budget: Budget,
   stackFrames: readonly string[],
   span: ErrorSourceSpan | undefined
-): void {
+): SandboxObject {
   const resumeChecks = budget.suspendChecks();
 
   try {
     const name = budget.allocateString(toSandboxErrorName(readErrorName(error)));
     const message = budget.allocateString(readSurfacedErrorMessage(error, name));
     const frames = readSandboxStackFrames(error.stack);
+    if (!Object.isExtensible(error) || ["name", "message", "stack"].some(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(error, key);
+      return descriptor !== undefined && (!("value" in descriptor) || !descriptor.writable);
+    })) {
+      // Public diagnostics must not mutate frozen guest state or invoke setters.
+      const original = error;
+      const descriptors = Object.getOwnPropertyDescriptors(original);
+      delete descriptors.name;
+      delete descriptors.message;
+      delete descriptors.stack;
+      error = Object.defineProperties({}, descriptors) as SandboxObject;
+      const errorType = sandboxErrorTypes.get(original);
+      if (errorType !== undefined) sandboxErrorTypes.set(error, errorType);
+    }
     error.name = name;
     error.message = message;
     error.stack = budget.allocateString(
       formatErrorStack(name, message, frames.length > 0 ? frames : [...stackFrames].reverse())
     );
     attachErrorSpan(error, readErrorSpan(error) ?? span);
+    return error;
   } finally {
     resumeChecks();
   }
 }
 
 function readErrorName(error: SandboxObject): string {
-  return typeof error.name === "string" && error.name.length > 0 ? error.name : "Error";
+  const name = getSandboxDataProperty(error, "name");
+  return typeof name === "string" && name.length > 0 ? name : sandboxErrorTypes.get(error) ?? "Error";
 }
 
 function readSurfacedErrorMessage(error: SandboxObject, name: string): string {
-  const message = typeof error.message === "string" ? error.message : "";
+  const value = getSandboxDataProperty(error, "message");
+  const message = typeof value === "string" ? value : "";
 
   if (message === "") {
     return `${name} thrown`;
@@ -416,20 +573,40 @@ function isBudgetExceeded(error: unknown): error is SandboxError {
   return error instanceof SandboxError && error.code === "budgetExceeded";
 }
 
-async function evaluateCatchClause<TContext extends ExceptionContext, TError>(
+async function evaluateCatchClause<TContext extends BlockExceptionContext, TError>(
   node: CatchClause,
   thrownValue: SandboxValue,
   context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
+  evaluateNode: EvaluateExceptionNode<TContext, TError>,
+  bindCatchParameter: BindCatchParameter<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
-  const scope = context.scope.child();
+  const resuming = context.generatorResume !== undefined && context.generatorResume.completed !== true;
+  const restoredScope = !resuming || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorBlockScopes?.get(node.nodeId);
+  const scope = restoredScope ?? context.scope.child({}, node.param?.type === "Identifier"
+    ? {simpleCatchParameter: node.param.name} : {});
   const catchContext = {
     ...context,
     scope
   };
+  if (resuming && node.body.nodeId !== undefined && context.restoredGeneratorBlockScopes?.has(node.body.nodeId))
+    return evaluateBlockCompletion(node.body, catchContext, evaluateNode);
 
   if (node.param !== undefined) {
-    const binding = await bindPattern(node.param, thrownValue, catchContext, evaluateNode);
+    for (const name of restoredScope === undefined ? getPatternBindingNames(node.param) : []) {
+      scope.predeclare(name, "let");
+    }
+    const saved = !resuming || node.nodeId === undefined ? undefined
+      : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+    if (saved !== undefined && saved.kind !== "pattern-source") throw new TypeError("Invalid catch binding source.");
+    const value = saved === undefined ? thrownValue : saved.value;
+    const bindingContext = context.generatorYield === undefined || node.nodeId === undefined ? catchContext : {
+      ...catchContext,
+      generatorBlockScopes: new Map([...(context.generatorBlockScopes ?? []), [node.nodeId, scope]]),
+      generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+        [node.nodeId, {kind: "pattern-source" as const, value}]])
+    };
+    const binding = await bindCatchParameter(node.param, value, bindingContext);
     if (!binding.ok) {
       return binding.result;
     }
@@ -438,53 +615,46 @@ async function evaluateCatchClause<TContext extends ExceptionContext, TError>(
   return evaluateBlockCompletion(node.body, catchContext, evaluateNode);
 }
 
-async function evaluateBlockCompletion<TContext extends ExceptionContext, TError>(
+async function evaluateBlockCompletion<TContext extends BlockExceptionContext, TError>(
   node: BlockStatement,
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
+  const restoredScope = context.generatorResume === undefined || context.generatorResume.completed === true || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorBlockScopes?.get(node.nodeId);
+  const scope = restoredScope ?? context.scope.child();
   const blockContext = {
     ...context,
-    scope: context.scope.child()
+    scope,
+    ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+      generatorBlockScopes: new Map([...(context.generatorBlockScopes ?? []), [node.nodeId, scope]])
+    })
   };
-  predeclareBlockBindings(node, blockContext.scope);
+  if (restoredScope === undefined) context.instantiateBlock(node, blockContext.scope);
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget) : undefined;
+  const evaluation = evaluateResourceScope(scope, context.budget, {...resourceSuspension(blockContext, node), stack: context.callStack, thisValue: undefined, getProperty: context.getProperty, onSuspend: context.onSuspend, signal: context.signal}, async () => {
   let result: EvaluationResult<TError> = {
     kind: "normal",
     hasValue: false,
     value: undefined
   };
 
-  for (const statement of node.body) {
+  const resume = context.generatorResume;
+  const resumeIndex = resume === undefined || resume.completed === true ? -1
+    : node.body.findIndex(statement => containsResumeTarget(statement, new Set([resume.yieldNodeId])));
+  for (let index = Math.max(0, resumeIndex); index < node.body.length; index++) {
+    const statement = node.body[index];
     result = await evaluateNode(statement, blockContext);
+    if (completion !== undefined) result = completion.update(result);
     if (result.kind !== "normal") {
       return result;
     }
   }
 
-  return result;
-}
-
-function predeclareBlockBindings(node: BlockStatement, scope: Scope): void {
-  const names = new Set<string>();
-
-  for (const statement of node.body) {
-    if (statement.type !== "VariableDeclaration" || statement.kind === "var") {
-      continue;
-    }
-
-    for (const name of getDeclarationBindingNames(statement)) {
-      if (names.has(name) || scope.hasOwnBinding(name)) {
-        throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
-      }
-
-      names.add(name);
-      scope.predeclare(name, statement.kind);
-    }
-  }
-}
-
-function getDeclarationBindingNames(node: VariableDeclaration): string[] {
-  return node.declarations.flatMap((declarator) => getPatternBindingNames(declarator.id));
+  return completion?.normal() ?? result;
+  });
+  if (completion === undefined) return evaluation;
+  try { return await evaluation; } finally { completion.close(); }
 }
 
 function getPatternBindingNames(
@@ -516,201 +686,4 @@ function getPatternBindingNames(
     case "RestElement":
       return getPatternBindingNames(pattern.argument);
   }
-}
-
-async function bindPattern<TContext extends ExceptionContext, TError>(
-  pattern:
-    | ArrayPattern
-    | AssignmentPattern
-    | Identifier
-    | MemberExpression
-    | ObjectPattern
-    | RestElement,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  switch (pattern.type) {
-    case "Identifier":
-      context.scope.declare(pattern.name, "let", value);
-      return { ok: true };
-    case "MemberExpression":
-      throw new TypeError("Catch bindings do not support member expressions.");
-    case "AssignmentPattern":
-      return bindAssignmentPattern(pattern, value, context, evaluateNode);
-    case "ArrayPattern":
-      return bindArrayPattern(pattern, value, context, evaluateNode);
-    case "ObjectPattern":
-      return bindObjectPattern(pattern, value, context, evaluateNode);
-    case "RestElement":
-      return bindPattern(pattern.argument, value, context, evaluateNode);
-  }
-}
-
-async function bindAssignmentPattern<TContext extends ExceptionContext, TError>(
-  pattern: AssignmentPattern,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  let nextValue = value;
-
-  if (nextValue === undefined) {
-    const defaultValue = await evaluateNode(pattern.right, context);
-    if (defaultValue.kind !== "normal") {
-      return {
-        ok: false,
-        result: defaultValue
-      };
-    }
-
-    nextValue = defaultValue.value;
-  }
-
-  return bindPattern(pattern.left, nextValue, context, evaluateNode);
-}
-
-async function bindArrayPattern<TContext extends ExceptionContext, TError>(
-  pattern: ArrayPattern,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  if (!Array.isArray(value)) {
-    throw new TypeError("Array catch bindings require an array value.");
-  }
-
-  for (let index = 0; index < pattern.elements.length; index += 1) {
-    const element = pattern.elements[index];
-    if (element === null) {
-      continue;
-    }
-
-    const elementValue =
-      element.type === "RestElement" ? value.slice(index) : (value[index] as SandboxValue);
-    const binding = await bindPattern(element, elementValue, context, evaluateNode);
-    if (!binding.ok) {
-      return binding;
-    }
-  }
-
-  return { ok: true };
-}
-
-async function bindObjectPattern<TContext extends ExceptionContext, TError>(
-  pattern: ObjectPattern,
-  value: SandboxValue,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<PatternBindingResult<TError>> {
-  if ((typeof value !== "object" && !Array.isArray(value)) || value === null) {
-    throw new TypeError("Object catch bindings require a non-null object value.");
-  }
-
-  const excludedKeys = new Set<string>();
-
-  for (const property of pattern.properties) {
-    if (property.type === "RestElement") {
-      const restValue = copyObjectRest(value, excludedKeys);
-      const binding = await bindPattern(property, restValue, context, evaluateNode);
-      if (!binding.ok) {
-        return binding;
-      }
-
-      continue;
-    }
-
-    const key = await resolvePatternPropertyKey(property, context, evaluateNode);
-    if (!key.ok) {
-      return key;
-    }
-
-    excludedKeys.add(String(key.value));
-    const binding = await bindPattern(
-      property.value,
-      getObjectPatternValue(value, key.value),
-      context,
-      evaluateNode
-    );
-    if (!binding.ok) {
-      return binding;
-    }
-  }
-
-  return { ok: true };
-}
-
-async function resolvePatternPropertyKey<TContext extends ExceptionContext, TError>(
-  property: AssignmentProperty,
-  context: TContext,
-  evaluateNode: EvaluateExceptionNode<TContext, TError>
-): Promise<
-  | {
-      ok: true;
-      value: string | number;
-    }
-  | {
-      ok: false;
-      result: EvaluationResult<TError>;
-    }
-> {
-  if (!property.computed) {
-    return {
-      ok: true,
-      value: getStaticPropertyKey(property.key)
-    };
-  }
-
-  const computedKey = await evaluateNode(property.key as Expression, context);
-  if (computedKey.kind !== "normal") {
-    return {
-      ok: false,
-      result: computedKey
-    };
-  }
-
-  if (typeof computedKey.value !== "string" && typeof computedKey.value !== "number") {
-    throw new TypeError("Computed catch binding keys must evaluate to a string or number.");
-  }
-
-  return {
-    ok: true,
-    value: computedKey.value
-  };
-}
-
-function getStaticPropertyKey(property: AssignmentProperty["key"]): string | number {
-  switch (property.type) {
-    case "Identifier":
-      return property.name;
-    case "StringLiteral":
-    case "NumericLiteral":
-      return property.value;
-    default:
-      throw new TypeError(`Unsupported catch binding property key '${property.type}'.`);
-  }
-}
-
-function getObjectPatternValue(
-  value: Exclude<SandboxValue, null | undefined>,
-  key: string | number
-): SandboxValue {
-  return (value as Record<string | number, SandboxValue>)[key];
-}
-
-function copyObjectRest(
-  value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<string>
-): SandboxObject {
-  const rest = Object.create(null) as SandboxObject;
-
-  for (const [key, entryValue] of Object.entries(value)) {
-    if (excludedKeys.has(key)) {
-      continue;
-    }
-
-    rest[key] = entryValue;
-  }
-
-  return rest;
 }

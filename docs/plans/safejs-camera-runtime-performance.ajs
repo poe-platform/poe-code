@@ -1,0 +1,23 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  function capture(index) {
+    const data = new Float32Array([index, index + 0.5]);
+    return () => Array.from(data);
+  }
+  const values = [];
+  for (let index = 0; index < 8; index++) values.push(capture(index)());
+  await 0;
+  if (values.length !== 8 || values[7].join() !== "7,7.5")
+    throw new Error("Captured numeric data changed");
+  function captureRegex() {
+    const expression = /a+/g;
+    return () => expression;
+  }
+  const read = captureRegex();
+  const expression = read();
+  if (expression !== read() || expression.exec("aa")[0] !== "aa" || expression.lastIndex !== 2)
+    throw new Error("Escaping compiled regex state changed");
+  return { title: frontmatter.title, ok: true, values, regexCursor: expression.lastIndex };
+};

@@ -7,6 +7,7 @@ import { shellValueBytes } from "../../../../src/contracts/value.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import type { ShellExtensionContext } from "../../../../src/shell/extensions.js";
 import { Shell } from "../../../../src/shell/shell.js";
+import { ShellLimitError } from "../../../../src/shell/types.js";
 
 function setup(execute: (command: ShellExtensionContext) => Promise<number>, fs: FileSystem = createMemoryFileSystem(), maxInputBytes?: number) {
   const shell = new Shell({ fs, ...(maxInputBytes === undefined ? {} : { limits: { maxInputBytes } }), extensions: [{ name: "source-input-probe", create: () => ({ builtins: [{ name: "probe", execute }] }) }] });
@@ -62,12 +63,30 @@ test("Shell finite input owns its admitted bytes before extension startup mutate
   assert.equal(result.stderr, "");
 });
 
-test("finite input admission enforces maxInputBytes even when the command does not read", async context => {
+test("finite public input keeps iterator policy until bounded reads activate shared admission", async context => {
   let executed = false;
   const shell = setup(async () => { executed = true; return 0; }, createMemoryFileSystem(), 2);
   context.after(() => shell.dispose());
-  await assert.rejects(shell.exec("probe", { stdin: Uint8Array.of(1, 2, 3) }), error => error instanceof FsError && error.code === "EFBIG");
-  assert.equal(executed, false);
+  const stdin = Uint8Array.of(1, 2, 3);
+  assert.equal((await shell.exec("probe", { stdin })).exitCode, 0);
+  assert.equal(executed, true);
+  const effects: string[] = [];
+  shell.register({ name: "iterator", async execute(command) {
+    for await (const chunk of command.stdin) await command.stdout.write(chunk);
+    effects.push("iterator completed");
+    return { exitCode: 0 };
+  } });
+  shell.register({ name: "bounded", async execute(command) {
+    effects.push("bounded entered");
+    await command.stdinInput!.read(3, command.signal);
+    effects.push("bounded published");
+    return { exitCode: 0 };
+  } });
+  const iterated = await shell.exec("iterator", { stdin });
+  assert.equal(iterated.exitCode, 0, iterated.stderr);
+  assert.deepEqual(iterated.stdoutBytes, stdin);
+  await assert.rejects(shell.exec("bounded", { stdin }), error => error instanceof ShellLimitError && error.limit === "maxInputBytes");
+  assert.deepEqual(effects, ["iterator completed", "bounded entered"]);
 });
 
 for (const script of [
@@ -237,7 +256,7 @@ test("legacy file streams remain unknown and refuse deadlines before consumption
   await memory.writeFile("/input", Buffer.from("line\n"));
   let reads = 0;
   const fs = intercept<FileSystem>(memory, {
-    capabilities: { ...memory.capabilities, open: false },
+    capabilities: { ...memory.capabilities, open: false, retainedRead: false },
     async open() { throw new FsError("ENOTSUP"); },
     readStream() { return { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("line\n"); } }; },
   });

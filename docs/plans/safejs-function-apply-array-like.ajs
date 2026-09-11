@@ -1,0 +1,25 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const trace = [];
+  const input = Object.create({ 1: 4 });
+  Object.defineProperties(input, {
+    length: { get() { trace.push("length"); return { valueOf() { return 2.9; } }; } },
+    0: { get() { trace.push("0"); return 3; } }
+  });
+  input[Symbol.iterator] = () => { throw new Error("apply must not iterate"); };
+  async function add(first, second) {
+    await 0;
+    trace.push("call");
+    return this.base + first + second;
+  }
+  const value = await add.apply({ base: 2 }, input);
+  function collect() { return [...arguments]; }
+  const letters = collect.apply(null, new String("ab"));
+  if (value !== 9 || trace.join(",") !== "length,0,call" || letters.join("") !== "ab") {
+    throw new Error("Array-like apply regression");
+  }
+  return { title: frontmatter.title, ok: true, value, trace, letters };
+};

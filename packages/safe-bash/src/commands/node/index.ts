@@ -13,7 +13,6 @@ import { environment, grants, record, text } from "./values.js";
 
 export { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
 export type { NodeCommandOptions, NodeProviderCommandOptions, NodeSafeJsCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, NodeHostRequest, NodeHostResponse, NodeHostServices, NodeObservation, NodeReason, NodeRetirement, NodeRuntimeProvider, NodeSelector, NodeSession, NodeSourceRequest } from "./types.js";
-export { createNodeWorkerProvider } from "./worker-provider.js";
 export { NODE_ENGINE_ABI } from "./worker-types.js";
 export type { NodeBridge, NodeEngineAdapter, NodeEngineInput, NodeEngineResult, NodeWorkerEvent, NodeWorkerProviderOptions } from "./worker-types.js";
 

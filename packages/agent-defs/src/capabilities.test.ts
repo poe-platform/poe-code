@@ -66,9 +66,8 @@ describe("formatAgentCapabilityError", () => {
     expect(message).toContain('Agent "pi" does not support skill.');
   });
 
-  it("reports kimi as configurable but not skill-capable", () => {
-    const message = formatAgentCapabilityError({ agent: "kimi", capability: "skill" });
-    expect(message).toContain('Agent "kimi" does not support skill.');
-    expect(message).toContain("configure");
+  it.each(["kimi", "kimi-cli"])("rejects removed agent %s", (agent) => {
+    const message = formatAgentCapabilityError({ agent, capability: "skill" });
+    expect(message).toContain(`Unknown agent "${agent}"`);
   });
 });

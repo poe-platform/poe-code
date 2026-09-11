@@ -150,7 +150,7 @@ describe("configure command", () => {
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
   });
 
-  it.each(["goose", "kimi"])("does not expose supplied credentials while previewing %s configuration", async (service) => {
+  it.each(["goose"])("does not expose supplied credentials while previewing %s configuration", async (service) => {
     const logs: string[] = [];
     const { container } = createContainer({ logger: (message) => logs.push(message) });
     vi.spyOn(container.options, "resolveModel").mockResolvedValue("test-model");
@@ -263,7 +263,7 @@ describe("configure command", () => {
     ) as Record<string, unknown>;
     expect(provider.name).toBe("custom_poe");
     expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
-    expect(provider.models).toBeUndefined();
+    expect(provider.models).toEqual([]);
   });
 
   it("prompts for an agent when core.defaultAgent is configured without --yes", async () => {
@@ -1145,7 +1145,7 @@ describe("test command (isolated)", () => {
     expect(resolveApiKey).not.toHaveBeenCalled();
   });
 
-  it.each(["goose", "kimi"])("does not expose credentials while previewing isolated %s tests", async (service) => {
+  it.each(["goose"])("does not expose credentials while previewing isolated %s tests", async (service) => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(

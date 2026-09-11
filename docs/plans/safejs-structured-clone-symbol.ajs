@@ -1,0 +1,14 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(4);
+  let rejected = false;
+  try { structuredClone(new Map([[Symbol("key"), 1]]), { transfer: [buffer] }); }
+  catch (error) { rejected = error.name === "DataCloneError" && error.code === 25; }
+  if (!rejected || buffer.detached) throw new Error("Uncloneable symbol changed ownership");
+  await 0;
+  const copy = structuredClone(buffer, { transfer: [buffer] });
+  if (!buffer.detached || copy.byteLength !== 4) throw new Error("Valid transfer failed");
+  return { title: frontmatter.title, ok: true };
+};

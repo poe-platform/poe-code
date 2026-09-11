@@ -71,20 +71,21 @@ describe("sandbox values", () => {
       hidden?: string;
       [key: symbol]: string;
     };
-    const symbolKey = Symbol("skip");
+    const symbolKey = Symbol("included");
 
     Object.defineProperty(source, "hidden", {
       enumerable: false,
       value: "skip"
     });
-    source[symbolKey] = "skip";
+    source[symbolKey] = "included";
 
     const copy = deepCopyToSandbox(source);
 
     expect(copy).toEqual({
       visible: {
         items: [1, "two", null]
-      }
+      },
+      [symbolKey]: "included"
     });
     expect(copy).not.toBe(source);
     expect(Array.isArray(copy.visible.items)).toBe(true);
@@ -296,7 +297,7 @@ describe("sandbox values", () => {
     });
   });
 
-  it("skips symbol-keyed properties when copying to sandbox", () => {
+  it("copies enumerable symbol-keyed properties to sandbox", () => {
     const symbolKey = Symbol("hidden");
     const source = {
       visible: 1,
@@ -304,7 +305,8 @@ describe("sandbox values", () => {
     };
 
     expect(deepCopyToSandbox(source)).toEqual({
-      visible: 1
+      visible: 1,
+      [symbolKey]: 2
     });
   });
 
@@ -390,14 +392,12 @@ describe("sandbox values", () => {
     );
   });
 
-  it("rejects unsupported scalar and built-in host values with clear errors", () => {
-    expect(() => deepCopyToSandbox(1n)).toThrowError("Unsupported sandbox value at <root>: bigint");
-    expect(() => deepCopyToSandbox(/SafeJS/giu)).toThrowError(
-      "Unsupported sandbox value at <root>: RegExp"
-    );
-    expect(() => deepCopyToSandbox(new Uint8Array([1, 2, 3]))).toThrowError(
-      "Unsupported sandbox value at <root>: Uint8Array"
-    );
+  it("imports supported scalar and built-in host values", () => {
+    expect(deepCopyToSandbox(1n)).toBe(1n);
+    expect(deepCopyToSandbox(/SafeJS/giu)).toMatchObject({
+      kind: "regex", source: "SafeJS", flags: "giu", lastIndex: 0
+    });
+    expect(deepCopyToSandbox(new BigInt64Array([1n, 2n, 3n]))).toEqual(new BigInt64Array([1n, 2n, 3n]));
   });
 
   it("rejects non-plain objects and arrays", () => {

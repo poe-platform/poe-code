@@ -153,11 +153,13 @@ for (const route of ["eval", "source", "bash", "sh", "substitution", "subshell"]
   });
 }
 
-test("readonly indexed syntax alone does not enable array-key syntax", async context => {
+test("readonly indexed syntax composes with default array-key syntax", async context => {
   const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [{ name: "declarations", syntax: { indexedDeclarations: ["readonly"] }, create: () => ({ builtins: [] }) }] });
   context.after(() => shell.dispose());
   assert.equal((await shell.exec("readonly -a values=(one two)")).exitCode, 0);
-  assert.equal((await shell.exec('echo "${!values[@]}"')).exitCode, 2);
+  const result = await shell.exec('readonly -a values=(one two); : "${!values[@]}"');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await shell.exec('true &')).exitCode, 2);
 });
 
 test("readonly indexed compound parsing consumes the shared source budget", async context => {

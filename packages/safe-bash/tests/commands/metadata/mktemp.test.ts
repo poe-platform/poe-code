@@ -11,6 +11,24 @@ async function fixture() {
   return fs;
 }
 
+test("mktemp uses unbiased Web Crypto while preserving collisions and private modes", async context => {
+  const fs = await fixture();
+  const original = new Uint8Array([255, 0, 1]);
+  await fs.writeFile("/tmp/data.aaa", original);
+  const samples = [4294967295, 0, 0, 0, 1, 1, 1];
+  context.mock.method(globalThis.crypto, "getRandomValues", (bytes: Uint32Array) => {
+    assert.ok(samples.length > 0);
+    bytes[0] = samples.shift()!;
+    return bytes;
+  });
+  const result = await runMetadata("mktemp", ["-p/tmp", "data.XXX"], fs, { limits: { maxAttempts: 2 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "/tmp/data.bbb\n");
+  assert.equal(samples.length, 0);
+  assert.deepEqual(await fs.readFile("/tmp/data.aaa"), original);
+  assert.equal((await fs.stat("/tmp/data.bbb")).mode & 0o777, 0o600);
+});
+
 test("mktemp defaults create private VFS files, not host temporary files", async () => {
   const fs = await fixture();
   const names = new Set<string>();

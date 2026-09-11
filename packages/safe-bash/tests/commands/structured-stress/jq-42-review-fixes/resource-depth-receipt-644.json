@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "owner": "tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts",
+  "members": [
+    {
+      "path": "tests/commands/structured/resources.test.ts",
+      "before": {
+        "bytes": 6029,
+        "sha256": "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061"
+      },
+      "after": {
+        "bytes": 6495,
+        "sha256": "55e0aecebc8c3e2deb3b78d90fcb612a54103866b7d8b2488900b2dcf1ba4a91"
+      },
+      "substitutions": [
+        {
+          "offset": 2986,
+          "before": "  for (const filter of [\"(\".repeat(1000) + \"0\" + \")\".repeat(1000), Array(1000).fill(\".\").join(\"|\"), \".\" + \".a\".repeat(1000)]) {\n    const result = await run([\"-nc\", filter]); assert.match(result.stderr, /maxAstDepth|expected property/); assert.doesNotMatch(result.stderr, /RangeError|call stack/);\n  }\n});\n\n",
+          "after": "  for (const filter of [\"(\".repeat(1000) + \"0\" + \")\".repeat(1000), Array(1000).fill(\".\").join(\"|\"), \".a\".repeat(1000)]) {\n    const result = await run([\"-nc\", filter]);\n    assert.equal(result.exitCode, 5);\n    assert.equal(result.stdout, \"\");\n    assert.match(result.stderr, /maxAstDepth/);\n    assert.doesNotMatch(result.stderr, /RangeError|call stack/);\n  }\n});\n\ntest(\"malformed recursive descent property syntax retains the current compile diagnostic\", async () => {\n  const result = await run([\"-nc\", \"..a\"]);\n  assert.equal(result.exitCode, 3);\n  assert.equal(result.stdout, \"\");\n  assert.equal(result.stderr, \"jq: error: syntax error, unexpected IDENT, expecting end of file (Unix shell quoting issues?) at <top-level>, line 1:\\n..a  \\njq: 1 compile error\\n\");\n});\n\n"
+        }
+      ]
+    }
+  ]
+}

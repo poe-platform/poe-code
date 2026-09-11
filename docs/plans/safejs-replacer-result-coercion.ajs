@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const order = [];
+  const text = 'aa'.replaceAll(/a/g, (match, index) => {
+    order.push('call' + index);
+    return { toString() { order.push('string' + index); return '$&'; } };
+  });
+  if (text !== '$&$&' || order.join('|') !== 'call0|string0|call1|string1')
+    throw new Error('Replacement coercion order failed');
+  const plain = 'a'.replace('a', () => ({ [Symbol.toPrimitive](hint) { return hint; } }));
+  if (plain !== 'string') throw new Error('String search coercion failed');
+  let rejected = false;
+  try { 'a'.replace(/a/, () => Symbol('replacement')); }
+  catch (error) { rejected = error.name === 'TypeError'; }
+  if (!rejected) throw new Error('Symbol replacement was accepted');
+  await 0;
+  return { ok: true, title: frontmatter.title, text, order, plain, rejected };
+}

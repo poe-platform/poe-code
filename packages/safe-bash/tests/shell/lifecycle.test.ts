@@ -70,6 +70,7 @@ test("offset and append descriptors interleave correctly without reading files",
 
 test("EOF redirects append only new bytes and expose each completed write", async () => {
   const { shell, fs, commands } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, descriptorWriteStream: false } });
   const writes: number[] = [], appends: number[] = [];
   const write = fs.writeFile.bind(fs), append = fs.appendFile.bind(fs);
   fs.writeFile = async (path, bytes, options) => { writes.push(bytes.length); await write(path, bytes, options); };
@@ -88,8 +89,9 @@ test("EOF redirects append only new bytes and expose each completed write", asyn
   } finally { await shell.dispose(); }
 });
 
-for (const mixed of [false, true]) test(`redirect retained storage grows geometrically: mixed append=${mixed}`, async context => {
-  const { shell, commands } = setup();
+for (const mixed of [false, true]) test(`redirect retained storage grows geometrically: mixed append=${mixed}, legacy fallback`, async context => {
+  const { shell, fs, commands } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, descriptorWriteStream: false } });
   const buffers = new Set<ArrayBufferLike>();
   const fileOperation = Runtime.prototype.fileOperation;
   context.mock.method(Runtime.prototype, "fileOperation", async function (this: Runtime, ...args: Parameters<Runtime["fileOperation"]>) {
@@ -103,14 +105,17 @@ for (const mixed of [false, true]) test(`redirect retained storage grows geometr
   } });
   try {
     assert.equal((await shell.exec(mixed ? "chunks >file 2>>file" : "chunks >file")).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "abc".repeat(64));
     assert.ok(buffers.size > 0);
     assert.ok([...buffers].reduce((sum, buffer) => sum + buffer.byteLength, 0) <= 4 * 192);
   } finally { await shell.dispose(); }
 });
 
-for (const [replacement, expected] of [["Q", "abcXYZ"], ["123456789", "abcXYZ"], ["def", "defXYZ"]] as const) {
-  test(`EOF redirect after direct VFS replacement preserves the declared mutation boundary: ${replacement}`, async () => {
+for (const descriptorWriteStream of [false, true]) for (const [replacement, legacyExpected, positionalExpected] of [["Q", "abcXYZ", "Q\0\0XYZ"], ["123456789", "abcXYZ", "123XYZ789"], ["def", "defXYZ", "defXYZ"]] as const) {
+  test(`EOF redirect after direct VFS replacement preserves the declared mutation boundary: ${replacement}, descriptorWriteStream=${descriptorWriteStream}`, async () => {
     const { shell, fs, commands } = setup();
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, descriptorWriteStream } });
+    assert.equal(fs.capabilities.descriptorWriteStream, descriptorWriteStream);
     commands.register({ name: "mutate", async execute({ stdout }) {
       await writeText(stdout, "abc");
       await fs.writeFile("/file", new TextEncoder().encode(replacement));
@@ -119,13 +124,14 @@ for (const [replacement, expected] of [["Q", "abcXYZ"], ["123456789", "abcXYZ"],
     } });
     try {
       assert.equal((await shell.exec("mutate >file")).exitCode, 0);
-      assert.equal(new TextDecoder().decode(await fs.readFile("/file")), expected);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/file")), descriptorWriteStream ? positionalExpected : legacyExpected);
     } finally { await shell.dispose(); }
   });
 }
 
 test("EOF metadata failure falls back without reading a write-only file", async () => {
   const { shell, fs } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
   await fs.writeFile("/file", new Uint8Array());
   await fs.chmod("/file", 0o200);
   const read = fs.readFile.bind(fs);
@@ -140,7 +146,7 @@ test("EOF metadata failure falls back without reading a write-only file", async 
 
 for (const selected of [false, true]) for (const append of [false, undefined]) test(`EOF optimization requires declared append support: ${append}, path capabilities=${selected}`, async () => {
   const { shell, fs } = setup();
-  const capabilities = { ...fs.capabilities, append };
+  const capabilities = { ...fs.capabilities, open: false, append };
   if (append === undefined) Reflect.deleteProperty(capabilities, "append");
   if (selected) Object.defineProperty(fs, "capabilitiesFor", { value: async () => capabilities });
   else Object.defineProperty(fs, "capabilities", { value: capabilities });
@@ -156,7 +162,7 @@ for (const selected of [false, true]) for (const append of [false, undefined]) t
 
 test("EOF optimization skips explicitly unavailable metadata", async () => {
   const { shell, fs } = setup();
-  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, stat: false } });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, stat: false } });
   let probes = 0;
   fs.stat = async () => { probes++; throw new FsError("ENOTSUP"); };
   try {
@@ -168,6 +174,7 @@ test("EOF optimization skips explicitly unavailable metadata", async () => {
 
 test("EOF metadata cancellation preserves the falsey caller reason before data writes", async () => {
   const { shell, fs } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, descriptorWriteStream: false } });
   const controller = new AbortController();
   fs.stat = async () => { controller.abort(0); throw false; };
   try {
@@ -202,6 +209,7 @@ test("empty redirect writes do not probe or mutate the backend", async () => {
 
 test("failed EOF appends do not publish pending bytes into another descriptor's mirror", async () => {
   const { shell, fs, commands } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, descriptorWriteStream: false } });
   const append = fs.appendFile.bind(fs);
   let failures = 0;
   fs.appendFile = async (path, bytes, options) => {
@@ -223,6 +231,7 @@ test("failed EOF appends do not publish pending bytes into another descriptor's 
 
 test("failed overlapping redirects preserve the retained bytes for a later EOF append", async () => {
   const { shell, fs, commands } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, descriptorWriteStream: false } });
   const write = fs.writeFile.bind(fs);
   fs.writeFile = async (path, bytes, options) => {
     if (new TextDecoder().decode(bytes) === "cd") throw null;
@@ -283,13 +292,17 @@ test("cancelled queued readers cannot bypass an active shared read", async () =>
 
 test("input errors still close their owned iterator exactly once", async () => {
   const { shell } = setup();
+  const failure = new Error("read failed");
+  const observed: unknown[] = [];
   let returned = 0;
   const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
-    async next() { throw new Error("read failed"); },
+    async next() { throw failure; },
     async return() { returned++; return { value: undefined, done: true }; },
   }; } };
-  const result = await shell.exec("pass", { stdin });
+  const result = await shell.exec("pass", { stdin, onInternalError(error) { observed.push(error); } });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /read failed/u);
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(observed.length, 1);
+  assert.equal(observed[0], failure);
   assert.equal(returned, 1);
 });

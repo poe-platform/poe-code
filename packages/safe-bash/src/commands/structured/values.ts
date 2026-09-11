@@ -1,43 +1,101 @@
-import { Budget, copyObject, isObject, JqError, JqLimitError, objectKeys, put, type Json } from "./limits.js";
+import { Budget, copyObject, isObject, JqError, JqLimitError, objectKeyIterator, objectKeys, put, type Json } from "./limits.js";
 import { compareNumbers, isNumber, numberValue, type Numeric } from "./numbers.js";
-import { stringify } from "./input.js";
+import { jsonFragments, renderJsonFragment } from "./input.js";
 
 export function type(value: Json): string {
   return value === null ? "null" : isNumber(value) ? "number" : Array.isArray(value) ? "array" : typeof value;
 }
 export function describe(value: Json, budget: Budget): string {
-  const bytes = Buffer.from(stringify(value, budget));
-  const text = bytes.length < 15 ? bytes.toString() : `${bytes.subarray(0, 11).toString()}...`;
+  const parts: Uint8Array[] = [];
+  let length = 0;
+  for (const fragment of jsonFragments(value, budget)) {
+    const text = renderJsonFragment(fragment, budget);
+    budget.step(text.length);
+    const bytes = Buffer.from(text);
+    const retained = Math.min(15 - length, bytes.length);
+    parts.push(bytes.subarray(0, retained));
+    length += retained;
+    if (length === 15) break;
+  }
+  const bytes = Buffer.concat(parts, length);
+  const text = length < 15 ? bytes.toString() : `${bytes.subarray(0, 11).toString()}...`;
   return `${type(value)} (${text})`;
 }
-export function stringCompare(left: string, right: string): number {
-  const leftPoints = Array.from(left, character => character.codePointAt(0)!);
-  const rightPoints = Array.from(right, character => character.codePointAt(0)!);
-  for (let index = 0; index < Math.min(leftPoints.length, rightPoints.length); index++) {
-    if (leftPoints[index] !== rightPoints[index]) return leftPoints[index]! < rightPoints[index]! ? -1 : 1;
+export async function stringCompare(left: string, right: string, budget: Budget): Promise<number> {
+  await budget.tick(1 + Math.ceil(Math.min(left.length, right.length) / 32));
+  let leftOffset = 0;
+  let rightOffset = 0;
+  let points = 0;
+  while (leftOffset < left.length && rightOffset < right.length) {
+    if (points++ % 32 === 0) await budget.tick(0);
+    const leftPoint = left.codePointAt(leftOffset)!;
+    const rightPoint = right.codePointAt(rightOffset)!;
+    if (leftPoint !== rightPoint) return leftPoint < rightPoint ? -1 : 1;
+    leftOffset += leftPoint > 0xffff ? 2 : 1;
+    rightOffset += rightPoint > 0xffff ? 2 : 1;
   }
-  return Math.sign(leftPoints.length - rightPoints.length);
+  return leftOffset < left.length ? 1 : rightOffset < right.length ? -1 : 0;
 }
-export function compare(left: Json, right: Json, budget: Budget): number {
-  budget.step();
+export async function stableSort<Item>(items: Item[], budget: Budget, comparator: (left: Item, right: Item) => Promise<number>): Promise<void> {
+  await budget.tick(0);
+  budget.collection(items.length);
+  if (items.length < 2) return;
+  await budget.tick(items.length);
+  const scratch = new Array<Item>(items.length);
+  let source = items;
+  let target = scratch;
+  for (let width = 1; width < items.length; width *= 2) {
+    for (let start = 0; start < items.length; start += width * 2) {
+      const middle = Math.min(start + width, items.length);
+      const end = Math.min(start + width * 2, items.length);
+      let left = start;
+      let right = middle;
+      for (let index = start; index < end; index++) {
+        await budget.tick();
+        if (left < middle && (right >= end || await comparator(source[left]!, source[right]!) <= 0)) target[index] = source[left++]!;
+        else target[index] = source[right++]!;
+      }
+    }
+    const previous = source;
+    source = target;
+    target = previous;
+  }
+  if (source !== items) for (let index = 0; index < items.length; index++) {
+    await budget.tick();
+    items[index] = source[index]!;
+  }
+}
+export async function sortedKeys(value: Record<string, Json>, budget: Budget): Promise<string[]> {
+  await budget.tick(0);
+  const keys: string[] = [];
+  for (const key of objectKeyIterator(value)) {
+    await budget.tick();
+    budget.collection(keys.length + 1);
+    keys.push(key);
+  }
+  await stableSort(keys, budget, (left, right) => stringCompare(left, right, budget));
+  return keys;
+}
+export async function compare(left: Json, right: Json, budget: Budget): Promise<number> {
+  await budget.tick();
   const rank = (value: Json): number => value === null ? 0 : value === false ? 1 : value === true ? 2 : isNumber(value) ? 3 : typeof value === "string" ? 4 : Array.isArray(value) ? 5 : 6;
   const difference = rank(left) - rank(right);
   if (difference) return Math.sign(difference);
   if (isNumber(left) && isNumber(right)) return compareNumbers(left, right, budget);
+  if (typeof left === "string" && typeof right === "string") return stringCompare(left, right, budget);
   if (left === right && !Array.isArray(left) && !isObject(left)) return 0;
-  if (typeof left === "string" && typeof right === "string") return stringCompare(left, right);
   if (Array.isArray(left) && Array.isArray(right)) {
     for (let index = 0; index < Math.min(left.length, right.length); index++) {
-      const result = compare(left[index]!, right[index]!, budget); if (result) return result;
+      const result = await compare(left[index]!, right[index]!, budget); if (result) return result;
     }
     return Math.sign(left.length - right.length);
   }
   if (isObject(left) && isObject(right)) {
-    const keys = objectKeys(left).sort(stringCompare);
-    const otherKeys = objectKeys(right).sort(stringCompare);
-    const keyDifference = compare(keys, otherKeys, budget);
+    const keys = await sortedKeys(left, budget);
+    const otherKeys = await sortedKeys(right, budget);
+    const keyDifference = await compare(keys, otherKeys, budget);
     if (keyDifference) return keyDifference;
-    for (const key of keys) { const result = compare(left[key]!, right[key]!, budget); if (result) return result; }
+    for (const key of keys) { const result = await compare(left[key]!, right[key]!, budget); if (result) return result; }
   }
   return 0;
 }
@@ -52,9 +110,25 @@ export function equal(left: Json, right: Json, budget: Budget): boolean {
   }
   return false;
 }
-export function entries(value: Json, budget: Budget): [string | number, Json][] {
-  if (Array.isArray(value)) { budget.collection(value.length); return value.map((item, index) => [index, item]); }
-  if (isObject(value)) { const keys = objectKeys(value); budget.collection(keys.length); return keys.map(key => [key, value[key]!]); }
+export async function* entries(value: Json, budget: Budget): AsyncGenerator<[string | number, Json]> {
+  budget.signal.throwIfAborted();
+  if (Array.isArray(value)) {
+    budget.collection(value.length);
+    for (let index = 0; index < value.length; index++) {
+      await budget.tick(2);
+      yield [index, value[index]!];
+    }
+    return;
+  }
+  if (isObject(value)) {
+    let count = 0;
+    for (const key of objectKeyIterator(value)) {
+      await budget.tick(2);
+      budget.collection(++count);
+      yield [key, value[key]!];
+    }
+    return;
+  }
   throw new JqError(`Cannot iterate over ${describe(value, budget)}`);
 }
 export function indexValue(value: Json, index: Json): Json {
@@ -105,12 +179,12 @@ export function contains(value: Json, sought: Json, budget: Budget): boolean {
   if (isObject(value) && isObject(sought)) return objectKeys(sought).every(key => Object.hasOwn(value, key) && contains(value[key]!, sought[key]!, budget));
   return type(value) === type(sought) && equal(value, sought, budget);
 }
-export function binary(operator: string, left: Json, right: Json, budget: Budget): Json {
+export async function binary(operator: string, left: Json, right: Json, budget: Budget): Promise<Json> {
   budget.step();
   if (["==", "!=", "<", "<=", ">", ">="].includes(operator)) {
     if (operator === "==") return equal(left, right, budget);
     if (operator === "!=") return !equal(left, right, budget);
-    const order = compare(left, right, budget);
+    const order = await compare(left, right, budget);
     switch (operator) {
       case "<": return order < 0;
       case "<=": return order <= 0;
@@ -122,7 +196,11 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
     if (left === null) return right;
     if (right === null) return left;
     if (isNumber(left) && isNumber(right)) return numberValue(left) + numberValue(right);
-    if (typeof left === "string" && typeof right === "string") { budget.text(left + right); return left + right; }
+    if (typeof left === "string" && typeof right === "string") {
+      budget.step(left.length + right.length);
+      const result = left + right;
+      budget.text(result); return result;
+    }
     if (Array.isArray(left) && Array.isArray(right)) { budget.collection(left.length + right.length); return [...left, ...right]; }
     if (isObject(left) && isObject(right)) { const result = copyObject(left, right); budget.collection(objectKeys(result).length); return result; }
   }
@@ -131,7 +209,7 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
     const result = copyObject(left);
     for (const key of objectKeys(right)) {
       const value = right[key]!;
-      put(result, key, Object.hasOwn(left, key) && isObject(left[key]!) && isObject(value) ? binary("*", left[key]!, value, budget) : value);
+      put(result, key, Object.hasOwn(left, key) && isObject(left[key]!) && isObject(value) ? await binary("*", left[key]!, value, budget) : value);
     }
     budget.collection(objectKeys(result).length); return result;
   }

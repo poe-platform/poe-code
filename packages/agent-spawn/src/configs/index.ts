@@ -3,7 +3,6 @@ import type { AcpSpawnConfig, SpawnConfig, SpawnMode } from "../types.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { codexSpawnConfig } from "./codex.js";
 import { openCodeSpawnConfig, openCodeAcpSpawnConfig } from "./opencode.js";
-import { kimiSpawnConfig, kimiAcpSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 import { cursorSpawnConfig } from "./cursor.js";
@@ -39,14 +38,13 @@ function freezeValue(value: unknown): void {
 }
 
 // ACP adapter support (spawn streaming):
-// - Supported (has `adapter`): claude-code, codex, opencode, kimi, goose
+// - Supported (has `adapter`): claude-code, codex, opencode, goose
 export const allSpawnConfigs: readonly SpawnConfig[] = Object.freeze([
   freezeConfig(claudeCodeSpawnConfig),
   freezeConfig(codexSpawnConfig),
   freezeConfig(cursorSpawnConfig),
   freezeConfig(piSpawnConfig),
   freezeConfig(openCodeSpawnConfig),
-  freezeConfig(kimiSpawnConfig),
   freezeConfig(gooseSpawnConfig)
 ]);
 
@@ -58,7 +56,6 @@ for (const config of allSpawnConfigs) {
 
 const acpLookup = new Map<string, AcpSpawnConfig>();
 acpLookup.set(openCodeAcpSpawnConfig.agentId, freezeConfig(openCodeAcpSpawnConfig));
-acpLookup.set(kimiAcpSpawnConfig.agentId, freezeConfig(kimiAcpSpawnConfig));
 acpLookup.set(gooseAcpSpawnConfig.agentId, freezeConfig(gooseAcpSpawnConfig));
 acpLookup.set(geminiCliAcpSpawnConfig.agentId, freezeConfig(geminiCliAcpSpawnConfig));
 

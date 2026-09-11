@@ -1,6 +1,13 @@
 import { replaceErrorStack } from "./error/shape.js";
 import { SandboxError } from "./interp/budget.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "./interp/arguments.js";
+import { collectionIteratorState, isSandboxCollectionIterator } from "./interp/collection-iterator.js";
+import { arrayIteratorState, isSandboxArrayIterator } from "./interp/array-iterator.js";
+import { regexpIteratorState, isSandboxRegExpIterator } from "./interp/regexp-iterator.js";
+import { isSandboxMap, isSandboxSet } from "./interp/collection-brands.js";
+import { boxedDataProperties, isSandboxBox } from "./interp/boxed.js";
+import { regexGuestProperties } from "./interp/regexp-properties.js";
+import { generatorGuestProperties } from "./interp/generator-properties.js";
 
 export const MAX_DATA_DEPTH = 1_024;
 
@@ -74,20 +81,31 @@ function walkGraphDepth(
 }
 
 function graphEntries(value: object): Array<[string, unknown]> {
+  const properties = regexGuestProperties.get(value) ?? generatorGuestProperties.get(value);
+  if (properties !== undefined) return Reflect.ownKeys(properties).flatMap(key => {
+    const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+    return "value" in descriptor ? [[`.${String(key)}`, descriptor.value] as [string, unknown]] : [];
+  });
+  if (isSandboxBox(value)) return boxedDataProperties(value).map(([key, descriptor]) => [`.${key}`, descriptor.value]);
   if (isSandboxArguments(value)) {
     return getSandboxArgumentEntries(value).map(([key, entry]) => [`.${key}`, entry]);
   }
-  if (value instanceof Map) {
-    return [...value.entries()].flatMap(([key, entry], index) => [
+  const map = isSandboxMap(value) ? value.entries : value instanceof Map ? value : undefined;
+  if (map !== undefined) {
+    return [...map.entries()].flatMap(([key, entry], index) => [
       [`.<map>[${index}].key`, key] as [string, unknown],
       [`.<map>[${index}].value`, entry] as [string, unknown]
     ]);
   }
-  if (value instanceof Set) {
-    return [...value.values()].map((entry, index) => [`.<set>[${index}]`, entry]);
+  const set = isSandboxSet(value) ? value.values : value instanceof Set ? value : undefined;
+  if (set !== undefined) {
+    return [...set.values()].map((entry, index) => [`.<set>[${index}]`, entry]);
   }
 
   const entries: Array<[string, unknown]> = [];
+  if (isSandboxCollectionIterator(value)) entries.push([".<collection>", collectionIteratorState(value).collection]);
+  if (isSandboxArrayIterator(value)) entries.push([".<source>", arrayIteratorState(value).source]);
+  if (isSandboxRegExpIterator(value)) entries.push([".<matcher>", regexpIteratorState(value).matcher]);
   for (const key of Object.keys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (descriptor !== undefined && "value" in descriptor)

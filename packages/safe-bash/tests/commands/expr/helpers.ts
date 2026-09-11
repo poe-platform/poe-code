@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createExprCommand, type ExprCommandsOptions } from "../../../src/commands/expr/index.js";
 import type { CommandContext } from "../../../src/contracts/index.js";
@@ -12,7 +13,7 @@ export async function run(args: readonly string[], options: ExprCommandsOptions 
     stderr: { async write(chunk) { stderr.push(new Uint8Array(chunk)); } },
     ...overrides,
   };
-  const result = await createExprCommand(options).execute(context);
+  const result = await createExprCommand({ regexExecutor: createNodeRegexProvider(), ...options }).execute(context);
   const output = Buffer.concat(stdout), errors = Buffer.concat(stderr);
   return { ...result, stdout: output.toString(), stdoutHex: output.toString("hex"), stderr: errors.toString(), context };
 }

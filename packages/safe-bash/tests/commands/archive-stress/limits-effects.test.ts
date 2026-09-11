@@ -82,6 +82,8 @@ test("B02 default 64 MiB entry declaration rejects plus one before body reads or
     const publish = writeStream.bind(fs);
     fs.writeStream = async (path, body, options) => { publications++; await publish(path, body, options); };
     const bytes = declaredHeader("data", 67_108_864 + Number(over));
+    const failure = new Error("independent boundary control reached body read");
+    const reported: unknown[] = [];
     let pulls = 0;
     let returns = 0;
     const closed = gate();
@@ -89,13 +91,15 @@ test("B02 default 64 MiB entry declaration rejects plus one before body reads or
       async next() {
         pulls++;
         if (pulls === 1) return { done: false, value: bytes };
-        throw new Error("independent boundary control reached body read");
+        throw failure;
       },
       async return() { returns++; closed.resolve(); return { done: true, value: undefined }; },
     }; } };
-    const result = await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: input });
+    const result = await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: input, onInternalError(error) { reported.push(error); } });
     assert.equal(result.exitCode, 2);
-    assert.match(result.stderr, over ? /entry byte limit/ : /boundary control reached body read/);
+    assert.equal(result.stderr, over ? "tar: entry byte limit exceeded\n" : "tar: internal error\n");
+    if (over) assert.deepEqual(reported, []);
+    else { assert.equal(reported.length, 1); assert.equal(reported[0], failure); }
     assert.equal(pulls, over ? 1 : 2);
     await deadline(closed.promise);
     assert.equal(returns, 1);

@@ -2070,7 +2070,7 @@ describe("makeFsModule", () => {
       // host rejected, and the await that reached it. No node frame, no host path.
       expect(frames).toEqual([
         "    at readFile (line 2, column 32)",
-        "    at <anonymous> (line 4, column 9)"
+        "    at read (line 4, column 9)"
       ]);
     });
 

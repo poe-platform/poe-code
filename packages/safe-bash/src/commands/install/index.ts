@@ -1,5 +1,6 @@
 import { FsError, basename, dirname, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type FileSystemCapabilities, type VirtualShellPlugin } from "../../contracts/index.js";
 import { commandRuntimeIdentity } from "../../contracts/command.js";
+import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
 import { assertCountedFileOutput, openFileOutput, writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codeOf, output, pathOf } from "../internal.js";
@@ -31,17 +32,22 @@ async function maybeStat(context: CommandContext, path: string, follow = false):
   } catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
 }
 
-async function admit(context: CommandContext, path: string, capabilities: readonly string[]): Promise<void> {
+async function admit(context: CommandContext, path: string, capabilities: readonly string[]): Promise<FileSystemCapabilities> {
   const check = (available: FileSystemCapabilities) => {
     if (available.readOnly) throw new FsError("EROFS");
     if (capabilities.some(capability => available[capability] === false)) throw new FsError("ENOTSUP");
   };
-  check(context.fs.capabilities);
-  if (!context.fs.capabilitiesFor) return;
+  const globalCapabilities = context.fs.capabilities;
+  check(globalCapabilities);
+  if (!context.fs.capabilitiesFor) return globalCapabilities;
   let candidate = path;
   while (true) {
     context.signal.throwIfAborted();
-    try { check(await context.fs.capabilitiesFor(candidate, { signal: context.signal })); return; }
+    try {
+      const available = await context.fs.capabilitiesFor(candidate, { signal: context.signal });
+      check(available);
+      return available;
+    }
     catch (error) { if (codeOf(error) !== "ENOENT" || candidate === "/") throw error; candidate = dirname(candidate); }
   }
 }
@@ -228,8 +234,10 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
     if (identity === "same" && await context.fs.realpath(source, fsOptions) === await context.fs.realpath(destination, fsOptions)) throw new InstallError(`${quote(sourceDisplay)} and ${quote(destinationDisplay)} are the same file`);
   }
   if (args.compare && target && await sameContent(operation, source, sourceStat, destination, target)) return;
-  if (!context.fs.writeStream || context.fs.capabilities.streamingWrite === false) assertCountedFileOutput(context);
-  await admit(context, destination, ["write", "exclusiveCreate", "permissions", ...(target ? ["remove"] : [])]);
+  const destinationCapabilities = await admit(context, destination, ["write", "exclusiveCreate", "permissions", ...(target ? ["remove"] : [])]);
+  const streamingOutput = !!context.fs.writeStream && destinationCapabilities.streamingWrite !== false;
+  if (!streamingOutput) assertCountedFileOutput(context);
+  const removeAfterStripFailure = args.strip ? retainFileSystemCleanup(context.fs, cleanup => cleanup.rm(destination), { maxOperations: 1 }) : undefined;
   if (sourceStat.type === "file" && sourceStat.size > maxFileBytes) throw failure(`cannot copy ${quote(sourceDisplay)}`, new FsError("EFBIG"));
   let backupDisplay: string | undefined;
   if (target) {
@@ -315,7 +323,7 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
       if (!first.done) yield first.value;
       yield* sourceBytes;
     })();
-    if (context.fs.writeStream && context.fs.capabilities.streamingWrite !== false) {
+    if (streamingOutput) {
       const targetOutput = await openFileOutput(context, destination, { flag: "wx", mode: 0o600 });
       try {
         for await (const bytes of contentStream) await targetOutput.sink.write(bytes);
@@ -359,13 +367,13 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
   if (args.debug) await output(context, "copy offload: unsupported, reflink: unsupported, sparse detection: no\n");
   if (args.strip) {
     let status: number;
-    try { status = await settings.strip!(destination, args.stripProgram, context); }
+    try { status = await settings.strip!(destination, args.stripProgram, context); context.signal.throwIfAborted(); }
     catch (error) {
-      await context.fs.rm(destination);
+      await removeAfterStripFailure!();
       throw failure(`cannot run ${quote(args.stripProgram)}`, error);
     }
     context.signal.throwIfAborted();
-    if (status !== 0) { await context.fs.rm(destination, fsOptions); throw new InstallError("strip process terminated abnormally"); }
+    if (status !== 0) { await removeAfterStripFailure!(); throw new InstallError("strip process terminated abnormally"); }
   }
   if (args.preserve) {
     try { await context.fs.utimes!(destination, timestampStat.atimeMs, timestampStat.mtimeMs, fsOptions); }

@@ -39,6 +39,8 @@ installed core peer. Do not mix factories with a second copy of that runtime.
 ## Configuration
 
 All command plugins accept optional `replace` to replace an existing registration.
+Current core defaults already register `cmp`, `shuf`, and `truncate`; pass
+`{ replace: true }` when installing these optional variants into `agentCommands()`.
 Their other options are:
 
 | Factory | Options |
@@ -54,7 +56,10 @@ Their other options are:
 `readExtension` accepts `nonTerminalInput` for an explicitly nonterminal input
 profile. `trapExtension` accepts `signalNames`, a name-to-number map, and
 `signalHost`, whose `subscribe(deliver, scope)` returns an unsubscribe function.
-The arrays, jobs, mapfile, and device factories have no configuration options.
+`mapfileExtension({ replace: true })` explicitly replaces current core `mapfile`
+and `readarray` builtins with the optional variant. Omitting `replace` preserves
+duplicate-builtin rejection. The arrays, jobs, and device factories have no
+configuration options.
 Exported TypeScript types describe callback arguments and return values.
 
 ## Environment

@@ -1,6 +1,5 @@
 import { adaptClaude } from "./claude.js";
 import { adaptCodex } from "./codex.js";
-import { adaptKimi } from "./kimi.js";
 import { adaptNative } from "./native.js";
 import { adaptOpenCode } from "./opencode.js";
 import { adaptPi } from "./pi.js";
@@ -9,13 +8,12 @@ import type { AcpEvent, SessionUpdate } from "../acp/types.js";
 
 export { adaptCodex } from "./codex.js";
 export { adaptClaude } from "./claude.js";
-export { adaptKimi } from "./kimi.js";
 export { adaptNative } from "./native.js";
 export { adaptOpenCode } from "./opencode.js";
 export { adaptPi } from "./pi.js";
 export { adaptCursor } from "./cursor.js";
 
-export type AdapterType = "codex" | "claude" | "cursor" | "kimi" | "native" | "opencode" | "pi";
+export type AdapterType = "codex" | "claude" | "cursor" | "native" | "opencode" | "pi";
 
 export type AdapterOutput = AcpEvent | SessionUpdate;
 export type Adapter = (lines: AsyncIterable<string>) => AsyncGenerator<AdapterOutput>;
@@ -24,7 +22,6 @@ const adapters = {
   codex: adaptCodex,
   claude: adaptClaude,
   cursor: adaptCursor,
-  kimi: adaptKimi,
   native: adaptNative,
   opencode: adaptOpenCode,
   pi: adaptPi

@@ -1,0 +1,17 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  await 0;
+  const empty = new ArrayBuffer(0);
+  const fixed = new ArrayBuffer(4);
+  if (empty.detached !== false || fixed.detached !== false) throw new Error("Attached storage misidentified");
+  const getter = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "detached");
+  if (getter.get.name !== "get detached" || getter.get.length !== 0 || getter.set !== undefined || getter.enumerable || !getter.configurable) throw new Error("Invalid getter metadata");
+  class Buffer extends ArrayBuffer {}
+  if (new Buffer(0).detached !== false) throw new Error("Subclass getter failed");
+  let rejected = false;
+  try { empty.detached = true; } catch (error) { rejected = error.name === "TypeError"; }
+  if (!rejected) throw new Error("Getter accepted assignment");
+  return { title: frontmatter.title, ok: true, attachedEmpty: !empty.detached, attachedFixed: !fixed.detached, readOnly: rejected };
+};

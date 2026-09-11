@@ -1,0 +1,27 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const ordinary = /a/;
+  Object.defineProperty(ordinary, Symbol.replace, {
+    configurable: true,
+    get() { delete ordinary[Symbol.replace]; return null; }
+  });
+  const replaced = 'a/a/'.replace(ordinary, 'X');
+  if (replaced !== 'aX') throw new Error('Lost ordinary replacement fallback');
+  const regex = /a/g;
+  const replacement = { toString() { regex[Symbol.replace] = null; return 'X'; } };
+  const all = 'aba'.replaceAll(regex, replacement);
+  if (all !== 'XbX') throw new Error('Lost selected regex replacement behavior');
+  const separator = /a/;
+  Object.defineProperty(separator, Symbol.split, {
+    configurable: true,
+    get() { delete separator[Symbol.split]; return null; }
+  });
+  const parts = 'a/a/'.split(separator);
+  await 0;
+  if (parts.length !== 2 || parts[0] !== 'a' || parts[1] !== '')
+    throw new Error('Lost ordinary split fallback');
+  return { ok: true, title: frontmatter.title, replaced, all, parts };
+}

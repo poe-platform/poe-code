@@ -1,6 +1,6 @@
 import { Admission, ArrayFailure, ArrayOwner, exactSum } from "./ledger.js";
 import type { Tickets } from "./ledger.js";
-import { shellValueByteLength, shellValueRetainedBytes, shellValueText } from "../../contracts/value.js";
+import { shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueRetainedBytes, shellValueText } from "../../contracts/value.js";
 import type { ShellValue } from "../../contracts/value.js";
 
 export const controlNames: ReadonlySet<string> = new Set([
@@ -53,6 +53,34 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
   return new OwnedText(value, bytes, admission);
 }
 
+export async function valueToken(owner: ArrayOwner, value: ShellValue, signal: AbortSignal): Promise<OwnedText> {
+  if (typeof value === "string") return textToken(owner, value, signal);
+  const bytes = shellValueByteLength(value);
+  const temporary = owner.reserve({ payload: bytes * 3, metadata: 64, work: 4 });
+  try {
+    const input = shellValueBytes(value);
+    const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+    let text: string | undefined = "";
+    for (let offset = 0; offset < bytes; offset += 1024) {
+      const end = Math.min(bytes, offset + 1024);
+      owner.reserve({ work: end - offset }).release();
+      await owner.ledger.checkpoint(signal, end - offset);
+      if (text !== undefined) try { text += decoder.decode(input.subarray(offset, end), { stream: end < bytes }); }
+      catch (error) {
+        if (!(error instanceof TypeError) || "code" in error && error.code !== "ERR_ENCODING_INVALID_ENCODED_DATA") throw error;
+        text = undefined;
+      }
+    }
+    if (text !== undefined) return await textToken(owner, text, signal);
+    // Invalid UTF-8 needs an owned raw copy and its decoded projection.
+    const admission = owner.reserve({ payload: bytes * 4, metadata: 128, work: 4 });
+    try {
+      const raw = shellValueFromBytes(input);
+      return new OwnedText(raw, bytes, admission);
+    } catch (error) { admission.release(); throw error; }
+  } finally { temporary.release(); }
+}
+
 export interface Element {
   readonly text: OwnedText;
   readonly slot: Admission;
@@ -60,22 +88,66 @@ export interface Element {
 
 export class IndexedBinding {
   readonly values = new Map<number, Element>();
+  readonly keys = new Map<string, { index: number; text: OwnedText; admission: Admission }>();
+  readonly keyByIndex = new Map<number, string>();
   maximum = -1;
   generation = 0;
   version = 0;
   references = 1;
+  assigned = false;
 
-  private constructor(readonly owner: ArrayOwner) {}
+  private constructor(readonly owner: ArrayOwner, readonly associative = false) {}
 
-  static create(parent: ArrayOwner): IndexedBinding {
+  static create(parent: ArrayOwner, associative = false): IndexedBinding {
     const owner = ArrayOwner.create(parent.ledger, parent);
     try {
       owner.reserve({ wrappers: 1, metadata: 128, work: 7 });
-      return new IndexedBinding(owner);
+      return new IndexedBinding(owner, associative);
     } catch (error) {
       void owner.close();
       throw error;
     }
+  }
+
+  async keyIdentity(value: ShellValue, owner: ArrayOwner, signal: AbortSignal): Promise<string> {
+    const length = shellValueByteLength(value);
+    if (!length) throw new ArrayFailure("bad array subscript");
+    const admission = owner.reserve({ payload: length * 5, metadata: 64 + length * 16, work: length + 2 });
+    try {
+    const bytes = shellValueBytes(value);
+    const parts: string[] = [];
+    for (const byte of bytes) {
+      parts.push(byte.toString(16).padStart(2, "0"));
+      await owner.ledger.checkpoint(signal);
+    }
+    return parts.join("");
+    } finally { admission.release(); }
+  }
+
+  async keyIndex(value: ShellValue, owner: ArrayOwner, signal: AbortSignal, create = false): Promise<number | undefined> {
+    const identity = await this.keyIdentity(value, owner, signal);
+    const existing = this.keys.get(identity);
+    if (existing || !create) return existing?.index;
+    const index = this.maximum + 1;
+    const admission = this.owner.reserve({ metadata: 128 + identity.length * 2, work: 8 });
+    let text: OwnedText;
+    try { text = await valueToken(this.owner, value, signal); }
+    catch (error) { admission.release(); throw error; }
+    const entry = { index, text, admission };
+    admission.cleanup = () => {
+      if (this.keys.get(identity) === entry) { this.keys.delete(identity); this.keyByIndex.delete(index); }
+      text.release();
+    };
+    this.keys.set(identity, entry);
+    this.keyByIndex.set(index, identity);
+    this.maximum = index;
+    return index;
+  }
+
+  remove(index: number): void {
+    this.values.get(index)?.slot.release();
+    const identity = this.keyByIndex.get(index);
+    if (identity !== undefined) this.keys.get(identity)?.admission.release();
   }
 
   get(index: number): string | undefined { return this.values.get(index)?.text.value; }
@@ -108,6 +180,7 @@ export class IndexedBinding {
       text.release();
     };
     this.values.set(index, element);
+    this.assigned = true;
     if (index > this.maximum) this.maximum = index;
     previous?.slot.release();
   }
@@ -118,7 +191,18 @@ export class IndexedBinding {
     this.retain();
     let copy: IndexedBinding | undefined;
     try {
-      copy = IndexedBinding.create(this.owner.parent!);
+      copy = IndexedBinding.create(this.owner.parent!, this.associative);
+      copy.assigned = this.assigned;
+      const keyCopy = copy;
+      for (const [identity, entry] of this.keys) {
+        const admission = copy.owner.reserve({ metadata: 128 + identity.length * 2, work: identity.length + 8 });
+        copy.owner.share(entry.text.admission);
+        const text = entry.text.retain();
+        const cloned = { index: entry.index, text, admission };
+        admission.cleanup = () => { if (keyCopy.keys.get(identity) === cloned) { keyCopy.keys.delete(identity); keyCopy.keyByIndex.delete(entry.index); } text.release(); };
+        copy.keys.set(identity, cloned); copy.keyByIndex.set(entry.index, identity);
+        await copy.owner.ledger.checkpoint(signal, identity.length + 8);
+      }
       for (const [index, element] of this.values) {
         copy.owner.reserve({ work: 2 }).release();
         const text = element.text.retain();

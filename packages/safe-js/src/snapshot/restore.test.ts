@@ -25,6 +25,7 @@ import { serialize } from "./serialize.js";
 import { createSandboxRegex, isSandboxRegex } from "../interp/values.js";
 import { SnapshotValidationError } from "./validation.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { boxedValue, createSandboxBox, isSandboxBox } from "../interp/boxed.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -54,6 +55,86 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it.each(["extensible", "properties"])("does not inherit boxed %s metadata", field => {
+    const source = "await task()";
+    const value = createSandboxBox(3);
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { value } }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const node = Object.values(snapshot.heap ?? {}).find(entry => entry.kind === "boxed")! as unknown as Record<string, unknown>;
+    const inherited = node[field];
+    delete node[field];
+    const failure = withObjectPrototypeProperties({ [field]: inherited }, () => {
+      try { restore(snapshot, { source }); }
+      catch (error) { return error; }
+    });
+    expect(failure).toMatchObject({ code: "invalidValue" });
+  });
+  it.each(["writable", "enumerable", "configurable"])("does not inherit boxed descriptor %s flags", field => {
+    const source = "await task()";
+    const value = createSandboxBox(3);
+    value.extra = 7;
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { value } }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const node = Object.values(snapshot.heap ?? {}).find(entry => entry.kind === "boxed")!;
+    if (node.kind !== "boxed") throw new Error("Missing boxed snapshot value");
+    const descriptor = node.properties.extra as unknown as Record<string, unknown>;
+    delete descriptor[field];
+    descriptor.unexpected = true;
+    const failure = withObjectPrototypeProperties({ [field]: true }, () => {
+      try { restore(snapshot, { source }); }
+      catch (error) { return error; }
+    });
+    expect(failure).toMatchObject({ code: "invalidValue" });
+  });
+  it.each([NaN, -0, Infinity, "😀", false])("restores boxed payloads, frozen descriptors and aliases: %s", primitive => {
+    const source = "await task()";
+    const value = createSandboxBox(primitive);
+    value.self = value;
+    Object.defineProperty(value, "hidden", { value: 3 });
+    Object.freeze(value);
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { value, alias: value } }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const scope = restore(JSON.parse(JSON.stringify(snapshot)), { source }).currentScope;
+    const restored = scope.lookup("value");
+    if (!restored.found || !isSandboxBox(restored.value)) throw new Error("Missing boxed snapshot value");
+    expect(boxedValue(restored.value)).toBe(primitive);
+    expect(restored.value.self).toBe(restored.value);
+    expect(scope.lookup("alias")).toMatchObject({ found: true, value: restored.value });
+    expect(Object.isFrozen(restored.value)).toBe(true);
+    expect(Object.getOwnPropertyDescriptor(restored.value, "hidden")).toEqual({ value: 3, writable: false, configurable: false, enumerable: false });
+  });
+  it("counts registered retained roots once during restoration", () => {
+    const source = "await task()";
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: {} }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const budget = new Budget({ dataSize: 500 });
+    const owner = {};
+    budget.setRetainedValues(owner, () => ["x".repeat(300)]);
+    try {
+      expect(restore(snapshot, { source, budget }).currentNode.type).toBe("AwaitExpression");
+      expect(budget.peakDataSize).toBeGreaterThanOrEqual(300);
+      expect(budget.peakDataSize).toBeLessThanOrEqual(500);
+    } finally {
+      budget.setRetainedValues(owner, undefined);
+    }
+  });
+
   it("does not reinterpret ordinary records with a date kind as Date heap nodes", () => {
     const source = "await task()";
     const descriptor = { kind: "date", time: "application metadata" };
@@ -297,6 +378,11 @@ describe("snapshot restore", () => {
       "$.scopeChain[0].bindings.gen.sent[0].type"
     ],
     [
+      "invalid async generator flag",
+      (snapshot: any) => (snapshot.scopeChain[0].bindings.gen = { kind: "generator", state: "done", async: "yes" }),
+      "$.scopeChain[0].bindings.gen.async"
+    ],
+    [
       "malformed map entry",
       (snapshot: any) => {
         snapshot.heap = { "1": { kind: "map", entries: [[1]] } };
@@ -375,18 +461,19 @@ describe("snapshot restore", () => {
     );
     expect(wrapped).not.toHaveBeenCalled();
   });
-  it("round-trips start and done generators", async () => {
-    const source = "function* values() { yield 1; return 2; } await task();";
+  it.each([false, true])("round-trips start and done generators (async=%s)", async async => {
+    const source = `${async ? "async " : ""}function* values() { yield ${async ? "{then(resolve){resolve(1)}}" : "1"}; return 2; } await task();`;
     const module = parseModule(source);
     const generatorNodeId = getNodeIdByType(module, "FunctionDeclaration");
     const startGenerator = createSandboxGenerator(
       createGeneratorChannel(async () => undefined),
       {
         astNodeId: generatorNodeId,
-        capturedScopeId: "module"
+        capturedScopeId: "module",
+        async
       }
     );
-    const doneGenerator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+    const doneGenerator = createSandboxGenerator(createGeneratorChannel(async () => undefined), { async });
     doneGenerator.state = "done";
     const serialized = serialize({
       source,
@@ -419,7 +506,13 @@ describe("snapshot restore", () => {
       return;
     }
 
-    await expect(start.value.channel.next()).resolves.toEqual({ value: 1, done: false });
+    expect(start.value.async === true).toBe(async);
+    expect(done.value.async === true).toBe(async);
+    await expect(start.value.channel.next()).resolves.toEqual({
+      value: 1,
+      done: false,
+      ...(async ? {} : { yieldedResult: { value: 1, done: false } })
+    });
     await expect(start.value.channel.next()).resolves.toEqual({ value: 2, done: true });
     await expect(done.value.channel.next()).resolves.toEqual({ value: undefined, done: true });
   });
@@ -463,7 +556,11 @@ describe("snapshot restore", () => {
     }
     const generator = binding.value;
 
-    await expect(generator.channel.next()).resolves.toEqual({ value: 2, done: false });
+    await expect(generator.channel.next()).resolves.toEqual({
+      value: 2,
+      done: false,
+      yieldedResult: { value: 2, done: false }
+    });
     await expect(generator.channel.next()).resolves.toEqual({ value: 3, done: true });
   });
 
@@ -495,7 +592,13 @@ describe("snapshot restore", () => {
       yieldNodeId: getNodeIdByType(module, "YieldExpression")
     });
 
-    await expect(generator.channel.next("second")).resolves.toEqual({ value: 3, done: false });
+    const delegated = await generator.channel.next("second");
+    expect(delegated).toEqual({
+      value: { value: 3, done: false },
+      done: false,
+      yieldedResult: { value: 3, done: false }
+    });
+    expect(delegated.yieldedResult).toBe(delegated.value);
     await expect(generator.channel.next("third")).resolves.toEqual({
       value: undefined,
       done: true
@@ -623,12 +726,8 @@ describe("snapshot restore", () => {
 
     const reset = (service.value as { reset?: { call?: (args: unknown[]) => unknown } }).reset;
     const result = reset?.call?.([]);
-    expect(isSandboxPromise(result)).toBe(true);
-    if (!isSandboxPromise(result)) {
-      return;
-    }
-
-    await expect(result.promise).resolves.toBe(5);
+    expect(isSandboxPromise(result)).toBe(false);
+    await expect(result).resolves.toBe(5);
   });
 
   it("round-trips an arrow capturing a method this binding", async () => {
@@ -678,12 +777,8 @@ describe("snapshot restore", () => {
       stack: [],
       thisValue: { value: 99 }
     });
-    expect(isSandboxPromise(result)).toBe(true);
-    if (!isSandboxPromise(result)) {
-      return;
-    }
-
-    await expect(result.promise).resolves.toBe(7);
+    expect(isSandboxPromise(result)).toBe(false);
+    await expect(result).resolves.toBe(7);
   });
 
   it.each([
@@ -866,11 +961,8 @@ describe("snapshot restore", () => {
     }
 
     const result = add.value.call?.([2]);
-    expect(isSandboxPromise(result)).toBe(true);
-    if (!isSandboxPromise(result)) {
-      return;
-    }
-    await expect(result.promise).resolves.toBe(42);
+    expect(isSandboxPromise(result)).toBe(false);
+    await expect(result).resolves.toBe(42);
   });
 
   it("binds destructured parameters in restored async closures", async () => {

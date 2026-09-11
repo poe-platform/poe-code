@@ -1,4 +1,5 @@
 import { FsError } from "./errors.js";
+import type { CommandContext } from "./command.js";
 import type { FsOptions } from "./filesystem.js";
 import { createBytePipe, outputFailure, type BytePipe, type ByteSink, type ByteSource } from "./io.js";
 import { createOutputOperation } from "./output.js";
@@ -7,6 +8,25 @@ import { filesystemOutputBudgets, type FileOutputContext } from "./filesystem-ou
 import { openCommandFile, type CommandFileDescriptor } from "./filesystem-descriptor.js";
 export { bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
 export type { CountedFileWrite, FileOutputContext } from "./filesystem-output-budget.js";
+
+export async function writeFileOutput(context: Pick<CommandContext, "signal" | "registerCleanup">, bytes: Uint8Array, write: (bytes: Uint8Array) => Promise<void>): Promise<void> {
+  context.signal.throwIfAborted();
+  const budget = context.registerCleanup && filesystemOutputBudgets.get(context.registerCleanup);
+  let pending: Promise<void> | undefined;
+  const destination: ByteSink = { write(chunk) {
+    context.signal.throwIfAborted();
+    return pending = (async () => { await write(chunk); })();
+  } };
+  try { await (budget?.sinkBudget(destination) ?? destination).write(bytes); }
+  catch (error) {
+    // Shell sink cancellation may win its race before the direct host call.
+    // Keep the original awaited-write lifetime without a retained cleanup hook.
+    await pending?.catch(() => {});
+    context.signal.throwIfAborted();
+    throw error;
+  }
+  context.signal.throwIfAborted();
+}
 
 export interface FileOutput {
   readonly sink: ByteSink;
@@ -190,6 +210,11 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
   const consumer = new AbortController();
   let writes = Promise.resolve();
   let acknowledge: (() => void) | undefined;
+  const acknowledgeWrite = (): void => {
+    const accepted = acknowledge;
+    acknowledge = undefined;
+    accepted?.();
+  };
   let ready!: () => void;
   const opened = new Promise<void>(resolve => { ready = resolve; });
   const destination: ByteSink = {
@@ -200,7 +225,9 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
         for (let offset = 0; offset < chunk.byteLength; offset += 64 * 1024) {
           const accepted = new Promise<void>(resolve => { acknowledge = resolve; });
           await pipe!.writable.write(chunk.subarray(offset, offset + 64 * 1024));
-          await Promise.race([accepted, task!]);
+          await accepted;
+          if (failure) throw failure.reason;
+          operation.signal.throwIfAborted();
         }
       });
       writes = writing.catch(() => {});
@@ -228,8 +255,7 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
           ready();
           for await (const chunk of pipe!.readable) {
             yield chunk;
-            acknowledge?.();
-            acknowledge = undefined;
+            acknowledgeWrite();
           }
           operation.signal.throwIfAborted();
           ended = true;
@@ -255,7 +281,7 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
       signal.throwIfAborted();
       const fsOptions = { signal, ...(mode === undefined ? {} : { mode }) };
       const streaming = flag === "a" ? capabilities.streamingAppend ?? capabilities.streamingWrite : capabilities.streamingWrite;
-      if (!incremental && streaming !== false && fs.writeStream) {
+      if ((!incremental || capabilities.descriptorWriteStream === true) && streaming !== false && fs.writeStream) {
         try {
           await fs.writeStream(path, source, { ...fsOptions, flag });
           if (!ended) throw new FsError("EIO", { path, message: "Streaming writer returned before consuming output" });
@@ -278,8 +304,9 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
         await sink.write(chunk);
       }
     })();
-    void task.catch(error => {
+    void task.then(acknowledgeWrite, error => {
       failure = { reason: error };
+      acknowledgeWrite();
       if (!operation.signal.aborted) consumer.abort(error);
       void operation.abort(error).catch(() => {});
     });

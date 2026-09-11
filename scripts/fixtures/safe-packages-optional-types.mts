@@ -69,7 +69,7 @@ export async function installedOptionalConsumer(signalHost: TrapSignalHost): Pro
   const fs: FileSystem = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": devices } });
   const readOptions: ReadExtensionOptions = { nonTerminalInput: true };
   const trapOptions: TrapExtensionOptions = { signalNames: { SIGUSR1: 30 }, signalHost };
-  const extensions: readonly ShellExtension[] = [arraysExtension(), jobsExtension(), mapfileExtension(), readExtension(readOptions), trapExtension(trapOptions)];
+  const extensions: readonly ShellExtension[] = [arraysExtension(), jobsExtension(), mapfileExtension({ replace: true }), readExtension(readOptions), trapExtension(trapOptions)];
   const shell = new Shell({ fs, extensions }).use(agentCommands());
   try {
     for (const plugin of plugins) shell.use(plugin);

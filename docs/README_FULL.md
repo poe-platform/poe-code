@@ -190,3 +190,15 @@ Each package README documents its public environment variables and configuration
 - Research notes: [docs/research](research/README.md)
 
 Plans are working documents. Package READMEs and this reference are the user-facing docs for shipped behavior.
+
+## Updates and managed worktrees
+
+`poe-code update` detects npm, Bun, pnpm, or Yarn from the runtime environment and runs the matching global installer. `--package-manager` overrides detection; `--force` runs the installer even when the installed version is current. `--no-version-check` skips the registry check. `--dry-run` prints the planned installer command without checking the registry or running it.
+
+Gaslight, Pipeline, Ralph, Experiment, and the supported harness runners accept `--worktree`. A managed run requires a clean source checkout, records its worktree in `.poe-code/worktrees.yaml`, and reconciles successful output back to the source checkout. Failed or conflicted runs remain available for inspection and recovery. Use `poe-code worktree list`, `worktree reconcile <name> --agent <agent>`, and `worktree remove <name> [--delete-branch]` to manage them.
+
+The SDK exposes `runInWorktree`, `runWithOptionalWorktree`, `createManagedWorktree`, `listManagedWorktrees`, `reconcileManagedWorktree`, and `removeManagedWorktree`. `spawn` and the workflow SDK runners accept `worktree: true`. See the [worktree package](../packages/worktree/README.md) for its lower-level dependency-injected API.
+
+Gaslight can process multiple plans with `--plans` and derive follow-ups from local traces with `gaslight ingest --sources claude,codex --since 30d`. Completed plans remain in place unless archiving is enabled. Resume a reported thread with `poe-code spawn <agent> "Continue" --resume-thread-id <thread-id>`.
+
+Install an existing local skill file with `poe-code skill install claude-code --name review-helper --file ./SKILL.md --local`. Cursor spawning uses the user's authenticated Cursor installation; it is not a Poe API routing example.

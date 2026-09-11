@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const spacing = new String('unused');
+  spacing.toString = () => '--';
+  const json = JSON.stringify({ value: 1 }, null, spacing);
+  if (json !== '{\n--"value": 1\n}') throw new Error('Boxed spacing conversion mismatch');
+  const compact = JSON.stringify({ value: 1 }, null, { toString() { throw new Error('must not coerce'); } });
+  if (compact !== '{"value":1}') throw new Error('Ignored spacing mismatch');
+  delete spacing.toString;
+  await 0;
+  return { ok: true, title: frontmatter.title, json, compact };
+}

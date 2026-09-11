@@ -1,3 +1,4 @@
+import { visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -48,6 +49,7 @@ export function AS_UNREACHABLE(source: string, options: { filename?: string } = 
 
 class ASUnreachableScanner {
   private readonly diagnostics: Diagnostic[] = [];
+  private breakTargets = new Map<string, { reached: boolean }>();
 
   constructor(private readonly filename: string) {}
 
@@ -80,7 +82,14 @@ class ASUnreachableScanner {
   }
 
   private visitStatement(node: Statement): boolean {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return false;
+    }
     switch (node.type) {
+      case "WithStatement":
+        this.visitExpression(node.object);
+        return this.visitStatement(node.body);
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
         return false;
@@ -119,13 +128,19 @@ class ASUnreachableScanner {
         this.visitThrowStatement(node);
         return true;
       case "BreakStatement":
+        if (node.label !== undefined) {
+          const target = this.breakTargets.get(node.label);
+          if (target !== undefined) target.reached = true;
+        }
+        return true;
       case "ContinueStatement":
         return true;
       case "ExportNamedDeclaration":
         this.visitVariableDeclaration(node.declaration);
         return false;
       case "ExportDefaultDeclaration":
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return false;
       case "ImportDeclaration":
       case "EmptyStatement":
@@ -134,7 +149,11 @@ class ASUnreachableScanner {
   }
 
   private visitBlock(node: BlockStatement): boolean {
-    return this.visitStatements(node.body);
+    const target = { reached: false };
+    for (const label of node.labels ?? []) this.breakTargets.set(label, target);
+    const terminated = this.visitStatements(node.body);
+    for (const label of node.labels ?? []) this.breakTargets.delete(label);
+    return terminated && !target.reached;
   }
 
   private visitIfStatement(node: IfStatement): boolean {
@@ -228,6 +247,10 @@ class ASUnreachableScanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -237,6 +260,10 @@ class ASUnreachableScanner {
       case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
+        return;
+      case "ImportExpression":
+        this.visitExpression(node.source);
+        if (node.options !== undefined) this.visitExpression(node.options);
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -285,12 +312,18 @@ class ASUnreachableScanner {
   }
 
   private visitArrowFunction(node: FunctionNode): void {
-    if (node.body.type === "BlockStatement") {
-      this.visitBlock(node.body);
-      return;
-    }
+    const outerTargets = this.breakTargets;
+    this.breakTargets = new Map();
+    try {
+      if (node.body.type === "BlockStatement") {
+        this.visitBlock(node.body);
+        return;
+      }
 
-    this.visitExpression(node.body);
+      this.visitExpression(node.body);
+    } finally {
+      this.breakTargets = outerTargets;
+    }
   }
 
   private visitArrayExpression(node: ArrayExpression): void {

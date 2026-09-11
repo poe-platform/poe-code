@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const source = [3, 1, 2];
+  const counts = [Array.prototype.toReversed.length, Array.prototype.toSorted.length,
+    Array.prototype.toSpliced.length, Array.prototype.with.length];
+  await 0;
+  const results = [source.toSorted(), source.toReversed(), source.toSpliced(1, 1, 7), source.with(-1, 9)];
+  if (counts.join() !== "0,1,2,2" || results.map(value => value.join()).join(";") !== "1,2,3;2,1,3;3,7,2;3,1,9" || source.join() !== "3,1,2") {
+    throw new Error("Array metadata or copy-method regression");
+  }
+  return { title: frontmatter.title, ok: true, counts, results };
+};

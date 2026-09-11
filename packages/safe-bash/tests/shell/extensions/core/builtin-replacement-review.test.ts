@@ -83,9 +83,13 @@ test("replacement review: replacement authority is revalidated for forked frames
     fork() { return { builtins: [{ name: "read", execute() { executions++; return 0; } }] }; },
   }) }]);
   try {
-    const result = await shell.exec("(read)");
+    const failures: unknown[] = [];
+    const result = await shell.exec("(read)", { onInternalError(error) { failures.push(error); } });
     assert.equal(result.exitCode, 1);
-    assert.equal(result.stderr, "shell: line 1: Extension builtin conflicts with existing builtin: read\n");
+    assert.equal(result.stderr, "shell: line 1: internal error\n");
+    assert.equal(failures.length, 1);
+    assert.ok(failures[0] instanceof TypeError);
+    assert.equal(failures[0].message, "Extension builtin conflicts with existing builtin: read");
     assert.equal(executions, 0);
   } finally { await shell.dispose(); }
 });

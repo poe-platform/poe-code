@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const letter = String.fromCharCode({ valueOf() { return 65; } });
+  const emoji = String.fromCodePoint({
+    [Symbol.toPrimitive](hint) {
+      if (hint !== "number") throw new Error("Incorrect coercion hint");
+      return 0x1f34b;
+    }
+  });
+  if (letter !== "A" || emoji !== "🍋") throw new Error("String factory validation failed");
+  return { title: frontmatter.title, ok: true, letter, emoji };
+};

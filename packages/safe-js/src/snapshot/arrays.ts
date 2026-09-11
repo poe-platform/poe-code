@@ -1,6 +1,9 @@
+import type { SerializedSymbolProperty } from "./symbols.js";
+
 export type SerializedArray<TValue> =
+  ({ symbolEntries?: Array<SerializedSymbolProperty<TValue>> } & (
   | { kind: "array"; items: TValue[] }
-  | { kind: "array"; length: number; entries: Record<string, TValue> };
+  | { kind: "array"; length: number; entries: Record<string, TValue> }));
 
 export function requiresArrayEntries(value: unknown[]): boolean {
   const keys = Object.keys(value);

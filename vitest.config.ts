@@ -122,7 +122,7 @@ export default defineConfig({
   },
   test: {
     silent: "passed-only",
-    reporters: ["dot"],
+    reporters: [path.resolve(__dirname, "scripts/vitest-immediate-reporter.mjs")],
     globals: true,
     environment: "node",
     pool: "threads",
@@ -140,7 +140,8 @@ export default defineConfig({
       "scripts/**/*.lifecycle.test.ts",
       "**/*.e2e.test.ts" // E2E tests run separately
     ],
-    maxWorkers: 2,
+    // Keep local native replay checks serial; CI retains its two-worker schedule.
+    maxWorkers: process.env.npm_package_name === "@poe-code/safe-js" && !process.env.CI ? 1 : 2,
     setupFiles: ["tests/setup.ts"]
   }
 });

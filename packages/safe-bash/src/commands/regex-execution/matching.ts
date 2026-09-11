@@ -1,8 +1,9 @@
+import { PublicDiagnostic } from "../../diagnostics.js";
 import { isAscii } from "node:buffer";
-import type { Descriptor, GrepDescriptor, SearchDescriptor, Match, Row } from "./protocol.js";
+import { matchRangeLimits, type Descriptor, type GrepDescriptor, type SearchDescriptor, type Match, type Row } from "./protocol.js";
 
-class SearchError extends Error {}
-class UsageError extends Error {}
+class SearchError extends PublicDiagnostic {}
+class UsageError extends PublicDiagnostic {}
 
 
 function decode(bytes: Uint8Array): { text: string; offsets: number[]; invalid: number[] } {
@@ -53,7 +54,7 @@ class SearchMatcher {
     if (args.whole) source = `^(?:${source})$`;
     else if (args.word) source = `(?<![\\p{L}\\p{N}\\p{M}\\p{Pc}\\u200c\\u200d])(?:${source})(?![\\p{L}\\p{N}\\p{M}\\p{Pc}\\u200c\\u200d])`;
     try { this.regex = new RegExp(source, `gu${insensitive ? "i" : ""}`); }
-    catch (error) { throw new SearchError(`invalid or unsupported regular expression: ${error instanceof Error ? error.message : String(error)}`); }
+    catch (error) { if (!(error instanceof SyntaxError)) throw error; throw new SearchError(`invalid or unsupported regular expression: ${error.message}`); }
   }
   private fragmentRegex(atStart: boolean, atEnd: boolean): RegExp {
     if (atStart && atEnd) return this.regex!;
@@ -77,7 +78,7 @@ class SearchMatcher {
     if (!this.regex) return [];
     if (this.byteEmpty) {
       const length = all ? bytes.length + Number(terminated) : 1;
-      if (length > 100000) throw new SearchError("matches per line limit exceeded");
+      if (length > matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
       return Array.from({ length }, (_value, offset) => ({ start: offset, end: offset }));
     }
     const { text, offsets, invalid } = isAscii(bytes) ? { text: Buffer.from(bytes).toString("ascii"), offsets: undefined, invalid: [] } : decode(bytes);
@@ -95,8 +96,10 @@ class SearchMatcher {
         const last = first + match[0].length;
         const start = offsets?.[first] ?? first;
         const end = offsets?.[last] ?? last;
-        if (start !== end || start !== previousEnd) matches.push({ start, end });
-        if (matches.length > 100000) throw new SearchError("matches per line limit exceeded");
+        if (start !== end || start !== previousEnd) {
+          if (matches.length >= matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
+          matches.push({ start, end });
+        }
         if (!all && matches.length) return matches;
         previousEnd = end;
         if (match[0].length === 0) {
@@ -142,7 +145,10 @@ function grepMatcher(args: GrepDescriptor): (bytes: Uint8Array, all: boolean) =>
     let source = args.fixed ? escaped(pattern) : expression(pattern, args.extended);
     if (args.whole) source = `^(?:${source})$`;
     try { return new RegExp(source, args.insensitive ? "gi" : "g"); }
-    catch { throw new UsageError(`invalid regular expression '${pattern}'`); }
+    catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      throw new UsageError(`invalid regular expression '${pattern}'`);
+    }
   });
   return (bytes, all) => {
     const text = Buffer.from(bytes).toString("latin1");
@@ -153,6 +159,7 @@ function grepMatcher(args: GrepDescriptor): (bytes: Uint8Array, all: boolean) =>
       while ((match = matcher.exec(text)) !== null) {
         const boundary = !args.word || !/[A-Za-z0-9_]/u.test(text[match.index - 1] ?? "") && !/[A-Za-z0-9_]/u.test(text[match.index + match[0].length] ?? "");
         if (boundary) {
+          if (ranges.length >= matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
           ranges.push({ start: match.index, end: match.index + match[0].length });
           if (!all) return ranges;
         }
@@ -216,7 +223,7 @@ function globMatcher(source: string, insensitive: boolean, literalUnclosedClass:
   if (source.startsWith("/")) source = source.slice(1);
   let regex: RegExp;
   try { regex = new RegExp(`${anchored ? "^" : "(?:^|/)"}${globSource(source, literalUnclosedClass)}$`, insensitive ? "ui" : "u"); }
-  catch (error) { throw new SearchError(`invalid glob: ${error instanceof Error ? error.message : String(error)}`); }
+  catch (error) { if (!(error instanceof SyntaxError) && !(error instanceof PublicDiagnostic)) throw error; throw new SearchError(`invalid glob: ${error.message}`); }
   return row => {
     const path = Buffer.from(row.bytes).toString("utf16le");
     if ((!directory || row.directory) && regex.test(path)) return [{ start: 0, end: 0 }];

@@ -219,3 +219,80 @@ test("node uses each supplied runtime and propagates syntax and runtime failures
     assert.equal((await shell.exec("node -e 'process.exitCode = 256'")).exitCode, 1);
   } finally { await shell.dispose(); }
 });
+
+for (const [reason, exitCode] of [
+  [new Error("private runtime failure"), 1], [undefined, 1], [null, 1], [false, 1], [0, 1], ["", 1],
+  [Object.assign(new Error("private runtime metadata"), { name: "ParseError", code: "budgetExceeded" }), 124],
+] as const) {
+  test(`node keeps thrown host failures opaque and reports their original identity: ${String(reason)}`, async () => {
+    const internalErrors: unknown[] = [];
+    const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError(error) { internalErrors.push(error); } }).use(nodeCommands({ runtime: {
+      ...runtime, async run() { throw reason; },
+    } }));
+    try {
+      const result = await shell.exec("node -e '1'");
+      assert.equal(result.exitCode, exitCode);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "node: internal error\n");
+      assert.equal(internalErrors.length, 1);
+      assert.equal(internalErrors[0], reason);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("node keeps explicitly returned guest failures public", async () => {
+  const internalErrors: unknown[] = [];
+  const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError(error) { internalErrors.push(error); } }).use(nodeCommands({ runtime: {
+    ...runtime, async run() { return { ok: false, error: { name: "Error", message: "guest failure" } }; },
+  } }));
+  try {
+    const result = await shell.exec("node -e '1'");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "node: guest failure\n");
+    assert.deepEqual(internalErrors, []);
+  } finally { await shell.dispose(); }
+});
+
+for (const [source, exitCode] of [["const =", 2], ["while (true) {}", 124], ['throw new Error("guest failure")', 1]] as const) {
+  test(`node keeps actual runtime rejections opaque with their original status: ${source}`, async () => {
+    const rejections: unknown[] = [];
+    const internalErrors: unknown[] = [];
+    const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError(error) { internalErrors.push(error); } }).use(nodeCommands({
+      runtime: { ...runtime, async run(...args) {
+        try { return await run(...args); }
+        catch (error) { rejections.push(error); throw error; }
+      } },
+      limits: { maxSteps: 30 },
+    }));
+    try {
+      const result = await shell.exec(`node -e ${quote(source)}`);
+      assert.equal(result.exitCode, exitCode);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "node: internal error\n");
+      assert.equal(rejections.length, 1);
+      assert.equal(internalErrors.length, 1);
+      assert.equal(internalErrors[0], rejections[0]);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [name, code, exitCode] of [["ParseError", "", 2], ["ParseError", "budgetExceeded", 124]] as const) {
+  test(`node classifies own rejection status fields without reading message: ${exitCode}`, async () => {
+    let messageReads = 0;
+    const reason = { name, code, get message() { messageReads += 1; throw new Error("private message getter"); } };
+    const internalErrors: unknown[] = [];
+    const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError(error) { internalErrors.push(error); } }).use(nodeCommands({ runtime: {
+      ...runtime, async run() { throw reason; },
+    } }));
+    try {
+      const result = await shell.exec("node -e '1'");
+      assert.equal(result.exitCode, exitCode);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "node: internal error\n");
+      assert.equal(messageReads, 0);
+      assert.equal(internalErrors.length, 1);
+      assert.equal(internalErrors[0], reason);
+    } finally { await shell.dispose(); }
+  });
+}

@@ -1,4 +1,10 @@
-import { createSandboxClosure, type SandboxObject } from "../values.js";
+import { createSandboxClosure, isSandboxClosure, type SandboxObject, type SandboxValue, type SandboxCallContext } from "../values.js";
+import { Budget } from "../budget.js";
+import { sandboxNumber } from "../string-coercion.js";
+import { retainValues } from "../resources.js";
+import { registerBuiltinIdentities } from "../intrinsics.js";
+import { createIntrinsicObject, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
+import { sumPrecise } from "./math-sum-precise.js";
 
 const mathMethods = {
   abs: Math.abs,
@@ -38,7 +44,7 @@ const mathMethods = {
   trunc: Math.trunc
 } satisfies Record<string, (...args: number[]) => number>;
 
-function f16round(value: number): number {
+export function f16round(value: number): number {
   const number = +value;
   if (!Number.isFinite(number) || number === 0) {
     return number;
@@ -72,6 +78,7 @@ export type SeededRandom = {
 
 export type MathGlobalsOptions = {
   random?: () => number;
+  budget?: Budget;
 };
 
 export type MathGlobals = {
@@ -82,7 +89,8 @@ export type MathGlobals = {
 
 export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals {
   const random = options.random ?? Math.random;
-  const mathObject: SandboxObject = {
+  const budget = options.budget ?? new Budget();
+  const mathObject = createIntrinsicObject({
     E: Math.E,
     LN2: Math.LN2,
     LN10: Math.LN10,
@@ -91,22 +99,81 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
     PI: Math.PI,
     SQRT1_2: Math.SQRT1_2,
     SQRT2: Math.SQRT2,
-    random: createSandboxClosure({ sandbox: true, call: () => random(), name: "random" })
-  };
+    random: createSandboxClosure({ sandbox: true, guest: true, call: () => random(), name: "random", length: 0 }),
+    sumPrecise: createSandboxClosure({
+      sandbox: true, guest: true, name: "sumPrecise", length: 1,
+      call: ([source], context) => sumPrecise(source, budget, context)
+    })
+  });
 
   for (const [name, method] of Object.entries(mathMethods)) {
+    const variadic = method === Math.max || method === Math.min || method === Math.hypot;
     mathObject[name] = createSandboxClosure({
       sandbox: true,
-      call: (args) => Reflect.apply(method, Math, args as number[]),
+      guest: true,
+      length: method.length,
+      call: (args, context) => callNumericMethod(method, args, variadic, budget, context),
       name
     });
   }
+
+  for (const [name, value] of Object.entries(mathObject)) {
+    const constant = typeof value === "number";
+    Object.defineProperty(mathObject, name, {
+      enumerable: false,
+      writable: !constant,
+      configurable: !constant
+    });
+  }
+  Object.defineProperty(mathObject, Symbol.toStringTag, { value: "Math", configurable: true });
+  registerBuiltinIdentities(budget, { Math: mathObject });
+  for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(mathObject))) {
+    if (isSandboxClosure(descriptor.value)) registerIntrinsicFunction(budget, descriptor.value);
+  }
+  registerIntrinsicObject(budget, mathObject);
 
   return {
     Infinity,
     Math: mathObject,
     NaN: Number.NaN
   };
+}
+
+function callNumericMethod(
+  method: (...args: number[]) => number,
+  args: readonly SandboxValue[],
+  variadic: boolean,
+  budget: Budget,
+  context?: SandboxCallContext
+): number | Promise<number> {
+  const count = variadic ? args.length : Math.min(args.length, method.length);
+  const numbers: number[] = [];
+  const release = retainValues(budget, () => [...args, numbers]);
+  try {
+    const result = advance();
+    if (result instanceof Promise) return result.finally(release);
+    release();
+    return result;
+  } catch (error) {
+    release();
+    throw error;
+  }
+
+  function advance(): number | Promise<number> {
+    while (numbers.length < count) {
+      budget.visitNode();
+      const input = args[numbers.length];
+      const number = context === undefined
+        ? +(input as number)
+        : sandboxNumber(input, budget, context);
+      if (number instanceof Promise) return number.then(value => {
+        numbers.push(value);
+        return advance();
+      });
+      numbers.push(number);
+    }
+    return Reflect.apply(method, Math, numbers);
+  }
 }
 
 export function createSeededRandom(seed: number): SeededRandom {

@@ -1,0 +1,9 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const values = new Float32Array([1234.5, 2]);
+  await 0;
+  const result = values.toLocaleString("de-DE", { minimumFractionDigits: 2 });
+  if (result !== "1.234,50,2,00") throw new Error("Typed-array locale formatting regression");
+  return { title: frontmatter.title, ok: true, result };
+};

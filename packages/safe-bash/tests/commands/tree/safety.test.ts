@@ -152,7 +152,9 @@ test("pre-aborted invocation and abort during stdout produce no fallback diagnos
 });
 
 test("actual Shell charges output through shared sinks across two tree invocations", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(treeCommands());
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/fixture");
+  const shell = new Shell({ fs, cwd: "/fixture" }).use(treeCommands());
   try {
     assert.equal((await shell.exec("tree --noreport", { limits: { maxOutputBytes: 2 } })).stdout, ".\n");
     await assert.rejects(shell.exec("tree --noreport; tree --noreport", { limits: { maxOutputBytes: 3 } }),
@@ -184,6 +186,6 @@ test("stdin and file content are unused, genuine ELOOP is an error, diagnostics 
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /too many symbolic links/u);
   assert.match(JSON.parse(result.stdout)[0].contents[0].error, /too many symbolic links/u);
-  const hugeError = wrapped(backing, { async lstat() { throw new Error("x".repeat(1000)); } });
+  const hugeError = wrapped(backing, { async lstat() { throw new FsError("EIO", { message: "x".repeat(1000) }); } });
   await assert.rejects(run([], { limits: { maxPathBytes: 100 } }, { fs: hugeError }), /path\/name limit/u);
 });

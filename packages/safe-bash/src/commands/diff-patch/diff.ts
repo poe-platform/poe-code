@@ -1,4 +1,5 @@
-import { basename, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
+import { basename, writeBytes, type CommandContext } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 import { Budget, ToolError, definition, host, inspect, type DiffPatchOptions } from "./shared.js";
 import { contextual, normal, type Edit } from "./diff-format.js";
 
@@ -202,7 +203,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const names = new Set<string>();
       for (const path of [leftStat ? left : undefined, rightStat ? right : undefined]) {
         if (path === undefined) continue;
-        const entries = await host(context, () => context.fs.readdir(resolvePath(context.cwd, path), { signal: context.signal }));
+        const entries = await host(context, () => context.fs.readdir(pathOf(context, path), { signal: context.signal }));
         for (const entry of entries) {
           budget.step();
           if (!entry.name || entry.name === "." || entry.name === ".." || /[\/\\\0\r\n\t]/u.test(entry.name)) throw new ToolError("unsafe directory entry name");
@@ -216,7 +217,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const read = async (path: string, exists: boolean) => {
       if (!exists) return "";
       if (path === "-") return stdin ??= await budget.read("-");
-      return budget.read(resolvePath(context.cwd, path));
+      return budget.read(pathOf(context, path));
     };
     const oldText = await read(left, !!leftStat);
     const newText = await read(right, !!rightStat);

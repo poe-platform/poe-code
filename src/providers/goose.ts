@@ -70,10 +70,6 @@ export const GOOSE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   successMessage: "Installed Goose CLI."
 };
 
-/**
- * The models written into Goose's custom provider catalog: just the selected
- * model when configure resolved one, otherwise the offered defaults.
- */
 function buildCustomProvider(
   baseUrl: string
 ): ConfigObject {
@@ -154,11 +150,17 @@ export const gooseService = createProvider<
       fileMutation.backup({ target: CUSTOM_PROVIDER_FILE, once: true }),
       fileMutation.backup({ target: GOOSE_CONFIG_FILE, once: true }),
       fileMutation.backup({ target: GOOSE_SECRETS_FILE, once: true }),
-      configMutation.merge({
+      configMutation.transform({
         target: CUSTOM_PROVIDER_FILE,
-        value: (ctx) => {
+        transform: (document, ctx) => {
           const { provider } = (ctx ?? {}) as unknown as GooseConfigureContext;
-          return buildCustomProvider(provider?.baseUrl ?? "");
+          const content: ConfigObject = {
+            ...document,
+            ...buildCustomProvider(provider?.baseUrl ?? ""),
+            // Goose requires the catalog field even when selection is per run.
+            models: document.models ?? []
+          };
+          return { content, changed: JSON.stringify(document) !== JSON.stringify(content) };
         }
       }),
       configMutation.merge({

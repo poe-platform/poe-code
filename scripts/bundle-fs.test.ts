@@ -6,6 +6,17 @@ vi.mock(
   () => import("../packages/package-lint/src/bundle-policy.js")
 );
 
+it("builds the explicit workerd runtime separately from Node filesystem publishers", async () => {
+  const { resolveWorkerdRuntimeBuild } = await import("./bundle-fs.mjs");
+  const options = resolveWorkerdRuntimeBuild("/repo", { alias: { fs: "public-fs" }, external: ["public-fs"] });
+  expect(options).toMatchObject({
+    entryPoints: { workerd: "/repo/packages/safe-js/src/workerd.ts" },
+    alias: { fs: "public-fs" }, external: ["public-fs"],
+    conditions: ["workerd"], platform: "node", splitting: false,
+    write: false, outdir: "/repo/packages/safe-js/dist",
+  });
+});
+
 it("externalizes exactly the three canonical routes without flattening core or node", () => {
   const result = resolveConsumerGraph(
     {
@@ -65,4 +76,44 @@ it("keeps Node SafeJS and all Node FS roots in one publisher-managed split build
     "safe-fs": "/repo/packages/safe-fs/src/core.ts",
     "safe-fs-core": "/repo/packages/safe-fs/src/core.ts"
   });
+});
+
+it("externalizes the registered native loader only in the Node canonical profile", async () => {
+  const { resolveCanonicalFsBuilds } = await import("./bundle-fs.mjs");
+  const builds = resolveCanonicalFsBuilds("/repo", { alias: {}, external: ["node:*"] }, {}, {
+    specifier: "#safe-fs-native-seek",
+  });
+  expect(builds.node.external).toEqual(["node:*", "#safe-fs-native-seek"]);
+  expect(builds.browser.external).toEqual([]);
+});
+
+it("publishes separately built runtimes without pruning live canonical filesystem chunks", async () => {
+  const { createFsFromVolume, Volume } = await import("memfs");
+  const { publishBundleOutputs } = await import("./publish-bundle.mjs");
+  const { resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild, mergeRuntimeBundleOutputs } = await import("./bundle-fs.mjs");
+  const graph = { alias: {}, external: [] };
+  const node = resolveCanonicalFsBuilds("/repo", graph, { index: "/repo/packages/safe-js/src/index.ts" }).node;
+  const workerd = resolveWorkerdRuntimeBuild("/repo", graph);
+  const chunk = "packages/safe-js/dist/chunks/canonical-NEW.js";
+  const makeResult = (outputs: Record<string, { entryPoint?: string; imports?: { path: string }[] }>) => ({
+    metafile: { inputs: {}, outputs: Object.fromEntries(Object.entries(outputs).map(([name, output]) => [name, { imports: [], ...output }])) },
+    outputFiles: Object.keys(outputs).map(filename => ({ path: "/repo/" + filename, contents: new TextEncoder().encode(filename) })),
+  });
+  const nodeResult = makeResult({
+    ...Object.fromEntries(Object.entries(node.entryPoints).map(([name, source]) => [
+      `packages/safe-js/dist/${name}.js`, { entryPoint: source.slice("/repo/".length), imports: [{ path: chunk }] },
+    ])),
+    [chunk]: {},
+  });
+  const workerdResult = makeResult({ "packages/safe-js/dist/workerd.js": { entryPoint: "packages/safe-js/src/workerd.ts" } });
+  const volume = Volume.fromJSON({ "/repo/packages/safe-js/dist/chunks/stale.js": "old" });
+  await publishBundleOutputs(mergeRuntimeBundleOutputs(nodeResult, workerdResult), {
+    outdir: node.outdir,
+    entryPoints: [...Object.values(node.entryPoints), ...Object.values(workerd.entryPoints)],
+    workingDirectory: "/repo",
+  }, createFsFromVolume(volume).promises);
+  expect(volume.existsSync("/repo/" + chunk)).toBe(true);
+  expect(volume.existsSync("/repo/packages/safe-js/dist/workerd.js")).toBe(true);
+  expect(volume.existsSync("/repo/packages/safe-js/dist/safe-fs.js")).toBe(true);
+  expect(volume.existsSync("/repo/packages/safe-js/dist/chunks/stale.js")).toBe(false);
 });

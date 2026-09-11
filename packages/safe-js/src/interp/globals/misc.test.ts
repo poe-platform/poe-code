@@ -89,7 +89,7 @@ describe("createMiscGlobals", () => {
     expect(clonedLeaf[0]).toBe(clone);
   });
 
-  it("preserves shared references and null prototypes", () => {
+  it("preserves shared references and normalizes null prototypes like native structuredClone", () => {
     const globals = createMiscGlobals({ budget: new Budget() });
     const shared = ["value"];
     const source = Object.assign(Object.create(null) as Record<string, SandboxValue>, {
@@ -99,7 +99,7 @@ describe("createMiscGlobals", () => {
 
     const clone = call(globals.structuredClone, source) as Record<string, SandboxValue>;
 
-    expect(Object.getPrototypeOf(clone)).toBeNull();
+    expect(Object.getPrototypeOf(clone)).toBe(Object.getPrototypeOf(structuredClone(source)));
     expect(clone.first).toBe(clone.second);
     expect(clone.first).not.toBe(shared);
   });
@@ -131,10 +131,11 @@ describe("createMiscGlobals", () => {
     const closure = createSandboxClosure({ call: () => undefined, name: "callback" });
     const promise = createSandboxPromise(Promise.resolve("done"));
 
-    expect(() => call(globals.structuredClone, closure)).toThrow(TypeError);
-    expect(() => call(globals.structuredClone, { nested: closure })).toThrow(TypeError);
-    expect(() => call(globals.structuredClone, promise)).toThrow(TypeError);
-    expect(() => call(globals.structuredClone, [promise])).toThrow(TypeError);
+    for (const value of [closure, { nested: closure }, promise, [promise]]) {
+      expect(() => call(globals.structuredClone, value)).toThrowError(
+        expect.objectContaining({ name: "DataCloneError", code: 25 })
+      );
+    }
   });
 
   it("charges budgets for cloned strings and arrays", () => {

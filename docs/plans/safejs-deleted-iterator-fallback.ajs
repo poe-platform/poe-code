@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({title:S.String(),text:S.String()});
+
+export default async (frontmatter) => {
+  delete String.prototype[Symbol.iterator];
+  let rejected=false;
+  try { [...frontmatter.text]; } catch(error) { rejected=error.name==='TypeError'; }
+  await 0;
+  const indexed=await Array.fromAsync(frontmatter.text);
+  if (!rejected || indexed.length!==4 || indexed.join('')!==frontmatter.text)
+    throw new Error('Deleted string iterator did not use the correct consumer fallback');
+  delete Set.prototype[Symbol.iterator];
+  const empty=Array.from(new Set([2,4]));
+  if (empty.length!==0) throw new Error('Deleted Set iterator was resurrected');
+  return {title:frontmatter.title,ok:true,rejected,indexedLength:indexed.length};
+};

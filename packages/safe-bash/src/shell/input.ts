@@ -1,9 +1,9 @@
 import { FsError, toByteSource } from "../contracts/index.js";
-import type { ByteSource, FileSystem } from "../contracts/index.js";
+import type { ByteSource, CommandInput, FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, InvocationCleanup } from "../contracts/index.js";
 import { monotonicNow, yieldTurn } from "../contracts/yield.js";
 import { Budget, interruptible } from "./runtime.js";
-import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
-import type { ShellValue, ValueReservation } from "../contracts/value.js";
+import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
 import type { ValueScope } from "./value-state.js";
 import type { CommandContext } from "../contracts/command.js";
 import { openCommandFile, type CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
@@ -11,7 +11,7 @@ import type { ShellReadProbe } from "./extensions.js";
 
 export interface PreparedShellInput {
   readonly source: ByteSource;
-  readonly options: Pick<ShellInputOptions, "provenance" | "poll" | "eof" | "descriptor">;
+  readonly options: Pick<ShellInputOptions, "provenance" | "poll" | "eof" | "descriptor"> & InputProvenance;
   close(): Promise<void>;
 }
 
@@ -81,7 +81,7 @@ export function prepareBytesInput(value: string | Uint8Array, budget: Budget): P
         sent = true;
         return { done: false, value: bytes };
       },
-      async return() { await close(); return { done: true, value: undefined }; },
+      async return() { await close(); return { done: true as const, value: undefined }; },
     };
     return Object.freeze({ source, close, options: Object.freeze({ provenance: "stream", poll: () => {
       budget.signal.throwIfAborted();
@@ -96,6 +96,8 @@ export async function prepareFileInput(
     & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined },
   path: string,
   budget: Budget,
+  inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = context.fs,
+  admittedStat?: FileStat,
 ): Promise<PreparedShellInput> {
   const { fs, signal: parent, registerCleanup: register, cleanupFailurePrioritySignal } = context;
   const registerCleanup = register.bind(context);
@@ -104,10 +106,13 @@ export async function prepareFileInput(
   const readSignal = AbortSignal.any([signal, readerController.signal]);
   let descriptor: CommandFileDescriptor | undefined;
   let legacy: AsyncIterator<Uint8Array> | undefined;
+  let legacySource: (ByteSource & InputProvenance) | undefined;
+  let stat: FileStat | undefined;
   let accepting = true;
   let ended = false;
   let buffer: InputBufferLease | undefined;
   let size = 0;
+  let pendingReads = 0;
   let work: Promise<void> = Promise.resolve();
   let admitted!: () => void;
   const acquisition = new Promise<void>(resolve => { admitted = resolve; });
@@ -115,7 +120,7 @@ export async function prepareFileInput(
   let teardownFailed = false;
   const close = (): Promise<void> => {
     accepting = false;
-    if (!readerController.signal.aborted) readerController.abort(new FsError("EBADF", { syscall: "read", path }));
+    if (pendingReads && !readerController.signal.aborted) readerController.abort(new FsError("EBADF", { syscall: "read", path }));
     closing ??= (async () => {
       await acquisition;
       await work;
@@ -129,6 +134,7 @@ export async function prepareFileInput(
       } finally {
         descriptor = undefined;
         legacy = undefined;
+        legacySource = undefined;
         buffer?.release();
         buffer = undefined;
         signal.removeEventListener("abort", aborted);
@@ -159,29 +165,40 @@ export async function prepareFileInput(
     if (capabilities.open === true || capabilities.open !== false && typeof fs.open === "function") {
       descriptor = await openCommandFile({ fs, signal, registerCleanup, cleanupFailurePrioritySignal }, path, { access: "read", signal });
     } else {
-      const source = await fileInput(fs, path, budget.limits.maxInputBytes, readSignal);
-      legacy = source[Symbol.asyncIterator]();
+      stat = admittedStat ?? await fs.stat(path, { signal });
+      check();
+      legacySource = await fileInput(fs, path, budget.limits.maxInputBytes, readSignal, inputProfile, { stat, registerCleanup });
+      legacy = legacySource[Symbol.asyncIterator]();
+      stat = legacySource.stat ?? stat;
     }
     check();
     if (descriptor) {
-      const stat = await descriptor.stat({ signal });
+      stat = await descriptor.stat({ signal });
       check();
-      if (stat.type === "directory") throw new FsError("EISDIR", { syscall: "read", path });
-      provenance = stat.type === "file" ? "regular" : stat.type === "character" ? "stream" : "unknown";
     }
-    const source: AsyncIterableIterator<Uint8Array> = {
-      [Symbol.asyncIterator]() { return this; },
-      next() {
-        try { signal.throwIfAborted(); if (ended) return Promise.resolve({ done: true, value: undefined }); check(); }
+    if (stat) {
+      if (stat.type === "directory") throw new FsError("EISDIR", { syscall: "read", path });
+      if (descriptor || legacySource?.stat) provenance = stat.type === "file" ? "regular" : stat.type === "character" ? "stream" : "unknown";
+    }
+    const source = {
+      [Symbol.asyncIterator](): AsyncIterableIterator<Uint8Array> { return this; },
+      next(maximum = 64 * 1024): Promise<IteratorResult<Uint8Array>> {
+        try {
+          signal.throwIfAborted();
+          if (!Number.isSafeInteger(maximum) || maximum <= 0) throw new RangeError("Input chunk size must be a positive safe integer");
+          if (ended) return Promise.resolve({ done: true, value: undefined });
+          check();
+        }
         catch (error) { return Promise.reject(error); }
+        pendingReads++;
         const operation = work.then(async (): Promise<IteratorResult<Uint8Array>> => {
           signal.throwIfAborted();
           if (ended) return { done: true, value: undefined };
           check();
           if (legacy) {
-            const result = await legacy.next();
+            const result = await (legacySource?.readChunk ? legacySource.readChunk(maximum) : legacy.next());
             check();
-            ended = result.done === true;
+            ended = result.done === true && provenance !== "regular";
             return result;
           }
           if (!buffer) {
@@ -190,7 +207,7 @@ export async function prepareFileInput(
           }
           const bytes = buffer.bytes!;
           const remaining = budget.limits.maxInputBytes - size;
-          const chunk = bytes.subarray(0, remaining >= bytes.length ? bytes.length : remaining + 1);
+          const chunk = bytes.subarray(0, Math.min(maximum, remaining >= bytes.length ? bytes.length : remaining + 1));
           const length = await descriptor!.read(chunk, null, { signal: readSignal });
           check();
           if (!Number.isSafeInteger(length) || length < 0 || length > chunk.length) throw new FsError("EIO", { syscall: "read", path });
@@ -200,7 +217,7 @@ export async function prepareFileInput(
           ended = done && provenance !== "regular";
           return done ? { done: true, value: undefined } : { done: false, value: chunk.subarray(0, length) };
         });
-        work = operation.then(() => {}, () => {});
+        work = operation.then(() => { pendingReads--; }, () => { pendingReads--; });
         return operation.then(async result => {
           if (result.done && provenance !== "regular") {
             if (legacy) await close();
@@ -214,10 +231,25 @@ export async function prepareFileInput(
           throw error;
         });
       },
-      async return() { await close(); return { done: true, value: undefined }; },
+      async return() { await close(); return { done: true as const, value: undefined }; },
     };
     admitted();
-    return Object.freeze({ source, close, options: Object.freeze({ provenance, eof: provenance === "regular" ? "retryable" : "terminal", ...(descriptor ? { descriptor } : {}) }) });
+    const seek = legacySource?.seek;
+    return Object.freeze({ source, close, options: Object.freeze({
+      provenance, eof: provenance === "regular" ? "retryable" : "terminal",
+      ...(descriptor ? { descriptor } : {}), ...(stat ? { stat } : {}),
+      readChunk: source.next.bind(source),
+      ...(seek ? { async seek(position: number, callerSignal: AbortSignal) {
+        callerSignal.throwIfAborted();
+        check();
+        await work;
+        check();
+        callerSignal.throwIfAborted();
+        await seek.call(legacySource, position, callerSignal);
+        check();
+        ended = false;
+      } } : {}),
+    }) });
   } catch (error) {
     admitted();
     try { await close(); } catch {}
@@ -226,7 +258,83 @@ export async function prepareFileInput(
   }
 }
 
-export async function fileInput(fs: FileSystem, path: string, maxBytes: number, signal: AbortSignal): Promise<ByteSource> {
+type InputProvenance = Pick<CommandInput, "stat" | "seek"> & {
+  readonly readChunk?: (maxBytes?: number) => Promise<IteratorResult<Uint8Array>>;
+};
+
+export async function fileInput(fs: FileSystem, path: string, maxBytes: number, signal: AbortSignal, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, ownership?: { stat: FileStat; registerCleanup: (cleanup: InvocationCleanup) => void }): Promise<ByteSource & InputProvenance> {
+  let admittedCapabilities: FileSystemCapabilities | undefined;
+  if (ownership?.stat.type === "file") {
+    let handle: FileReadHandle | undefined;
+    let closing: Promise<void> | undefined;
+    let closed = false;
+    const pending = new Set<Promise<unknown>>();
+    const close = (): Promise<void> => {
+      closed = true;
+      closing ??= (async () => {
+        await Promise.allSettled([...pending]);
+        await handle?.close();
+      })();
+      return closing;
+    };
+    const work = async <Value>(operation: () => Promise<Value>): Promise<Value> => {
+      signal.throwIfAborted();
+      if (closed) throw new FsError("EBADF", { path });
+      const task = Promise.resolve().then(operation);
+      pending.add(task);
+      void task.finally(() => { pending.delete(task); }).catch(() => undefined);
+      return interruptible(task, signal);
+    };
+    try {
+      const capabilities = admittedCapabilities = await work(() => Promise.resolve(fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities));
+      if (capabilities.retainedRead === true && fs.openReadFile) {
+        ownership.registerCleanup(close);
+        try {
+          await work(async () => { handle = await fs.openReadFile!(path, { signal }); });
+        } catch (error) {
+          signal.throwIfAborted();
+          if (!(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+        }
+        if (handle) {
+          const stat = await work(() => handle!.stat({ signal }));
+          signal.throwIfAborted();
+          let position = 0;
+          let size = 0;
+          const readChunk = async (maximum = 64 * 1024): Promise<IteratorResult<Uint8Array>> => {
+            const count = Math.min(maximum, 64 * 1024, maxBytes - size + 1, Number.MAX_SAFE_INTEGER - position);
+            if (count === 0) return { done: true, value: undefined };
+            const bytes = await work(async () => {
+              const result = await handle!.read(position, count, { signal });
+              if (!(result instanceof Uint8Array) || result.byteLength > count) throw new FsError("EIO", { syscall: "read", path });
+              if (result.byteLength > maxBytes - size) throw new FsError("EFBIG", { syscall: "read", path });
+              return new Uint8Array(result);
+            });
+            signal.throwIfAborted();
+            size += bytes.byteLength;
+            position += bytes.byteLength;
+            return bytes.byteLength ? { done: false, value: bytes } : { done: true, value: undefined };
+          };
+          return {
+            stat,
+            readChunk,
+            ...(stat.type === "file" ? { async seek(absolutePosition: number, callerSignal: AbortSignal) {
+              callerSignal.throwIfAborted();
+              signal.throwIfAborted();
+              if (closed) throw new FsError("EBADF", { path });
+              position = absolutePosition;
+            } } : {}),
+            [Symbol.asyncIterator]: () => ({
+              next: readChunk,
+              async return() { await close(); return { done: true, value: undefined }; },
+            }),
+          };
+        }
+      }
+    } catch (error) {
+      await close();
+      throw error;
+    }
+  }
   signal.throwIfAborted();
   async function bufferedInput(): Promise<ByteSource> {
     signal.throwIfAborted();
@@ -236,7 +344,11 @@ export async function fileInput(fs: FileSystem, path: string, maxBytes: number, 
     return toByteSource(bytes);
   }
   const readStream = fs.readStream;
-  if (!readStream || fs.capabilities.streamingRead === false) return bufferedInput();
+  const capabilities = admittedCapabilities ?? await interruptible(Promise.resolve(fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities), signal);
+  if (!readStream || capabilities.streamingRead === false) {
+    if (!inputProfile.readStream || inputProfile.capabilities.streamingRead === false) return bufferedInput();
+    return { async *[Symbol.asyncIterator]() { yield* await bufferedInput(); } };
+  }
   let iterator: AsyncIterator<Uint8Array>;
   try { iterator = readStream.call(fs, path, { signal })[Symbol.asyncIterator](); }
   catch (error) {
@@ -363,7 +475,13 @@ class InputCursor {
   readonly #eof: "terminal" | "retryable";
   readonly #poll: (() => InputReadiness) | undefined;
   readonly #clock: InputClock;
+  readonly #readChunk: InputProvenance["readChunk"];
+  readonly #budget: Budget;
+  readonly stat?: FileStat;
+  readonly seek?: CommandInput["seek"];
+  position = 0;
   remainder: Uint8Array | undefined;
+  readonly #unread: Uint8Array[] = [];
   #read: Promise<IteratorResult<Uint8Array>> | undefined;
   #readResult: IteratorResult<Uint8Array> | undefined;
   #readError: { reason: unknown } | undefined;
@@ -374,9 +492,11 @@ class InputCursor {
   #ended = false;
   #closed = false;
   #active = false;
+  #produced = 0;
+  #boundedReads = false;
 
-  constructor(source: ByteSource, options: ShellInputOptions = {}) {
-    const { provenance = "unknown", eof = "terminal", poll, clock = inputClock } = options;
+  constructor(source: ByteSource, options: ShellInputOptions & InputProvenance, budget: Budget) {
+    const { provenance = options.stat?.type === "file" ? "regular" : options.stat?.type === "character" ? "stream" : "unknown", eof = "terminal", poll, clock = inputClock } = options;
     if (provenance !== "unknown" && provenance !== "regular" && provenance !== "stream") throw new TypeError("Invalid input provenance");
     if (eof !== "terminal" && eof !== "retryable" || eof === "retryable" && provenance !== "regular") throw new TypeError("Retryable input EOF requires regular provenance");
     if (poll !== undefined && typeof poll !== "function") throw new TypeError("Invalid input polling capability");
@@ -387,16 +507,44 @@ class InputCursor {
     this.#poll = poll?.bind(options);
     this.#clock = Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
     this.#iterator = source[Symbol.asyncIterator]();
+    this.#readChunk = options.readChunk?.bind(options);
+    this.#budget = budget;
+    if (options.stat) this.stat = options.stat;
+    if (options.seek) this.seek = async (position, signal) => {
+      if (this.#read) await interruptible(this.#read, signal);
+      signal.throwIfAborted();
+      await options.seek!(position, signal);
+      this.remainder = undefined;
+      this.#unread.length = 0;
+      this.#read = undefined;
+      this.#readResult = undefined;
+      this.#readError = undefined;
+      this.#readSettled = false;
+      this.#ended = false;
+      this.position = position;
+    };
+  }
+
+  restore(chunks: readonly Uint8Array[]): void {
+    if (this.remainder) this.#unread.push(this.remainder);
+    this.remainder = undefined;
+    for (let index = chunks.length - 1; index >= 0; index--) this.#unread.push(chunks[index]!);
+  }
+
+  admitBoundedRead(): void {
+    this.#boundedReads = true;
+    if (this.#produced > this.#budget.limits.maxInputBytes) this.#budget.fail("maxInputBytes");
   }
 
   get bufferedBytes(): number {
     if (this.#active) return 0;
-    return this.remainder?.length || (this.#readResult && !this.#readResult.done ? this.#readResult.value.length : 0);
+    return (this.remainder?.length ?? 0) + this.#unread.reduce((length, chunk) => length + chunk.length, 0)
+      + (this.#readResult && !this.#readResult.done ? this.#readResult.value.length : 0);
   }
 
   readiness(): InputReadiness {
     if (this.#active) return "blocked";
-    if (this.remainder?.length) return "ready";
+    if (this.remainder?.length || this.#unread.some(chunk => chunk.length)) return "ready";
     if (this.#readError) throw this.#readError.reason;
     if (this.#ended || this.#readResult?.done) return "eof";
     if (this.#readResult && this.#readResult.value.length) return "ready";
@@ -440,21 +588,25 @@ class InputCursor {
     } finally { release(); }
   }
 
-  async take(signal: AbortSignal): Promise<IteratorResult<Uint8Array>> {
+  async take(signal: AbortSignal, maxBytes?: number): Promise<IteratorResult<Uint8Array>> {
     signal.throwIfAborted();
     if (this.remainder) {
       const value = this.remainder;
       this.remainder = undefined;
       return { value, done: false };
     }
+    const unread = this.#unread.pop();
+    if (unread) return { value: unread, done: false };
     if (this.#ended || this.#closed) return { value: undefined, done: true };
     if (!this.#read) {
       this.#readSettled = false;
       this.#readResult = undefined;
-      this.#read = Promise.resolve().then(() => this.#closed ? { value: undefined, done: true as const } : this.#iterator.next()).then((result) => {
+      this.#read = Promise.resolve().then(() => this.#closed ? { value: undefined, done: true as const } : this.#readChunk ? this.#readChunk(maxBytes) : this.#iterator.next()).then((result) => {
         if (result.done) return { value: undefined, done: true };
         if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
-        return { value: result.value, done: false };
+        if (this.#boundedReads && result.value.byteLength > this.#budget.limits.maxInputBytes - this.#produced) this.#budget.fail("maxInputBytes");
+        this.#produced += result.value.byteLength;
+        return { value: this.#boundedReads ? new Uint8Array(result.value) : result.value, done: false };
       });
       void this.#read.then(result => { this.#readSettled = true; this.#readResult = result; }, reason => { this.#readSettled = true; this.#readError = { reason }; });
     }
@@ -472,16 +624,14 @@ class InputCursor {
   }
 
   async close(signal: AbortSignal): Promise<void> {
-    if (this.#ended && this.#eof === "terminal") { signal.throwIfAborted(); return; }
+    if (this.#ended && this.#eof === "terminal" && !this.seek) { signal.throwIfAborted(); return; }
     this.#closed = true;
     this.remainder = undefined;
-    const pendingRead = this.#read !== undefined && !this.#readSettled;
+    this.#unread.length = 0;
     this.#returned ??= Promise.resolve().then(() => this.#iterator.return?.()).then(() => undefined);
     void this.#returned.catch(() => undefined);
-    if (!pendingRead) {
-      try { await interruptible(this.#returned, signal); }
-      catch (error) { if (!this.#readFailed) throw error; }
-    }
+    try { await interruptible(this.#returned, signal); }
+    catch (error) { if (!this.#readFailed) throw error; }
     signal.throwIfAborted();
   }
 }
@@ -565,7 +715,7 @@ function displayWidth(bytes: Uint8Array, offset: number): number {
   return consumed;
 }
 
-export class ShellInput implements ByteSource {
+export class ShellInput implements ByteSource, CommandInput {
   readonly descriptor: CommandFileDescriptor | undefined;
   readonly #cursor: InputCursor;
   readonly #owned: boolean;
@@ -573,16 +723,27 @@ export class ShellInput implements ByteSource {
   readonly #cleanupSignal: AbortSignal;
   readonly signal: AbortSignal;
   readonly #reads = new Set<() => Promise<void>>();
+  readonly stat?: FileStat;
+  readonly seek?: NonNullable<CommandInput["seek"]>;
   #closing: Promise<void> | undefined;
 
-  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal, options?: ShellInputOptions) {
+  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal, options?: ShellInputOptions & InputProvenance) {
     this.#owned = !(source instanceof ShellInput);
     if (!this.#owned && options !== undefined) throw new TypeError("Borrowed input cannot replace cursor capabilities");
-    this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options);
+    this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options ?? {}, budget);
     this.descriptor = source instanceof ShellInput ? source.descriptor : options?.descriptor;
     this.#cleanupSignal = signal;
     this.signal = AbortSignal.any([budget.signal, signal, this.#lifetime.signal]);
+    if (this.#cursor.stat) this.stat = this.#cursor.stat;
+    if (this.#cursor.seek) this.seek = (position, callerSignal) => {
+      const signal = AbortSignal.any([this.signal, callerSignal]);
+      return this.#cursor.consume(signal, async () => {
+        if (!Number.isSafeInteger(position) || position < 0) throw new RangeError("Input position must be a nonnegative safe integer");
+        await this.#cursor.seek!(position, signal);
+      });
+    };
   }
+
 
   get bufferedBytes(): number {
     this.signal.throwIfAborted();
@@ -603,8 +764,67 @@ export class ShellInput implements ByteSource {
     return result;
   }
 
+  get position(): number { return this.#cursor.position; }
+
+  read(maxBytes: number, callerSignal: AbortSignal): Promise<IteratorResult<Uint8Array>> {
+    const signal = AbortSignal.any([this.signal, callerSignal]);
+    return this.#cursor.consume(signal, async () => {
+      if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new RangeError("Input read size must be a nonnegative safe integer");
+      this.#cursor.admitBoundedRead();
+      if (!maxBytes) return { done: false, value: new Uint8Array() };
+      const chunks: Uint8Array[] = [];
+      let length = 0;
+      let pulls = 0;
+      try {
+        while (length < maxBytes) {
+          if (++pulls % 128 === 0) {
+            signal.throwIfAborted();
+            this.budget.cpuCheckpoint();
+            await yieldTurn(signal);
+          }
+          const result = await this.#cursor.take(signal, maxBytes - length);
+          if (result.done) break;
+          const count = Math.min(maxBytes - length, result.value.byteLength);
+          if (count > this.budget.limits.maxInputBytes - length) {
+            this.#cursor.restore([result.value]);
+            this.budget.fail("maxInputBytes");
+          }
+          if (count < result.value.byteLength) this.#cursor.remainder = result.value.subarray(count);
+          if (count) chunks.push(result.value.subarray(0, count));
+          length += count;
+        }
+        signal.throwIfAborted();
+        this.budget.cpuCheckpoint();
+        const value = new Uint8Array(length);
+        let offset = 0;
+        for (let index = 0; index < chunks.length; index++) {
+          if (index && index % 128 === 0) {
+            signal.throwIfAborted();
+            this.budget.cpuCheckpoint();
+            await yieldTurn(signal);
+          }
+          const chunk = chunks[index]!;
+          value.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+        signal.throwIfAborted();
+        this.budget.cpuCheckpoint();
+        this.#cursor.position += length;
+        return length ? { done: false, value } : { done: true, value: undefined };
+      } catch (error) {
+        this.#cursor.restore(chunks);
+        throw error;
+      }
+    });
+  }
+
   next(): Promise<IteratorResult<Uint8Array>> {
-    return this.#cursor.consume(this.signal, () => this.#cursor.take(this.signal));
+    return this.#cursor.consume(this.signal, async () => {
+      const result = await this.#cursor.take(this.signal);
+      if (result.done) return result;
+      this.#cursor.position += result.value.byteLength;
+      return { done: false, value: new Uint8Array(result.value) };
+    });
   }
 
   [Symbol.asyncIterator](): AsyncIterableIterator<Uint8Array> {
@@ -626,6 +846,7 @@ export class ShellInput implements ByteSource {
         const newline = result.value.indexOf(10);
         const end = newline < 0 ? result.value.length : newline + 1;
         if (end < result.value.length) this.#cursor.remainder = result.value.subarray(end);
+        this.#cursor.position += end;
         this.budget.source(end);
         if (end) chunks.push(new Uint8Array(result.value.subarray(0, end)));
         length += end;
@@ -682,6 +903,7 @@ export class ShellInput implements ByteSource {
             }
             if (buffer.length >= this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
             const byte = chunk[offset++]!;
+            this.#cursor.position++;
             buffer.append(byte);
             if (byte === delimiter) { reason = "delimiter"; break; }
             if (buffer.length % 1024 === 0) await yieldTurn(this.signal);
@@ -697,6 +919,97 @@ export class ShellInput implements ByteSource {
       return result;
     } catch (error) { void release(); this.signal.throwIfAborted(); throw error; }
     finally { active = false; finish(); }
+  }
+
+  /** Select uses read's escape rules without projecting raw REPLY bytes to text. */
+  selectLine(allocation: ValueAllocation): Promise<{ value: ShellValue; terminated: boolean }> {
+    return this.#cursor.consume(this.signal, async () => {
+      allocation.reserve(64, 0);
+      const parts: ShellValue[] = [];
+      let escaping = false;
+      let length = 0;
+      let pulls = 0;
+      while (true) {
+        if (++pulls % 128 === 0) await yieldTurn(this.signal);
+        const result = await this.#cursor.take(this.signal);
+        if (result.done) return { value: concatShellValues(parts, allocation), terminated: false };
+        const chunk = result.value;
+        for (let offset = 0; offset < chunk.length;) {
+          await yieldTurn(this.signal);
+          const end = Math.min(offset + 1024, chunk.length);
+          allocation.reserve(end - offset + 64, 0);
+          const output = new Uint8Array(end - offset);
+          let used = 0;
+          let terminated = false;
+          while (offset < end) {
+            const byte = chunk[offset++]!;
+            this.#cursor.position++;
+            if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+            if (byte === 0) continue;
+            if (escaping) {
+              escaping = false;
+              if (byte !== 10) output[used++] = byte;
+            } else if (byte === 92) escaping = true;
+            else if (byte === 10) { terminated = true; break; }
+            else output[used++] = byte;
+          }
+          if (used) {
+            allocation.reserve(32, 0);
+            parts.push(shellValueFromBytes(output.subarray(0, used), allocation));
+          }
+          if (terminated) {
+            if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
+            return { value: concatShellValues(parts, allocation), terminated: true };
+          }
+        }
+      }
+    });
+  }
+
+  mapfileRecord(delimiter: number, strip: boolean, allocation: ValueAllocation): Promise<{ value: ShellValue; present: boolean }> {
+    return this.#cursor.consume(this.signal, async () => {
+      this.#cursor.admitBoundedRead();
+      allocation.reserve(64, 0);
+      const parts: ShellValue[] = [];
+      let length = 0;
+      let truncated = false;
+      let pulls = 0;
+      while (true) {
+        if (++pulls % 128 === 0) await yieldTurn(this.signal);
+        const result = await this.#cursor.take(this.signal);
+        if (result.done) return { value: concatShellValues(parts, allocation), present: length > 0 };
+        const chunk = result.value;
+        for (let offset = 0; offset < chunk.length;) {
+          await yieldTurn(this.signal);
+          if (length >= this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+          const end = Math.min(offset + 1024, chunk.length, offset + this.budget.limits.maxOutputBytes - length);
+          allocation.reserve(end - offset + 64, 0);
+          const output = new Uint8Array(end - offset);
+          let used = 0;
+          let terminated = false;
+          while (offset < end) {
+            const byte = chunk[offset++]!;
+            this.#cursor.position++;
+            if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+            if (byte === delimiter) {
+              if (!strip && byte !== 0 && !truncated) output[used++] = byte;
+              terminated = true;
+              break;
+            }
+            if (byte === 0) truncated = true;
+            if (!truncated) output[used++] = byte;
+          }
+          if (used) {
+            allocation.reserve(32, 0);
+            parts.push(shellValueFromBytes(output.subarray(0, used), allocation));
+          }
+          if (terminated) {
+            if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
+            return { value: concatShellValues(parts, allocation), present: true };
+          }
+        }
+      }
+    });
   }
 
   async line(raw: boolean, options: ReadLineOptions = {}): Promise<ReadLine> {
@@ -768,6 +1081,7 @@ export class ShellInput implements ByteSource {
             if (deadline?.expired()) { outcome.reason = "timeout"; return undefined; }
           }
           this.signal.throwIfAborted();
+          this.#cursor.position++;
           return chunk[offset++]!;
         };
         const account = (): void => {

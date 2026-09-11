@@ -1,0 +1,21 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  await 0;
+  const buffer = new ArrayBuffer(8, { maxByteLength: 16 });
+  buffer.transfer();
+  let offsetError;
+  try { new Float32Array(buffer, 4); } catch (error) { offsetError = error.name; }
+  const events = [];
+  let lengthError;
+  try {
+    new Float32Array(buffer, 0, { valueOf() { events.push("length"); return 1; } });
+  } catch (error) { lengthError = error.name; }
+  let invalidLengthError;
+  try { new Float32Array(buffer, 0, -1); } catch (error) { invalidLengthError = error.name; }
+  if (offsetError !== "TypeError" || lengthError !== "TypeError" || events.join() !== "length")
+    throw new Error("Detached buffer validation order is incorrect");
+  if (invalidLengthError !== "RangeError") throw new Error("Length conversion did not precede detachment");
+  return { title: frontmatter.title, ok: true, offsetError, lengthError, invalidLengthError, events };
+};

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { lstatSync, readFileSync, realpathSync } from "node:fs";
 import { isBuiltin, registerHooks, syncBuiltinESMExports } from "node:module";
-import { join, relative, resolve } from "node:path";
+import { join, posix, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import workerThreads from "node:worker_threads";
 
@@ -29,6 +29,7 @@ const event = (name, detail = {}) => { const recorded = { sequence: ++sequence, 
 assert.equal(digest(readFileSync(fileURLToPath(import.meta.url))), manifest.probeHash);
 assert.equal(digest(readFileSync(join(snapshot, "package.json"))), manifest.packageHash);
 const packageManifest = JSON.parse(readFileSync(join(snapshot, "package.json"), "utf8"));
+assert.deepEqual(Object.fromEntries(manifest.runtimeDependencies.map(dependency => [dependency.name, dependency.version])), packageManifest.dependencies ?? {});
 const publicEntry = realpathSync(join(snapshot, packageManifest.exports["."].import));
 assert.equal(publicEntry, join(snapshot, "dist/index.js"));
 
@@ -38,9 +39,10 @@ function emitted(path) {
   assert.ok(lstatSync(path).isFile(), `Runtime input is not regular: ${path}`);
   const relativePath = relative(snapshot, canonical);
   const peer = relativePath.startsWith("node_modules/poe-code/") && Object.hasOwn(manifest.requiredPeer.files, relativePath);
-  assert.ok(relativePath.startsWith("dist/") || peer, `Unexpected product import: ${canonical}`);
+  const dependency = manifest.runtimeDependencies.find(dependency => relativePath.startsWith(`node_modules/${dependency.name}/`) && Object.hasOwn(dependency.files, relativePath));
+  assert.ok(relativePath.startsWith("dist/") || peer || dependency, `Unexpected product import: ${canonical}`);
   const hash = digest(readFileSync(canonical));
-  assert.equal(hash, peer ? manifest.requiredPeer.files[relativePath] : manifest.emittedHashes[relativePath], `Emitted identity: ${relativePath}`);
+  assert.equal(hash, peer ? manifest.requiredPeer.files[relativePath] : dependency ? dependency.files[relativePath] : manifest.emittedHashes[relativePath], `Emitted identity: ${relativePath}`);
   return { path: relativePath, sha256: hash };
 }
 
@@ -51,6 +53,8 @@ function runtimeResolution(specifier, context, nextResolve) {
   const target = emitted(fileURLToPath(resolved.url));
   const parent = context.parentURL?.startsWith("file:") ? relative(snapshot, realpathSync(fileURLToPath(context.parentURL))) : undefined;
   const fromPeer = parent?.startsWith("node_modules/poe-code/");
+  const dependency = manifest.runtimeDependencies.find(dependency => target.path.startsWith(`node_modules/${dependency.name}/`));
+  const fromDependency = manifest.runtimeDependencies.find(dependency => parent?.startsWith(`node_modules/${dependency.name}/`));
   if (target.path.startsWith("node_modules/poe-code/")) {
     if (fromPeer) {
       emitted(join(snapshot, parent));
@@ -60,7 +64,22 @@ function runtimeResolution(specifier, context, nextResolve) {
       emitted(join(snapshot, parent));
       assert.equal(manifest.requiredPeer.entries[specifier], target.path, `Unadmitted peer public route: ${specifier}`);
     }
-  } else assert.ok(!fromPeer, "Peer runtime must not escape to shell output");
+  } else if (dependency) {
+    assert.ok(!fromPeer, "Peer runtime must not escape to dependency output");
+    assert.ok(parent, "Dependency import must have an admitted parent");
+    emitted(join(snapshot, parent));
+    if (fromDependency) {
+      assert.equal(fromDependency, dependency, "Dependency runtime must not escape its package");
+      assert.ok(specifier.startsWith("./") || specifier.startsWith("../"), "Dependency runtime requires relative internal edges");
+      assert.equal(target.path, posix.normalize(posix.join(posix.dirname(parent), specifier)), `Uncaptured dependency runtime edge: ${specifier}`);
+    } else {
+      assert.ok(parent.startsWith("dist/"), "Dependency public import must originate in admitted shell output");
+      assert.equal(dependency.entries[specifier], target.path, `Unadmitted dependency public route: ${specifier}`);
+    }
+  } else {
+    assert.ok(!fromPeer, "Peer runtime must not escape to shell output");
+    assert.ok(!fromDependency, "Dependency runtime must not escape to shell output");
+  }
   return resolved;
 }
 
@@ -84,6 +103,7 @@ if (manifest.requiredPeer.profile === "checkout-root") {
 assert.equal(typeof packageManifest.peerDependencies["poe-code"], "string");
 assert.notEqual(packageManifest.peerDependenciesMeta?.["poe-code"]?.optional, true);
 for (const path of Object.keys(manifest.requiredPeer.files)) emitted(join(snapshot, path));
+for (const dependency of manifest.runtimeDependencies) emitted(join(snapshot, `node_modules/${dependency.name}/package.json`));
 
 workerThreads.Worker = class ObservedNativeWorker extends nativeWorker {
   constructor(filename, options) {
@@ -148,8 +168,12 @@ function boundary(name, owned = workers) {
 
 try {
   const { Shell, MemoryFileSystem, CommandRegistry, createStandardCommands, createSearchCommands } = await import(pathToFileURL(publicEntry).href);
+  const nodeEntry = realpathSync(join(snapshot, packageManifest.exports["./node"].import));
+  assert.equal(nodeEntry, join(snapshot, "dist/node.js"));
+  const { createNodeRegexProvider } = await import(pathToFileURL(nodeEntry).href);
   sourcePinned = true;
-  const definitions = [...createStandardCommands({ regex: regexOverrides }), ...createSearchCommands({ regex: regexOverrides })];
+  const regexExecutor = createNodeRegexProvider();
+  const definitions = [...createStandardCommands({ regex: regexOverrides, regexExecutor }), ...createSearchCommands({ regex: regexOverrides, regexExecutor })];
   const makeShell = () => new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(definitions) });
   const shell = makeShell();
   assert.ok(shell.commands.has("grep"));

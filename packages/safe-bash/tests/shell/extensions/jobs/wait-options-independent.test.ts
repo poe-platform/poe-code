@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "poe-code/safe-fs";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import { Shell } from "../../../../src/shell/shell.js";
 import type { ShellExtension } from "../../../../src/shell/extensions.js";
 import { jobsExtension } from "../../../../src/shell/extensions/jobs/index.js";
@@ -153,7 +153,7 @@ for (const [id, expectedPreparations] of [[3, 0], [19, 0], [21, 3], [22, 3]] as 
         } } });
       } })) };
     } };
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension], env: reference.request.environment }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension], env: reference.request.environment }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(reference.source, { stdin: reference.stdin });
     assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
@@ -164,7 +164,7 @@ for (const [id, expectedPreparations] of [[3, 0], [19, 0], [21, 3], [22, 3]] as 
 }
 
 test("independent: saved prepass suppresses earlier raw invalid operands without consuming status", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("{ exit 7; } & child=$!; for item in one; do wait \"$child\"; done; wait -n -p who -- $'\\377' \"$child\"; result=$?; [[ $who == $child ]]; printf '%s:%s:' \"$result\" \"$?\"; wait -n -p who \"$child\"; printf '%s:' \"$?\"; wait -n; printf '%s' \"$?\"");
   assert.equal(result.stdout, "7:0:7:127");

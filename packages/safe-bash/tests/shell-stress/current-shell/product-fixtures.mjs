@@ -88,7 +88,7 @@ async function cancellationRow(fixture) {
   };
   class CancelFs extends MemoryFileSystem {
     async readFile(path, options) {
-      if (path === '/fixture/cancel.sh') return pending(options?.signal);
+      if (resolve('/fixture', path) === '/fixture/cancel.sh') return pending(options?.signal);
       return super.readFile(path, options);
     }
   }

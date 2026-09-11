@@ -1,3 +1,4 @@
+import { PublicDiagnostic } from "../diagnostics.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { dirname, FsError, isPathWithin, joinPath, type CommandContext, type FileStat } from "../contracts/index.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
@@ -129,13 +130,14 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   for (const entry of [...plan].reverse()) {
     context.signal.throwIfAborted();
     if (entry.stat.type !== "symlink") {
-      if (context.fs.capabilities.permissions === true && context.fs.chmod) await context.fs.chmod(entry.target, entry.stat.mode & 0o7777, { signal: context.signal });
-      if (context.fs.capabilities.timestamps === true && context.fs.utimes) {
+      const capabilities = await context.fs.capabilitiesFor?.(entry.target, { signal: context.signal }) ?? context.fs.capabilities;
+      if (capabilities.permissions === true && context.fs.chmod) await context.fs.chmod(entry.target, entry.stat.mode & 0o7777, { signal: context.signal });
+      if (capabilities.timestamps === true && context.fs.utimes) {
         try { await context.fs.utimes(entry.target, entry.stat.atimeMs, entry.stat.mtimeMs, { signal: context.signal }); }
         catch (error) {
           context.signal.throwIfAborted();
           if (codeOf(error) !== "ENOTSUP" && codeOf(error) !== "EOPNOTSUPP") throw error;
-          await diagnostic(context, new Error(`cannot preserve timestamps for '${entry.target}': operation not supported; retaining copied data`));
+          await diagnostic(context, new PublicDiagnostic(`cannot preserve timestamps for '${entry.target}': operation not supported; retaining copied data`));
         }
       }
     }

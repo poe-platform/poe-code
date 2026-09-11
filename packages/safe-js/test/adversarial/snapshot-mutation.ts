@@ -4,6 +4,7 @@ import { dump } from "../../src/dump.js";
 import { run } from "../../src/run.js";
 import { restore, SnapshotMismatchError } from "../../src/restore.js";
 import { SnapshotValidationError } from "../../src/snapshot/validation.js";
+import { DUMP_FORMAT_VERSION } from "../../src/snapshot/dump-format.js";
 import { adversarialFailure, minimizeSnapshot } from "./report.js";
 import { createRandom, pick, randomInt } from "./random.js";
 
@@ -16,6 +17,7 @@ export async function runSnapshotMutationCorpus(): Promise<void> {
   const initial = await run(SOURCE, { randomSeed: 7 });
   const validDump = await dump(initial);
   const validSnapshot = JSON.parse(validDump) as Record<string, unknown>;
+  const baseline = JSON.stringify(validSnapshot);
   const resumed = await run(SOURCE, { snapshot: restore(validSnapshot, { source: SOURCE }) });
   if (resumed.returnValue !== initial.returnValue || (await dump(resumed)) !== validDump) {
     throw adversarialFailure({
@@ -29,7 +31,7 @@ export async function runSnapshotMutationCorpus(): Promise<void> {
   const random = createRandom(SNAPSHOT_MUTATION_SEED);
   const startedAt = performance.now();
   for (let index = 0; index < CASE_COUNT; index += 1) {
-    const snapshot = structuredClone(validSnapshot);
+    const snapshot = { ...validSnapshot };
     mutate(snapshot, random, index);
     try {
       restore(snapshot as never, { source: SOURCE });
@@ -45,6 +47,15 @@ export async function runSnapshotMutationCorpus(): Promise<void> {
         });
       }
     }
+  }
+
+  if (JSON.stringify(validSnapshot) !== baseline) {
+    throw adversarialFailure({
+      cause: new Error("malformed snapshot validation mutated the shared baseline"),
+      kind: "snapshot",
+      seed: SNAPSHOT_MUTATION_SEED,
+      value: validDump
+    });
   }
 
   const duration = performance.now() - startedAt;
@@ -71,12 +82,15 @@ function hasUnexpectedRestoreFailure(snapshot: Record<string, unknown>): boolean
 
 function mutate(snapshot: Record<string, unknown>, random: () => number, index: number): void {
   const mutation = index % 8;
-  if (mutation === 0) snapshot.version = pick(random, [0, 2, "1", null]);
+  if (mutation === 0) snapshot.version = pick(random, [0, DUMP_FORMAT_VERSION + 1, "1", null]);
   if (mutation === 1) snapshot.sourceHash = pick(random, ["", 7, "changed"]);
   if (mutation === 2) snapshot.clock = { next: pick(random, [-1, 1.5, "soon"]) };
   if (mutation === 3) snapshot.random = { seed: 1, state: pick(random, [-1, 1.5, "bad"]) };
   if (mutation === 4) snapshot.heap = { "1": { kind: "mystery" } };
-  if (mutation === 5) snapshot.bindings = { kind: "ref", id: 99 };
+  if (mutation === 5) {
+    const missingId = Object.keys((snapshot.heap ?? {}) as object).reduce((maximum, id) => Math.max(maximum, Number(id)), 0) + 1;
+    snapshot.bindings = { missing: { kind: "ref", id: missingId } };
+  }
   if (mutation === 6) snapshot.pendingAwaits = pick(random, [{}, [null], [{ nodeId: -1 }]]);
   if (mutation === 7)
     snapshot.loopIterations = { [String(randomInt(random, 4))]: { index: -1, values: [] } };

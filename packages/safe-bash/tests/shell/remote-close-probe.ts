@@ -1,15 +1,18 @@
 import assert from "node:assert/strict";
-import { pipeBytes, writeText } from "../../src/contracts/index.js";
+import { createOutputOperation, pipeBytes, writeText } from "../../src/contracts/index.js";
 import type { ByteSource } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 
 const scenario = process.argv[2]!;
 const { shell, fs, commands } = setup({ limits: { pipeHighWaterMark: 1 } });
+Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
 const keepAlive = setInterval(() => {}, 1000);
 const controller = new AbortController();
 const callerReason = new Error("external caller reason");
 const unexpected = new Error("genuine producer rejection");
+const consumerFailure = new Error("genuine consumer rejection");
+const internalErrors: unknown[] = [];
 const unhandled: unknown[] = [];
 const onUnhandled = (reason: unknown) => { unhandled.push(reason); };
 process.on("unhandledRejection", onUnhandled);
@@ -43,7 +46,10 @@ function pendingRead(signal: AbortSignal): Promise<never> {
   return new Promise<never>((_resolve, reject) => {
     const abort = () => {
       active--;
-      if (scenario === "late-read-rejection") releaseLate = () => reject(new Error("late read rejection"));
+      if (scenario === "late-read-rejection") {
+        releaseLate = () => reject(new Error("late read rejection"));
+        setImmediate(releaseLate);
+      }
       else reject(signal.reason);
     };
     signal.addEventListener("abort", abort, { once: true });
@@ -65,7 +71,9 @@ fs.readStream = (_path, options = {}): ByteSource => {
   })();
 };
 
-commands.register({ name: "stream", async execute({ stdout, signal, fs }) {
+commands.register({ name: "stream", async execute(context) {
+  const { stdout, signal, fs } = context;
+  let operation: ReturnType<typeof createOutputOperation> | undefined;
   try {
     if (scenario === "delayed-no-write" || scenario === "zero-byte-no-write") {
       if (scenario === "zero-byte-no-write") await stdout.write(new Uint8Array());
@@ -75,14 +83,23 @@ commands.register({ name: "stream", async execute({ stdout, signal, fs }) {
       await fs.writeFile("/after", new Uint8Array([65]), { signal });
       return { exitCode: 7 };
     }
+    operation = createOutputOperation(context, stdout);
     if (scenario === "transport" || scenario === "caller-abort" || scenario === "budget-abort") {
-      observed = signal;
-      await writeText(stdout, "first\n");
-      await pendingRead(signal);
-    } else await pipeBytes(fs.readStream!("/input", { signal }), stdout, signal);
+      observed = operation.signal;
+      await writeText(operation.output, "first\n");
+      await pendingRead(operation.signal);
+    } else {
+      const source = await operation.acquire(signal => fs.readStream!("/input", { signal })[Symbol.asyncIterator](), async source => { await source.return?.(); });
+      await pipeBytes({ [Symbol.asyncIterator]: () => source }, operation.output, operation.signal);
+    }
     return { exitCode: scenario === "completed-failure" ? 7 : 0 };
-  } finally { finished++; producerFinished(); }
+  } finally { await operation?.close(); finished++; producerFinished(); }
 } });
+commands.register({ name: "pass", async execute(context) {
+  const operation = createOutputOperation(context, context.stdout);
+  try { await pipeBytes(context.stdin, operation.output, operation.signal); return { exitCode: 0 }; }
+  finally { await operation.close(); }
+} }, { replace: true });
 commands.register({ name: "forward", async execute(context) {
   assert.equal(context.stdinIsDefault, true);
   return await context.invoke!("stream", []);
@@ -103,7 +120,7 @@ commands.register({ name: "first", async execute({ stdin, stdout, signal }) {
     signal.throwIfAborted();
   }
   consumerFinished();
-  if (scenario === "consumer-rejection") throw new Error("genuine consumer rejection");
+  if (scenario === "consumer-rejection") throw consumerFailure;
   return { exitCode: scenario === "middle-status" || scenario === "consumer-status" ? 7 : 0 };
 } });
 commands.register({ name: "no-read", execute() { consumerFinished(); return { exitCode: 0 }; } });
@@ -119,7 +136,7 @@ try {
   if (scenario === "delayed-no-write" || scenario === "zero-byte-no-write" || scenario === "closed-before-write") source = "stream | no-read";
   const pipefail = !["transport", "caller-abort", "budget-abort"].includes(scenario);
   if (pipefail) source = `set -o pipefail; ${source}`;
-  const execution = shell.exec(`${source}; status $?`, { signal: controller.signal,
+  const execution = shell.exec(`${source}; status $?`, { signal: controller.signal, onInternalError(error) { internalErrors.push(error); },
     ...(scenario === "budget-abort" ? { limits: { maxOutputBytes: 6 } } : {}),
   });
   if (scenario === "caller-abort") await assert.rejects(execution, error => error === callerReason);
@@ -131,8 +148,11 @@ try {
       : scenario === "transport" || scenario === "completed-success" ? 0 : 141;
     assert.equal(result.exitCode, expected);
     assert.equal(result.stdout, ["delayed-no-write", "zero-byte-no-write", "closed-before-write"].includes(scenario) ? "" : "first\n");
-    assert.equal(result.stderr, scenario === "completed-rejection" ? "shell: line 1: genuine producer rejection\n"
-      : scenario === "consumer-rejection" ? "shell: line 1: genuine consumer rejection\n" : "");
+    assert.equal(result.stderr, scenario === "completed-rejection" || scenario === "consumer-rejection" ? "shell: line 1: internal error\n" : "");
+    if (scenario === "completed-rejection" || scenario === "consumer-rejection") {
+      assert.equal(internalErrors.length, 1);
+      assert.equal(internalErrors[0], scenario === "completed-rejection" ? unexpected : consumerFailure);
+    } else assert.deepEqual(internalErrors, []);
     assert.equal(controller.signal.aborted, false);
   }
   releaseLate?.();
@@ -146,14 +166,15 @@ try {
     assert.equal(observed?.aborted, true);
     if (scenario === "caller-abort") assert.equal(observed?.reason, callerReason);
     else if (scenario === "budget-abort") assert.ok(observed?.reason instanceof ShellLimitError);
-    else assert.equal((observed?.reason as { code: string }).code, "EPIPE");
+    else assert.equal((observed?.reason as { code: string }).code, scenario === "redirect" ? "EBADF" : "EPIPE");
   }
   if (!["transport", "caller-abort", "budget-abort", "delayed-no-write", "zero-byte-no-write"].includes(scenario)) assert.equal(returned, 1);
   if (scenario !== "redirect") assert.equal(finished, 1);
   if (["pipefail", "middle", "middle-status", "nested-invoke", "redirect", "iterator-return", "late-read-rejection", "transport", "group", "consumer-rejection", "consumer-status"].includes(scenario)) assert.equal(pending, 1);
   if (scenario === "nested-invoke") {
     assert.equal(invokedContext, upstreamContext);
-    assert.equal(observed, invokedContext);
+    assert.notEqual(observed, invokedContext);
+    assert.equal(invokedContext?.aborted, false);
   }
   if (scenario === "delayed-no-write" || scenario === "zero-byte-no-write") assert.deepEqual(await fs.readFile("/after"), new Uint8Array([65]));
   assert.equal((await shell.exec("say alive")).stdout, "alive\n");

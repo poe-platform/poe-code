@@ -1,0 +1,16 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(4);
+  let name;
+  let code;
+  let reads = 0;
+  try {
+    structuredClone({ value: Object(Symbol("x")), get next() { reads++; return 1; } }, { transfer: [buffer] });
+  } catch (error) { name = error.name; code = error.code; }
+  await 0;
+  if (name !== "DataCloneError" || code !== 25 || buffer.detached || reads !== 0)
+    throw new Error("Boxed symbol rejection ordering failed");
+  return { title: frontmatter.title, ok: true };
+};

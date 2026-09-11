@@ -57,8 +57,13 @@ test("preabort does not acquire resources and preserves reason identity", async 
 });
 test("registration rejection occurs before acquisition", async () => {
   let acquired = 0;
-  const result = await convert({ [Symbol.asyncIterator]() { acquired++; throw new Error("unexpected"); } }, {}, { registerCleanup: () => { throw new Error("closing scope"); } });
-  assert.equal(result.exitCode, 1); assert.equal(acquired, 0); assert.match(result.stderr, /closing scope/u);
+  const reason = new Error("closing scope");
+  const internalErrors: unknown[] = [];
+  const result = await convert({ [Symbol.asyncIterator]() { acquired++; throw new Error("unexpected"); } }, {}, {
+    registerCleanup: () => { throw reason; }, onInternalError(error) { internalErrors.push(error); },
+  });
+  assert.equal(result.exitCode, 1); assert.equal(acquired, 0); assert.equal(result.stderr, "html-to-markdown: internal error\n");
+  assert.equal(internalErrors.length, 1); assert.equal(internalErrors[0], reason);
 });
 test("pending read cancels and iterator return executes exactly once", async () => {
   const controller = new AbortController(), reason = { reason: "read abort" }; let returned = 0;
@@ -77,12 +82,15 @@ test("large single chunk yields for cancellation without publishing output", asy
   await assert.rejects(promise, error => error === reason); assert.equal(output, 0);
 });
 test("producer failure stays primary over finalization failure", async () => {
+  const reason = new Error("primary producer failure");
+  const internalErrors: unknown[] = [];
   const source: ByteSource = { [Symbol.asyncIterator]() { return {
-    async next() { throw new Error("primary producer failure"); },
+    async next() { throw reason; },
     async return() { throw new Error("secondary cleanup failure"); },
   }; } };
-  const result = await convert(source);
-  assert.equal(result.exitCode, 1); assert.match(result.stderr, /primary producer failure/u); assert.doesNotMatch(result.stderr, /secondary cleanup/u);
+  const result = await convert(source, {}, { onInternalError(error) { internalErrors.push(error); } });
+  assert.equal(result.exitCode, 1); assert.equal(result.stderr, "html-to-markdown: internal error\n"); assert.doesNotMatch(result.stderr, /secondary cleanup/u);
+  assert.equal(internalErrors.length, 1); assert.equal(internalErrors[0], reason);
 });
 test("output awaits backpressure and cancellation does not publish later chunks", async () => {
   const controller = new AbortController(), reason = new Error("sink abort"); let writes = 0;
@@ -203,6 +211,7 @@ for (const primary of ["producer", "diagnostic", "cancel"] as const)
     const started = gate(), release = gate();
     context.after(() => { release.resolve(); });
     const events: string[] = [], diagnostics: Uint8Array[] = [];
+    const internalErrors: unknown[] = [];
     const document = Inputs.prototype.document;
     context.mock.method(Inputs.prototype, "document", function (this: Inputs, name: string) {
       const close = this.close;
@@ -226,6 +235,7 @@ for (const primary of ["producer", "diagnostic", "cancel"] as const)
       command: "html-to-markdown", args: [], stdin: source,
       stdout: { async write() { assert.fail("unexpected output"); } },
       stderr: { async write(bytes) { if (primary === "diagnostic") throw reason; diagnostics.push(bytes.slice()); } },
+      onInternalError(error) { internalErrors.push(error); },
       cwd: "/", env: {}, fs: new MemoryFileSystem(), signal: controller.signal,
     };
     let settled = false;
@@ -237,7 +247,8 @@ for (const primary of ["producer", "diagnostic", "cancel"] as const)
     const result = await checked;
     if (primary === "producer") {
       assert.deepEqual(result, { exitCode: 1 });
-      assert.equal(Buffer.concat(diagnostics).toString(), `html-to-markdown: ${reason instanceof Error ? reason.message : String(reason)}\n`);
+      assert.equal(Buffer.concat(diagnostics).toString(), "html-to-markdown: internal error\n");
+      assert.equal(internalErrors.length, 1); assert.equal(internalErrors[0], reason);
     }
     if (primary === "cancel") {
       assert.deepEqual(events.toSorted(), ["input closed", "iterator returned", "output closed", "output closing"]);

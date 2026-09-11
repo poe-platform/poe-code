@@ -1,0 +1,20 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(16);
+  const view = new DataView(buffer,1,12);
+  view.setUint32(0,0x12345678,true);
+  view.setFloat16(4,1+2**-11);
+  view.setBigInt64(4,-1n,true);
+  await 0;
+  if (view.getUint32(0,true) !== 0x12345678 || view.getBigInt64(4,true) !== -1n)
+    throw new Error("DataView numeric round trip failed");
+  const copied = structuredClone([view,buffer]);
+  if (copied[0].buffer !== copied[1] || copied[1] === buffer)
+    throw new Error("DataView clone backing identity failed");
+  view.setFloat16(4,1+2**-11);
+  if (view.getUint16(4) !== 0x3c00 || view.getFloat16(4) !== 1)
+    throw new Error("Float16 rounding failed");
+  return { title: frontmatter.title, ok: true, byteLength: view.byteLength, hex: new Uint8Array(buffer).toHex() };
+};

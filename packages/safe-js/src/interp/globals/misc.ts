@@ -1,15 +1,10 @@
 import type { Budget } from "../budget.js";
-import { assertSandboxGraphDepth } from "../../graph-depth.js";
+import { createNumericParsers } from "./numeric-parsers.js";
+import { sandboxNumber } from "../string-coercion.js";
+import { createStructuredCloneGlobal } from "./structured-clone.js";
 import {
-  allocateProducedSandboxValue,
-  cloneSandboxValue,
   createSandboxClosure,
-  isSandboxClosure,
-  isSandboxMap,
-  isSandboxPromise,
-  isSandboxSet,
-  type SandboxClosure,
-  type SandboxValue
+  type SandboxClosure
 } from "../values.js";
 
 export type MiscGlobals = {
@@ -20,67 +15,30 @@ export type MiscGlobals = {
   isFinite: SandboxClosure;
 };
 
-export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
+export function createMiscGlobals(options: {
+  budget: Budget;
+  numericParsers?: ReturnType<typeof createNumericParsers>;
+}): MiscGlobals {
   return {
-    structuredClone: createSandboxClosure({
-      sandbox: true,
-      call: ([value]) => structuredCloneSandboxValue(value, options.budget),
-      name: "structuredClone"
-    }),
-    parseInt: createSandboxClosure({
-      sandbox: true,
-      call: (args) => Reflect.apply(globalThis.parseInt, globalThis, [...args]),
-      name: "parseInt"
-    }),
-    parseFloat: createSandboxClosure({
-      sandbox: true,
-      call: (args) => Reflect.apply(globalThis.parseFloat, globalThis, [...args]),
-      name: "parseFloat"
-    }),
+    structuredClone: createStructuredCloneGlobal(options.budget),
+    ...(options.numericParsers ?? createNumericParsers(options.budget)),
     isNaN: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => globalThis.isNaN(value as number),
-      name: "isNaN"
+      call: ([value], context) => {
+        const number = sandboxNumber(value, options.budget, context);
+        return typeof number === "number" ? Number.isNaN(number) : number.then(Number.isNaN);
+      },
+      name: "isNaN",
+      length: 1
     }),
     isFinite: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => globalThis.isFinite(value as number),
-      name: "isFinite"
+      call: ([value], context) => {
+        const number = sandboxNumber(value, options.budget, context);
+        return typeof number === "number" ? Number.isFinite(number) : number.then(Number.isFinite);
+      },
+      name: "isFinite",
+      length: 1
     })
   };
-}
-
-function structuredCloneSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
-  assertSandboxGraphDepth(value);
-  const clone = cloneSandboxValue(value);
-  assertStructuredCloneable(clone, new WeakSet());
-  return allocateProducedSandboxValue(clone, budget);
-}
-
-function assertStructuredCloneable(value: SandboxValue, seen: WeakSet<object>): void {
-  if (isSandboxClosure(value) || isSandboxPromise(value)) {
-    throw new TypeError("structuredClone() cannot clone closures or promises.");
-  }
-
-  if (typeof value !== "object" || value === null || seen.has(value)) {
-    return;
-  }
-
-  seen.add(value);
-  if (isSandboxMap(value)) {
-    for (const [key, entry] of value.entries) {
-      assertStructuredCloneable(key, seen);
-      assertStructuredCloneable(entry, seen);
-    }
-    return;
-  }
-  if (isSandboxSet(value)) {
-    for (const entry of value.values) {
-      assertStructuredCloneable(entry, seen);
-    }
-    return;
-  }
-  for (const entry of Object.values(value)) {
-    assertStructuredCloneable(entry, seen);
-  }
 }

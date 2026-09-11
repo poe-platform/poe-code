@@ -1,9 +1,63 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, type FileSystem } from "../../../src/contracts/index.js";
+import { FsError, type FileSystem, type CommandContext } from "../../../src/contracts/index.js";
 import { run, seed, wrapped } from "./helpers.js";
+import { scopeFileSystem } from "poe-code/safe-fs/core";
+import { createInstallCommand } from "../../../src/commands/install/index.js";
+import { Shell } from "../../../src/shell/shell.js";
+import { ShellLimitError } from "../../../src/shell/types.js";
 
 type FileDescriptor = Awaited<ReturnType<NonNullable<FileSystem["open"]>>>;
+
+for (const buffered of [false, true]) for (const action of ["scoped-abort", "shell-abort", "return-abort", "budget", "success"] as const) {
+  test(`strip failure retains bounded removal authority: buffered=${buffered}, ${action}`, async () => {
+    const fs = await seed();
+    const before = await fs.stat("/source");
+    const bytes = await fs.readFile("/source");
+    const controller = new AbortController();
+    const removals: string[] = [];
+    const cleanups: (() => void | Promise<void>)[] = [];
+    const host = wrapped(fs, {
+      capabilities: { ...fs.capabilities, streamingWrite: !buffered },
+      ...(buffered ? { writeStream: undefined } : {}),
+      async rm(path, options) { await fs.rm(path, options); removals.push(path); },
+    });
+    let strips = 0;
+    const settings = { identity: { uid: 0, gid: 0 }, securityContext: { enabled: false },
+      async strip(path: string, _program: string, context: CommandContext) {
+        strips++;
+        assert.deepEqual(await fs.readFile(path), bytes);
+        if (action.endsWith("abort")) {
+          controller.abort(false);
+          if (action === "return-abort") return 0;
+          throw new FsError("ENOENT");
+        }
+        if (action === "budget") await context.stdout.write(Uint8Array.of(120));
+        return 0;
+      },
+    };
+    const shell = action === "scoped-abort" ? undefined : new Shell({ fs: host, ...(action === "budget" ? { limits: { maxOutputBytes: bytes.length } } : {}) });
+    shell?.register(createInstallCommand(settings));
+    try {
+      const execution = shell ? shell.exec("install -s /source /target", { signal: controller.signal })
+        : run(["-s", "/source", "/target"], scopeFileSystem(host, () => {}, controller.signal), settings, { signal: controller.signal, registerCleanup: cleanup => { cleanups.push(cleanup); } });
+      if (action === "success") assert.equal((await execution).exitCode, 0);
+      else await assert.rejects(execution, error => action === "budget" ? error instanceof ShellLimitError && error.limit === "maxOutputBytes" : Object.is(error, false));
+      assert.equal(strips, 1);
+      assert.deepEqual(await fs.readFile("/source"), bytes);
+      const after = await fs.stat("/source");
+      assert.deepEqual([after.ino, after.mode], [before.ino, before.mode]);
+      if (action === "success") {
+        assert.deepEqual(await fs.readFile("/target"), bytes);
+        assert.equal((await fs.stat("/target")).mode & 0o7777, 0o755);
+      } else await assert.rejects(fs.stat("/target"), error => error instanceof FsError && error.code === "ENOENT");
+    } finally {
+      await shell?.dispose();
+      await Promise.allSettled(cleanups.map(cleanup => Promise.resolve().then(cleanup)));
+    }
+    assert.deepEqual(removals, action === "success" ? [] : ["/target"]);
+  });
+}
 
 test("empty directory operand never becomes cwd or changes root permissions", async () => {
   const fs = await seed(); const before = await fs.stat("/");

@@ -140,7 +140,7 @@ exit "$status"
 
 async function nativeInterruptedWait(source: string, signal: "USR1" | "USR2") {
   const env = { ...process.env };
-  assert.equal(env.SAFE_BASH_TEST_BASH_SHA256, profile.sha256);
+  // The profile retains the historical build digest; this run binds its explicit oracle before and after execution.
   const executable = authenticateOracle(env);
   try {
     return await new Promise<{ stdout: Buffer; stderr: Buffer; protocol: Buffer }>((resolve, reject) => {

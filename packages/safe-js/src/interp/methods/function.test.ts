@@ -13,7 +13,7 @@ describe("function methods", () => {
     expect(Object.keys(target)).not.toContain("length");
     expect(
       getFunctionMember(createSandboxClosure({ call: () => undefined }), "length", options)
-    ).toBeUndefined();
+    ).toBe(0);
   });
 
   it.each([undefined, 7])(
@@ -42,7 +42,7 @@ describe("function methods", () => {
     });
 
     expect(isSandboxClosure(call)).toBe(true);
-    expect(call?.call([{ receiver: true }, 1, 2], { stack: ["caller"], thisValue: null })).toEqual([
+    expect(call?.call([{ receiver: true }, 1, 2], { stack: ["caller"], thisValue: target })).toEqual([
       { receiver: true },
       1,
       2
@@ -59,20 +59,24 @@ describe("function methods", () => {
       callClosure: (closure, args, stack, thisValue) => closure.call(args, { stack, thisValue })
     });
 
-    expect(apply?.call(["receiver", [1, 2]], { stack: [], thisValue: undefined })).toEqual([
+    expect(apply?.call(["receiver", [1, 2]], { stack: [], thisValue: target })).toEqual([
       "receiver",
       1,
       2
     ]);
-    expect(apply?.call(["receiver", undefined], { stack: [], thisValue: undefined })).toEqual([
+    expect(apply?.call(["receiver", new Array(2)], { stack: [], thisValue: target })).toEqual([
+      "receiver", undefined, undefined
+    ]);
+    expect(apply?.call(["receiver", undefined], { stack: [], thisValue: target })).toEqual([
       "receiver"
     ]);
-    expect(apply?.call([], { stack: [], thisValue: undefined })).toEqual([undefined]);
-    expect(apply?.call(["receiver", null], { stack: [], thisValue: undefined })).toEqual([
+    expect(apply?.call([], { stack: [], thisValue: target })).toEqual([undefined]);
+    expect(apply?.call(["receiver", null], { stack: [], thisValue: target })).toEqual([
       "receiver"
     ]);
-    expect(() => apply?.call(["receiver", {}], { stack: [], thisValue: undefined })).toThrow(
-      "Function#apply requires an array or nullish arguments value."
+    expect(await apply?.call(["receiver", {}], { stack: [], thisValue: target })).toEqual(["receiver"]);
+    expect(() => apply?.call(["receiver", 1], { stack: [], thisValue: target })).toThrow(
+      "Function#apply requires an object or nullish arguments value."
     );
   });
 
@@ -125,22 +129,22 @@ describe("function methods", () => {
     });
   });
 
-  it("supports computed and detached function method access", async () => {
+  it("supports computed access and rejects detached function method calls", async () => {
     await expect(
       interpret(
         block(
           parse("function target(value) { return [this, value]; }"),
           parse('const call = target["call"];'),
           parse('const apply = target["apply"];'),
-          parse('return [call("receiver", 1), apply(null, [2])];')
+          parse("const errors=[];"),
+          parse('try{call("receiver",1)}catch(error){errors.push(error.name)}'),
+          parse("try{apply(null,[2])}catch(error){errors.push(error.name)}"),
+          parse("return errors;")
         )
       )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: [
-        ["receiver", 1],
-        [null, 2]
-      ]
+      returnValue: ["TypeError", "TypeError"]
     });
   });
 
@@ -183,7 +187,7 @@ describe("function methods", () => {
       })
     ).rejects.toMatchObject({
       name: "TypeError",
-      message: "Function#missing is not a supported method."
+      message: "Attempted to call a non-function value."
     });
   });
 });

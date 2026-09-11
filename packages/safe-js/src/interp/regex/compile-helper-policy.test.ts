@@ -28,6 +28,14 @@ beforeEach(() => {
 });
 
 describe("compile policy drafts", () => {
+  it("counts lookahead nesting toward the compilation depth limit", () => {
+    expect(parseRegex("(?=(?=a))").captureCount).toBe(0);
+    expect(() => parseRegex("(?=(?=(?=a)))")).toThrow(SandboxError);
+  });
+  it("counts lookbehind nesting toward the compilation depth limit", () => {
+    expect(parseRegex("(?<=(?<=a))").captureCount).toBe(0);
+    expect(() => parseRegex("(?<=(?=(?<=a)))")).toThrow(SandboxError);
+  });
   it("guards admitted snapshot regex reconstruction and releases the owner for positive restore", () => {
     const source = "await task()";
     const statement = parseModule(source).body[0];
@@ -142,8 +150,8 @@ describe("compile policy drafts", () => {
   it("bounds recursion without changing capture numbering", () => {
     expect(parseRegex("((a))").captureCount).toBe(2);
     expect(() => parseRegex("(((a)))")).toThrow(SandboxError);
-    expect(() => parseRegex("a", "y")).toThrow(SyntaxError);
-    expect(() => parseRegex("a", "u")).toThrow(SyntaxError);
+    expect(parseRegex("a", "y").flags.sticky).toBe(true);
+    expect(parseRegex("a", "u").flags.unicode).toBe(true);
   });
 
   it("checks cumulative allocation before another sequence node", () => {
@@ -234,19 +242,16 @@ describe("compile policy drafts", () => {
     }
   });
 
-  it("preserves native source, flags, raw cursors and existing copy alias behavior", () => {
+  it("preserves native source, flags and aliases while isolating cursor data without coercion", () => {
     const regex = createSandboxRegex("a", "g", 2);
-    const cursor = {
-      [Symbol.toPrimitive]: vi.fn(() => {
-        throw new Error("coerced");
-      })
-    };
+    // This non-callable conversion hook would throw if the cursor were coerced.
+    const cursor = { [Symbol.toPrimitive]: 7 };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const copied = deepCopyFromSandbox([regex, regex]) as RegExp[];
     expect(copied[0]).toBe(copied[1]);
     expect(copied[0].source).toBe("a");
     expect(copied[0].flags).toBe("g");
-    expect(copied[0].lastIndex).toBe(cursor);
-    expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
+    expect(copied[0].lastIndex).not.toBe(cursor);
+    expect(copied[0].lastIndex).toEqual(cursor);
   });
 });

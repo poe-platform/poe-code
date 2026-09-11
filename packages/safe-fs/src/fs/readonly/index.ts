@@ -4,26 +4,29 @@ import { readBytes } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat,
-  FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
+  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileResizeHandle, FileStat, OpenReadFileOptions, OpenResizeFileOptions,
+  FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
-import { readOnlyCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, readOnlyCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
+import { pathNamespace, readOnlyPathNamespace } from "../path-namespace.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
   throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, ioBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
+    ...(revision === undefined ? {} : { revision }),
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
     ...(ioBlockSize === undefined ? {} : { ioBlockSize }),
+    ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
@@ -42,10 +45,13 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   constructor(filesystem: FileSystem) {
     this.#filesystem = filesystem;
+    if (Reflect.has(filesystem, pathNamespace)) Object.defineProperty(this, pathNamespace, {
+      get: () => readOnlyPathNamespace(Reflect.get(filesystem, pathNamespace)),
+    });
     registerEntryView(this, async (path) => ({ filesystem: this.#filesystem, path, readOnly: true }));
     const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
     this.#capabilities = readOnlyCapabilities({
-      ...filesystem.capabilities,
+      ...retainedReadCapabilities(filesystem),
       ...(typeof filesystem.open === "function" ? {} : { open: false }),
       readOnly: true,
       append: false,
@@ -63,9 +69,11 @@ export class ReadOnlyFileSystem implements FileSystem {
     return this.#capabilities;
   }
 
-  async capabilitiesFor(path: string, options?: FsOptions): Promise<FileSystemCapabilities> {
+  async capabilitiesFor(path: string, options?: CapabilityQueryOptions): Promise<FileSystemCapabilities> {
+    options?.signal?.throwIfAborted();
+    if (options?.create !== undefined) readOnly("capabilitiesFor", path);
     const capabilities = await this.#filesystem.capabilitiesFor?.(path, options) ?? this.#filesystem.capabilities;
-    return readOnlyCapabilities({ ...capabilities, ...(typeof this.#filesystem.open === "function" ? {} : { open: false }) });
+    return readOnlyCapabilities({ ...retainedReadCapabilities(this.#filesystem, capabilities), ...(typeof this.#filesystem.open === "function" ? {} : { open: false }) });
   }
 
   async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
@@ -91,6 +99,10 @@ export class ReadOnlyFileSystem implements FileSystem {
         throw error;
       }
     });
+  }
+
+  openReadFile(path: string, options: OpenReadFileOptions = {}) {
+    return openRetainedReadFile(this.#filesystem, path, options);
   }
 
   async readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array> {
@@ -173,7 +185,7 @@ export class ReadOnlyFileSystem implements FileSystem {
     readOnly("rmdir", path);
   }
 
-  async rename(source: string, destination: string, _options?: FsOptions): Promise<void> {
+  async rename(source: string, destination: string, _options?: RenameOptions): Promise<void> {
     readOnly("rename", source, destination);
   }
 
@@ -199,6 +211,11 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   async truncate(path: string, _length?: number, _options?: FsOptions): Promise<void> {
     readOnly("truncate", path);
+  }
+
+  async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {
+    options.signal?.throwIfAborted();
+    readOnly("openResizeFile", path);
   }
 }
 

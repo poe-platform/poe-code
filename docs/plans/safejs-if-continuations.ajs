@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  async function* values() {
+    let count = 0;
+    if (++count === 1) {
+      yield count;
+      return count;
+    }
+    throw new Error("If selected the wrong branch");
+  }
+  const iterator = values();
+  const first = await iterator.next();
+  const final = await iterator.next();
+  if (first.value !== 1 || first.done || final.value !== 1 || !final.done) {
+    throw new Error("If continuation changed branch progress");
+  }
+  return { title: frontmatter.title, ok: true, values: [first, final] };
+};

@@ -219,7 +219,7 @@ test("invalid reference diagnostics retain distinct original raw bytes", async c
   assert.equal(result.exitCode, 0, result.stderr);
 });
 
-test("scalar references do not require the arrays leaf or activate its syntax", async context => {
+test("scalar references require no arrays leaf and compose with default key syntax", async context => {
   const shell = setup(async command => {
     const reference = await prepare(command, "who");
     await reference.assignInteger(-12);
@@ -230,7 +230,10 @@ test("scalar references do not require the arrays leaf or activate its syntax", 
   const result = await shell.exec("reference; printf '%s' \"$who\"");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "-12");
-  assert.equal((await shell.exec("printf '%s' \"${!who[@]}\"")).exitCode, 2);
+  const keys = await shell.exec("reference; printf '%s' \"${!who[@]}\"");
+  assert.equal(keys.exitCode, 0, keys.stderr);
+  assert.equal(keys.stdout, "0");
+  assert.equal((await shell.exec("printf $!")).exitCode, 2);
 });
 
 for (const value of [NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) test(`integer API rejects invalid input ${value} without publication`, async context => {

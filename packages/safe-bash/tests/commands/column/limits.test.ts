@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createColumnCommand, type ColumnLimits } from "../../../src/commands/column/index.js";
-import { type ByteSource } from "../../../src/contracts/index.js";
+import { FsError, type ByteSource } from "../../../src/contracts/index.js";
 import { run } from "./helpers.js";
 
 for (const args of [["--json"], ["--tree", "1"], ["-N", "heading"], ["-S", "2"], ["-c0"], ["-c", "unlimited"], ["-c", "1e3"], ["-c", "-3"], ["-c", "999999999999999999999"], ["-c"], ["-s"], ["-t", "-s", ""], ["-o", "|"], ["-s:"], ["-tx"], ["--table=yes"]]) {
@@ -126,11 +126,25 @@ test("diagnostic bytes are bounded cumulatively, independently of stdout", async
   assert.match(result.stderr, /missing-one/);
 });
 
-test("large host error messages are truncated within the diagnostic bound", async () => {
-  const stdin: ByteSource = (async function* () { throw new Error("界".repeat(100_000)); yield new Uint8Array(); })();
-  const result = await run(["-t"], "", { limits: { maxDiagnosticBytes: 50 } }, { stdin });
+test("large unknown host error messages stay opaque within the diagnostic bound", async () => {
+  const failure = new Error("界".repeat(100_000));
+  const reported: unknown[] = [];
+  const stdin: ByteSource = (async function* () { throw failure; yield new Uint8Array(); })();
+  const result = await run(["-t"], "", { limits: { maxDiagnosticBytes: 50 } }, { stdin, onInternalError(error) { reported.push(error); } });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, "column: internal error\n");
+  assert.ok(Buffer.byteLength(result.stderr) <= 50);
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0], failure);
+});
+
+test("large public error messages retain UTF-8-safe diagnostic truncation", async () => {
+  const reported: unknown[] = [];
+  const stdin: ByteSource = (async function* () { throw new FsError("EIO", { message: "界".repeat(100_000) }); yield new Uint8Array(); })();
+  const result = await run(["-t"], "", { limits: { maxDiagnosticBytes: 50 } }, { stdin, onInternalError(error) { reported.push(error); } });
   assert.equal(result.exitCode, 1);
   assert.ok(Buffer.byteLength(result.stderr) <= 50);
   assert.match(result.stderr, /diagnostic truncated/);
   assert.doesNotMatch(result.stderr, /\ufffd/);
+  assert.deepEqual(reported, []);
 });

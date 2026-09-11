@@ -1,7 +1,7 @@
 name: 'GitHub: Pull Request Synchronized'
 on:
   pull_request:
-    types: [synchronize]
+    types: [ synchronize ]
 
 jobs:
   guard:
@@ -104,10 +104,11 @@ jobs:
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
-      - run: poe-code github-workflows github-pull-request-synchronized --yes
+      - run: poe-code github-workflows github-pull-request-synchronized --yes --model "${POE_CODE_REVIEW_MODEL:-gpt-5.4}"
         env:
           POE_CODE_STDERR_LOGS: "1"
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          POE_CODE_REVIEW_MODEL: ${{ vars.POE_CODE_REVIEW_MODEL }}

@@ -1,0 +1,16 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const values = new Float32Array([1, 2, 3]);
+  await 0;
+  const seen = [];
+  const result = values.findLast((item, index) => {
+    seen.push(index);
+    values[index] = 7;
+    return item < 3;
+  });
+  if (result !== 2 || seen.join() !== "2,1" || values[1] !== 7) {
+    throw new Error("Typed-array findLast regression");
+  }
+  return { title: frontmatter.title, ok: true, result };
+};

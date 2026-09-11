@@ -13,12 +13,15 @@ export const oracleDirectory = resolve(directory, "../.oracle/coreutils-9.7");
 export const benchmarkStat = "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat";
 export const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", TZ: "UTC" };
 export const hash = bytes => createHash("sha256").update(bytes).digest("hex");
-const metadata = JSON.parse(readFileSync(resolve(directory, "../oracle-evidence.json")));
-const table = JSON.parse(readFileSync(resolve(root, "tests/commands/table-text-stress/first-discrepancy.json")));
-const original = JSON.parse(readFileSync(resolve(directory, "original.json")));
-export const testPaths = original.snapshots.map(row => row.path);
+export function loadHistoricalInputs(io = filesystem) {
+  return {
+    metadata: JSON.parse(io.readFileSync(resolve(directory, "../oracle-evidence.json"))),
+    table: JSON.parse(io.readFileSync(resolve(root, "tests/commands/table-text-stress/first-discrepancy.json"))),
+    original: JSON.parse(io.readFileSync(resolve(directory, "original.json"))),
+  };
+}
 
-export function assets(primary = oracleDirectory, secondary = benchmarkStat) {
+export function assets(primary = oracleDirectory, secondary = benchmarkStat, { metadata, table } = loadHistoricalInputs()) {
   const entries = [
     { path: `${primary}.tar.xz`, sha256: metadata.archiveSha256 },
     ...Object.entries(metadata.nativeSources).map(([name, sha256]) => ({ path: resolve(primary, name), sha256 })),
@@ -33,7 +36,8 @@ export function assets(primary = oracleDirectory, secondary = benchmarkStat) {
   return entries;
 }
 
-export function verifySetup({ primary = oracleDirectory, secondary = benchmarkStat, platform = process.platform, arch = process.arch } = {}) {
+export function verifySetup({ primary = oracleDirectory, secondary = benchmarkStat, platform = process.platform, arch = process.arch, historicalInputs = loadHistoricalInputs() } = {}) {
+  const { original } = historicalInputs;
   const report = { profile: "GNU-coreutils-9.7-Darwin-arm64-pinned-local-builds", platform, arch, kernel: release(), node: process.version, environment, assets: [], issues: [] };
   for (const path of ["tests/commands/metadata-stress/oracle-evidence.json", "tests/commands/table-text-stress/first-discrepancy.json"]) {
     const actual = hash(readFileSync(resolve(root, path)));
@@ -42,7 +46,7 @@ export function verifySetup({ primary = oracleDirectory, secondary = benchmarkSt
   }
   if (platform !== "darwin" || arch !== "arm64") report.issues.push({ kind: "wrong-profile", expected: "darwin arm64", actual: `${platform} ${arch}` });
   if (Number(process.versions.node.split(".")[0]) < 22) report.issues.push({ kind: "node-prerequisite", expected: ">=22", actual: process.version });
-  for (const asset of assets(primary, secondary)) {
+  for (const asset of assets(primary, secondary, historicalInputs)) {
     const record = { ...asset };
     try {
       record.actualSha256 = hash(readFileSync(asset.path));
@@ -107,7 +111,7 @@ export function selectManifestPaths(historicalPaths, profile, { sourceRoot = roo
   return [...new Set([...preserved, ...declared])];
 }
 
-function manifest(profile) {
+function manifest(profile, original) {
   const git = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, env: environment, encoding: "utf8" });
   const status = spawnSync("git", ["status", "--short", "--untracked-files=no"], { cwd: root, env: environment, encoding: "utf8" });
   const source = [];
@@ -129,17 +133,19 @@ function manifest(profile) {
   return { head: profile?.sourceCommit ?? (git.status === 0 ? git.stdout.trim() : null), profile: profile?.kind ?? "historical", trackedStatus: status.status === 0 ? status.stdout : null, files: Object.fromEntries(paths.map(path => [path, hash(readFileSync(resolve(root, path)))])) };
 }
 
-export function runRelease({ sourceProfile } = {}) {
-  const setup = verifySetup();
+export function runRelease({ sourceProfile, historicalInputs = loadHistoricalInputs() } = {}) {
+  const { original } = historicalInputs;
+  const testPaths = original.snapshots.map(row => row.path);
+  const setup = verifySetup({ historicalInputs });
   if (setup.status !== "setup-qualified") return { status: "setup-unavailable", exitCode: 78, executedTests: 0, setup };
-  const before = manifest(sourceProfile);
+  const before = manifest(sourceProfile, original);
   const startedAt = new Date().toISOString();
   const argv = ["--import", "tsx", "--test", "--test-reporter=tap", "--test-concurrency=1", ...testPaths];
   const result = spawnSync(process.execPath, argv, { cwd: root, env: environment, timeout: 180_000, maxBuffer: 32 * 1024 * 1024 });
   const stdout = result.stdout?.toString() ?? "";
   const counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)]));
   const nativeRows = original.failures.filter(row => row.classification === "native-prerequisite").map(row => ({ path: row.path, name: row.name, passed: stdout.split("\n").some(line => /^ok \d+ - /u.test(line) && line.replace(/^ok \d+ - /u, "") === row.name) }));
-  const after = manifest(sourceProfile);
+  const after = manifest(sourceProfile, original);
   const unchanged = JSON.stringify(before.files) === JSON.stringify(after.files);
   const qualified = result.status === 0 && !result.error && !result.signal && counts.tests === 318 && counts.pass === 318 && counts.fail === 0 && counts.skipped === 0 && counts.cancelled === 0 && counts.todo === 0 && nativeRows.length === 22 && nativeRows.every(row => row.passed) && unchanged;
   return { status: qualified ? "qualified-scoped-pass" : "scoped-verification-failed", exitCode: qualified ? 0 : 1, startedAt, finishedAt: new Date().toISOString(), setup, before, after, unchanged, argv: [process.execPath, ...argv], counts, nativeRows, originalFailureCounts: original.originalCounts, result: { status: result.status, signal: result.signal, error: result.error?.message, stdout, stderr: result.stderr?.toString() } };

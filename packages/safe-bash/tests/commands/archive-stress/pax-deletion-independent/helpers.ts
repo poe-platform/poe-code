@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createTarCommand } from "../../../../src/commands/archive/index.js";
 import type { ArchiveCommandsOptions } from "../../../../src/commands/archive/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import type { ByteSource, FileSystem, FsOptions } from "../../../../src/contracts/index.js";
+import type { ByteSource, FileSystem, FsOptions, InternalErrorHandler } from "../../../../src/contracts/index.js";
 export { archive, checksum, fileData, member, record } from "../pax-independent/fixtures.js";
 
 export const normalAtime = 1_555_000_000_123;
@@ -56,7 +56,7 @@ export function source(bytes: Uint8Array): ByteSource {
   } };
 }
 
-export async function run(fs: FileSystem, input: Uint8Array | ByteSource, args: readonly string[] = ["-xf", "-", "-C", "/out"], options: ArchiveCommandsOptions = {}, signal = AbortSignal.timeout(4000)) {
+export async function run(fs: FileSystem, input: Uint8Array | ByteSource, args: readonly string[] = ["-xf", "-", "-C", "/out"], options: ArchiveCommandsOptions = {}, signal = AbortSignal.timeout(4000), onInternalError?: InternalErrorHandler) {
   const stdout: Buffer[] = [];
   const stderr: Buffer[] = [];
   let total = 0;
@@ -65,7 +65,7 @@ export async function run(fs: FileSystem, input: Uint8Array | ByteSource, args: 
     assert.ok(total <= 65536, "independent output limit");
     chunks.push(Buffer.from(bytes));
   } });
-  const result = await createTarCommand(options).execute({ command: "tar", args, fs, cwd: "/", env: {}, signal,
+  const result = await createTarCommand(options).execute({ command: "tar", args, fs, cwd: "/", env: {}, signal, onInternalError,
     stdin: input instanceof Uint8Array ? source(input) : input, stdout: sink(stdout), stderr: sink(stderr) });
   return { ...result, stdout: Buffer.concat(stdout).toString("utf8"), stderr: Buffer.concat(stderr).toString("utf8") };
 }

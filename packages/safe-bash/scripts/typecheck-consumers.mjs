@@ -55,7 +55,7 @@ function declaredTypePath(specifier, binding) {
   }
 }
 
-export function createPeerBinding(root, manifest, declarations = new Map()) {
+export function createPeerBinding(root, manifest, declarations = new Map(), publicImports = []) {
   assert.notEqual(manifest.peerDependenciesMeta?.["poe-code"]?.optional, true, "canonical peer must be required");
   const profile = resolvePeerProfile(root);
   const { directory, metadata, peer } = profile;
@@ -70,7 +70,7 @@ export function createPeerBinding(root, manifest, declarations = new Map()) {
     binding.publicEntries.set(specifier, relative(directory, filename));
     return filename;
   };
-  const pending = [publicEntry("poe-code/safe-fs")];
+  const pending = [publicEntry("poe-code/safe-fs"), ...publicImports.map(publicEntry)];
   for (const filename of declarations.keys()) {
     const imports = ts.preProcessFile(readFileSync(join(root, filename), "utf8"), true).importedFiles;
     for (const { fileName } of imports) if (fileName === peer.name || fileName.startsWith(`${peer.name}/`)) pending.push(publicEntry(fileName));

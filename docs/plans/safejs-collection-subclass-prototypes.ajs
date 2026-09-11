@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Answers extends Map {
+    label = "answers";
+    describe() { return this.label + ":" + this.get("answer"); }
+  }
+  const value = new Answers([["answer", 42]]);
+  await 0;
+  if (!(value instanceof Answers) || Object.getPrototypeOf(value) !== Answers.prototype) {
+    throw new Error("Derived collection prototype was lost");
+  }
+  return { title: frontmatter.title, ok: true, description: value.describe() };
+};

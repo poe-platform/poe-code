@@ -1,0 +1,20 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  await 0;
+  const value = new Float32Array([1, 2]);
+  Object.defineProperty(value, "0", { value: { valueOf() { return 7; } } });
+  Object.defineProperties(value, { 1: { value: { [Symbol.toPrimitive](hint) { if (hint !== "number") throw new Error("Wrong hint"); return 3; } } } });
+  if (value.join() !== "7,3") throw new Error("Property definition conversion failed");
+  let calls = 0;
+  try { Object.defineProperty(value, "0", { writable: false, value: { valueOf() { calls++; return 8; } } }); } catch (error) { if (error.name !== "TypeError") throw error; }
+  if (calls !== 0 || value[0] !== 7) throw new Error("Descriptor validated too late");
+  class Samples extends Float32Array {
+    0 = { valueOf() { return 5; } };
+    1 = this[0] + 1;
+  }
+  const sample = new Samples(2);
+  if (sample.join() !== "5,6") throw new Error("Class field ordering failed");
+  return { title: frontmatter.title, ok: true, values: Array.from(value), fields: Array.from(sample), calls };
+};

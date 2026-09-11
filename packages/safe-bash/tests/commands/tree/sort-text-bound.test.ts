@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { FsError } from "../../../src/contracts/index.js";
 import { WalkBudget } from "../../../src/commands/tree/io.js";
 import { settings, type TreeLimits } from "../../../src/commands/tree/options.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { run, shellRun, wrapped } from "./helpers.js";
 
 async function measuredSteps(operation: () => Promise<void>): Promise<number> {
@@ -65,20 +67,23 @@ test("TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass", asy
   assert.match(result.stderr, /tree work limit exceeded/u);
 });
 
-test("TEXT-BOUND-001: oversized backend error is admitted before regex or byte scanning", async () => {
-  const text = "X".repeat(96);
-  const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new Error(text); } });
-  const scans = await measuredScans(text, async () => {
-    await assert.rejects(run([], { limits: { maxPathBytes: 32 } }, { fs }), /path\/name limit exceeded/u);
+test("TEXT-BOUND-001: oversized public filesystem error is admitted before regex or byte scanning", async () => {
+  const failure = new FsError("EIO", { message: "X".repeat(96) });
+  const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw failure; } });
+  const errors: unknown[] = [];
+  const scans = await measuredScans(failure.message, async () => {
+    await assert.rejects(run([], { limits: { maxPathBytes: 32 } }, { fs, onInternalError(error) { errors.push(error); } }), /path\/name limit exceeded/u);
   });
-  console.log(JSON.stringify({ messageCodeUnits: 96, maxPathBytes: 32, measuredRawMessageScans: scans }));
+  console.log(JSON.stringify({ messageCodeUnits: failure.message.length, maxPathBytes: 32, measuredRawMessageScans: scans }));
   assert.deepEqual(scans, { replace: 0, byteLength: 0, encode: 0 });
+  assert.deepEqual(errors, []);
 });
 
 test("TEXT-BOUND-001: prefix stripping cannot evade raw backend message admission", async () => {
-  const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new Error(`${"A".repeat(96)}: denied`); } });
+  const failure = new FsError("EACCES", { message: `${"A".repeat(96)}: denied` });
+  const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw failure; } });
   const result = await shellRun(fs, ["--noreport"], { limits: { maxPathBytes: 32 } });
-  console.log(JSON.stringify({ rawMessageCodeUnits: 104, maxPathBytes: 32, exitCode: result.exitCode,
+  console.log(JSON.stringify({ rawMessageCodeUnits: failure.message.length, maxPathBytes: 32, exitCode: result.exitCode,
     stdout: result.stdout, stderr: result.stderr }));
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
@@ -152,25 +157,47 @@ test("opaque non-Error exceptions do not invoke arbitrary text coercion", async 
   let coercions = 0;
   const opaque = { toString() { coercions++; throw new Error("unexpected backend coercion"); } };
   const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw opaque; } });
-  const result = await run([], {}, { fs });
+  const errors: unknown[] = [];
+  const result = await run([], {}, { fs, onInternalError(error) { errors.push(error); } });
   assert.equal(result.exitCode, 1);
   assert.equal(coercions, 0);
-  assert.match(result.stderr, /non-string filesystem error/u);
+  assert.equal(result.stderr, "tree: .: internal error\n");
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0], opaque);
+});
+
+test("opaque backend Error text is not scanned or charged as public diagnostic text", async () => {
+  const text = "X".repeat(96);
+  const failure = new Error(text);
+  const errors: unknown[] = [];
+  const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw failure; } });
+  const scans = await measuredScans(text, async () => {
+    const result = await run(["--noreport"], { limits: { maxPathBytes: 32 } }, {
+      fs, onInternalError(error) { errors.push(error); },
+    });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, ".  [internal error]\n");
+    assert.equal(result.stderr, "tree: .: internal error\n");
+  });
+  assert.deepEqual(scans, { replace: 0, byteLength: 0, encode: 0 });
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0], failure);
 });
 
 test("control-heavy text and JSON honor exact completed-output bounds", async () => {
   const fs = createMemoryFileSystem();
   const name = `${"\u001b".repeat(8)}\u202e雪`;
   await fs.writeFile(`/${name}`, new Uint8Array());
+  const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/fixture": fs } });
   for (const args of [["-i", "--noreport"], ["-Ji", "--noreport"], ["-J", "--noreport"]]) {
-    const baseline = await shellRun(fs, args);
+    const baseline = await shellRun(mounted, args, {}, "/fixture");
     const bytes = baseline.stdoutBytes.length;
     assert.equal(baseline.exitCode, 0);
     assert.doesNotMatch(baseline.stdout, /[\u001b\u202e]/u);
-    const exact = await shellRun(fs, args, { limits: { maxOutputBytes: bytes } });
+    const exact = await shellRun(mounted, args, { limits: { maxOutputBytes: bytes } }, "/fixture");
     assert.equal(exact.exitCode, 0, exact.stderr);
     assert.equal(exact.stdout, baseline.stdout);
-    await assert.rejects(run(args, { limits: { maxOutputBytes: bytes - 1 } }, { fs }), /output limit/u);
+    await assert.rejects(run(args, { limits: { maxOutputBytes: bytes - 1 } }, { fs: mounted, cwd: "/fixture" }), /output limit/u);
   }
   const original = JSON.stringify;
   let serializations = 0;
@@ -185,7 +212,7 @@ test("control-heavy text and JSON honor exact completed-output bounds", async ()
 });
 
 test("control-heavy backend diagnostics fail admission without writing oversized fragments", async () => {
-  const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new Error(`EACCES: ${"\u001b".repeat(16)}`); } });
+  const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new FsError("EACCES", { message: `EACCES: ${"\u001b".repeat(16)}` }); } });
   let writes = 0;
   await assert.rejects(run([], { limits: { maxOutputBytes: 32 } }, { fs, stderr: { async write() { writes++; } } }), /output limit/u);
   assert.equal(writes, 0);

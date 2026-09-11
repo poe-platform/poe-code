@@ -23,7 +23,7 @@ export function bridgeStats(stat: FileStat): FsBridgeStats {
     gid: stat.gid ?? 0,
     rdev: 0,
     size: stat.size,
-    blksize: stat.ioBlockSize ?? 4096,
+    blksize: stat.ioBlockSize ?? stat.preferredIoBlockSize ?? 4096,
     blocks: Math.ceil(stat.size / 512),
     atimeMs: stat.atimeMs,
     mtimeMs: stat.mtimeMs,

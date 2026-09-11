@@ -83,7 +83,7 @@ async function pendingCase(testCase: PendingCase): Promise<void> {
     ]);
     const snapshot = JSON.parse(await dump(original, { mode: "replay" }));
     const unchanged = JSON.stringify(snapshot);
-    expect(snapshot.executionSemantics).toBe("jobs-v7");
+    expect(snapshot.executionSemantics).toBe("jobs-v8");
     expect(snapshot.hostCalls).toHaveLength(1);
     expect(snapshot.hostCalls[0]).toMatchObject({
       moduleId: call.moduleId,

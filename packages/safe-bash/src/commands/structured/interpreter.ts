@@ -1,14 +1,15 @@
-import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
+import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { isNumber, numberValue, type Numeric } from "./numbers.js";
-import { JqParseError, parseJson, stringify } from "./input.js";
+import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
 import { splitString } from "./split.js";
-import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, stringCompare, type } from "./values.js";
+import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
 type Path = (string | number)[];
+interface Frame { readonly name: string; readonly value: Json; readonly parent: Frame | undefined; readonly depth: number }
 const deleted = Symbol("deleted");
 export class Interpreter {
-  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>) {}
+  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
   async collect(ast: Ast, input: Json): Promise<Json[]> {
     const result: Json[] = [];
     let bytes = 2;
@@ -26,7 +27,46 @@ export class Interpreter {
     switch (ast.kind) {
       case "identity": yield input; return;
       case "literal": yield ast.value; return;
-      case "variable": yield this.variables.get(ast.name)!; return;
+      case "variable": {
+        for (let frame = this.frame; frame; frame = frame.parent) {
+          await this.budget.tick();
+          if (frame.name === ast.name) { yield frame.value; return; }
+        }
+        yield this.variables.get(ast.name)!; return;
+      }
+      case "descend": yield* this.descend(input); return;
+      case "try":
+        try { yield* this.run(ast.body, input); }
+        catch (error) {
+          if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted) throw error;
+          if (ast.handler) yield* this.run(ast.handler, error.message);
+        }
+        return;
+      case "reduce":
+      case "foreach": {
+        const depth = (this.frame?.depth ?? 0) + 1;
+        if (depth > this.budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+        let sourceInput = input;
+        for await (const initial of this.run(ast.init, input)) {
+          let accumulator = initial;
+          for await (const value of this.run(ast.source, sourceInput)) {
+            await this.budget.tick();
+            const scope = new Interpreter(this.budget, this.variables, { name: ast.name, value, parent: this.frame, depth });
+            const previous = accumulator;
+            accumulator = null;
+            for await (const updated of scope.run(ast.update, previous)) {
+              await this.budget.tick();
+              accumulator = updated;
+              if (ast.kind === "foreach") {
+                if (ast.extract) yield* scope.run(ast.extract, updated);
+                else yield updated;
+              }
+            }
+          }
+          if (ast.kind === "reduce") { sourceInput = null; yield accumulator; }
+        }
+        return;
+      }
       case "unary":
         for await (const value of this.run(ast.operand, input)) {
           if (!isNumber(value)) throw new JqError("negation requires a number");
@@ -46,7 +86,7 @@ export class Interpreter {
             for await (const base of this.run(ast.base, input)) { await this.budget.tick(); yield await sliceValue(base, start, end, this.budget); }
         return;
       case "iterate":
-        for await (const base of this.run(ast.base, input)) for (const [, value] of entries(base, this.budget)) { await this.budget.tick(); yield value; }
+        for await (const base of this.run(ast.base, input)) for await (const [, value] of entries(base, this.budget)) { await this.budget.tick(); yield value; }
         return;
       case "array": yield ast.body ? await this.collect(ast.body, input) : []; return;
       case "object": {
@@ -86,13 +126,28 @@ export class Interpreter {
         }
         for await (const right of this.run(ast.right, input)) {
           for await (const left of this.run(ast.left, input)) {
-            const result = binary(operator, left, right, this.budget);
+            const result = await binary(operator, left, right, this.budget);
             this.budget.value(result); yield result;
           }
         }
         return;
       }
       case "call": yield* this.call(ast.name, ast.args, input); return;
+    }
+  }
+  async *descend(input: Json, depth = 0): AsyncGenerator<Json> {
+    await this.budget.tick();
+    if (depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+    yield input;
+    if (Array.isArray(input)) {
+      if (depth + 1 > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+      this.budget.collection(input.length);
+      for (const value of input) yield* this.descend(value, depth + 1);
+    } else if (isObject(input)) {
+      if (depth + 1 > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+      const keys = objectKeys(input);
+      this.budget.collection(keys.length);
+      for (const key of keys) yield* this.descend(input[key]!, depth + 1);
     }
   }
   async *field(field: { key: Ast; value: Ast }, previous: Record<string, Json>, input: Json): AsyncGenerator<Record<string, Json>> {
@@ -123,7 +178,7 @@ export class Interpreter {
     for await (const path of this.paths(ast.base, input)) {
       let base = input;
       for (const component of path) base = indexValue(base, component);
-      for (const [key] of entries(base, this.budget)) { await this.budget.tick(); yield [...path, key]; }
+      for await (const [key] of entries(base, this.budget)) { await this.budget.tick(); yield [...path, key]; }
     }
   }
   set(input: Json, path: Path, value: Json | typeof deleted, depth = 0): Json {
@@ -161,7 +216,7 @@ export class Interpreter {
         for await (const path of this.paths(left, input)) {
           let previous = result;
           for (const key of path) previous = indexValue(previous, key);
-          const assigned = operator === "=" ? value : operator === "//=" ? truth(previous) ? previous : value : binary(operator.slice(0, -1), previous, value, this.budget);
+          const assigned = operator === "=" ? value : operator === "//=" ? truth(previous) ? previous : value : await binary(operator.slice(0, -1), previous, value, this.budget);
           result = this.set(result, path, assigned); this.budget.value(result);
         }
         yield result;
@@ -180,10 +235,10 @@ export class Interpreter {
       if (value === deleted) deletions.push(path);
       else { result = this.set(result, path, value); this.budget.value(result); }
     }
-    deletions.sort((first, second) => -compare(first, second, this.budget));
+    await stableSort(deletions, this.budget, async (first, second) => -await compare(first, second, this.budget));
     let lastDeletion: Path | undefined;
     for (const path of deletions) {
-      if (!lastDeletion || compare(lastDeletion, path, this.budget) !== 0) result = this.set(result, path, deleted);
+      if (!lastDeletion || await compare(lastDeletion, path, this.budget) !== 0) result = this.set(result, path, deleted);
       lastDeletion = path;
     }
     this.budget.value(result); yield result;
@@ -211,25 +266,63 @@ export class Interpreter {
       if (input === null) yield 0;
       else if (isNumber(input)) yield Math.abs(numberValue(input));
       else if (typeof input === "string") {
+        await budget.tick(input.length);
         let length = 0;
-        for (const ignoredEntry of input) length++;
+        for (let offset = 0; offset < input.length; length++) {
+          if (length % 32 === 0) await budget.tick(0);
+          offset += input.codePointAt(offset)! > 0xffff ? 2 : 1;
+        }
         yield length;
       }
       else if (Array.isArray(input)) yield input.length;
-      else if (isObject(input)) yield objectKeys(input).length;
+      else if (isObject(input)) {
+        let length = 0;
+        for (const key of objectKeyIterator(input)) { await budget.tick(); void key; length++; }
+        yield length;
+      }
       else throw new JqError("boolean has no length");
       return;
     }
     if (name === "keys" || name === "keys_unsorted") {
-      if (Array.isArray(input)) yield input.map((_, index) => index);
-      else if (isObject(input)) yield name === "keys" ? objectKeys(input).sort(stringCompare) : objectKeys(input);
-      else throw new JqError("keys requires an object or array");
-      return;
+      let result: Json[];
+      if (Array.isArray(input)) {
+        budget.collection(input.length);
+        await budget.tick(input.length);
+        result = [];
+        let bytes = 2;
+        if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+        for (let index = 0; index < input.length; index++) {
+          await budget.tick();
+          bytes += String(index).length + (index ? 1 : 0);
+          if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          result.push(index);
+        }
+      } else if (isObject(input)) {
+        let bytes = 2;
+        let count = 0;
+        if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+        for (const key of objectKeyIterator(input)) {
+          await budget.tick();
+          budget.collection(++count);
+          const separator = count > 1 ? 1 : 0;
+          bytes += separator + await measureValue(key, budget, 1, budget.limits.maxValueBytes - bytes - separator);
+        }
+        if (name === "keys") result = await sortedKeys(input, budget);
+        else {
+          result = [];
+          for (const key of objectKeyIterator(input)) {
+            await budget.tick();
+            budget.collection(result.length + 1);
+            result.push(key);
+          }
+        }
+      } else throw new JqError("keys requires an object or array");
+      yield result; return;
     }
     if (name === "map" || name === "map_values") {
       const result: Json = name === "map_values" && isObject(input) ? object() : [];
       let bytes = 2;
-      for (const [key, value] of entries(input, budget)) for await (const mapped of this.run(args[0]!, value)) {
+      for await (const [key, value] of entries(input, budget)) for await (const mapped of this.run(args[0]!, value)) {
         bytes += budget.value(mapped) + 1 + (Array.isArray(result) ? 0 : Buffer.byteLength(JSON.stringify(String(key))) + 1);
         if (bytes - 1 > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         if (Array.isArray(result)) { budget.collection(result.length + 1); result.push(mapped); }
@@ -267,16 +360,16 @@ export class Interpreter {
           if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
           result += text;
         };
-        for (const [, item] of entries(input, budget)) {
+        for await (const [, item] of entries(input, budget)) {
           await budget.tick();
           if (!first && separator !== null) {
-            if (typeof separator !== "string") binary("+", result, separator, budget);
+            if (typeof separator !== "string") await binary("+", result, separator, budget);
             if (typeof separator !== "string") throw new JqError("join separator must be a string or null when used");
             append(separator, separatorBytes);
           }
           first = false;
-          if (isObject(item) || Array.isArray(item)) binary("+", result, item, budget);
-          const text = item === null ? "" : typeof item === "string" ? item : stringify(item, budget);
+          if (isObject(item) || Array.isArray(item)) await binary("+", result, item, budget);
+          const text = item === null ? "" : typeof item === "string" ? item : await stringify(item, budget);
           append(text, budget.value(text));
         }
         budget.value(result); yield result;
@@ -319,7 +412,11 @@ export class Interpreter {
           }
       return;
     }
-    if (name === "tostring" || name === "tojson") { const result = typeof input === "string" && name === "tostring" ? input : stringify(input, budget); budget.text(result); yield result; return; }
+    if (name === "tostring" || name === "tojson") {
+      if (typeof input === "string" && name === "tostring") { await measureValue(input, budget); yield input; }
+      else yield await stringify(input, budget, false, budget.limits.maxValueBytes, "maxValueBytes", true);
+      return;
+    }
     if (name === "tonumber" || name === "fromjson") {
       if (name === "tonumber" && isNumber(input)) { yield input; return; }
       if (typeof input !== "string") throw new JqError(name === "fromjson" ? `${describe(input, budget)} only strings can be parsed` : `${describe(input, budget)} cannot be parsed as a number`);
@@ -332,20 +429,38 @@ export class Interpreter {
       if (name === "tonumber" && !isNumber(result)) throw new JqError(`${describe(input, budget)} cannot be parsed as a number`);
       yield result; return;
     }
-    if (name === "to_entries") { yield entries(input, budget).map(([key, value]) => copyObject({ key, value })); return; }
+    if (name === "to_entries") {
+      if (Array.isArray(input)) await budget.tick(input.length);
+      const result: Json[] = [];
+      let bytes = 2;
+      if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      for await (const [key, value] of entries(input, budget)) {
+        budget.collection(result.length + 1);
+        budget.collection(2);
+        const overhead = 17 + (result.length ? 1 : 0);
+        const keyBytes = await measureValue(key, budget, 2, budget.limits.maxValueBytes - bytes - overhead);
+        const valueBytes = await measureValue(value, budget, 2, budget.limits.maxValueBytes - bytes - overhead - keyBytes);
+        await budget.tick(4);
+        bytes += overhead + keyBytes + valueBytes;
+        const entry = object();
+        put(entry, "key", key); put(entry, "value", value);
+        result.push(entry);
+      }
+      yield result; return;
+    }
     if (name === "from_entries" || name === "with_entries") {
       let values = input;
       if (name === "with_entries") {
         values = [];
         let bytes = 2;
-        for (const [key, value] of entries(input, budget)) for await (const mapped of this.run(args[0]!, copyObject({ key, value }))) {
+        for await (const [key, value] of entries(input, budget)) for await (const mapped of this.run(args[0]!, copyObject({ key, value }))) {
           budget.collection(values.length + 1); bytes += budget.value(mapped) + (values.length ? 1 : 0);
           if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
           values.push(mapped);
         }
       }
       const result = object();
-      for (const [, entry] of entries(values, budget)) {
+      for await (const [, entry] of entries(values, budget)) {
         await budget.tick();
         if (!isObject(entry)) throw new JqError(`Cannot index ${type(entry)} with string "key"`);
         const key = ["key", "Key", "name", "Name"].find(candidate => Object.hasOwn(entry, candidate) && truth(entry[candidate]!));
@@ -367,14 +482,20 @@ export class Interpreter {
       yield name === "all"; return;
     }
     if (!Array.isArray(input)) {
-      if (name === "unique") entries(input, budget);
+      if (name === "unique" && !isObject(input)) throw new JqError(`Cannot iterate over ${describe(input, budget)}`);
       if (name === "sort") throw new JqError(`${describe(input, budget)} cannot be sorted, as it is not an array`);
       throw new JqError(`${name} requires an array`);
     }
-    if (name === "reverse") { yield [...input].reverse(); return; }
+    if (name === "reverse") {
+      await budget.tick(input.length);
+      await measureValue(input, budget);
+      const result: Json[] = [];
+      for (let index = input.length - 1; index >= 0; index--) { await budget.tick(0); result.push(input[index]!); }
+      yield result; return;
+    }
     if (name === "add") {
       let result: Json = null;
-      for (const item of input) { await budget.tick(); result = binary("+", result, item, budget); budget.value(result); }
+      for (const item of input) { await budget.tick(); result = await binary("+", result, item, budget); budget.value(result); }
       yield result; return;
     }
     const keyed: { key: Json; value: Json }[] = [];
@@ -385,7 +506,7 @@ export class Interpreter {
       if (keyBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
       keyed.push({ value, key });
     }
-    keyed.sort((left, right) => compare(left.key, right.key, budget));
+    await stableSort(keyed, budget, (left, right) => compare(left.key, right.key, budget));
     if (name === "min" || name === "min_by" || name === "max" || name === "max_by") { yield keyed[name.startsWith("min") ? 0 : keyed.length - 1]?.value ?? null; return; }
     if (name === "sort" || name === "sort_by") { yield keyed.map(item => item.value); return; }
     if (name === "unique" || name === "unique_by") { yield keyed.filter((item, index) => index === 0 || !equal(item.key, keyed[index - 1]!.key, budget)).map(item => item.value); return; }

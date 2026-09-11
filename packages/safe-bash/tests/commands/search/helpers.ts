@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import { dirname, join, resolve, sep } from "node:path";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
@@ -47,7 +48,7 @@ export async function virtual(fixture: Fixture, options: SearchOptions = {}, ove
     stdout: { async write(bytes) { output.push(Buffer.from(bytes)); } },
     stderr: { async write(bytes) { errors.push(Buffer.from(bytes)); } }, ...overrides,
   };
-  const result = await createSearchCommands(options)[0]!.execute(context);
+  const result = await createSearchCommands({ regexExecutor: createNodeRegexProvider(), ...options })[0]!.execute(context);
   for (const [name, bytes] of Object.entries(fixture.files ?? {})) assert.deepEqual(Buffer.from(await fs.readFile(`/work/${name}`)), Buffer.from(bytes), `search changed ${name}`);
   return { code: result.exitCode, stdout: Buffer.concat(output), stderr: Buffer.concat(errors), fs };
 }

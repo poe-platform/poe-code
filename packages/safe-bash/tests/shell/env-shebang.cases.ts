@@ -274,7 +274,7 @@ test("env parser caps and carriage-return command bytes survive the bridge", asy
   for (const [header, status, diagnostic] of [
     [`-S bash ${"x".repeat(131072)}`, 125, /split-string byte limit exceeded/u],
     [`-S bash ${"x ".repeat(10001)}`, 125, /split-string argument limit exceeded/u],
-    ["bash\r", 127, /env: bash\r: command not found\n/u],
+    ["bash\r", 127, /env: bash\\r: command not found\n/u],
     ["-S bash -c 'true' ${MISSING}", 0, /^$/u],
   ] as const) {
     await fs.writeFile("/program", encode(`#!/usr/bin/env ${header}\ntrue`), { mode: 0o755 });
@@ -416,9 +416,15 @@ test("guarded completion: env middleware short circuits, wraps and observes orig
   for (const scenario of ["short", "wrap", "throw", "target-error", "bad-env", "bad-cwd", "bad-status", "bad-target-status"] as const) {
     const { shell, fs, commands } = setup();
     const failure = new Error("original target or middleware failure");
+    const internalErrors: unknown[] = [];
+    const propagated: unknown[] = [];
     let entered = 0;
     let observed: unknown;
     let cleaned = 0;
+    shell.use(async (_context, next) => {
+      try { return await next(); }
+      catch (error) { propagated.push(error); throw error; }
+    });
     commands.register({ name: "probe", execute() {
       entered++;
       if (scenario === "target-error") throw failure;
@@ -439,12 +445,29 @@ test("guarded completion: env middleware short circuits, wraps and observes orig
     try {
       if (scenario === "short" || scenario === "wrap") assert.equal((await shell.exec("/program")).exitCode, scenario === "short" ? 19 : 8);
       else {
-        const result = await shell.exec("/program");
+        const result = await shell.exec("/program", { onInternalError(error) { internalErrors.push(error); } });
         assert.equal(result.exitCode, 1);
-        if (scenario === "bad-cwd") assert.match(result.stderr, /paths must be strings without NUL/u);
-        else if (scenario === "bad-env") assert.match(result.stderr, /Invalid middleware environment value/u);
-        else if (scenario === "throw" || scenario === "target-error") assert.match(result.stderr, /original target or middleware failure/u);
-        else assert.equal(result.stderr, "shell: line 1: Exit status must be an integer between 0 and 255\n");
+        if (scenario === "bad-cwd") {
+          assert.equal(result.stderr, "shell: line 1: EINVAL: paths must be strings without NUL bytes, resolve\n");
+          assert.deepEqual(internalErrors, []);
+        } else {
+          assert.equal(result.stderr, "shell: line 1: internal error\n");
+          assert.equal(internalErrors.length, 1);
+          if (scenario === "throw" || scenario === "target-error") {
+            assert.equal(internalErrors[0], failure);
+          } else {
+            const original = internalErrors[0];
+            if (scenario === "bad-env") {
+              assert.ok(original instanceof TypeError);
+              assert.equal(original.message, "Invalid middleware environment value");
+            } else {
+              assert.ok(original instanceof RangeError);
+              assert.equal(original.message, "Exit status must be an integer between 0 and 255");
+            }
+            assert.ok(propagated.length > 0);
+            for (const error of propagated) assert.equal(error, original);
+          }
+        }
       }
       if (scenario === "target-error") assert.equal(observed, failure);
       assert.equal(entered, ["wrap", "target-error", "bad-target-status"].includes(scenario) ? 1 : 0);

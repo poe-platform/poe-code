@@ -1,0 +1,17 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = Uint8Array.fromHex("deadBEEF");
+  await 0;
+  if (value.toHex() !== "deadbeef") throw new Error("Hex round trip failed");
+  let error;
+  try { value.setFromHex("00xx"); } catch (caught) { error = caught.name; }
+  if (error !== "SyntaxError" || value.toHex() !== "00adbeef")
+    throw new Error("Invalid pair did not preserve the decoded prefix");
+  const bounded = new Uint8Array(1);
+  const result = bounded.setFromHex("ffZZ");
+  if (result.read !== 2 || result.written !== 1 || bounded.toHex() !== "ff")
+    throw new Error("Destination capacity handling failed");
+  return { title: frontmatter.title, ok: true, hex: value.toHex(), result };
+};

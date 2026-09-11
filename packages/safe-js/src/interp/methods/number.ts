@@ -1,17 +1,20 @@
 import { Budget } from "../budget.js";
-import { createSandboxClosure, type SandboxValue } from "../values.js";
+import { sandboxNumber } from "../string-coercion.js";
+import { isSandboxBox, boxedValue } from "../boxed.js";
+import { createSandboxClosure, type SandboxCallContext, type SandboxValue } from "../values.js";
+import { formatNumberLocale } from "../number-locale.js";
 
-export type NumberMethodName = "toExponential" | "toFixed" | "toPrecision" | "toString";
+export type NumberMethodName = "toExponential" | "toFixed" | "toPrecision" | "toString" | "toLocaleString";
 
-const numberMethodNames = new Set<NumberMethodName>([
+export const numberMethodNames = new Set<NumberMethodName>([
   "toExponential",
   "toFixed",
   "toPrecision",
-  "toString"
+  "toString",
+  "toLocaleString"
 ]);
 
 export function getNumberMember(
-  value: number,
   property: string | number,
   budget: Budget
 ): SandboxValue | undefined {
@@ -21,8 +24,10 @@ export function getNumberMember(
 
   return createSandboxClosure({
     sandbox: true,
-    name: `Number#${property}`,
-    call: (args) => callNumberMethod(value, property, args, budget)
+    guest: true,
+    name: property,
+    length: property === "toLocaleString" ? 0 : 1,
+    call: (args, context) => callNumberMethod(context?.thisValue, property, args, budget, context)
   });
 }
 
@@ -31,79 +36,53 @@ export function isNumberMethodName(property: string | number): property is Numbe
 }
 
 export function callNumberMethod(
-  value: number,
+  value: SandboxValue,
   methodName: NumberMethodName,
   args: readonly SandboxValue[],
-  budget: Budget
-): string {
-  return budget.allocateString(callNativeNumberMethod(value, methodName, args));
+  budget: Budget,
+  context?: SandboxCallContext
+): string | Promise<string> {
+  if (isSandboxBox(value)) value = boxedValue(value);
+  if (typeof value !== "number") {
+    throw new TypeError(`Number#${methodName} requires a number receiver.`);
+  }
+
+  if (methodName === "toLocaleString") return formatNumberLocale(value, args, budget, context);
+
+  const argument = args[0];
+  if (argument !== null && typeof argument === "object") {
+    return formatObjectArgument(value, methodName, argument, budget, context);
+  }
+  return formatNumber(value, methodName, argument === undefined ? undefined : +(argument as number), budget);
 }
 
-function callNativeNumberMethod(
+async function formatObjectArgument(
   value: number,
-  methodName: NumberMethodName,
-  args: readonly SandboxValue[]
-): string {
-  switch (methodName) {
-    case "toString":
-      return value.toString(asValidatedRadix(args[0]));
-    case "toExponential":
-      return args[0] === undefined
-        ? value.toExponential()
-        : value.toExponential(asValidatedFractionDigits(args[0], methodName));
-    case "toFixed":
-      return value.toFixed(asValidatedFractionDigits(args[0], methodName));
-    case "toPrecision":
-      return args[0] === undefined
-        ? value.toPrecision()
-        : value.toPrecision(asValidatedPrecision(args[0]));
+  methodName: Exclude<NumberMethodName, "toLocaleString">,
+  argument: SandboxValue & object,
+  budget: Budget,
+  context: SandboxCallContext | undefined
+): Promise<string> {
+  const retainedArgument = {};
+  budget.setRetainedValues(retainedArgument, () => [argument]);
+  try {
+    const number = await sandboxNumber(argument, budget, context);
+    return formatNumber(value, methodName, number, budget);
+  } finally {
+    budget.setRetainedValues(retainedArgument, undefined);
   }
 }
 
-function asValidatedRadix(value: SandboxValue | undefined): number | undefined {
-  if (value === undefined) {
-    return undefined;
+function formatNumber(value: number, methodName: Exclude<NumberMethodName, "toLocaleString">, argument: number | undefined, budget: Budget): string {
+  let result: string;
+  try {
+    result = value[methodName](argument);
+  } catch (error) {
+    if (!(error instanceof RangeError)) throw error;
+    const detail = methodName === "toString" ? "radix must be between 2 and 36."
+      : methodName === "toPrecision" ? "precision must be between 1 and 100."
+      : "digits must be between 0 and 100.";
+    throw new RangeError(`Number#${methodName} ${detail}`);
   }
-
-  const radix = toIntegerOrInfinity(value);
-  if (radix < 2 || radix > 36) {
-    throw new RangeError("Number#toString radix must be between 2 and 36.");
-  }
-
-  return radix;
-}
-
-function asValidatedFractionDigits(
-  value: SandboxValue | undefined,
-  methodName: "toExponential" | "toFixed"
-): number {
-  const digits = toIntegerOrInfinity(value);
-  if (digits < 0 || digits > 100) {
-    throw new RangeError(`Number#${methodName} digits must be between 0 and 100.`);
-  }
-
-  return digits;
-}
-
-function asValidatedPrecision(value: SandboxValue | undefined): number {
-  const precision = toIntegerOrInfinity(value);
-  if (precision < 1 || precision > 100) {
-    throw new RangeError("Number#toPrecision precision must be between 1 and 100.");
-  }
-
-  return precision;
-}
-
-function toIntegerOrInfinity(value: SandboxValue): number {
-  const number = Number(value);
-
-  if (Number.isNaN(number) || Object.is(number, 0) || Object.is(number, -0)) {
-    return 0;
-  }
-
-  if (!Number.isFinite(number)) {
-    return number;
-  }
-
-  return Math.trunc(number);
+  return budget.allocateString(result);
 }

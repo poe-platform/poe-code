@@ -32,16 +32,20 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
   assert.equal((await shell.exec("pass | true; pass", { stdin })).stdout, "B");
 } else if (scenario === "shared-abandoned-rejection" || scenario === "shared-retained-rejection") {
   const { shell } = setup();
+  const failure = new Error("delayed source error");
+  const observed: unknown[] = [];
   let reads = 0;
   let returns = 0;
   const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
-    async next() { reads++; await delay(40); throw new Error("delayed source error"); },
+    async next() { reads++; await delay(40); throw failure; },
     async return() { returns++; return { value: undefined, done: true }; },
   }; } };
   const retained = scenario === "shared-retained-rejection";
-  const result = await shell.exec(retained ? "pass | true; pass" : "pass | true", { stdin });
+  const result = await shell.exec(retained ? "pass | true; pass" : "pass | true", { stdin, onInternalError(error) { observed.push(error); } });
   assert.equal(result.exitCode, 0);
-  assert.match(result.stderr, /delayed source error/u);
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(observed.length, 1);
+  assert.equal(observed[0], failure);
   assert.equal(reads, 1);
   assert.equal(returns, 1);
   await delay(60);
@@ -82,16 +86,26 @@ if (scenario === "cleanup-abort" || scenario === "cleanup-late-rejection") {
   } finally { clearTimeout(timer); }
 } else if (scenario === "owned-cleanup-abort") {
   const { shell, fs } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false, retainedRead: false } });
   await fs.writeFile("/input", new Uint8Array([65]));
   const controller = new AbortController();
   const reason = new Error("cancel owned input cleanup");
   let returns = 0;
+  let retired = false;
   fs.readStream = () => ({ [Symbol.asyncIterator]() { return {
     async next() { return { value: new Uint8Array([65]), done: false }; },
-    return() { returns++; setTimeout(() => controller.abort(reason), 20); return new Promise(() => {}); },
+    return() {
+      returns++;
+      setTimeout(() => controller.abort(reason), 20);
+      return new Promise<IteratorResult<Uint8Array>>(resolve => controller.signal.addEventListener("abort", () => {
+        retired = true;
+        resolve({ done: true, value: undefined });
+      }, { once: true }));
+    },
   }; } });
   await assert.rejects(shell.exec("true <input", { signal: controller.signal }), (error) => error === reason);
   assert.equal(returns, 1);
+  assert.equal(retired, true);
 } else throw new Error(`Unknown lifecycle probe: ${scenario}`);
 
 clearInterval(keepAlive);

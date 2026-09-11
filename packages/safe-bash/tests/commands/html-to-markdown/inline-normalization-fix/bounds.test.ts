@@ -98,10 +98,15 @@ test("normalized large output awaits sink backpressure", async () => {
 
 test("sink failure preserves only the accepted prefix", async () => {
   const output: Uint8Array[] = [];
+  const reason = new Error("inline sink failure");
+  const internalErrors: unknown[] = [];
   let writes = 0;
   const result = await convert("<em>" + "ab".repeat(5000) + "</em><b></b><em>end</em>", {}, {
-    stdout: { async write(bytes) { if (++writes === 2) throw new Error("inline sink failure"); output.push(new Uint8Array(bytes)); } },
+    onInternalError(error) { internalErrors.push(error); },
+    stdout: { async write(bytes) { if (++writes === 2) throw reason; output.push(new Uint8Array(bytes)); } },
   });
-  assert.equal(result.exitCode, 1); assert.match(result.stderr, /inline sink failure/u);
+  assert.equal(result.exitCode, 1); assert.equal(result.stderr, "html-to-markdown: internal error\n");
+  assert.equal(internalErrors.length, 1); assert.equal(internalErrors[0], reason);
+  assert.equal(writes, 2);
   assert.equal(Buffer.concat(output).toString(), ("*" + "ab".repeat(5000) + "end*\n").slice(0, 4096));
 });

@@ -45,7 +45,8 @@ export default async function* conciseReporter(events) {
         } else yield event;
       } else if (type === "test:summary" && file) {
         yield* data.success ? state.output.filter(item => item.type === "test:diagnostic") : state.output;
-        files.delete(file);
+        state.output = [];
+        state.success = data.success;
         completed++;
         if (completed % 100 === 0) {
           yield { type: "test:diagnostic", data: { nesting: 0, message: `completed ${completed} test files` } };
@@ -54,7 +55,9 @@ export default async function* conciseReporter(events) {
         yield event;
       }
     }
-    for (const state of files.values()) yield* state.output;
+    for (const state of files.values()) {
+      yield* state.success === true && !state.failed ? state.output.filter(item => item.type === "test:diagnostic") : state.output;
+    }
   }
   yield* compose(failuresAndSummaries(), new spec());
 }

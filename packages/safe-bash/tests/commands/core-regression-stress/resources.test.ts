@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { FsError, type ByteSource } from "../../../src/contracts/index.js";
-import { chunks, execute, fixture } from "./helpers.js";
+import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { chunks, execute } from "./helpers.js";
 
 for (const name of ["wc", "cksum", "sort"]) test(`${name}: abort blocked stdin and observe late rejection`, async () => {
   const controller = new AbortController(), reason = new FsError("EACCES", { message: "caller canceled" });
@@ -38,8 +39,9 @@ test("sort: owned output chunks survive awaited backpressure without aliasing", 
 });
 
 test("sort: buffer failure must not publish partial replacement", async () => {
-  const fs = await fixture({ name: "large", command: "sort", args: [] });
   const original = Buffer.alloc(32 * 1024 * 1024 + 1, 97);
+  const fs = createMemoryFileSystem({ maxFileBytes: original.length });
+  await fs.mkdir("/work");
   await fs.writeFile("/work/input", original);
   const result = await execute("sort", ["-o", "input", "input"], { fs });
   assert.notEqual(result.exitCode, 0);

@@ -144,14 +144,21 @@ describe("sandbox Object intrinsic", () => {
     await expect(run("Object.prototype = {};")).rejects.toMatchObject({ name: "TypeError" });
   });
 
-  it("preserves source replay but rejects mutated intrinsic checkpoint data", async () => {
+  it("preserves mutated intrinsic checkpoint data while rejecting lossy plain data copies", async () => {
     const source = "return ({}).toString.call([]);";
     const first = await run(source);
     expect(
       await run(source, { snapshot: restore(JSON.parse(await dump(first)), { source }) })
     ).toMatchObject({ returnValue: "[object Array]" });
-    const mutated = await run("Object.prototype.changed = 1;");
-    await expect(dump(mutated)).rejects.toThrow(/prototype/);
+    const mutatedSource = "Object.prototype.changed = 1;return ({}).changed;";
+    const mutated = await run(mutatedSource);
+    expect(mutated).toMatchObject({ ok: true, returnValue: 1 });
+    const snapshot = JSON.parse(await dump(mutated));
+    const resumed = await run(mutatedSource, { snapshot: restore(snapshot, { source: mutatedSource }) });
+    expect(resumed).toMatchObject({ ok: true, returnValue: 1 });
+    const recaptured = JSON.parse(await dump(resumed));
+    expect(recaptured.heap).toEqual(snapshot.heap);
+    expect(recaptured.bindings).toEqual(snapshot.bindings);
     const linked = await run("return Object.create({ inherited: 1 });");
     expect(() => deepCopyFromSandbox(linked.returnValue as never)).toThrow(/prototype/);
   });
@@ -170,16 +177,18 @@ describe("sandbox Object intrinsic", () => {
     expect([...budget.retainedValues()]).toEqual([]);
   });
 
-  it("keeps native capabilities read-only and implementation fields private", async () => {
+  it("isolates guest capability properties and keeps implementation fields private", async () => {
     expect(
       await run(
         "return [Object.keys(host), Object.prototype.toString.call(host), Object.hasOwn(host, 'call'), Object.hasOwn(host, 'kind')];",
         { bindings: { host: () => 1 } }
       )
     ).toMatchObject({ returnValue: [[], "[object Function]", false, false] });
-    await expect(
-      run("Object.defineProperty(host, 'x', { value: 1 });", { bindings: { host: () => 1 } })
-    ).rejects.toMatchObject({ name: "TypeError" });
+    const host = () => 1;
+    expect(await run("Object.defineProperty(host, 'x', { value: 2 }); return [host.x, host()];", {
+      bindings: { host }
+    })).toMatchObject({ returnValue: [2, 1] });
+    expect(Object.hasOwn(host, "x")).toBe(false);
   });
 
   it("keeps the intrinsic root prototype immutable", async () => {

@@ -10,10 +10,12 @@ and the same-basename `.ajs` file, validates Markdown frontmatter against the
 `.ajs` `schema` export, lints the `.ajs` source, then executes the default export
 with real agent spawns.
 
-`npx --package poe-code poe-safe-js <path>` uses canned agent
-responses and is good for syntax, lint, schema, frontmatter, and control-flow
-checks before paying for real spawns. It does not prove real model behavior.
-Explicit `--fs` and `--mcp-config` capabilities are real, not stubs.
+`npx --package poe-code poe-safe-js <script.safejs>` runs standalone scripts with
+canned agent responses. Use it for isolated syntax, lint, and control-flow probes
+with the stub's supported modules. It does not load `.md`/`.ajs` harness pairs or
+provide their `schema` module, so it cannot validate a pair's frontmatter/schema.
+It does not prove real model behavior. Explicit `--fs` and `--mcp-config`
+capabilities are real, not stubs.
 
 ## Pair Layout
 
@@ -78,19 +80,43 @@ Frontmatter never grants access. Checkpoints and output may contain granted
 secrets, including historical values retained during replay.
 
 Linted harness files support arrows, ordinary functions (including async
-functions), synchronous generators, closures over `const`, `let`, parameters, and imports,
+functions), synchronous and async generators (including object/class methods), closures over `const`, `let`, parameters, and imports,
 `async`/`await`, regex literals, sandbox constructor calls, `const`/`let`/`var`,
 destructuring, spread, optional chaining, nullish coalescing, template
 literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
-`for...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
+`for...of`, `for await...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
 `switch`, `this`, and `return`.
+
+Public classes support constructors, instance/static methods and fields, static
+blocks, getters/setters, inheritance, `super`, and `new.target`. Getter/setter
+properties also work in object literals and through `Object.defineProperty` or
+`Object.defineProperties`; accessor objects cannot yet be copied as data or
+portably snapshotted. Module evaluation supports default class exports, including
+anonymous names and live named bindings; harness entry points must still be callable
+functions, not classes. Private elements remain unsupported;
+built-in inheritance and portable custom-prototype snapshots remain incomplete.
 
 Top-level `await` also works inside control-flow blocks. `new Map(...)`,
 `new Set(...)`, and `new Promise(executor)` do not require lint suppressions.
 
-Not supported: class syntax, async generators, `eval`, `Function`, dynamic
-imports, BigInt literals, and Node/browser globals such as `process`, `fetch`,
-`setTimeout`, or `globalThis`.
+Async generators expose promise-returning `next`, `return`, and `throw` methods,
+queue requests in order, and support `yield*` delegation to synchronous or async
+generators. Consume them with `for await...of` or explicit `await iterator.next()`.
+For-await also consumes synchronous iterables and unwraps their promised values;
+it is valid at top level and inside async functions, not ordinary functions.
+
+`await import(name)` resolves only modules registered by the host runner and
+shares namespace identity with static imports. It does not load arbitrary Node
+packages, files, or URLs. Unknown modules and unsupported import attributes
+reject the import promise; pending host effects still require reconciliation.
+
+Not supported: `eval`, `Function`, BigInt literals, and Node/browser globals such as `process`, `fetch`,
+or `setTimeout`.
+
+`globalThis` is the isolated guest global object, not the host global object.
+Its builtin properties share storage with unqualified builtin identifiers.
+Guest-added properties are visible as identifiers unless a lexical binding
+shadows them; lexical declarations do not become global-object properties.
 
 ## Schema Initializers
 
@@ -102,23 +128,27 @@ or rely on runtime imports during schema extraction.
 
 ## Common Pitfalls
 
-- `Map` and `Set` methods `keys()`, `values()`, and `entries()` return eager arrays.
-- Prototype chains are absent. `Foo.prototype` is `undefined`; `instanceof`
-  with a user constructor throws. Use an explicit brand property.
-- `for...in` rejects destructuring in the loop head. Destructure in the body.
+- `Map` and `Set` methods `keys()`, `values()`, and `entries()` return live,
+  single-use iterators. Use `Array.from(...)` or spread when you need an array
+  snapshot; use `iterator.next()` to consume one entry.
+- Ordinary user constructors expose `.prototype` and support `instanceof`.
+  Built-in prototype graphs remain incomplete, and custom prototype-linked
+  values still have copy/snapshot restrictions.
+- `for...in` supports identifier, member and destructuring targets in the loop head.
 - Bare function calls set `this` to `undefined` (strict semantics).
-- Generators cannot `await`.
-- A generator suspended mid-iteration cannot be snapshotted. Drain or discard
-  it before an await boundary.
+- Synchronous generators cannot `await`; async generators can.
+- Suspended synchronous generators can cross snapshot boundaries when their
+  captured state is snapshotable. Pending host effects still need reconciliation.
 - Schema extraction only sees `schema`; runtime imports are irrelevant there.
 
 ## Local Validation
 
-Dry-run with the stub before real spawns, then use the real runner when agent
-responses and side effects matter:
+Use a standalone probe for isolated language/runtime checks. Validate and run the
+actual harness pair with the real runner; that command is not a dry-run and can
+spawn agents or perform granted capability effects:
 
 ```bash
-npx --package poe-code poe-safe-js path/to/harness.md
+npx --package poe-code poe-safe-js path/to/probe.safejs
 poe-code harness run path/to/harness.md
 ```
 

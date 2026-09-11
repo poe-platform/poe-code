@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const order = [];
+  const separator = { toString() { order.push('separator'); return ','; } };
+  const limit = { valueOf() { order.push('limit'); return 2; } };
+  const parts = 'a,b,c'.split(separator, limit);
+  await 0;
+  if (parts.join('|') !== 'a|b' || order.join('|') !== 'limit|separator')
+    throw new Error('Split coercion order failed');
+  const wrapped = 'a,b,c'.split(/,/, 4294967297);
+  if (wrapped.length !== 1 || wrapped[0] !== 'a')
+    throw new Error('Unsigned limit normalization failed');
+  const regex = /a/;
+  regex[Symbol.split] = null;
+  if ('x/a/y'.split(regex).join('|') !== 'x|y')
+    throw new Error('Nullish split hook fallback failed');
+  if ('a1b'.split(1).join('|') !== 'a|b')
+    throw new Error('Primitive separator coercion failed');
+  return { ok: true, title: frontmatter.title, parts, order, wrapped };
+}

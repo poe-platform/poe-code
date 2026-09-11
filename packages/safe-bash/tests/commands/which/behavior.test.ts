@@ -142,7 +142,7 @@ test("six typed miss classes at either operation continue; nothing arbitrary is 
 
 test("fatal stat/access diagnostics preserve prior bytes, first-hit semantics and quiet failures", async () => {
   for (const operation of ["stat", "access"] as const) for (const [code, description] of [
-    ["ENOTSUP", "operation not supported"], ["EROFS", "read-only file system"], ["EIO", "input/output error"],
+    ["ENOTSUP", "operation not supported"], ["EROFS", "read-only file system"], ["EIO", "input/output error"], ["ESPIPE", "invalid seek"],
   ] as const) {
     const { fs } = controlled({ [operation]: async (path: string) => {
       if (path.startsWith("/b/")) throw new FsError(code, { message: "SECRET /host/file", path: "/host/file" });

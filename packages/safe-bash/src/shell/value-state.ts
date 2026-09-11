@@ -3,7 +3,7 @@ import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts
 import { ShellLimitError } from "./types.js";
 
 interface AllocationRecord {
-  readonly bytes: number;
+  bytes: number;
   readonly slots: number;
   references: number;
   object?: object;
@@ -46,6 +46,15 @@ export class ValueArena {
     this.#slots += slots;
     this.#records.add(record);
     return record;
+  }
+
+  grow(record: AllocationRecord, bytes: number): void {
+    this.assertOpen();
+    if (!this.#records.has(record) || record.object) throw new Error("Shell value reservation cannot grow");
+    if (!Number.isSafeInteger(bytes) || bytes < 0) throw new RangeError("Invalid shell value allocation");
+    if (bytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
+    record.bytes += bytes;
+    this.#bytes += bytes;
   }
 
   commit(record: AllocationRecord, object: object): void {
@@ -109,12 +118,20 @@ export class ValueScope implements ValueAllocation {
   readonly #holds = new Map<HeldValue, { scope: ValueScope }>();
   #closed = false;
   #enrollment: AllocationRecord | undefined;
+  #bytesReservation: AllocationRecord | undefined;
 
   constructor(readonly arena: ValueArena) {}
 
   assertOpen(): void {
     this.arena.assertOpen();
     if (this.#closed) throw new Error("Shell value scope is closed");
+  }
+
+  reserveBytes(bytes: number): void {
+    this.assertOpen();
+    this.#enrollment ??= this.arena.allocate(64, 1);
+    if (this.#bytesReservation) this.arena.grow(this.#bytesReservation, bytes);
+    else this.#bytesReservation = this.arena.allocate(bytes, 0);
   }
 
   reserve(bytes: number, slots: number): ValueReservation {
@@ -170,6 +187,7 @@ export class ValueScope implements ValueAllocation {
     if (this.#closed) return;
     this.#closed = true;
     for (const release of this.#releases) release();
+    if (this.#bytesReservation) this.arena.release(this.#bytesReservation);
     if (this.#enrollment) this.arena.release(this.#enrollment);
   }
 }

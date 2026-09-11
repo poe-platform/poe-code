@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { parse, type ParseResult } from "../parse.js";
 import { parseModule } from "../parse/parser.js";
+import { run as execute } from "../run.js";
 import { Budget } from "./budget.js";
 import { createCollectionGlobals } from "./globals/collections.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
@@ -10,7 +11,6 @@ import { createMathGlobals } from "./globals/math.js";
 import { createMiscGlobals } from "./globals/misc.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
 import { createRegexGlobals } from "./globals/regex.js";
-import { wrapCallerInjectedBindings } from "./host-bridge.js";
 import { interpret } from "./interpreter.js";
 import { createPromiseGlobals } from "./promise.js";
 import type { InterpreterValue } from "./values.js";
@@ -388,7 +388,7 @@ describe("JavaScript conformance matrix", () => {
     it("uses SameValueZero keys and object identity", async () => {
       await expect(
         run(
-          "const first = {}; const second = {}; const map = new Map([[NaN, 1], [first, 2], [second, 3]]); const set = new Set([-0]); const iterated = set.values()[0]; return [map.get(NaN), map.get(first), map.get(second), set.has(0), Object.is(iterated, 0)]"
+          "const first = {}; const second = {}; const map = new Map([[NaN, 1], [first, 2], [second, 3]]); const set = new Set([-0]); const iterated = set.values().next().value; return [map.get(NaN), map.get(first), map.get(second), set.has(0), Object.is(iterated, 0)]"
         )
       ).resolves.toEqual([1, 2, 3, true, true]);
     });
@@ -416,6 +416,11 @@ describe("JavaScript conformance matrix", () => {
   });
 
   describe("destructuring", () => {
+    it("destructures property names in for-in heads", async () => {
+      await expect(run("const keys=[];for(const [first,second] in {ab:1,cd:2})keys.push(first+second);return keys"))
+        .resolves.toEqual(["ab", "cd"]);
+    });
+
     it("only applies defaults to undefined and permits earlier default bindings", async () => {
       await expect(
         run(
@@ -439,26 +444,22 @@ describe("JavaScript conformance matrix", () => {
     ).resolves.toEqual([0, 42, 1]);
   });
 
-  describe("documented deviations", () => {
-    it("returns eager arrays from Map and Set iteration methods", async () => {
+  describe("collection iterator representation", () => {
+    it("returns iterator objects from Map and Set iteration methods", async () => {
       await expect(
         run(
           "const map = new Map([[1, 2]]); const set = new Set([3]); return [Array.isArray(map.keys()), Array.isArray(map.values()), Array.isArray(map.entries()), Array.isArray(set.keys()), Array.isArray(set.values()), Array.isArray(set.entries())]"
         )
-      ).resolves.toEqual([true, true, true, true, true, true]);
+      ).resolves.toEqual([false, false, false, false, false, false]);
     });
+  });
 
-    it("provides ordinary Object inspection without an Array prototype graph", async () => {
-      await expect(run("return [({}).toString(), [].hasOwnProperty]")).resolves.toEqual([
+  describe("documented deviations", () => {
+    it("provides ordinary Object inspection through the Array prototype graph", async () => {
+      await expect(run("return [({}).toString(), [].hasOwnProperty === Object.prototype.hasOwnProperty]")).resolves.toEqual([
         "[object Object]",
-        undefined
+        true
       ]);
-    });
-
-    it("rejects destructuring heads in for-in", () => {
-      expect(() => parse("for (const [key] in value) {}")).toThrow(
-        "for...in keys are strings; destructure inside the body"
-      );
     });
 
     it("rejects await inside generators", () => {
@@ -467,10 +468,17 @@ describe("JavaScript conformance matrix", () => {
       );
     });
 
-    it("rejects host RegExp bindings", () => {
-      const budget = new Budget();
-      expect(() => wrapCallerInjectedBindings({ pattern: /x/ }, { budget })).toThrow(TypeError);
-    });
+  });
+
+  it("imports host RegExp bindings without sharing the native matcher cursor", async () => {
+    const pattern = /x/g;
+    pattern.lastIndex = 1;
+    const result = await execute(
+      "return [pattern.source, pattern.flags, pattern.lastIndex, pattern.test('ax'), pattern.lastIndex]",
+      { bindings: { pattern } }
+    );
+    expect(result).toMatchObject({ ok: true, returnValue: ["x", "g", 1, true, 2] });
+    expect(pattern.lastIndex).toBe(1);
   });
 });
 
@@ -485,7 +493,7 @@ async function run(source: string): Promise<InterpreterValue | undefined> {
       ...createObjectArrayGlobals({ budget }),
       ...createMiscGlobals({ budget }),
       ...createPromiseGlobals({ budget }),
-      ...createRegexGlobals()
+      ...createRegexGlobals({ budget })
     },
     budget
   });

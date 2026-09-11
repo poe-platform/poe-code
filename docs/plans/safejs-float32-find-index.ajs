@@ -1,0 +1,16 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const values = new Float32Array([1, 2, 3]);
+  await 0;
+  let calls = 0;
+  const result = values.findIndex((item, index) => {
+    calls++;
+    values[index] = 7;
+    return item === 2;
+  });
+  if (result !== 1 || calls !== 2 || values[1] !== 7) {
+    throw new Error("Typed-array findIndex regression");
+  }
+  return { title: frontmatter.title, ok: true, result };
+};

@@ -1,8 +1,8 @@
 import type { Budget } from "../budget.js";
 import {
-  allocateProducedSandboxValue,
   createSandboxClosure,
   isSandboxClosure,
+  isSandboxSet,
   type SandboxClosure,
   type SandboxSet,
   type SandboxValue
@@ -12,6 +12,7 @@ import {
   enterKeyedCollectionCallback,
   updateKeyedCollectionCallbacks
 } from "./collection-callback.js";
+import { createSandboxCollectionIterator } from "../collection-iterator.js";
 
 export type SetMethodName =
   | "add"
@@ -33,7 +34,7 @@ export type SetMethodOptions = {
   ) => Promise<SandboxValue>;
 };
 
-const setMethodNames = new Set<SetMethodName>([
+export const setMethodNames = new Set<SetMethodName>([
   "add",
   "has",
   "delete",
@@ -63,7 +64,11 @@ export function getSetMember(
 
   return createSandboxClosure({
     sandbox: true,
-    call: (args, context) => callSetMethod(target, property, args, options, context?.stack ?? []),
+    call: (args, context) => {
+      const receiver = context?.thisValue;
+      if (!isSandboxSet(receiver)) throw new TypeError(`Set#${property} requires a Set receiver.`);
+      return callSetMethod(receiver, property, args, options, context?.stack ?? []);
+    },
     name: property
   });
 }
@@ -116,11 +121,7 @@ export async function callSetMethod(
     }
     case "keys":
     case "values":
-      return allocateProducedSandboxValue([...target.values], options.budget);
     case "entries":
-      return allocateProducedSandboxValue(
-        [...target.values].map((value) => [value, value]),
-        options.budget
-      );
+      return createSandboxCollectionIterator(target, methodName, options.budget);
   }
 }

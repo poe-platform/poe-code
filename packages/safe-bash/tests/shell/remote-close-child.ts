@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
 
-export async function runRemoteCloseChild(args: readonly string[]) {
+export async function runRemoteCloseChild(args: readonly string[], input?: string) {
   const started = performance.now();
   const deadline = started + 3000;
   const child = spawn(process.execPath, args, {
-    stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32",
+    stdio: [input === undefined ? "ignore" : "pipe", "pipe", "pipe"], detached: process.platform !== "win32",
   });
   let stopped = false;
   const stop = () => {
@@ -30,8 +30,8 @@ export async function runRemoteCloseChild(args: readonly string[]) {
     if (diagnostic) stderr += chunk.toString();
     else stdout += chunk.toString();
   };
-  child.stdout.on("data", (chunk: Buffer) => capture(chunk, false));
-  child.stderr.on("data", (chunk: Buffer) => capture(chunk, true));
+  child.stdout!.on("data", (chunk: Buffer) => capture(chunk, false));
+  child.stderr!.on("data", (chunk: Buffer) => capture(chunk, true));
   const groupAlive = (): boolean => {
     if (!child.pid || process.platform === "win32") return false;
     try { process.kill(-child.pid, 0); return true; }
@@ -41,6 +41,10 @@ export async function runRemoteCloseChild(args: readonly string[]) {
     const result = await new Promise<{ status: number | null; signal: NodeJS.Signals | null }>((resolve, reject) => {
       child.once("error", reject);
       child.once("close", (status, signal) => resolve({ status, signal }));
+      child.stdin?.once("error", error => {
+        if (!("code" in error && error.code === "EPIPE")) reject(error);
+      });
+      child.stdin?.end(input);
     });
     const closeElapsedMs = performance.now() - started;
     const residualAtClose = groupAlive();

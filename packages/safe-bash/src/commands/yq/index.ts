@@ -1,3 +1,5 @@
+import { escapeText } from "../../escaping.js";
+import { pathOf } from "../internal.js";
 import {
   commandRuntimeIdentity,
   createOutputOperation,
@@ -7,22 +9,26 @@ import {
   type ByteSource,
   type CommandContext,
   type CommandDefinition,
+  type FileSystemCapabilities,
   type InvocationCleanup,
   type OutputOperation,
   type VirtualShellPlugin,
 } from "../../contracts/index.js";
+import { shellValueByteLength } from "../../contracts/value.js";
 import { createYqQuerySession, YqValueFailure, type YqQuerySession } from "../structured/query-core.js";
-import { JqError, JqLimitError, wellFormed, type Json } from "../structured/limits.js";
+import { interruptible, JqError, JqLimitError, wellFormed, type Json } from "../structured/limits.js";
 import { YqLedger, yqCaps } from "./accounting.js";
 import { encodeJson, encodeRaw, encodeYaml } from "./encoder.js";
 import { fromJqLimit, YqError, type YqCode } from "./errors.js";
 import { parseYamlDocuments } from "./parser.js";
+import { parseTomlDocument } from "./toml.js";
 
-const help = "virtual-bash restricted YAML profile\nusage: yq [eval|e] [OPTION ...] [--] [FILTER [FILE ...]]\n       yq [eval|e] --help\n       yq [eval|e] --version\noptions:\n  -o, --output-format FORMAT  FORMAT is yaml or json\n      --output-format=FORMAT  same as above\n  -c, --compact-output       compact JSON; requires -o json\n  -r, --unwrapScalar         raw strings; requires -o json\n  -h, --help                 show this help (sole argument)\n      --version              show profile identity (sole argument)\n";
-const version = "virtual-bash restricted YAML profile\n";
+const help = "virtual-bash restricted YAML/TOML profile\nusage: yq [eval|e] [OPTION ...] [--] [FILTER [FILE ...]]\n       yq [eval|e] --help\n       yq [eval|e] --version\noptions:\n  -p, --input-format FORMAT   FORMAT is yaml (default) or toml\n      --input-format=FORMAT   same as above\n  -o, --output-format FORMAT  FORMAT is yaml or json\n      --output-format=FORMAT  same as above\n  -c, --compact-output       compact JSON; requires -o json\n  -r, --unwrapScalar         raw strings; requires -o json\n  -h, --help                 show this help (sole argument)\n      --version              show profile identity (sole argument)\n";
+const version = "virtual-bash restricted YAML/TOML profile\n";
 const diagnosticFallback = "yq: limit: DIAGNOSTIC_TRUNCATED\n";
 
 interface ParsedArguments {
+  readonly inputFormat: "yaml" | "toml";
   readonly format: "yaml" | "json";
   readonly explicitJson: boolean;
   readonly compact: boolean;
@@ -170,7 +176,8 @@ function cli(code: YqCode): YqError {
   return new YqError("cli", code, 2);
 }
 
-function preflightArguments(args: readonly string[]): void {
+function preflightArguments(context: CommandContext): void {
+  const args = context.args;
   if (args.length > yqCaps.maxArgvEntries) throw cli("CLI_ARGV_ENTRIES_LIMIT");
   let bytes = 0;
   for (const argument of args) {
@@ -178,6 +185,18 @@ function preflightArguments(args: readonly string[]): void {
     const incoming = Buffer.byteLength(argument);
     if (incoming > yqCaps.maxArgvUtf8Bytes - bytes) throw cli("CLI_ARGV_BYTES_LIMIT");
     bytes += incoming;
+  }
+  const carrier = getCommandArguments(context);
+  bytes = 0;
+  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+  for (let index = 0; index < args.length; index++) {
+    const incoming = shellValueByteLength(carrier.values[index]!);
+    if (incoming > yqCaps.maxArgvUtf8Bytes - bytes) throw cli("CLI_ARGV_BYTES_LIMIT");
+    bytes += incoming;
+    let decoded: string;
+    try { decoded = decoder.decode(carrier.bytes(index)); }
+    catch { throw cli("CLI_INVALID_UNICODE"); }
+    if (decoded !== args[index]) throw cli("CLI_INVALID_UNICODE");
   }
 }
 
@@ -190,10 +209,11 @@ function isInformationForm(args: readonly string[]): "help" | "version" | undefi
   return undefined;
 }
 
-function parseArguments(args: readonly string[]): ParsedArguments {
+function parseArguments(args: readonly string[], inputFormat: "yaml" | "toml"): ParsedArguments {
   let index = args[0] === "eval" || args[0] === "e" ? 1 : 0;
   if (args[0] === "eval-all" || args[0] === "ea") throw cli("CLI_UNSUPPORTED_COMMAND");
   let ended = false;
+  let inputFormatSeen = false;
   let format: "yaml" | "json" = "yaml";
   let explicitJson = false;
   let formatSeen = false;
@@ -207,6 +227,15 @@ function parseArguments(args: readonly string[]): ParsedArguments {
     const argument = args[index]!;
     if (!ended && argument === "--") {
       ended = true;
+      continue;
+    }
+    if (!ended && (argument === "-p" || argument === "--input-format" || argument.startsWith("--input-format="))) {
+      if (inputFormatSeen) throw cli("CLI_DUPLICATE_OPTION");
+      const value = argument.startsWith("--input-format=") ? argument.slice("--input-format=".length) : args[++index];
+      if (value === undefined || value === "") throw cli("CLI_MISSING_OPTION_VALUE");
+      if (value !== "yaml" && value !== "toml") throw cli("CLI_INVALID_OPTION_VALUE");
+      inputFormatSeen = true;
+      inputFormat = value;
       continue;
     }
     if (!ended && (argument === "-o" || argument === "--output-format")) {
@@ -255,7 +284,7 @@ function parseArguments(args: readonly string[]): ParsedArguments {
       stdinSeen = true;
     } else if (Buffer.byteLength(file) > yqCaps.maxVfsOperandPathBytes) throw cli("CLI_VFS_OPERAND_LIMIT");
   }
-  return { format, explicitJson, compact, raw, filter, files };
+  return { inputFormat, format, explicitJson, compact, raw, filter, files };
 }
 
 function displayedSource(source: string): string {
@@ -264,7 +293,7 @@ function displayedSource(source: string): string {
   let bytes = 2;
   let truncated = false;
   for (const character of source) {
-    const encoded = JSON.stringify(character).slice(1, -1);
+    const encoded = escapeText(JSON.stringify(character).slice(1, -1), "diagnostic");
     const incoming = Buffer.byteLength(encoded);
     if (incoming > yqCaps.maxDisplayedFilenameBytes - bytes) {
       truncated = true;
@@ -307,6 +336,7 @@ async function collectSource(
   sourceName: string,
   source: ByteSource,
   vfs: boolean,
+  inputFormat: "yaml" | "toml",
 ): Promise<InputFrame[]> {
   let producer: AsyncIterator<Uint8Array> | undefined;
   let finished = false;
@@ -340,7 +370,7 @@ async function collectSource(
     };
   } }, context.signal)[Symbol.asyncIterator]();
   const chunks: Uint8Array[] = [];
-  const framer = new RawDocumentFramer();
+  const framer = inputFormat === "yaml" ? new RawDocumentFramer() : undefined;
   let size = 0;
   while (true) {
     let next: IteratorResult<Uint8Array>;
@@ -359,7 +389,8 @@ async function collectSource(
     if (chunk.byteLength === 0) continue;
     session.ownedWork.admitInputBytes(chunk.byteLength);
     if (chunk.byteLength > yqCaps.maxInputBytes - size) throw fromJqLimit(new JqLimitError("maxInputBytes"));
-    framer.admit(chunk);
+    if (inputFormat === "toml" && chunk.byteLength > yqCaps.maxDocumentBytes - size) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
+    framer?.admit(chunk);
     const owned = new Uint8Array(chunk);
     owner.assertOpen(context.signal);
     chunks.push(owned);
@@ -373,7 +404,7 @@ async function collectSource(
     offset += chunk.byteLength;
   }
   owner.assertOpen(context.signal);
-  return framer.finish(bytes);
+  return framer ? framer.finish(bytes) : [{ bytes, rawBytes: size, lineOffset: 0 }];
 }
 
 async function sourceFrames(
@@ -381,10 +412,24 @@ async function sourceFrames(
   owner: InvocationOwner,
   session: YqQuerySession,
   sourceName: string,
+  inputFormat: "yaml" | "toml",
 ): Promise<InputFrame[]> {
-  if (sourceName === "-") return collectSource(context, owner, session, "<stdin>", context.stdin, false);
-  const path = sourceName.startsWith("/") ? sourceName : `${context.cwd.endsWith("/") ? context.cwd : `${context.cwd}/`}${sourceName}`;
-  if (context.fs.readStream) {
+  if (sourceName === "-") return collectSource(context, owner, session, "<stdin>", context.stdin, false, inputFormat);
+  const path = pathOf(context, sourceName);
+  await session.ownedWork.charge();
+  owner.assertOpen(context.signal);
+  let capabilities: FileSystemCapabilities;
+  try {
+    capabilities = context.fs.capabilitiesFor
+      ? await interruptible(() => context.fs.capabilitiesFor!(path, { signal: context.signal }), context.signal)
+      : context.fs.capabilities;
+  } catch (failure) {
+    if (context.signal.aborted) throw context.signal.reason;
+    if (failure instanceof FsError) throw new YqError("vfs", "VFS_INPUT_OPEN", 2, sourceName);
+    throw failure;
+  }
+  owner.assertOpen(context.signal);
+  if (context.fs.readStream && capabilities.streamingRead !== false) {
     let source: ByteSource;
     try { source = context.fs.readStream(path, { signal: context.signal }); }
     catch (failure) {
@@ -392,18 +437,23 @@ async function sourceFrames(
       if (failure instanceof FsError) throw new YqError("vfs", "VFS_INPUT_OPEN", 2, sourceName);
       throw failure;
     }
-    return collectSource(context, owner, session, sourceName, source, true);
+    return collectSource(context, owner, session, sourceName, source, true, inputFormat);
   }
   let bytes: Uint8Array;
   try {
-    bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes: yqCaps.maxInputBytes });
+    bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes: inputFormat === "toml" ? yqCaps.maxDocumentBytes : yqCaps.maxInputBytes });
   } catch (failure) {
     if (context.signal.aborted) throw context.signal.reason;
+    if (inputFormat === "toml" && failure instanceof FsError && failure.code === "EFBIG") throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
     if (failure instanceof FsError) throw new YqError("vfs", "VFS_INPUT_READ", 2, sourceName);
     throw failure;
   }
   owner.assertOpen(context.signal);
   session.ownedWork.admitInputBytes(bytes.byteLength);
+  if (inputFormat === "toml") {
+    if (bytes.byteLength > yqCaps.maxDocumentBytes) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
+    return [{ bytes: new Uint8Array(bytes), rawBytes: bytes.byteLength, lineOffset: 0 }];
+  }
   const framer = new RawDocumentFramer();
   framer.admit(bytes);
   const owned = new Uint8Array(bytes);
@@ -411,8 +461,8 @@ async function sourceFrames(
   return framer.finish(owned);
 }
 
-function decodeDocument(bytes: Uint8Array): string {
-  try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes); }
+function decodeDocument(bytes: Uint8Array, inputFormat: "yaml" | "toml"): string {
+  try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: inputFormat === "toml" }).decode(bytes); }
   catch { throw new YqError("input", "INPUT_INVALID_UTF8", 5); }
 }
 
@@ -428,7 +478,7 @@ async function writeOperation(
   owner.assertOpen(callerSignal);
 }
 
-async function runCommand(context: CommandContext, owner: InvocationOwner): Promise<{ exitCode: number }> {
+async function runCommand(context: CommandContext, owner: InvocationOwner, inputFormat: "yaml" | "toml"): Promise<{ exitCode: number }> {
   const ledger = new YqLedger();
   let session: YqQuerySession | undefined;
   let stdout: OutputOperation | undefined;
@@ -451,13 +501,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner): Prom
     await writeOperation(stderrOperation(), selected, owner, context.signal);
   };
   try {
-    preflightArguments(context.args);
-    const argumentValues = getCommandArguments(context);
-    const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-    for (let index = 0; index < argumentValues.args.length; index++) {
-      try { decoder.decode(argumentValues.bytes(index)!); }
-      catch { throw cli("CLI_INVALID_UNICODE"); }
-    }
+    preflightArguments(context);
     const info = isInformationForm(context.args);
     if (context.args.some(argument => argument === "-h" || argument === "--help" || argument === "--version") && info === undefined) {
       throw cli("CLI_INFO_COMBINATION");
@@ -468,7 +512,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner): Prom
       await writeOperation(stdoutOperation(), bytes, owner, context.signal);
       return { exitCode: 0 };
     }
-    const options = parseArguments(context.args);
+    const options = parseArguments(context.args, inputFormat);
     if (Buffer.byteLength(options.filter) > yqCaps.maxQuerySourceBytes) throw new YqError("limit", "LIMIT_MAX_QUERY_SOURCE_BYTES", 5);
     owner.register(async () => session?.close());
     session = createYqQuerySession({ signal: context.signal });
@@ -483,17 +527,19 @@ async function runCommand(context: CommandContext, owner: InvocationOwner): Prom
     for (const file of files) {
       const sourceName = file === "-" ? "<stdin>" : file;
       let frames: InputFrame[];
-      try { frames = await sourceFrames(context, owner, session, file); }
+      try { frames = await sourceFrames(context, owner, session, file, options.inputFormat); }
       catch (failure) { throw failure instanceof YqError ? withSource(failure, sourceName) : failure; }
       owner.assertOpen(context.signal);
       for (const frame of frames) {
         ledger.admitDocumentBytes(frame.rawBytes);
         let input: string;
-        try { input = decodeDocument(frame.bytes); }
+        try { input = decodeDocument(frame.bytes, options.inputFormat); }
         catch (failure) { throw failure instanceof YqError ? withSource(failure, sourceName) : failure; }
         owner.assertOpen(context.signal);
-        const documents = parseYamlDocuments(input, session.ownedWork, ledger, frame.rawBytes, frame.lineOffset);
         try {
+        const documents = options.inputFormat === "toml"
+          ? [await parseTomlDocument(input, session.ownedWork, ledger, frame.rawBytes)]
+          : parseYamlDocuments(input, session.ownedWork, ledger, frame.rawBytes, frame.lineOffset);
         for await (const document of documents) {
         owner.assertOpen(context.signal);
         try { await session.ownedWork.measure(document); }
@@ -579,14 +625,14 @@ async function runCommand(context: CommandContext, owner: InvocationOwner): Prom
   }
 }
 
-async function execute(context: CommandContext): Promise<{ exitCode: number }> {
+async function execute(context: CommandContext, inputFormat: "yaml" | "toml"): Promise<{ exitCode: number }> {
   const owner = new InvocationOwner();
   context.registerCleanup?.(() => owner.close());
   let result: { exitCode: number } | undefined;
   let primary: unknown;
   let hasPrimary = false;
   try {
-    result = await runCommand(context, owner);
+    result = await runCommand(context, owner, inputFormat);
   } catch (failure) {
     primary = failure;
     hasPrimary = true;
@@ -606,28 +652,36 @@ async function execute(context: CommandContext): Promise<{ exitCode: number }> {
 
 export interface YqCommandsOptions {
   readonly replace?: boolean;
+  readonly inputFormat?: "yaml" | "toml";
 }
 
-export function createYqCommand(): CommandDefinition {
+function admittedOptions(options: YqCommandsOptions): { replace: boolean; inputFormat: "yaml" | "toml" } {
+  if (typeof options !== "object" || options === null) throw new TypeError("options must be an object");
+  if (Object.keys(options).some(key => key !== "replace" && key !== "inputFormat")) throw new TypeError("unsupported yq option");
+  const { replace = false, inputFormat = "yaml" } = options;
+  if (typeof replace !== "boolean") throw new TypeError("replace must be a boolean");
+  if (inputFormat !== "yaml" && inputFormat !== "toml") throw new TypeError("inputFormat must be yaml or toml");
+  return { replace, inputFormat };
+}
+
+export function createYqCommand(options: YqCommandsOptions = {}): CommandDefinition {
+  const { inputFormat } = admittedOptions(options);
   return Object.freeze({
     name: "yq",
     runtimeIdentity: commandRuntimeIdentity,
-    description: "Bounded restricted YAML query and formatter",
-    execute,
+    description: "Bounded restricted YAML/TOML query and formatter",
+    execute: (context: CommandContext) => execute(context, inputFormat),
   });
 }
 
-export function createYqCommands(): readonly CommandDefinition[] {
-  return Object.freeze([createYqCommand()]);
+export function createYqCommands(options: YqCommandsOptions = {}): readonly CommandDefinition[] {
+  return Object.freeze([createYqCommand(options)]);
 }
 
 export function yqCommands(options: YqCommandsOptions = {}): VirtualShellPlugin {
-  if (typeof options !== "object" || options === null) throw new TypeError("options must be an object");
-  const keys = Object.keys(options);
-  if (keys.some(key => key !== "replace")) throw new TypeError("unsupported yq option");
-  const replace = options.replace;
-  if (replace !== undefined && typeof replace !== "boolean") throw new TypeError("replace must be a boolean");
-  const definitions = createYqCommands();
+  const captured = admittedOptions(options);
+  const { replace } = captured;
+  const definitions = createYqCommands(captured);
   const plugin: VirtualShellPlugin = {
     name: "yq-commands",
     setup(host) {

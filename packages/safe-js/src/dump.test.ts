@@ -42,7 +42,7 @@ describe("dump", () => {
     ).resolves.toBe(
       [
         "{",
-        '  "version": 1,',
+        '  "version": 2,',
         `  "sourceHash": "${hashSource("return 1")}",`,
         '  "bindings": {',
         '    "answer": 42',
@@ -77,7 +77,7 @@ describe("dump", () => {
       })
     );
 
-    expect(snapshot.version).toBe(1);
+    expect(snapshot.version).toBe(2);
 
     const { version: ignoredVersion, ...withoutVersion } = snapshot;
     expect(() => restore(withoutVersion, { source })).toThrowError(

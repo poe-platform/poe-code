@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const original = Object.getPrototypeOf(Array.prototype);
+  const parent = Object.create(original);
+  parent.marker = "retained";
+  Object.setPrototypeOf(Array.prototype, parent);
+  try {
+    await 0;
+    if ([1].marker !== "retained") throw new Error("Changed prototype was lost");
+    parent.marker = "updated";
+    await 0;
+    if ([1].marker !== "updated") throw new Error("Prototype mutation was lost");
+    if (Reflect.setPrototypeOf(parent, Array.prototype)) throw new Error("Cycle was accepted");
+  } finally {
+    Object.setPrototypeOf(Array.prototype, original);
+  }
+  if ([1].marker !== undefined) throw new Error("Prototype restoration failed");
+  return { title: frontmatter.title, restored: true };
+};

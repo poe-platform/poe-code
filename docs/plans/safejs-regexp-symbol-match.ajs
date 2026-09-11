@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  let count = 0;
+  const target = {
+    flags: 'gv',
+    exec() { return ++count === 1 ? { 0: '' } : null; }
+  };
+  const matches = RegExp.prototype[Symbol.match].call(target, '😀');
+  if (matches.length !== 1 || matches[0] !== '' || target.lastIndex !== 2)
+    throw new Error('Borrowed Unicode matcher failed');
+  const result = /a/g[Symbol.match]('aba');
+  if (result.join('|') !== 'a|a') throw new Error('Native regex matching failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, matches, cursor: target.lastIndex, result };
+}

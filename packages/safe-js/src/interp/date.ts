@@ -13,7 +13,7 @@ export function isSandboxDate(value: unknown): value is Date {
 export function createSandboxDate(time: number): Date {
   const value = new NativeDate(time);
   dates.add(value);
-  return Object.freeze(value);
+  return value;
 }
 
 export function dateTime(value: Date): number {
@@ -22,13 +22,22 @@ export function dateTime(value: Date): number {
 
 export function copyNativeDate(value: unknown): Date | undefined {
   if (!types.isDate(value)) return undefined;
-  if (Object.getPrototypeOf(value) !== NativeDate.prototype || Reflect.ownKeys(value).length > 0)
-    throw new TypeError("Date subclasses and own properties are not supported.");
+  if (Object.getPrototypeOf(value) !== NativeDate.prototype)
+    throw new TypeError("Date subclasses are not supported.");
   return createSandboxDate(dateTime(value));
 }
 
 export function exportDate(value: Date): Date {
   return new NativeDate(dateTime(value));
+}
+
+export function dateDataProperties(value: Date): Array<[string | symbol, PropertyDescriptor]> {
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  return Reflect.ownKeys(descriptors).map(key => {
+    const descriptor = Object.getOwnPropertyDescriptor(descriptors, key)!.value as PropertyDescriptor;
+    if (!("value" in descriptor)) throw new TypeError("Date accessor properties cannot be copied as data.");
+    return [key, descriptor];
+  });
 }
 
 export function dateNumber(value: unknown): number {
@@ -66,6 +75,7 @@ const methodNames = [
   "getDate",
   "getDay",
   "getFullYear",
+  "getYear",
   "getHours",
   "getMilliseconds",
   "getMinutes",
@@ -83,6 +93,7 @@ const methodNames = [
   "setTime",
   "setDate",
   "setFullYear",
+  "setYear",
   "setHours",
   "setMilliseconds",
   "setMinutes",
@@ -97,6 +108,9 @@ const methodNames = [
   "setUTCSeconds",
   "toDateString",
   "toISOString",
+  "toLocaleString",
+  "toLocaleDateString",
+  "toLocaleTimeString",
   "toString",
   "toTimeString",
   "toUTCString",
@@ -108,7 +122,8 @@ export const dateMethods = new Map<
   { length: number; invoke: (date: Date, args: readonly unknown[]) => unknown }
 >(
   methodNames.map((name) => {
-    const native = NativeDate.prototype[name];
+    const native = Object.getOwnPropertyDescriptor(NativeDate.prototype, name)!.value as
+      (...args: number[]) => number | string | null;
     return [
       name,
       {

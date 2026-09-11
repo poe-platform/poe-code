@@ -44,7 +44,7 @@ const originalCases = [
       'export default () => {\n  const work = new Set(["start", "deleted", "kept"]);\n  const visited = [];\n  for (const node of work) {\n    visited.push(node);\n    if (node === "start") work.delete("deleted");\n  }\n  return visited;\n};\n'
   },
   {
-    name: "14-eager-map-entries-control.ajs",
+    name: "14-live-map-entries-control.ajs",
     source:
       'export default () => {\n  const work = new Map([["start", 0]]);\n  const entries = work.entries();\n  work.set("end", 1);\n  return [...entries];\n};\n'
   },
@@ -161,11 +161,7 @@ describe("independent COLL-001 original audit payloads", () => {
   it.each(originalCases)(
     "matches independent expected values for $name",
     async ({ name, source }) => {
-      const nativeSource =
-        name === "14-eager-map-entries-control.ajs"
-          ? source.replace("work.entries()", "Array.from(work.entries())")
-          : source;
-      const expected = new Function(`return ${nativeSource.slice("export default ".length)}`)()();
+      const expected = new Function(`return ${source.slice("export default ".length)}`)()();
       const result = await run(source, {
         entryPointArgs: [],
         budget: new Budget({ maxSteps: 20_000 })
@@ -281,7 +277,7 @@ describe("independent COLL-001 serialized public replay matrix", () => {
     ["Map", "Set"].flatMap((collection) =>
       ["keys", "values", "entries"].map((method) => ({ collection, method }))
     )
-  )("preserves eager $collection $method arrays across resume", async ({ collection, method }) => {
+  )("preserves live $collection $method iterators across resume", async ({ collection, method }) => {
     const source = `
         const work = ${collection === "Map" ? 'new Map([["a", 1], ["b", 2], ["c", 3]])' : 'new Set(["a", "b", "c"])'};
         const snapshot = work.${method}();
@@ -294,11 +290,7 @@ describe("independent COLL-001 serialized public replay matrix", () => {
         }
         return { isArray: Array.isArray(snapshot), visited, remaining: [...work] };
       `;
-    await verifyCheckpoint(
-      source,
-      2,
-      source.replace(`work.${method}()`, `Array.from(work.${method}())`)
-    );
+    await verifyCheckpoint(source, 2);
   });
 });
 

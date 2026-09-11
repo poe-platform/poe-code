@@ -65,6 +65,7 @@ export function createGrepCommands(executor: RegexExecutor): CommandDefinition[]
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
+      const extractMatches = parsed.flags.has("o") && !["c", "q", "l", "L", "v"].some(flag => parsed.flags.has(flag));
       let anySelected = false;
       let failed = false;
       for (const name of names) {
@@ -76,7 +77,7 @@ export function createGrepCommands(executor: RegexExecutor): CommandDefinition[]
           const available = new AvailableRecords(parsed.flags.has("z") ? 0 : 10, bufferLimit);
           const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, bufferLimit);
           records: if (maxCount > 0) for await (const batch of available.batches(lines(available.source(source), parsed.flags.has("z") ? 0 : 10), line => line.bytes.length, () => batchSize)) {
-            const results = await session.run(descriptor, batch.map(line => ({ bytes: line.bytes, all: parsed.flags.has("o"), terminated: line.terminated })));
+            const results = await session.run(descriptor, batch.map(line => ({ bytes: line.bytes, all: extractMatches, terminated: line.terminated })));
             for (let index = 0; index < batch.length; index++) {
               const line = batch[index]!;
               context.signal.throwIfAborted();

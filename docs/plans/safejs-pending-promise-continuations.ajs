@@ -1,0 +1,27 @@
+import { S } from "schema";
+
+export const schema = S.Object({title: S.String()});
+
+export default async (frontmatter) => {
+  const first = Promise.withResolvers();
+  const second = Promise.withResolvers();
+  const order = [];
+  first.resolve(second.promise);
+  const a = first.promise.then(value => {
+    order.push("first");
+    return value + 1;
+  });
+  const b = first.promise.then(value => {
+    order.push("second");
+    return value + 2;
+  });
+  await 0;
+  first.resolve(99);
+  second.resolve(7);
+  const values = [await first.promise, await a, await b];
+  if (values[0] !== 7 || values[1] !== 8 || values[2] !== 9)
+    throw new Error("Pending adoption did not preserve its resolution lock");
+  if (order.join(",") !== "first,second")
+    throw new Error("Pending reactions did not preserve registration order");
+  return {title: frontmatter.title, values, order};
+};

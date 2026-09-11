@@ -245,6 +245,31 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         if (checkout) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
         toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
         peerPaths = { "poe-code/safe-fs": [resolve(peerRoot, target)] };
+        const core = peer.exports?.["./safe-fs/core"];
+        if (core !== undefined) {
+          const coreTarget = typeof core.types === "string" ? core.types : core.types?.default;
+          assert.equal(coreTarget, "./packages/safe-fs/dist/core.d.ts", "canonical public SafeFS core declaration entry");
+          if (checkout) assert.equal(core.import, "./packages/safe-js/dist/safe-fs-core.js", "canonical public SafeFS core must use the shared SafeJS runtime");
+          peerPaths["poe-code/safe-fs/core"] = [resolve(peerRoot, coreTarget)];
+        }
+      }
+      if (Object.keys(manifest.dependencies ?? {}).length) {
+        const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
+        assert.deepEqual(manifest.dependencies, dependencies, "portable dependency contract");
+        const dependencyBase = manifest.poeCode?.integration?.peerProfile === "checkout-root" ? resolve(root, "../..") : root;
+        peerPaths ??= {};
+        for (const [name, version] of Object.entries(dependencies)) {
+          const dependencyRoot = join(dependencyBase, "node_modules", name);
+          const metadataPath = join(dependencyRoot, "package.json");
+          peerMetadata.add(metadataPath);
+          const dependency = JSON.parse(read(metadataPath, 64 * 1024));
+          assert.equal(dependency.name, name, "portable dependency identity");
+          assert.equal(dependency.version, version, "portable dependency identity");
+          assert.deepEqual(dependency.dependencies ?? {}, {}, "portable dependency must not introduce declaration dependencies");
+          toolRoots.push(dependencyRoot);
+          if (name === "pako") peerPaths[name] = [join(dependencyRoot, "dist/pako.d.ts")];
+          else peerPaths[name + "/*"] = [join(dependencyRoot, "*")];
+        }
       }
       return peerPaths;
     },

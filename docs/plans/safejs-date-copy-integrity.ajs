@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const date = new Date(7);
+  date.label = "epoch";
+  Object.freeze(date);
+  await 0;
+  if (!Object.isFrozen(date) || Object.isExtensible(date) || date.label !== "epoch") {
+    throw new Error("Date integrity failed");
+  }
+  date.setTime(9);
+  if (date.getTime() !== 9) throw new Error("Frozen Date time slot must remain mutable");
+  return { title: frontmatter.title, ok: true, time: date.getTime() };
+};

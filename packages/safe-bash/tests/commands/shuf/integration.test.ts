@@ -20,15 +20,16 @@ async function fixture() {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/dev");
   await fs.writeFile("/dev/zero", new Uint8Array(32768));
-  return new Shell({ fs }).use(agentCommands()).use(shufCommands());
+  return new Shell({ fs }).use(agentCommands()).use(shufCommands({ replace: true }));
 }
 
-test("shuf is opt-in and a VFS script safely replaces its input file", async () => {
+test("shuf supports explicit optional replacement and a VFS script safely replaces its input file", async () => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs }).use(agentCommands());
   try {
-    assert.equal((await shell.exec("command -v shuf")).exitCode, 1);
-    shell.use(shufCommands());
+    assert.equal((await shell.exec("command -v shuf")).stdout, "shuf\n");
+    assert.throws(() => shufCommands().setup(shell), { message: "Command already registered: shuf" });
+    shell.use(shufCommands({ replace: true }));
     await fs.mkdir("/dev");
     await fs.writeFile("/dev/zero", new Uint8Array(32768));
     await fs.writeFile("/records", new TextEncoder().encode("alpha\nbeta\ngamma\n"));

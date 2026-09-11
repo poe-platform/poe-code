@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join, posix, relative } from "node:path";
 
@@ -56,6 +57,26 @@ export function collectSourceInputs(root: string, fileSystem: SourceInputFileSys
   for (const path of ["scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "tests/source-census.ts"]) {
     readRegularInput(root, path, 300000, recording);
   }
+  const native = "src/commands/bytes/compression/native";
+  const codecPaths = ["bz2", "xz", "zstd"].map(name => `${native}/generated/${name}.mjs`);
+  let artifacts: Map<string, { bytes: number; sha256: string }> | undefined;
+  const codecArtifact = (path: string) => {
+    if (!codecPaths.includes(path)) return undefined;
+    if (!artifacts) {
+      const manifest = JSON.parse(readRegularInput(root, `${native}/sources.json`, 65536, recording).toString("utf8")) as {
+        artifacts: { path: string; bytes: number; sha256: string }[];
+      };
+      assert.ok(Array.isArray(manifest.artifacts), "missing codec artifact paths");
+      assert.deepEqual(manifest.artifacts.map(entry => `${native}/${entry.path}`).sort(), [...codecPaths].sort(), "unexpected codec artifact paths");
+      artifacts = new Map();
+      for (const entry of manifest.artifacts) {
+        assert.ok(Number.isSafeInteger(entry.bytes) && entry.bytes > 0 && entry.bytes <= 4194304, "invalid codec artifact size");
+        assert.ok(typeof entry.sha256 === "string" && entry.sha256.length === 64, "invalid codec artifact digest");
+        artifacts.set(`${native}/${entry.path}`, entry);
+      }
+    }
+    return artifacts.get(path)!;
+  };
   const files = new Map<string, Buffer>();
   let sourceBytes = 0;
   const visit = (path: string): void => {
@@ -67,7 +88,15 @@ export function collectSourceInputs(root: string, fileSystem: SourceInputFileSys
     } else {
       assert.ok(stat.isFile(), `source census input must be a regular file: ${path}`);
       assert.ok(files.size < 5000 && sourceBytes + stat.size <= 64 * 1024 * 1024, "source census exceeds its explicit input budget");
-      const bytes = readRegularInput(root, path, 1048576, fileSystem);
+      const artifact = codecArtifact(path);
+      const bytes = readRegularInput(root, path, artifact?.bytes ?? 1048576, fileSystem);
+      if (artifact) {
+        assert.equal(bytes.length, artifact.bytes, "codec artifact size mismatch");
+        assert.equal(createHash("sha256").update(bytes).digest("hex"), artifact.sha256, "codec artifact digest mismatch");
+      }
+      if (path === `${native}/sources.json` && artifacts) {
+        assert.ok(bytes.equals(admissionInputs.get(path)!), "codec manifest changed during source capture");
+      }
       sourceBytes += bytes.length;
       files.set(path, bytes);
     }

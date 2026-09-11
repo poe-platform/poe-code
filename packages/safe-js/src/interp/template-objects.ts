@@ -1,0 +1,53 @@
+import type { TemplateLiteral } from "../parse.js";
+import type { Budget } from "./budget.js";
+import type { SandboxArray } from "./values.js";
+import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
+import { getSandboxPrototype } from "./object-model.js";
+import { getIntrinsicRealmIdentity } from "./intrinsics.js";
+import { templateRealms } from "./template-cache.js";
+
+export const templateOrigins = new WeakMap<SandboxArray, TemplateLiteral>();
+export const templateRealmIdentities = new WeakMap<object, object>();
+export const templateRawArrays = new WeakMap<SandboxArray, SandboxArray>();
+export const templateCookedArrays = new WeakMap<SandboxArray, SandboxArray>();
+
+export function templateObject(node: TemplateLiteral, budget: Budget): SandboxArray {
+  const cached = templateRealms.get(budget)?.get(node);
+  if (cached !== undefined) return cached;
+  budget.allocateArrayLength(node.quasis.length);
+  const strings = node.quasis.map(quasi => quasi.value.cooked === undefined
+    ? undefined : budget.allocateString(quasi.value.cooked)) as SandboxArray;
+  const raw = node.quasis.map(quasi => budget.allocateString(quasi.value.raw)) as SandboxArray;
+  Object.freeze(raw);
+  Object.defineProperty(strings, "raw", { value: raw });
+  Object.freeze(strings);
+  registerTemplateObject(node, strings, budget);
+  return strings;
+}
+
+export function registerTemplateObject(node: TemplateLiteral, value: SandboxArray, budget: Budget): void {
+  const raw = Object.getOwnPropertyDescriptor(value, "raw")?.value;
+  if (!Object.isFrozen(value) || !Array.isArray(raw) || !Object.isFrozen(raw) ||
+      value.length !== node.quasis.length || raw.length !== node.quasis.length ||
+      node.quasis.some((quasi, index) => Object.getOwnPropertyDescriptor(value, String(index))?.value !== quasi.value.cooked ||
+        Object.getOwnPropertyDescriptor(raw, String(index))?.value !== quasi.value.raw))
+    throw new TypeError("Invalid template object contents.");
+  let realm = templateRealms.get(budget);
+  const existing = realm?.get(node);
+  if (existing !== undefined && existing !== value) throw new TypeError("Conflicting template object identity.");
+  if (realm === undefined) {
+    realm = new Map();
+    templateRealms.set(budget, realm);
+    const retained = realm;
+    budget.setRetainedValues(realm, () => retained.values());
+  }
+  realm.set(node, value);
+  templateOrigins.set(value, node);
+  const prototype = getSandboxPrototype({}, budget);
+  const identity = prototype === null ? undefined : getIntrinsicRealmIdentity(prototype);
+  if (identity !== undefined) templateRealmIdentities.set(value, identity);
+  const dynamicSource = dynamicNodeSources.get(node);
+  if (dynamicSource !== undefined) dynamicValueSources.set(value, dynamicSource);
+  templateRawArrays.set(value, raw as SandboxArray);
+  templateCookedArrays.set(raw as SandboxArray, value);
+}

@@ -1,0 +1,31 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const cases = [
+    [Int8Array, [1,-1]],
+    [Uint8ClampedArray, [255,0]],
+    [Int16Array, [257,-1]],
+    [Uint16Array, [257,65535]],
+    [Int32Array, [257,-1]],
+    [Uint32Array, [257,4294967295]],
+    [Float64Array, [257.5,-1]]
+  ];
+  const results = [];
+  for (const [Type, expected] of cases) {
+    const value = new Type([257.5,-1]);
+    if (Array.from(value).join() !== expected.join()) throw new Error("Conversion mismatch");
+    const buffer = new ArrayBuffer(16);
+    const view = new Type(buffer,0,2);
+    view.set([3,7]);
+    const copy = structuredClone(view);
+    await 0;
+    if (!(copy instanceof Type) || copy.buffer === buffer || copy[1] !== 7)
+      throw new Error("Clone identity mismatch");
+    if (view.subarray(1).buffer !== buffer) throw new Error("View alias mismatch");
+    if (Object.getPrototypeOf(Type) !== Object.getPrototypeOf(Float32Array))
+      throw new Error("Shared typed-array constructor mismatch");
+    results.push({ name: Type.name, width: Type.BYTES_PER_ELEMENT, values: Array.from(value) });
+  }
+  return { title: frontmatter.title, ok: true, results };
+};

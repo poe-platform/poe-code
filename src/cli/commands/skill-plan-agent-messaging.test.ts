@@ -35,6 +35,12 @@ async function captureError(argv: string[]): Promise<Error> {
 }
 
 describe("skill commands share the unknown-agent message", () => {
+  it.each(["kimi", "kimi-cli"])("rejects removed agent %s through the CLI", async (agent) => {
+    const error = await captureError(["skill", "configure", agent, "--yes"]);
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.message).toContain(`Unknown agent "${agent}".`);
+  });
+
   for (const command of ["configure", "unconfigure"] as const) {
     it(`skill ${command} lists skill-capable agents and suggests a match`, async () => {
       const error = await captureError(["skill", command, "claude-cod", "--yes"]);
@@ -45,12 +51,6 @@ describe("skill commands share the unknown-agent message", () => {
     });
   }
 
-  it("reports kimi as lacking skill support rather than unknown", async () => {
-    const error = await captureError(["skill", "configure", "kimi", "--yes"]);
-    expect(error).toBeInstanceOf(ValidationError);
-    expect(error.message).toContain('Agent "kimi" does not support skill.');
-    expect(error.message).toContain("configure");
-  });
 
   it("advertises alias-inclusive skill agents in help so it matches configure", async () => {
     const program = createProgram({
@@ -84,10 +84,4 @@ describe("plan install shares the unknown-agent message", () => {
     expect(error.message).toContain("pi supports: spawn.");
   });
 
-  it("reports kimi as configurable but not skill-capable", async () => {
-    const error = await captureError(["plan", "install", "--agent", "kimi", "--local", "--yes"]);
-    expect(error).toBeInstanceOf(ValidationError);
-    expect(error.message).toContain('Agent "kimi" does not support skill.');
-    expect(error.message).toContain("configure");
-  });
 });

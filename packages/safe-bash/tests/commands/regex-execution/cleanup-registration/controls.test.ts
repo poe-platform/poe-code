@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../../src/node.js";
 import assert from "node:assert/strict";
 import { EventEmitter, getEventListeners } from "node:events";
 import { createRequire, syncBuiltinESMExports } from "node:module";
@@ -5,7 +6,8 @@ import { after, afterEach, test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { grepCommands } from "../../../../src/commands/grep.js";
 import { rgCommand } from "../../../../src/commands/search/rg.js";
-import { RegexExecutor, RegexExecutionError, RegexSession, withRegexSession } from "../../../../src/commands/regex-execution/client.js";
+import { RegexExecutor as NodeRegexExecutor } from "../../../../src/commands/regex-execution/client.js";
+import { RegexExecutor, RegexExecutionError, RegexSession, withRegexSession } from "../../../../src/commands/regex-execution/portable.js";
 import type { Request } from "../../../../src/commands/regex-execution/protocol.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { toByteSource, type CommandContext, type InvocationCleanup } from "../../../../src/contracts/index.js";
@@ -95,7 +97,7 @@ function context(tool: string, overrides: Partial<CommandContext> = {}): Command
   };
 }
 function command(tool: "grep" | "rg") {
-  return tool === "grep" ? grepCommands()[0]! : rgCommand();
+  return tool === "grep" ? grepCommands({ regexExecutor: createNodeRegexProvider() })[0]! : rgCommand({ regexExecutor: createNodeRegexProvider() });
 }
 function assertClosed(error: unknown) {
   assert.ok(error instanceof RegexExecutionError);
@@ -256,7 +258,7 @@ for (const primaryFails of [false, true]) test(`session settlement preserves fal
       await originalClose.call(this);
       throw primaryFails ? new Error("secondary cleanup") : reason;
     };
-    const result = await settled(withRegexSession(context("grep"), new RegexExecutor(), async session => {
+    const result = await settled(withRegexSession(context("grep"), new NodeRegexExecutor(), async session => {
       await session.run(descriptor, rows);
       if (primaryFails) throw reason;
       return { exitCode: 7 };
@@ -271,7 +273,7 @@ for (const primaryFails of [false, true]) test(`session settlement preserves fal
 test("session settlement retains result identity on successful cleanup", async () => {
   const from = workers.length;
   const expected = { exitCode: 7 };
-  const result = await withRegexSession(context("grep"), new RegexExecutor(), async session => {
+  const result = await withRegexSession(context("grep"), new NodeRegexExecutor(), async session => {
     await session.run(descriptor, rows);
     return expected;
   });
@@ -284,7 +286,7 @@ test("session falsey registrar rejection precedes all acquisition", async () => 
   let opens = 0, callbacks = 0;
   RegexExecutor.prototype.open = function(signal) { opens++; return originalOpen.call(this, signal); };
   for (const reason of [undefined, null, false, 0, 0n, "", NaN]) {
-    const result = await settled(withRegexSession(context("grep", { registerCleanup() { throw reason; } }), new RegexExecutor(), () => {
+    const result = await settled(withRegexSession(context("grep", { registerCleanup() { throw reason; } }), new NodeRegexExecutor(), () => {
       callbacks++;
       return { exitCode: 0 };
     }));
@@ -313,7 +315,7 @@ test("session settlement awaits shared close and selects late cancellation", asy
     };
     const outcome = settled(withRegexSession(context("grep", {
       signal: controller.signal, registerCleanup(callback) { cleanup = callback; },
-    }), new RegexExecutor(), async session => {
+    }), new NodeRegexExecutor(), async session => {
       await session.run(descriptor, rows);
       if (primaryFails) throw false;
       return expected;
@@ -348,7 +350,7 @@ test("session settlement awaits shared close and selects late cancellation", asy
 
 test("session close cancels queued ownership without terminating active sibling", async () => {
   const from = workers.length;
-  const executor = new RegexExecutor({ maxWorkers: 1, requestTimeoutMs: 80 });
+  const executor = new NodeRegexExecutor({ maxWorkers: 1, requestTimeoutMs: 80 });
   const first = executor.open(new AbortController().signal);
   const second = executor.open(new AbortController().signal);
   holdRequests = true;
@@ -368,7 +370,7 @@ test("session close cancels queued ownership without terminating active sibling"
 
 test("session close cancels active request; queued sibling receives independent lease", async () => {
   const from = workers.length;
-  const executor = new RegexExecutor({ maxWorkers: 1, requestTimeoutMs: 80 });
+  const executor = new NodeRegexExecutor({ maxWorkers: 1, requestTimeoutMs: 80 });
   const caller = new AbortController();
   const first = executor.open(caller.signal);
   const second = executor.open(new AbortController().signal);
@@ -393,7 +395,7 @@ test("session close cancels active request; queued sibling receives independent 
 
 test("concurrent close shares in-progress retirement rather than closed-flag success", async () => {
   const from = workers.length;
-  const executor = new RegexExecutor();
+  const executor = new NodeRegexExecutor();
   const session = executor.open(new AbortController().signal);
   await session.run(descriptor, rows);
   terminationGate = deferred<void>();
@@ -412,7 +414,7 @@ test("concurrent close shares in-progress retirement rather than closed-flag suc
 
 test("pending request retirement failure is observed by close without replacing request failure", async () => {
   const from = workers.length;
-  const executor = new RegexExecutor();
+  const executor = new NodeRegexExecutor();
   const session = executor.open(new AbortController().signal);
   const failure = new Error("owned retirement failed after exit");
   holdRequests = true;
@@ -429,7 +431,7 @@ test("pending request retirement failure is observed by close without replacing 
 
 test("all idle retirements finish before multiple cleanup failures reject", async () => {
   const from = workers.length;
-  const executor = new RegexExecutor();
+  const executor = new NodeRegexExecutor();
   const session = executor.open(new AbortController().signal);
   await Promise.all([session.run(descriptor, rows), session.run(descriptor, rows)]);
   const firstFailure = new Error("first retirement failure");

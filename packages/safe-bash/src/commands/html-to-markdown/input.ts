@@ -52,20 +52,17 @@ export class Inputs {
     if (name === "-") source = this.context.stdin;
     else {
       const context = this.context, budget = this.budget, path = pathOf(context, name);
-      if (context.fs.readStream) source = context.fs.readStream(path, { signal: context.signal, chunkSize: 16_384 });
-      else {
-        let consumed = false;
-        source = { [Symbol.asyncIterator]() { return {
-          async next() {
-            if (consumed) return { done: true, value: undefined };
-            consumed = true;
-            const value = await context.fs.readFile(path, { signal: context.signal, maxBytes: budget.limits.maxInputBytes - budget.input });
-            context.signal.throwIfAborted();
-            return { done: false, value };
-          },
-          async return() { consumed = true; return { done: true, value: undefined }; },
-        }; } };
-      }
+      source = (async function* (): ByteSource {
+        const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+        context.signal.throwIfAborted();
+        if (context.fs.readStream && capabilities.streamingRead !== false) {
+          yield* readBytes(context.fs.readStream(path, { signal: context.signal, chunkSize: 16_384 }), context.signal);
+        } else {
+          const value = await context.fs.readFile(path, { signal: context.signal, maxBytes: budget.limits.maxInputBytes - budget.input });
+          context.signal.throwIfAborted();
+          yield value;
+        }
+      })();
     }
     const cursor = new Cursor(source, this.context.signal);
     this.cursors.push(cursor);

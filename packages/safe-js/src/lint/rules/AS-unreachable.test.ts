@@ -7,6 +7,29 @@ function codes(source: string): string[] {
 }
 
 describe("AS_UNREACHABLE", () => {
+  it.each([
+    "exit: { break exit; } log('reachable');",
+    "first: second: { break first; } log('reachable');",
+    "exit: { if (ok) { break exit; } else { throw 'stop'; } } log('reachable');",
+    "outer: { inner: { break outer; } } log('reachable');",
+    "exit: { function f() { exit: { break exit; } } break exit; } log('reachable');"
+  ])("allows reachable statements after labeled blocks: %s", source => {
+    expect(codes(source)).toEqual([]);
+  });
+
+  it("still reports unreachable code inside a labeled block", () => {
+    const source = "exit: { break exit; log('unreachable'); } log('reachable');";
+    const diagnostics = AS_UNREACHABLE(source);
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0].span.start.offset).toBe(source.indexOf("log('unreachable')"));
+  });
+
+  it("still propagates returns out of labeled blocks", () => {
+    expect(codes("function f() { exit: { return 1; } log('unreachable'); }")).toEqual([
+      "AS-UNREACHABLE"
+    ]);
+  });
+
   it("reports a statement after return", () => {
     expect(codes("const run = () => { return 1; log('unreachable'); };")).toEqual([
       "AS-UNREACHABLE"

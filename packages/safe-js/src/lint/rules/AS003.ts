@@ -1,4 +1,6 @@
+import { visitClassElements } from "../class-elements.js";
 import {
+  type ClassNode,
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
@@ -97,6 +99,10 @@ class AS003Scanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
@@ -142,7 +148,8 @@ class AS003Scanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
       case "BreakStatement":
@@ -270,7 +277,17 @@ class AS003Scanner {
     }
   }
 
+  private visitClass(node: ClassNode): void {
+    this.withScope(node.id === undefined ? [] : [{ kind: "const", name: node.id.name }], () => {
+      visitClassElements(node, expression => this.visitExpression(expression), block => this.visitBlock(block, true));
+    });
+  }
+
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -283,6 +300,10 @@ class AS003Scanner {
       case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
+        return;
+      case "ImportExpression":
+        this.visitExpression(node.source);
+        if (node.options !== undefined) this.visitExpression(node.options);
         return;
       case "AwaitExpression":
         this.visitAwaitExpression(node);
@@ -610,11 +631,15 @@ class AS003Scanner {
       bindings.push(...this.collectDeclarationBindings(declaration));
     }
     for (const statement of body) {
+      if (statement.type === "ExportDefaultDeclaration" && (statement.declaration.type === "ClassDeclaration" || statement.declaration.type === "FunctionDeclaration") && statement.declaration.id !== undefined) {
+        bindings.push({ kind: "let", name: statement.declaration.id.name });
+        continue;
+      }
       if (statement.type === "ImportDeclaration") {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
-      if (statement.type === "FunctionDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
         continue;
       }
@@ -632,7 +657,7 @@ class AS003Scanner {
   private collectBlockBindings(body: Statement[]): Binding[] {
     const bindings: Binding[] = [];
     for (const statement of body) {
-      if (statement.type === "FunctionDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
       }
       if (statement.type === "VariableDeclaration" && statement.kind !== "var") {

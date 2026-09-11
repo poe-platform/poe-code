@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function tag(strings) { return strings; }
+  function call() { return tag`same`; }
+  const first = call();
+  await 0;
+  const second = call();
+  const distinct = tag`same`;
+  if (first !== second || first.raw !== second.raw || first === distinct ||
+      !Object.isFrozen(first) || !Object.isFrozen(first.raw)) {
+    throw new Error("Template object identity changed");
+  }
+  return { title: frontmatter.title, ok: true };
+};

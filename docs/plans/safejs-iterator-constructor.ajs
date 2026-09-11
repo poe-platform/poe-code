@@ -1,0 +1,16 @@
+import { S } from "schema";
+export const schema=S.Object({title:S.String()});
+export default async (frontmatter)=>{
+  class Counter extends Iterator {
+    constructor(){super();this.index=0}
+    next(){return {value:this.index++,done:this.index>3}}
+  }
+  const iterator=new Counter();
+  const first=iterator.next().value;
+  await 0;
+  const rest=Array.from(iterator);
+  if(first!==0 || rest.join(',')!=='1,2' || !(iterator instanceof Iterator) ||
+      iterator.constructor!==Counter || Iterator.prototype.constructor!==Iterator)
+    throw new Error('Iterator constructor validation failed');
+  return {title:frontmatter.title,ok:true,first,rest};
+};

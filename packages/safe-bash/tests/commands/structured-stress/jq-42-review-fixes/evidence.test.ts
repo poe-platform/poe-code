@@ -24,6 +24,156 @@ const unusedBindingMigration = {
     { offset: 1383, before: "_stderrBytes", after: "ignoredStderrBytes" },
   ],
 };
+const numericAsyncMigration = {
+  path: "tests/commands/structured-stress/independent-increment/numeric-safety.test.ts",
+  before: { bytes: 6788, sha256: "5ad8d138f3733aa57f2c3a3147d20cb72affc6323111852cf646069da335e363" },
+  after: { bytes: 6800, sha256: "0c77ece2993547da2bc7aee9192c728e2ab199bb6ccd0e87f4ea0b23ba2c04eb" },
+  insertions: [{ offset: 2020, text: "async " }, { offset: 2212, text: "await " }],
+};
+type NumericAsyncInput = { path: string; expected: string; current: Buffer; snapshot?: Buffer };
+
+function assertNumericAsyncMigration(input: NumericAsyncInput) {
+  assert.equal(input.path, numericAsyncMigration.path, "exact numeric async migration path");
+  assert.equal(input.expected, numericAsyncMigration.before.sha256, "original numeric async sealed digest");
+  assert.equal(input.current.length, numericAsyncMigration.after.bytes, "reviewed numeric async source size");
+  assert.equal(digest(input.current), numericAsyncMigration.after.sha256, "reviewed numeric async source digest");
+  const chunks: Buffer[] = [];
+  let previous = 0;
+  for (const insertion of numericAsyncMigration.insertions) {
+    const bytes = Buffer.from(insertion.text);
+    const end = insertion.offset + bytes.length;
+    assert.ok(insertion.offset >= previous && end <= input.current.length, "ordered exact numeric async offsets");
+    assert.deepEqual(input.current.subarray(insertion.offset, end), bytes, "exact reviewed async insertion");
+    chunks.push(input.current.subarray(previous, insertion.offset));
+    previous = end;
+  }
+  chunks.push(input.current.subarray(previous));
+  const original = Buffer.concat(chunks);
+  assert.equal(original.length, numericAsyncMigration.before.bytes, "original numeric async source size");
+  assert.equal(digest(original), input.expected, "only the two exact reviewed async insertions");
+  if (input.snapshot) assert.deepEqual(original, input.snapshot, "unchanged historical numeric snapshot");
+  return original;
+}
+const resourceDepthMigration = {
+  path: "tests/commands/structured/resources.test.ts",
+  owner: "tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts",
+  snapshot: "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/resources.test.ts.txt",
+  receipt: {
+    path: "tests/commands/structured-stress/jq-42-review-fixes/resource-depth-receipt-644.json",
+    bytes: 1735,
+    sha256: "42afb49e94f3528829d9a26cf2aaf9d3d14eba4ad556ec1e27fbf0d1dbf6625c",
+  },
+  before: { bytes: 6029, sha256: "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061" },
+  after: { bytes: 6495, sha256: "55e0aecebc8c3e2deb3b78d90fcb612a54103866b7d8b2488900b2dcf1ba4a91" },
+};
+// Reverse the startup repair before checking the sealed resource-depth repair.
+const hazardStartupMigration = {
+  "path": "tests/commands/structured/resources.test.ts",
+  "before": {
+    "bytes": 6495,
+    "sha256": "55e0aecebc8c3e2deb3b78d90fcb612a54103866b7d8b2488900b2dcf1ba4a91"
+  },
+  "after": {
+    "bytes": 6792,
+    "sha256": "83540fe2efa5431ac7daf79fd93e8376667b4db830972f7956ebc952f377af77"
+  },
+  "substitutions": [
+    {
+      "offset": 123,
+      "before": "",
+      "after": "import { fileURLToPath } from \"node:url\";\nimport { build } from \"esbuild\";\n"
+    },
+    {
+      "offset": 6063,
+      "before": "test(\"hazardous expansion cases have a one-second killable outer deadline\", () => {\n  for (const scenario of [\"source\", \"json\", \"expansion\", \"allocation\", \"cancel\"]) {\n    const result = spawnSync(process.execPath, [\"--import\", \"tsx\", new URL(\"./hazard-worker.ts\", import.meta.url).pathname, scenario], { encoding: \"utf8\", timeout: 1000, maxBuffer: 4096 });\n    assert.ifError(result.error); assert.equal(result.status, 0, `${scenario}: ${result.stderr}`); assert.equal(result.stdout.trim(), \"ok\");\n  }\n});\n",
+      "after": "test(\"hazardous expansion cases have a one-second killable outer deadline\", async () => {\n  const prepared = await build({\n    entryPoints: [fileURLToPath(new URL(\"./hazard-worker.ts\", import.meta.url))],\n    bundle: true, packages: \"external\", platform: \"node\", format: \"esm\", target: \"es2022\", write: false,\n  });\n  for (const scenario of [\"source\", \"json\", \"expansion\", \"allocation\", \"cancel\"]) {\n    const result = spawnSync(process.execPath, [\"--input-type=module\", \"-\", scenario], { input: prepared.outputFiles[0]!.text, encoding: \"utf8\", timeout: 1000, maxBuffer: 4096 });\n    assert.ifError(result.error); assert.equal(result.status, 0, `${scenario}: ${result.stderr}`); assert.equal(result.stdout.trim(), \"ok\");\n  }\n});\n"
+    }
+  ]
+};
+type HazardStartupInput = { path: string; expected: string; current: Buffer };
+
+function archivedHazardStartupSource(): Buffer {
+  const bytes = readFileSync(new URL("./hazard-startup-before-diagnostics.ts.txt", import.meta.url));
+  assert.equal(bytes.length, hazardStartupMigration.after.bytes, "immutable pre-diagnostic resource image size");
+  assert.equal(digest(bytes), hazardStartupMigration.after.sha256, "immutable pre-diagnostic resource image digest");
+  return bytes;
+}
+
+function assertHazardStartupMigration(input: HazardStartupInput) {
+  assert.equal(input.path, hazardStartupMigration.path, "exact hazard-startup migration path");
+  assert.equal(input.expected, hazardStartupMigration.before.sha256, "sealed pre-startup source digest");
+  assert.deepEqual(hazardStartupMigration.before, resourceDepthMigration.after, "hazard repair follows the authenticated depth repair");
+  assert.equal(input.current.length, hazardStartupMigration.after.bytes, "reviewed hazard-startup source size");
+  assert.equal(digest(input.current), hazardStartupMigration.after.sha256, "reviewed hazard-startup source digest");
+  assert.equal(hazardStartupMigration.substitutions.length, 2, "only imports and the exact hazard launch block change");
+  const chunks: Buffer[] = [];
+  let previous = 0;
+  for (const substitution of hazardStartupMigration.substitutions) {
+    const replacement = Buffer.from(substitution.after);
+    const end = substitution.offset + replacement.length;
+    assert.ok(Number.isSafeInteger(substitution.offset) && substitution.offset >= previous && end <= input.current.length, "ordered bounded hazard-startup replacement");
+    assert.deepEqual(input.current.subarray(substitution.offset, end), replacement, "exact reviewed hazard-startup replacement");
+    chunks.push(input.current.subarray(previous, substitution.offset), Buffer.from(substitution.before));
+    previous = end;
+  }
+  chunks.push(input.current.subarray(previous));
+  const original = Buffer.concat(chunks);
+  assert.equal(original.length, hazardStartupMigration.before.bytes, "reconstructed pre-startup source size");
+  assert.equal(digest(original), input.expected, "only the two exact hazard-startup substitutions");
+  return original;
+}
+
+type ResourceDepthInput = {
+  path: string;
+  expected: string;
+  current: Buffer;
+  snapshot: Buffer;
+  index: number;
+  receipt: { owner: string; path: string; bytes: Buffer };
+};
+type ResourceDepthReceipt = {
+  version: number;
+  owner: string;
+  members: Array<{
+    path: string;
+    before: { bytes: number; sha256: string };
+    after: { bytes: number; sha256: string };
+    substitutions: Array<{ offset: number; before: string; after: string }>;
+  }>;
+};
+
+function assertResourceDepthMigration(input: ResourceDepthInput) {
+  assert.equal(input.path, resourceDepthMigration.path, "exact resource-depth migration path");
+  assert.equal(input.expected, resourceDepthMigration.before.sha256, "original resource-depth sealed digest");
+  assert.equal(input.index, 0, "exact resource-depth receipt member");
+  assert.equal(input.receipt.owner, resourceDepthMigration.owner, "exact resource-depth receipt owner");
+  assert.equal(input.receipt.path, resourceDepthMigration.receipt.path, "exact resource-depth receipt path");
+  assert.equal(input.receipt.bytes.length, resourceDepthMigration.receipt.bytes, "reviewed resource-depth receipt size");
+  assert.equal(digest(input.receipt.bytes), resourceDepthMigration.receipt.sha256, "reviewed resource-depth receipt digest");
+  const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+  assert.equal(receipt.version, 1, "resource-depth receipt version");
+  assert.equal(receipt.owner, resourceDepthMigration.owner, "authenticated resource-depth receipt owner");
+  assert.equal(receipt.members.length, 1, "one approved resource-depth member");
+  const member = receipt.members[input.index]!;
+  assert.equal(member.path, input.path, "authenticated resource-depth member path");
+  assert.deepEqual(member.before, resourceDepthMigration.before, "authenticated resource-depth before binding");
+  assert.deepEqual(member.after, resourceDepthMigration.after, "authenticated resource-depth after binding");
+  assert.equal(input.current.length, member.after.bytes, "reviewed resource-depth source size");
+  assert.equal(digest(input.current), member.after.sha256, "reviewed resource-depth source digest");
+  assert.equal(input.snapshot.length, member.before.bytes, "original resource-depth snapshot size");
+  assert.equal(digest(input.snapshot), input.expected, "original resource-depth snapshot digest");
+  assert.equal(member.substitutions.length, 1, "one exact resource-depth block replacement");
+  const substitution = member.substitutions[0]!;
+  const replacement = Buffer.from(substitution.after);
+  const end = substitution.offset + replacement.length;
+  assert.ok(Number.isSafeInteger(substitution.offset) && substitution.offset >= 0 && end <= input.current.length, "bounded resource-depth replacement");
+  assert.deepEqual(input.current.subarray(substitution.offset, end), replacement, "exact approved depth assertions and malformed control");
+  const original = Buffer.concat([input.current.subarray(0, substitution.offset), Buffer.from(substitution.before), input.current.subarray(end)]);
+  assert.equal(original.length, member.before.bytes, "reconstructed resource-depth source size");
+  assert.equal(digest(original), input.expected, "only the exact approved resource-depth transformation");
+  assert.deepEqual(original, input.snapshot, "unchanged historical resource-depth snapshot");
+  return original;
+}
 
 function assertUnusedBindingMigration(path: string, expected: string, current: Buffer) {
   assert.equal(path, unusedBindingMigration.path, "exact unused-binding migration path");
@@ -64,6 +214,7 @@ function assertSpellingMigration(migration: SpellingMigration, expected: string,
     before: { bytes: helper.predecessorBytes, sha256: helper.predecessorSha256 },
     after: { bytes: helper.bytes, sha256: helper.sha256 },
   } : receipt.changed[migration.index];
+  assert.ok(selected, "repair receipt member exists");
   assert.equal(selected.path, migration.path, "repair receipt path association");
   assert.equal(selected.before.sha256, expected, "original sealed expected digest");
   assert.equal(current.length, selected.after.bytes, "reviewed current source size");
@@ -117,11 +268,29 @@ test("frozen historical evidence and retained non-native canonical seals remain 
     test: readFileSync(new URL("./lint-repair-receipt-20260830.json", import.meta.url)),
     helper: readFileSync(new URL("./helper-spelling-receipt-20260830.json", import.meta.url)),
   };
+  const depthReceipt = readFileSync(new URL("./resource-depth-receipt-644.json", import.meta.url));
   const compared = new Set<string>(), migrated = new Set<string>();
   const bindingMigrated = new Set<string>();
+  const depthMigrated = new Set<string>();
+  const hazardStartupMigrated = new Set<string>();
+  const numericAsyncMigrated = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
-    let current = readFileSync(path);
+    let current = path === resourceDepthMigration.path ? archivedHazardStartupSource() : readFileSync(path);
+    if (path === numericAsyncMigration.path) {
+      current = assertNumericAsyncMigration({ path, expected, current, ...(snapshot ? { snapshot } : {}) });
+      numericAsyncMigrated.add(path);
+    }
+    if (path === resourceDepthMigration.path) {
+      current = assertHazardStartupMigration({ path, expected: resourceDepthMigration.after.sha256, current });
+      hazardStartupMigrated.add(path);
+      assert.ok(snapshot, "resource-depth member retains its authenticated historical snapshot");
+      current = assertResourceDepthMigration({
+        path, expected, current, snapshot, index: 0,
+        receipt: { owner: resourceDepthMigration.owner, path: resourceDepthMigration.receipt.path, bytes: depthReceipt },
+      });
+      depthMigrated.add(path);
+    }
     if (path === unusedBindingMigration.path) {
       current = assertUnusedBindingMigration(path, expected, current);
       if (snapshot) assert.deepEqual(current, snapshot, "unchanged historical helper snapshot");
@@ -148,12 +317,17 @@ test("frozen historical evidence and retained non-native canonical seals remain 
       assertCurrent(path, hash);
     }
   }
-  assert.equal(compared.size, 140, "current comparisons after two native source-seal retirements");
+  assert.equal(compared.size, 140, "139 current comparisons and one immutable pre-diagnostic resource image");
   assert.deepEqual([...migrated].sort(), spellingMigrations.map(entry => entry.path).sort(), "only the four approved migrations");
-  assert.equal(compared.size - migrated.size, 136, "unchanged retained current comparisons");
+  assert.equal(compared.size - migrated.size, 136, "retained comparisons outside spelling migrations, including one archived resource image");
   assert.equal(snapshots.size, 23, "all original historical snapshots");
   assert.deepEqual([...bindingMigrated], [unusedBindingMigration.path], "only the reviewed unused-binding helper migration");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons: compared.size - migrated.size, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, byteUnchangedComparisons: compared.size - migrated.size - bindingMigrated.size }));
+  assert.deepEqual([...depthMigrated], [resourceDepthMigration.path], "only the reviewed resource-depth fixture migration");
+  assert.deepEqual([...hazardStartupMigrated], [hazardStartupMigration.path], "only the reviewed hazard-startup migration");
+  assert.deepEqual([...numericAsyncMigrated], [numericAsyncMigration.path], "only the reviewed numeric async migration");
+  const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size;
+  assert.equal(unchangedComparisons, 133, "byte-unchanged retained current comparisons");
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 1, archivedResourceImages: 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };
@@ -162,8 +336,18 @@ const spellingControls: Array<[string, ((input: MigrationControl) => void) | nul
   ["rejects a different receipt-member path", input => { input.migration.path = "tests/commands/tree/backends.test.ts"; }],
   ["rejects a wrong selector", input => { input.migration.index += 1; }],
   ["rejects altered deletion offsets", input => { input.migration.deletions = input.migration.deletions.map(offset => offset + 1); }],
-  ["rejects receipt mutation", input => { input.receipt = Buffer.from(input.receipt); input.receipt[0] ^= 1; }],
-  ["rejects additional same-size source edits", input => { input.current = Buffer.from(input.current); input.current[0] ^= 1; }],
+  ["rejects receipt mutation", input => {
+    input.receipt = Buffer.from(input.receipt);
+    const firstByte = input.receipt[0];
+    assert.ok(firstByte !== undefined, "receipt mutation requires a byte");
+    input.receipt[0] = firstByte ^ 1;
+  }],
+  ["rejects additional same-size source edits", input => {
+    input.current = Buffer.from(input.current);
+    const firstByte = input.current[0];
+    assert.ok(firstByte !== undefined, "source mutation requires a byte");
+    input.current[0] = firstByte ^ 1;
+  }],
   ["rejects extra source bytes", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
   ["rejects a changed historical expected digest", input => { input.expected = "0".repeat(64); }],
 ];
@@ -171,9 +355,11 @@ const spellingControls: Array<[string, ((input: MigrationControl) => void) | nul
 for (const migration of spellingMigrations) for (const [name, mutate] of spellingControls) test("reviewed spelling migration " + migration.path + " " + name, () => {
   const evidence = JSON.parse(readFileSync(new URL("./immutable-before.json", import.meta.url), "utf8")) as { files: Record<string, string> };
   const predecessor = JSON.parse(readFileSync(new URL("../jq-grammar-canonical-plan/patch-manifest-v3.json", import.meta.url), "utf8")) as { files: Array<{ path: string; afterSha256: string }> };
+  const expected = predecessor.files.find(entry => entry.path === migration.path)?.afterSha256 ?? evidence.files[migration.path];
+  assert.ok(typeof expected === "string", "historical expected digest exists");
   const input: MigrationControl = {
     migration: { ...migration, deletions: [...migration.deletions] },
-    expected: predecessor.files.find(entry => entry.path === migration.path)?.afterSha256 ?? evidence.files[migration.path],
+    expected,
     current: readFileSync(migration.path),
     receipt: readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)),
   };
@@ -189,7 +375,9 @@ for (const migration of spellingMigrations.slice(0, 2)) test("reviewed spelling 
   const predecessor = JSON.parse(readFileSync(new URL("../jq-grammar-canonical-plan/patch-manifest-v3.json", import.meta.url), "utf8")) as { files: Array<{ path: string; afterSha256: string; afterSnapshot: string }> };
   const original = predecessor.files.find(entry => entry.path === migration.path)!;
   const snapshot = readFileSync(original.afterSnapshot);
-  snapshot[0] ^= 1;
+  const firstByte = snapshot[0];
+  assert.ok(firstByte !== undefined, "historical snapshot mutation requires a byte");
+  snapshot[0] = firstByte ^ 1;
   const restored = assertSpellingMigration(migration, original.afterSha256, readFileSync(migration.path), readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)));
   assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
 });
@@ -235,7 +423,150 @@ for (const [name, mutate] of unusedBindingControls) test("reviewed unused-bindin
     const snapshot = readFileSync(original.afterSnapshot);
     assert.equal(digest(snapshot), unusedBindingMigration.before.sha256);
     assert.deepEqual(restored, snapshot, "unchanged historical helper snapshot");
-    snapshot[0] ^= 1;
+    const firstByte = snapshot[0];
+    assert.ok(firstByte !== undefined, "historical helper snapshot mutation requires a byte");
+    snapshot[0] = firstByte ^ 1;
     assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
+  }
+});
+
+const numericAsyncControls: Array<[string, ((input: NumericAsyncInput) => void) | null]> = [
+  ["reconstructs the original sealed bytes", null],
+  ["rejects a different path", input => { input.path = unusedBindingMigration.path; }],
+  ["rejects an aliased path", input => { input.path = "./" + input.path; }],
+  ["rejects a changed old digest", input => { input.expected = "0".repeat(64); }],
+  ["rejects same-size current byte mutation", input => { input.current[0] = input.current[0]! ^ 1; }],
+  ["rejects changed operands", input => { input.current = Buffer.from(input.current.toString("utf8").replace('parseJson("[12.3400]", budget)', 'parseJson("[12.3401]", budget)')); }],
+  ["rejects changed depth limits", input => { input.current = Buffer.from(input.current.toString("utf8").replace("maxDepth: 1", "maxDepth: 2")); }],
+  ["rejects changed collection limits", input => { input.current = Buffer.from(input.current.toString("utf8").replace("maxCollectionSize: 1", "maxCollectionSize: 2")); }],
+  ["rejects changed assertions", input => { input.current = Buffer.from(input.current.toString("utf8").replace("assert.equal(budget.value(value), 9)", "assert.equal(budget.value(value), 8)")); }],
+  ["rejects extra edits", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
+  ["rejects missing await", input => { input.current = Buffer.from(input.current.toString("utf8").replace("await stringify(value, budget)", "stringify(value, budget)")); }],
+  ["rejects missing async", input => { input.current = Buffer.concat([input.current.subarray(0, 2020), input.current.subarray(2026)]); }],
+  ["rejects changed snapshot bytes", input => { input.snapshot![0] = input.snapshot![0]! ^ 1; }],
+];
+
+for (const [name, mutate] of numericAsyncControls) test("reviewed numeric async migration " + name, () => {
+  const evidence = JSON.parse(readFileSync(new URL("./immutable-before.json", import.meta.url), "utf8")) as { files: Record<string, string> };
+  const expected = evidence.files[numericAsyncMigration.path];
+  assert.equal(expected, numericAsyncMigration.before.sha256, "retained numeric source seal");
+  const current = readFileSync(numericAsyncMigration.path);
+  const snapshot = Buffer.from(current.toString("utf8")
+    .replace('test("decimal metadata is scalar for depth and collection quotas", async () => {', 'test("decimal metadata is scalar for depth and collection quotas", () => {')
+    .replace("assert.equal(await stringify(value, budget)", "assert.equal(stringify(value, budget)"));
+  assert.equal(digest(snapshot), expected, "independently reconstructed control bytes match the retained seal");
+  const input: NumericAsyncInput = { path: numericAsyncMigration.path, expected: expected!, current, snapshot };
+  if (mutate) {
+    mutate(input);
+    assert.throws(() => assertNumericAsyncMigration(input), { code: "ERR_ASSERTION" });
+  } else {
+    assert.deepEqual(assertNumericAsyncMigration(input), snapshot);
+    assert.deepEqual(assertNumericAsyncMigration({ path: input.path, expected: input.expected, current }), snapshot);
+  }
+});
+
+const resourceDepthControls: Array<[string, ((input: ResourceDepthInput) => void) | null]> = [
+  ["reconstructs the exact authenticated historical snapshot", null],
+  ["rejects a different member", input => { input.index = 1; }],
+  ["rejects a different source path", input => { input.path = "tests/commands/structured/cli.test.ts"; }],
+  ["rejects an aliased source path", input => { input.path = "./" + input.path; }],
+  ["rejects a changed old digest", input => { input.expected = "0".repeat(64); }],
+  ["rejects a different receipt owner", input => { input.receipt.owner = "tests/commands/structured/cli.test.ts"; }],
+  ["rejects a different receipt path", input => { input.receipt.path = "tests/commands/structured-stress/jq-42-review-fixes/lint-repair-receipt-20260830.json"; }],
+  ["rejects an aliased receipt path", input => { input.receipt.path = "./" + input.receipt.path; }],
+  ["rejects receipt mutation before parsing", input => { input.receipt.bytes[0] = 0; }],
+  ["rejects extra receipt bytes", input => { input.receipt.bytes = Buffer.concat([input.receipt.bytes, Buffer.from("\n")]); }],
+  ["rejects truncated receipt bytes", input => { input.receipt.bytes = input.receipt.bytes.subarray(1); }],
+  ["rejects a rewritten receipt member path", input => {
+    const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+    receipt.members[0]!.path = "tests/commands/structured/cli.test.ts";
+    input.receipt.bytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
+  }],
+  ["rejects a rewritten receipt selector offset", input => {
+    const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+    receipt.members[0]!.substitutions[0]!.offset++;
+    input.receipt.bytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
+  }],
+  ["rejects a receipt with extra approved members", input => {
+    const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+    receipt.members.push(receipt.members[0]!);
+    input.receipt.bytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
+  }],
+  ["rejects same-size source mutation", input => { input.current[0] = input.current[0]! ^ 1; }],
+  ["rejects extra source edits", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
+  ["rejects weakening the new status assertion", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace("    assert.equal(result.exitCode, 5);", "    assert.equal(result.exitCode, 0);"));
+    assert.equal(input.current.length, resourceDepthMigration.after.bytes);
+  }],
+  ["rejects restoring the malformed deep source", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace('".a".repeat(1000)', '"." + ".a".repeat(1000)'));
+    assert.notEqual(input.current.length, resourceDepthMigration.after.bytes);
+  }],
+  ["rejects altered malformed-control diagnostics", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace("unexpected IDENT", "unexpected OTHER"));
+    assert.equal(input.current.length, resourceDepthMigration.after.bytes);
+  }],
+  ["rejects original snapshot mutation", input => { input.snapshot[0] = input.snapshot[0]! ^ 1; }],
+  ["rejects extra original snapshot bytes", input => { input.snapshot = Buffer.concat([input.snapshot, Buffer.from("\n")]); }],
+  ["rejects the unreviewed original source image", input => { input.current = Buffer.from(input.snapshot); }],
+];
+
+for (const [name, mutate] of resourceDepthControls) test("reviewed resource-depth migration " + name, context => {
+  const input: ResourceDepthInput = {
+    path: resourceDepthMigration.path,
+    expected: resourceDepthMigration.before.sha256,
+    current: assertHazardStartupMigration({ path: resourceDepthMigration.path, expected: resourceDepthMigration.after.sha256, current: archivedHazardStartupSource() }),
+    snapshot: readFileSync(resourceDepthMigration.snapshot),
+    index: 0,
+    receipt: {
+      owner: resourceDepthMigration.owner,
+      path: resourceDepthMigration.receipt.path,
+      bytes: readFileSync(new URL("./resource-depth-receipt-644.json", import.meta.url)),
+    },
+  };
+  if (mutate) {
+    mutate(input);
+    const parse = context.mock.method(JSON, "parse");
+    assert.throws(() => assertResourceDepthMigration(input), { code: "ERR_ASSERTION" });
+    if (input.path !== resourceDepthMigration.path || input.expected !== resourceDepthMigration.before.sha256 || input.index !== 0
+      || input.receipt.owner !== resourceDepthMigration.owner || input.receipt.path !== resourceDepthMigration.receipt.path
+      || input.receipt.bytes.length !== resourceDepthMigration.receipt.bytes || digest(input.receipt.bytes) !== resourceDepthMigration.receipt.sha256) {
+      assert.equal(parse.mock.callCount(), 0, "reject unauthenticated receipt or selector before JSON parsing");
+    }
+  } else {
+    assert.deepEqual(assertResourceDepthMigration(input), input.snapshot);
+  }
+});
+
+const hazardStartupControls: Array<[string, ((input: HazardStartupInput) => void) | null]> = [
+  ["reconstructs the exact prior depth repair", null],
+  ["rejects a different source path", input => { input.path = "tests/commands/structured/cli.test.ts"; }],
+  ["rejects an aliased source path", input => { input.path = "./" + input.path; }],
+  ["rejects a changed prior digest", input => { input.expected = "0".repeat(64); }],
+  ["rejects a changed child deadline", input => { input.current = Buffer.from(input.current.toString().replace("timeout: 1000", "timeout: 2000")); }],
+  ["rejects a changed output cap", input => { input.current = Buffer.from(input.current.toString().replace("maxBuffer: 4096", "maxBuffer: 8192")); }],
+  ["rejects changed scenario membership", input => { input.current = Buffer.from(input.current.toString().replace('"allocation", "cancel"', '"allocation", "source"')); }],
+  ["rejects altered assertions", input => { input.current = Buffer.from(input.current.toString().replace("assert.equal(result.status, 0", "assert.equal(result.status, 1")); }],
+  ["rejects altered worker source", input => { input.current = Buffer.from(input.current.toString().replace("./hazard-worker.ts", "./hazard-failed.ts")); }],
+  ["rejects extra edits", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
+];
+
+for (const [name, mutate] of hazardStartupControls) test("reviewed hazard-startup migration " + name, () => {
+  const input: HazardStartupInput = {
+    path: hazardStartupMigration.path, expected: hazardStartupMigration.before.sha256,
+    current: archivedHazardStartupSource(),
+  };
+  if (mutate) {
+    const before = Buffer.from(input.current);
+    mutate(input);
+    assert.ok(input.path !== hazardStartupMigration.path || input.expected !== hazardStartupMigration.before.sha256 || !input.current.equals(before), "negative control must change its input");
+    assert.throws(() => assertHazardStartupMigration(input), { code: "ERR_ASSERTION" });
+  } else {
+    const prior = assertHazardStartupMigration(input);
+    assert.deepEqual(assertResourceDepthMigration({
+      path: input.path, expected: resourceDepthMigration.before.sha256, current: prior,
+      snapshot: readFileSync(resourceDepthMigration.snapshot), index: 0,
+      receipt: { owner: resourceDepthMigration.owner, path: resourceDepthMigration.receipt.path, bytes: readFileSync(resourceDepthMigration.receipt.path) },
+    }), readFileSync(resourceDepthMigration.snapshot));
   }
 });

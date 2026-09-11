@@ -79,12 +79,19 @@ test("unawaited console/stdio writes are drained in issue order before command r
 });
 
 test("pending output before a runner error is drained instead of silently discarded", async () => {
-  const runtime = contractRuntime(async (_source, options) => { options.sink.log("before"); throw new Error("runner failure"); });
+  const failure = new Error("runner failure");
+  const seen: unknown[] = [];
+  const runtime = contractRuntime(async (_source, options) => { options.sink.log("before"); throw failure; });
   const output: string[] = [];
-  const result = await execute(["-e", "contract"], { runtime }, "", { stdout: { async write(bytes) { await delay(5); output.push(Buffer.from(bytes).toString()); } } });
+  const result = await execute(["-e", "contract"], { runtime }, "", {
+    stdout: { async write(bytes) { await delay(5); output.push(Buffer.from(bytes).toString()); } },
+    onInternalError(error) { seen.push(error); },
+  });
   assert.equal(result.exitCode, 1);
   assert.deepEqual(output, ["before\n"]);
-  assert.match(result.stderr, /runner failure/u);
+  assert.equal(result.stderr, "safejs: internal error\n");
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0], failure);
 });
 
 test("parallel guest reads are serialized, and completed-invocation callbacks cannot write", async () => {

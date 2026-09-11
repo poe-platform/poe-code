@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(12, { maxByteLength: 16 });
+  const values = new Float32Array(buffer);
+  values.set([1, 2, 1]);
+  if (values.lastIndexOf(1) !== 2 || values.lastIndexOf(1, undefined) !== 0) {
+    throw new Error("Start-index presence regression");
+  }
+  await 0;
+  const surviving = values.lastIndexOf(1, {
+    valueOf() { buffer.resize(4); return -1; }
+  });
+  if (surviving !== 0) throw new Error("Resize-aware reverse search regression");
+  return { title: frontmatter.title, ok: true };
+};

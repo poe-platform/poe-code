@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(8, { maxByteLength: 16 });
+  const values = new Float32Array(buffer);
+  values.set([1, 2]);
+  await 0;
+  const seen = [];
+  const result = values.forEach((item, index, array) => {
+    if (array !== values) throw new Error("Callback receiver regression");
+    seen.push(item);
+    if (index === 0) buffer.resize(0);
+  });
+  if (result !== undefined || seen.length !== 2 || seen[0] !== 1 || seen[1] !== undefined) {
+    throw new Error("Resize-aware callback regression");
+  }
+  return { title: frontmatter.title, ok: true };
+};

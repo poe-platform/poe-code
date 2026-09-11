@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { setTimeout as delay } from "node:timers/promises";
@@ -6,7 +7,7 @@ import { Worker } from "node:worker_threads";
 import { createSearchCommands, createStandardCommands, standardCommands, searchCommands, MemoryFileSystem, Shell, toByteSource, type ByteSource, type CommandContext, type CommandDefinition, type RegexExecutionOptions } from "../../../src/index.js";
 
 function command(name: "grep" | "rg", regex: RegexExecutionOptions = {}): CommandDefinition {
-  return (name === "grep" ? createStandardCommands({ regex }) : createSearchCommands({ regex })).find(definition => definition.name === name)!;
+  return (name === "grep" ? createStandardCommands({ regexExecutor: createNodeRegexProvider(), regex }) : createSearchCommands({ regexExecutor: createNodeRegexProvider(), regex })).find(definition => definition.name === name)!;
 }
 async function run(definition: CommandDefinition, args: readonly string[], stdin: string | Uint8Array | ByteSource, overrides: Partial<CommandContext> = {}) {
   const stdout: Uint8Array[] = [];
@@ -177,7 +178,7 @@ for (const tool of ["grep", "rg"] as const) {
 }
 
 test("actual Shell pipeline composes public grep/rg options", { timeout: 5000 }, async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands({ regex: { maxWorkers: 1 } })).use(searchCommands({ regex: { maxWorkers: 1 } }));
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands({ regexExecutor: createNodeRegexProvider(), regex: { maxWorkers: 1 } })).use(searchCommands({ regexExecutor: createNodeRegexProvider(), regex: { maxWorkers: 1 } }));
   const result = await shell.exec("printf 'cat\\nno\\n' | grep -E 'c.t' | rg 'cat' -");
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "cat\n");

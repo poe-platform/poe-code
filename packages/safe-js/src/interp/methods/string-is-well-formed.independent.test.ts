@@ -81,23 +81,25 @@ describe("independent String#isWellFormed verification", () => {
     ["plain", "\ud800", true],
     ["\ud800", "plain", false]
   ] as const)(
-    "retains the extracted receiver %j like neighboring methods",
+    "uses explicit receivers after extraction from %j",
     async (value, other, expected) => {
       await expect(
         run(
           `
           const check = value.isWellFormed;
-          const holder = { check };
+          const holder = { check, toString(){return other} };
           const bound = check.bind(other, 42);
-          return [check(), check.call(other), check.apply(other, []), bound(),
+          let detached;
+          try{check()}catch(error){detached=error.name}
+          return [check.call(value), check.call(other), check.apply(other, []), bound(),
             holder.check(), check.length, bound.length,
-            value.charCodeAt.call(other, 0) === value.charCodeAt(0)];
+            value.charCodeAt.call(other, 0) === other.charCodeAt(0), detached];
         `,
           { modules: {}, bindings: { value, other } }
         )
       ).resolves.toMatchObject({
         ok: true,
-        returnValue: [expected, expected, expected, expected, expected, 0, 0, true]
+        returnValue: [expected, !expected, !expected, !expected, !expected, 0, 0, true, "TypeError"]
       });
     }
   );

@@ -38,7 +38,7 @@ async function fixture(kind: Kind, mode: Mode = "supplied", priorityIsBudgetRoot
   } = {};
   let opens = 0, reads = 0, closes = 0;
   const fs: FileSystem = kind === "legacy" ? intercept<FileSystem>(memory, {
-    capabilities: { ...memory.capabilities, open: false },
+    capabilities: { ...memory.capabilities, open: false, retainedRead: false },
     readStream() { return { [Symbol.asyncIterator]() { opens++; return {
       async next() { reads++; return hooks.legacyRead ? hooks.legacyRead() : reads === 1 ? { done: false, value: Uint8Array.of(255, 0, 10) } : { done: true, value: undefined }; },
       async return() { closes++; await hooks.close?.(); return { done: true, value: undefined }; },

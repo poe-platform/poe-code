@@ -1,0 +1,19 @@
+import { S } from "schema";
+export const schema = S.Object({title:S.String()});
+
+export default async (frontmatter) => {
+  const target = {get value(){return this.answer}};
+  if (Reflect.get(target,"value",{answer:42}) !== 42) throw new Error("Reflect receiver failed");
+  const array = [1,2,3];
+  let conversions = 0;
+  Reflect.defineProperty(array,"length",{value:{valueOf(){conversions++;return 1}}});
+  if (array.length !== 1 || conversions !== 2) throw new Error("Array length conversion failed");
+  function A(value){this.value=value}
+  function B(){}
+  const instance = Reflect.construct(A,[7],B);
+  if (!(instance instanceof B) || instance.value !== 7) throw new Error("Reflect construction failed");
+  Reflect.preventExtensions(instance);
+  if (Reflect.defineProperty(instance,"extra",{value:1})) throw new Error("Reflect failure result failed");
+  await 0;
+  return {title:frontmatter.title,ok:true,keys:Reflect.ownKeys(instance)};
+};

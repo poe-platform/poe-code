@@ -1,0 +1,33 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(12);
+  const all = new Float32Array(buffer);
+  const view = new Float32Array(buffer, 4, 2);
+  view.set("24");
+  const copy = all.slice();
+  view[0] = 7;
+  await 0;
+  if (buffer.byteLength !== 12 || !(buffer instanceof ArrayBuffer) ||
+      all.buffer !== buffer || view.buffer !== buffer || copy.buffer === buffer ||
+      all.join(",") !== "0,7,4" || copy.join(",") !== "0,2,4") {
+    throw new Error("ArrayBuffer shared-storage regression");
+  }
+  const resizable = new ArrayBuffer(12, { maxByteLength: 16 });
+  const tracking = new Float32Array(resizable, 8);
+  const fixed = new Float32Array(resizable, 4, 2);
+  resizable.resize(4);
+  await 0;
+  if (tracking.length !== 0 || fixed.length !== 0) {
+    throw new Error("ArrayBuffer shrink regression");
+  }
+  resizable.resize(16);
+  if (tracking.length !== 2 || tracking.byteOffset !== 8 ||
+      fixed.length !== 2 || fixed.byteOffset !== 4 ||
+      !ArrayBuffer.isView(tracking) || ArrayBuffer.isView(resizable)) {
+    throw new Error("ArrayBuffer view recovery regression");
+  }
+  return { title: frontmatter.title, ok: true, values: Array.from(all), bytes: buffer.byteLength };
+};

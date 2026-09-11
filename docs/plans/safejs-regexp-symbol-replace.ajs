@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const target = {
+    flags: '',
+    exec() { return { 0: 'b', index: 1, length: 1, groups: { name: 'B' } }; }
+  };
+  const named = RegExp.prototype[Symbol.replace].call(target, 'abc', '<$<name>>');
+  if (named !== 'a<B>c') throw new Error('Borrowed named replacement failed');
+  const result = /a/g[Symbol.replace]('aba', () => 'x');
+  if (result !== 'xbx') throw new Error('Regex callback replacement failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, named, result };
+}

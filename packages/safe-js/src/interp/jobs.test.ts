@@ -1,7 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { SandboxJobQueue, runAsyncPrefix, runPromiseJob, suspendJob } from "./jobs.js";
+import { SandboxJobQueue, createResumableJobContext, runAsyncPrefix, runPromiseJob, suspendJob } from "./jobs.js";
 
 describe("sandbox execution jobs", () => {
+  it.each([false, true])("preserves the owner when a resumable context reenters through another frame: %s", async (indirect) => {
+    const queue = new SandboxJobQueue();
+    const frame = createResumableJobContext();
+    const inner = createResumableJobContext();
+    const reenter = () => frame.run(() => runAsyncPrefix(async () => 7));
+    await expect(queue.run(() => frame.run(() => indirect ? inner.run(reenter) : reenter()))).resolves.toBe(7);
+    frame.release();
+    inner.release();
+    await expect(queue.run(() => 9)).resolves.toBe(9);
+  });
+
   it("keeps FIFO order when running jobs enqueue another batch", async () => {
     const queue = new SandboxJobQueue();
     const order: number[] = [];

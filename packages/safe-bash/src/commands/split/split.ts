@@ -1,4 +1,6 @@
-import { FsError, isFsError, collectBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { publicDiagnosticMessage } from "../../diagnostics.js";
+import { writeDiagnostic } from "../../escaping.js";
+import { FsError, isFsError, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
@@ -89,7 +91,8 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
           yield chunk;
         }
       })();
-      if (context.fs.writeStream && context.fs.capabilities.streamingWrite !== false) {
+      const capabilities = await interruptible(() => Promise.resolve(context.fs.capabilitiesFor?.(destination.path, { signal }) ?? context.fs.capabilities), signal);
+      if (context.fs.writeStream && capabilities.streamingWrite !== false) {
         await interruptible(() => context.fs.writeStream!(destination.path, source, { signal, flag: destination.flag }), signal);
       } else {
         const bytes = await collectBytes(source, { signal, maxBytes: limits.maxBufferBytes });
@@ -114,8 +117,8 @@ export function createSplitCommand(limits: SplitLimits): CommandDefinition {
       return { exitCode: 0 };
     } catch (error) {
       context.signal.throwIfAborted();
-      const message = error instanceof FsError ? error.message.slice(error.code.length + 2) : error instanceof Error ? error.message : String(error);
-      await writeBytes(context.stderr, Buffer.from(`split: ${message.slice(0, 4096)}\n`), context.signal);
+      const message = error instanceof FsError ? error.message.slice(error.code.length + 2) : publicDiagnosticMessage(error, context.onInternalError);
+      await writeDiagnostic(context.stderr, `split: ${message.slice(0, 4096)}\n`, context.signal);
       return { exitCode: 1 };
     }
   } };

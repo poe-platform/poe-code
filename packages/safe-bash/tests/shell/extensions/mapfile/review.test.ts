@@ -46,7 +46,7 @@ const nativeCases = [
 for (const entry of nativeCases) test(`mapfile independent native: ${entry.name}`, {}, async context => {
   const native = primaryReference(import.meta.url, entry.script, entry.input);
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, extensions: [mapfileExtension()] });
+  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });
   for (const command of basicCommands()) shell.register(command);
   context.after(() => shell.dispose());
   const actual = await shell.exec(entry.script, { stdin: Buffer.from(entry.input) });
@@ -108,7 +108,7 @@ function fixture(args: readonly ShellValue[]) {
   };
   return { context, controller, events, diagnostics, cleanups, cells, writer, input,
     reads: () => reads,
-    execute: () => Promise.resolve(mapfileExtension().create().builtins[0]!.execute(context)),
+    execute: () => Promise.resolve(mapfileExtension({ replace: true }).create().builtins[0]!.execute(context)),
   };
 }
 
@@ -191,7 +191,7 @@ const contextCases = [
 for (const entry of contextCases) test(`mapfile callback diagnostic context: ${entry.name}`, {}, async context => {
   const script = `${entry.script}; printf 'a=<%s>;b=<%s>;c=<%s>' "\${a[*]}" "\${b[*]}" "\${c[*]}"`;
   const native = primaryReference(import.meta.url, script, "one\ntwo\nthree\nfour\n");
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });
   for (const command of basicCommands()) shell.register(command);
   context.after(() => shell.dispose());
   const actual = await shell.exec(script, { stdin: "one\ntwo\nthree\nfour\n" });
@@ -210,7 +210,7 @@ for (const [name, body] of [
   const fs = createMemoryFileSystem();
   await fs.mkdir("/dev/fd", { recursive: true });
   await fs.writeFile("/dev/fd/3", Buffer.from(definition));
-  const shell = new Shell({ fs, extensions: [mapfileExtension()] });
+  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });
   for (const command of basicCommands()) shell.register(command);
   context.after(() => shell.dispose());
   const actual = await shell.exec(script, { stdin: "one\ntwo\nthree\n" });
@@ -224,7 +224,7 @@ for (const entry of [
   { origin: 2147483648, callback: ": -2147483648 'é'\\''😀" },
 ]) for (const delta of [0, -1]) test(`mapfile callback source budget charges exact emitted bytes: origin=${entry.origin} delta=${delta}`, async context => {
   const script = `mapfile -tn1 -O${entry.origin} -c1 -C : a`;
-  const extension = mapfileExtension(), create = extension.create;
+  const extension = mapfileExtension({ replace: true }), create = extension.create;
   const sources: Uint8Array[] = [];
   let publications = 0;
   extension.create = () => {
@@ -250,7 +250,7 @@ for (const entry of [
 });
 
 for (const origin of [0, 2147483648]) test(`mapfile callback diagnostic output budget aborts before publication at origin ${origin}`, async context => {
-  const extension = mapfileExtension(), create = extension.create;
+  const extension = mapfileExtension({ replace: true }), create = extension.create;
   let publications = 0, writes = 0;
   extension.create = () => {
     const instance = create();
@@ -273,7 +273,7 @@ for (const origin of [0, 2147483648]) test(`mapfile callback diagnostic output b
 test("mapfile diagnostic control: direct function without mapfile retains native source name", {}, async context => {
   const script = "cb() { missing_callback_command; }; cb; printf 'status=%s' \"$?\"";
   const native = primaryReference(import.meta.url, script);
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });
   for (const command of basicCommands()) shell.register(command);
   context.after(() => shell.dispose());
   const actual = await shell.exec(script);
@@ -289,7 +289,7 @@ for (const invoke of ["callback", "eval callback"]) test(`mapfile diagnostic con
   const fs = createMemoryFileSystem();
   await fs.mkdir("/dev/fd", { recursive: true });
   await fs.writeFile("/dev/fd/3", Buffer.from(definition));
-  const shell = new Shell({ fs, extensions: [mapfileExtension()] });
+  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });
   for (const command of basicCommands()) shell.register(command);
   context.after(() => shell.dispose());
   const actual = await shell.exec(script);

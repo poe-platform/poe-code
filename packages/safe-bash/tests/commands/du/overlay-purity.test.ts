@@ -49,7 +49,7 @@ for (const view of ["direct", "readonly", "mount", "nested"] as const) {
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "0\ttree\n");
     assert.equal(result.stderr, "");
-    assert.deepEqual(checked.calls.map(call => call.method), ["lstat", "readdir"]);
+    assert.deepEqual(checked.calls.map(call => call.method), ["lstat", "lstat", "readdir"]);
     assert.deepEqual(mutations, [], "strict actual no backend mutations, not a positive-effect detector");
     assert.deepEqual(effects, [], "no other upper or lower mutation is allowed either");
     assert.deepEqual(await upper.readdir("/"), before);

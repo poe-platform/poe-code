@@ -17,7 +17,8 @@ const scenarios = [
 
 async function runHost(selected: readonly string[], batch = false): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    const child = spawn(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("../shell-stress/env-split-author/resume-host.ts", import.meta.url)), ...(batch ? ["--batch", ...selected] : selected)], {
+    // The maintained unit route builds the complete public API before running this host.
+    const child = spawn(process.execPath, ["--unhandled-rejections=strict", fileURLToPath(new URL("../shell-stress/env-split-author/resume-host.mjs", import.meta.url)), ...(batch ? ["--batch", ...selected] : selected)], {
       detached: true, stdio: ["ignore", "pipe", "pipe"],
     });
     const stdout: Buffer[] = [];

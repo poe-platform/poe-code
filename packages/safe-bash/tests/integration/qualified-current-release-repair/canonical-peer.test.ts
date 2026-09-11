@@ -5,6 +5,7 @@ import { gzipSync } from "node:zlib";
 import test from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
+import { createAgentCommands } from "../../../src/index.js";
 
 const peerModule = new URL("../../plugins/qualified-current-release/peer.mjs", import.meta.url).href;
 const metadataModule = new URL("../../commands/metadata-stress/canonical-env/runner.mjs", import.meta.url).href;
@@ -15,12 +16,12 @@ const declarationPath = "packages/safe-fs/dist/index.d.ts";
 const expectedCurrentCommands = [
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
-  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
-  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
-  "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
+  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
   "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown",
-  "du", "expr", "which", "timeout", "apply_patch",
+  "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
 ];
 
 async function generatedCatalogGuards() {
@@ -44,8 +45,8 @@ async function generatedCatalogGuards() {
   assert.ok(initializer && ts.isArrayLiteralExpression(initializer));
   assert.ok(initializer.elements.every(ts.isStringLiteral));
   assert.deepEqual(initializer.elements.map(element => (element as ts.StringLiteral).text), expectedCurrentCommands);
-  assert.equal(expectedCurrentCommands.length, 79);
-  assert.equal(new Set(expectedCurrentCommands).size, 79);
+  assert.equal(expectedCurrentCommands.length, 110);
+  assert.equal(new Set(expectedCurrentCommands).size, 110);
   assert.equal(guards.length, 3, "factory, registered dispatch, and final factory each verify the full catalog");
   return guards.map(guard => {
     const script = `const expectedCurrentCommands = ${initializer.getText(parsed)};\n${guard.getText(parsed)}`;
@@ -54,7 +55,8 @@ async function generatedCatalogGuards() {
   });
 }
 
-test("generated current stream catalog accepts the independent exact 79 names at all three boundaries", async () => {
+test("generated current stream catalog accepts the independent exact 110 names at all three boundaries", async () => {
+  assert.deepEqual(createAgentCommands().map(command => command.name), expectedCurrentCommands);
   for (const guard of await generatedCatalogGuards()) {
     const definitions = expectedCurrentCommands.map(name => ({ name }));
     guard(assert, () => definitions, { commands: { list: () => definitions } });
@@ -183,6 +185,82 @@ test("authenticated peer staging contains exactly the public runtime/declaration
   assert.throws(() => stagePeerArtifact({ ...binding }, "/other"), /binding/u);
 });
 
+function currentCoreFixture() {
+  const root = "/checkout/packages/safe-bash";
+  const manifest = { name: "virtual-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
+  const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: {
+    "./safe-fs": { types: { default: `./${declarationPath}` }, import: "./packages/safe-js/dist/safe-fs.js" },
+    "./safe-fs/core": { types: { default: "./packages/safe-fs/dist/core.d.ts" }, import: "./packages/safe-js/dist/safe-fs-core.js" },
+  } };
+  const files = {
+    "package.json": JSON.stringify(peer),
+    [declarationPath]: "export declare const value: number;\n",
+    "packages/safe-fs/dist/core.d.ts": 'export { value } from "./core-types.js";\n',
+    "packages/safe-fs/dist/core-types.d.ts": "export declare const value: number;\n",
+    "packages/safe-js/dist/safe-fs.js": 'export { value } from "./shared.js";\n',
+    "packages/safe-js/dist/safe-fs-core.js": 'export { value } from "./shared.js";\n',
+    "packages/safe-js/dist/shared.js": "export const value = 42;\n",
+  };
+  const lock = { packages: { "packages/safe-bash": { devDependencies: manifest.devDependencies, peerDependencies: { "poe-code": ">=13.0.0" } }, "node_modules/poe-code": { resolved: "", link: true } } };
+  const io = createFsFromVolume(Volume.fromJSON({
+    ...Object.fromEntries(Object.entries(files).map(([path, bytes]) => [`/checkout/${path}`, bytes])),
+    [`${root}/package.json`]: JSON.stringify(manifest),
+    "/checkout/package-lock.json": JSON.stringify(lock),
+    "/consumer/package.json": '{"type":"module"}',
+  }));
+  io.writeFileSync("/peer.tgz", archive(Object.fromEntries(Object.entries(files).map(([path, bytes]) => [`package/${path}`, bytes]))));
+  const declarations = { peer: { version: peer.version, integrity: null, metadataSha256: digest(files["package.json"]),
+    publicEntries: new Map([["poe-code/safe-fs", declarationPath], ["poe-code/safe-fs/core", "packages/safe-fs/dist/core.d.ts"]]),
+    declarations: new Map(Object.entries(files).filter(([path]) => path.endsWith(".d.ts")).map(([path, bytes]) => [path, digest(bytes)])),
+  } };
+  return { root, io, peer, files, declarations };
+}
+
+for (const checkout of [true, false]) {
+  test(`current core public route stages its exact authenticated closure (${checkout ? "checkout" : "packed"})`, async () => {
+    const { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles } = await import(peerModule);
+    const input = currentCoreFixture();
+    const binding = bindPeerArtifact({ ...input, checkout, ...(checkout ? {} : { artifact: "/peer.tgz" }) });
+    assert.deepEqual(binding.entries, { "poe-code/safe-fs": "packages/safe-js/dist/safe-fs.js", "poe-code/safe-fs/core": "packages/safe-js/dist/safe-fs-core.js" });
+    assert.deepEqual(binding.files.map(({ path }: { path: string }) => path).sort(), Object.keys(input.files).sort());
+    assert.equal(binding.declarationFiles, 3);
+    assert.equal(binding.runtimeFiles, 3);
+    stagePeerArtifact(binding, "/consumer");
+    input.io.renameSync("/consumer", "/moved");
+    assertPeerDeclarationFiles(binding, ["/moved/node_modules/poe-code/packages/safe-fs/dist/core.d.ts", "/moved/node_modules/poe-code/packages/safe-fs/dist/core-types.d.ts"], "/moved");
+    assertPeerArtifact(binding, "/moved");
+    input.io.writeFileSync("/moved/node_modules/poe-code/packages/safe-js/dist/shared.js", "changed");
+    assert.throws(() => assertPeerArtifact(binding, "/moved"), /changed/u);
+  });
+}
+
+for (const route of ["runtime", "declaration"] as const) {
+  test(`current core rejects a substituted public ${route} target even with matching metadata`, async () => {
+    const { bindPeerArtifact } = await import(peerModule);
+    const input = currentCoreFixture();
+    if (route === "runtime") input.peer.exports["./safe-fs/core"].import = "./packages/safe-js/dist/safe-fs.js";
+    else {
+      input.peer.exports["./safe-fs/core"].types.default = `./${declarationPath}`;
+      input.declarations.peer.publicEntries.set("poe-code/safe-fs/core", declarationPath);
+    }
+    const metadata = JSON.stringify(input.peer);
+    input.io.writeFileSync("/checkout/package.json", metadata);
+    input.declarations.peer.metadataSha256 = digest(metadata);
+    assert.throws(() => bindPeerArtifact({ ...input, checkout: true }), /core/u);
+  });
+}
+
+for (const path of ["packages/safe-fs/dist/core.d.ts", "packages/safe-fs/dist/core-types.d.ts", "packages/safe-js/dist/safe-fs-core.js", "packages/safe-js/dist/shared.js"]) {
+  test(`current core closure authenticates ${path} before staging`, async () => {
+    const { bindPeerArtifact, stagePeerArtifact } = await import(peerModule);
+    const input = currentCoreFixture();
+    const binding = bindPeerArtifact({ ...input, checkout: true });
+    input.io.writeFileSync(`/checkout/${path}`, "changed");
+    assert.throws(() => stagePeerArtifact(binding, "/consumer"), /changed/u);
+    assert.equal(input.io.existsSync("/consumer/node_modules"), false);
+  });
+}
+
 for (const mutation of ["missing", "wrong-bytes", "symlink", "optional", "wrong-pin", "wrong-registry", "unrelated-peer", "missing-locked-root"] as const) {
   test(`peer admission refuses ${mutation} before consumer writes`, async () => {
     const { bindPeerArtifact } = await import(peerModule);
@@ -272,6 +350,20 @@ function metadataFixture() {
   const profile = { kind: "committed-current-source", sourceCommit: "c88efaed74968bc27e879b87bae23b44ec01b198", sources, sourceTreeSha256: digest(JSON.stringify(sources)) };
   return { io, volume, profile, sourceRoot: "/snapshot", historicalPaths: ["src/retired.ts", "tests/kept.ts", "package.json"] };
 }
+
+test("historical metadata input loading remains explicit and fails closed on unavailable records", async () => {
+  const { loadHistoricalInputs } = await import(metadataModule);
+  const missing = Object.assign(new Error("unavailable historical input"), { code: "ENOENT" });
+  for (const failure of [0, 1, 2]) {
+    const reads: string[] = [];
+    assert.throws(() => loadHistoricalInputs({ readFileSync(path: string) {
+      reads.push(path);
+      if (reads.length === failure + 1) throw missing;
+      return Buffer.from("{}");
+    } }), error => error === missing);
+    assert.equal(reads.length, failure + 1);
+  }
+});
 
 test("historical selection retains absent old paths; explicit current profile replaces only committed source inventory", async () => {
   const { selectManifestPaths } = await import(metadataModule);

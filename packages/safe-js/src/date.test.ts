@@ -145,9 +145,11 @@ describe("Date intrinsic", () => {
       "const date = new Date(); const alias = date; date.setTime(date.getTime() + 7); return [date, alias, new Date(NaN), Date.now()];";
     const first = await run(source, { clock: { now, snapshot: () => ({ next: 1001 }) } });
     const snapshot = JSON.parse(await dump(first));
-    expect(Object.values(snapshot.heap ?? {}).some((entry: any) => entry.kind === "date")).toBe(
-      true
-    );
+    expect(snapshot.bindings.alias).toEqual(snapshot.bindings.date);
+    expect(snapshot.heap[snapshot.bindings.date.id]).toMatchObject({
+      kind: "guest-date", value: 1007,
+      state: { prototype: { kind: "ref", id: expect.any(Number) } }
+    });
     const forbidden = vi.fn(() => {
       throw new Error("clock reread");
     });
@@ -185,28 +187,28 @@ describe("Date intrinsic", () => {
     const first = createRealm({ clock: { now: () => 10, snapshot: () => undefined } });
     const second = createRealm({ clock: { now: () => 20, snapshot: () => undefined } });
     try {
-      await first.evaluate("const date = new Date(); Date.prototype.setTime(1);");
+      await first.evaluate("const date = new Date(); Date.prototype.label = 1;");
       await second.evaluate("const date = new Date();");
       expect(
-        await first.evaluate("date.setTime(11); return [date.getTime(), Date.prototype.getTime()];")
-      ).toMatchObject({ ok: true, returnValue: [11, 1] });
+        await first.evaluate("date.setTime(11); return [date.getTime(), Date.prototype.label, date.label];")
+      ).toMatchObject({ ok: true, returnValue: [11, 1, 1] });
       expect(
-        await second.evaluate("return [date.getTime(), Number.isNaN(Date.prototype.getTime())];")
-      ).toMatchObject({ ok: true, returnValue: [20, true] });
+        await second.evaluate("return [date.getTime(), Object.hasOwn(Date.prototype, 'label'), date.label];")
+      ).toMatchObject({ ok: true, returnValue: [20, false, undefined] });
     } finally {
       await first.close();
       await second.close();
     }
   });
 
-  it("does not expose native constructors or silently implement unsupported locale formatting", async () => {
+  it("does not expose native constructors through Date or its formatting methods", async () => {
     expect(
       await run(
-        "const date = new Date(0); return [date.__proto__, date.getTime.constructor, Date.constructor, Date.prototype.__proto__, date.toLocaleString, date.toLocaleDateString, date.toLocaleTimeString];"
+        "const date = new Date(0); return [date.__proto__===Date.prototype, date.getTime.constructor===Function, Date.constructor===Function, Date.prototype.__proto__===Object.prototype, date.toLocaleString.constructor===Function, date.toLocaleDateString.constructor===Function, date.toLocaleTimeString.constructor===Function, date.getTime.constructor('return typeof process')()];"
       )
     ).toMatchObject({
       ok: true,
-      returnValue: [undefined, undefined, undefined, undefined, undefined, undefined, undefined]
+      returnValue: [true, true, true, true, true, true, true, "undefined"]
     });
   });
 

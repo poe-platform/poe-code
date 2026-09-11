@@ -1,3 +1,4 @@
+import { PublicDiagnostic } from "../../../diagnostics.js";
 import { yieldTurn } from "../../../contracts/yield.js";
 import { FsError, type ByteSource, type CommandContext } from "../../../contracts/index.js";
 import { pathOf, UsageError, type ParsedOptions } from "../../internal.js";
@@ -53,7 +54,7 @@ export async function* range(source: ByteSource, skip: number, count: number): B
     }
     if (!skip && !count) return;
   }
-  if (skip) throw new Error("cannot skip past end of input");
+  if (skip) throw new PublicDiagnostic("cannot skip past end of input");
 }
 
 export async function* rows(source: ByteSource, width: number): ByteSource {
@@ -93,6 +94,6 @@ export function numeric(text: string, suffixes = false): number {
 
 export function addOffset(offset: number, length: number): number {
   const result = offset + length;
-  if (!Number.isSafeInteger(result)) throw new Error("input address exceeds safe integer range");
+  if (!Number.isSafeInteger(result)) throw new PublicDiagnostic("input address exceeds safe integer range");
   return result;
 }

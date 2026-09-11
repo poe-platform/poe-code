@@ -2,8 +2,11 @@ import { type CommandContext, type CommandDefinition, type FileStat } from "../c
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { predicateRequirements } from "./portable-requirements.js";
+import { compareCopyIdentity } from "./copy-identity.js";
 
 type Predicate = () => Promise<boolean>;
+
+const maxExpressionDepth = 256;
 
 async function metadata(context: CommandContext, path: string, link = false): Promise<FileStat | undefined> {
   assertCommandRequirements(context, predicateRequirements, ["metadata"]);
@@ -35,12 +38,13 @@ export function predicateCommands(): CommandDefinition[] {
       if (!/^[ \t]*[+-]?[0-9]+[ \t]*$/u.test(text)) throw new UsageError(`integer expression expected: '${text}'`);
       return BigInt(text.trim());
     };
-    const primary = (): Predicate => {
+    const primary = (depth: number): Predicate => {
       const token = args[offset++];
       if (token === undefined) throw new UsageError("argument expected");
-      if (token === "!" && !binary.has(args[offset] ?? "")) { const inner = primary(); return async () => !await inner(); }
-      if (token === "(" && !binary.has(args[offset] ?? "")) {
-        const inner = disjunction();
+      if ((token === "!" || token === "(") && !binary.has(args[offset] ?? "")) {
+        if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
+        if (token === "!") { const inner = primary(depth + 1); return async () => !await inner(); }
+        const inner = disjunction(depth + 1);
         if (args[offset++] !== ")") throw new UsageError("missing ')'");
         return inner;
       }
@@ -59,7 +63,9 @@ export function predicateCommands(): CommandDefinition[] {
             const rightStat = await metadata(context, right);
             if (operator === "-nt") return leftStat !== undefined && (!rightStat || leftStat.mtimeMs > rightStat.mtimeMs);
             if (operator === "-ot") return rightStat !== undefined && (!leftStat || leftStat.mtimeMs < rightStat.mtimeMs);
-            return leftStat?.ino !== undefined && rightStat?.ino !== undefined && leftStat.ino === rightStat.ino && leftStat.dev === rightStat.dev;
+            const identity = compareCopyIdentity(leftStat, rightStat);
+            if (identity !== "unknown") return identity === "same";
+            return leftStat?.ino !== undefined && rightStat?.ino !== undefined && leftStat.type === rightStat.type && leftStat.ino === rightStat.ino && leftStat.dev === rightStat.dev;
           }
           const leftNumber = number(token);
           const rightNumber = number(right);
@@ -99,27 +105,27 @@ export function predicateCommands(): CommandDefinition[] {
       }
       return async () => token !== "";
     };
-    const conjunction = (): Predicate => {
-      let predicate = primary();
+    const conjunction = (depth: number): Predicate => {
+      let predicate = primary(depth);
       while (args[offset] === "-a") {
         offset++;
         const left = predicate;
-        const right = primary();
+        const right = primary(depth);
         predicate = async () => await left() && await right();
       }
       return predicate;
     };
-    const disjunction = (): Predicate => {
-      let predicate = conjunction();
+    const disjunction = (depth: number): Predicate => {
+      let predicate = conjunction(depth);
       while (args[offset] === "-o") {
         offset++;
         const left = predicate;
-        const right = conjunction();
+        const right = conjunction(depth);
         predicate = async () => await left() || await right();
       }
       return predicate;
     };
-    const evaluate = disjunction();
+    const evaluate = disjunction(0);
     if (offset !== args.length) throw new UsageError(`unexpected argument '${args[offset]}'`);
     return { exitCode: await evaluate() ? 0 : 1 };
   })).map(command => ({ ...command, filesystemRequirements: predicateRequirements }));

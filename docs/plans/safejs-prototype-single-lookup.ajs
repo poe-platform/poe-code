@@ -1,0 +1,13 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const parent = { value: 7 };
+  const child = Object.create(parent);
+  if (Object.getPrototypeOf(child) !== parent || child.value !== 7)
+    throw new Error("Explicit prototype lookup failed");
+  Object.setPrototypeOf(child, null);
+  await 0;
+  if (Object.getPrototypeOf(child) !== null || child.value !== undefined)
+    throw new Error("Explicit null prototype lookup failed");
+  return { title: frontmatter.title, ok: true };
+};

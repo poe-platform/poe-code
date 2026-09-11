@@ -11,24 +11,48 @@ import type {
   VariableDeclarator
 } from "../parse.js";
 import type { AsyncEvaluationResult } from "./async.js";
-import type { Scope } from "./scope.js";
+import type { BindingOperations, Scope } from "./scope.js";
+import { Budget, isFatalSandboxError } from "./budget.js";
+import { retainValues } from "./resources.js";
+import { getSandboxPrototype, setSandboxPrototype } from "./object-model.js";
+import { hasOwnSandboxProperty } from "./globals/object.js";
+import { reflectionProperties } from "./globals/object-array.js";
+import { isGuestHostObject } from "./host-capabilities.js";
+import { guestProxyStates } from "./guest-proxy.js";
+import { sandboxOwnKeys } from "./guest-proxy-own-keys.js";
+import { sandboxGetOwnPropertyDescriptor } from "./guest-proxy-descriptor.js";
+import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
+import type { GeneratorExpressionState } from "./generator-expression-state.js";
 import {
-  isSandboxMap,
-  isSandboxSet,
-  ownEnumerableSandboxEntries,
+  type SandboxCallContext,
+  ownEnumerableSandboxKeys,
+  ownSandboxSymbolKeys,
   type SandboxArray,
   type SandboxObject,
   type SandboxValue
 } from "./values.js";
 
 type Pattern = VariableDeclarator["id"] | AssignmentPattern | MemberExpression | RestElement;
+export type AssignmentReference = { object: SandboxValue; key: PropertyKey; privateName?: string; scope?: Scope; unresolvable?: true };
 
 export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true } | { assign: true };
 
 export type PatternContext = {
-  evaluate(node: ParseResult): Promise<AsyncEvaluationResult>;
-  getProperty(value: SandboxValue, key: string | number): SandboxValue;
-  setProperty(target: SandboxValue, key: string | number, value: SandboxValue): void;
+  strict?: boolean;
+  bindingOperations?: BindingOperations;
+  unresolvableAssignmentTarget?: SandboxObject;
+  restoredPatternState?(id: number): GeneratorExpressionState | undefined;
+  withPatternState?(id: number, state: GeneratorExpressionState): PatternContext;
+  prepareMemberReference?(pattern: MemberExpression): Promise<
+    { ok: true; reference: AssignmentReference } | { ok: false; result: AsyncEvaluationResult }
+  >;
+  budget?: Budget;
+  callContext?: SandboxCallContext;
+  evaluate(node: ParseResult, inferredName?: string): Promise<AsyncEvaluationResult>;
+  toPropertyKey(value: SandboxValue): string | symbol | Promise<string | symbol>;
+  getProperty(value: SandboxValue, key: PropertyKey): SandboxValue | Promise<SandboxValue>;
+  setProperty(target: SandboxValue, key: PropertyKey, value: SandboxValue): void | Promise<void>;
+  setPrivateProperty?(target: SandboxValue, name: string, value: SandboxValue): void | Promise<void>;
 };
 
 export type BindPatternResult =
@@ -43,46 +67,74 @@ export async function bindPattern(
   value: SandboxValue,
   target: PatternTarget,
   scope: Scope,
-  context: PatternContext
+  context: PatternContext,
+  reference?: AssignmentReference
 ): Promise<BindPatternResult> {
   switch (pattern.type) {
     case "Identifier":
-      bindIdentifier(pattern, value, target, scope);
+      await bindIdentifier(pattern, value, target, scope, context, reference);
       return { ok: true };
     case "MemberExpression":
       if ("kind" in target) {
         throw new TypeError("Destructuring declarations cannot bind to member expressions.");
       }
-      return bindMemberExpression(pattern, value, scope, context);
+      return bindMemberExpression(pattern, value, context, reference);
     case "AssignmentPattern":
-      return bindAssignmentPattern(pattern, value, target, scope, context);
+      return bindAssignmentPattern(pattern, value, target, scope, context, reference);
     case "ArrayPattern":
       return bindArrayPattern(pattern, value, target, scope, context);
     case "ObjectPattern":
       return bindObjectPattern(pattern, value, target, scope, context);
     case "RestElement":
-      return bindPattern(pattern.argument, value, target, scope, context);
+      return bindPattern(pattern.argument, value, target, scope, context, reference);
   }
 }
 
-function bindIdentifier(
+async function bindIdentifier(
   pattern: Identifier,
   value: SandboxValue,
   target: PatternTarget,
-  scope: Scope
-): void {
+  scope: Scope,
+  context: PatternContext,
+  prepared?: AssignmentReference
+): Promise<void> {
   if ("assign" in target || (target.kind === "var" && target.initialize !== true)) {
+    if (prepared !== undefined) {
+      if (prepared.scope !== undefined) return prepared.scope.assignOwnBinding(pattern.name, value, context.strict !== false);
+      if (prepared.unresolvable !== true) {
+        if (context.strict !== false && context.bindingOperations !== undefined &&
+            !await context.bindingOperations.has(prepared.object as SandboxObject, pattern.name))
+          throw new ReferenceError(`Cannot assign to undeclared binding '${pattern.name}'.`);
+        return context.setProperty(prepared.object, prepared.key, value);
+      }
+      if (context.unresolvableAssignmentTarget !== undefined)
+        return context.setProperty(context.unresolvableAssignmentTarget, pattern.name, value);
+      throw new ReferenceError(`Cannot assign to undeclared binding '${pattern.name}'.`);
+    }
+    if (context.bindingOperations !== undefined) {
+      const reference = await scope.resolveBinding(pattern.name, context.bindingOperations);
+      if (reference.kind === "binding") return reference.scope.assignOwnBinding(reference.name, value, context.strict !== false);
+      if (reference.kind === "object") {
+        if (context.strict !== false && !await context.bindingOperations.has(reference.object, reference.name))
+          throw new ReferenceError(`Cannot assign to undeclared binding '${pattern.name}'.`);
+        return context.setProperty(reference.object, reference.name, value);
+      }
+      if (context.unresolvableAssignmentTarget !== undefined)
+        return context.setProperty(context.unresolvableAssignmentTarget, pattern.name, value);
+      throw new ReferenceError(`Cannot assign to undeclared binding '${pattern.name}'.`);
+    }
     if ("assign" in target) {
       const binding = scope.lookup(pattern.name);
       if (!binding.found) {
+        if (context.unresolvableAssignmentTarget !== undefined)
+          return context.setProperty(context.unresolvableAssignmentTarget, pattern.name, value);
         throw new ReferenceError(`Cannot assign to undeclared binding '${pattern.name}'.`);
       }
-      if (binding.kind === "const") {
+      if (binding.kind === "const" && (context.strict !== false || !binding.silentImmutable)) {
         throw new TypeError(`Cannot assign to const '${pattern.name}'`);
       }
     }
-    scope.assign(pattern.name, value);
-    return;
+    return scope.assign(pattern.name, value, context.setProperty, context.strict !== false);
   }
 
   scope.declare(pattern.name, target.kind, value);
@@ -93,18 +145,67 @@ async function bindAssignmentPattern(
   value: SandboxValue,
   target: PatternTarget,
   scope: Scope,
-  context: PatternContext
+  context: PatternContext,
+  reference?: AssignmentReference
 ): Promise<BindPatternResult> {
-  if (value !== undefined) {
-    return bindPattern(pattern.left, value, target, scope, context);
+  const saved = pattern.nodeId === undefined ? undefined : context.restoredPatternState?.(pattern.nodeId);
+  if (saved !== undefined && saved.kind !== "pattern-source") throw new TypeError("Invalid pattern default continuation.");
+  if (saved !== undefined) value = saved.value;
+  else if (value === undefined) {
+    const defaultValue = await context.evaluate(
+      pattern.right,
+      pattern.left.type === "Identifier" ? pattern.left.name : undefined
+    );
+    if (defaultValue.kind !== "normal") return { ok: false, result: defaultValue };
+    value = defaultValue.value;
   }
 
-  const defaultValue = await context.evaluate(pattern.right);
-  if (defaultValue.kind !== "normal") {
-    return { ok: false, result: defaultValue };
+  const bindingContext = pattern.nodeId === undefined ||
+    (pattern.left.type !== "ArrayPattern" && pattern.left.type !== "ObjectPattern") ? context
+    : context.withPatternState?.(pattern.nodeId, { kind: "pattern-source", value }) ?? context;
+  const release = context.budget === undefined ? () => undefined : retainValues(context.budget, () => [value]);
+  try {
+    return await bindPattern(pattern.left, value, target, scope, bindingContext, reference);
+  } finally {
+    release();
   }
+}
 
-  return bindPattern(pattern.left, defaultValue.value, target, scope, context);
+async function bindPatternValue(
+  pattern: Pattern,
+  readValue: () => Promise<{ value: SandboxValue }>,
+  target: PatternTarget,
+  scope: Scope,
+  context: PatternContext,
+  onRead?: (value: SandboxValue, reference?: AssignmentReference) => void
+): Promise<BindPatternResult> {
+  let member = pattern;
+  while (member.type === "AssignmentPattern" || member.type === "RestElement")
+    member = member.type === "AssignmentPattern" ? member.left : member.argument;
+  let reference: AssignmentReference | undefined;
+  if ("assign" in target && member.type === "Identifier" && context.bindingOperations !== undefined) {
+    const binding = await scope.resolveBinding(member.name, context.bindingOperations);
+    reference = {object: binding.kind === "object" ? binding.object : undefined, key: member.name,
+      ...(binding.kind === "binding" ? {scope: binding.scope} : {}),
+      ...(binding.kind === "unresolvable" ? {unresolvable: true as const} : {})};
+  }
+  if ("assign" in target && member.type === "MemberExpression") {
+    const prepared = await prepareMemberReference(member, context);
+    if (!prepared.ok) return prepared;
+    reference = prepared.reference;
+  }
+  let value: SandboxValue;
+  const release =
+    context.budget === undefined
+      ? () => undefined
+      : retainValues(context.budget, () => [reference?.object, reference?.key, value, ...(reference?.scope?.retainedDataRoots() ?? [])]);
+  try {
+    value = (await readValue()).value;
+    onRead?.(value, reference);
+    return await bindPattern(pattern, value, target, scope, context, reference);
+  } finally {
+    release();
+  }
 }
 
 async function bindArrayPattern(
@@ -114,23 +215,104 @@ async function bindArrayPattern(
   scope: Scope,
   context: PatternContext
 ): Promise<BindPatternResult> {
-  const values = getArrayPatternValues(value);
+  const budget = context.budget ?? new Budget();
+  const saved = pattern.nodeId === undefined ? undefined : context.restoredPatternState?.(pattern.nodeId);
+  if (saved !== undefined && saved.kind !== "array-pattern") throw new TypeError("Invalid array pattern continuation.");
+  const callContext = context.callContext ?? { stack: [], thisValue: undefined, getProperty: context.getProperty };
+  const iterator = saved === undefined ? await acquireSandboxIterator(
+    value,
+    budget,
+    context.callContext ?? {
+      stack: [],
+      thisValue: undefined,
+      getProperty: context.getProperty
+    }
+  ) : "kind" in saved.iterator ? await restoreSandboxIterator(saved.iterator, budget, callContext) : saved.iterator;
+  if (iterator === undefined) throw new TypeError("Array destructuring requires an iterable.");
+  let done = saved?.done ?? false;
+  const next = async (readValue = true): Promise<{ value: SandboxValue }> => {
+    if (done) return { value: undefined };
+    try {
+      const result = await iterator.next();
+      if ((typeof result !== "object" && typeof result !== "function") || result === null)
+        throw new TypeError("Iterator result must be an object.");
+      done = Boolean((await readIteratorResult(iterator, result, "done")).value);
+      return done || !readValue
+        ? { value: undefined }
+        : await readIteratorResult(iterator, result, "value");
+    } catch (error) {
+      done = true;
+      throw error;
+    }
+  };
+  let retained: SandboxValue;
+  let continuation: Extract<GeneratorExpressionState, { kind: "array-pattern" }> | undefined;
+  const release = retainValues(budget, () => [value, iterator.retainedValue, retained,
+    continuation?.current, continuation?.referenceObject, continuation?.referenceKey, ...(continuation?.referenceScope?.retainedDataRoots() ?? [])]);
+  try {
+    for (let index = saved?.index ?? 0; index < pattern.elements.length; index += 1) {
+      const element = pattern.elements[index];
+      if (element === null) {
+        await next(false);
+        continue;
+      }
 
-  for (let index = 0; index < pattern.elements.length; index += 1) {
-    const element = pattern.elements[index];
-    if (element === null) {
-      continue;
+      const resuming = saved !== undefined && index === saved.index;
+      const state: Extract<GeneratorExpressionState, { kind: "array-pattern" }> = {
+        kind: "array-pattern", phase: "reference", index, done, current: undefined, iterator
+      };
+      if (resuming) Object.assign(state, saved, { iterator });
+      continuation = state;
+      const elementContext = pattern.nodeId === undefined ? context : context.withPatternState?.(pattern.nodeId, state) ?? context;
+      const binding = resuming && saved.phase === "binding"
+        ? await bindPattern(element, saved.current, target, scope, elementContext,
+          Object.hasOwn(saved, "referenceObject") ? { object: saved.referenceObject, key: saved.referenceKey as PropertyKey, privateName: saved.privateName, scope: saved.referenceScope, unresolvable: saved.referenceUnresolvable } : undefined)
+        : await bindPatternValue(
+        element,
+        async () => {
+          if (element.type !== "RestElement") return next();
+          const rest: SandboxValue[] = [];
+          const prototype = getSandboxPrototype(rest, budget);
+          if (prototype !== null) setSandboxPrototype(rest, prototype, budget);
+          retained = rest;
+          for (let entry = await next(); !done; entry = await next()) {
+            budget.allocateArrayLength(rest.length + 1);
+            rest.push(entry.value);
+          }
+          return { value: rest };
+        },
+        target,
+        scope,
+        elementContext,
+        (current, reference) => {
+          state.phase = "binding"; state.current = current; state.done = done;
+          if (reference !== undefined) {
+            state.referenceObject = reference.object; state.referenceKey = reference.key;
+            state.referenceScope = reference.scope; state.referenceUnresolvable = reference.unresolvable;
+            if (reference.privateName !== undefined) state.privateName = reference.privateName;
+          }
+        }
+      );
+      if (!binding.ok) {
+        if (!done) {
+          done = true;
+          await closeIterator(iterator, binding.result.kind === "throw");
+        }
+        return binding;
+      }
     }
 
-    const elementValue =
-      element.type === "RestElement" ? values.slice(index) : (values[index] as SandboxValue);
-    const binding = await bindPattern(element, elementValue, target, scope, context);
-    if (!binding.ok) {
-      return binding;
+    if (!done) {
+      done = true;
+      await closeIterator(iterator);
     }
+    return { ok: true };
+  } catch (error) {
+    if (!done && !isFatalSandboxError(error)) await closeIterator(iterator, true);
+    throw error;
+  } finally {
+    release();
   }
-
-  return { ok: true };
 }
 
 async function bindObjectPattern(
@@ -140,79 +322,112 @@ async function bindObjectPattern(
   scope: Scope,
   context: PatternContext
 ): Promise<BindPatternResult> {
-  if (typeof value !== "object" || value === null) {
-    throw new TypeError("Object destructuring declarations require a non-null object value.");
+  if (value === undefined || value === null) {
+    throw new TypeError("Object destructuring requires a non-nullish value.");
   }
 
-  const excludedKeys = new Set<string>();
-  for (const property of pattern.properties) {
-    if (property.type === "RestElement") {
-      const binding = await bindPattern(
-        property,
-        copyObjectRestValue(value, excludedKeys),
-        target,
-        scope,
-        context
-      );
-      if (!binding.ok) {
-        return binding;
+  const saved = pattern.nodeId === undefined ? undefined : context.restoredPatternState?.(pattern.nodeId);
+  if (saved !== undefined && saved.kind !== "object-pattern") throw new TypeError("Invalid object pattern continuation.");
+  const excludedKeys = new Set<PropertyKey>(saved?.excludedKeys as PropertyKey[] | undefined);
+  const excludedKeyValues = [...excludedKeys] as SandboxValue[];
+  let state: Extract<GeneratorExpressionState, { kind: "object-pattern" }> | undefined;
+  const release = context.budget === undefined ? () => undefined : retainValues(context.budget,
+    () => [value, state?.current, state?.key, state?.referenceObject, state?.referenceKey, ...(state?.excludedKeys ?? []), ...(state?.referenceScope?.retainedDataRoots() ?? [])]);
+  try {
+    for (let index = saved?.index ?? 0; index < pattern.properties.length; index++) {
+      const property = pattern.properties[index];
+      state = saved !== undefined && index === saved.index ? { ...saved, excludedKeys: excludedKeyValues } : {
+        kind: "object-pattern", phase: property.type === "RestElement" ? "reference" : "key",
+        index, excludedKeys: excludedKeyValues, key: undefined, current: undefined
+      };
+      const currentState = state;
+      const propertyContext = pattern.nodeId === undefined ? context : context.withPatternState?.(pattern.nodeId, state) ?? context;
+      if (property.type !== "RestElement" && state.phase === "key") {
+        const key = await evaluatePatternKey(property, propertyContext);
+        if (!key.ok) return key;
+        state.key = typeof key.value === "symbol" ? key.value : String(key.value);
+        if (!excludedKeys.has(state.key)) excludedKeyValues.push(state.key);
+        excludedKeys.add(state.key);
+        state.phase = "reference";
       }
-      continue;
+      const element = property.type === "RestElement" ? property : property.value;
+      const binding = state.phase === "binding"
+        ? await bindPattern(element, state.current, target, scope, propertyContext,
+          Object.hasOwn(state, "referenceObject") ? { object: state.referenceObject, key: state.referenceKey as PropertyKey, privateName: state.privateName, scope: state.referenceScope, unresolvable: state.referenceUnresolvable } : undefined)
+        : await bindPatternValue(element,
+          async () => ({ value: property.type === "RestElement"
+            ? await copyObjectRestValue(value, excludedKeys, propertyContext)
+            : await propertyContext.getProperty(value, currentState.key as PropertyKey) }),
+          target, scope, propertyContext,
+          (current, reference) => {
+            currentState.current = current;
+            currentState.phase = "binding";
+            if (reference !== undefined) {
+              currentState.referenceObject = reference.object;
+              currentState.referenceKey = reference.key;
+              currentState.referenceScope = reference.scope; currentState.referenceUnresolvable = reference.unresolvable;
+              if (reference.privateName !== undefined) currentState.privateName = reference.privateName;
+            }
+          });
+      if (!binding.ok) return binding;
     }
-
-    const key = await evaluatePatternKey(property, context);
-    if (!key.ok) {
-      return key;
-    }
-
-    excludedKeys.add(String(key.value));
-    const binding = await bindPattern(
-      property.value,
-      context.getProperty(value, key.value),
-      target,
-      scope,
-      context
-    );
-    if (!binding.ok) {
-      return binding;
-    }
+    return { ok: true };
+  } finally {
+    release();
   }
-
-  return { ok: true };
 }
 
 async function bindMemberExpression(
   pattern: MemberExpression,
   value: SandboxValue,
-  scope: Scope,
-  context: PatternContext
+  context: PatternContext,
+  reference?: AssignmentReference
 ): Promise<BindPatternResult> {
+  if (reference === undefined) {
+    const prepared = await prepareMemberReference(pattern, context);
+    if (!prepared.ok) return prepared;
+    reference = prepared.reference;
+  }
+  if (reference.object === null || reference.object === undefined) {
+    throw new TypeError("Cannot assign properties of null or undefined.");
+  }
+  if (!isIndexableValue(reference.object)) {
+    throw new TypeError("Assignment expressions require a sandbox object property.");
+  }
+  if (reference.privateName !== undefined) {
+    if (context.setPrivateProperty === undefined) throw new TypeError("Private assignment context is unavailable.");
+    await context.setPrivateProperty(reference.object, reference.privateName, value);
+  } else await context.setProperty(reference.object, reference.key, value);
+  return { ok: true };
+}
+
+async function prepareMemberReference(
+  pattern: MemberExpression,
+  context: PatternContext
+): Promise<
+  { ok: true; reference: AssignmentReference } | { ok: false; result: AsyncEvaluationResult }
+> {
+  if (context.prepareMemberReference !== undefined) return context.prepareMemberReference(pattern);
   const object = await context.evaluate(pattern.object);
   if (object.kind !== "normal") {
     return { ok: false, result: object };
   }
-  if (object.value === null || object.value === undefined) {
-    throw new TypeError("Cannot assign properties of null or undefined.");
-  }
-  if (!isIndexableValue(object.value)) {
-    throw new TypeError("Assignment expressions require a sandbox object property.");
-  }
-
   const property = pattern.computed
-    ? await evaluateProperty(pattern.property, context)
-    : { ok: true as const, value: getStaticPropertyName(pattern.property) };
-  if (!property.ok) {
-    return property;
+    ? await context.evaluate(pattern.property)
+    : { kind: "normal" as const, value: getStaticPropertyName(pattern.property) };
+  if (property.kind !== "normal") {
+    return { ok: false, result: property };
   }
-
-  context.setProperty(object.value, property.value, value);
-  return { ok: true };
+  return {
+    ok: true,
+    reference: { object: object.value, key: await context.toPropertyKey(property.value) }
+  };
 }
 
 async function evaluatePatternKey(
   property: AssignmentProperty,
   context: PatternContext
-): Promise<{ ok: true; value: string | number } | { ok: false; result: AsyncEvaluationResult }> {
+): Promise<{ ok: true; value: PropertyKey } | { ok: false; result: AsyncEvaluationResult }> {
   return property.computed
     ? evaluateProperty(property.key, context)
     : { ok: true, value: getStaticPropertyName(property.key) };
@@ -221,15 +436,12 @@ async function evaluatePatternKey(
 async function evaluateProperty(
   property: MemberExpression["property"],
   context: PatternContext
-): Promise<{ ok: true; value: string | number } | { ok: false; result: AsyncEvaluationResult }> {
+): Promise<{ ok: true; value: PropertyKey } | { ok: false; result: AsyncEvaluationResult }> {
   const result = await context.evaluate(property);
   if (result.kind !== "normal") {
     return { ok: false, result };
   }
-  if (typeof result.value !== "string" && typeof result.value !== "number") {
-    throw new TypeError("Computed property access requires a string or number key.");
-  }
-  return { ok: true, value: result.value };
+  return { ok: true, value: await context.toPropertyKey(result.value) };
 }
 
 function getStaticPropertyName(property: MemberExpression["property"]): string | number {
@@ -242,54 +454,36 @@ function getStaticPropertyName(property: MemberExpression["property"]): string |
   throw new TypeError(`Unsupported static property node '${property.type}'.`);
 }
 
-function getArrayPatternValues(value: unknown): SandboxArray {
-  if (Array.isArray(value)) {
-    return value as SandboxArray;
-  }
-  if (typeof value === "string") {
-    return Array.from(value);
-  }
-  if (isSandboxMap(value)) {
-    return Array.from(value.entries, ([key, entry]) => [key, entry] as SandboxArray);
-  }
-  if (isSandboxSet(value)) {
-    return [...value.values];
-  }
-  if (isIterableValue(value)) {
-    throw new TypeError(
-      `Array destructuring declarations support only arrays and strings; received ${describeRuntimeValue(value)}.`
-    );
-  }
-  throw new TypeError("Array destructuring declarations require an array or string iterable.");
-}
-
-function isIterableValue(value: unknown): value is Iterable<unknown> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Symbol.iterator in value &&
-    typeof value[Symbol.iterator] === "function"
-  );
-}
-
-function describeRuntimeValue(value: unknown): string {
-  if (value === null) return "null";
-  if (value === undefined) return "undefined";
-  if (typeof value === "object") return value.constructor?.name ?? "Object";
-  return typeof value;
-}
-
-function copyObjectRestValue(
+async function copyObjectRestValue(
   value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<string>
-): SandboxObject {
+  excludedKeys: ReadonlySet<PropertyKey>,
+  context: PatternContext
+): Promise<SandboxObject> {
   const rest = Object.create(null) as SandboxObject;
-  for (const [key, entryValue] of ownEnumerableSandboxEntries(value)) {
-    if (!excludedKeys.has(key)) {
-      defineProperty(rest, key, entryValue);
+  const budget = context.budget ?? new Budget();
+  const callContext = context.callContext ?? { stack: [], thisValue: undefined, getProperty: context.getProperty };
+  const proxy = typeof value === "object" && guestProxyStates.has(value);
+  const prototype = getSandboxPrototype(rest, budget);
+  if (prototype !== null) setSandboxPrototype(rest, prototype, budget);
+  let keys: PropertyKey[] = [];
+  const release = retainValues(budget, () => [value, rest, keys]);
+  try {
+    keys = proxy ? await sandboxOwnKeys(value, budget, callContext)
+      : isGuestHostObject(value) ? ownEnumerableSandboxKeys(value, true)
+        : [...Object.getOwnPropertyNames(reflectionProperties(value)), ...ownSandboxSymbolKeys(value)];
+    for (const key of keys) {
+      budget.visitNode();
+      if (excludedKeys.has(key)) continue;
+      const enumerable = proxy
+        ? (await sandboxGetOwnPropertyDescriptor(value, key, budget, callContext))?.enumerable
+        : hasOwnSandboxProperty(value, key, true);
+      if (!enumerable) continue;
+      defineProperty(rest, key, await context.getProperty(value, key));
     }
+    return rest;
+  } finally {
+    release();
   }
-  return rest;
 }
 
 function isIndexableValue(value: SandboxValue): value is SandboxArray | SandboxObject {
@@ -298,7 +492,7 @@ function isIndexableValue(value: SandboxValue): value is SandboxArray | SandboxO
 
 function defineProperty(
   target: SandboxArray | SandboxObject,
-  key: string,
+  key: PropertyKey,
   value: SandboxValue
 ): void {
   Object.defineProperty(target, key, {

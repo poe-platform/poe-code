@@ -1,4 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+import { runInNewContext } from "node:vm";
+import { Worker } from "node:worker_threads";
+import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 
 import { parse, parseModule, type ParseResult, type Statement } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
@@ -932,26 +936,42 @@ describe("interpret", () => {
     );
   });
 
-  it("spreads large arrays into push without leaking the host argument limit", async () => {
-    const source = Array.from({ length: 1_000_000 }, (_, index) => index);
-
-    await expect(
-      interpret(
-        block(
+  it("spreads large arrays into push without leaking the host argument limit", async ({ onTestFinished, signal }) => {
+    const bundled = await build({
+      entryPoints: [fileURLToPath(new URL("./interpreter.ts", import.meta.url))],
+      bundle: true, platform: "node", format: "cjs", write: false
+    });
+    signal.throwIfAborted();
+    // Bound the native stack so the same regression needs fewer interpreted elements.
+    const worker = new Worker(`
+      const interpreterModule = { exports: {} };
+      (function(module, exports) { ${bundled.outputFiles[0]!.text} })(interpreterModule, interpreterModule.exports);
+      const { parentPort, workerData } = require("node:worker_threads");
+      const assert = require("node:assert/strict");
+      (async () => {
+        const { interpret } = interpreterModule.exports;
+        const source = Array.from({ length: 75_000 }, (_, index) => index);
+        assert.throws(() => Reflect.apply(Array.prototype.push, [], source), RangeError);
+        const result = await interpret(workerData.program, { bindings: { source } });
+        parentPort.postMessage({ ok: result.ok, returnValue: result.returnValue });
+      })().catch(error => { throw error; });
+    `, {
+      eval: true,
+      resourceLimits: { stackSizeMb: 0.5 },
+      workerData: {
+        program: block(
           parse("const target = []"),
           parse("target.push(...source)"),
-          parse("return target.length")
-        ),
-        {
-          bindings: {
-            source
-          }
-        }
-      )
-    ).resolves.toMatchObject({
-      ok: true,
-      returnValue: source.length
+          parse("return [target.length, target[0], target[target.length - 1]]")
+        )
+      }
     });
+    onTestFinished(async () => { await worker.terminate(); });
+    await expect(new Promise((resolve, reject) => {
+      worker.once("message", resolve);
+      worker.once("error", reject);
+      worker.once("exit", code => reject(new Error(`Spread worker exited before reporting a result (${code})`)));
+    })).resolves.toEqual({ ok: true, returnValue: [75_000, 0, 74_999] });
   });
 
   it("assigns a new value to a let binding", async () => {
@@ -1167,41 +1187,41 @@ describe("interpret", () => {
   it("throws a TypeError-shaped sandbox error for object destructuring from null", async () => {
     await expect(interpret(parse("const { a } = null;"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Object destructuring declarations require a non-null object value."
+      message: "Object destructuring requires a non-nullish value."
     });
   });
 
   it("throws a TypeError-shaped sandbox error for object destructuring from undefined", async () => {
     await expect(interpret(parse("const { a } = undefined;"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Object destructuring declarations require a non-null object value."
+      message: "Object destructuring requires a non-nullish value."
     });
   });
 
   it("throws a TypeError-shaped sandbox error for nested object destructuring from null", async () => {
     await expect(interpret(parse("const { a: { b } } = { a: null };"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Object destructuring declarations require a non-null object value."
+      message: "Object destructuring requires a non-nullish value."
     });
   });
 
   it("throws a TypeError-shaped sandbox error for array destructuring from null", async () => {
     await expect(interpret(parse("const [x] = null;"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Array destructuring declarations require an array or string iterable."
+      message: "Array destructuring requires an iterable."
     });
   });
 
-  it("throws a TypeError-shaped sandbox error for array destructuring from unsupported iterables", async () => {
+  it("destructures caller-provided native iterables", async () => {
     await expect(
       interpret(block(parse("const [a, b] = values"), parse("return a + b")), {
         bindings: {
           values: new Set([1, 2]) as never
         }
       })
-    ).rejects.toMatchObject({
-      name: "TypeError",
-      message: "Array destructuring declarations support only arrays and strings; received Set."
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
     });
   });
 
@@ -1860,7 +1880,7 @@ describe("interpret", () => {
           separator: /b+/ as never
         }
       })
-    ).rejects.toThrow("String#split only supports string separator values.");
+    ).rejects.toThrow("String#split does not accept unbranded host RegExp values.");
 
     await expect(
       interpret(parse("return value.replace(search, replacement)"), {
@@ -1871,7 +1891,7 @@ describe("interpret", () => {
         }
       })
     ).rejects.toThrow(
-      "String#replace only supports string or regex search values and string or function replacements."
+      "String#replace does not accept unbranded host RegExp values."
     );
 
     await expect(
@@ -1883,7 +1903,7 @@ describe("interpret", () => {
         }
       })
     ).rejects.toThrow(
-      "String#replaceAll only supports string or regex search values and string or function replacements."
+      "String#replaceAll does not accept unbranded host RegExp values."
     );
   });
 
@@ -3525,7 +3545,7 @@ describe("interpret", () => {
     });
   });
 
-  it("does not call iterator return when return exits a for...of loop", async () => {
+  it("calls iterator return when return exits a for...of loop", async () => {
     const iteratorReturn = vi.fn(() => ({
       done: true,
       value: undefined
@@ -3550,7 +3570,7 @@ describe("interpret", () => {
       ok: true,
       returnValue: 1
     });
-    expect(iteratorReturn).not.toHaveBeenCalled();
+    expect(iteratorReturn).toHaveBeenCalledTimes(1);
   });
 
   it("visits array elements pushed before a for...of iterator advances", async () => {
@@ -3615,8 +3635,10 @@ describe("interpret", () => {
     ).resolves.toMatchObject({ ok: true, returnValue: ["0", "2"] });
   });
 
-  it("iterates only present array indices", async () => {
+  it("iterates present array indices and enumerable named properties", async () => {
     const value = Object.assign(["a", "b"], { extra: true });
+    const expected = new Function("value", "const seen = []; for (const key in value) seen.push(key); return seen;")(value);
+    expect(expected).toEqual(["0", "1", "extra"]);
     await expect(
       interpret(
         parse(
@@ -3624,7 +3646,7 @@ describe("interpret", () => {
         ),
         { bindings: { value } }
       )
-    ).resolves.toMatchObject({ ok: true, returnValue: ["0", "1"] });
+    ).resolves.toMatchObject({ ok: true, returnValue: expected });
   });
 
   it.each([
@@ -3870,21 +3892,10 @@ describe("interpret", () => {
     });
   });
 
-  it("lets an adjacent inner loop label mask an outer loop label with the same name", async () => {
-    await expect(
-      interpret(
-        block(
-          parse("const out = []"),
-          parse(
-            "outer: for (let i = 0; i < 2; i = i + 1) { out.push(i); outer: outer: for (let j = 0; j < 2; j = j + 1) { out.push(j); break outer; } out.push(9); }"
-          ),
-          parse("return out")
-        )
-      )
-    ).resolves.toMatchObject({
-      ok: true,
-      returnValue: [0, 0, 9, 1, 0, 9]
-    });
+  it("rejects duplicate active loop labels like native JavaScript", () => {
+    const source = "outer: for (let i = 0; i < 2; i = i + 1) { out.push(i); outer: outer: for (let j = 0; j < 2; j = j + 1) { out.push(j); break outer; } out.push(9); }";
+    expect(() => runInNewContext(source)).toThrow();
+    expect(() => parse(source)).toThrow("Duplicate label 'outer'");
   });
 
   it("allows any distinct adjacent label to target the same loop", async () => {
@@ -3919,13 +3930,10 @@ describe("interpret", () => {
     });
   });
 
-  it("reports a clear error when a labeled break target is not in scope", async () => {
-    await expect(interpret(parse("for (;;) { break foo; }"))).resolves.toMatchObject({
-      ok: false,
-      error: {
-        message: "Label 'foo' not found"
-      }
-    });
+  it("rejects an out-of-scope labeled break while parsing like native JavaScript", () => {
+    const source = "for (;;) { break foo; }";
+    expect(() => runInNewContext(source)).toThrow();
+    expect(() => parse(source)).toThrow("Unknown break label 'foo'");
   });
 
   it("keeps unlabeled break scoped to the inner loop", async () => {

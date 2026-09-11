@@ -188,7 +188,7 @@ for (const failure of [false, new FsError("EIO", { syscall: "return" })]) test(`
   await memory.writeFile("/input", new Uint8Array());
   Object.defineProperty(memory, "open", { value: undefined });
   let returned = 0;
-  const fs = intercept<FileSystem>(memory, { capabilities: { ...memory.capabilities, open: false }, readStream() { return { [Symbol.asyncIterator]() {
+  const fs = intercept<FileSystem>(memory, { capabilities: { ...memory.capabilities, open: false, retainedRead: false }, readStream() { return { [Symbol.asyncIterator]() {
     let index = 0;
     let started = false;
     let closed = false;

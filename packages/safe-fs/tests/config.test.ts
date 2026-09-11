@@ -156,6 +156,44 @@ describe("filesystem configuration", () => {
   });
 
   it.each([
+    { maxFileBytes: 8 },
+    { maxFileBytes: 16, maxRetainedBytes: 64, maxMetadataUnits: 8 },
+    { maxFileBytes: 0, maxRetainedBytes: 0, maxMetadataUnits: 1 }
+  ])("passes validated Memory limits to its factory: %j", async (options) => {
+    const registry = new Map([["memory", createMemoryFileSystemAdapter(factories.memory)]]);
+    expect(await createFileSystem({ type: "memory", options }, { registry })).toBe(filesystem);
+    expect(factories.memory).toHaveBeenCalledExactlyOnceWith(options);
+    expect(Object.isFrozen(factories.memory.mock.calls[0]![0])).toBe(true);
+    expect(factories.real).not.toHaveBeenCalled();
+  });
+
+  it.each(["maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"])(
+    "rejects invalid %s before factory effects",
+    async (name) => {
+      const registry = new Map([["memory", createMemoryFileSystemAdapter(factories.memory)]]);
+      for (const value of [undefined, null, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, "8"]) {
+        await expect(createFileSystem({ type: "memory", options: { [name]: value } }, { registry })).rejects.toThrow();
+      }
+      expect(factories.memory).not.toHaveBeenCalled();
+    }
+  );
+
+  it("requires metadata capacity for the Memory root before construction", async () => {
+    const registry = new Map([["memory", createMemoryFileSystemAdapter(factories.memory)]]);
+    await expect(createFileSystem({ type: "memory", options: { maxMetadataUnits: 0 } }, { registry })).rejects.toThrow();
+    expect(factories.memory).not.toHaveBeenCalled();
+  });
+
+  it("refuses accessor Memory limits without invoking them", async () => {
+    const getter = vi.fn(() => 8);
+    const options = Object.defineProperty({}, "maxFileBytes", { get: getter, enumerable: true });
+    const registry = new Map([["memory", createMemoryFileSystemAdapter(factories.memory)]]);
+    await expect(createFileSystem({ type: "memory", options }, { registry })).rejects.toThrow(TypeError);
+    expect(getter).not.toHaveBeenCalled();
+    expect(factories.memory).not.toHaveBeenCalled();
+  });
+
+  it.each([
     {},
     { root: "" },
     { root: " " },

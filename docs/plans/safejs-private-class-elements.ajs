@@ -1,0 +1,30 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Counter {
+    static #created = 0;
+    #value = 1;
+    constructor() { Counter.#created++; }
+    #double(value) { return value * 2; }
+    get #current() { return this.#value; }
+    set #current(value) { this.#value = value; }
+    advance() { this.#current = this.#double(this.#current); return this.#current; }
+    *assign() { [this.#value = yield "ready"] = [undefined]; return this.#value; }
+    static count() { return Counter.#created; }
+    static owns(value) { return #value in value; }
+  }
+  const counter = new Counter();
+  const doubled = counter.advance();
+  const assignment = counter.assign();
+  const first = assignment.next();
+  await 0;
+  const last = assignment.next(7);
+  const owns = Counter.owns(counter);
+  const count = Counter.count();
+  if (doubled !== 2 || first.value !== "ready" || last.value !== 7 || !last.done ||
+      !owns || Counter.owns({}) || count !== 1 || Reflect.ownKeys(counter).length !== 0)
+    throw new Error("Private class behavior failed");
+  return { title: frontmatter.title, doubled, first, last, owns, count, ok: true };
+};

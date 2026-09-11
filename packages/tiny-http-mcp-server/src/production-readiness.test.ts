@@ -94,6 +94,7 @@ async function dispatchRaw(
     method: string;
     headers?: HeadersInit;
     body?: string;
+    parsedBody?: unknown;
     url?: string;
     writableLength?: number;
     omitDefaultHost?: boolean;
@@ -117,7 +118,8 @@ async function dispatchRaw(
     headers: Object.fromEntries(
       [...headers.entries()].map(([key, value]) => [key.toLowerCase(), value])
     ),
-    socket: {}
+    socket: {},
+    ...(options.parsedBody === undefined ? {} : { body: options.parsedBody })
   }) as IncomingMessage;
 
   const response = new EventEmitter() as ServerResponse & {
@@ -419,6 +421,34 @@ describe("HTTP MCP production readiness", () => {
         message: "Batch size exceeds configured limit"
       }
     });
+  });
+
+  it("rejects an oversized pre-populated request body before creating a session", async () => {
+    const sessionIdGenerator = vi.fn(() => "oversized-session");
+    const server = createHttpServer({
+      name: "pre-parsed-body-limit",
+      version: "1.0.0",
+      maxRequestBytes: 80,
+      sessionIdGenerator
+    });
+    const { response } = await dispatchRaw(server, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json"
+      },
+      parsedBody: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: TEST_PROTOCOL_VERSION, padding: "é".repeat(40) }
+      }
+    });
+    expect(response.statusCode).toBe(413);
+    expect(JSON.parse(Buffer.concat(response.chunks).toString("utf8"))).toMatchObject({
+      error: { message: "Payload too large" }
+    });
+    expect(sessionIdGenerator).not.toHaveBeenCalled();
   });
 
   it("expires inactive sessions without another request", async () => {
@@ -1218,6 +1248,43 @@ describe("HTTP MCP production readiness", () => {
     expect(response.statusCode).toBe(200);
     expect(text).toContain("id: 1");
     expect(text).toContain("notifications/tools/list_changed");
+  });
+
+  it("applies GET backpressure to replay without consuming stored history", async () => {
+    const server = createHttpServer({
+      name: "replay-backpressure",
+      version: "1.0.0",
+      sessionIdGenerator: () => "replay-backpressure-session",
+      maxStreamBufferBytes: 4
+    });
+    const sessionId = await initializeSession(server);
+    await server.notifyToolsChanged();
+    await server.notifyToolsChanged();
+    const headers = {
+      Accept: "text/event-stream",
+      "Mcp-Session-Id": sessionId,
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
+      "Last-Event-ID": "0"
+    };
+    const stalled = await dispatchRaw(server, {
+      method: "GET",
+      headers,
+      writableLength: 5
+    });
+    expect(stalled.response.writableEnded).toBe(true);
+    expect(stalled.response.chunks).toHaveLength(0);
+    const resumed = await dispatchRaw(server, {
+      method: "GET",
+      headers,
+      writableLength: 4
+    });
+    expect(resumed.response.statusCode).toBe(200);
+    expect(resumed.response.writableEnded).toBe(false);
+    const text = Buffer.concat(resumed.response.chunks).toString("utf8");
+    expect(text).toContain("id: 1\n");
+    expect(text).toContain("id: 2\n");
+    expect(resumed.response.chunks).toHaveLength(2);
+    resumed.response.end();
   });
 
   it("ends stalled GET streams while retaining notifications for replay", async () => {

@@ -50,7 +50,7 @@ describe("startNativeOtelCapture", () => {
 
   it("warns and continues for unsupported agents", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    await expect(startNativeOtelCapture("kimi")).resolves.toBeUndefined();
+    await expect(startNativeOtelCapture("pi")).resolves.toBeUndefined();
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("does not emit OpenTelemetry"));
   });
 

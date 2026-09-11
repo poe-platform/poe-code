@@ -22,8 +22,18 @@ export function workspaceUnitSelections(root, fileSystem = fs) {
     const selectors = [];
     let passWithNoTests = false;
     let supported = true;
+    let requiresNativePool = false;
     for (let index = 5; index < tokens.length; index++) {
       const selector = tokens[index];
+      if (typeof selector === "string" && (selector === "--pool" || selector.startsWith("--pool="))) {
+        const pool = selector === "--pool" ? tokens[++index] : selector.slice("--pool=".length);
+        if (!["threads", "forks", "vmThreads", "vmForks"].includes(pool)) {
+          supported = false;
+          break;
+        }
+        requiresNativePool = true;
+        continue;
+      }
       if (selector === "--passWithNoTests") {
         passWithNoTests = true;
         continue;
@@ -56,6 +66,7 @@ export function workspaceUnitSelections(root, fileSystem = fs) {
       selectors,
       exclusions: owned,
       passWithNoTests,
+      requiresNativePool,
       hasHooks: scripts["pretest:unit"] !== undefined || scripts["posttest:unit"] !== undefined
     });
   }

@@ -275,6 +275,33 @@ test("successful assertions and fixture streams are quiet while counts survive",
   for (const message of ["tests 1", "pass 1", "fail 0", "cancelled 0", "skipped 0", "todo 0", "duration_ms 3"]) assert(output.includes(message));
 });
 
+test("successful file summaries keep late fixture streams quiet without dropping diagnostics", async () => {
+  const file = resolve("passing.test.mjs");
+  const output = await report([
+    event("summary", { file, success: true }),
+    event("stdout", { file, message: "late fixture stdout\n" }),
+    event("stderr", { file, message: "late fixture stderr\n" }),
+    event("diagnostic", { file, nesting: 0, message: "late activity warning" }),
+    event("summary", { success: true }),
+  ]);
+  assert(!output.includes("late fixture stdout"));
+  assert(!output.includes("late fixture stderr"));
+  assert(output.includes("late activity warning"));
+});
+
+test("a failure after a successful file summary retains late streams and the failure", async () => {
+  const file = resolve("late-failure.test.mjs");
+  const output = await report([
+    event("summary", { file, success: true }),
+    event("stdout", { file, message: "late stdout before failure\n" }),
+    event("stderr", { file, message: "late stderr before failure\n" }),
+    event("fail", { file, nesting: 0, name: "late failure", details: { duration_ms: 1, error: new Error("late uncaught error") } }),
+    event("stdout", { file, message: "late stdout after failure\n" }),
+    event("summary", { success: false }),
+  ]);
+  for (const message of ["late stdout before failure", "late stderr before failure", "late uncaught error", "late stdout after failure"]) assert(output.includes(message), message);
+});
+
 test("failures retain full names, stack, assertion diff and both streams", async () => {
   const file = resolve("failing.test.mjs");
   const error = new assert.AssertionError({ actual: "actual value", expected: "expected value", operator: "strictEqual" });

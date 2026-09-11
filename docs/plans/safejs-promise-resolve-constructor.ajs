@@ -1,0 +1,14 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value=Promise.resolve(42);
+  let reads=0;
+  Object.defineProperty(value,"constructor",{get(){reads++;return Promise},configurable:true});
+  if(Promise.resolve(value)!==value || reads!==1)throw new Error("Promise constructor getter was ignored");
+  Object.defineProperty(value,"constructor",{value:{}});
+  const result=Promise.resolve(value);
+  if(result===value)throw new Error("Mismatched promise constructor reused its input");
+  return {title:frontmatter.title,ok:true,reads,answer:await result};
+};

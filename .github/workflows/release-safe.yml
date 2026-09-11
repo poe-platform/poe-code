@@ -2,7 +2,7 @@ name: Release scoped safe packages
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [ main ]
     paths:
       - "packages/safe-js/**"
       - "packages/safe-bash/**"
@@ -96,7 +96,7 @@ jobs:
           npm pack "$RUNNER_TEMP/safe-npm/safe-bash" --ignore-scripts --pack-destination "$TARBALLS"
           npm pack "$RUNNER_TEMP/safe-npm/safe-bash-optional" --ignore-scripts --pack-destination "$TARBALLS"
           OPTIONAL_CONSUMER=$(mktemp -d)
-          cp scripts/fixtures/safe-packages-optional.mjs scripts/fixtures/safe-packages-optional-no-yaml.mjs scripts/fixtures/safe-packages-optional-types.mts "$OPTIONAL_CONSUMER/"
+          cp scripts/fixtures/safe-packages-mixed-entry-runtime.mjs scripts/fixtures/safe-packages-optional.mjs scripts/fixtures/safe-packages-optional-no-yaml.mjs scripts/fixtures/safe-packages-optional-types.mts "$OPTIONAL_CONSUMER/"
           cd "$OPTIONAL_CONSUMER"
           npm init --yes
           npm install --ignore-scripts --omit=optional --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz "$TARBALLS"/poe-platform-safe-bash-optional-*.tgz

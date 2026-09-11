@@ -1,3 +1,5 @@
+import { internalSymbols } from "../interp/internal-symbols.js";
+
 export type ErrorSourceSpan = {
   start: ErrorSourcePosition;
   end: ErrorSourcePosition;
@@ -10,6 +12,7 @@ export type ErrorSourcePosition = {
 };
 
 const wrappedErrorCause = Symbol("wrappedErrorCause");
+internalSymbols.add(wrappedErrorCause);
 
 export const sandboxErrorNames = [
   "Error",
@@ -17,8 +20,11 @@ export const sandboxErrorNames = [
   "RangeError",
   "ReferenceError",
   "SyntaxError",
+  "URIError",
+  "EvalError",
   "AbortError",
   "AggregateError",
+  "SuppressedError",
   "HarnessFailure"
 ] as const;
 

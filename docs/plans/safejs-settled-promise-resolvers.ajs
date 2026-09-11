@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const { promise, resolve, reject } = Promise.withResolvers();
+  resolve.label = "saved";
+  resolve.self = resolve;
+  resolve(7);
+  await promise;
+  await 0;
+  const lateResolve = resolve.bind(null, 9);
+  lateResolve();
+  reject("late rejection");
+  const value = await promise;
+  const same = resolve.self === resolve && resolve !== reject;
+  if (value !== 7 || !same || resolve.label !== "saved" || resolve.length !== 1)
+    throw new Error("Resolver behavior failed");
+  return { title: frontmatter.title, value, same, label: resolve.label, ok: true };
+};

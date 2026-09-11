@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import test, { after, type TestContext } from "node:test";
 import { syncBuiltinESMExports } from "node:module";
@@ -56,7 +57,7 @@ async function both(args: readonly string[], env: Readonly<Record<string, string
   const direct = await run(args, options, { env });
   assert.deepEqual([direct.exitCode, direct.stdout, direct.stderr], expected, "direct command");
   const shell = new Shell({ fs: createMemoryFileSystem(), env,
-    limits: { maxSourceBytes: 2_000_000, maxExpansionBytes: 2_000_000 } }).use(exprCommands(options));
+    limits: { maxSourceBytes: 2_000_000, maxExpansionBytes: 2_000_000 } }).use(exprCommands({ regexExecutor: createNodeRegexProvider(), ...options }));
   try {
     const source = ["expr", ...args].map(argument => `'${argument.replaceAll("'", "'\\''")}'`).join(" ");
     const actual = await shell.exec(source);
@@ -288,7 +289,7 @@ for (const reason of [false, 0, "", null]) {
     });
     await assert.rejects(run(["a", ":", pattern], {}, { env: named, signal: controller.signal }), error => error === reason);
     controller = new AbortController();
-    const shell = new Shell({ fs: createMemoryFileSystem(), env: named }).use(exprCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), env: named }).use(exprCommands({ regexExecutor: createNodeRegexProvider() }));
     try {
       await assert.rejects(shell.exec(`expr a : '${pattern}'`, { signal: controller.signal }), error => error === reason);
     } finally { await shell.dispose(); }
@@ -304,7 +305,7 @@ for (const reason of [false, 0, "", null]) {
       controller.abort(reason);
       return pending;
     });
-    const shell = new Shell({ fs: createMemoryFileSystem(), env: named }).use(exprCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), env: named }).use(exprCommands({ regexExecutor: createNodeRegexProvider() }));
     try {
       await assert.rejects(shell.exec("expr é : .", { signal: controller.signal }), error => error === reason);
       assert(workers.length > from);

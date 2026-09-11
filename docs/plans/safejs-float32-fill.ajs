@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(8, { maxByteLength: 16 });
+  const values = new Float32Array(buffer);
+  const result = values.fill({ valueOf() { buffer.resize(16); return 7; } });
+  if (result !== values || values.join() !== "7,7,0,0") {
+    throw new Error("Fill growth or return-identity regression");
+  }
+  await 0;
+  values.fill(-0, -2);
+  if (!Object.is(values[2], -0) || !Object.is(values[3], -0)) {
+    throw new Error("Fill signed-zero regression");
+  }
+  return { title: frontmatter.title, ok: true, values: Array.from(values) };
+};

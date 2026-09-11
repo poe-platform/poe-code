@@ -1,9 +1,12 @@
 import type { ShellLimits } from "./types.js";
 
 export const cloudflareWorkerLimits: Readonly<Required<ShellLimits>> = Object.freeze({
+  maxParseUnits: 65_536,
   maxInputBytes: 4 * 1024 * 1024,
   maxOutputBytes: 4 * 1024 * 1024,
   maxCommands: 1_000,
+  maxFileSystemOperations: 10_000,
+  maxPathComponents: 64,
   maxRedirects: 64,
   maxPipelineStages: 64,
   maxLoopIterations: 1_000,

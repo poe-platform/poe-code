@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import ts from "typescript";
 
 const originalArguments = process.argv;
 afterEach(() => {
@@ -27,7 +28,7 @@ describe("packed smoke build selection", () => {
     process.argv = [process.execPath, "scripts/smoke-test.ts", "--prebuilt"];
     await expect(import("./smoke-test.js")).rejects.toBe(failure);
     expect(execSync).toHaveBeenLastCalledWith(
-      'npm install "/smoke-owned/pack/poe-code.tgz" --loglevel=error',
+      `npm install "/smoke-owned/pack/poe-code.tgz" "typescript@${ts.version}" --loglevel=error`,
       { cwd: "/smoke-owned/sdk", stdio: "pipe" }
     );
   });

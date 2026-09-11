@@ -1,0 +1,32 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function spreadResults(frontmatter) {
+  const promise = Promise.resolve(7);
+  const log = [];
+  const iterable = {
+    [Symbol.iterator]() {
+      let finished = false;
+      return {
+        next() {
+          const done = finished;
+          finished = true;
+          return {
+            get done() { log.push("done"); return done; },
+            get value() {
+              if (done) throw new Error("Read value after completion");
+              log.push("value");
+              return promise;
+            }
+          };
+        }
+      };
+    }
+  };
+  const values = [...iterable];
+  if (values.length !== 1 || values[0] !== promise || [...[promise]][0] !== promise)
+    throw new Error("Spread changed a promised value");
+  if (log.join(",") !== "done,value,done") throw new Error("Incorrect getter ordering");
+  return { title: frontmatter.title, value: await values[0], getters: log };
+}

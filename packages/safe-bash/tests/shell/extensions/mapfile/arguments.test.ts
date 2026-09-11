@@ -110,7 +110,7 @@ test("pinned native confirms parser diagnostic and help status expectations", {}
 });
 
 test("actual Shell option refusals match the authenticated native parser", {}, async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });
   context.after(() => shell.dispose());
   for (const [args] of invalid) {
     const script = `mapfile ${args.map(argument => `'${argument.replaceAll("'", "'\\''")}'`).join(" ")}`;

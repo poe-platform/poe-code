@@ -1,7 +1,13 @@
-import { FsError, getCommandArguments, readBytes, writeBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, replaceArgument, UsageError, value } from "./internal.js";
+import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from "./internal.js";
 import { EnvSplitError, parseEnvOptions } from "./env-split.js";
+import { delimitedArguments, replaceXargsArguments, xargsDisplay } from "./xargs-bytes.js";
+
+export interface ExecutionCommandsOptions {
+  readonly maxParallelProcesses?: number;
+}
 
 export function directExecutor(fallback: CommandHandler): CommandHandler {
   return async context => {
@@ -17,7 +23,7 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
   };
 }
 
-async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter?: string, replacement = false): AsyncGenerator<string> {
+async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false): AsyncGenerator<string> {
   const utf8 = new TextDecoder("utf-8", { fatal: true });
   let current = "";
   let active = false;
@@ -25,10 +31,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter
   let quote = "";
   const parse = function* (text: string): Generator<string> {
     for (const character of text) {
-      if (delimiter !== undefined) {
-        if (character === delimiter) { yield current; current = ""; active = false; }
-        else { current += character; active = true; }
-      } else if (escaped) { current += character; active = true; escaped = false; }
+      if (escaped) { current += character; active = true; escaped = false; }
       else if (quote) {
         if (character === "\n") throw new UsageError("unmatched quote in input");
         if (character === quote) quote = "";
@@ -48,7 +51,10 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter
   if (active) yield current;
 }
 
-export function executionCommands(execute: CommandHandler): CommandDefinition[] {
+export function executionCommands(execute: CommandHandler, configuration: ExecutionCommandsOptions = {}): CommandDefinition[] {
+  const configured = configuration.maxParallelProcesses;
+  const maxParallelProcesses = configured === undefined ? 4 : configured;
+  if (!Number.isSafeInteger(maxParallelProcesses) || maxParallelProcesses < 1) throw new RangeError("maxParallelProcesses must be a positive safe integer");
   return [
     define("env", async context => {
       const argumentValues = getCommandArguments(context);
@@ -57,7 +63,7 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
       catch (error) {
         context.signal.throwIfAborted();
         if (!(error instanceof EnvSplitError)) throw error;
-        await writeBytes(context.stderr, encoder.encode(`${context.command}: ${error.message}\n`), context.signal);
+        await writeDiagnostic(context.stderr, `${context.command}: ${error.message}\n`, context.signal);
         return { exitCode: 125 };
       }
       const env: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, parsed.flags.has("i") ? {} : context.env);
@@ -100,11 +106,22 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
     define("xargs", async context => {
       const argumentValues = getCommandArguments(context);
       const operandIndices: number[] = [];
-      const parsed = options(argumentValues.args, "0rn:s:I:d:tP:xE:", { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" }, true, index => { operandIndices.push(index); });
-      if (integer(value(parsed, "P") ?? "1") !== 1) throw new UsageError("only sequential execution (-P 1) is supported");
+      let replacementOrigin: { index: number; offset: number } | undefined;
+      const shortOptions = "0rn:s:I:d:tP:xE:";
+      const longOptions = { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" };
+      const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
+        (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; });
+      const requested = integer(value(parsed, "P") ?? "1");
+      const parallelism = requested === 0 ? maxParallelProcesses : Math.min(requested, maxParallelProcesses);
       const replacement = value(parsed, "I");
       if (replacement === "") throw new UsageError("replacement string cannot be empty");
       if (replacement !== undefined && parsed.flags.has("n")) throw new UsageError("cannot combine -I and -n");
+      let replacementPattern: Uint8Array | undefined;
+      if (replacementOrigin) {
+        const { index, offset } = replacementOrigin;
+        if (shellValueByteLength(argumentValues.values[index]!) - offset > 131072) throw new UsageError("replacement string exceeds 128 KiB limit");
+        replacementPattern = argumentValues.bytes(index)!.subarray(offset);
+      }
       const maxArgs = replacement === undefined ? integer(value(parsed, "n") ?? "5000", 1) : 1;
       const maxBytes = integer(value(parsed, "s") ?? "131072", 1);
       if (maxBytes > 131072) throw new UsageError("command size limit cannot exceed 128 KiB");
@@ -119,38 +136,129 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
       const initial = argumentValues.select(operandIndices).slice(1);
       const baseBytes = encoder.encode(command).length + 1 + initial.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
       if (baseBytes >= maxBytes) throw new UsageError("initial arguments exceed command size limit");
-      let batch: string[] = [];
+      let batch: (string | Uint8Array)[] = [];
       let bytes = baseBytes;
       let executed = false;
       let status = 0;
       let stop = false;
+      let terminal = false;
+      let failure: { reason: unknown } | undefined;
+      let finishing = false;
+      let cleanupPromise: Promise<void> | undefined;
+      let inputIterator: AsyncIterator<Uint8Array> | undefined;
+      let inputFinished = false;
+      let inputReturn: Promise<IteratorResult<Uint8Array>> | undefined;
+      let wake: (() => void) | undefined;
+      const active = new Set<Promise<void>>();
+      const children = new AbortController();
+      const input = new AbortController();
+      const inputStopped = new Error("xargs input admission closed");
+      const childSignal = AbortSignal.any([context.signal, children.signal]);
+      const inputSignal = AbortSignal.any([context.signal, input.signal]);
+      const notify = () => { const waiting = wake; wake = undefined; waiting?.(); };
+      const stopInput = () => { stop = true; input.abort(inputStopped); notify(); };
+      const closeInput = (): Promise<IteratorResult<Uint8Array>> => {
+        inputReturn ??= Promise.resolve().then(() => inputFinished ? { done: true, value: undefined } : inputIterator?.return?.() ?? { done: true, value: undefined });
+        return inputReturn;
+      };
+      const fail = (reason: unknown) => {
+        failure ??= { reason };
+        stopInput();
+        children.abort(reason);
+      };
+      const cancelled = () => { stopInput(); children.abort(context.signal.reason); };
+      const cleanup = (): Promise<void> => {
+        if (!cleanupPromise) {
+          stopInput();
+          if (!finishing) children.abort(inputStopped);
+          cleanupPromise = Promise.resolve().then(async () => {
+            try {
+              const results = await Promise.allSettled([closeInput(), ...active]);
+              for (const result of results) if (result.status === "rejected") throw result.reason;
+            } finally { context.signal.removeEventListener("abort", cancelled); }
+          });
+        }
+        return cleanupPromise;
+      };
+      context.registerCleanup?.(cleanup);
+      context.signal.addEventListener("abort", cancelled, { once: true });
+      if (context.signal.aborted) cancelled();
+      const source: ByteSource = { [Symbol.asyncIterator]() {
+        inputSignal.throwIfAborted();
+        inputIterator = context.stdin[Symbol.asyncIterator]();
+        return {
+          async next() {
+            const result = await inputIterator!.next();
+            inputFinished = result.done === true;
+            return result;
+          },
+          return: closeInput,
+        };
+      } };
+      const capacity = async () => {
+        while (!stop && active.size >= parallelism) await new Promise<void>(resolve => { wake = resolve; });
+      };
       const dispatch = async () => {
-        const childArguments = initial.withValues(replacement === undefined ? [...initial.values, ...batch] : initial.values.map((argument, index) => replaceArgument(typeof argument === "string" ? argument : initial.bytes(index)!, replacement, batch[0] ?? "")));
+        if (stop) return;
+        const childArguments = initial.withValues(replacementPattern === undefined ? [...initial.values, ...batch] : await replaceXargsArguments(initial.values, replacementPattern, batch[0] ?? "", maxBytes - encoder.encode(command).length - 1, context.signal));
         const args = childArguments.args;
         const size = encoder.encode(command).length + 1 + childArguments.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");
-        if (parsed.flags.has("t")) await writeBytes(context.stderr, encoder.encode([command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n"), context.signal);
-        const result = await execute({ ...context, command, args, argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true, env: { ...context.env } });
+        if (parsed.flags.has("t")) await writeDiagnostic(context.stderr, [command, ...childArguments.values].map(xargsDisplay).join(" ") + "\n", context.signal);
+        if (stop) return;
+        context.signal.throwIfAborted();
         executed = true;
-        if (result.exitCode === 255) { status = 124; stop = true; }
-        else if (result.exitCode === 126 || result.exitCode === 127) { status = result.exitCode; stop = true; }
-        else if (result.exitCode !== 0) status = 123;
         batch = []; bytes = baseBytes;
+        const pending = Promise.resolve().then(() => {
+          childSignal.throwIfAborted();
+          if (context.invoke) return context.invoke(command, args, {
+            argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true,
+            cwd: context.cwd, env: { ...context.env }, stdout: context.stdout, stderr: context.stderr, signal: childSignal,
+          });
+          return execute({ ...context, command, args, argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true, env: { ...context.env }, signal: childSignal });
+        }).then(result => {
+          const exitCode = result.exitCode;
+          if (!terminal && (exitCode === 255 || exitCode === 126 || exitCode === 127)) {
+            terminal = true;
+            status = exitCode === 255 ? 124 : exitCode;
+            stopInput();
+          } else if (!terminal && exitCode !== 0) status = 123;
+        }).catch(fail).then(() => { active.delete(pending); notify(); });
+        active.add(pending);
       };
       const eof = value(parsed, "E");
-      for await (const argument of argumentsFrom(context.stdin, context.signal, delimiter, replacement !== undefined)) {
-        if (delimiter === undefined && eof !== undefined && eof !== "" && argument === eof) break;
-        const size = encoder.encode(argument).length + 1;
-        if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
-        if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {
-          if (parsed.flags.has("x") && batch.length < maxArgs) throw new UsageError("command size limit exceeded");
-          await dispatch();
-          if (stop) break;
+      try {
+        if (delimiter !== undefined && eof !== undefined && eof !== "") await writeDiagnostic(context.stderr, "xargs: warning: the -E option has no effect if -0 or -d is used.\n\n", context.signal);
+        const incoming = delimiter === undefined
+          ? argumentsFrom(source, inputSignal, replacement !== undefined)
+          : delimitedArguments(source, inputSignal, context.signal, delimiter.charCodeAt(0), replacement === undefined ? maxBytes - baseBytes - 1 : maxBytes - 1);
+        for await (const argument of incoming) {
+          if (stop || delimiter === undefined && eof !== undefined && eof !== "" && argument === eof) break;
+          const size = (typeof argument === "string" ? Buffer.byteLength(argument) : argument.byteLength) + 1;
+          if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
+          if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {
+            if (parsed.flags.has("x") && batch.length < maxArgs) throw new UsageError("command size limit exceeded");
+            await dispatch();
+            await capacity();
+            if (stop) break;
+          }
+          batch.push(argument); bytes += size;
+          if (batch.length === maxArgs) {
+            await dispatch();
+            await capacity();
+            if (stop) break;
+          }
         }
-        batch.push(argument); bytes += size;
-        if (batch.length === maxArgs) { await dispatch(); if (stop) break; }
+        if (!stop && (batch.length || !executed && !parsed.flags.has("r") && replacement === undefined)) await dispatch();
+      } catch (error) {
+        if (error !== inputStopped) fail(error);
+      } finally {
+        finishing = true;
+        try { await cleanup(); }
+        catch (error) { failure ??= { reason: error }; }
       }
-      if (!stop && (batch.length || !executed && !parsed.flags.has("r") && replacement === undefined)) await dispatch();
+      context.signal.throwIfAborted();
+      if (failure) throw failure.reason;
       return { exitCode: status };
     }),
   ];

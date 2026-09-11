@@ -1,11 +1,15 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { Worker as NodeWorker } from "node:worker_threads";
 import { resolveObjectURL } from "node:buffer";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { buildBrowserEngine, safeBashBrowserPlugin } from "./build-plugin.mjs";
 
 describe("real safe-bash browser kernel", () => {
   let kernel: typeof import("./index.js");
   let inputs: string[];
+  let engine: { bash: string; filesystem: string };
   const activeWorkers = new Set<{ terminate(): void }>();
 
   beforeAll(async () => {
@@ -23,6 +27,7 @@ describe("real safe-bash browser kernel", () => {
           this.worker = source.text().then((code) => {
             const worker = new NodeWorker(
               `
+            const navigator = { language: 'en-US' };
             const { parentPort } = require('node:worker_threads');
             globalThis.addEventListener = (event, handler) => parentPort.on(event, data => handler({ data }));
             globalThis.postMessage = (value, transfer) => parentPort.postMessage(value, transfer);
@@ -56,9 +61,10 @@ describe("real safe-bash browser kernel", () => {
       }
     );
     const built = await buildBrowserEngine();
+    engine = built;
     inputs = built.inputs;
     kernel = await import(
-      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`${built.code}\n//# sourceURL=safe-bash-browser-kernel.mjs`).toString("base64")}`
+      /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-kernel.mjs`).toString("base64")}`
     );
   });
   afterAll(() => vi.unstubAllGlobals());
@@ -72,6 +78,25 @@ describe("real safe-bash browser kernel", () => {
     );
     return { fs, shell };
   }
+
+  it("builds the current workspace engine rather than a pinned registry copy", () => {
+    const root = fileURLToPath(new URL("../../../../", import.meta.url));
+    expect(engine.bash).toBe(resolve(root, "packages/safe-bash/dist"));
+    expect(engine.filesystem).toBe(resolve(root, "packages/safe-fs/dist/core.js"));
+    expect(inputs.some(input => input.includes("safe-bash-engine"))).toBe(false);
+  });
+
+  it("includes the current predicate nesting refusal in the browser engine", async () => {
+    const { shell } = await fixture();
+    try {
+      const source = `test ${"\\( ".repeat(257)}value ${"\\) ".repeat(257)}`;
+      const result = await shell.exec(source);
+      expect(result.exitCode).toBe(2);
+      expect(result.stderr).toBe("test: expression nesting exceeds 256\n");
+    } finally {
+      await shell.dispose();
+    }
+  });
 
   it("executes actual shell scripts, pipelines, expansions, and virtual file changes", async () => {
     const { fs, shell } = await fixture();
@@ -145,6 +170,9 @@ describe("real safe-bash browser kernel", () => {
       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824  -\n"
     ],
     ["printf hello | gzip | gunzip", "hello"],
+    ["printf hello | bzip2 -c | bzcat", "hello"],
+    ["printf hello | xz -c | xzcat", "hello"],
+    ["printf hello | zstd -c | zstdcat", "hello"],
     [
       "printf one | gzip > one.gz; printf two | gzip > two.gz; cat one.gz two.gz | gunzip",
       "onetwo"
@@ -277,9 +305,11 @@ describe("real safe-bash browser kernel", () => {
     const entry = await plugin.load.call({ addWatchFile: (path: string) => watched.push(path) }, id);
     expect(entry.length).toBeLessThan(4096);
     expect(watched.some((path) => path.endsWith("/engine/platform.ts"))).toBe(true);
-    expect(watched.some((path) => path.endsWith("/engine/path.ts"))).toBe(true);
+    expect(watched.some((path) => path.endsWith("/safe-fs/dist/core.js"))).toBe(true);
+    expect(watched.some((path) => path.endsWith("/safe-bash/dist/commands/regex-execution/worker.js"))).toBe(true);
     expect(watched.some((path) => path.endsWith("/engine/worker-context.mjs"))).toBe(true);
     expect(watched.some((path) => path.endsWith("/engine/workers.mjs"))).toBe(true);
+    expect(watched.every((path) => existsSync(path))).toBe(true);
     const assets: { fileName: string; source: string }[] = [];
     await plugin.generateBundle.call({
       emitFile: (asset: { fileName: string; source: string }) => assets.push(asset)
@@ -397,6 +427,11 @@ describe("real safe-bash browser kernel", () => {
         "[",
         "basename",
         "cat",
+        "cmp",
+        "fmt",
+        "shuf",
+        "numfmt",
+        "truncate",
         "cp",
         "cut",
         "dirname",
@@ -429,10 +464,30 @@ describe("real safe-bash browser kernel", () => {
         "awk",
         "jq",
         "gzip",
+        "bzip2",
+        "bunzip2",
+        "bzcat",
+        "xz",
+        "unxz",
+        "xzcat",
+        "zstd",
+        "unzstd",
+        "zstdcat",
         "sha256sum",
-        "apply_patch"
+        "apply_patch",
+        "xq",
+        "xmllint",
+        "csplit",
+        "pr",
+        "tsort",
+        "factor",
+        "getopt",
+        "hexdump",
+        "hd",
+        "iconv"
       ])
     );
-    expect(kernel.supportedCommands).toHaveLength(79);
+    expect(kernel.supportedCommands).toHaveLength(110);
+    expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum"]));
   });
 });

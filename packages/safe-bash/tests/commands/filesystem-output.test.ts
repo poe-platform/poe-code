@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { browserCommands } from "../../src/browser.js";
+import { agentCommands } from "../../src/index.js";
 import { FsError, type ByteSource, type FileSystem } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../src/fs/mount/index.js";
@@ -65,7 +65,7 @@ function fixture(chunks: readonly Uint8Array[], options: {
     ...(options.maxOutputBytes === undefined ? {} : { maxOutputBytes: options.maxOutputBytes }),
     ...(options.maxWallClockMs === undefined ? {} : { maxWallClockMs: options.maxWallClockMs }),
   } })
-    .use(browserCommands()).use(networkCommands({
+    .use(agentCommands()).use(networkCommands({
       authorize: () => true,
       transport: async request => ({
         status: 200, statusText: "OK", headers: [],
@@ -324,7 +324,7 @@ test("writable mount capability wins over a read-only root profile", async () =>
   const { fs, backing, shell: unused } = fixture([]);
   await unused.dispose();
   const mounted = createMountFileSystem({ root: createReadOnlyFileSystem(createMemoryFileSystem()), mounts: { "/writable": fs } });
-  const shell = new Shell({ fs: mounted }).use(browserCommands());
+  const shell = new Shell({ fs: mounted }).use(agentCommands());
   try {
     for (const command of ["printf a >/writable/out", "printf b >>/writable/out", "printf c | tee /writable/tee"]) {
       const result = await shell.exec(command);
@@ -359,7 +359,7 @@ for (const route of routes.filter(route => !route.name.startsWith("tee"))) {
     let returned = false;
     let disposed = 0;
     let releaseRead: (() => void) | undefined;
-    const shell = new Shell({ fs }).use(browserCommands()).use(networkCommands({
+    const shell = new Shell({ fs }).use(agentCommands()).use(networkCommands({
       authorize: () => true,
       transport: async request => ({ status: 200, statusText: "OK", headers: [],
         body: { [Symbol.asyncIterator]() {
@@ -489,7 +489,7 @@ for (const randomAccessWrite of [false, true]) {
             const member: unknown = Reflect.get(target, key);
             return typeof member === "function" ? member.bind(target) : member;
           } });
-          const shell = new Shell({ fs }).use(browserCommands());
+          const shell = new Shell({ fs }).use(agentCommands());
           try {
             const result = await shell.exec(`printf '${payload}' ${route === ">>" ? ">> /out" : "| tee -a /out"}`);
             assert.equal(result.exitCode, 0, result.stderr);

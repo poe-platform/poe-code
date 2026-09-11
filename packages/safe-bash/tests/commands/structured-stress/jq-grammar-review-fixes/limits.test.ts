@@ -4,24 +4,24 @@ import { Budget, defaultJqLimits, JqLimitError, type Json } from "../../../../sr
 import { compare, equal } from "../../../../src/commands/structured/values.js";
 import { run } from "../../structured/helpers.js";
 
-test("alias ordering descends and charges work; identity equality stays separate", () => {
+test("alias ordering descends and charges work; identity equality stays separate", async () => {
   for (const value of [[NaN], { value: NaN }, [[NaN]], { value: [NaN] }] satisfies Json[]) {
     const budget = new Budget(defaultJqLimits, new AbortController().signal);
     assert.equal(equal(value, value, budget), true);
-    assert.equal(compare(value, value, budget), -1);
+    assert.equal(await compare(value, value, budget), -1);
   }
   const value: Json = [...Array<number>(32).fill(0), NaN];
   const limited = () => new Budget({ ...defaultJqLimits, maxSteps: 8 }, new AbortController().signal);
   assert.equal(equal(value, value, limited()), true);
-  assert.throws(() => compare(value, value, limited()), error => error instanceof JqLimitError && error.message === "maxSteps limit exceeded");
+  await assert.rejects(compare(value, value, limited()), error => error instanceof JqLimitError && error.message === "maxSteps limit exceeded");
 });
 
-test("alias ordering preserves abort identity", () => {
+test("alias ordering preserves abort identity", async () => {
   const reason = new Error("cancel alias comparison");
   const controller = new AbortController();
   controller.abort(reason);
   const value: Json = { nested: [NaN] };
-  assert.throws(() => compare(value, value, new Budget(defaultJqLimits, controller.signal)), error => error === reason);
+  await assert.rejects(compare(value, value, new Budget(defaultJqLimits, controller.signal)), error => error === reason);
 });
 
 test("isfinite arity is rejected before acquiring input", async () => {

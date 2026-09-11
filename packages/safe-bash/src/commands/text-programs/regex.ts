@@ -1,4 +1,5 @@
 import { Budget, ProgramError } from "./shared.js";
+import { ReplacementBuffer } from "./replacement-buffer.js";
 
 type Node = { type: "empty" | "begin" | "end" }
   | { type: "backreference"; index: number }
@@ -48,10 +49,28 @@ function extendedSource(source: string): string {
 
 export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[] }
 
+class NfaStorage {
+  private used = 0;
+  constructor(private readonly budget: Budget) {}
+  reserve(bytes: number): void {
+    this.budget.step(0);
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.budget.maxBufferBytes - this.used) {
+      throw new ProgramError("regular expression state buffer limit exceeded");
+    }
+    this.used += bytes;
+  }
+  release(bytes: number): void {
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.used) throw new ProgramError("invalid regular expression state accounting");
+    this.used -= bytes;
+  }
+  clear(): void { this.used = 0; }
+}
+
 export class Pattern {
   readonly groupCount: number;
   private readonly code: Instruction[] = [];
   private readonly anchored: boolean;
+  private readonly linear: boolean;
 
   constructor(source: string, extended = true, ignoreCase = false) {
     if (source.length > 8192) throw new ProgramError("regular expression exceeds 8192 bytes");
@@ -192,125 +211,258 @@ export class Pattern {
       }
     };
     compile(root); emit({ kind: "match" });
+    this.linear = this.code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
   }
 
-  find(text: string, budget: Budget, from = 0): Match | undefined {
-    interface Thread { pc: number; captures: number[] }
-    for (let start = from; start <= text.length && (!this.anchored || start === 0); start++) {
-      const positions = new Map<number, Thread[]>([[start, [{ pc: 0, captures: [] }]]]);
-      let best: Match | undefined;
-      let bestCaptures: number[] = [];
-      let queued = 1;
-      const preferCaptures = (captures: number[]): boolean => {
-        for (let index = 1; index <= this.groupCount; index++) {
-          const begin = captures[index * 2];
-          const end = captures[index * 2 + 1];
-          const priorBegin = bestCaptures[index * 2];
-          const priorEnd = bestCaptures[index * 2 + 1];
-          const length = begin === undefined || end === undefined ? -1 : end - begin;
-          const priorLength = priorBegin === undefined || priorEnd === undefined ? -1 : priorEnd - priorBegin;
-          if (length !== priorLength) return length > priorLength;
-        }
-        return false;
-      };
-      for (let position = start; positions.size && position <= text.length; position++) {
-        budget.step();
-        const pending = positions.get(position)?.reverse() ?? [];
-        positions.delete(position);
-        queued -= pending.length;
-        const visited = new Set<string | number>();
-        let stateBytes = 0;
-        const enqueue = (destination: number, thread: Thread): void => {
-          if (destination === position) pending.push(thread);
-          else {
-            const waiting = positions.get(destination);
-            if (waiting) waiting.push(thread);
-            else positions.set(destination, [thread]);
-            queued++;
-          }
-          if ((queued + pending.length) * (32 + this.groupCount * 16) > budget.maxBufferBytes) throw new ProgramError("regular expression state buffer limit exceeded");
-        };
-        while (pending.length) {
-          budget.step();
-          const thread = pending.pop()!;
-          const state = this.groupCount ? `${thread.pc}:${thread.captures.join(",")}` : thread.pc;
-          if (visited.has(state)) continue;
-          visited.add(state);
-          stateBytes += typeof state === "string" ? state.length * 2 + 32 : 16;
-          if (stateBytes > budget.maxBufferBytes) throw new ProgramError("regular expression state buffer limit exceeded");
-          const instruction = this.code[thread.pc]!;
+  async find(text: string, budget: Budget, from = 0): Promise<Match | undefined> {
+    await budget.checkpoint();
+    let units = 0;
+    const work = (count = 1): Promise<void> | undefined => {
+      budget.step(count);
+      units += count;
+      if (units < 64) return undefined;
+      units %= 64;
+      return budget.checkpoint();
+    };
+    if (this.linear) {
+      for (let start = from; start <= text.length && (!this.anchored || start === 0); start++) {
+        let position = start;
+        for (const instruction of this.code) {
+          const paused = work(2);
+          if (paused) await paused;
           if (instruction.kind === "character") {
-            if (position < text.length && instruction.accepts(text[position]!)) enqueue(position + 1, { pc: thread.pc + 1, captures: thread.captures });
-          } else if (instruction.kind === "backreference") {
-            const begin = thread.captures[instruction.index * 2];
-            const end = thread.captures[instruction.index * 2 + 1];
-            if (begin === undefined || end === undefined || position + end - begin > text.length) continue;
-            let matches = true;
-            for (let offset = 0; offset < end - begin; offset++) {
-              budget.step();
-              const expected = text[begin + offset]!;
-              const actual = text[position + offset]!;
-              if (instruction.ignoreCase ? expected.toLowerCase() !== actual.toLowerCase() : expected !== actual) { matches = false; break; }
-            }
-            if (matches) enqueue(position + end - begin, { pc: thread.pc + 1, captures: thread.captures });
-          } else if (instruction.kind === "match") {
-            if (!best || position > best.end || position === best.end && preferCaptures(thread.captures)) {
-              const groups: (string | undefined)[] = [text.slice(start, position)];
-              for (let index = 1; index <= this.groupCount; index++) {
-                const begin = thread.captures[index * 2];
-                const end = thread.captures[index * 2 + 1];
-                groups.push(begin === undefined || end === undefined ? undefined : text.slice(begin, end));
-              }
-              best = { start, end: position, groups };
-              bestCaptures = thread.captures;
-            }
-          } else if (instruction.kind === "split") {
-            pending.push({ pc: instruction.second, captures: thread.captures }, { pc: instruction.first, captures: thread.captures });
-          } else if (instruction.kind === "jump") pending.push({ pc: instruction.target, captures: thread.captures });
-          else if (instruction.kind === "save") {
-            const captures = [...thread.captures]; captures[instruction.slot] = position;
-            pending.push({ pc: thread.pc + 1, captures });
-          } else if (instruction.kind === "begin" ? position === 0 : position === text.length) pending.push({ pc: thread.pc + 1, captures: thread.captures });
+            if (position >= text.length || !instruction.accepts(text[position]!)) break;
+            position++;
+          } else if (instruction.kind === "begin" && position !== 0 || instruction.kind === "end" && position !== text.length) break;
+          else if (instruction.kind === "match") {
+            if (position - start > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+            const copied = work(position - start);
+            if (copied) await copied;
+            const match = { start, end: position, groups: [text.slice(start, position)] };
+            await budget.checkpoint();
+            return match;
+          }
         }
       }
-      if (best) return best;
+      return undefined;
     }
-    return undefined;
+    interface Thread { pc: number; captures: number[]; bytes: number }
+    const storage = new NfaStorage(budget);
+    const positionDigits = String(text.length).length;
+    const instructionDigits = String(this.code.length).length;
+    try {
+      for (let start = from; start <= text.length && (!this.anchored || start === 0); start++) {
+        storage.reserve(256);
+        const positions = new Map<number, Thread[]>([[start, [{ pc: 0, captures: [], bytes: 64 }]]]);
+        let bestEnd: number | undefined;
+        let bestCaptures: number[] = [];
+        let bestBytes = 0;
+        try {
+          for (let position = start; positions.size && position <= text.length; position++) {
+            const advanced = work();
+            if (advanced) await advanced;
+            const pending = positions.get(position);
+            if (!pending) continue;
+            const reversed = work(pending.length);
+            if (reversed) await reversed;
+            pending.reverse();
+            positions.delete(position);
+            const visited = new Set<string | number>();
+            let stateBytes = 0;
+            const enqueue = (destination: number, pc: number, captures: number[], saveSlot?: number): void => {
+              const length = saveSlot === undefined ? captures.length : Math.max(captures.length, saveSlot + 1);
+              const bytes = 64 + length * 8;
+              const waiting = destination === position ? pending : positions.get(destination);
+              storage.reserve(bytes + (waiting ? 0 : 64));
+              const saved = saveSlot === undefined ? captures : [...captures];
+              if (saveSlot !== undefined) saved[saveSlot] = position;
+              const thread = { pc, captures: saved, bytes };
+              if (waiting) waiting.push(thread);
+              else positions.set(destination, [thread]);
+            };
+            while (pending.length) {
+              const paused = work();
+              if (paused) await paused;
+              const thread = pending.pop()!;
+              try {
+                let state: string | number = thread.pc;
+                let bytes = 32;
+                if (this.groupCount) {
+                  const joinedLength = Math.max(0, thread.captures.length - 1) + thread.captures.length * positionDigits;
+                  const stateLength = instructionDigits + 1 + joinedLength;
+                  const serialized = work(stateLength);
+                  if (serialized) await serialized;
+                  const reserved = 32 + joinedLength * 2 + 64 + stateLength * 2;
+                  storage.reserve(reserved);
+                  state = `${thread.pc}:${thread.captures.join(",")}`;
+                  bytes = 64 + state.length * 2;
+                  storage.release(reserved - bytes);
+                } else storage.reserve(bytes);
+                if (visited.has(state)) { storage.release(bytes); continue; }
+                visited.add(state);
+                stateBytes += bytes;
+                const instruction = this.code[thread.pc]!;
+                if (instruction.kind === "character") {
+                  if (position < text.length && instruction.accepts(text[position]!)) enqueue(position + 1, thread.pc + 1, thread.captures);
+                } else if (instruction.kind === "backreference") {
+                  const begin = thread.captures[instruction.index * 2];
+                  const end = thread.captures[instruction.index * 2 + 1];
+                  if (begin === undefined || end === undefined || position + end - begin > text.length) continue;
+                  let matches = true;
+                  for (let offset = 0; offset < end - begin; offset++) {
+                    const compared = work();
+                    if (compared) await compared;
+                    const expected = text[begin + offset]!;
+                    const actual = text[position + offset]!;
+                    if (instruction.ignoreCase ? expected.toLowerCase() !== actual.toLowerCase() : expected !== actual) { matches = false; break; }
+                  }
+                  if (matches) enqueue(position + end - begin, thread.pc + 1, thread.captures);
+                } else if (instruction.kind === "match") {
+                  let preferred = bestEnd === undefined || position > bestEnd;
+                  if (position === bestEnd) for (let index = 1; index <= this.groupCount; index++) {
+                    const compared = work();
+                    if (compared) await compared;
+                    const begin = thread.captures[index * 2];
+                    const end = thread.captures[index * 2 + 1];
+                    const priorBegin = bestCaptures[index * 2];
+                    const priorEnd = bestCaptures[index * 2 + 1];
+                    const length = begin === undefined || end === undefined ? -1 : end - begin;
+                    const priorLength = priorBegin === undefined || priorEnd === undefined ? -1 : priorEnd - priorBegin;
+                    if (length !== priorLength) { preferred = length > priorLength; break; }
+                  }
+                  if (preferred) {
+                    const retained = 32 + thread.captures.length * 8;
+                    storage.reserve(retained);
+                    bestEnd = position;
+                    bestCaptures = thread.captures;
+                    storage.release(bestBytes);
+                    bestBytes = retained;
+                  }
+                } else if (instruction.kind === "split") {
+                  enqueue(position, instruction.second, thread.captures);
+                  enqueue(position, instruction.first, thread.captures);
+                } else if (instruction.kind === "jump") enqueue(position, instruction.target, thread.captures);
+                else if (instruction.kind === "save") {
+                  const copied = work(Math.max(thread.captures.length, instruction.slot + 1));
+                  if (copied) await copied;
+                  enqueue(position, thread.pc + 1, thread.captures, instruction.slot);
+                } else if (instruction.kind === "begin" ? position === 0 : position === text.length) enqueue(position, thread.pc + 1, thread.captures);
+              } finally { storage.release(thread.bytes); }
+            }
+            visited.clear();
+            storage.release(stateBytes + 64);
+          }
+          if (bestEnd !== undefined) {
+            let characters = bestEnd - start;
+            for (let index = 1; index <= this.groupCount; index++) {
+              const counted = work();
+              if (counted) await counted;
+              const begin = bestCaptures[index * 2];
+              const end = bestCaptures[index * 2 + 1];
+              if (begin !== undefined && end !== undefined) characters += end - begin;
+            }
+            const copied = work(characters);
+            if (copied) await copied;
+            storage.reserve(64 + (this.groupCount + 1) * 40 + characters * 2);
+            const groups: (string | undefined)[] = [text.slice(start, bestEnd)];
+            for (let index = 1; index <= this.groupCount; index++) {
+              const materialized = work();
+              if (materialized) await materialized;
+              const begin = bestCaptures[index * 2];
+              const end = bestCaptures[index * 2 + 1];
+              groups.push(begin === undefined || end === undefined ? undefined : text.slice(begin, end));
+            }
+            await budget.checkpoint();
+            return { start, end: bestEnd, groups };
+          }
+        } finally { positions.clear(); storage.clear(); }
+      }
+      return undefined;
+    } finally { storage.clear(); }
   }
 }
 
-export function replacementText(replacement: string, match: Match): string {
-  let result = "";
+async function replacementLength(replacement: string, match: Match, budget: Budget, available: number): Promise<number> {
+  let length = 0;
+  let tokens = 0;
   for (let index = 0; index < replacement.length; index++) {
+    if (tokens++ % 256 === 0) await budget.checkpoint();
+    budget.step();
     const character = replacement[index]!;
-    if (character === "&") result += match.groups[0] ?? "";
-    else if (character === "\\" && index + 1 < replacement.length) {
+    let size = 1;
+    if (character === "&") {
+      budget.step();
+      size = match.groups[0]?.length ?? 0;
+    } else if (character === "\\" && index + 1 < replacement.length) {
+      budget.step();
       const next = replacement[++index]!;
-      result += /^[1-9]$/u.test(next) ? match.groups[Number(next)] ?? "" : next === "n" ? "\n" : next === "t" ? "\t" : next;
-    } else result += character;
+      if (next >= "1" && next <= "9") {
+        budget.step();
+        size = match.groups[Number(next)]?.length ?? 0;
+      }
+    }
+    if (size > available - length) throw new ProgramError("text buffer limit exceeded");
+    length += size;
   }
-  return result;
+  return length;
 }
 
-export function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1): { text: string; count: number } {
+async function replacementText(replacement: string, match: Match, buffer: ReplacementBuffer, budget: Budget): Promise<void> {
+  let literal = 0;
+  let tokens = 0;
+  for (let index = 0; index < replacement.length; index++) {
+    if (tokens++ % 256 === 0) await budget.checkpoint();
+    budget.step();
+    const character = replacement[index]!;
+    if (character !== "&" && (character !== "\\" || index + 1 === replacement.length)) continue;
+    await buffer.append(replacement, literal, index);
+    if (character === "&") {
+      budget.step();
+      await buffer.append(match.groups[0] ?? "");
+    } else {
+      budget.step();
+      const next = replacement[++index]!;
+      if (next >= "1" && next <= "9") {
+        budget.step();
+        await buffer.append(match.groups[Number(next)] ?? "");
+      } else await buffer.append(next === "n" ? "\n" : next === "t" ? "\t" : next);
+    }
+    literal = index + 1;
+  }
+  await buffer.append(replacement, literal);
+}
+
+export async function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1): Promise<{ text: string; count: number }> {
   let search = 0;
   let consumed = 0;
   let previousEnd = -1;
   let encountered = 0;
   let count = 0;
-  let result = "";
-  while (search <= text.length) {
-    const match = pattern.find(text, budget, search);
-    if (!match) break;
-    if (match.start === match.end && match.start === previousEnd) { search = match.end + 1; continue; }
-    encountered++;
-    if (encountered >= occurrence) {
-      result = budget.check(result + text.slice(consumed, match.start) + replacementText(replacement, match));
-      consumed = match.end; count++;
-      if (!global) break;
+  const result = new ReplacementBuffer(budget);
+  try {
+    while (search <= text.length) {
+      await budget.checkpoint();
+      budget.step();
+      const match = await pattern.find(text, budget, search);
+      if (!match) break;
+      if (match.start === match.end && match.start === previousEnd) { search = match.end + 1; continue; }
+      encountered++;
+      if (encountered >= occurrence) {
+        const prefix = match.start - consumed;
+        result.admit(prefix);
+        const length = await replacementLength(replacement, match, budget, result.remaining - prefix);
+        result.admit(prefix + length);
+        await result.append(text, consumed, match.start);
+        await replacementText(replacement, match, result, budget);
+        consumed = match.end; count++;
+        if (!global) break;
+      }
+      previousEnd = match.end > match.start ? match.end : -1;
+      search = match.end > match.start ? match.end : match.end + 1;
     }
-    previousEnd = match.end > match.start ? match.end : -1;
-    search = match.end > match.start ? match.end : match.end + 1;
-  }
-  return { text: budget.check(result + text.slice(consumed)), count };
+    budget.step(0);
+    if (!count) return { text: budget.check(text), count };
+    await result.append(text, consumed);
+    return { text: await result.finish(), count };
+  } finally { result.clear(); }
 }

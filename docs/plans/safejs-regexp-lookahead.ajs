@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const match = /(?=(ab))a/d.exec('ab');
+  if (match[0] !== 'a' || match[1] !== 'ab' || match.indices[1].join('|') !== '0|2')
+    throw new Error('Positive lookahead consumed input or lost captures');
+  const negative = /a(?!b)/.exec('abac');
+  if (negative.index !== 2) throw new Error('Negative lookahead accepted the wrong match');
+  const captures = Array.from('ab'.matchAll(/(?=(.))/g), entry => entry[1]);
+  if (captures.join('|') !== 'a|b') throw new Error('Lazy zero-width iteration failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, captures };
+}

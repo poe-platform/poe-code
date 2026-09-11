@@ -17,11 +17,13 @@ type PauseRequest = {
   resume(): void;
   interrupt(reason: unknown): void;
 };
+import type { Budget } from "./budget.js";
 
 type ExecutionJob = {
   queue: SandboxJobQueue;
   ownsExecution: boolean;
   prefixParent?: ExecutionJob;
+  keptTargets?: Map<Budget, Set<object | symbol>>;
 };
 
 const activeJob = new AsyncLocalStorage<ExecutionJob>();
@@ -113,6 +115,7 @@ export class SandboxJobQueue {
   finish(): void {
     if (this.finished) return;
     this.finished = true;
+    this.controlled = false;
     this.detachSignal?.();
     this.detachSignal = undefined;
     this.interrupt(new Error("Execution is finished."));
@@ -136,9 +139,11 @@ export class SandboxJobQueue {
     });
   }
 
+  bind<T>(task: () => T): T {
+    return activeJob.run({queue: this, ownsExecution: false}, task);
+  }
+
   acquire(job: ExecutionJob): Promise<void> {
-    if (this.finished)
-      return Promise.reject(this.interruption?.reason ?? new Error("Execution is finished."));
     return new Promise((resolve) => {
       this.pending.push(() => {
         this.running = true;
@@ -153,6 +158,8 @@ export class SandboxJobQueue {
   release(job: ExecutionJob): void {
     job.prefixParent = undefined;
     if (!job.ownsExecution) return;
+    for (const budget of job.keptTargets?.keys() ?? []) budget.setRetainedValues(job, undefined);
+    job.keptTargets = undefined;
     job.ownsExecution = false;
     this.running = false;
     this.advance();
@@ -220,6 +227,51 @@ export function attachExecutionControl<T extends object>(
 export function runPromiseJob<T>(task: () => T | Promise<T>): Promise<T> {
   const job = activeJob.getStore();
   return job === undefined ? Promise.resolve().then(task) : job.queue.run(task);
+}
+
+// Native notifications do not inherit the guest invocation's async context.
+// Capture ownership when registering, not when a later notice arrives.
+export function captureJobScheduler(): <T>(task: () => T | Promise<T>) => Promise<T> {
+  const queue = activeJob.getStore()?.queue ?? new SandboxJobQueue();
+  const context = AsyncLocalStorage.snapshot();
+  return task => context(() => queue.run(task));
+}
+
+export function keepJobTarget(target: object | symbol, budget: Budget): void {
+  let job = activeJob.getStore();
+  while (job !== undefined && !job.ownsExecution) job = job.prefixParent;
+  // Standalone intrinsic calls use their surrounding native execution lifetime.
+  if (job === undefined) return;
+  job.keptTargets ??= new Map();
+  let targets = job.keptTargets.get(budget);
+  if (targets === undefined) {
+    targets = new Set();
+    job.keptTargets.set(budget, targets);
+    const retained = targets;
+    budget.setRetainedValues(job, () => retained);
+  }
+  targets.add(target);
+}
+
+// A suspended frame keeps its AsyncLocalStorage record across native awaits.
+// Reconnect that record to the job which is currently resuming the frame.
+export function createResumableJobContext(): {run<T>(task: () => T): T; release(): void} {
+  let frame: ExecutionJob | undefined;
+  return {run: task => {
+    const parent = activeJob.getStore();
+    if (parent === undefined) return task();
+    frame ??= {queue: parent.queue, ownsExecution: false};
+    // Reentry already belongs to this frame's execution ancestry. Reconnecting
+    // it to its descendant would make prefix-owner lookup cycle forever.
+    for (let ancestor: ExecutionJob | undefined = parent; ancestor !== undefined; ancestor = ancestor.prefixParent) {
+      if (ancestor === frame) return activeJob.run(frame, task);
+    }
+    frame.queue = parent.queue;
+    frame.prefixParent = parent;
+    return activeJob.run(frame, task);
+  }, release: () => {
+    if (frame !== undefined) frame.queue.release(frame);
+  }};
 }
 
 export function runAsyncPrefix<T>(task: () => Promise<T>): Promise<T> {

@@ -1,0 +1,13 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const pairs = Array.from('aabb'.matchAll(/(.)\1/dg), match => [match[0], match.indices[0]]);
+  if (pairs[0][0] !== 'aa' || pairs[1][0] !== 'bb') throw new Error('Backreference iteration failed');
+  if (!/\1(a)/.test('a')) throw new Error('Forward reference failed');
+  if (!/(?<=\1(a))b/.test('aab')) throw new Error('Backward reference failed');
+  if (!/\12/.test(String.fromCharCode(10))) throw new Error('Legacy octal escape failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, pairs };
+}

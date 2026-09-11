@@ -211,18 +211,8 @@ class AS001Scanner {
           nextSignificantChar
         );
 
-        if (
-          canStartStatement &&
-          nextSignificantChar === ":" &&
-          token.value !== "default" &&
-          !this.isLoopLabelStart()
-        ) {
-          this.report(
-            "label",
-            token.start,
-            this.positionWithinSource(token.start.offset + token.value.length)
-          );
-        } else if (!isMemberProperty && !isPropertyKey && !isMemberName) {
+        const isLabel = canStartStatement && nextSignificantChar === ":" && token.type === "identifier";
+        if (!isLabel && !isMemberProperty && !isPropertyKey && !isMemberName) {
           this.reportForbiddenIdentifier(token);
           if (token.value === "class") {
             pendingClassBody = true;
@@ -267,14 +257,6 @@ class AS001Scanner {
         continue;
       }
 
-      if (
-        token.type === "punctuator" &&
-        token.value === "*" &&
-        isGeneratorMemberToken(previousToken, previousPreviousToken, braceContextStack)
-      ) {
-        this.report("generator", token.start, token.end);
-      }
-
       lastClosedControlParenthesis =
         token.type === "punctuator"
           ? updateGroupingState(groupingStack, previousToken, token.value)
@@ -292,9 +274,6 @@ class AS001Scanner {
 
   private reportForbiddenIdentifier(token: Token): void {
     switch (token.value) {
-      case "class":
-      case "eval":
-      case "Function":
       case "with":
         this.report(token.value, token.start, token.end);
         return;
@@ -524,35 +503,6 @@ class AS001Scanner {
     return nextIndex >= this.source.length ? undefined : this.source[nextIndex];
   }
 
-  private isLoopLabelStart(): boolean {
-    let index = this.skipTriviaFrom(this.index);
-    if (this.source[index] !== ":") {
-      return false;
-    }
-
-    index = this.skipTriviaFrom(index + 1);
-
-    while (index < this.source.length) {
-      const identifier = readIdentifierAt(this.source, index);
-      if (identifier === undefined) {
-        return false;
-      }
-
-      if (identifier.value === "for" || identifier.value === "while" || identifier.value === "do") {
-        return true;
-      }
-
-      const nextIndex = this.skipTriviaFrom(identifier.end);
-      if (this.source[nextIndex] !== ":") {
-        return false;
-      }
-
-      index = this.skipTriviaFrom(nextIndex + 1);
-    }
-
-    return false;
-  }
-
   private skipTriviaFrom(start: number): number {
     let index = start;
 
@@ -684,30 +634,6 @@ function isMemberNameToken(
   }
 
   return previousToken?.type === "punctuator" && previousToken.value === "*";
-}
-
-function isGeneratorMemberToken(
-  previousToken: Token | undefined,
-  previousPreviousToken: Token | undefined,
-  braceContextStack: BraceContext[]
-): boolean {
-  const memberContext = braceContextStack.at(-1);
-  if (memberContext === undefined) {
-    return false;
-  }
-
-  if (memberContext.kind !== "class" && memberContext.kind !== "object") {
-    return false;
-  }
-
-  if (isMemberEntryStart(previousToken, memberContext.kind)) {
-    return true;
-  }
-
-  return (
-    isMemberModifierToken(previousToken) &&
-    isMemberEntryStart(previousPreviousToken, memberContext.kind)
-  );
 }
 
 function isMemberEntryStart(token: Token | undefined, kind: BraceContext["kind"]): boolean {
@@ -869,25 +795,6 @@ function isIdentifierStart(char: string): boolean {
 
 function isIdentifierPart(char: string): boolean {
   return isIdentifierStart(char) || isDecimalDigit(char);
-}
-
-function readIdentifierAt(
-  source: string,
-  start: number
-): { value: string; end: number } | undefined {
-  if (!isIdentifierStart(source[start] ?? "")) {
-    return undefined;
-  }
-
-  let end = start + 1;
-  while (end < source.length && isIdentifierPart(source[end] ?? "")) {
-    end += 1;
-  }
-
-  return {
-    value: source.slice(start, end),
-    end
-  };
 }
 
 function isAsciiLetter(char: string): boolean {

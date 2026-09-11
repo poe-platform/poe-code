@@ -1,3 +1,4 @@
+import { PublicDiagnostic } from "../../../diagnostics.js";
 import type { CommandContext, CommandDefinition } from "../../../contracts/index.js";
 import { define, options, output, requireOperands, UsageError } from "../../internal.js";
 import { addOffset, numeric, range, rows, sources, validatedOption } from "./shared.js";
@@ -22,9 +23,9 @@ async function reversePlain(context: CommandContext, files: readonly string[], m
       else { pending.push((high << 4) | digit); high = -1; }
     }
     if (pending.length) await output(context, Uint8Array.from(pending));
-    if (invalid) throw new Error("invalid input: expected hexadecimal digits or ASCII whitespace");
+    if (invalid) throw new PublicDiagnostic("invalid input: expected hexadecimal digits or ASCII whitespace");
   }
-  if (high >= 0) throw new Error("invalid input: unmatched hexadecimal digit");
+  if (high >= 0) throw new PublicDiagnostic("invalid input: unmatched hexadecimal digit");
 }
 
 async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number): Promise<void> {
@@ -33,13 +34,13 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
   const emitLine = async (): Promise<void> => {
     if (!line.trim()) { line = ""; return; }
     const match = /^([0-9a-fA-F]{1,14}):[ \t]?(.*)$/u.exec(line.replace(/\r$/u, ""));
-    if (!match) throw new Error("invalid input: expected hexadecimal address and colon");
+    if (!match) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
     const address = Number.parseInt(match[1]!, 16);
-    if (!Number.isSafeInteger(address) || address !== offset) throw new Error("invalid input: reverse requires contiguous addresses starting at zero");
+    if (!Number.isSafeInteger(address) || address !== offset) throw new PublicDiagnostic("invalid input: reverse requires contiguous addresses starting at zero");
     const field = match[2]!.split(/ {2,}|\t/u, 1)[0]!;
-    if (!/^(?:[0-9a-fA-F]{2})+(?: (?:[0-9a-fA-F]{2})+)*$/u.test(field)) throw new Error("invalid input: malformed hexadecimal data field");
+    if (!/^(?:[0-9a-fA-F]{2})+(?: (?:[0-9a-fA-F]{2})+)*$/u.test(field)) throw new PublicDiagnostic("invalid input: malformed hexadecimal data field");
     const digits = field.replaceAll(" ", "");
-    if (digits.length > columns * 2) throw new Error("invalid input: data exceeds configured columns");
+    if (digits.length > columns * 2) throw new PublicDiagnostic("invalid input: data exceeds configured columns");
     const bytes = new Uint8Array(digits.length / 2);
     for (let index = 0; index < bytes.length; index++) bytes[index] = Number.parseInt(digits.slice(index * 2, index * 2 + 2), 16);
     offset = addOffset(offset, bytes.length);
@@ -50,7 +51,7 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
     for (const byte of chunk) {
       if (byte === 10) await emitLine();
       else {
-        if (line.length >= 4096) throw new Error("invalid input: reverse line exceeds 4096 bytes");
+        if (line.length >= 4096) throw new PublicDiagnostic("invalid input: reverse line exceeds 4096 bytes");
         line += String.fromCharCode(byte);
       }
     }

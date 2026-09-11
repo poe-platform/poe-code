@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Child extends Date {}
+  const date = new Child(7);
+  let reads = 0;
+  Object.defineProperty(date, "label", { enumerable: true, get() { reads++; throw new Error("Must not read"); } });
+  date.callback = () => 1;
+  const copies = structuredClone([date, date]);
+  await 0;
+  if (reads !== 0 || copies[0] !== copies[1] || copies[0] instanceof Child ||
+      copies[0].getTime() !== 7 || Object.keys(copies[0]).length !== 0) {
+    throw new Error("Date structured clone failed");
+  }
+  return { title: frontmatter.title, ok: true, time: copies[0].getTime() };
+};

@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(8, { maxByteLength: 16 });
+  const values = new Float32Array(buffer);
+  values.set([NaN, 2]);
+  if (!values.includes(NaN)) throw new Error("NaN search regression");
+  await 0;
+  const removed = values.includes(undefined, {
+    valueOf() { buffer.resize(0); return 0; }
+  });
+  if (!removed) throw new Error("Resize-aware search regression");
+  return { title: frontmatter.title, ok: true };
+};

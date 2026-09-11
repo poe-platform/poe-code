@@ -1,4 +1,6 @@
+import { visitClassElements } from "../class-elements.js";
 import {
+  type ClassNode,
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
@@ -158,6 +160,10 @@ class ASUnusedImportScanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
@@ -166,7 +172,8 @@ class ASUnusedImportScanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "BlockStatement":
         this.visitBlock(node);
@@ -299,7 +306,17 @@ class ASUnusedImportScanner {
     }
   }
 
+  private visitClass(node: ClassNode): void {
+    this.withScope(node.id === undefined ? [] : [{ kind: "const", name: node.id.name }], () => {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+    });
+  }
+
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -312,6 +329,10 @@ class ASUnusedImportScanner {
       case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
+        return;
+      case "ImportExpression":
+        this.visitExpression(node.source);
+        if (node.options !== undefined) this.visitExpression(node.options);
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -413,6 +434,13 @@ class ASUnusedImportScanner {
   }
 
   private visitCallExpression(node: CallExpression): void {
+    if (!node.optional && node.arguments.length > 0 &&
+        node.callee.type === "Identifier" && node.callee.name === "eval") {
+      // Dynamic source may reference any import that is visible at this call.
+      for (const binding of this.imports) {
+        if (this.resolveBinding(binding.name) === binding) binding.reads += 1;
+      }
+    }
     this.visitExpression(node.callee);
     for (const argument of node.arguments) {
       if (argument.type === "SpreadElement") {
@@ -571,11 +599,15 @@ class ASUnusedImportScanner {
     const bindings: Binding[] = [];
 
     for (const statement of body) {
+      if (statement.type === "ExportDefaultDeclaration" && (statement.declaration.type === "FunctionDeclaration" || statement.declaration.type === "ClassDeclaration") && statement.declaration.id !== undefined) {
+        bindings.push({ kind: "let", name: statement.declaration.id.name });
+        continue;
+      }
       if (statement.type === "ImportDeclaration") {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
-      if (statement.type === "FunctionDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
         continue;
       }
@@ -595,7 +627,7 @@ class ASUnusedImportScanner {
     const bindings: Binding[] = [];
 
     for (const statement of body) {
-      if (statement.type === "FunctionDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
       }
       if (statement.type === "VariableDeclaration") {

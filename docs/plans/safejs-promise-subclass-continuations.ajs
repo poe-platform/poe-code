@@ -1,0 +1,28 @@
+import { S } from "schema";
+
+export const schema = S.Object({title: S.String()});
+
+export default async (frontmatter) => {
+  let constructors = 0;
+  class P extends Promise {
+    #label = 9;
+    constructor(executor) {
+      constructors++;
+      super(executor);
+    }
+    label() { return this.#label; }
+  }
+  const c = P.withResolvers();
+  const order = [];
+  const first = c.promise.then(value => { order.push("first"); return value + 1; });
+  const second = c.promise.then(value => { order.push("second"); return value + 2; });
+  await 0;
+  if (constructors !== 3) throw new Error("Species constructors ran unexpectedly");
+  c.resolve(7);
+  const values = [await first, await second];
+  if (values[0] !== 8 || values[1] !== 9 || order.join(",") !== "first,second")
+    throw new Error("Subclass reaction values or ordering changed");
+  if (!(first instanceof P) || first.label() !== 9)
+    throw new Error("Subclass prototype or private state was lost");
+  return {title: frontmatter.title, values, order, label: first.label()};
+};

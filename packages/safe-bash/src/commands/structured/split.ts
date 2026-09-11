@@ -5,8 +5,11 @@ export async function splitString(input: Json, separator: Json, budget: Budget):
   if (typeof input !== "string" || typeof separator !== "string") {
     throw new JqError("split input and separator must be strings");
   }
-  budget.value(input);
-  budget.value(separator);
+  const guaranteedFitUnits = Math.floor((budget.limits.maxValueBytes - 2) / 6);
+  for (const operand of [input, separator]) {
+    if (operand.length <= guaranteedFitUnits) budget.step();
+    else budget.value(operand);
+  }
   const result: string[] = [];
   let bytes = 2;
   const append = (start: number, end: number): void => {

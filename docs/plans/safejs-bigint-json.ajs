@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  let json;
+  const calls = [];
+  try {
+    BigInt.prototype.toJSON = function(key) {
+      calls.push([typeof this, key]);
+      return String(this);
+    };
+    json = JSON.stringify({ exact: 9007199254740993n });
+    if (json !== '{"exact":"9007199254740993"}') throw new Error('BigInt JSON hook was not used');
+    if (calls[0][0] !== 'bigint' || calls[0][1] !== 'exact') throw new Error('Hook receiver or key mismatch');
+  } finally {
+    delete BigInt.prototype.toJSON;
+  }
+  await 0;
+  return { ok: true, title: frontmatter.title, json, calls };
+}

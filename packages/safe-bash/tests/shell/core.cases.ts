@@ -18,6 +18,43 @@ test("splitting expands only unquoted substitutions and joins adjacent parts", a
   assert.equal((await shell.exec('args one\\\ntwo "one\\\ntwo"')).stdout, '["onetwo","onetwo"]');
 });
 
+for (const [name, separators, value, expected] of [
+  ["whitespace", " \t\n", " \ta  b\n", ["a", "b"]],
+  ["nonwhitespace empty fields", ":", ":a::b:", ["", "a", "", "b"]],
+  ["mixed separators", " :", " : a:: b : ", ["", "a", "", "b"]],
+  ["BMP separator", "é", "aééb", ["a", "", "b"]],
+  ["astral separator", "🙂", "a🙂🙂b", ["a", "", "b"]],
+  ["astral chunk boundary", " ", `${"a".repeat(4095)}🙂 b`, [`${"a".repeat(4095)}🙂`, "b"]],
+  ["empty IFS", "", " a b ", [" a b "]],
+] as const) {
+  test(`IFS run semantics: ${name}`, async () => {
+    const { shell } = setup({ env: { IFS: separators, value } });
+    const result = await shell.exec("args $value");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), expected);
+    await shell.dispose();
+  });
+}
+
+test("IFS runs retain quoted glob boundaries and array member boundaries", async () => {
+  const { shell, fs } = setup({ env: { value: "x y", tail: "*" } });
+  for (const name of ["/*x", "/prefixy", "/y*", "/yz"]) await fs.writeFile(name, new Uint8Array());
+  assert.equal((await shell.exec('args "*"${value}"*"')).stdout, '["*x","y*"]');
+  assert.equal((await shell.exec('args "*"${value}${tail}')).stdout, '["*x","y*","yz"]');
+  assert.equal((await shell.exec('values=(" a b " "c d" ""); args ${values[@]}')).stdout, '["a","b","c","d"]');
+  assert.equal((await shell.exec('values=(" a b " "c d" ""); args "${values[@]}"')).stdout, '[" a b ","c d",""]');
+  assert.equal((await shell.exec('IFS=:; values=("a::b" ":c:"); args ${values[@]}')).stdout, '["a","","b","","c"]');
+  await shell.dispose();
+});
+
+test("IFS run checkpoints do not consume the command limit", async () => {
+  const { shell } = setup({ env: { value: "a".repeat(16384) } });
+  const result = await shell.exec("args $value", { limits: { maxCommands: 1 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), ["a".repeat(16384)]);
+  await shell.dispose();
+});
+
 test("variables, defaults, assignments, export and unset", async () => {
   const { shell } = setup();
   assert.equal((await shell.exec('VALUE="hello world"; args "$VALUE" ${MISSING:-fallback} "${VALUE:+yes}"')).stdout, '["hello world","fallback","yes"]');

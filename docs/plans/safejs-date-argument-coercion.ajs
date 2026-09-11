@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const hints = [];
+  const value = { [Symbol.toPrimitive](hint) { hints.push(hint); return 7; } };
+  const date = new Date(value);
+  const time = Date.UTC({ valueOf() { return 1970; } }, 0, 1, 0, 0, 0, value);
+  const parsed = Date.parse({ toString() { return "1970-01-01T00:00:00.007Z"; } });
+  await 0;
+  if (date.getTime() !== 7 || time !== 7 || parsed !== 7 || hints.join(",") !== "default,number") {
+    throw new Error("Date argument coercion failed");
+  }
+  return { title: frontmatter.title, ok: true, time, parsed };
+};

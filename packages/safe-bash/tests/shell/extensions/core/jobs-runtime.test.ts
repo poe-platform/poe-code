@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "poe-code/safe-fs";
 import { Shell } from "../../../../src/shell/shell.js";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import type { ShellExtension, ShellExtensionContext, PreparedShellChild, ShellListTerminatorContext } from "../../../../src/shell/extensions.js";
 import { ShellLimitError } from "../../../../src/shell/types.js";
 import { jobsExtension } from "../../../../src/shell/extensions/jobs/index.js";
@@ -40,7 +40,7 @@ for (const producer of [
   "{ gate; printf CHILD; } & wait",
 ]) test(`substitution observes inherited capture retirement: ${producer}`, { timeout: 2000 }, async context => {
   const control = gated();
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(agentCommands());
   context.after(() => { control.gate.resolve(); return shell.dispose(); });
   const execution = shell.exec(`value=$(${producer}); printf '<%s>' "$value"`);
   await control.entered.promise;
@@ -71,7 +71,7 @@ for (const scenario of [
   const parent = deferred();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new Error("terminal ownership safety deadline")), 1200);
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension(), control.extension] }).use(agentCommands());
   shell.register({ name: "captured", execute() { captured.resolve(); return { exitCode: 0 }; } });
   shell.register({ name: "continued", execute() { parent.resolve(); control.gate.resolve(); return { exitCode: 0 }; } });
   const running: { execution?: ReturnType<Shell["exec"]> } = {};
@@ -121,7 +121,7 @@ for (const reason of [false, 0, "", null]) for (const pipeline of [false, true])
       const value: unknown = Reflect.get(target, key, target);
       return typeof value === "function" ? value.bind(target) : value;
     } });
-    const shell = new Shell({ fs, extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+    const shell = new Shell({ fs, extensions: [jobsExtension(), control.extension] }).use(agentCommands());
     shell.register({ name: "continued", execute() { parent.resolve(); return { exitCode: 0 }; } });
     const execution = shell.exec(`value=$(${pipeline ? "printf '' | " : ""}gate >/file &); continued`, { signal: controller.signal });
     const rejected = assert.rejects(execution, failure => Object.is(failure, reason));
@@ -151,7 +151,7 @@ for (const command of ["true >/file", "{ true >/file; } & wait \"$!\"", "true >/
       const value: unknown = Reflect.get(target, key, target);
       return typeof value === "function" ? value.bind(target) : value;
     } });
-    const shell = new Shell({ fs, extensions: [jobsExtension()] }).use(browserCommands());
+    const shell = new Shell({ fs, extensions: [jobsExtension()] }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(`${command}; printf 'after:%s' "$?"`);
     assert.equal(result.stdout, "after:141");
@@ -168,7 +168,7 @@ test("no-undo completion retains error-before-exit lifecycle ordering", async co
     fork: () => observer(true),
     event(event) { if (child && (event === "error" || event === "exit")) events.push(event); },
   });
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), { name: "ordering", create: () => observer(false) }] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), { name: "ordering", create: () => observer(false) }] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec('false & wait "$!"');
   assert.equal(result.exitCode, 1);
@@ -178,7 +178,7 @@ test("no-undo completion retains error-before-exit lifecycle ordering", async co
 for (const id of [1, 2, 3, 4]) {
   const reference = negationJobReference(id);
   test(`measured Bash 5.3 asynchronous negation: ${reference.name}`, async context => {
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(reference.source, { stdin: reference.stdin, env: { LC_ALL: "C" } });
     assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
@@ -190,7 +190,7 @@ for (const id of [1, 2, 3, 4]) {
 for (const id of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
   const reference = extendedNegationJobReference(id);
   test(`measured Bash 5.3 extended asynchronous negation: ${reference.name}`, async context => {
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(reference.source, { stdin: reference.stdin, env: { LC_ALL: "C" } });
     assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout);
@@ -208,7 +208,7 @@ for (const command of ["true", "false"]) for (const restoring of [false, true]) 
         if (child && (event === "error" || event === "exit")) events.push({ event, status: invocation.status, raw: invocation.bindings.get("PIPESTATUS", 0) });
       },
     });
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [arraysExtension(), jobsExtension(), { name: "negation-observer", create: () => observer(false) }] }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [arraysExtension(), jobsExtension(), { name: "negation-observer", create: () => observer(false) }] }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(`set -e; ${restoring ? ": && " : ""}! ${command} & wait "$!"`);
     const rawStatus = command === "true" ? 0 : 1;
@@ -229,7 +229,7 @@ for (const pipefail of [false, true]) for (const commands of ["false | true", "t
         if (scope === "subshell" && event === "exit") exits.push({ status: invocation.status, raw: [invocation.bindings.get("PIPESTATUS", 0), invocation.bindings.get("PIPESTATUS", 1)] });
       },
     });
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [arraysExtension(), jobsExtension(), { name: "pipeline-negation", create: () => observer("root") }] }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [arraysExtension(), jobsExtension(), { name: "pipeline-negation", create: () => observer("root") }] }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(`set -e; ${pipefail ? "set -o pipefail; " : ""}! ${commands} & wait "$!"`);
     const status = commands === "false | true" && !pipefail ? 0 : 1;
@@ -241,7 +241,7 @@ for (const pipefail of [false, true]) for (const commands of ["false | true", "t
 }
 
 for (const command of ["true", "false"]) test(`source control: EXIT override is not negated a second time: ${command}`, async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension()] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension()] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec(`f() { trap 'exit 7' EXIT; ${command}; }; ! f & wait "$!"`);
   assert.equal(result.exitCode, 7);
@@ -256,7 +256,7 @@ for (const command of ["! exit 7", ": && ! exit 7", "! { exit 7; }"]) {
       builtins: [], fork: () => observer(true),
       event(event, invocation) { if (child && event === "exit") exits.push(invocation.status); },
     });
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), { name: "explicit-exit", create: () => observer(false) }] }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), { name: "explicit-exit", create: () => observer(false) }] }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(`${command} & wait "$!"`);
     assert.equal(result.exitCode, 7);
@@ -276,7 +276,7 @@ test("captured generic list and parameter hooks execute without a jobs-named ext
       specialParameters: [{ name: "!", lookup: () => "captured" }],
     }),
   };
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("printf forbidden & printf '%s:%s' \"$?\" \"$!\"");
   assert.equal(result.stdout, "0:captured");
@@ -297,7 +297,7 @@ test("syntax callbacks retain their captured receiver", async context => {
   const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [{
     name: "receiver", syntax: { specialParameters: [{ name: "!" }] },
     create: () => ({ builtins: [], specialParameters: [hook] }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   context.after(() => shell.dispose());
   assert.equal((await shell.exec("printf '%s' \"$!\"")).stdout, "receiver");
 });
@@ -318,7 +318,7 @@ test("prepared child is single-use with an independent positive process identity
         return first;
       } }],
     }; },
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("printf once &");
   assert.equal(result.stdout, "once");
@@ -333,7 +333,7 @@ for (const source of [
   const control = gated();
   const fs = createMemoryFileSystem();
   await fs.writeFile("/in", new TextEncoder().encode("child\n"));
-  const shell = new Shell({ fs, extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs, extensions: [jobsExtension(), control.extension] }).use(agentCommands());
   context.after(() => { control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec(source);
   assert.equal(result.stdout, "child");
@@ -345,7 +345,7 @@ test("preparation freezes variables, raw arrays, cwd, positional values and func
   const control = gated();
   const fs = createMemoryFileSystem();
   await fs.mkdir("/child");
-  const shell = new Shell({ fs, extensions: [jobsExtension(), arraysExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs, extensions: [jobsExtension(), arraysExtension(), control.extension] }).use(agentCommands());
   context.after(() => { control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec("value=old; values=($'\\xff'); set -- before; f() { printf oldfn; }; { gate; printf '%s:%s:%s:%s:' \"$value\" \"${values[0]}\" \"$1\" \"$PWD\"; f; value=child; } & value=new; values[0]=new; set -- after; f() { printf newfn; }; cd /child; release; wait; printf ':%s:%s' \"$value\" \"$PWD\"");
   assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.concat([Buffer.from("old:"), Buffer.from([255]), Buffer.from(":before:/:oldfn:new:/child")]));
@@ -354,7 +354,7 @@ test("preparation freezes variables, raw arrays, cwd, positional values and func
 });
 
 test("explicit stdin duplication overrides the asynchronous default without consuming parent stdin twice", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("{ read -r value; printf 'child:%s;' \"$value\"; } <&0 & wait; read -r value; printf 'parent:%s' \"$value\"", { stdin: "first\nsecond\n" });
   assert.equal(result.stdout, "child:first;parent:second");
@@ -368,7 +368,7 @@ for (const source of [
 ]) test(`functions, eval and source share the shell job owner: ${source}`, async context => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/launch", new TextEncoder().encode("{ exit 7; } &"));
-  const shell = new Shell({ fs, extensions: [jobsExtension()] }).use(browserCommands());
+  const shell = new Shell({ fs, extensions: [jobsExtension()] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec(source);
   assert.equal(result.exitCode, 7, result.stderr);
@@ -377,7 +377,7 @@ for (const source of [
 
 test("isolated child inherits last process identity but cannot wait for its parent's child", { timeout: 2000 }, async context => {
   const control = gated();
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(agentCommands());
   context.after(() => { control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec("{ gate; exit 7; } & child=$!; ( [[ $! == \"$child\" ]]; printf '%s:' \"$?\"; wait \"$child\" 2>diagnostic; printf '%s:' \"$?\" ); release; wait \"$child\"; printf '%s' \"$?\"");
   assert.equal(result.stdout, "0:127:7");
@@ -386,7 +386,7 @@ test("isolated child inherits last process identity but cannot wait for its pare
 
 test("natural EXIT executes before noncancelling child drain (adapted native case 17 controller)", { timeout: 2000 }, async context => {
   const control = gated();
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension(), control.extension] }).use(agentCommands());
   context.after(() => { control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec("trap 'printf EXIT; release' EXIT; { gate; printf CHILD; } & exit 3");
   assert.equal(result.stdout, "EXITCHILD");
@@ -398,7 +398,7 @@ for (const reason of [false, 0, "", null, new Error("root-cancel")]) {
   test(`root cancellation preserves ${String(reason)} and joins the active child`, { timeout: 2000 }, async context => {
     const control = gated();
     const controller = new AbortController();
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(agentCommands());
     context.after(() => { control.gate.resolve(); return shell.dispose(); });
     const result = shell.exec("gate & wait", { signal: controller.signal });
     const rejection = assert.rejects(result, error => Object.is(error, reason));
@@ -448,7 +448,7 @@ for (const reason of [undefined, false, 0, "", null, new Error("child failure")]
 
 test("asynchronous children share the parent output budget without double charging", async context => {
   for (const limit of [3, 4]) {
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()], limits: { maxOutputBytes: limit } }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()], limits: { maxOutputBytes: limit } }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = shell.exec("printf aa & printf bb & wait");
     if (limit === 3) await assert.rejects(result, ShellLimitError);
@@ -461,7 +461,7 @@ for (const invocation of ["bash /script", "sh /script", "/script"]) {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/script", new TextEncoder().encode("{ printf child; exit 7; } & wait \"$!\""));
     await fs.chmod("/script", 0o755);
-    const shell = new Shell({ fs, extensions: [jobsExtension()] }).use(browserCommands());
+    const shell = new Shell({ fs, extensions: [jobsExtension()] }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(invocation);
     assert.equal(result.stdout, "child");
@@ -474,7 +474,7 @@ test("an isolated shell's logical exit does not wait for its asynchronous descen
   const control = gated();
   const controller = new AbortController();
   const deadline = setTimeout(() => controller.abort(new Error("parent continuation blocked behind descendant cleanup")), 2000);
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(agentCommands());
   context.after(() => { clearTimeout(deadline); control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec("( { gate; printf CHILD; } & ); printf PARENT; release", { signal: controller.signal });
   assert.equal(result.stdout, "PARENTCHILD");
@@ -486,7 +486,7 @@ test("waiting for a direct child does not wait for its live grandchild", { timeo
   const control = gated();
   const controller = new AbortController();
   const deadline = setTimeout(() => controller.abort(new Error("wait included grandchild drain")), 2000);
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), control.extension] }).use(agentCommands());
   context.after(() => { clearTimeout(deadline); control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec("{ { gate; printf GRANDCHILD; } & exit 7; } & child=$!; wait \"$child\"; printf 'PARENT:%s:' \"$?\"; release", { signal: controller.signal });
   assert.equal(result.stdout, "PARENT:7:GRANDCHILD");
@@ -496,7 +496,7 @@ test("waiting for a direct child does not wait for its live grandchild", { timeo
 
 test("later EXIT handlers may still launch background children before job admission seals", { timeout: 2000 }, async context => {
   const control = gated();
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension(), control.extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), trapExtension(), control.extension] }).use(agentCommands());
   context.after(() => { control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec("trap '{ gate; printf CHILD; } & printf EXIT; release' EXIT; exit 3");
   assert.equal(result.stdout, "EXITCHILD");
@@ -584,7 +584,7 @@ test("execution drain admits descendant registries created while an earlier regi
         control.gate.resolve();
       });
     } }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   context.after(() => { control.gate.resolve(); return shell.dispose(); });
   const result = await shell.exec("{ gate; { printf DESCENDANT; } & } &");
   assert.equal(rootDrainStarted, true);
@@ -610,7 +610,7 @@ for (const invocation of ["bash /launch", "sh /launch", "/launch"]) {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/launch", new TextEncoder().encode("{ gate; printf CHILD; } &"));
     await fs.chmod("/launch", 0o755);
-    const shell = new Shell({ fs, extensions: [jobsExtension(), control.extension] }).use(browserCommands());
+    const shell = new Shell({ fs, extensions: [jobsExtension(), control.extension] }).use(agentCommands());
     context.after(() => { control.gate.resolve(); return shell.dispose(); });
     const result = await shell.exec(`${invocation}; printf PARENT; release`);
     assert.equal(result.stdout, "PARENTCHILD");

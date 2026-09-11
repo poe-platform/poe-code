@@ -1,0 +1,46 @@
+import { S } from "schema";
+
+export const schema = S.Object({title: S.String()});
+
+export default async (frontmatter) => {
+  let finish;
+  let read;
+  let fields = 0;
+  class Base {
+    constructor() { this.value = 7; }
+  }
+  class Derived extends Base {
+    #field = ++fields;
+    constructor() {
+      finish = () => super();
+      read = () => [this.value, this.#field, new.target === Derived];
+      return {deferred: true};
+    }
+  }
+  const returned = new Derived();
+  await 0;
+  finish();
+  const state = read();
+  let repeated = false;
+  try { finish(); } catch (error) { repeated = error instanceof ReferenceError; }
+  if (!returned.deferred || state[0] !== 7 || state[1] !== 1 || !state[2] || fields !== 1 || !repeated)
+    throw new Error("Delayed constructor state changed");
+
+  let constructions = 0;
+  class P extends Promise {
+    constructor(executor) {
+      constructions++;
+      super((resolve, reject) => executor(value => resolve(value), reason => reject(reason)));
+    }
+  }
+  const capability = Promise.withResolvers();
+  const result = P.all([capability.promise]);
+  const before = constructions;
+  await 0;
+  capability.resolve(9);
+  const values = await result;
+  if (values[0] !== 9 || before !== 3 || constructions !== 4)
+    throw new Error("Promise subclass constructor continuation changed");
+  return {title: frontmatter.title, ok: true, delayedPrivateField: state, repeated,
+    promiseValue: values[0], constructions, agentSpawns: 0};
+};

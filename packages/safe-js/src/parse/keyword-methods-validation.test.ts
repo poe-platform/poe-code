@@ -121,18 +121,23 @@ const invalidPrograms = [
   "return { async set ['return'](value) {} };"
 ];
 
-const unsupportedPrograms: [string, string][] = [
-  ["return { get return() { return 1; } };", "Getter shorthand methods are not supported"],
-  ["return { set return(value) {} };", "Setter shorthand methods are not supported"],
-  ["return { get ['return']() { return 1; } };", "Getter shorthand methods are not supported"],
-  ["return { set ['return'](value) {} };", "Setter shorthand methods are not supported"],
-  ["return { get 'return'() { return 1; } };", "Getter shorthand methods are not supported"],
-  ["return { set 2(value) {} };", "Setter shorthand methods are not supported"],
-  ["return { *return() { yield 1; } };", "Generator shorthand methods are not supported"],
-  ["return { async *['return']() { yield 1; } };", "Generator shorthand methods are not supported"]
+const additionalMethodPrograms = [
+  "return { get return() { return 1; } };",
+  "return { set return(value) {} };",
+  "return { get ['return']() { return 1; } };",
+  "return { set ['return'](value) {} };",
+  "return { get 'return'() { return 1; } };",
+  "return { set 2(value) {} };",
+  "return { *return() { yield 1; } };",
+  "return { async *['return']() { yield 1; } };"
 ];
 
 describe("IP-002 independent keyword and async-computed method validation", () => {
+  it.each(additionalMethodPrograms)("accepts native-valid accessor or generator syntax: %s", (source) => {
+    expect(() => new Script(`(async function () { ${source} })()`)).not.toThrow();
+    expect(() => parse(source)).not.toThrow();
+  });
+
   it.each(acceptedPrograms)(
     "matches native and completed replay: %s",
     async (_name, source, expected) => {
@@ -167,10 +172,6 @@ describe("IP-002 independent keyword and async-computed method validation", () =
     expect(() => parse(source)).toThrow();
   });
 
-  it.each(unsupportedPrograms)("retains explicit unsupported grammar: %s", (source, message) => {
-    expect(() => new Script(`(async function () { ${source} })()`)).not.toThrow();
-    expect(() => parse(source)).toThrow(message);
-  });
 
   it.each([
     ["return() {}", false, false],
@@ -197,12 +198,18 @@ describe("IP-002 independent keyword and async-computed method validation", () =
     });
   });
 
-  it("keeps keyword tokens reserved outside the method-name gate", () => {
+  it("keeps keyword token classification while accepting identifier property names", () => {
     expect(
       tokenize("return throw const import async")
         .slice(0, -1)
         .map((token) => token.type)
     ).toEqual(["keyword", "keyword", "keyword", "keyword", "keyword"]);
-    expect(() => parse("return { return: 1 };")).toThrow();
+    expect(() => new Script("(function () { return { return: 1 }; })()")).not.toThrow();
+    expect(parse("({ return: 1 })")).toMatchObject({
+      type: "ObjectExpression",
+      properties: [{ computed: false, shorthand: false, key: { type: "Identifier", name: "return" } }]
+    });
+    expect(() => parse("const return = 1;")).toThrow();
+    expect(() => parse("return { return };")).toThrow();
   });
 });

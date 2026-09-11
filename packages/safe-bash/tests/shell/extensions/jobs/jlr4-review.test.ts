@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import type { ShellExtension } from "../../../../src/shell/extensions.js";
 import { jobsExtension } from "../../../../src/shell/extensions/jobs/index.js";
 import { Shell } from "../../../../src/shell/shell.js";
@@ -32,7 +32,7 @@ for (const reference of [
       const shell = new Shell({
         fs: createMemoryFileSystem(),
         extensions: [jobsExtension(), { name: "completion-review", create: () => observer(false) }],
-      }).use(browserCommands());
+      }).use(agentCommands());
       context.after(() => shell.dispose());
       const result = await shell.exec(reference.source);
       assert.deepEqual({ status: result.exitCode, stdout: Buffer.from(result.stdoutBytes), stderr: Buffer.from(result.stderrBytes), exits }, {

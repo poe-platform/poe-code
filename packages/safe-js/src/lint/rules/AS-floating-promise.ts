@@ -1,3 +1,4 @@
+import { visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -112,6 +113,10 @@ class ASFloatingPromiseScanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
@@ -153,7 +158,8 @@ class ASFloatingPromiseScanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
       case "BreakStatement":
@@ -265,6 +271,10 @@ class ASFloatingPromiseScanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -274,6 +284,10 @@ class ASFloatingPromiseScanner {
       case "FunctionExpression":
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
+        return;
+      case "ImportExpression":
+        this.visitExpression(node.source);
+        if (node.options !== undefined) this.visitExpression(node.options);
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -488,6 +502,7 @@ class ASFloatingPromiseScanner {
   }
 
   private isUnhandledLikelyPromiseExpression(node: Expression): boolean {
+    if (node.type === "ImportExpression") return true;
     if (node.type !== "CallExpression") {
       return false;
     }
@@ -593,7 +608,7 @@ class ASFloatingPromiseScanner {
   }
 
   private isLikelyPromiseExpression(node: Expression): boolean {
-    return node.type === "CallExpression" && this.isLikelyPromiseCall(node);
+    return node.type === "ImportExpression" || (node.type === "CallExpression" && this.isLikelyPromiseCall(node));
   }
 
   private resolveAsyncFunctionBinding(name: string): boolean {
@@ -659,8 +674,9 @@ class ASFloatingPromiseScanner {
   }
 
   private collectBlockBindings(statements: readonly Statement[]): Binding[] {
-    return statements.flatMap((statement) => {
-      if (statement.type === "FunctionDeclaration") {
+    return statements.flatMap((entry) => {
+      const statement = entry.type === "ExportDefaultDeclaration" && entry.declaration.type === "FunctionDeclaration" ? entry.declaration : entry;
+      if (statement.type === "FunctionDeclaration" && statement.id !== undefined) {
         return [
           { async: statement.async && !statement.generator, kind: "local", name: statement.id.name }
         ];

@@ -30,7 +30,7 @@ describe("resolveLoopAgent", () => {
         configuredDefaultAgent: "codex",
         frontmatterAgent: "goose",
         assumeYes: true,
-        fallbackAgent: "kimi",
+        fallbackAgent: "goose",
         select
       })
     );
@@ -63,7 +63,7 @@ describe("resolveLoopAgent", () => {
         frontmatterAgent: "claude",
         configuredDefaultAgent: "codex",
         assumeYes: true,
-        fallbackAgent: "kimi",
+        fallbackAgent: "goose",
         select
       })
     );
@@ -129,12 +129,12 @@ describe("resolveLoopAgent", () => {
     const result = await resolveLoopAgent(
       createInput({
         assumeYes: true,
-        fallbackAgent: "kimi",
+        fallbackAgent: "goose",
         select
       })
     );
 
-    expect(result).toEqual({ agent: "kimi" });
+    expect(result).toEqual({ agent: "goose" });
     expect(selectCalls).toBe(0);
   });
 
@@ -197,8 +197,8 @@ describe("resolveLoopAgent", () => {
           hint: "Open-source AI coding agent for the terminal."
         }),
         expect.objectContaining({
-          value: "kimi",
-          hint: "Moonshot AI's coding agent for the terminal."
+          value: "goose",
+          hint: "Block's open-source AI agent with ACP support."
         }),
         expect.objectContaining({
           value: "pi",
@@ -275,7 +275,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, pi, poe-agent:<model>'
+      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, goose, pi, poe-agent:<model>'
     );
   });
 
@@ -303,7 +303,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, pi, poe-agent:<model>'
+      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, goose, pi, poe-agent:<model>'
     );
   });
 });

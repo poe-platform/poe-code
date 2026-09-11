@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const consonants = 'abcde'.match(/[[a-z]--[aeiou]]+/v)[0];
+  if (consonants !== 'bcd') throw new Error('Set subtraction failed');
+  const member = /[\q{a|ab}]b/dv.exec('ab');
+  if (member[0] !== 'ab' || member.indices[0][1] !== 2)
+    throw new Error('String member backtracking failed');
+  const emoji = /\p{RGI_Emoji}/dv.exec('👨‍👩‍👧‍👦');
+  if (emoji[0] !== '👨‍👩‍👧‍👦') throw new Error('Unicode string property failed');
+  if (/[\q{a|b}]/iv.test('A') !== true) throw new Error('String member case folding failed');
+  if ('😀'.replace(/(?:)/gv, '-') !== '-😀-') throw new Error('Unicode advancement failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, consonants, emoji: emoji[0], indices: emoji.indices };
+}

@@ -418,24 +418,6 @@ describe("configure", () => {
     });
   });
 
-  describe("kimi", () => {
-    it("configures MCP server", async () => {
-      const fs = createMockFs({}, HOME_DIR);
-      const server: McpServerEntry = {
-        name: "poe-code",
-        config: { transport: "stdio", command: "npx" }
-      };
-
-      await configure("kimi", server, createOptions(fs));
-
-      const content = JSON.parse(fs.getContent("/home/test/.kimi/mcp.json")!);
-      expect(content).toEqual({
-        mcpServers: {
-          "poe-code": { command: "npx" }
-        }
-      });
-    });
-  });
 
   describe("goose", () => {
     it("merges MCP servers into an existing YAML config", async () => {

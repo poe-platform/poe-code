@@ -1032,7 +1032,9 @@ describe("integration", () => {
       },
       { type: "worker_exit", task_id: "tasks/ralph", reason: "normal" }
     ]);
-    expect(spawn.calls.map((call) => taskIdFromPrompt(call.prompt))).toEqual(["pipeline", "ralph"]);
+    // Independent workspace preparation can reach either driver first. Keep
+    // exact call multiplicity without imposing cross-worker execution order.
+    expect(spawn.calls.map((call) => taskIdFromPrompt(call.prompt)).sort()).toEqual(["pipeline", "ralph"]);
 
     await stop();
   });

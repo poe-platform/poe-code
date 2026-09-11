@@ -164,7 +164,7 @@ describe("runCodeReview asset paths", () => {
     }
   );
 
-  it.each(["kimi", "goose"])(
+  it.each(["goose"])(
     "does not pipe raw text into the %s structured-input orchestrator",
     async (agent) => {
       vi.mocked(spawn).mockClear();

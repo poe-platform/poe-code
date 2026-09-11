@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(20, { maxByteLength: 24 });
+  const values = new Float32Array(buffer, 4);
+  values.set([1, 2, 3, 4]);
+  if (values.reverse() !== values || values.join() !== "4,3,2,1") {
+    throw new Error("Reverse identity or offset regression");
+  }
+  await 0;
+  buffer.resize(16);
+  values.reverse();
+  if (values.join() !== "2,3,4") throw new Error("Resizable reverse regression");
+  return { title: frontmatter.title, ok: true, values: Array.from(values) };
+};

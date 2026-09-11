@@ -62,7 +62,16 @@ for (const profile of profiles) for (const separator of separators) {
   });
 }
 
-for (const source of ["printf ${!a[@]}", "printf ${!a[*]}", "true &", "printf $!"]) test(`default shell syntax remains disabled: ${source}`, async context => {
+for (const separator of ["@", "*"]) test(`default shell accepts array keys: ${separator}`, async context => {
+  const subject = setup([]); context.after(() => subject.shell.dispose());
+  const source = `a=([2]=x [10]=y); printf '<%s>' "\${!a[${separator}]}"`;
+  assert.doesNotThrow(() => parseShell(source));
+  const result = await subject.shell.exec(source);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, separator === "@" ? "<2><10>" : "<2 10>");
+});
+
+for (const source of ["true &", "printf $!"]) test(`default shell syntax remains disabled: ${source}`, async context => {
   const subject = setup([]); context.after(() => subject.shell.dispose());
   assert.throws(() => parseShell(source));
   const result = await subject.shell.exec(source);
@@ -170,7 +179,7 @@ test("identical key capabilities union across distinct extensions; accessors rem
 test("optional arrays factory is identity-tagged and declarative", () => {
   const extension = arraysExtension();
   assert.equal(extension.runtimeIdentity, commandRuntimeIdentity);
-  assert.deepEqual(extension.syntax, { arrayKeys: true, indexedDeclarations: ["readonly"] });
+  assert.deepEqual(extension.syntax, { arrayKeys: true, indexedElementOperators: true, indexedDeclarations: ["readonly"] });
   assert.deepEqual(extension.create(), { builtins: [] });
 });
 
@@ -264,7 +273,13 @@ test("captured parser capability is frozen and survives caller mutation", () => 
   assert.equal(Object.isFrozen(syntax), true);
   assert.equal(syntax.arrayKeys, true);
   assert.doesNotThrow(() => parseShell('printf "${!a[@]}"', 0, syntax));
-  assert.throws(() => parseShell('printf "${!a[@]}"'));
+  assert.doesNotThrow(() => parseShell('printf "${!a[@]}"'));
+  const optional = { specialParameters: [{ name: "!" }] };
+  const capturedOptional = captureShellSyntax(optional);
+  optional.specialParameters.length = 0;
+  assert.equal(Object.isFrozen(capturedOptional.specialParameters), true);
+  assert.doesNotThrow(() => parseShell("printf $!", 0, capturedOptional));
+  assert.throws(() => parseShell("printf $!"));
 });
 
 const rawDocument = "a=([2]=x [10]=y); IFS=$'\\xff'; emit <<DOC\npre${!a[*]}post\nDOC";

@@ -1,20 +1,51 @@
+import { weakReferenceStates } from "../interp/weak-reference.js";
+import { getIntrinsicRealmIdentity } from "../interp/intrinsics.js";
+import { getFunctionRealmPrototype } from "../interp/function-realm.js";
+import { finalizationRegistryStates } from "../interp/finalization-registry-state.js";
+import { wellKnownSymbols } from "../interp/symbols.js";
 import { hashSource } from "../parse/hash.js";
-import { hasGuestObjectState } from "../interp/object-model.js";
+import { weakCollectionStates, type WeakCollectionKey } from "../interp/weak-collection.js";
+import type { PropertyDescriptorData } from "./property-descriptors.js";
+import { serializeCollectionProperties } from "./collection-properties.js";
+import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
+import { ownSerializableSymbolKeys, serializeSymbol, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
+import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod, type SandboxCollectionIterator } from "../interp/collection-iterator.js";
+import { isSandboxRegExpIterator, regexpIteratorState, type SandboxRegExpIterator } from "../interp/regexp-iterator.js";
+import { hasGuestObjectState, hasNullObjectPrototype, isGuestClosure } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
-import { assertSnapshotGraphDepth } from "../graph-depth.js";
+import { assertSnapshotDataDepth, assertSnapshotGraphDepth } from "../graph-depth.js";
+import { captureGuestHeapNode, type GuestHeapNode, type GuestObjectState, type PrivateElementData } from "./guest-heap.js";
+import { getClosureOrigin, getGeneratorOrigin } from "../interp/closure-origin.js";
+import { classOrigins } from "../interp/classes.js";
+import { functionSources, templateSources } from "../parse/function-source.js";
+import { templateOrigins, templateRealmIdentities } from "../interp/template-objects.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
-import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
-import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
-import { isSandboxDate, serializedDateTime } from "../interp/date.js";
+import { typedArrayStorage, isNumericTypedArray, type NumericTypedArray } from "../interp/typed-array.js";
+import { captureTypedArrayState, encodeTypedArrayLayout, type TypedArrayData } from "./typed-array.js";
+import { isSandboxArrayBuffer } from "../interp/array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
+import { encodeSharedArrayBufferStorage, type SharedArrayBufferData } from "./shared-array-buffer.js";
+import { dataViewBuffer, isSandboxDataView } from "../interp/data-view.js";
+import { captureDataViewState, encodeDataViewLayout, type DataViewData } from "./data-view.js";
+import { captureArrayBufferState, encodeArrayBufferStorage, type ArrayBufferData } from "./array-buffer.js";
+import { dateDataProperties, isSandboxDate } from "../interp/date.js";
+import { serializeDate, type SerializedDate } from "./date-properties.js";
+import { boxedDataProperties, isSandboxBox, type SandboxBox } from "../interp/boxed.js";
+import { encodeBoxedData, type BoxedData } from "./boxed.js";
 import {
+  isSandboxClosure,
   isSandboxArguments,
   isSandboxGenerator,
   isSandboxMap,
   isSandboxRegex,
+  getRegexProperties,
   isSandboxSet,
   type SandboxMap,
+  type SandboxArray,
+  type SandboxClosure,
   type SandboxGenerator,
+  type SandboxPromise,
   type SandboxRegex,
   type SandboxSet
 } from "../interp/values.js";
@@ -27,7 +58,7 @@ type SerializedUndefinedValue = {
 
 type SerializedNonFiniteNumber = {
   kind: "number";
-  value: "-Infinity" | "Infinity" | "NaN";
+  value: "-Infinity" | "Infinity" | "NaN" | "-0";
 };
 
 export type SerializedClosureValue = {
@@ -37,7 +68,7 @@ export type SerializedClosureValue = {
 };
 
 export type SerializedGeneratorValue =
-  | {
+  { async?: boolean } & ({
       kind: "generator";
       state: "start";
       astNodeId: number;
@@ -54,7 +85,7 @@ export type SerializedGeneratorValue =
   | {
       kind: "generator";
       state: "done";
-    };
+    });
 
 export type SerializedPromiseValue = {
   kind: "promise";
@@ -67,21 +98,38 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
-  | { kind: "date"; time: number | null }
-  | (Float32Data<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue> })
+  | (SharedArrayBufferData<SerializedReferenceValue> & {state:GuestObjectState<SerializedSnapshotValue>})
+  | (DataViewData<SerializedReferenceValue> & { state: GuestObjectState<SerializedSnapshotValue> })
+  | (ArrayBufferData<SerializedReferenceValue> & { state: GuestObjectState<SerializedSnapshotValue> })
+  | GuestHeapNode<SerializedSnapshotValue>
+  | { kind: "regexp-iterator"; matcher: SerializedSnapshotValue; input: SerializedSnapshotValue; exhausted: boolean; global?: boolean; unicode?: boolean; entries: Record<string, SerializedSnapshotValue>; symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>> }
+  | SerializedSymbol
+  | BoxedData<SerializedSnapshotValue>
+  | ({ kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue } & RegexPropertyData<SerializedSnapshotValue>)
+  | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: SerializedSnapshotValue; index: number; exhausted: boolean; entries: Record<string, SerializedSnapshotValue> }
+  | SerializedDate<SerializedSnapshotValue>
+  | (TypedArrayData<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue>; state?: GuestObjectState<SerializedSnapshotValue> })
   | SerializedArguments<SerializedSnapshotValue>
   | SerializedArray<SerializedSnapshotValue>
   | {
       kind: "object";
+      sandboxNullPrototype?: true;
       entries: Record<string, SerializedSnapshotValue>;
+      symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>>;
       errorType?: SandboxErrorName;
     }
   | {
       kind: "map";
+      privateElements?: PrivateElementData<SerializedSnapshotValue>[];
+      prototype?: SerializedSnapshotValue;
+      propertyState?: PropertyDescriptorData<SerializedSnapshotValue>;
       entries: Array<[SerializedSnapshotValue, SerializedSnapshotValue]>;
     }
   | {
       kind: "set";
+      privateElements?: PrivateElementData<SerializedSnapshotValue>[];
+      prototype?: SerializedSnapshotValue;
+      propertyState?: PropertyDescriptorData<SerializedSnapshotValue>;
       values: SerializedSnapshotValue[];
     };
 
@@ -116,16 +164,26 @@ export type RuntimePromiseValue = {
 };
 
 export type RuntimeSnapshotValue =
+  | bigint
+  | symbol
+  | SandboxBox
   | Date
-  | Float32Array
+  | NumericTypedArray
+  | ArrayBuffer
+  | SharedArrayBuffer
+  | DataView<ArrayBufferLike>
   | boolean
   | null
   | number
   | string
   | undefined
   | RuntimeClosureValue
+  | SandboxClosure
   | SandboxGenerator
+  | SandboxCollectionIterator
+  | SandboxRegExpIterator
   | RuntimePromiseValue
+  | SandboxPromise
   | SandboxMap
   | SandboxRegex
   | SandboxSet
@@ -185,10 +243,18 @@ export type SerializedSnapshot = {
 };
 
 type SerializationState = {
+  source: string;
+  moduleSources: Map<string, number>;
+  intrinsicRealms: Map<object, number>;
   float32Buffers: WeakMap<ArrayBuffer, number>;
+  sharedBlocks?:WeakMap<object,number>;
   ancestors: WeakMap<object, string>;
   heap: Record<string, SerializedHeapValue>;
-  heapIds: WeakMap<object, number>;
+  heapIds: Map<object | symbol, number>;
+  guestValues: Set<object>;
+  weakEntries: Map<object, Array<[WeakCollectionKey, unknown]>>;
+  weakTargets: Map<object, object | symbol>;
+  finalizationTargets: Map<object, Array<{target?:object | symbol;token?:object | symbol}>>;
   serializedHeapIds: Set<number>;
 };
 
@@ -218,10 +284,13 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
     }
   }
   const state: SerializationState = {
+    source: input.source,
+    moduleSources: new Map(),
+    intrinsicRealms: new Map(),
     float32Buffers: new WeakMap(),
     ancestors: new WeakMap(),
     heap: Object.create(null) as Record<string, SerializedHeapValue>,
-    heapIds: indexHeapContainers(input),
+    ...indexHeapContainers(input),
     serializedHeapIds: new Set()
   };
 
@@ -240,6 +309,10 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
 
   if (Object.keys(state.heap).length === 0) {
     return snapshot;
+  }
+
+  if (state.intrinsicRealms.size === 1) {
+    for (const node of Object.values(state.heap)) if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator" || node.kind === "guest-array") delete node.realm;
   }
 
   return {
@@ -296,7 +369,50 @@ function serializeValue(
   path: string,
   state: SerializationState
 ): SerializedSnapshotValue {
-  if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
+  if (typeof value === "symbol") return serializeSymbol(value, state.heapIds, state.heap);
+  if (typeof value === "object" && value !== null && state.guestValues.has(value)) {
+    const id = state.heapIds.get(value)!;
+    if (!state.serializedHeapIds.has(id)) {
+      state.serializedHeapIds.add(id);
+      const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state), state.weakEntries.get(value), state.weakTargets.get(value), state.finalizationTargets.get(value));
+      if (node === undefined) throw new TypeError(`Missing guest heap state at ${path}.`);
+      if ((node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator" || node.kind === "guest-array") && node.dynamicSource === undefined) {
+        const origin = getClosureOrigin(value) ?? classOrigins.get(value) ?? getGeneratorOrigin(value);
+        const template = Array.isArray(value) ? templateOrigins.get(value as SandboxArray) : undefined;
+        const body = template === undefined
+          ? origin === undefined ? undefined : functionSources.get(origin.node)?.text
+          : templateSources.get(template);
+        if (body !== undefined && body !== state.source) {
+          let sourceId = state.moduleSources.get(body);
+          if (sourceId === undefined) {
+            const source = { kind: "guest-source" as const, functionKind: "module" as const, parameters: "", body };
+            sourceId = state.heapIds.size + 1;
+            state.heapIds.set(source, sourceId);
+            state.moduleSources.set(body, sourceId);
+            state.heap[String(sourceId)] = source;
+          }
+          node.dynamicSource = { kind: "ref", id: sourceId };
+        }
+      }
+      if (node.kind === "intrinsic" || node.kind === "guest-function" || node.kind === "guest-class" || node.kind === "guest-generator" || node.kind === "guest-array") {
+        const realmValue = node.kind === "intrinsic" ? value
+          : isSandboxClosure(value) ? getFunctionRealmPrototype(value, "Object", undefined) : undefined;
+        const origin = node.kind === "guest-array" ? templateRealmIdentities.get(value)
+          : node.kind === "guest-generator" ? getGeneratorOrigin(value)?.realmIdentity
+          : realmValue === undefined ? undefined : getIntrinsicRealmIdentity(realmValue);
+        if (origin === undefined && node.kind === "intrinsic") throw new TypeError("Missing intrinsic realm identity.");
+        if (origin !== undefined) {
+          let realm = state.intrinsicRealms.get(origin);
+          if (realm === undefined) state.intrinsicRealms.set(origin, realm = state.intrinsicRealms.size + 1);
+          node.realm = realm;
+        }
+      }
+      state.heap[String(id)] = node;
+    }
+    return { kind: "ref", id };
+  }
+  if (isSandboxClosure(value) && !isGuestClosure(value)) throw new TypeError(`Cannot serialize host reference at ${path}.`);
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isNumericTypedArray(value) && !isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value)) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
   if (value === null || typeof value === "string" || typeof value === "boolean") {
@@ -310,6 +426,7 @@ function serializeValue(
   }
 
   if (typeof value === "number") {
+    if (Object.is(value, -0)) return { kind: "number", value: "-0" };
     if (Number.isFinite(value)) {
       return value;
     }
@@ -323,6 +440,8 @@ function serializeValue(
           : "-Infinity"
     };
   }
+
+  if (typeof value === "bigint") return { kind: "bigint", value: String(value) };
 
   if (Array.isArray(value)) {
     const reference = serializeHeapReference(value, path, state);
@@ -347,7 +466,8 @@ function serializeValue(
     if (value.state === "done") {
       return {
         kind: "generator",
-        state: "done"
+        state: "done",
+        ...(value.async ? { async: true } : {})
       };
     }
 
@@ -362,6 +482,7 @@ function serializeValue(
       return {
         kind: "generator",
         state: "suspended",
+        ...(value.async ? { async: true } : {}),
         astNodeId: value.astNodeId,
         capturedScopeId: value.capturedScopeId,
         yieldNodeId: continuation.yieldNodeId,
@@ -376,6 +497,7 @@ function serializeValue(
     return {
       kind: "generator",
       state: "start",
+      ...(value.async ? { async: true } : {}),
       astNodeId: value.astNodeId,
       capturedScopeId: value.capturedScopeId
     };
@@ -389,10 +511,13 @@ function serializeValue(
   }
 
   if (isSandboxRegex(value)) {
+    const reference = serializeHeapReference(value, path, state);
+    if (reference !== undefined) return reference;
+    if (typeof value.lastIndex !== "number") throw new TypeError(`Missing regex heap reference at ${path}.`);
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
-  if (isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isFloat32Array(value)) {
+  if (isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || isSandboxArrayBuffer(value) || isSandboxBox(value) || isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxRegExpIterator(value) || isSandboxCollectionIterator(value) || isNumericTypedArray(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference === undefined) {
       throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
@@ -422,12 +547,17 @@ function serializeValue(
 
 function serializeHeapReference(
   value:
+    | SandboxBox
     | RuntimeSnapshotValue[]
     | Record<string, RuntimeSnapshotValue>
     | SandboxMap
     | SandboxSet
+    | SandboxRegex
+    | SandboxCollectionIterator
+    | SandboxRegExpIterator
     | Date
-    | Float32Array,
+    | NumericTypedArray
+    | ArrayBufferLike | DataView<ArrayBufferLike>,
   path: string,
   state: SerializationState
 ): SerializedReferenceValue | undefined {
@@ -439,17 +569,49 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxDate(value)) {
-      state.heap[String(id)] = { kind: "date", time: serializedDateTime(value) };
-    } else if (isFloat32Array(value)) {
-      const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
-        kind: "ref" as const,
-        id
-      }));
+    if (isSandboxRegex(value)) {
+      state.heap[String(id)] = { kind: "regex-object", source: value.source, flags: value.flags,
+        lastIndex: serializeValue(value.lastIndex as RuntimeSnapshotValue, `${path}.lastIndex`, state),
+        ...serializeRegexProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<regex-property>`, state)) };
+    } else if (isSandboxRegExpIterator(value)) {
+      const snapshot = regexpIteratorState(value);
       const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
-      state.heap[String(id)] = { ...storage, entries };
-      for (const [key, descriptor] of float32DataProperties(value))
-        entries[key] = serializeValue(descriptor.value, `${path}.${key}`, state);
+      state.heap[String(id)] = {
+        kind: "regexp-iterator", matcher: serializeValue(snapshot.matcher as RuntimeSnapshotValue, `${path}.<matcher>`, state),
+        ...(snapshot.global === undefined ? {} : { global: snapshot.global, unicode: snapshot.unicode }),
+        input: serializeValue(snapshot.input, `${path}.<input>`, state), exhausted: snapshot.exhausted, entries,
+        symbolEntries: serializeSymbolProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.[symbol]`, state))
+      };
+      for (const [key, entry] of Object.entries(value)) entries[key] = serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state);
+    } else if (isSandboxCollectionIterator(value)) {
+      const snapshot = snapshotCollectionIterator(value);
+      const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
+      state.heap[String(id)] = {
+        kind: "collection-iterator", collectionKind: snapshot.collectionKind, method: snapshot.method,
+        collection: serializeValue(snapshot.collection, `${path}.<collection>`, state),
+        index: snapshot.index, exhausted: snapshot.exhausted, entries
+      };
+      for (const [key, entry] of Object.entries(value)) entries[key] = serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state);
+    } else if (isSandboxBox(value)) {
+      state.heap[String(id)] = encodeBoxedData(value, (entry, key) => serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state));
+    } else if (isSandboxDate(value)) {
+      state.heap[String(id)] = serializeDate(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<date-property>`, state));
+    } else if (isSandboxDataView(value)) {
+      state.heap[String(id)] = { ...encodeDataViewLayout(value),
+        buffer: serializeHeapReference(dataViewBuffer(value), `${path}.buffer`, state)!,
+        state: captureDataViewState(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<view>`, state)) };
+    } else if (isSandboxSharedArrayBuffer(value)) {
+      state.sharedBlocks??=new WeakMap();
+      state.heap[String(id)]={...encodeSharedArrayBufferStorage(value,id,state.sharedBlocks,id=>({kind:"ref" as const,id})),
+        state:captureArrayBufferState(value,entry=>serializeValue(entry as RuntimeSnapshotValue,`${path}.<buffer>`,state))};
+    } else if (isSandboxArrayBuffer(value)) {
+      state.heap[String(id)] = { ...encodeArrayBufferStorage(value, id, state.float32Buffers, id => ({ kind: "ref" as const, id })),
+        state: captureArrayBufferState(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<buffer>`, state)) };
+    } else if (isNumericTypedArray(value)) {
+      const storage = typedArrayStorage(value);
+      state.heap[String(id)] = { ...encodeTypedArrayLayout(value),
+        buffer: serializeHeapReference(storage.buffer, `${path}.buffer`, state)!, entries: {},
+        state: captureTypedArrayState(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<typed-array>`, state)) };
     } else if (isSandboxArguments(value)) {
       state.heap[String(id)] = serializeArguments(value, (entry, key) =>
         serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state)
@@ -457,6 +619,7 @@ function serializeHeapReference(
     } else if (isSandboxMap(value)) {
       state.heap[String(id)] = {
         kind: "map",
+        ...serializeCollectionProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<property>`, state)),
         entries: [...value.entries].map(([key, entry], index) => [
           serializeValue(key as RuntimeSnapshotValue, `${path}.entries[${index}][0]`, state),
           serializeValue(entry as RuntimeSnapshotValue, `${path}.entries[${index}][1]`, state)
@@ -465,25 +628,35 @@ function serializeHeapReference(
     } else if (isSandboxSet(value)) {
       state.heap[String(id)] = {
         kind: "set",
+        ...serializeCollectionProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<property>`, state)),
         values: [...value.values].map((entry, index) =>
           serializeValue(entry as RuntimeSnapshotValue, `${path}.values[${index}]`, state)
         )
       };
     } else if (Array.isArray(value)) {
-      state.heap[String(id)] = serializeArray(value, (entry, key) =>
+      const array = serializeArray(value, (entry, key) =>
         serializeValue(entry as RuntimeSnapshotValue, `${path}[${key}]`, state)
       );
+      state.heap[String(id)] = array;
+      const symbols = serializeSymbolProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.[symbol]`, state));
+      if (symbols.length > 0) array.symbolEntries = symbols;
     } else {
       const entries = Object.create(null) as Record<string, SerializedSnapshotValue>;
       const errorType = sandboxErrorTypes.get(value);
-      state.heap[String(id)] = {
+      const serializedObject: Extract<SerializedHeapValue, { kind: "object" }> = {
         kind: "object",
+        ...(hasNullObjectPrototype(value) ? { sandboxNullPrototype: true as const } : {}),
         entries,
         ...(errorType === undefined ? {} : { errorType })
       };
+      state.heap[String(id)] = serializedObject;
 
       for (const [key, entry] of Object.entries(value)) {
         entries[key] = serializeValue(entry, `${path}.${key}`, state);
+      }
+      const symbolKeys = ownSerializableSymbolKeys(value);
+      if (symbolKeys.length > 0) {
+        serializedObject.symbolEntries = serializeSymbolProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.[symbol]`, state));
       }
     }
   }
@@ -549,20 +722,55 @@ function withSerializableContainer<TValue>(
   }
 }
 
-function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
+function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "heapIds" | "guestValues" | "weakEntries" | "weakTargets" | "finalizationTargets"> {
   const stats = new Map<
     object,
     {
       count: number;
       cyclic: boolean;
       expanded: boolean;
+      forceHeap?: boolean;
     }
   >();
   const ancestors = new WeakSet<object>();
+  const guestValues = new Set<object>();
+  const weakEntries = new Map<object, Array<[WeakCollectionKey, unknown]>>();
+  const seenSymbols = new Set<symbol>();
+  type Contribution = { owner: object; key: WeakCollectionKey; value: unknown; depth: number };
+  const waiting = new Map<WeakCollectionKey, Contribution[]>();
+  const ready: Contribution[] = [];
+  const reached = (value: WeakCollectionKey, depth: number) => {
+    if (typeof value === "symbol") {
+      if (seenSymbols.has(value)) return;
+      seenSymbols.add(value);
+    }
+    const unlocked = waiting.get(value);
+    if (unlocked !== undefined) {
+      for (const contribution of unlocked) ready.push(contribution);
+      waiting.delete(value);
+    }
+    if (typeof value === "symbol") return;
+    const weakState = weakCollectionStates.get(value);
+    if (weakState === undefined) return;
+    weakEntries.set(value, []);
+    for (const reference of weakState.references) {
+      const key = reference.deref();
+      if (key === undefined) continue;
+      const entry = weakState.entries.get(key);
+      if (entry === undefined) continue;
+      const contribution = { owner: value, key, value: weakState.kind === "map" ? entry.value : undefined, depth: depth + 1 };
+      if (typeof key === "symbol" ? seenSymbols.has(key) || Object.values(wellKnownSymbols).includes(key) : stats.has(key)) ready.push(contribution);
+      else {
+        const pending = waiting.get(key);
+        if (pending === undefined) waiting.set(key, [contribution]);
+        else pending.push(contribution);
+      }
+    }
+  };
 
   for (const scope of input.scopeChain) {
     for (const value of Object.values(scope.bindings)) {
-      collectContainerStats(value, stats, ancestors);
+      collectContainerStats(value, stats, ancestors, guestValues, 0, reached);
     }
   }
 
@@ -572,21 +780,59 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
         continue;
       }
 
-      collectContainerStats(value as RuntimeSnapshotValue, stats, ancestors);
+      collectContainerStats(value as RuntimeSnapshotValue, stats, ancestors, guestValues, 0, reached);
     }
   }
 
-  const heapIds = new WeakMap<object, number>();
+  for (let index = 0; index < ready.length; index++) {
+    const contribution = ready[index]!;
+    weakEntries.get(contribution.owner)!.push([contribution.key, contribution.value]);
+    if (typeof contribution.key === "object") stats.get(contribution.key)!.forceHeap = true;
+    collectContainerStats(contribution.value, stats, ancestors, guestValues, contribution.depth, reached);
+    if (contribution.value !== null && typeof contribution.value === "object") {
+      const stat = stats.get(contribution.value);
+      if (stat !== undefined) stat.forceHeap = true;
+    }
+  }
+  const weakTargets = new Map<object, object | symbol>();
+  const finalizationTargets = new Map<object, Array<{target?:object | symbol;token?:object | symbol}>>();
+  const reachableWeakTarget = (target: object | symbol | undefined): object | symbol | undefined => {
+    if (typeof target === "symbol") return seenSymbols.has(target) || Object.values(wellKnownSymbols).includes(target) ? target : undefined;
+    if (target === undefined || !stats.has(target)) return undefined;
+    stats.get(target)!.forceHeap = true;
+    return target;
+  };
+  for (const value of guestValues) {
+    const target = reachableWeakTarget(weakReferenceStates.get(value)?.deref());
+    if (target !== undefined) weakTargets.set(value,target);
+    const finalization = finalizationRegistryStates.get(value);
+    if (finalization !== undefined) finalizationTargets.set(value,[...finalization.state.cells].map(cell => ({
+      target:reachableWeakTarget(cell.target.deref()),token:reachableWeakTarget(cell.token?.deref())
+    })));
+  }
+  const heapIds = new Map<object | symbol, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
     if (
       stat.count > 1 ||
+      stat.forceHeap === true ||
+      guestValues.has(value) ||
       stat.cyclic ||
+      hasNullObjectPrototype(value) ||
+      ownSerializableSymbolKeys(value).length > 0 ||
+      (isSandboxRegex(value) && (hasCustomRegexProperties(value) || !Number.isSafeInteger(value.lastIndex) ||
+        (typeof value.lastIndex === "number" && value.lastIndex < 0) || Object.is(value.lastIndex, -0))) ||
+      isSandboxBox(value) ||
       isSandboxDate(value) ||
-      isFloat32Array(value) ||
+      isNumericTypedArray(value) ||
+      isSandboxArrayBuffer(value) ||
+      isSandboxSharedArrayBuffer(value) ||
+      isSandboxDataView(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
       sandboxErrorTypes.has(value) ||
       isSandboxArguments(value) ||
+      isSandboxCollectionIterator(value) ||
+      isSandboxRegExpIterator(value) ||
       isSandboxMap(value) ||
       isSandboxSet(value)
     ) {
@@ -595,35 +841,32 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
     }
   }
 
-  return heapIds;
+  return { heapIds, guestValues, weakEntries, weakTargets, finalizationTargets };
 }
 
 function collectContainerStats(
-  value: RuntimeSnapshotValue,
-  stats: Map<object, { count: number; cyclic: boolean; expanded: boolean }>,
-  ancestors: WeakSet<object>
+  value: unknown,
+  stats: Map<object, { count: number; cyclic: boolean; expanded: boolean; forceHeap?: boolean }>,
+  ancestors: WeakSet<object>,
+  guestValues: Set<object>,
+  depth = 0,
+  reached?: (value: WeakCollectionKey, depth: number) => void
 ): void {
+  if (typeof value === "symbol") {
+    reached?.(value, depth);
+    return;
+  }
   if (
     value === null ||
     typeof value !== "object" ||
     isRuntimeClosureValue(value) ||
     isRuntimePromiseValue(value) ||
-    isSandboxGenerator(value)
+    (isSandboxGenerator(value) && getGeneratorOrigin(value) === undefined)
   ) {
     return;
   }
 
-  if (
-    !Array.isArray(value) &&
-    !isPlainObject(value) &&
-    !isSandboxDate(value) &&
-    !isFloat32Array(value) &&
-    !isSandboxMap(value) &&
-    !isSandboxSet(value)
-  ) {
-    return;
-  }
-
+  assertSnapshotDataDepth(depth, "<snapshot-heap>");
   let stat = stats.get(value);
   if (stat === undefined) {
     stat = {
@@ -632,6 +875,7 @@ function collectContainerStats(
       expanded: false
     };
     stats.set(value, stat);
+    reached?.(value, depth);
   }
 
   stat.count += 1;
@@ -648,7 +892,50 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxArguments(value)
+  const guestEntries: unknown[] = [];
+  if (isSandboxDataView(value)) guestEntries.push(dataViewBuffer(value));
+  if (isNumericTypedArray(value)) guestEntries.push(typedArrayStorage(value).buffer);
+  const guest = isSandboxDataView(value)
+    ? { kind: "dataview", state: captureDataViewState(value, entry => { guestEntries.push(entry); return null; }) }
+    : isNumericTypedArray(value)
+    ? { kind: "float32array", state: captureTypedArrayState(value, entry => { guestEntries.push(entry); return null; }) }
+    : isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)
+    ? { kind: "arraybuffer", state: captureArrayBufferState(value, entry => { guestEntries.push(entry); return null; }) }
+    : captureGuestHeapNode(value, entry => { guestEntries.push(entry); return null; });
+  if (guest !== undefined) {
+    if (!isNumericTypedArray(value) && !isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value)) guestValues.add(value);
+    for (const entry of guestEntries) {
+      collectContainerStats(entry, stats, ancestors, guestValues, depth + 1, reached);
+      if (entry !== null && typeof entry === "object") {
+        const entryStat = stats.get(entry);
+        if (entryStat !== undefined) entryStat.forceHeap = true;
+      }
+    }
+    ancestors.delete(value);
+    return;
+  }
+
+  if (!Array.isArray(value) && !isPlainObject(value) && !isSandboxDate(value) &&
+      !isNumericTypedArray(value) && !isSandboxMap(value) && !isSandboxCollectionIterator(value) &&
+      !isSandboxRegExpIterator(value) && !isSandboxSet(value)) {
+    ancestors.delete(value);
+    return;
+  }
+
+  const entries = isSandboxRegex(value)
+    ? Reflect.ownKeys(getRegexProperties(value)).flatMap(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
+      return "value" in descriptor ? [descriptor.value] : [];
+    })
+    : isSandboxDate(value)
+    ? dateDataProperties(value).flatMap(([key, descriptor]) => typeof key === "string" ? [descriptor.value] : [])
+    : isSandboxBox(value)
+    ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)
+    : isSandboxRegExpIterator(value)
+    ? [regexpIteratorState(value).matcher, regexpIteratorState(value).input, ...Object.values(value)]
+    : isSandboxCollectionIterator(value)
+    ? [collectionIteratorState(value).collection, ...Object.values(value)]
+    : isSandboxArguments(value)
     ? Object.values(Object.getOwnPropertyDescriptors(value)).flatMap((descriptor) =>
         "value" in descriptor ? [descriptor.value] : []
       )
@@ -657,8 +944,20 @@ function collectContainerStats(
       : isSandboxSet(value)
         ? [...value.values]
         : Object.values(value);
+  if (isSandboxMap(value) || isSandboxSet(value)) {
+    serializeCollectionProperties(value, entry => {
+      entries.push(entry);
+      return null;
+    });
+  }
   for (const entry of entries) {
-    collectContainerStats(entry as RuntimeSnapshotValue, stats, ancestors);
+    collectContainerStats(entry, stats, ancestors, guestValues, depth + 1, reached);
+  }
+  for (const key of ownSerializableSymbolKeys(value)) {
+    collectContainerStats(key, stats, ancestors, guestValues, depth + 1, reached);
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+    if ("value" in descriptor)
+      collectContainerStats(descriptor.value, stats, ancestors, guestValues, depth + 1, reached);
   }
 
   ancestors.delete(value);

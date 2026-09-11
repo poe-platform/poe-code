@@ -5,8 +5,9 @@ import { shellValueBytes, shellValueFromBytes } from "../../../../src/contracts/
 import type { ByteSource } from "../../../../src/contracts/index.js";
 import { ShellInput } from "../../../../src/shell/input.js";
 import { Budget, defaultLimits } from "../../../../src/shell/runtime.js";
+import { authenticateOracle } from "../trap/oracle.js";
 
-const oracle = process.env.SAFE_BASH_TEST_BASH ?? "/tmp/safe-bash-scripting-oracles-20260904/bash-5.2.37/bash";
+let oracle: string | undefined;
 
 function fixture(source: ByteSource, controller = new AbortController(), bytes = 65_536, fields = 4096) {
   const budget = new Budget({ ...defaultLimits, maxExpansionBytes: bytes, maxExpansionFields: fields, maxWallClockMs: 2000 }, controller.signal);
@@ -46,7 +47,7 @@ const cases = [
 for (const locale of ["C", "en_US.UTF-8"]) for (const entry of cases) {
   test(`byte read native ${locale}: ${entry.name}`, { timeout: 2000 }, async () => {
     const bytes = Buffer.from(entry.hex, "hex");
-    const native = spawnSync(oracle, ["--noprofile", "--norc", "-c", `IFS= read ${entry.flags} value; status=$?; printf '%s\\0%s\\0' "$status" "$value"; /bin/cat`], {
+    const native = spawnSync(oracle ??= authenticateOracle(), ["--noprofile", "--norc", "-c", `IFS= read ${entry.flags} value; status=$?; printf '%s\\0%s\\0' "$status" "$value"; /bin/cat`], {
       input: bytes, env: { PATH: "/usr/bin:/bin", LC_ALL: locale }, timeout: 1000, maxBuffer: 4096,
     });
     assert.equal(native.error, undefined);
@@ -191,7 +192,7 @@ for (const locale of ["C", "en_US.UTF-8"]) for (const entry of fieldCases) {
     const assignment = maximum === undefined ? '-a values' : 'first second';
     const values = maximum === undefined ? '"${values[@]}"' : '"$first" "$second"';
     const script = `IFS=$1 read ${entry.raw ? "-r" : ""} ${assignment}; status=$?; printf '%s\\0' "$status"; for value in ${values}; do printf '%s\\0' "$value"; done`;
-    const native = spawnSync(oracle, ["--noprofile", "--norc", "-c", script, "shell", entry.ifs], {
+    const native = spawnSync(oracle ??= authenticateOracle(), ["--noprofile", "--norc", "-c", script, "shell", entry.ifs], {
       input: entry.text, env: { PATH: "/usr/bin:/bin", LC_ALL: locale }, timeout: 1000, maxBuffer: 4096,
     });
     assert.equal(native.error, undefined);

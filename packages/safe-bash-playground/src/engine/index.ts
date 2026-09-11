@@ -1,5 +1,5 @@
-import { createAgentCommands } from "virtual:safe-bash-kernel";
-import type { ShellLimits, VirtualShellPlugin } from "safe-bash-engine/safe-bash";
+import { createAgentCommands, createWorkerRegexProvider } from "virtual:safe-bash-kernel";
+import type { ShellLimits, VirtualShellPlugin } from "virtual-bash";
 
 export {
   Shell,
@@ -7,6 +7,7 @@ export {
   resolvePath,
   normalizePath,
   readBytes,
+  withFileSystemQuota,
   FsError
 } from "virtual:safe-bash-kernel";
 export type {
@@ -15,7 +16,7 @@ export type {
   ShellOptions,
   CommandDefinition,
   VirtualShellPlugin
-} from "safe-bash-engine/safe-bash";
+} from "virtual-bash";
 export type { ShellExecOptions, RootShellState } from "virtual:safe-bash-kernel";
 
 export const browserLimits: Readonly<ShellLimits> = Object.freeze({
@@ -32,7 +33,7 @@ export const browserLimits: Readonly<ShellLimits> = Object.freeze({
   pipeHighWaterMark: 16 * 1024
 });
 
-const commands = createAgentCommands();
+const commands = createAgentCommands({ regexExecutor: createWorkerRegexProvider() });
 export const supportedCommands: readonly string[] = Object.freeze(
   commands.map((command) => command.name).sort()
 );

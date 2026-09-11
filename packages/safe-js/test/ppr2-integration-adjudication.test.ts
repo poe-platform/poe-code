@@ -31,7 +31,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const expectedFresh =
-  process.env.SAFEJS_PPR2_ADJUDICATION_PHASE === "ordered" ? "jobs-v6" : "jobs-v7";
+  process.env.SAFEJS_PPR2_ADJUDICATION_PHASE === "ordered" ? "jobs-v6" : "jobs-v8";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -100,7 +100,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         host.release();
       }
       const original = await execution;
-      expect(original).toMatchObject({ ok: true, returnValue: native });
+      expect(original.ok).toBe(true);
       if (!original.ok) throw Error(original.error.message);
       expect(original.returnValue).toEqual(native);
       expect(host.calls).toEqual(nativeHost.calls);
@@ -108,7 +108,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
       for (const [index, bytes] of captures.entries()) {
         const snapshot = restore(JSON.parse(bytes), { source: scenario.source });
         expect(snapshot.executionSemantics).toBe(expectedFresh);
-        expect(snapshot.version).toBe(1);
+        expect(snapshot.version).toBe(2);
         const before = JSON.stringify(snapshot);
         const rebound = makeFixture(scenario.id, false, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
@@ -118,7 +118,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
           budget: new Budget({ maxSteps: 150_000 }),
           hostCallResumeProvider: receiptsProvider(original.snapshot.hostCalls ?? [], requests)
         });
-        expect(resumed).toMatchObject({ ok: true, returnValue: native });
+        expect(resumed.ok).toBe(true);
         if (!resumed.ok) throw Error(resumed.error.message);
         expect(resumed.returnValue).toEqual(native);
         expect(rebound.calls).toEqual(index === 2 ? [] : scenario.resumeCalls);
@@ -128,13 +128,14 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         expect(recaptured.executionSemantics).toBe(expectedFresh);
         const finalHost = makeFixture(scenario.id, false, scenario.policy);
         const finalProvider = vi.fn();
-        expect(
-          await run(scenario.source, {
-            snapshot: recaptured,
-            bindings: finalHost.bindings,
-            hostCallResumeProvider: finalProvider
-          })
-        ).toMatchObject({ ok: true, returnValue: native });
+        const final = await run(scenario.source, {
+          snapshot: recaptured,
+          bindings: finalHost.bindings,
+          hostCallResumeProvider: finalProvider
+        });
+        expect(final.ok).toBe(true);
+        if (!final.ok) throw Error(final.error.message);
+        expect(final.returnValue).toEqual(native);
         expect(finalHost.calls).toEqual([]);
         expect(finalProvider).not.toHaveBeenCalled();
       }
@@ -255,7 +256,7 @@ function roundtrip(bindings: Record<string, RuntimeSnapshotValue>) {
     })
   );
   expect(envelope.executionSemantics).toBe(expectedFresh);
-  expect(envelope.version).toBe(1);
+  expect(envelope.version).toBe(2);
   const validated = restore(envelope, { source });
   const encoded = serialize({
     source,
@@ -396,7 +397,7 @@ describe("independent native ALS receiver and lifetime checks", () => {
         );
         expect(disable.mock.contexts.filter((context) => context === hostContext)).toHaveLength(1);
         expect(disable.mock.contexts.some((context) => context === promiseReplayContext)).toBe(
-          expectedFresh === "jobs-v7"
+          expectedFresh !== "jobs-v6"
         );
         expect(retained!.runInAsyncScope(() => hostContext!.getStore())).toBeUndefined();
         console.info(

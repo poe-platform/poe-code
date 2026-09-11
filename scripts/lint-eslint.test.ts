@@ -120,6 +120,75 @@ describe("fixture operation observation retention", () => {
     expect(decodings).toBe(0);
   });
 
+  it("does not copy cached listings for internal pathname membership", () => {
+    const state = model(Object.fromEntries(Array.from({ length: 12 }, (_, index) => [`src/allocation-${index}.js`, ""])));
+    state.guard.directory("src");
+    const before = state.guard.snapshot().metadataOperations;
+    const iterator = Array.prototype[Symbol.iterator];
+    const includes = Array.prototype.includes;
+    let listingIterations = 0;
+    let membershipScans = 0;
+    Array.prototype[Symbol.iterator] = function(this: unknown[]) {
+      if (this.length === 12 && typeof this[0] === "string" && this[0].startsWith("allocation-")) listingIterations++;
+      return iterator.call(this);
+    };
+    Array.prototype.includes = function(this: unknown[], ...args: Parameters<typeof includes>) {
+      if (this.length === 12 && typeof this[0] === "string" && this[0].startsWith("allocation-")) membershipScans++;
+      return includes.apply(this, args);
+    };
+    let result;
+    try { result = state.guard.directory("src", true); }
+    finally { Array.prototype[Symbol.iterator] = iterator; Array.prototype.includes = includes; }
+    expect(result.inspections.size).toBe(12);
+    expect(state.guard.snapshot().metadataOperations - before).toBe(148);
+    expect(state.operations.filter(operation => operation.method === "readdirSync" && operation.path === root + "/src")).toHaveLength(14);
+    expect(listingIterations).toBe(2); // One outward copy and one traversal, never per-child copies.
+    expect(membershipScans).toBe(0); // Membership must not scan the complete cached listing for each child.
+  });
+
+  it("keeps raw-order cache entries private when callers sort or mutate listings", () => {
+    const state = model({ "src/z.js": "", "src/a.js": "" });
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
+      return absolute === root + "/src" ? [Buffer.from("z.js"), Buffer.from("a.js")] : state.fileSystem.readdirSync(absolute, options as any);
+    } } });
+    expect(guard.directory("src").entries).toEqual(["a.js", "z.js"]);
+    const decode = vi.spyOn(Buffer.prototype, "toString");
+    let decodings;
+    let entries;
+    try {
+      entries = guard.directory("src").entries;
+      decodings = decode.mock.calls.filter(([encoding]) => encoding === "utf8").length;
+    } finally { decode.mockRestore(); }
+    expect(decodings).toBe(0);
+    entries[0] = "forged.js";
+    expect(guard.directory("src").entries).toEqual(["a.js", "z.js"]);
+    const ancestors = guard.fileSystem.readdirSync("/");
+    ancestors.splice(0, ancestors.length, "forged");
+    expect(guard.fileSystem.readdirSync("/")).not.toContain("forged");
+    expect(() => guard.inspect("src/forged.js")).toThrow("exact pathname spelling required");
+  });
+
+  it("reuses authenticated receipt comparisons without changing filesystem observations", () => {
+    const state = model(Object.fromEntries(Array.from({ length: 12 }, (_, index) => [`src/comparison-${index}.js`, ""])));
+    const records = state.guard.loadReceipts(state.binding);
+    const paths = new Set(records.map((record: { path: string }) => record.path));
+    state.guard.directory("src");
+    const before = state.guard.snapshot().metadataOperations;
+    const lower = String.prototype.toLowerCase;
+    let repeatedFolds = 0;
+    const spy = vi.spyOn(String.prototype, "toLowerCase").mockImplementation(function(this: string) {
+      if (paths.has(String(this))) repeatedFolds++;
+      return lower.call(this);
+    });
+    let result;
+    try { result = state.guard.directory("src", true); }
+    finally { spy.mockRestore(); }
+    expect(result.inspections.size).toBe(12);
+    expect(state.guard.snapshot().metadataOperations - before).toBe(148);
+    expect(state.operations.filter(operation => operation.method === "readdirSync" && operation.path === root + "/src")).toHaveLength(14);
+    expect(repeatedFolds).toBe(0);
+  });
+
   it("does not expose or borrow cached directory observations", () => {
     const state = model({ "src/π.js": "export {};" });
     const bytes = Buffer.from("π.js");
@@ -130,6 +199,59 @@ describe("fixture operation observation retention", () => {
     expect(guard.directory("src").entries).toEqual(["π.js"]);
     bytes[0] = 0xff;
     expect(() => guard.directory("src")).toThrow("invalid directory entry encoding");
+  });
+
+  it("retains hot decoded listings when cold directories exceed cache capacity", () => {
+    const entries = Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`cold-${index}/file.js`, "export {};"]));
+    const state = model({ ...entries, "hot/hot-π.js": "export {};" });
+    const original = Buffer.prototype.toString;
+    let hotDecodings = 0;
+    let coldDecodings = 0;
+    const decode = vi.spyOn(Buffer.prototype, "toString").mockImplementation(function(this: Buffer, ...args: Parameters<Buffer["toString"]>) {
+      const result = original.apply(this, args);
+      if (args[0] === "utf8" && result === "hot-π.js") hotDecodings++;
+      if (args[0] === "utf8" && result === "file.js") coldDecodings++;
+      return result;
+    });
+    try {
+      state.guard.directory("hot");
+      for (let index = 0; index < 64; index++) {
+        state.guard.directory(`cold-${index}`);
+        expect(state.guard.directory("hot").entries).toEqual(["hot-π.js"]);
+      }
+      expect(state.guard.snapshot().metadataOperations).toBe(1161);
+      expect(coldDecodings).toBe(64);
+      state.guard.directory("cold-0");
+      expect(coldDecodings).toBe(65);
+    } finally { decode.mockRestore(); }
+    const reads = state.operations.filter(operation => operation.method === "readdirSync" && operation.path === root + "/hot").length;
+    expect(reads).toBe(65);
+    expect(hotDecodings).toBe(1);
+  });
+
+  it.each([["bytes", 3000, 200], ["entries", 17000, 8]] as const)("evicts decoded listings under aggregate %s pressure", (_label, count, width) => {
+    const state = model({ "first/file.js": "", "second/file.js": "" });
+    const listing = Array.from({ length: count }, (_, index) => Buffer.from(String(index).padStart(width, "x")));
+    const marker = listing[0]!.toString("utf8");
+    const reads: string[] = [];
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
+      if (absolute === root + "/first" || absolute === root + "/second") { reads.push(absolute); return listing; }
+      return state.fileSystem.readdirSync(absolute, options as any);
+    } } });
+    const original = Buffer.prototype.toString;
+    let decodings = 0;
+    const decode = vi.spyOn(Buffer.prototype, "toString").mockImplementation(function(this: Buffer, ...args: Parameters<Buffer["toString"]>) {
+      const result = original.apply(this, args);
+      if (args[0] === "utf8" && result === marker) decodings++;
+      return result;
+    });
+    try {
+      guard.directory("first");
+      guard.directory("second");
+      guard.directory("first");
+    } finally { decode.mockRestore(); }
+    expect(reads).toEqual([root + "/first", root + "/second", root + "/first"]);
+    expect(decodings).toBe(3);
   });
 
   it.each([false, true])("rejects sparse directory byte listings, warmed=%s", (warmed) => {
@@ -144,14 +266,17 @@ describe("fixture operation observation retention", () => {
   });
 
   it("revalidates changed and duplicate names after a cached listing", () => {
-    const state = model({ "src/one.js": "export {};" });
+    const state = model({ "src/one.js": "export {};", "src/two.js": "export {};" });
     let entries = [Buffer.from("one.js")];
     const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
       return absolute === root + "/src" ? entries : state.fileSystem.readdirSync(absolute, options as any);
     } } });
     expect(guard.directory("src").entries).toEqual(["one.js"]);
+    expect(() => guard.inspect("src/two.js")).toThrow("exact pathname spelling required");
     entries = [Buffer.from("two.js")];
     expect(guard.directory("src").entries).toEqual(["two.js"]);
+    expect(() => guard.inspect("src/two.js")).not.toThrow();
+    expect(() => guard.inspect("src/one.js")).toThrow("exact pathname spelling required");
     entries = [Buffer.from("two.js"), Buffer.from("two.js")];
     expect(() => guard.directory("src")).toThrow("duplicate directory entry");
   });
@@ -339,8 +464,8 @@ describe("fixed guarded root lint arguments", () => {
     expect(await main({ argv, root, fileSystem, stderr, stdout: { write: vi.fn() } })).toBe(2);
     expect(stderr.write).toHaveBeenCalled();
   });
-  it("does not initialize current config before Phase 2 wiring", async () => {
-    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "eslint . --ext ts" } }) });
+  it.each(["eslint . --ext ts", "node scripts/lint-eslint.mjs"])("does not initialize current config for unsupported wiring %s", async command => {
+    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": command } }), "eslint.config.js": "export default [];" });
     const loadConfig = vi.fn();
     const code = await main({ argv: [], root, fileSystem: state.fileSystem, loadConfig, stdout: { write: vi.fn() }, stderr: { write: vi.fn() } });
     expect(code).toBe(2);
@@ -980,7 +1105,7 @@ describe("guard refusal and policy regression controls", () => {
   });
   it("prevents root command or config identity drift across loading", async () => {
     for (const target of ["package.json", "eslint.config.js"]) {
-      const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
+      const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
       const loadConfig = vi.fn(async () => {
         state.volume.writeFileSync(root + "/" + target, "changed");
         return { default: state.config, lintInputGuard: state.guard };
@@ -999,7 +1124,7 @@ describe("guard refusal and policy regression controls", () => {
     expect(() => state.guard.fileSystem.readFileSync(root + "/src/file.js", "utf8")).toThrow(/options/);
   });
   it("exercises successful staged main only with injected memory config", async () => {
-    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
+    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
     const realLoad = state.guard.loadReceipts;
     const guard = { ...state.guard, loadReceipts: () => realLoad(state.binding) };
     const stdout = { write: vi.fn() };
@@ -1022,7 +1147,7 @@ describe("final scope accounting controls", () => {
     expect(result.unprocessed.descendantsUnknown).toBe(true);
   });
   it("reports separate fixed bootstrap authentication counters", async () => {
-    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
+    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
     const realLoad = state.guard.loadReceipts;
     const guard = { ...state.guard, loadReceipts: () => realLoad(state.binding) };
     const stderr = { write: vi.fn() };
@@ -1056,7 +1181,7 @@ describe("final scope accounting controls", () => {
     expect(guard.snapshot()).toMatchObject({ opens: 1, closes: 1, failed: true, subjectBytes: 3 });
   });
   it("refuses bulk suppressions before receipt authentication", async () => {
-    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];", "eslint-suppressions.json": "{}" });
+    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];", "eslint-suppressions.json": "{}" });
     const stderr = { write: vi.fn() };
     expect(await main({ argv: [], root, fileSystem: state.fileSystem, loadConfig: async () => ({ default: state.config, lintInputGuard: state.guard }), stdout: { write: vi.fn() }, stderr })).toBe(2);
     expect(JSON.parse(stderr.write.mock.calls[0][0]).error).toContain("bulk suppressions");
@@ -1334,7 +1459,7 @@ describe("initialization failure diagnostics", () => {
     expect(state.operations).toHaveLength(1);
   });
   it("reports original ordered read-close errors through the runner", async () => {
-    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
+    const state = model({ "package.json": JSON.stringify({ scripts: { "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs" } }), "eslint.config.js": "export default [];" });
     const boundaryBinding = { path: "packages/safe-bash/integration-boundaries.json", bytes: 2, sha256: digest("{}") };
     state.volume.writeFileSync(root + "/" + boundaryBinding.path, "{}");
     const closeSync = vi.fn((descriptor: number) => { state.memory.closeSync(descriptor); throw false; });

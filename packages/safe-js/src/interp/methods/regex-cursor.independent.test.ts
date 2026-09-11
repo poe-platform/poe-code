@@ -163,11 +163,11 @@ describe("independent STR-04 validation", () => {
     }
   );
 
-  it.each(["y", "gy"])("does not add unsupported %s flags", async (flags) => {
+  it.each(["y", "gy"])("executes sticky %s flags at the selected cursor", async (flags) => {
     await expect(
-      run(`return new RegExp("a", ${JSON.stringify(flags)});`, {
+      run(`const regex=new RegExp("a", ${JSON.stringify(flags)});regex.lastIndex=1;return [regex.exec('ba').index,regex.lastIndex];`, {
         budget: new Budget({ maxSteps: 5_000 })
       })
-    ).rejects.toThrow("Unsupported regex flag 'y'");
+    ).resolves.toMatchObject({ ok: true, returnValue: [1, 2] });
   });
 });

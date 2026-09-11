@@ -58,7 +58,7 @@ return { first, final };`;
         const saved = await dump(execution, { mode: "replay" });
         expect(released).toBe(false);
         const snapshot = restore(JSON.parse(saved), { source });
-        expect(snapshot.executionSemantics).toBe("jobs-v7");
+        expect(snapshot.executionSemantics).toBe("jobs-v8");
         expect(snapshot.hostCalls).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ operation: "checkpoint", lifecycle: "running" })

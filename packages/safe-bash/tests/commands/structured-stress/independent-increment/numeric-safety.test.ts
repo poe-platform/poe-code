@@ -31,10 +31,10 @@ for (const [input, expected] of [["1e2", "1E+2"], ["12.3400", "12.3400"], ["9007
     }
   });
 }
-test("decimal metadata is scalar for depth and collection quotas", () => {
+test("decimal metadata is scalar for depth and collection quotas", async () => {
   const budget = new Budget(resolveJqLimits({ maxDepth: 1, maxCollectionSize: 1 }), new AbortController().signal);
   const value = parseJson("[12.3400]", budget);
-  assert.equal(stringify(value, budget), "[12.3400]");
+  assert.equal(await stringify(value, budget), "[12.3400]");
   assert.equal(budget.value(value), 9);
 });
 test("numeric generator results retain emitted prefix at the result quota", async () => {

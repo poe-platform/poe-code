@@ -1,0 +1,29 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Samples extends Float32Array {
+    get first() { return this[0]; }
+  }
+  const samples = new Samples([2, 4]);
+  const shared = Object.getPrototypeOf(Float32Array.prototype);
+  const typedArray = Object.getPrototypeOf(Float32Array);
+  const descriptor = Object.getOwnPropertyDescriptor(shared, "length");
+  const detached = new Float32Array([7]);
+  Object.setPrototypeOf(detached, null);
+  const custom = new Float32Array([3]);
+  custom[Symbol.iterator] = function* () { yield this[0] + 5; };
+  await 0;
+  if (!(samples instanceof Samples) || !(samples instanceof Float32Array) ||
+      samples.first !== 2 || samples.join("-") !== "2-4" ||
+      Object.getPrototypeOf(samples) !== Samples.prototype ||
+      typedArray.prototype !== shared || typedArray.name !== "TypedArray" ||
+      typeof descriptor.get !== "function" || descriptor.enumerable ||
+      samples.set !== Float32Array.prototype.set ||
+      detached.length !== undefined || detached[0] !== 7 ||
+      detached instanceof Float32Array || Array.from(custom)[0] !== 8) {
+    throw new Error("Float32Array intrinsic prototype regression");
+  }
+  return { title: frontmatter.title, ok: true, first: samples.first, values: Array.from(samples) };
+};

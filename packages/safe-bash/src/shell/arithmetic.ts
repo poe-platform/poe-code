@@ -1,4 +1,6 @@
+import { PublicDiagnostic } from "../diagnostics.js";
 import { ShellSyntaxError } from "./types.js";
+import { ParseBudget } from "./parse-budget.js";
 
 export type Arithmetic = (
   | { kind: "literal"; value: bigint }
@@ -18,10 +20,12 @@ class ArithmeticFailure extends Error {
   constructor(message: string, readonly offset: number) { super(message); }
 }
 
-export function prepareArithmetic(source: string): ArithmeticProgram {
-  try { return { source, tree: parseArithmetic(source) }; }
+export function prepareArithmetic(source: string, budget = new ParseBudget()): ArithmeticProgram {
+  budget.admit();
+  try { return { source, tree: parseArithmetic(source, 0, budget) }; }
   catch (error) {
     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;
+    budget.admit();
     return { source, error };
   }
 }
@@ -37,28 +41,29 @@ const precedence: Record<string, number> = {
 function integer(text: string): bigint {
   if (/^0[xX][\da-fA-F]+$/u.test(text)) return BigInt(text);
   if (/^0[0-7]+$/u.test(text)) return BigInt(`0o${text.slice(1)}`);
-  if (/^0\d+$/u.test(text)) throw new Error("Invalid octal constant");
+  if (/^0\d+$/u.test(text)) throw new PublicDiagnostic("Invalid octal constant");
   if (/^\d+$/u.test(text)) return BigInt(text);
   const match = /^(\d+)#([\da-zA-Z@_]+)$/u.exec(text);
-  if (!match) throw new Error("Invalid arithmetic constant");
+  if (!match) throw new PublicDiagnostic("Invalid arithmetic constant");
   const base = Number(match[1]);
-  if (base < 2 || base > 64) throw new Error("Invalid arithmetic base");
+  if (base < 2 || base > 64) throw new PublicDiagnostic("Invalid arithmetic base");
   let value = 0n;
   for (const character of match[2]!) {
     const digit = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_".indexOf(base <= 36 ? character.toLowerCase() : character);
-    if (digit >= base || digit < 0) throw new Error("Digit exceeds arithmetic base");
+    if (digit >= base || digit < 0) throw new PublicDiagnostic("Digit exceeds arithmetic base");
     value = BigInt.asIntN(64, value * BigInt(base) + BigInt(digit));
   }
   return value;
 }
 
-export function parseArithmetic(source: string, offset = 0): Arithmetic {
+export function parseArithmetic(source: string, offset = 0, budget = new ParseBudget()): Arithmetic {
   const tokens: { value: string; offset: number }[] = [];
   let position = 0;
   while (position < source.length) {
     if (/\s/u.test(source[position]!)) { position++; continue; }
     const value = /^(?:\d+#[\da-zA-Z@_]+|0[xX][\da-fA-F]+|\d+|[a-zA-Z_][a-zA-Z_0-9]*|<<=|>>=|\*\*|\+\+|--|&&|\|\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\-])/u.exec(source.slice(position))?.[0];
     if (!value) throw new ShellSyntaxError("Unsupported arithmetic token", offset + position);
+    budget.admit();
     tokens.push({ value, offset: offset + position });
     position += value.length;
   }
@@ -73,6 +78,7 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
     const token = current();
     cursor++;
     if (["+", "-", "!", "~", "++", "--"].includes(token)) {
+      budget.admit();
       const operand = expression(15);
       if (["++", "--"].includes(token) && operand.kind !== "name") error("Arithmetic assignment requires a variable");
       left = { kind: "unary", operator: token, operand, postfix: false };
@@ -80,8 +86,9 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
       left = expression();
       if (current() !== ")") error("Unclosed arithmetic parenthesis");
       cursor++;
-    } else if (/^[a-zA-Z_]/u.test(token)) left = { kind: "name", name: token };
+    } else if (/^[a-zA-Z_]/u.test(token)) { budget.admit(); left = { kind: "name", name: token }; }
     else {
+      budget.admit();
       try { left = { kind: "literal", value: BigInt.asIntN(64, integer(token)) }; }
       catch { error("Invalid arithmetic operand"); }
     }
@@ -91,12 +98,14 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
       if (operator === "++" || operator === "--") {
         if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
         cursor++;
+        budget.admit();
         left = { kind: "unary", operator, operand: left!, postfix: true, start };
         continue;
       }
       const priority = Object.hasOwn(precedence, operator) ? precedence[operator]! : 0;
       if (priority < minimum || priority === 0) break;
       cursor++;
+      budget.admit();
       if (operator === "?") {
         const yes = expression();
         if (current() !== ":") error("Expected arithmetic colon");
@@ -112,7 +121,7 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
     depth--;
     return left!;
   };
-  if (!tokens.length) return { kind: "literal", value: 0n };
+  if (!tokens.length) { budget.admit(); return { kind: "literal", value: 0n }; }
   const tree = expression();
   if (cursor < tokens.length) error("Unexpected arithmetic token");
   return tree;
@@ -131,7 +140,7 @@ export function arithmeticEnd(source: string, start: number): number {
   throw new ShellSyntaxError("Unterminated arithmetic expression", start);
 }
 
-export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>): bigint {
+export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>, budget = new ParseBudget()): bigint {
   const visiting = new Set<string>();
   let steps = 0;
   const binary = (operator: string, left: bigint, right: bigint, offset: number): bigint => {
@@ -164,7 +173,7 @@ export function evaluateArithmetic(program: ArithmeticProgram, variables: Record
       case "<=": return BigInt(left <= right);
       case ">": return BigInt(left > right);
       case ">=": return BigInt(left >= right);
-      default: throw new Error(`Unsupported arithmetic operator ${operator}`);
+      default: throw new PublicDiagnostic(`Unsupported arithmetic operator ${operator}`);
     }
   };
   type Frame = { kind: "evaluate"; node: Arithmetic }
@@ -181,13 +190,13 @@ export function evaluateArithmetic(program: ArithmeticProgram, variables: Record
     while (pending.length) {
       const frame = pending.pop()!;
       if (frame.kind === "evaluate") {
-        if (++steps > 10_000) throw new Error("Arithmetic operation limit exceeded");
+        if (++steps > 10_000) throw new PublicDiagnostic("Arithmetic operation limit exceeded");
         const node = frame.node;
         if (node.kind === "literal") value = node.value;
         else if (node.kind === "name") {
-          if (visiting.has(node.name) || visiting.size >= 64) throw new Error("Arithmetic variable recursion");
+          if (visiting.has(node.name) || visiting.size >= 64) throw new PublicDiagnostic("Arithmetic variable recursion");
           visiting.add(node.name);
-          pending.push({ kind: "variable", name: node.name }, { kind: "evaluate", node: parseArithmetic(variables[node.name] ?? "0") });
+          pending.push({ kind: "variable", name: node.name }, { kind: "evaluate", node: parseArithmetic(variables[node.name] ?? "0", 0, budget) });
         } else if (node.kind === "conditional") {
           pending.push({ kind: "conditional", node }, { kind: "evaluate", node: node.condition });
         } else if (node.kind === "unary") {
@@ -231,11 +240,11 @@ export function evaluateArithmetic(program: ArithmeticProgram, variables: Record
     }
     return value;
   } catch (error) {
-    if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
+    if (error instanceof ArithmeticFailure) throw new PublicDiagnostic(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
     if (error instanceof ShellSyntaxError) {
       const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
       const reason = error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
-      throw new Error(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
+      throw new PublicDiagnostic(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
     }
     throw error;
   }

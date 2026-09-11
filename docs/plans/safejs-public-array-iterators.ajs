@@ -1,0 +1,24 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const values = [1, 2];
+  const iterator = values.values();
+  const first = iterator.next();
+  values.push(3);
+  await 0;
+  const rest = Array.from(iterator);
+  const exhausted = iterator.next();
+  values.push(4);
+  const stillDone = iterator.next();
+  const pairs = Array.from(["a", "b"].entries());
+  const keys = Array.from(Array.prototype.keys.call({ length: 2, get 0() { throw 1; } }));
+  if (first.value !== 1 || rest.length !== 2 || rest[0] !== 2 || rest[1] !== 3 ||
+      !exhausted.done || !stillDone.done || pairs[1][0] !== 1 || pairs[1][1] !== "b" ||
+      keys[0] !== 0 || keys[1] !== 1 || iterator[Symbol.iterator]() !== iterator ||
+      Array.prototype[Symbol.iterator] !== Array.prototype.values) {
+    throw new Error("Public Array iterator behavior failed");
+  }
+  return { title: frontmatter.title, ok: true, rest, pairs, keys };
+};

@@ -1,3 +1,5 @@
+import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
+import { writeDiagnostic } from "../../escaping.js";
 import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { inputRequirements } from "../portable-requirements.js";
@@ -5,11 +7,12 @@ import { requiredFileInput } from "../search/requirements.js";
 
 export interface TextProgramOptions {
   readonly replace?: boolean;
+  readonly maxProgramInstructions?: number;
   readonly maxSteps?: number;
   readonly maxBufferBytes?: number;
 }
 
-export class ProgramError extends Error {}
+export class ProgramError extends PublicDiagnostic {}
 
 export class Budget {
   readonly maxBufferBytes: number;
@@ -99,7 +102,7 @@ export function command(name: string, run: (context: CommandContext) => Promise<
       try { return { exitCode: await run(context) }; }
       catch (error) {
         context.signal.throwIfAborted();
-        await writeBytes(context.stderr, new TextEncoder().encode(`${name}: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
+        await writeDiagnostic(context.stderr, `${name}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
         return { exitCode: error instanceof ProgramError ? 2 : 1 };
       }
     },

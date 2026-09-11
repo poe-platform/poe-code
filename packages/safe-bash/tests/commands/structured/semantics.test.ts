@@ -105,6 +105,82 @@ for (const [index, fixture] of cases.entries()) test(`semantic matrix ${index + 
   assert.equal(result.stdout, fixture.output);
 });
 
+test("string work preserves add left-fold and mixed-type semantics", async () => {
+  const fixtures = [
+    { input: "[]", output: "null\n" },
+    { input: "[null,null]", output: "null\n" },
+    { input: "[10000000000000000,-10000000000000000,1]", output: "1\n" },
+    { input: "[-0]", output: "-0\n" },
+    { input: "[1.5,null,2]", output: "3.5\n" },
+    { input: '["é",null,"😀","","\\n"]', output: '"é😀\\n"\n' },
+    { input: "[[1],null,[2,3]]", output: "[1,2,3]\n" },
+    { input: '[{"a":1,"nested":{"a":1}},{"a":2,"nested":{"b":2}}]', output: '{"a":2,"nested":{"b":2}}\n' },
+    { input: "[false,null]", output: "false\n" },
+  ];
+  for (const fixture of fixtures) {
+    const result = await run(["-c", "add"], fixture.input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, fixture.output);
+    assert.equal(result.stderr, "");
+  }
+  for (const input of ['["a",1]', "[false,false]", "[[1],{}]"]) {
+    const result = await run(["-c", "add"], input);
+    assert.equal(result.exitCode, 5);
+    assert.match(result.stderr, /cannot be added/);
+    const optional = await run(["-c", "add?"], input);
+    assert.equal(optional.exitCode, 0);
+    assert.equal(optional.stdout, "");
+    assert.equal(optional.stderr, "");
+  }
+});
+
+for (const reason of [false, null]) {
+  test(`string work pre-abort preserves cancellation identity: ${reason}`, async context => {
+    const controller = new AbortController();
+    controller.abort(reason);
+    const budget = new Budget(defaultJqLimits, controller.signal);
+    const validation = context.mock.method(budget, "value");
+    const interpreter = new Interpreter(budget, new Map());
+    await assert.rejects(interpreter.run({ kind: "call", name: "add", args: [] }, ["a", "b"]).next(), error => error === reason);
+    assert.equal(validation.mock.callCount(), 0);
+  });
+
+  test(`string work yields during seeded add and preserves cancellation identity: ${reason}`, async context => {
+    const controller = new AbortController();
+    const budget = new Budget(defaultJqLimits, controller.signal);
+    const validation = context.mock.method(budget, "value");
+    let checkpoints = 0;
+    registerYieldCheckpoint(controller.signal, () => { checkpoints++; controller.abort(reason); });
+    const interpreter = new Interpreter(budget, new Map());
+    await assert.rejects(interpreter.run({ kind: "optional", operand: { kind: "call", name: "add", args: [] } }, Array<string>(16).fill("x".repeat(128))).next(), error => error === reason);
+    assert.equal(checkpoints, 1);
+    assert.ok(validation.mock.callCount() > 0 && validation.mock.callCount() < 16);
+  });
+
+  test(`string work optional command cancels after reduction starts: ${reason}`, async context => {
+    const controller = new AbortController();
+    const validation = context.mock.method(Budget.prototype, "value");
+    let inputCheckpoints = 0;
+    let reductionCheckpoints = 0;
+    let writes = 0;
+    registerYieldCheckpoint(controller.signal, () => {
+      if (!validation.mock.calls.some(call => typeof call.arguments[0] === "string")) { inputCheckpoints++; return; }
+      reductionCheckpoints++;
+      controller.abort(reason);
+    });
+    await assert.rejects(run(["-c", "add?"], JSON.stringify(Array<string>(16).fill("x".repeat(128))), {}, {
+      signal: controller.signal,
+      stdout: { async write() { writes++; } },
+      stderr: { async write() { writes++; } },
+    }), error => error === reason);
+    const reduced = validation.mock.calls.filter(call => typeof call.arguments[0] === "string").length;
+    assert.ok(inputCheckpoints > 0);
+    assert.equal(reductionCheckpoints, 1);
+    assert.ok(reduced > 0 && reduced < 16);
+    assert.equal(writes, 0);
+  });
+}
+
 test("prototype keys preserve data without altering host prototypes", async () => {
   const original = Object.getOwnPropertyDescriptors(Object.prototype);
   const input = '{"__proto__":{"polluted":true},"constructor":7,"prototype":8}';
@@ -214,16 +290,22 @@ test("slice pre-abort preserves false/null identity without scanning", async con
 
 for (const reason of [false, null]) test(`slice optional command preserves cancellation identity: ${reason}`, async context => {
   const controller = new AbortController();
-  let checkpoints = 0;
+  let inputCheckpoints = 0;
+  let scanCheckpoints = 0;
   let writes = 0;
-  registerYieldCheckpoint(controller.signal, () => { checkpoints++; controller.abort(reason); });
   const scan = context.mock.method(String.prototype, "codePointAt");
+  registerYieldCheckpoint(controller.signal, () => {
+    if (scan.mock.callCount() === 0) { inputCheckpoints++; return; }
+    scanCheckpoints++;
+    controller.abort(reason);
+  });
   await assert.rejects(run(["-nc", "--arg", "value", "😀".repeat(1100), "($value[0:1100])?"], "", {}, {
     signal: controller.signal,
     stdout: { async write() { writes++; } },
     stderr: { async write() { writes++; } },
   }), error => error === reason);
-  assert.equal(checkpoints, 1);
+  assert.equal(inputCheckpoints, 1);
+  assert.equal(scanCheckpoints, 1);
   assert.ok(scan.mock.callCount() > 0 && scan.mock.callCount() < 1100);
   assert.equal(writes, 0);
 });

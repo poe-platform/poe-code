@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function primitivePatterns(frontmatter) {
+  await 0;
+  const { length, 0: first, ...rest } = "abc";
+  const { missing = 7 } = 42;
+  const { description } = Symbol("key");
+  if (length !== 3 || first !== "a" || rest[1] !== "b" || rest[2] !== "c")
+    throw new Error("String destructuring failed");
+  if (missing !== 7 || description !== "key")
+    throw new Error("Primitive property destructuring failed");
+  return { title: frontmatter.title, length, first, rest, missing, description };
+}

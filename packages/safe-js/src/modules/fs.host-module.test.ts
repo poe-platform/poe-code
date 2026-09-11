@@ -136,7 +136,7 @@ describe("fs host module bridge behavior", () => {
 
     await expect(result).resolves.toMatchObject({
       ok: true,
-      returnValue: "AbortError|This operation was aborted|no-code|no-path"
+      returnValue: "AbortError|This operation was aborted|20|no-path"
     });
   });
 

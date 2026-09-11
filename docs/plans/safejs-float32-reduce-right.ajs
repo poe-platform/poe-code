@@ -1,0 +1,15 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const values = new Float32Array([1, 2, 3]);
+  await 0;
+  const seen = [];
+  const result = values.reduceRight((accumulator, item, index) => {
+    seen.push(index);
+    return accumulator - item;
+  });
+  if (result !== 0 || seen.join() !== "1,0") {
+    throw new Error("Typed-array reduceRight regression");
+  }
+  return { title: frontmatter.title, ok: true, result };
+};

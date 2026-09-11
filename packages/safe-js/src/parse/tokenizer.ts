@@ -8,7 +8,9 @@ export type Position = {
 
 export type TokenType =
   | "identifier"
+  | "private-identifier"
   | "keyword"
+  | "escaped-keyword"
   | "numeric"
   | "regex"
   | "string"
@@ -19,6 +21,8 @@ export type TokenType =
 export type Token = {
   type: TokenType;
   value: string;
+  legacyEscape?: boolean;
+  templateExpressions?: ReadonlyArray<{ start: number; end: number }>;
   start: Position;
   end: Position;
 };
@@ -32,11 +36,17 @@ export type Comment = {
 
 export type TokenizeOptions = {
   allowRegexLiterals?: boolean;
+  allowLegacyNumbers?: boolean;
+  allowLegacyEscapes?: boolean;
+  allowHtmlComments?: boolean;
   comments?: Comment[];
   compilation?: CompileScope;
 };
 
 const KEYWORDS = new Set([
+  "class",
+  "extends",
+  "super",
   "const",
   "let",
   "if",
@@ -44,6 +54,7 @@ const KEYWORDS = new Set([
   "for",
   "do",
   "while",
+  "with",
   "return",
   "break",
   "continue",
@@ -60,7 +71,6 @@ const KEYWORDS = new Set([
   "true",
   "false",
   "null",
-  "undefined",
   "typeof",
   "void",
   "delete",
@@ -70,11 +80,13 @@ const KEYWORDS = new Set([
   "of"
 ]);
 
-const EXPRESSION_ENDING_KEYWORDS = new Set(["true", "false", "null", "undefined"]);
-const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "for", "catch"]);
+const EXPRESSION_ENDING_KEYWORDS = new Set(["true", "false", "null"]);
+export const RESERVED_IDENTIFIER_SPELLINGS = new Set(["case", "default", "debugger", "enum", "export", "new", "switch", "var"]);
+const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "with", "for", "catch"]);
 const MAX_UNICODE_CODE_POINT = 0x10ffff;
 const IDENTIFIER_START_PATTERN = /^\p{ID_Start}$/u;
 const IDENTIFIER_PART_PATTERN = /^\p{ID_Continue}$/u;
+const SPACE_SEPARATOR_PATTERN = /^\p{Zs}$/u;
 
 const PUNCTUATORS = [
   ">>>=",
@@ -160,6 +172,8 @@ class Lexer {
   private readonly tokens: Token[] = [];
   private readonly groupingStack: GroupingContext[] = [];
   private lastClosedControlParenthesis = false;
+  private legacyStringEscape = false;
+  private lineHasToken = false;
 
   constructor(
     private readonly source: string,
@@ -178,12 +192,18 @@ class Lexer {
       const char = this.currentChar();
       const codePointChar = this.currentCodePointChar();
 
-      if (this.isHtmlStyleCommentDelimiter()) {
+      if (!this.options.allowHtmlComments && this.isHtmlStyleCommentDelimiter()) {
         this.syntaxError("HTML-style comments are not supported in Agent Script", start);
       }
 
       if (char === "*" && this.peekChar(1) === "/") {
         this.syntaxError("Unexpected block comment terminator", start);
+      }
+
+      if (char === "#") {
+        this.advance();
+        this.readIdentifierOrKeyword(start, true);
+        continue;
       }
 
       if (isIdentifierStart(codePointChar) || this.startsUnicodeEscape()) {
@@ -223,6 +243,15 @@ class Lexer {
     while (!this.isAtEnd()) {
       const char = this.currentChar();
 
+      if (this.options.allowHtmlComments) {
+        const open = this.source.startsWith("<!--", this.index);
+        const close = !this.lineHasToken && this.source.startsWith("-->", this.index);
+        if (open || close) {
+          this.skipLineComment(open ? 4 : 3);
+          continue;
+        }
+      }
+
       if (this.isHashbangCommentStart()) {
         this.skipLineComment();
         continue;
@@ -254,12 +283,14 @@ class Lexer {
     }
   }
 
-  private readIdentifierOrKeyword(start: Position): void {
+  private readIdentifierOrKeyword(start: Position, privateName = false): void {
     let value = "";
     let isStart = true;
+    let escapedKeyword = false;
 
     while (!this.isAtEnd()) {
       if (this.startsUnicodeEscape()) {
+        escapedKeyword = true;
         const escapeStart = this.position();
         const escaped = this.readUnicodeEscape();
         const isValidIdentifierCharacter = isStart
@@ -287,10 +318,15 @@ class Lexer {
       isStart = false;
     }
 
-    this.pushToken(KEYWORDS.has(value) ? "keyword" : "identifier", start, value);
+    if (privateName && isStart) this.syntaxError("Expected private identifier", start);
+    const type = privateName ? "private-identifier"
+      : escapedKeyword && (KEYWORDS.has(value) || RESERVED_IDENTIFIER_SPELLINGS.has(value)) ? "escaped-keyword"
+      : KEYWORDS.has(value) ? "keyword" : "identifier";
+    this.pushToken(type, start, value);
   }
 
   private readString(start: Position, quote: string): void {
+    this.legacyStringEscape = false;
     this.advance();
 
     while (!this.isAtEnd()) {
@@ -298,6 +334,7 @@ class Lexer {
       if (char === quote) {
         this.advance();
         this.pushToken("string", start, this.source.slice(start.offset, this.index));
+        if (this.legacyStringEscape) this.tokens[this.tokens.length - 1]!.legacyEscape = true;
         return;
       }
 
@@ -306,7 +343,7 @@ class Lexer {
         continue;
       }
 
-      if (isLineBreak(char)) {
+      if (char === "\n" || char === "\r") {
         this.syntaxError("Unterminated string literal", start);
       }
 
@@ -317,6 +354,7 @@ class Lexer {
   }
 
   private readTemplate(start: Position): void {
+    const expressions: Array<{ start: number; end: number }> = [];
     this.advance();
 
     while (!this.isAtEnd()) {
@@ -325,6 +363,7 @@ class Lexer {
       if (char === "`") {
         this.advance();
         this.pushToken("template", start, this.source.slice(start.offset, this.index));
+        this.tokens[this.tokens.length - 1]!.templateExpressions = expressions;
         return;
       }
 
@@ -338,6 +377,10 @@ class Lexer {
         this.advance();
         this.advance();
         this.skipTemplateExpression(expressionStart);
+        expressions.push({
+          start: expressionStart.offset + 2 - start.offset,
+          end: this.index - 1 - start.offset
+        });
         continue;
       }
 
@@ -354,9 +397,11 @@ class Lexer {
     let lastClosedControlParenthesis = false;
 
     while (!this.isAtEnd() && depth > 0) {
+      this.skipTrivia();
+      if (this.isAtEnd()) break;
       const char = this.currentChar();
 
-      if (this.isHtmlStyleCommentDelimiter()) {
+      if (!this.options.allowHtmlComments && this.isHtmlStyleCommentDelimiter()) {
         this.syntaxError("HTML-style comments are not supported in Agent Script", this.position());
       }
 
@@ -462,7 +507,7 @@ class Lexer {
       if (
         char === "/" &&
         this.peekChar(1) !== "=" &&
-        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis)
+        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis, tokens)
       ) {
         if (!this.options.allowRegexLiterals) {
           this.syntaxError("Regular expression literals are not supported", this.position());
@@ -510,7 +555,7 @@ class Lexer {
         this.readEscapedLiteralCharacter();
         continue;
       }
-      if (isLineBreak(char)) {
+      if (char === "\n" || char === "\r") {
         this.syntaxError("Unterminated string literal", start);
       }
       this.advance();
@@ -546,10 +591,9 @@ class Lexer {
     this.syntaxError("Unterminated template literal", start);
   }
 
-  private skipLineComment(): void {
+  private skipLineComment(delimiterLength = 2): void {
     const start = this.position();
-    this.advance();
-    this.advance();
+    this.advanceBy(delimiterLength);
     const valueStart = this.index;
     while (!this.isAtEnd() && !isLineBreak(this.currentChar())) {
       this.advance();
@@ -559,6 +603,8 @@ class Lexer {
 
   private skipBlockComment(): void {
     const start = this.position();
+    const lineHadToken = this.lineHasToken;
+    let containsLineBreak = false;
     this.advance();
     this.advance();
     const valueStart = this.index;
@@ -568,9 +614,11 @@ class Lexer {
         const valueEnd = this.index;
         this.advance();
         this.advance();
+        this.lineHasToken = containsLineBreak ? false : lineHadToken;
         this.recordComment("block", start, valueStart, valueEnd);
         return;
       }
+      if (isLineBreak(this.currentChar())) containsLineBreak = true;
       this.advance();
     }
 
@@ -612,7 +660,7 @@ class Lexer {
         this.advance();
         this.advance();
         this.consumeDigitsForBase(isHexDigit, "hexadecimal");
-        this.rejectBigIntSuffix();
+        if (this.currentChar() === "n") this.advance();
         this.rejectInvalidNumericLiteralContinuation();
         return this.source.slice(start.offset, this.index);
       }
@@ -620,7 +668,7 @@ class Lexer {
         this.advance();
         this.advance();
         this.consumeDigitsForBase(isBinaryDigit, "binary");
-        this.rejectBigIntSuffix();
+        if (this.currentChar() === "n") this.advance();
         this.rejectInvalidNumericLiteralContinuation();
         return this.source.slice(start.offset, this.index);
       }
@@ -628,12 +676,29 @@ class Lexer {
         this.advance();
         this.advance();
         this.consumeDigitsForBase(isOctalDigit, "octal");
-        this.rejectBigIntSuffix();
+        if (this.currentChar() === "n") this.advance();
         this.rejectInvalidNumericLiteralContinuation();
         return this.source.slice(start.offset, this.index);
       }
 
       if (isDecimalDigit(prefix)) {
+        if (this.options.allowLegacyNumbers) {
+          let octal = true;
+          while (isDecimalDigit(this.currentChar())) {
+            if (!isOctalDigit(this.currentChar())) octal = false;
+            this.advance();
+          }
+          if (!octal) {
+            if (this.currentChar() === ".") {
+              this.advance();
+              this.consumeOptionalDecimalDigits();
+            }
+            this.consumeExponent();
+          }
+          this.rejectBigIntSuffix();
+          this.rejectInvalidNumericLiteralContinuation();
+          return this.source.slice(start.offset, this.index);
+        }
         // Agent Script uses strict-mode JavaScript numeric grammar, so legacy octal
         // and non-octal leading-zero decimal literals are not accepted.
         this.advance();
@@ -647,6 +712,12 @@ class Lexer {
     }
 
     this.consumeDecimalDigits();
+
+    if (this.currentChar() === "n") {
+      this.advance();
+      this.rejectInvalidNumericLiteralContinuation();
+      return this.source.slice(start.offset, this.index);
+    }
 
     if (this.currentChar() === "." && (this.peekChar(1) !== "." || this.peekChar(2) !== ".")) {
       this.advance();
@@ -767,7 +838,7 @@ class Lexer {
 
   private rejectBigIntSuffix(): void {
     if (this.currentChar() === "n") {
-      this.syntaxError("BigInt not supported", this.position());
+      this.syntaxError("BigInt literals cannot contain a fraction or exponent", this.position());
     }
   }
 
@@ -787,7 +858,7 @@ class Lexer {
     if (
       this.currentChar() === "/" &&
       this.peekChar(1) !== "=" &&
-      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis)
+      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis, this.tokens)
     ) {
       if (!this.options.allowRegexLiterals) {
         this.syntaxError("Regular expression literals are not supported", start);
@@ -975,13 +1046,22 @@ class Lexer {
     if (escaped === "0") {
       this.advance();
       if (isDecimalDigit(this.currentChar())) {
-        this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+        if (!this.options.allowLegacyEscapes)
+          this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+        this.legacyStringEscape = true;
       }
       return;
     }
 
     if (isOctalDigit(escaped)) {
-      this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+      if (!this.options.allowLegacyEscapes)
+        this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+      this.legacyStringEscape = true;
+    }
+    if (escaped === "8" || escaped === "9") {
+      if (!this.options.allowLegacyEscapes)
+        this.syntaxError("Legacy decimal escape sequences are not supported", escapeStart);
+      this.legacyStringEscape = true;
     }
 
     this.advance();
@@ -1056,6 +1136,8 @@ class Lexer {
     }
 
     const char = this.currentChar();
+    if (isLineBreak(char)) this.lineHasToken = false;
+    else if (!isWhitespace(char)) this.lineHasToken = true;
     if (char === "\r") {
       this.index += 1;
       if (this.currentChar() === "\n") {
@@ -1067,7 +1149,7 @@ class Lexer {
     }
 
     this.index += 1;
-    if (char === "\n") {
+    if (isLineBreak(char)) {
       this.line += 1;
       this.column = 1;
       return;
@@ -1122,11 +1204,12 @@ function isOctalDigit(char: string): boolean {
 }
 
 function isWhitespace(char: string): boolean {
-  return char === " " || char === "\t" || char === "\v" || char === "\f" || char === "\uFEFF";
+  return char === " " || char === "\t" || char === "\v" || char === "\f" || char === "\uFEFF" ||
+    (char.charCodeAt(0) > 0x7f && SPACE_SEPARATOR_PATTERN.test(char));
 }
 
 function isLineBreak(char: string): boolean {
-  return char === "\n" || char === "\r";
+  return char === "\n" || char === "\r" || char === "\u2028" || char === "\u2029";
 }
 
 function isExpressionEndingPunctuator(value: string): boolean {
@@ -1143,7 +1226,8 @@ function matchPunctuator(source: string, index: number): string | undefined {
 
 function shouldRejectRegexLiteral(
   previousToken: Pick<Token, "type" | "value"> | undefined,
-  lastClosedControlParenthesis: boolean
+  lastClosedControlParenthesis: boolean,
+  tokens: ReadonlyArray<Pick<Token, "type" | "value">>
 ): boolean {
   if (previousToken === undefined) {
     return true;
@@ -1151,6 +1235,7 @@ function shouldRejectRegexLiteral(
 
   if (
     previousToken.type === "identifier" ||
+    previousToken.type === "private-identifier" ||
     previousToken.type === "numeric" ||
     previousToken.type === "string" ||
     previousToken.type === "template"
@@ -1159,6 +1244,7 @@ function shouldRejectRegexLiteral(
   }
 
   if (previousToken.type === "keyword") {
+    if (previousToken.value === "of") return endsWithForOfSeparator(tokens);
     return !EXPRESSION_ENDING_KEYWORDS.has(previousToken.value);
   }
 
@@ -1167,6 +1253,36 @@ function shouldRejectRegexLiteral(
   }
 
   return !isExpressionEndingPunctuator(previousToken.value);
+}
+
+function endsWithForOfSeparator(tokens: ReadonlyArray<Pick<Token, "type" | "value">>): boolean {
+  let depth = 0;
+  let start = -1;
+  for (let index = tokens.length - 2; index >= 0; index--) {
+    const token = tokens[index];
+    if (token.type !== "punctuator") continue;
+    if ([")", "]", "}"].includes(token.value)) depth++;
+    else if (["(", "[", "{"].includes(token.value)) {
+      if (depth > 0) { depth--; continue; }
+      if (token.value === "(" && (tokens[index - 1]?.value === "for" ||
+          (tokens[index - 1]?.value === "await" && tokens[index - 2]?.value === "for"))) start = index + 1;
+      break;
+    } else if (depth === 0 && token.value === ";") break;
+  }
+  if (start < 0) return false;
+  depth = 0;
+  for (let index = start; index < tokens.length; index++) {
+    const token = tokens[index];
+    if (token.type === "punctuator") {
+      if (["(", "[", "{"].includes(token.value)) depth++;
+      else if ([")", "]", "}"].includes(token.value)) depth--;
+    }
+    if (depth === 0 && token.type === "keyword" && token.value === "of" &&
+        index !== start && tokens[index - 1]?.value !== "." && tokens[index - 1]?.value !== "?." &&
+        !(index === start + 1 && ["const", "let", "var"].includes(tokens[start].value)))
+      return index === tokens.length - 1;
+  }
+  return false;
 }
 
 function updateGroupingState(

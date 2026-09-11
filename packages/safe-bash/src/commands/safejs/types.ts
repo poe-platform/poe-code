@@ -1,4 +1,4 @@
-import type { FileSystem, NodeFsBridgeOptions } from "poe-code/safe-fs";
+import type { FileSystem, FsBridgeOptions } from "poe-code/safe-fs/core";
 
 export type SafeJsHostFunction = { call(...args: readonly unknown[]): unknown }["call"];
 export type SafeJsHostValue = string | number | boolean | null | undefined | SafeJsHostFunction
@@ -29,7 +29,7 @@ export type SafeJsRunResult = { readonly ok: true; readonly returnValue?: unknow
 export interface SafeJsRuntime<Budget> {
   readonly run: (source: string, options: SafeJsRunOptions<Budget>) => Promise<SafeJsRunResult>;
   readonly createBudget: (options: SafeJsBudgetOptions) => Budget;
-  readonly makeFsModule: (options: { adapter: FileSystem } & NodeFsBridgeOptions) => SafeJsModule;
+  readonly makeFsModule: (options: { adapter: FileSystem } & Pick<FsBridgeOptions, "cwd" | "signal">) => SafeJsModule;
   readonly declareHostOperation: <Operation extends SafeJsHostFunction>(operation: Operation, policy: "read-side-effect") => Operation;
 }
 

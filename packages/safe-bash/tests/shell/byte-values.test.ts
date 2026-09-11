@@ -6,6 +6,70 @@ import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
 
+const portableByteScripts = [
+  ["ANSI-C quote", "printf '%s' $'\\377'"],
+  ["command substitution", "printf '%s' \"$(printf '\\377')\""],
+] as const;
+
+for (const [name, script] of portableByteScripts) {
+  test(`${name} preserves raw bytes when fatal decoding throws a standard uncoded TypeError`, async context => {
+    const decode = TextDecoder.prototype.decode;
+    let rejected = 0;
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+      try { return decode.apply(this, args); }
+      catch (error) {
+        if (!this.fatal || !(error instanceof TypeError)) throw error;
+        rejected++;
+        throw new TypeError("Failed to decode input.");
+      }
+    });
+    const { shell } = fixture();
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+      assert.equal(rejected, 1);
+      const valid = await shell.exec("printf '%s' $'\\357\\273\\277é'; printf '%s' \"$(printf '\\357\\273\\277é')\"");
+      assert.equal(valid.exitCode, 0, valid.stderr);
+      assert.deepEqual(valid.stdoutBytes, Uint8Array.of(239, 187, 191, 195, 169, 239, 187, 191, 195, 169));
+      assert.equal(rejected, 1);
+    } finally { await shell.dispose(); }
+  });
+
+  for (const failure of [new Error("decoder infrastructure failed"), Object.assign(new TypeError("different decoder failure"), { code: "OTHER_FAILURE" })]) {
+    test(`${name} preserves unrelated decoder failure ${failure.message}`, async context => {
+      const decode = TextDecoder.prototype.decode;
+      context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+        if (this.fatal) throw failure;
+        return decode.apply(this, args);
+      });
+      const { shell } = fixture();
+      const observed: unknown[] = [];
+      try {
+        try {
+          const result = await shell.exec(script, { onInternalError(error) { observed.push(error); } });
+          assert.notEqual(result.exitCode, 0);
+          assert.equal(result.stdoutBytes.length, 0);
+        } catch (error) { observed.push(error); }
+        assert.ok(observed.includes(failure));
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const reason of [false, 0, null, ""]) test(`${name} decoder cancellation preserves ${String(reason)}`, async context => {
+    const decode = TextDecoder.prototype.decode;
+    const controller = new AbortController();
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
+      if (this.fatal) { controller.abort(reason); throw new TypeError("Failed to decode input."); }
+      return decode.apply(this, args);
+    });
+    const { shell } = fixture();
+    try {
+      await assert.rejects(shell.exec(script, { signal: controller.signal }), error => error === reason);
+    } finally { await shell.dispose(); }
+  });
+}
+
 function fixture(options: Parameters<typeof setup>[0] = {}) {
   const result = setup(options);
   for (const command of basicCommands()) if (command.name === "printf" || command.name === "echo") result.commands.register(command);
@@ -55,6 +119,56 @@ test("ordinary Unicode text keeps its text semantics", async () => {
   const result = await shell.exec("value='é🙂�'; printf '%s' \"$value\" > bytes");
   assert.equal(result.exitCode, 0);
   assert.deepEqual(await fs.readFile("/bytes"), new TextEncoder().encode("é🙂�"));
+});
+
+test("IFS byte runs preserve invalid bytes and UTF8 across scanner checkpoints", async () => {
+  const { shell, commands } = fixture();
+  const payload = Uint8Array.from([...new TextEncoder().encode(`${"a".repeat(4095)}🙂`), 255, 32, 254]);
+  commands.register({ name: "emit", async execute({ stdout }) { await stdout.write(payload); return { exitCode: 0 }; } });
+  const result = await shell.exec('value=$(emit); printf "%s" $value');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.from([...payload.subarray(0, -2), 254]));
+  await shell.dispose();
+});
+
+test("IFS non-ASCII separators preserve Unicode substitution and quoted byte boundaries", async () => {
+  const { shell } = fixture();
+  assert.equal((await shell.exec('IFS=🙂; value="a🙂🙂b"; args $value')).stdout, '["a","","b"]');
+  const result = await shell.exec('value=$(printf "a b"); printf "%s" $\'\\xff\'${value}$\'\\xfe\'');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 97, 98, 254));
+  await shell.dispose();
+});
+
+for (const [name, source, expected] of [
+  ["pattern does not decode merged bytes", String.raw`case 'é' in $'\xc3'$'\xa9') say yes;; *) say no;; esac`, "no\n"],
+  ["pattern keeps each fragment projection", String.raw`case '��' in $'\xc3'$'\xa9') say yes;; *) say no;; esac`, "yes\n"],
+  ["subject still decodes merged bytes", String.raw`case $'\xc3'$'\xa9' in 'é') say yes;; *) say no;; esac`, "yes\n"],
+  ["quoted glob escape stays literal", String.raw`case '��*' in $'\xc3'$'\xa9''*') say yes;; *) say no;; esac`, "yes\n"],
+] as const) {
+  test(`byte pattern fragment projection: ${name}`, async () => {
+    const { shell } = fixture();
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+    await shell.dispose();
+  });
+}
+
+test("byte pattern fragment projection does not replace the raw argument value", async () => {
+  const { shell, commands } = fixture();
+  commands.register({ name: "inspect", async execute(context) {
+    const args = getCommandArguments(context);
+    assert.notEqual(typeof args.values[0], "string");
+    assert.deepEqual(args.bytes(0), Uint8Array.of(195, 169));
+    await context.stdout.write(args.bytes(0)!);
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec(String.raw`inspect $'\xc3'$'\xa9'`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(195, 169));
+  await shell.dispose();
 });
 
 test("execution-local bytes and copies do not become globals across exec", async () => {

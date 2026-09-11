@@ -68,12 +68,17 @@ export async function runHoldoutProbe(name: string): Promise<void> {
       assert.equal((await fs.readFile("/before")).length, 0);
     } else if (name === "shortcut-read-error-restores-outer-stream") {
       await fs.writeFile("/fault", new TextEncoder().encode("unchanged"));
+      Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
       let reads = 0;
       const originalReadStream = fs.readStream.bind(fs);
-      fs.readStream = (path, options) => path === "/fault" ? { async *[Symbol.asyncIterator]() { reads++; throw new Error("holdout injected read failure"); } } : originalReadStream(path, options);
-      const result = await shell.exec('value=$(<fault); status=$?; printf "<%s>:%s:" "$value" "$status"; cat; forward exhausted; : >after', { stdin: "outer" });
+      const failure = new Error("holdout injected read failure");
+      const observed: unknown[] = [];
+      fs.readStream = (path, options) => path === "/fault" ? { async *[Symbol.asyncIterator]() { reads++; throw failure; } } : originalReadStream(path, options);
+      const result = await shell.exec('value=$(<fault); status=$?; printf "<%s>:%s:" "$value" "$status"; cat; forward exhausted; : >after', { stdin: "outer", onInternalError(error) { observed.push(error); } });
       assert.deepEqual({ stdout: result.stdout, exitCode: result.exitCode, reads }, { stdout: "<>:1:outer", exitCode: 0, reads: 1 });
-      assert.match(result.stderr, /holdout injected read failure/u);
+      assert.equal(result.stderr, "shell: line 1: internal error\n");
+      assert.equal(observed.length, 1);
+      assert.equal(observed[0], failure);
       assert.deepEqual(origins, [{ label: "exhausted", default: false }]);
       assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["after", "fault"]);
       assert.equal(Buffer.from(await fs.readFile("/fault")).toString(), "unchanged");

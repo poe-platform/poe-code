@@ -8,9 +8,9 @@ import {
 import { runMetadata } from "./helpers.js";
 
 test("metadata root API preflights collisions and excludes optional network/runtime plugins", () => {
-  assert.deepEqual(createMetadataCommands().map(command => command.name), ["chmod", "stat", "mktemp"]);
+  assert.deepEqual(createMetadataCommands().map(command => command.name), ["chmod", "stat", "mktemp", "truncate"]);
   const names = createAgentCommands().map(command => command.name);
-  for (const name of ["chmod", "stat", "mktemp"]) assert.ok(names.includes(name), `${name} must be available in the aggregate`);
+  for (const name of ["chmod", "stat", "mktemp", "truncate"]) assert.ok(names.includes(name), `${name} must be available in the aggregate`);
   assert.equal(new Set(names).size, names.length);
   assert.equal(names.includes("curl"), false);
   assert.equal(names.includes("safejs"), false);
@@ -20,7 +20,7 @@ test("metadata root API preflights collisions and excludes optional network/runt
   assert.throws(() => metadataCommands().setup(host), /already registered/u);
   assert.deepEqual(commands.list(), initial);
   metadataCommands({ replace: true }).setup(host);
-  assert.equal(commands.list().length, 3);
+  assert.equal(commands.list().length, 4);
   assert.notEqual(commands.get("stat"), initial[0]);
   assert.throws(() => createMetadataCommands({ umask: 0o1000 }), /umask/u);
   assert.throws(() => createMetadataCommands({ limits: { maxAttempts: 0 } }), /limit/u);

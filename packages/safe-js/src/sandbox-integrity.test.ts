@@ -1,4 +1,5 @@
 import { Volume, createFsFromVolume } from "memfs";
+import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 
 import { createSink } from "../test/sinks.js";
@@ -126,11 +127,11 @@ describe("sandbox integrity at the run boundary", () => {
     const result = await run(`
       const closure = function () {};
       return [
-        ({}).__proto__, ({}).constructor === Object, ({}).prototype,
-        [].__proto__, [].constructor, [].prototype,
-        "value".__proto__, "value".constructor, "value".prototype,
-        (1).__proto__, (1).constructor, (1).prototype,
-        closure.__proto__, closure.constructor, closure.prototype.constructor === closure,
+        ({}).__proto__ === Object.prototype, ({}).constructor === Object, ({}).prototype,
+        [].__proto__ === Array.prototype, [].constructor === Array, [].prototype,
+        "value".__proto__ === String.prototype, "value".constructor === String, "value".prototype,
+        (1).__proto__ === Number.prototype, (1).constructor === Number, (1).prototype,
+        closure.__proto__ === Function.prototype, closure.constructor === Function, closure.prototype.constructor === closure,
         typeof ([1].toSorted)
       ];
     `);
@@ -138,22 +139,11 @@ describe("sandbox integrity at the run boundary", () => {
     expect(result).toMatchObject({
       ok: true,
       returnValue: [
-        undefined,
-        true,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        true,
-        "function"
+        true, true, undefined,
+        true, true, undefined,
+        true, true, undefined,
+        true, true, undefined,
+        true, true, true, "function"
       ]
     });
   });
@@ -176,44 +166,66 @@ describe("sandbox integrity at the run boundary", () => {
     });
   });
 
-  it("allows supported closed-world methods and directs unsupported member calls", async () => {
+  it("allows built-in array methods and rejects calls to missing members", async () => {
     await expect(run("return [2, 1].toSorted();")).resolves.toMatchObject({
       ok: true,
       returnValue: [1, 2]
     });
     await expect(run("return [1].shuffle();")).rejects.toMatchObject({
       name: "TypeError",
-      message: "Array#shuffle is not a supported method."
+      message: "Attempted to call a non-function value."
     });
   });
 
   it.each([
-    ["closure constructor", "return (function () {}).constructor;"],
-    ["object constructor", "return ({}).constructor.constructor;"],
-    ["array constructor", "return [].constructor;"]
-  ])("does not expose a Function constructor through %s", async (_label, source) => {
-    await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: undefined });
+    "const value=[1];value.shuffle=()=>7;return value.shuffle()",
+    "Array.prototype.shuffle=function(){return this[0]};return [1].shuffle()"
+  ])("calls guest-defined array methods like native: %s", async source => {
+    const expected = runInNewContext(`(function(){${source}})()`);
+    expect((await run(source)).returnValue).toEqual(expected);
+  });
+
+  it.each(["return [1].shuffle()", "const value=[1];value.shuffle=7;return value.shuffle()"])(
+    "rejects non-callable array members like native: %s", async source => {
+      let nativeName: string | undefined;
+      try { runInNewContext(`(function(){${source}})()`); }
+      catch (error) { nativeName = (error as Error).name; }
+      expect(nativeName).toBe("TypeError");
+      await expect(run(source)).rejects.toMatchObject({ name: nativeName });
+    }
+  );
+
+  it.each([
+    ["closure constructor", "(function () {}).constructor"],
+    ["object constructor", "({}).constructor.constructor"],
+    ["array constructor", "[].constructor.constructor"]
+  ])("exposes only a guest Function constructor through %s", async (_label, expression) => {
+    const source = `const C=${expression};return [C===Function,C('return [typeof process,typeof require,typeof Buffer]')()]`;
+    await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: [true,["undefined","undefined","undefined"]] });
   });
 
   it.each([
     [
       "closure gadget",
       'return (function () {}).constructor("return process")();',
-      "Function#constructor is not a supported method."
+      "Identifier 'process' is not defined.",
+      "ReferenceError"
     ],
     [
       "object gadget",
       'return ({}).constructor("return process")();',
-      "Object primitive boxing is not supported."
+      "Attempted to call a non-function value.",
+      "TypeError"
     ],
     [
       "array gadget",
       'return [].constructor("return process")();',
-      "Array#constructor is not a supported method."
+      "Attempted to call a non-function value.",
+      "TypeError"
     ]
-  ])("fails closed for the %s", async (_label, source, message) => {
+  ])("fails closed for the %s", async (_label, source, message, name) => {
     await expect(run(source)).rejects.toMatchObject({
-      name: "TypeError",
+      name,
       message
     });
   });

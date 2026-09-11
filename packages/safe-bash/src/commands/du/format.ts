@@ -1,4 +1,6 @@
-export class UsageError extends Error {}
+import { PublicDiagnostic } from "../../diagnostics.js";
+
+export class UsageError extends PublicDiagnostic {}
 
 export interface Format {
   readonly unit: bigint;

@@ -1,5 +1,5 @@
-import { randomBytes } from "node:crypto";
-import { posix } from "node:path";
+import { randomBytes } from "./platform.js";
+import { posixPath as posix } from "../../contracts/path.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, readBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
@@ -107,7 +107,9 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
     }
     try {
       const path = pathOf(context, part.file!);
-      if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal }), signal);
+      const capabilities = await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;
+      signal.throwIfAborted();
+      if (context.fs.readStream && capabilities.streamingRead !== false) yield* readBytes(context.fs.readStream(path, { signal }), signal);
       else yield await context.fs.readFile(path, { signal, maxBytes: Math.min(limits.maxBufferBytes, limits.maxUploadBytes) });
     } catch (error) {
       signal.throwIfAborted();

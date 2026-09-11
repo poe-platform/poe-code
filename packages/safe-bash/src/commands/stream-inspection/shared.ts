@@ -1,6 +1,6 @@
 import { yieldTurn } from "../../contracts/yield.js";
-import { FsError, readBytes, resolvePath, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
-import { diagnostic } from "../internal.js";
+import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { diagnostic, pathOf } from "../internal.js";
 
 export interface StreamInspectionLimits {
   readonly maxInputBytes: number;
@@ -94,11 +94,14 @@ export class Session {
           yield* { [Symbol.asyncIterator]() { return { next: () => cursor.next() }; } };
         } else {
           if (!name) throw new FsError("ENOENT", { path: name });
-          const path = resolvePath(session.context.cwd, name);
+          const path = pathOf(session.context, name);
           const stat = await session.context.fs.stat(path, { signal });
           signal.throwIfAborted();
           if (stat.type === "directory") throw new FsError("EISDIR", { path });
-          if (session.context.fs.readStream) yield* session.context.fs.readStream(path, { signal });
+          await session.step();
+          const capabilities = await session.context.fs.capabilitiesFor?.(path, { signal }) ?? session.context.fs.capabilities;
+          signal.throwIfAborted();
+          if (session.context.fs.readStream && capabilities.streamingRead !== false) yield* session.context.fs.readStream(path, { signal });
           else yield await session.context.fs.readFile(path, { signal, maxBytes: Math.min(session.limits.maxChunkBytes, session.limits.maxInputBytes - session.inputBytes) });
         }
       })();

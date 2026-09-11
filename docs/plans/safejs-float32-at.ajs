@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(8, { maxByteLength: 16 });
+  const values = new Float32Array(buffer);
+  values.set([1, 2]);
+  const last = values.at({ valueOf() { buffer.resize(16); return -1; } });
+  if (last !== 2) throw new Error("Initial-length indexing regression");
+  await 0;
+  const removed = values.at({ valueOf() { buffer.resize(0); return 0; } });
+  if (removed !== undefined) throw new Error("Resize-aware read regression");
+  return { title: frontmatter.title, ok: true, last };
+};

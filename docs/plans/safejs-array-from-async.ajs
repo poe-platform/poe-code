@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({title:S.String(),values:S.Array(S.Number())});
+
+export default async (frontmatter) => {
+  const events=[];
+  async function* input() {
+    for (const value of frontmatter.values) {
+      events.push(value);
+      await 0;
+      yield value;
+    }
+  }
+  const result=await Array.fromAsync(input(),async (value,index)=>{
+    await 0;
+    return value+index;
+  });
+  if (result.join(',') !== '2,5,8' || events.join(',') !== '2,4,6')
+    throw new Error('Sequential async collection failed');
+  return {title:frontmatter.title,ok:true,result,events};
+};

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileDescriptor, type FileSystem } from "poe-code/safe-fs";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import { Shell } from "../../../../src/shell/shell.js";
 import { arraysExtension } from "../../../../src/shell/extensions/arrays/index.js";
 import { jobsExtension } from "../../../../src/shell/extensions/jobs/index.js";
@@ -44,7 +44,7 @@ for (const id of [1, 2, 3, 4, 5, 6, 19, 20, 21, 22, 23, 24, "L1", "L2"] as const
   test(`qualified wait observation ${id === 23 ? "canonical indexed seed and observer adaptation" : "exact source replay"} ${id}`, async context => {
     assert.equal(reference.request.gates.length, 0);
     assert.notEqual(reference.qualification.kind, "exploratory");
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), arraysExtension(), ...(id === 23 ? [indexedSeed] : [])], env: reference.request.environment }).use(browserCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension(), arraysExtension(), ...(id === 23 ? [indexedSeed] : [])], env: reference.request.environment }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(id === 23 ? indexedSource(reference.source) : reference.source, { stdin: reference.stdin });
     assert.deepEqual(Buffer.from(result.stdoutBytes), reference.stdout, result.stderr);
@@ -102,7 +102,7 @@ for (const id of [7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, "R8"] as const) {
       controller.abort(new Error("wait VFS handshake safety deadline"));
       for (const gate of gates.values()) gate.resolve();
     }, 1500);
-    const shell = new Shell({ fs, extensions: [jobsExtension(), arraysExtension(), ...(id === 17 ? [indexedSeed] : [])], env: reference.request.environment }).use(browserCommands());
+    const shell = new Shell({ fs, extensions: [jobsExtension(), arraysExtension(), ...(id === 17 ? [indexedSeed] : [])], env: reference.request.environment }).use(agentCommands());
     const running = shell.exec(`{ ${id === 17 ? indexedSource(reference.source) : reference.source}; } 3</gate3 4</gate4 7>/control`, {
       stdin: reference.stdin, signal: controller.signal,
       stderr: { async write(bytes) { diagnostic = Buffer.concat([diagnostic, bytes]); release(); } },
@@ -196,7 +196,7 @@ for (const reason of [undefined, null, false, 0, ""]) test(`failed child is neve
 });
 
 test("source-backed saved-status prepass precedes later invalid operand diagnostics", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("{ exit 7; } & child=$!; for item in one; do wait \"$child\"; done; wait -n -p who \"$child\" bad; result=$?; [[ $who == $child ]]; printf '%s:%s' \"$result\" \"$?\"");
   assert.equal(result.stdout, "7:0");
@@ -204,7 +204,7 @@ test("source-backed saved-status prepass precedes later invalid operand diagnost
 });
 
 test("no arbitrary command or next-wait counter retires active-notified status", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("{ exit 7; } & child=$!; wait \"$child\"; :; for item in; do :; done; wait -n \"$child\"; printf '%s:' \"$?\"; :; wait -n \"$child\"; printf '%s' \"$?\"");
   assert.equal(result.stdout, "127:127");
@@ -212,7 +212,7 @@ test("no arbitrary command or next-wait counter retires active-notified status",
 });
 
 test("zero saved status remains a hit and repeated explicit lookups retain it", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("{ exit 0; } & child=$!; for item in one; do wait \"$child\"; done; wait -n -p who \"$child\"; printf '%s:' \"$?\"; wait -n -p who \"$child\"; printf '%s:' \"$?\"; wait -n; printf '%s' \"$?\"");
   assert.equal(result.stdout, "0:0:127");
@@ -286,7 +286,7 @@ test("invalid-target diagnostics honor backpressure after destination unset", { 
     const instance = definition.create();
     return { ...instance, builtins: instance.builtins.map(builtin => ({ ...builtin, execute(command) { active = command; return builtin.execute.call(builtin, command); } })) };
   } };
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(agentCommands());
   const running = shell.exec("who=old; wait -n -p who 0; printf after", { stderr: { async write() {
     assert.ok(active);
     assert.equal(active.bindings.get("who"), undefined);
@@ -325,7 +325,7 @@ for (const reason of [null, false, 0, ""]) test(`root cancellation after -p unse
       } } });
     } })) };
   } };
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(agentCommands());
   shell.register({ name: "blocked", async execute(command) {
     command.registerCleanup!(() => { closed++; release.resolve(); });
     await release.promise;
@@ -362,7 +362,7 @@ for (const reason of [undefined, null, false, 0, ""]) for (const diagnosticFailu
       } } });
     } })) };
   } };
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(agentCommands());
   context.after(() => shell.dispose());
   await assert.rejects(shell.exec("who=old; wait -n -p who 0; printf wrong", {
     stderr: { async write() { if (diagnosticFailure) throw reason; } },

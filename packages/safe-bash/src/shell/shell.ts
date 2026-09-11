@@ -1,4 +1,6 @@
-import { CommandRegistry, resolvePath, toByteSource, writeText } from "../contracts/index.js";
+import { writeDiagnostic } from "../escaping.js";
+import { createDeviceFileSystem } from "poe-code/safe-fs/core";
+import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
 import type {
   ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
   RegisterCommandOptions, VirtualShellPlugin,
@@ -6,7 +8,8 @@ import type {
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
 import { captureShellExtensions, extensionState } from "./extensions.js";
-import { prepareBytesInput, ShellInput, type PreparedShellInput } from "./input.js";
+import { ShellInput } from "./input.js";
+import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
 import type { State } from "./runtime.js";
@@ -105,6 +108,7 @@ export class Shell implements PluginHost {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
     const commands = options.commands ?? new CommandRegistry();
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
+    if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
     resolveLimits(options.limits);
     this.#options = { ...options, extensions: [...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
@@ -167,8 +171,9 @@ export class Shell implements PluginHost {
 
   async exec(source: string, options: ShellExecOptions = {}): Promise<ShellResult> {
     if (this.#disposed) throw new Error("Shell is disposed");
+    if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
-    const budget = new Budget(resolveLimits(this.#options.limits, options.limits), options.signal);
+    const budget = new Budget(resolveLimits(this.#options.limits, options.limits), options.signal, options.onInternalError ?? this.#options.onInternalError);
     const scope = new InvocationScope(options.signal);
     const cancellationState = new RuntimeCancellationState();
     const owner = new RootInvocationCancellationOwner(scope);
@@ -233,13 +238,8 @@ export class Shell implements PluginHost {
       },
     });
     let stdin: ShellInput | undefined;
-    let preparedInput: PreparedShellInput | undefined;
-    const closeInput = async (): Promise<void> => {
-      try { await stdin?.close(); }
-      finally { await preparedInput?.close(); }
-    };
     scope.register(async () => {
-      try { await closeInput(); }
+      try { await stdin?.close(); }
       catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
     });
     const io = {
@@ -255,10 +255,16 @@ export class Shell implements PluginHost {
     try {
       try {
         const extensions = captureShellExtensions(this.#options.extensions ?? []);
-        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), false, extensions.syntax);
+        const lineIndex = new SourceLineIndex(source, budget.parsing);
+        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), budget.parsing, lineIndex, undefined, false, extensions.syntax);
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
-          preparedInput = prepareBytesInput(options.stdin ?? "", budget);
-          stdin = new ShellInput(preparedInput.source, budget, budget.signal, preparedInput.options);
+          const value = options.stdin ?? "";
+          const source = toByteSource(value);
+          let available = value.length > 0;
+          const inline = { async *[Symbol.asyncIterator]() {
+            for await (const bytes of source) { available = false; yield bytes; }
+          } };
+          stdin = new ShellInput(inline, budget, budget.signal, { provenance: "stream", poll: () => available ? "ready" : "eof" });
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
@@ -275,11 +281,13 @@ export class Shell implements PluginHost {
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,
+          globstar: false,
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
         const admission = Runtime.rootCancellationAdmission(budget);
+        const filesystem = options.fs ?? this.#options.fs;
         runtime = new Runtime(
-          options.fs ?? this.#options.fs,
+          createDeviceFileSystem(filesystem),
           this.commands,
           [...this.#middleware],
           budget,
@@ -292,10 +300,12 @@ export class Shell implements PluginHost {
           owner,
           0,
           admission.maxDepth,
+          undefined,
+          filesystem,
         );
         exitCode = 0;
         while (true) {
-          for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+          for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
           if (unit.script.lists.length) {
             const result = await interruptible(runtime.runUnit(unit.script, state, io), budget.signal);
             exitCode = result.exitCode;
@@ -303,20 +313,20 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), false, extensions.syntax);
+          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), budget.parsing, lineIndex, undefined, false, extensions.syntax);
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;
         const line = source.slice(0, error.offset).split("\n").length;
         if (error.unclosedQuote) {
-          await writeText(io.stderr, `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
+          await writeDiagnostic(io.stderr, `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
         } else if (error.exitCode === 127) {
           const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
-          await writeText(io.stderr, `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
+          await writeDiagnostic(io.stderr, `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
         } else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
           const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
-          await writeText(io.stderr, `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
-        } else await writeText(io.stderr, `shell: ${error.message}\n`);
+          await writeDiagnostic(io.stderr, `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
+        } else await writeDiagnostic(io.stderr, `shell: ${error.message}\n`);
         exitCode = error.exitCode;
       }
       if (runtime && state) exitCode = await runtime.finishShell(state, io, exitCode);
@@ -327,8 +337,8 @@ export class Shell implements PluginHost {
     }
     finally {
       await budget.executionCleanup.drain();
-      if (failed) await closeInput().catch(() => {});
-      else await closeInput();
+      if (failed) await stdin?.close().catch(() => {});
+      else await stdin?.close();
     }
     throwCleanupFailures(budget.executionCleanup.failures);
     const stdoutBytes = stdout.takeBytes();

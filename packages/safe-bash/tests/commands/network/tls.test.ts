@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { createServer } from "node:https";
+import https, { createServer, type RequestOptions } from "node:https";
+import type { IncomingMessage } from "node:http";
+import { syncBuiltinESMExports } from "node:module";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { createNodeHttpTransport } from "../../../src/commands/network/index.js";
@@ -41,3 +43,34 @@ test("HTTPS-to-HTTP redirect is rejected before opening the downgrade destinatio
   } });
   assert.equal(result.exitCode, 1); assert.deepEqual(visits, [origin + "/downgrade"]);
 });
+
+for (const hostname of ["public.example", "93.184.216.34", "[2606:4700::1111]"]) {
+  test(`protected TLS validates original ${hostname}, not explicit Host or fixture dial address`, async context => {
+    const nativeRequest = https.request;
+    const calls: { url: string; options: RequestOptions }[] = [];
+    context.mock.method(https, "request", (url: URL, options: RequestOptions, listener: (response: IncomingMessage) => void) => {
+      calls.push({ url: url.href, options });
+      const fixtureUrl = new URL(url);
+      fixtureUrl.hostname = "127.0.0.1";
+      return nativeRequest(fixtureUrl, { ...options, family: 4 }, listener);
+    });
+    syncBuiltinESMExports();
+    context.after(() => { context.mock.restoreAll(); syncBuiltinESMExports(); });
+    const port = new URL(origin).port;
+    const url = `https://${hostname}:${port}/`;
+    const transport = createNodeHttpTransport({ ca: cert, resolveAddress: async () => ({ address: "93.184.216.34", family: 4 }) });
+    let cleanup: (() => Promise<void>) | undefined;
+    try {
+      await assert.rejects(transport({ url, headers: [["Host", "localhost"]], method: "GET",
+        signal: new AbortController().signal, denyPrivateNetworks: true,
+        registerCleanup: dispose => { cleanup = () => Promise.resolve(dispose()); },
+      }).then(response => response.dispose()), { code: "ERR_TLS_CERT_ALTNAME_INVALID" });
+    } finally { await cleanup?.(); }
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0]!.url, url);
+    assert.equal(calls[0]!.options.servername, hostname === "public.example" ? hostname : "");
+    assert.equal(calls[0]!.options.rejectUnauthorized, true);
+    assert.equal(calls[0]!.options.agent, false);
+    assert.deepEqual(calls[0]!.options.headers, { host: "localhost" });
+  });
+}

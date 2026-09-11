@@ -269,3 +269,5 @@ await stop();
 - Memory is opt-in and project-scoped.
 - Wrapped agent sessions are not auto-injected in v1.
 - Search stays plain-text; no embeddings or vector index.
+
+Query and explain dry runs validate their inputs without spawning an agent. Cache reads reject mismatched keys and invalid numeric metadata; filesystem guards reject user-controlled symlink escapes. The normal macOS system path aliases remain supported.

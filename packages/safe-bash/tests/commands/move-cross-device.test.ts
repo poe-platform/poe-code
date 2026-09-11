@@ -52,13 +52,13 @@ test("unknown existing identity rejects before a hypothetical no-op copy or dele
   assert.equal(copies, 0); assert.equal(removals, 0); assert.equal(await contents(left, "/source"), "payload"); assert.equal(await contents(right, "/target"), "previous");
 });
 
-for (const noClobber of [false, true]) test(`raced missing destination uses actual exclusive creation, no-clobber=${noClobber}`, async () => {
+test("raced missing destination uses actual exclusive creation", async () => {
   const { fs, left, right } = await pair(); let removals = 0;
   const wrapped = proxy(fs, { copyFile: async (source, target, options) => {
     assert.equal(options?.exclusive, true); await right.writeFile("/target", Buffer.from("concurrent")); await fs.copyFile(source, target, options);
   }, rm: async () => { removals++; } });
-  const result = await run("mv", [...(noClobber ? ["-n"] : []), "/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
-  assert.equal(result.exitCode, noClobber ? 0 : 1); assert.equal(removals, 0);
+  const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
+  assert.equal(result.exitCode, 1); assert.equal(removals, 0);
   assert.equal(await contents(left, "/source"), "payload"); assert.equal(await contents(right, "/target"), "concurrent");
 });
 

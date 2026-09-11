@@ -1,3 +1,4 @@
+import { PublicDiagnostic } from "../../diagnostics.js";
 import type { SplitArguments, SplitLimits } from "./options.js";
 
 export class Names {
@@ -19,7 +20,7 @@ export class Names {
       for (let index = this.digits.length - 1; index >= 0; index--) {
         this.digits[index] = this.digits[index]! + 1;
         if (index === 0 && this.args.automatic && this.digits[index] === this.args.alphabet.length - 1) {
-          if (this.extension.length + this.digits.length + 2 > this.limits.maxSuffixLength) throw new Error("split suffix length limit exceeded");
+          if (this.extension.length + this.digits.length + 2 > this.limits.maxSuffixLength) throw new PublicDiagnostic("split suffix length limit exceeded");
           this.extension += this.args.alphabet.at(-1)!;
           this.digits = Array.from({ length: this.digits.length + 1 }, () => 0);
           advanced = true;
@@ -28,7 +29,7 @@ export class Names {
         if (this.digits[index]! < this.args.alphabet.length) { advanced = true; break; }
         this.digits[index] = 0;
       }
-      if (!advanced) throw new Error("output file suffixes exhausted");
+      if (!advanced) throw new PublicDiagnostic("output file suffixes exhausted");
     }
     this.first = false;
     return this.args.prefix + this.extension + this.digits.map(digit => this.args.alphabet[digit]).join("") + this.args.additionalSuffix;

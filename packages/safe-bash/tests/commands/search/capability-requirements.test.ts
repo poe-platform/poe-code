@@ -1,15 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Worker } from "node:worker_threads";
+import { createNodeRegexProvider } from "../../../src/node.js";
 import { CommandRegistry, evaluateCommandSupport, toByteSource, type CommandContext, type FileSystem, type FileSystemCapabilities } from "../../../src/contracts/index.js";
-import { portableSearchCommands } from "../../../src/commands/search/portable.js";
+import { agentCommands } from "../../../src/index.js";
 import { fixture } from "../helpers.js";
 
-const provider = {
-  createWorker() {
-    return new Worker(new URL("../../../dist/commands/regex-execution/worker.js", import.meta.url), { execArgv: [] });
-  },
-};
+const provider = createNodeRegexProvider();
 
 function profile(backing: FileSystem, capabilities: FileSystemCapabilities, calls: string[] = [], selected?: (path: string) => FileSystemCapabilities): FileSystem {
   return new Proxy(backing, {
@@ -27,7 +23,7 @@ function profile(backing: FileSystem, capabilities: FileSystemCapabilities, call
 
 async function run(name: string, args: readonly string[], fs: FileSystem, stdin = "match\nother\n") {
   const commands = new CommandRegistry();
-  const plugin = portableSearchCommands({ provider });
+  const plugin = agentCommands({ regexExecutor: provider });
   await plugin.setup({ commands, use() {}, registerFileSystem() {} });
   let stdout = "";
   let stderr = "";
@@ -45,10 +41,11 @@ async function run(name: string, args: readonly string[], fs: FileSystem, stdin 
 
 test("portable search definitions expose stdin, file, and special filesystem modes", async () => {
   const commands = new CommandRegistry();
-  const plugin = portableSearchCommands({ provider });
+  const plugin = agentCommands({ regexExecutor: provider });
   await plugin.setup({ commands, use() {}, registerFileSystem() {} });
   try {
-    for (const command of commands.list()) {
+    for (const name of ["grep", "rg", "sed"]) {
+      const command = commands.get(name)!;
       const help = evaluateCommandSupport(command, { readOnly: true, read: false, streamingRead: false });
       assert.equal(help.declared, true, command.name);
       assert.equal(help.status, "partial", command.name);

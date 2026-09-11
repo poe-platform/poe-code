@@ -1,11 +1,31 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import type { Budget } from "./budget.js";
 
 export type RunResources = {
   signal: AbortSignal;
-  add(close: () => Promise<void>): void;
+  functionSourceText?: boolean;
+  // Cancellation is catchable; suspended references survive until disposal.
+  referenceReleases: Set<() => void>;
+  reportError?: (reason: unknown) => void;
+  add(close: () => Promise<void>): void | (() => void);
 };
 
 export const runResources = new AsyncLocalStorage<RunResources>();
+
+export function retainValues(
+  budget: Budget,
+  values: () => Iterable<unknown>
+): () => void {
+  const retained = {};
+  budget.setRetainedValues(retained, values);
+  const pending = runResources.getStore()?.referenceReleases;
+  const release = () => {
+    budget.setRetainedValues(retained, undefined);
+    pending?.delete(release);
+  };
+  pending?.add(release);
+  return release;
+}
 
 export async function withRunResources<Result>(
   signal: AbortSignal | undefined,
@@ -14,24 +34,32 @@ export async function withRunResources<Result>(
   const controller = new AbortController();
   const cancel = () => controller.abort(signal?.reason);
   const cleanups = new Set<() => Promise<void>>();
+  let failure: { reason: unknown } | undefined;
   const resources: RunResources = {
     signal: controller.signal,
+    referenceReleases: new Set(),
+    reportError(reason) {
+      failure ??= { reason };
+      controller.abort(failure.reason);
+    },
     add(close) {
       cleanups.add(close);
+      return () => { cleanups.delete(close); };
     }
   };
   signal?.addEventListener("abort", cancel, { once: true });
   if (signal?.aborted) cancel();
   let result!: Result;
-  let failure: { reason: unknown } | undefined;
   let errors: unknown[] = [];
   try {
     result = await runResources.run(resources, execute);
   } catch (error) {
-    failure = { reason: error };
+    failure ??= { reason: error };
   } finally {
     signal?.removeEventListener("abort", cancel);
     controller.abort(new Error("SafeJS run finished."));
+    for (const release of resources.referenceReleases) release();
+    resources.referenceReleases.clear();
     const outcomes = await Promise.allSettled(
       [...cleanups].map((close) => Promise.resolve().then(close))
     );

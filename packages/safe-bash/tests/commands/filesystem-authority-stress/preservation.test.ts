@@ -48,18 +48,33 @@ for (const phase of ["copy", "metadata", "remove"] as const) test(`mv: cancellat
   assert.deepEqual(await bytes(base, "/target"), payload);
 });
 
-for (const noClobber of [false, true]) test(`mv: raced destination requires exclusive creation; noClobber=${noClobber}`, async () => {
+test("mv: raced destination requires exclusive creation", async () => {
   const { base, fs, events } = await provider({ target: false });
   const observed = view(fs, { copyFile: async (source, target, controls) => {
     assert.equal(controls?.exclusive, true);
     await base.writeFile(target, previous);
     await base.copyFile(source, target, controls);
   } });
-  const result = await command("mv", [...(noClobber ? ["-n"] : []), "/source", "/target"], observed);
-  assert.equal(result.exitCode, noClobber ? 0 : 1);
-  if (!noClobber) assert.match(result.stderr, /EEXIST/u);
+  const result = await command("mv", ["/source", "/target"], observed);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /EEXIST/u);
   assert.deepEqual(effects(events), []);
   await unchanged(base);
+});
+
+test("mv -n: cross-device refusal preserves source without publishing a destination", async () => {
+  const { base, fs, events } = await provider({ target: false });
+  const observed = view(fs, { copyFile: async (source, target, controls) => {
+    events.push("unexpected copy");
+    await base.writeFile(target, previous);
+    await base.copyFile(source, target, controls);
+  } });
+  const result = await command("mv", ["-n", "/source", "/target"], observed);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /EXDEV/u);
+  assert.deepEqual(events, ["rename:EXDEV"]);
+  assert.deepEqual(await bytes(base, "/source"), payload);
+  assert.equal(await bytes(base, "/target"), null);
 });
 
 test("mv: all directory publications precede cleanup; a later copy failure keeps every source", async () => {

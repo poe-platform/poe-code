@@ -1,0 +1,14 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const key=Symbol("answer");
+  const calls=[];
+  const source={get first(){calls.push("string");return 1},get [key](){calls.push("symbol");return 42}};
+  const value=Object.assign(new Map(),source);
+  if(value[key]!==42 || calls.join(",")!=="string,symbol") {
+    throw new Error("Object.assign symbol copy or ordering failed");
+  }
+  return {title:frontmatter.title,ok:true,answer:value[key],calls};
+};

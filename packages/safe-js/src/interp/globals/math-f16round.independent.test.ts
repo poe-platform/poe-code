@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import capture from "../../../test/fixtures/regexp-compile-hash-ea469.json" with { type: "json" };
+import { expectLegacyDumpGraph } from "../../../test/helpers/legacy-dump-graph.js";
 import { dump } from "../../dump.js";
 import { parse } from "../../parse.js";
 import { hashSource } from "../../parse/hash.js";
@@ -206,10 +207,79 @@ describe("Math.f16round independent review", () => {
       ...capture.completed,
       bindings: {
         ...capture.completed.bindings,
+        ArrayBuffer: { kind: "fn", name: "ArrayBuffer" },
+        DataView: { kind: "fn", name: "DataView" },
+        Uint8Array: { kind: "fn", name: "Uint8Array" },
+        Int8Array: { kind: "fn", name: "Int8Array" },
+        Uint8ClampedArray: { kind: "fn", name: "Uint8ClampedArray" },
+        Int16Array: { kind: "fn", name: "Int16Array" },
+        Uint16Array: { kind: "fn", name: "Uint16Array" },
+        Int32Array: { kind: "fn", name: "Int32Array" },
+        Uint32Array: { kind: "fn", name: "Uint32Array" },
+        Float64Array: { kind: "fn", name: "Float64Array" },
+        BigInt64Array: { kind: "fn", name: "BigInt64Array" },
+        BigUint64Array: { kind: "fn", name: "BigUint64Array" },
+        Float16Array: { kind: "fn", name: "Float16Array" },
+        Iterator: { kind: "fn", name: "Iterator" },
+        Intl: {
+          Collator: { kind: "fn", name: "Collator" },
+          NumberFormat: { kind: "fn", name: "NumberFormat" },
+          ListFormat: { kind: "fn", name: "ListFormat" },
+          RelativeTimeFormat: { kind: "fn", name: "RelativeTimeFormat" },
+          DisplayNames: { kind: "fn", name: "DisplayNames" },
+          DateTimeFormat: { kind: "fn", name: "DateTimeFormat" },
+          PluralRules: { kind: "fn", name: "PluralRules" },
+          Segmenter: { kind: "fn", name: "Segmenter" },
+          DurationFormat: { kind: "fn", name: "DurationFormat" },
+          Locale: { kind: "fn", name: "Locale" },
+          getCanonicalLocales: { kind: "fn", name: "getCanonicalLocales" },
+          supportedValuesOf: { kind: "fn", name: "supportedValuesOf" },
+          [Symbol.toStringTag]: "Intl"
+        },
+        Reflect: {
+          apply: { kind: "fn", name: "apply" },
+          construct: { kind: "fn", name: "construct" },
+          defineProperty: { kind: "fn", name: "defineProperty" },
+          deleteProperty: { kind: "fn", name: "deleteProperty" },
+          get: { kind: "fn", name: "get" },
+          getOwnPropertyDescriptor: { kind: "fn", name: "getOwnPropertyDescriptor" },
+          getPrototypeOf: { kind: "fn", name: "getPrototypeOf" },
+          has: { kind: "fn", name: "has" },
+          isExtensible: { kind: "fn", name: "isExtensible" },
+          ownKeys: { kind: "fn", name: "ownKeys" },
+          preventExtensions: { kind: "fn", name: "preventExtensions" },
+          set: { kind: "fn", name: "set" },
+          setPrototypeOf: { kind: "fn", name: "setPrototypeOf" },
+          [Symbol.toStringTag]: "Reflect"
+        },
+        Symbol: { kind: "fn", name: "Symbol" },
+        BigInt: { kind: "fn", name: "BigInt" },
         Date: { kind: "fn", name: "Date" },
+        URIError: { kind: "fn", name: "URIError" },
+        EvalError: { kind: "fn", name: "EvalError" },
+        SuppressedError: { kind: "fn", name: "SuppressedError" },
+        DisposableStack: { kind: "fn", name: "DisposableStack" },
+        AsyncDisposableStack: { kind: "fn", name: "AsyncDisposableStack" },
+        encodeURI: { kind: "fn", name: "encodeURI" },
+        encodeURIComponent: { kind: "fn", name: "encodeURIComponent" },
+        decodeURI: { kind: "fn", name: "decodeURI" },
+        decodeURIComponent: { kind: "fn", name: "decodeURIComponent" },
+        escape: { kind: "fn", name: "escape" },
+        unescape: { kind: "fn", name: "unescape" },
+        WeakMap: { kind: "fn", name: "WeakMap" },
+        WeakSet: { kind: "fn", name: "WeakSet" },
+        Function: { kind: "fn", name: "Function" },
         Object: { kind: "fn", name: "Object" },
+        JSON: {
+          ...capture.completed.bindings.JSON,
+          [Symbol.toStringTag]: "JSON",
+          rawJSON: { kind: "fn", name: "rawJSON" },
+          isRawJSON: { kind: "fn", name: "isRawJSON" }
+        },
         Math: {
           ...capture.completed.bindings.Math,
+          [Symbol.toStringTag]: "Math",
+          sumPrecise: { kind: "fn", name: "sumPrecise" },
           f16round: { kind: "fn", name: "f16round" }
         }
       }
@@ -241,7 +311,13 @@ describe("Math.f16round independent review", () => {
       if (!Array.isArray(pair)) throw new Error("Missing regex alias pair");
       expect(pair[0]).toBe(regex);
       expect(pair[1]).toBe(regex);
-      expect(JSON.parse(await dump(result)), kind).toStrictEqual(expected);
+      const serialized = JSON.parse(await dump(result));
+      expect(restore(serialized, { source: capture.source })).toBe(serialized);
+      expectLegacyDumpGraph(serialized, expected, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer", "WeakRef", "FinalizationRegistry", "Temporal"]);
+      const { version: ignoredVersion, bindings: ignoredBindings, heap: ignoredHeap, ...legacyMetadata } = expected;
+      const { version, bindings: ignoredNewBindings, heap: ignoredNewHeap, ...metadata } = serialized;
+      expect(version).toBe(2);
+      expect(metadata, kind).toStrictEqual(legacyMetadata);
       expect(waitCalls).toHaveBeenCalledTimes(kind === "pending" ? 1 : 0);
       expect(provider).not.toHaveBeenCalled();
       expect(JSON.stringify(snapshot)).toBe(before);

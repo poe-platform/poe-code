@@ -12,7 +12,7 @@ import { byteCommands, createByteCommands } from "../../../src/commands/bytes/in
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 
-const names = ["base64", "base32", "xxd", "od", "sha256sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat"];
+const names = ["base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat"];
 const binary = Uint8Array.from({ length: 1025 }, (_, index) => index % 256);
 
 class RecordingRegistry extends CommandRegistry {
@@ -48,10 +48,10 @@ function deferred(): { promise: Promise<void>; resolve: () => void } {
   return { promise, resolve };
 }
 
-test("byte factory returns all eleven unique commands in family order", () => {
+test("byte factory returns all twenty-three unique commands in family order", () => {
   const definitions = createByteCommands();
   assert.deepEqual(definitions.map((definition) => definition.name), names);
-  assert.equal(new Set(definitions.map((definition) => definition.name)).size, 11);
+  assert.equal(new Set(definitions.map((definition) => definition.name)).size, 23);
   for (const definition of definitions) assert.equal(typeof definition.execute, "function");
 });
 
@@ -120,7 +120,7 @@ test("replacement is explicit for every command and preserves unrelated registra
   commands.registrations.length = 0;
   await byteCommands({ replace: true }).setup(host(commands));
   assert.deepEqual(commands.registrations, names.map((name) => ({ name, options: { replace: true } })));
-  assert.equal(commands.list().length, 12);
+  assert.equal(commands.list().length, 24);
   for (const previous of before) {
     if (previous.name === "unrelated") assert.equal(commands.get(previous.name), previous);
     else assert.notEqual(commands.get(previous.name)?.execute, previous.execute);

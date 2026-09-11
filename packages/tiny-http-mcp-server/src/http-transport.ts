@@ -1075,7 +1075,7 @@ export class StreamableHttpTransport {
     const history = this.sseEventHistory.get(sessionId) ?? [];
     for (const event of history) {
       if (event.id > lastEventId && !res.writableEnded) {
-        res.write(formatSseEvent({ id: String(event.id), data: event.data }));
+        this.writeToLiveGetStream(res, formatSseEvent({ id: String(event.id), data: event.data }));
       }
     }
   }

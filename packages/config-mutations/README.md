@@ -50,6 +50,13 @@ await runMutations(
 Mutation builders also expose per-mutation options such as target path, format,
 label, force removal, backup behavior, template id, and transform callbacks.
 
+## Validation and safety
+
+- Config merge mutations require object values; primitive merge payloads are rejected.
+- Transform mutations do not rewrite a file when serialized output is unchanged.
+- Directory creation, backup, and chmod mutations refuse targets that resolve through symlinked parents or symlinked files.
+- Observer start events include the resolved target details that will be used by the mutation.
+
 ## Environment Variables
 
 This package does not read or expose environment variables.

@@ -1,8 +1,8 @@
-import type { RegexExecutionOptions, Descriptor, ExprMatchDescriptor, Row } from "./protocol.js";
+import type { RegexExecutionOptions, Descriptor, ExprMatchDescriptor, BreSearchDescriptor, Row } from "./protocol.js";
 
 export interface RegexWorkerRequest {
   readonly id: number;
-  readonly descriptor: Descriptor | ExprMatchDescriptor;
+  readonly descriptor: Descriptor | ExprMatchDescriptor | BreSearchDescriptor;
   readonly rows: readonly Row[];
 }
 

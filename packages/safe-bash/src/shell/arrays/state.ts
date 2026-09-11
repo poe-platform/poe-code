@@ -3,13 +3,15 @@ import type { InvocationScope } from "../cleanup.js";
 import { ArrayFailure, ArrayLedger, ArrayOwner } from "./ledger.js";
 import type { Admission, Tickets } from "./ledger.js";
 import { BindingStore, textToken } from "./bindings.js";
-import { ValueArena, ValueStore } from "../value-state.js";
+import { ValueArena, ValueStore, type ValueScope } from "../value-state.js";
+import type { GetoptsInput } from "../getopts.js";
 
 interface Session {
   readonly values: ValueArena;
   readonly ledger: ArrayLedger;
   readonly internal: ArrayLedger;
   readonly scope: InvocationScope;
+  readonly monitors?: Set<StateMonitor>;
   owner: ArrayOwner | undefined;
   guestOwner: ArrayOwner | undefined;
 }
@@ -64,6 +66,9 @@ export class StateMonitor {
   #internalEnrollment: Admission | undefined;
   #restorations: Restoration | undefined;
   #overlays: OverlayMap | undefined;
+  #retireCleanup: (() => void) | undefined;
+  #positionalRevision: object = {};
+  #getoptsInput: { input: GetoptsInput; allocation: ValueScope } | undefined;
 
   constructor(readonly raw: State, readonly session: Session, source?: StateMonitor) {
     this.values = source ? source.values.clone() : new ValueStore(session.values);
@@ -72,19 +77,44 @@ export class StateMonitor {
     this.proxy = this.wrap(raw, "state") as State;
     monitors.set(raw, this);
     monitors.set(this.proxy, this);
-    session.scope.register(async () => { await session.scope.drainWork(); this.closeValues(); });
+    if (session.monitors) session.monitors.add(this);
+    else this.#retireCleanup = session.scope.register(async () => { await session.scope.drainWork(); this.closeValues(); });
   }
 
-  closeValues(): void { this.values.close(); this.positionals.close(); }
+  closeValues(): void {
+    this.values.close();
+    this.positionals.close();
+    this.invalidateGetoptsInput();
+    this.#retireCleanup?.();
+    this.#retireCleanup = undefined;
+  }
+
+  get positionalRevision(): object { return this.#positionalRevision; }
+  get getoptsInput(): GetoptsInput | undefined { return this.#getoptsInput?.input; }
+
+  retainGetoptsInput(revision: object, input: GetoptsInput, allocation: ValueScope): boolean {
+    this.session.scope.assertOpen();
+    if (revision !== this.#positionalRevision) return false;
+    this.#getoptsInput?.allocation.close();
+    this.#getoptsInput = { input, allocation };
+    return true;
+  }
+
+  private invalidateGetoptsInput(): void {
+    this.#getoptsInput?.allocation.close();
+    this.#getoptsInput = undefined;
+    this.#positionalRevision = {};
+  }
 
   private changedValue(target: object, field: string, key: PropertyKey): void {
     if (field === "state") {
       if (key === "variables") this.values.invalidate();
-      if (key === "positional") this.positionals.invalidate();
+      if (key === "positional") { this.positionals.invalidate(); this.invalidateGetoptsInput(); }
     } else if (field === "variables" && (this.raw.variables === target || this.raw.variables === this.#wrapped.get(target))) {
       this.values.invalidate(String(key));
     } else if (field === "positional" && (this.raw.positional === target || this.raw.positional === this.#wrapped.get(target))) {
       this.positionals.invalidate();
+      this.invalidateGetoptsInput();
     }
   }
 
@@ -305,14 +335,27 @@ export class Restoration {
   }
 }
 
-export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>): Promise<State> {
+export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>, scope?: InvocationScope): Promise<State> {
   const monitor = stateMonitor(state);
   if (!monitor) return clone();
-  if (!monitor.store && !monitor.session.ledger.active) return new StateMonitor(clone(), monitor.session, monitor).proxy;
+  const session: Session = scope ? { ...monitor.session, scope, owner: undefined, guestOwner: undefined, monitors: new Set() } : monitor.session;
+  if (scope) scope.register(async () => {
+    await scope.drainWork();
+    for (const owned of session.monitors!) {
+      owned.closeValues();
+      if (owned.store) for (const [name] of owned.store.bindings) {
+        await scope.cleanup(async () => { await owned.store!.remove(name, { generation: 0, version: 0, epoch: 0 }); });
+      }
+    }
+    session.monitors!.clear();
+    await session.owner?.close();
+  });
+  if (!monitor.store && !monitor.session.ledger.active) return new StateMonitor(clone(), session, monitor).proxy;
   const store = monitor.store ?? monitor.activate();
   const internal = store.owner.ledger === monitor.session.internal;
   const epoch = monitor.epoch;
-  const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+  const parent = scope ? session.owner ??= ArrayOwner.create(session.internal) : store.owner;
+  const owner = ArrayOwner.create(store.owner.ledger, parent);
   const holding = store.owner.hold();
   const check = () => {
     signal.throwIfAborted();
@@ -346,7 +389,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     }
     }
     check();
-    result = new StateMonitor(clone(), monitor.session, monitor);
+    result = new StateMonitor(clone(), session, monitor);
     const destination = result.activate(internal);
     for (const [name, entry] of store.bindings) {
       check();

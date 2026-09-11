@@ -205,7 +205,7 @@ describe("run", () => {
   it("includes the current dump format version in in-memory snapshots", async () => {
     const result = await run("return true");
 
-    expect(result.snapshot.version).toBe(1);
+    expect(result.snapshot.version).toBe(2);
   });
 
   it("lets scripts read only allow-listed environment variables through the env module", async () => {
@@ -1347,7 +1347,7 @@ try {
         message: "boom",
         name: "TypeError",
         stack:
-          "TypeError: boom\n    at explode (line 2, column 3)\n    at <anonymous> (line 1, column 1)"
+          "TypeError: boom\n    at explode (line 2, column 3)\n    at default (line 1, column 1)"
       })
     );
   });
@@ -1812,7 +1812,7 @@ try {
     expect(JSON.parse(result.returnValue as string)).toEqual([[], [], [], { ok: true }]);
   });
 
-  it("supports string replacer closures and rejects other function string arguments", async () => {
+  it("supports string replacer closures and coerces callable split limits without invoking them", async () => {
     await expect(run("return 'abba'.replace('a', () => 'b')")).resolves.toMatchObject({
       ok: true,
       returnValue: "bbba"
@@ -1822,11 +1822,13 @@ try {
         bindings: { replacer: createSandboxClosure({ call: () => "b" }) }
       })
     ).resolves.toMatchObject({ ok: true, returnValue: "bbbb" });
+    const limit = vi.fn(() => 1);
     await expect(
       run("return 'a,b'.split(',', limit)", {
-        bindings: { limit: createSandboxClosure({ call: () => 1 }) }
+        bindings: { limit: createSandboxClosure({ call: limit }) }
       })
-    ).rejects.toThrow("String#split does not support function arguments.");
+    ).resolves.toMatchObject({ ok: true, returnValue: [] });
+    expect(limit).not.toHaveBeenCalled();
   });
 
   it("uses deterministic Math.random() when seeded", async () => {

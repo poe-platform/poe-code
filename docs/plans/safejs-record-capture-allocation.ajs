@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const rows = [];
+  for (let i = 0; i < 32; i++) rows.push({ index: i, label: "row-" + i });
+  const shared = { value: 7 };
+  const record = { left: shared, right: shared, rows };
+  Object.defineProperty(record, "hidden", { value: "retained", configurable: true });
+  await 0;
+  shared.value = 9;
+  const total = rows.reduce((sum, row) => sum + row.index, 0);
+  if (total !== 496 || record.right.value !== 9 || record.hidden !== "retained")
+    throw new Error("Record accounting workflow changed behavior");
+  return { title: frontmatter.title, ok: true, total, count: rows.length };
+};

@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  let count = 0;
+  let name = "";
+  try {
+    const tag = 42;
+    tag`${count++}`;
+  } catch (error) {
+    name = error.name;
+  }
+  if (count !== 1 || name !== "TypeError") {
+    throw new Error("Tagged template error order changed");
+  }
+  return { title: frontmatter.title, ok: true, count, name };
+};

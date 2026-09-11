@@ -22,7 +22,7 @@ This updates the provider’s config files and continue using your tools normall
 npx poe-code@latest configure
 
 # Setup a specific agent
-npx poe-code@latest configure codex # (or claude, opencode, kimi, goose)
+npx poe-code@latest configure codex # (or claude, opencode, goose)
 ```
 
 ### Unconfigure (remove overrides)
@@ -118,9 +118,6 @@ npx poe-code@latest install codex
 
 # OpenCode
 npx poe-code@latest install opencode
-
-# Kimi
-npx poe-code@latest install kimi
 
 # Goose
 npx poe-code@latest install goose
@@ -219,7 +216,7 @@ console.log(run.output);
 
 Runs a single prompt through a configured service CLI.
 
-- `service` – Service identifier (`claude-code`, `codex`, `opencode`, `kimi`, `goose`)
+- `service` – Service identifier (`claude-code`, `codex`, `opencode`, `goose`)
 - `options.prompt` – The prompt to send
 - `options.cwd` – Working directory or workspace locator (optional). Supports local paths and `github://owner/repo[#ref[:subdir]]` locators. See [@poe-code/workspace-resolver](packages/workspace-resolver/) for the full locator syntax.
 - `options.model` – Model identifier override (optional)
@@ -287,7 +284,17 @@ tests and before smoke testing or publication. See the
 
 These features are available but subject to breaking changes.
 
+- **[SafeJS](packages/safe-js/README.md)** — Budgeted JavaScript execution with explicit host capabilities and resumable checkpoints. Recent local fixes preserve buffer object state in public dumps, share numeric parser identities within each realm, and correct built-in property descriptors and function lengths. See [development status](packages/safe-js/README.md#development-status) for unreleased and unfinished work, validation results and remaining compatibility gaps; full JavaScript conformance is not claimed.
 - **[Pipeline](packages/pipeline/)** — Run YAML task plans through agents with configurable steps
 - **[Ralph](packages/ralph/)** — Agentic build loop that iterates on a markdown doc
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.
 - **[Poe Agent](packages/poe-agent/)** — Composable agent runtime
+
+### Update Poe Code
+
+```sh
+npx poe-code@latest update
+npx poe-code@latest update --package-manager pnpm
+```
+
+For version checks, dry runs, and managed worktrees, see the [reference](docs/README_FULL.md#updates-and-managed-worktrees).

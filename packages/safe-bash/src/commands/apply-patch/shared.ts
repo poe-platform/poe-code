@@ -1,4 +1,5 @@
 import { yieldTurn } from "../../contracts/yield.js";
+import { escapeText } from "../../escaping.js";
 import { isFsError, type CommandContext, type FsError } from "../../contracts/index.js";
 import type { ApplyPatchLimits } from "./options.js";
 
@@ -212,9 +213,10 @@ export function diagnostic(error: PatchError | FileFailure, maximum: number, ord
   const contentMaximum = maximum - Buffer.byteLength(suffix);
   for (const part of parts) {
     for (const character of part) {
-      const size = Buffer.byteLength(character);
+      const escaped = escapeText(character, "diagnostic");
+      const size = Buffer.byteLength(escaped);
       if (size > contentMaximum - bytes) return Buffer.from(chunks.join("") + suffix);
-      chunks.push(character);
+      chunks.push(escaped);
       bytes += size;
     }
   }

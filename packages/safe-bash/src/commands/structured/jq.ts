@@ -1,4 +1,6 @@
-import { FsError, readBytes, resolvePath, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
+import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
 import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
 import { Interpreter } from "./interpreter.js";
@@ -71,10 +73,14 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
   return options;
 }
 async function readProgram(context: CommandContext, path: string, limits: JqLimits): Promise<string> {
-  const absolute = resolvePath(context.cwd, path);
+  const absolute = pathOf(context, path);
   const chunks: Uint8Array[] = [];
   let size = 0;
-  if (context.fs.readStream) {
+  const capabilities = context.fs.capabilitiesFor
+    ? await interruptible(() => context.fs.capabilitiesFor!(absolute, { signal: context.signal }), context.signal)
+    : context.fs.capabilities;
+  context.signal.throwIfAborted();
+  if (context.fs.readStream && capabilities.streamingRead !== false) {
     for await (const chunk of readBytes(context.fs.readStream(absolute, { signal: context.signal }), context.signal)) {
       size += chunk.byteLength;
       if (size > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
@@ -99,9 +105,14 @@ async function* inputSources(context: CommandContext, options: Options, budget: 
       source = context.stdin;
     }
     else {
-      const absolute = resolvePath(context.cwd, file);
+      const absolute = pathOf(context, file);
       const remaining = budget.limits.maxInputBytes - budget.inputBytes;
-      if (context.fs.readStream) source = context.fs.readStream(absolute, { signal: context.signal });
+      await budget.tick();
+      const capabilities = context.fs.capabilitiesFor
+        ? await interruptible(() => context.fs.capabilitiesFor!(absolute, { signal: context.signal }), context.signal)
+        : context.fs.capabilities;
+      context.signal.throwIfAborted();
+      if (context.fs.readStream && capabilities.streamingRead !== false) source = context.fs.readStream(absolute, { signal: context.signal });
       else source = toByteSource(await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: remaining }), context.signal));
     }
     budget.inputLocation = { name: file === "-" ? "<stdin>" : file, line: 0, complete: false };
@@ -130,7 +141,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
     try {
       while (written < diagnostics.length && (force || diagnostics[written]!.location.complete)) {
         const { location, message } = diagnostics[written++]!;
-        const place = location.name === "<unknown>" ? location.name : `${location.name}:${location.line}`;
+        const place = location.name === "<unknown>" ? location.name : `${escapeText(location.name, "diagnostic")}:${location.line}`;
         await writeBytes(context.stderr, Buffer.from(`jq: error (at ${place}): ${message}\n`), context.signal);
       }
     } catch (error) {
@@ -159,8 +170,8 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
           catch (error) {
             context.signal.throwIfAborted();
             if (!(error instanceof JqError) || error instanceof JqLimitError) throw error;
-            const message = error.message.slice(0, 1000);
-            diagnosticBytes += Buffer.byteLength(message) + Buffer.byteLength(budget.inputLocation.name) + 64;
+            const message = escapeText(error.message.slice(0, 1000), "diagnostic");
+            diagnosticBytes += Buffer.byteLength(message) + Buffer.byteLength(escapeText(budget.inputLocation.name, "diagnostic")) + 64;
             if (diagnosticBytes > limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
             diagnostics.push({ location: budget.inputLocation, message });
             status = error.exitCode;
@@ -172,7 +183,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
           if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
           const remaining = limits.maxOutputBytes - budget.outputBytes;
           const suffix = options.joinOutput ? "" : "\n";
-          const text = options.raw && typeof result === "string" ? result : stringify(result, budget, !options.compact, Math.max(0, remaining - suffix.length), "maxOutputBytes");
+          const text = options.raw && typeof result === "string" ? result : await stringify(result, budget, !options.compact, Math.max(0, remaining - suffix.length), "maxOutputBytes");
           const bytes = Buffer.from(`${text}${suffix}`);
           if (bytes.byteLength > remaining) throw new JqLimitError("maxOutputBytes");
           budget.outputBytes += bytes.byteLength;
@@ -206,7 +217,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
     if (!(error instanceof JqError) && !(error instanceof FsError)) throw error;
     if (error instanceof FsError && error.code === "EPIPE") throw error;
     await flush(true);
-    await writeBytes(context.stderr, Buffer.from(`jq: ${error.message.slice(0, 1000)}\n`), context.signal);
+    await writeDiagnostic(context.stderr, `jq: ${error.message.slice(0, 1000)}\n`, context.signal);
     return { exitCode: error instanceof JqError ? error.exitCode : 2 };
   }
 }

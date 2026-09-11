@@ -28,7 +28,7 @@ test("evaluation drain review actual mapfile callback exit completes its own ope
   const rescue = deferred();
   const drains: Promise<void>[] = [];
   let cleanups = 0;
-  const extension = mapfileExtension();
+  const extension = mapfileExtension({ replace: true });
   const shell = new Shell({ fs: createMemoryFileSystem(), limits: { maxWallClockMs: 2000 }, extensions: [trapExtension(), {
     ...extension,
     create() {

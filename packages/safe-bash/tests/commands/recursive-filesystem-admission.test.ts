@@ -232,15 +232,15 @@ for (const command of ["ls", "cp"] as const) {
         if (path === "/source/child" && failure === "read") throw new FsError("EIO", { path });
         return read(path, options);
       };
-      let checkpoints = 0;
-      registerYieldCheckpoint(controller.signal, () => {
-        if (++checkpoints === 2 && failure === "cancel") controller.abort(false);
-      });
       const active: Set<unknown>[] = [];
+      registerYieldCheckpoint(controller.signal, () => {
+        if (failure === "cancel" && active.some(ancestors => ancestors.has("/source") && ancestors.has("/source/child"))) controller.abort(false);
+      });
       const add = Set.prototype.add;
       Set.prototype.add = function (value: unknown) {
+        const result = add.call(this, value);
         if (value === "/source") active.push(this);
-        return add.call(this, value);
+        return result;
       };
       try {
         const work = execute(fs, command, command === "ls" ? ["-R", "/source"] : ["-r", "/source", "/target"], controller.signal);

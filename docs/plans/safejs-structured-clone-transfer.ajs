@@ -1,0 +1,20 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(8);
+  const view = new DataView(buffer);
+  view.setUint32(0, 0x12345678);
+  const copy = structuredClone({ buffer, view, bytes: new Uint8Array(buffer) }, { transfer: new Set([buffer]) });
+  await 0;
+  if (!buffer.detached || copy.view.buffer !== copy.buffer || copy.bytes.buffer !== copy.buffer)
+    throw new Error("Transfer ownership or backing identity failed");
+  if (copy.view.getUint32(0) !== 0x12345678)
+    throw new Error("Transferred bytes changed");
+  let rejected = false;
+  try { structuredClone(copy.buffer, { transfer: [copy.buffer, copy.buffer] }); }
+  catch (error) { rejected = error.name === "DataCloneError" && error.code === 25; }
+  if (!rejected || copy.buffer.detached)
+    throw new Error("Invalid transfer changed buffer ownership");
+  return { title: frontmatter.title, ok: true, hex: copy.bytes.toHex() };
+};

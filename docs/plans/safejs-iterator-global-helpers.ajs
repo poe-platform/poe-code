@@ -1,0 +1,15 @@
+import { S } from "schema";
+export const schema=S.Object({title:S.String()});
+export default async (frontmatter)=>{
+  const source={index:0,next(){return {value:this.index++,done:this.index>3}}};
+  const iterator=Iterator.from(source);
+  const first=iterator.next().value;
+  source.next=()=>({value:99,done:true});
+  Object.defineProperty(iterator,'self',{get(){return iterator}});
+  await 0;
+  const rest=Array.from(iterator);
+  if(first!==0 || rest.join(',')!=='1,2' || iterator.self!==iterator ||
+      !(iterator instanceof Iterator) || Iterator.from(iterator)!==iterator || !iterator.return().done)
+    throw new Error('Iterator.from wrapper validation failed');
+  return {title:frontmatter.title,ok:true,first,rest};
+};

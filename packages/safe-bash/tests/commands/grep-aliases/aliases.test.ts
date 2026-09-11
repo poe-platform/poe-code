@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CommandRegistry, type CommandDefinition, type PluginHost } from "../../../src/contracts/index.js";
@@ -51,7 +52,7 @@ for (const name of ["egrep", "fgrep"] as const) {
   const mode = name === "egrep" ? "-E" : "-F";
   const conflict = name === "egrep" ? "-F" : "-E";
   test(`${name} standalone factory never dispatches grep`, async () => {
-    const result = await run(factory(), [name === "egrep" ? "cat|dog" : "cat|dog"], "cat\ncat|dog\n", {
+    const result = await run(factory({ regexExecutor: createNodeRegexProvider() }), [name === "egrep" ? "cat|dog" : "cat|dog"], "cat\ncat|dog\n", {
       command: "untrusted-display-name", invoke: async () => { throw new Error("must not dispatch"); },
     });
     assert.equal(result.stdout.toString(), name === "egrep" ? "cat\ncat|dog\n" : "cat|dog\n");
@@ -81,12 +82,12 @@ for (const name of ["egrep", "fgrep"] as const) {
     await fs.writeFile("/data", Buffer.from("a\nno\n"));
     await fs.writeFile("/empty", new Uint8Array());
     await fs.writeFile("/patterns", Buffer.from("a\n"));
-    const expected = await run(grepCommands()[0]!, [mode, ...fixture.args], fixture.input, { fs, command: name });
-    const actual = await run(factory(), fixture.args, fixture.input, { fs });
+    const expected = await run(grepCommands({ regexExecutor: createNodeRegexProvider() })[0]!, [mode, ...fixture.args], fixture.input, { fs, command: name });
+    const actual = await run(factory({ regexExecutor: createNodeRegexProvider() }), fixture.args, fixture.input, { fs });
     assert.deepEqual(actual, expected);
   });
   test(`${name} reports matcher conflict with alias diagnostic`, async () => {
-    const result = await run(factory(), [conflict, "a"], "a\n");
+    const result = await run(factory({ regexExecutor: createNodeRegexProvider() }), [conflict, "a"], "a\n");
     assert.equal(result.code, 2);
     assert.equal(result.stdout.length, 0);
     assert.equal(result.stderr.toString(), `${name}: conflicting matchers specified\n`);

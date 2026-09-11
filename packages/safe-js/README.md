@@ -2,6 +2,10 @@
 
 Run a JavaScript subset with explicit host capabilities, execution budgets, and resumable checkpoints.
 
+This README describes the current source checkout. See [Development status](#development-status)
+for local changes that are not yet released; installing the published package
+does not necessarily include them.
+
 ## Quickstart
 
 Install the public package (Node.js 18.18+ and ESM):
@@ -31,10 +35,10 @@ console.log(result.returnValue);
 
 ## Supported features
 
-- **JavaScript control flow:** functions and closures, async/await, loops, destructuring, spread, templates, exceptions, and synchronous generators.
+- **JavaScript control flow:** functions and closures, classes, async/await, loops, destructuring, spread, templates, exceptions, and synchronous and asynchronous generators.
 - **Guest function objects:** own properties on functions and arrows; ordinary constructors with shared prototypes, inherited methods and `instanceof`. `Object.create`, `getPrototypeOf`, `setPrototypeOf`, own-property inspection, and data descriptors work on ordinary sandbox records.
-- **Data processing:** arrays, objects, strings, numbers, JSON, Math, Date, Map, Set, Float32Array, promises, and a bounded regular-expression subset. These are selected APIs, not complete ECMAScript implementations.
-- **Explicit capabilities:** named, default, and namespace imports resolve against host-supplied modules. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
+- **Data processing:** arrays, objects, strings, numbers, BigInt, Symbol, JSON, Math, Date, Map, Set, typed arrays, ArrayBuffer/DataView, promises, Intl APIs, and budgeted regular expressions. Built-in presence does not imply complete ECMAScript conformance.
+- **Explicit capabilities:** static imports and dynamic `import()` resolve against host-supplied modules, not arbitrary npm packages or files. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
 - **Persistent realms:** keep guest state across evaluations; register trusted extensions with explicit grants, live host objects, revocable callbacks, and ordered cleanup.
 - **Execution controls:** step, call-depth, string, array, and retained-data budgets; an absolute deadline; host cancellation; console and telemetry sinks.
 - **Checkpoints:** capture execution state, restore compatible source, and reconcile pending host operations. Changed programs can use explicit continuation migration.
@@ -53,7 +57,7 @@ const result = await run(`
 // result.returnValue: ["counter", 7, true]
 ```
 
-Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Prototype links between callable or exotic objects (such as arrays) and accessor descriptors are unsupported; native `Function.prototype` is never exposed.
+Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Supported guest prototype links include arrays and function objects; native `Function.prototype` is never exposed.
 
 <details>
 <summary>Object inspection and prototypes</summary>
@@ -74,7 +78,41 @@ const result = await run(`
 - Intrinsic methods are non-enumerable. Guest constructor prototypes inherit the ordinary Object prototype; explicit null/custom prototypes work with `Object.create`, `Object.setPrototypeOf` and literal `__proto__`. A computed `['__proto__']` remains an own data property.
 - Prototype mutations stay inside the current run or persistent realm and consume its retained-data budget. They never change native prototypes or another realm.
 
-Primitive boxing, inherited accessors, symbols and full Array/Function/exotic prototype graphs are unsupported. Use borrowed Object methods for inspecting those supported values. Explicit prototype links and mutated Object intrinsics are not portable checkpoint/copy data; project own data before crossing those boundaries. The conservative `AS011` lint rule still flags explicit `prototype`/`constructor` access; `run()` executes it without automatic linting.
+Builtin prototypes retain their originating Object prototype when inspected
+from another realm, including when a budget is reused. Checkpoints preserve
+constructor/prototype identity and their supported property mutations.
+Map and Set instances also retain their selected prototype during inspection
+from another realm.
+Mixed-realm intrinsic checkpoints preserve separate constructor/prototype
+identities and mutations while sharing one execution budget. This does not
+establish arbitrary mixed-source interpreted-closure transport.
+Retained functions, classes and suspended generators from different ordinary
+source texts now carry module-source records, preventing AST-ID collisions from
+substituting another source's code. Captured templates retain source provenance
+and realm-specific cache identity. These internal checkpoint checks do not
+establish arbitrary public host-admission or external-operation resume support.
+See the [mixed-source record](../../docs/plans/safejs-mixed-source-closure-identity.md).
+Same-source interpreted closures also retain their originating realm through
+repeated checkpoints, including literal prototypes and dynamic Function globals.
+Class constructors and public/private field initializers also retain their realm
+through repeated snapshots, including derived classes. Synchronous generators
+retain their realm when captured before first execution or suspended at a yield.
+Same-source async generators and functions waiting on guest promises retain
+literal prototype identity when resumed. Settled results preserve that identity
+through subsequent checkpoints; data-copy helpers retain their separate rules.
+External host-operation resumption and broader async behavior remain unqualified.
+See the [closure ownership record](../../docs/plans/safejs-mixed-realm-closure-ownership.md).
+Class validation is recorded [separately](../../docs/plans/safejs-mixed-realm-class-ownership.md).
+See also the [generator ownership record](../../docs/plans/safejs-mixed-realm-generator-ownership.md).
+Async checks and the settled-result fix are recorded [here](../../docs/plans/safejs-mixed-realm-async-qualification.md).
+
+Guest symbols, supported prototype links, and mutated guest intrinsics can be
+represented in checkpoints. Plain data-copy helpers have narrower contracts:
+boxed Number accessors survive checkpoint replay, but data-copy helpers reject
+them rather than discard their getters. Copying an array with a custom prototype can be rejected rather
+than silently discarding the prototype. Checkpoint support does not imply that
+every host object or prototype graph is copyable. `run()` does not lint
+automatically.
 
 </details>
 
@@ -102,8 +140,6 @@ const result = await run("return [Date.now(), new Date().toISOString()];", {
 Current-time reads are recorded for replay; replay does not call `now()` again. A stateful provider can implement `restore({ next })` to advance its state after each replayed read. `snapshot()` retains its existing clock-metadata role. The same clock option works in persistent realms.
 
 Date values copy by value across host bindings, preserving aliases within a graph. Checkpoints preserve epoch values, invalid dates and mutations rather than converting dates to strings. Parsing is limited to 4,096 characters and consumes the work/string budgets; retained values consume data budget. Local methods and non-ISO parsing follow the host timezone/runtime, so use explicit-zone ISO strings and UTC methods for portable output.
-
-Unsupported: locale formatting, legacy `getYear`/`setYear`/`toGMTString`, subclassing, custom argument coercion, Date-instance own properties and prototype modification. These are restrictions, not stubs; no native constructor or prototype is exposed to guest code.
 
 </details>
 
@@ -143,6 +179,11 @@ console.log(result.returnValue);
 ```
 
 The lint registry describes exports; the runtime registry supplies their values. Both accept records or Maps. Module names are host-defined identifiers, not file paths or npm packages. Validate arguments and enforce permissions inside each host operation. Adding a function does not make its effects safe to replay.
+
+Dynamic `import()` processes enumerable string-keyed attributes using
+normal property reflection, including Proxy traps and getter-driven changes.
+Attribute-processing errors reject the import promise. Nonempty import
+attributes are unsupported by the registered-module host and are rejected.
 
 ## Keep state between evaluations
 
@@ -371,8 +412,53 @@ There are no runtime environment variables to set. `makeEnvModule({ allow, value
 | `fix`, `fixRanges` | Apply available fixes, optionally restricted to source ranges. |
 
 `parse(source, filename?)` parses a single statement/expression; `parseModule(source, filename?)` parses a module. `formatInterpreterError(error, { source?, filename?, hostCallName?, maxMessageLength? })` formats an error; `(source, diagnostic)` is also supported.
+Diagnostic module parsing retains missing-`async` forms so lint can report and
+autofix them. Executable parsing and restored-source compilation reject `await`
+inside non-async functions, including nested functions and template substitutions.
+Compiling stored module source enforces the owning budget's string-length
+limit and charges one step per UTF-16 source unit before parsing. Regex
+compilation retains its additional work charges.
 
 `deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible.
+
+Native Promise imports accept genuine promises from other JavaScript realms,
+preserving aliases and copying fulfillment or rejection values. Own string-keyed
+data properties are copied with their descriptors, aliases, cycles, and
+nonextensibility. Replay inputs retain these properties, including callable
+properties bound as host capabilities. Accessor metadata is omitted without
+invoking its getter; symbol properties are still omitted because they can carry
+private host async-context state. Accessor and user-symbol admission remain
+unresolved. Native Promise observation still follows native constructor/species
+hooks; importing a Promise does not promise to suppress those hooks.
+Newly encountered Promises returned by host calls retain original own data
+properties through replay, including non-enumerable descriptors and self-aliases.
+Later guest mutations do not replace the recorded host data. Pending Promise
+properties survive reconciliation and subsequent completed replay. Callable
+properties require an explicit resume capability, such as a function supplied
+in the run's input bindings; arbitrary new host functions are not serialized.
+Captured property data contributes to the retained-data budget.
+Maps and Sets in imported Promise fulfillment values retain their collection
+behavior, cycles, and aliases through input conversion and completed replay.
+References to already imported Promises inside fulfillment data resolve to the
+same input wrappers, including self-references and completed replay. Ordinary
+settlement data remains separately copied, and independent imports stay isolated.
+Newly encountered imported Promises that have settled also support completed
+replay, including aliases across separate host outcomes and cyclic fulfillment
+data. Replay uses the original settlement data, not later guest mutations.
+Cross-outcome reconstruction enforces the combined nesting limit without
+recursively expanding the host stack. Newly encountered imported Promises that
+are still pending can be checkpointed for replay. Restoring them requires a
+matching proof from `hostCallResumeProvider`; the original input or host operation
+is not repeated. Aliases share one reconciliation request. Proofs may introduce
+further pending Promises, and subsequent checkpoints preserve those separately.
+Completed replay uses recorded settlements without requesting the proof again.
+Allocation limits and cancellation also apply to reconciled settlements.
+
+Native RegExp values can be imported through bindings, host returns, Promise
+settlements, entry-point arguments, and `import.meta`. Matching uses the bounded
+guest engine, preserving source, flags, cursor state, and data-property aliases
+without advancing the host regex. Host-bridge accessor and symbol metadata is
+rejected rather than invoked or silently discarded.
 
 </details>
 
@@ -405,6 +491,11 @@ Factories return exports to register in `modules`; calling a factory alone does 
 <summary>Checkpoints and recovery</summary>
 
 Guest functions with materialized own-property state, prototype-linked objects, and custom data descriptors are not portable checkpoint data. Dump, restore, and replay serialization reject these values instead of silently discarding their state. Data-copy boundaries also reject prototype-linked objects and custom descriptors; pass a plain projection such as `{ value: counter.value }` to host operations. Bridged callbacks retain their function identity and properties while the run is alive.
+
+Snapshot reference validation keeps Promise aggregate state, async execution
+drivers, adoption tokens, cleanup state and scope resource-state records out of
+guest data. Their field-specific internal links remain restorable; guest handler
+functions can still be retained by custom Promise constructors.
 
 - `dump(resultOrRunningPromise, { mode?, onFailure? })` returns checkpoint JSON. `mode` is `capture` or `replay`; `onFailure` is `throw` or `checkpoint`.
 - `restore(snapshot, { source })` validates state for compatible source; pass it as `run`'s `snapshot` option. It does not run the program.
@@ -441,10 +532,834 @@ For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. 
 
 </details>
 
+## Development status
+
+### Pinned conformance runner
+
+Run a selected Test262 directory against a clean checkout of revision
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93`:
+
+```bash
+npm run test:conformance --workspace=@poe-code/safe-js -- \
+  --corpus /path/to/test262 \
+  --include built-ins/Array/of \
+  --report /tmp/safejs-conformance.jsonl
+```
+
+`--corpus` and `--report` are required. The report path must not exist.
+Repeat `--include` to select files or directories relative to the corpus's
+`test/` directory; omit it to select all JavaScript test sources.
+`--timeout-ms` sets the per-variant timeout (default: 3000).
+Optional positive-integer resource caps are `--max-steps`, `--max-call-depth`,
+`--string-length`, `--array-length`, and `--data-size`. They use the same budget
+fields as the programmatic runner and are recorded in the report. Set explicit
+caps for large or untrusted selections; resource failures are failures, not passes.
+
+The JSONL report streams individual results and ends with a summary containing
+revision, runtime, execution limits and source/harness hashes. A missing final
+summary means the run is incomplete. Failures, metadata/execution errors and
+unsupported variants produce a nonzero exit status. Fixtures are not passes.
+The runner currently executes global Scripts; modules and explicit agent
+blocking modes are reported as unsupported. Other host capabilities and
+resource-policy limitations remain open. This is a conformance measurement
+route, not a claim of complete JavaScript support. See the
+[runner evidence and remaining work](../../docs/plans/safejs-test262-runner.md).
+
+### Latest local changes — September 9, 2026
+
+CLI help no longer initializes interpreter globals. Execution and migration
+dependencies load when those commands need them; help text and aliases are
+unchanged. See the [startup verification record](../../docs/plans/safejs-cli-help-lazy-runtime.md).
+
+`npm run typecheck:fs --workspace=@poe-code/safe-js` checks the filesystem option
+contract in NodeNext and Bundler modes, each with and without DOM types. Both
+package `npm test` and `npm run test:unit` run it automatically in their pretest
+steps, alongside Intl data generation. It reports 25 structural cases per mode
+separately from runtime unit-test totals; no compiler diagnostics are cached.
+
+These fixes are committed locally, not verified on remote main or released:
+
+- Public dumps preserve supported buffer subclass instances, custom prototypes
+  and accessors for replay. Native accessor execution remains rejected.
+- `DataView.prototype` and `SharedArrayBuffer.prototype` constructor bindings are
+  nonwritable; their prototype objects remain mutable.
+- `Number.parseInt` and `Number.parseFloat` initially reference the same functions
+  as their global counterparts. Each realm gets fresh parser functions, including
+  when a budget is reused. Parser lengths and 32 other audited built-in function
+  lengths now match native controls, including bound-function lengths.
+
+The parser fix passed 1,896 isolated tests; the subsequent function-length fix
+passed 179 focused tests. Both passed the maintained workspace build and scoped
+lint. These checks exclude pending weak-reference and cross-realm prototype
+work and do not establish a green full-worktree gate. Host-Promise property
+admission and workload-test timeouts remain unresolved. See the
+[current gap inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-09.md)
+and [metadata validation record](../../docs/plans/safejs-standard-builtin-metadata.md).
+
+Pushes and releases remain on hold. The historical results below apply only to
+their stated candidates, not to the complete current checkout.
+
+### Earlier changes and validation
+
+The current local work adds guest-only `Function`, `AsyncFunction`,
+`GeneratorFunction`, and `AsyncGeneratorFunction` constructors. They parse and
+execute code inside SafeJS, retain execution budgets, and use the granted global
+environment rather than capturing caller-local variables or invoking host eval.
+
+```js
+// Current source checkout; not yet a released-package guarantee.
+const result = await run("return Function('a', 'b', 'return a + b')(2, 3)");
+// result.returnValue: 5
+```
+
+Related local changes cover non-strict `this`, mapped `arguments`, `with`
+environments and `Symbol.unscopables`, strict assignment checks, named-function
+self-bindings, escaped/contextual identifiers, and loop grammar. Dynamic source,
+captured bindings, and suspended generators have focused checkpoint coverage.
+Identifier calls again pass through replay bookkeeping, fixing a reproduced
+compatibility regression in historical Promise checkpoints.
+
+Recent compatibility fixes also cover Array prototype unscopables, restricted
+function and strict-arguments accessors, the Promise prototype tag, and
+`Object.prototype.toString` after collection or typed-array tags are deleted.
+These have focused native-comparison and checkpoint tests.
+
+Guest `eval` remains in progress locally. Focused coverage now includes direct
+and indirect calls; block, branch, try, loop, switch and `with` completion values;
+lexical declaration conflicts; function hoisting and global declaration rules;
+and class-initializer restrictions on `arguments`. Retained eval source is
+budgeted, with recovery coverage for closures, classes, generators, tagged
+templates and captured declaration environments. This is not complete eval
+conformance; further declaration edge cases and integration still need validation.
+
+Later local fixes cover deletion of eval-created bindings, assignment and numeric
+updates after conversion deletes a binding, and separate environments for eval
+inside default parameters versus function-body declarations. Focused checks cover
+captured closures, destructuring and suspended assignments through recovery.
+Some edge-case expectations follow the specification where Node 22 differs;
+these are not claims of exact native-engine equivalence.
+
+The local CLI lint gate now accepts guest `Function` and `eval` without lint
+suppression. Direct eval no longer marks the bindings it can access as unused;
+indirect and optional eval retain ordinary unused-binding checks. Focused CLI
+tests confirm nested dynamic execution and unavailable Node host globals.
+
+Exception-flow work adds function hoisting and class temporal-dead-zone handling
+inside try/catch/finally blocks, including restored generators. Unresolved reads,
+calls and updates inside these blocks now reach guest catch handlers as
+`ReferenceError` values. The locally committed Promise repair preserves guest
+`ReferenceError` instances and shared rejection identity through handlers and
+checkpoint recovery, with coverage for executors, async functions, thenables and
+pass-through reactions. Bare unhandled missing names still return the public
+diagnostic envelope. Catch/finally normalization is also locally committed.
+The source-stack repair preserves the offending guest location through catch
+and Promise checkpoint recovery without copying private native host stacks.
+Catch destructuring uses the shared binding implementation: array patterns
+honor custom iterators and cleanup, and object rest observes Proxy reflection.
+Checkpoints inside catch-parameter defaults preserve earlier bindings and the
+original thrown value, including async suspension; existing catch-body
+checkpoints retain their previous scope-record shape.
+These checks do not establish that every error path is JavaScript-equivalent.
+
+A separate local performance fix avoids allocating empty intrinsic-retention
+arrays when no changed values need retaining. Required descriptor scans,
+callback order and execution budgets are unchanged. Focused allocation and
+workload checks pass; this is not a guarantee that deadline-sensitive tests
+always pass under load.
+
+Dynamic functions/eval and the CLI lint follow-ups are now locally committed.
+Their isolated candidate passed all 23 maintained builds, four fresh-process
+import checks, and 22,765 unit tests with 37 skips across 839 files on September
+8, 2026. This candidate excludes experimental weak collections and unresolved
+host-Promise property-import work; it does not establish complete JavaScript
+conformance or a passing integrated main worktree.
+
+An earlier integrated main run passed 22,788 tests, failed two and
+skipped 37 across 840 files. It includes the later eval numeric-update and
+parameter-environment fixes, but predates the CLI lint follow-ups.
+
+Both failures concern host-Promise property imports. Their policy remains
+unresolved because native properties can contain private Node.js context data.
+Earlier workload deadlines and historical checkpoint expectation failures did
+not recur in this run. See the
+[validation record](../../docs/plans/safejs-dynamic-validation-result-2026-09-08.md)
+for the exact snapshot and scope.
+
+The restricted function-prototype accessor repair is independently committed
+locally, with 101 focused tests plus TypeScript and lint passing. The related
+strict-arguments descriptor bridge is also locally committed, with 237 focused
+tests plus TypeScript and lint passing; neither status implies
+remote delivery or complete function compatibility.
+
+`Proxy` and `Proxy.revocable` are available in the locally committed runtime.
+Lint recognizes the Proxy global, including the CLI's default lint gate, and
+warns when a local declaration shadows it.
+Proxy support remains incomplete. Checkpoint graphs now preserve Proxy targets,
+handlers, aliases, cycles, callable/constructible identity, and revocation state.
+Revokers retain their own properties and release their target after use. Focused
+tests cover restore across an await, bound calls, private fields, and suspended
+`for-in` generators; this is not proof of every checkpoint/trap interaction.
+Internal tests inject proxies to exercise
+property reads/writes, membership/deletion, own descriptors, key enumeration,
+prototype/extensibility operations, and their invariants. Object reflection,
+ownership predicates, `isPrototypeOf`, legacy accessor lookup and `__proto__`,
+`Object.assign`, descriptor maps for `Object.create` and
+`Object.defineProperties`, and object spread/rest now dispatch those operations.
+Ordinary enumeration also handles existing string/symbol properties made
+enumerable by an earlier getter.
+Ordinary `for-in` includes enumerable non-index string properties on arrays and
+array ancestors, including when a generator resumes from a checkpoint.
+Guest Dates, buffers and DataViews also expose their enumerable own and inherited
+properties to `for-in`. Primitive values use their guest boxed prototypes;
+unimported host objects remain outside the internal interpreter's supported boundary.
+Internal Proxy `for-in` now uses own-key, prototype, and descriptor operations,
+including virtual keys, inherited properties, deletion, and early loop exits.
+The saved key-list format is unchanged.
+Lexical `for-in`, `for-of` and `for await-of` headers keep their bound names
+uninitialized while evaluating the RHS, separate from each iteration's bindings.
+Closures captured in the RHS retain that behavior across generator checkpoints.
+Loop assignment targets and nested destructuring assignments accept member
+access on array/object literals, such as `[holder][0].x`. Optional-chain
+assignment targets remain invalid.
+Classic `for` initializers reject unparenthesized `in` expressions, including
+yield operands, assignment right sides and concise arrow bodies. Parentheses,
+destructuring defaults and other grammar-permitted nested expressions retain
+`in` support; loop conditions, updates and bodies are unaffected.
+Generators allow an omitted `yield` operand before a conditional arm's `:`,
+including nested conditionals and async generators.
+`yield` follows assignment-expression precedence: higher-precedence operands
+must parenthesize it, such as `1 + (yield 2)`. Non-strict `yield` identifiers
+outside generator bodies remain supported.
+An `await` expression on the left of `**` requires parentheses, as in
+`(await value) ** 2`; `await (value ** 2)` and right-side awaits remain valid.
+Numeric binary operators and compound assignments reject a left-hand Symbol
+before invoking right-hand coercion, including after generator restoration.
+Addition and comparisons retain their distinct primitive-conversion ordering.
+Non-strict statement-only bodies distinguish a `let` identifier followed by a
+newline from a lexical declaration; strict-mode and declaration restrictions
+still apply.
+Array methods now await Proxy membership and deletion traps on array-like
+receivers. Internal index reads pass string keys to Proxy traps, including
+inherited Proxies and entry reads in `Object.fromEntries` and `Map` construction.
+`sort` and `toSorted` reject invalid comparators before reading receiver
+length or elements. Array-like mutations use ordered writes and tested partial
+failures. Their internal view
+no longer reads a guest `then` property. Species selection recognizes wrapped
+arrays, including nested Proxies and array subclasses. Proxy-valued species
+results receive element definitions through `defineProperty` traps, with failures
+stopping further writes. `Array.from`, `Array.fromAsync`, and `Array.of` also
+dispatch element definitions when a custom constructor returns a Proxy;
+element-definition failures close the source iterator and preserve the original error.
+Typed-array results from custom array constructors and species convert guest
+element values through their number or BigInt conversion hooks, after index validation.
+`Array.from` captures Proxy-supplied iterator methods before result construction
+and invokes them afterward, including through a Proxy in the prototype chain.
+Concat spreads wrapped arrays by default and honors
+`Symbol.isConcatSpreadable` overrides. `flat` and `flatMap` traverse wrapped nested
+arrays, snapshot each nested length, and honor depth limits while skipping holes.
+Internal callable Proxies support direct, bound, callback, and Reflect.apply
+invocation, including apply traps and target forwarding. Revocation preserves
+callable identity but rejects calls. Constructible Proxies support construct traps,
+target forwarding, and explicit `new.target`, including subclass construction.
+Exported SDK `Reflect.construct` also preserves explicit constructor identity
+through ordinary, bound, and Proxy targets, including accessor-backed traps.
+SDK-created bound functions also retain explicit `newTarget` through nested
+bindings while preserving the normal default-constructor substitution.
+SDK ArrayBuffer and typed-array construction reads Proxy `newTarget.prototype`
+through guest operations, including nested Proxies, accessor-backed traps, and
+revocation checks.
+SDK buffer `slice` species lookup also follows Proxy holders and ancestors,
+preserving the receiver and invoking Proxy-valued species constructors.
+Direct SDK typed-array `slice`, `subarray`, `map`, `filter`, `toReversed`,
+`toSorted`, and `with` calls preserve intrinsic prototypes on default results,
+including calls made after the originating run has completed.
+SDK typed-array construction also retains its intrinsic prototype fallback when
+`newTarget.prototype` is a primitive, after the originating run has completed.
+Constructed typed arrays preserve their originating guest prototype after run
+cleanup, including later mutations to that prototype. Data-only copying and
+replay accept pristine default chains but reject modified chains that would
+otherwise lose guest behavior.
+Array literals also retain their originating prototype, including literals
+created by exported closures after run cleanup. Their later prototype mutations
+remain visible to SDK iteration.
+Arrays created by `Array` or `new Array` also preserve their originating
+prototype when inspected through another realm's SDK methods.
+Array `toReversed`, `toSorted`, `toSpliced`, and `with` results retain their
+originating prototype after SDK cleanup, including borrowed array-like calls.
+They continue to ignore species constructors and copy holes as undefined.
+Default results of species-aware array methods also preserve their originating
+prototype for borrowed array-like calls, undefined constructors, and null
+species. Explicit custom species results retain their own identity/prototype.
+Built-in string and RegExp splitting preserve the result array's originating
+prototype after SDK cleanup, including empty results and limits. Custom
+`Symbol.split` hooks retain their returned value and receive the original
+receiver before fallback string coercion.
+Built-in `exec`, `match`, and `matchAll` match arrays retain their originating
+prototype, including indices arrays and capture-index pairs. Named capture
+metadata stays null-prototype and preserves index aliases. Custom match hooks
+and custom non-global `exec` results retain their own identity.
+Object reflection lists and `Reflect.ownKeys` preserve their originating array
+prototype, including `Object.entries` pairs and synchronous SDK Object calls.
+Existing values keep their identity and prototypes; Proxy reflection retains
+its key filtering and descriptor behavior.
+Exposed Object/Reflect property descriptors and the outer
+`Object.getOwnPropertyDescriptors` result preserve their originating Object
+prototype. Descriptor values and accessor functions retain identity, and
+reflection does not invoke those getters.
+JSON parsing retains the originating prototypes of parsed objects and arrays,
+including nested containers, reviver holders, and reviver context objects.
+Reviver replacements retain their own identity and prototypes; deletion and
+special-key data properties keep their native behavior.
+Revivers traverse inserted Proxies through their array-length, key, descriptor,
+definition, and deletion operations. False write/delete results are ignored while
+thrown errors propagate. Inserted collections, promises, and generators use their
+guest property storage, and typed-array replacements invoke guest conversion hooks.
+`Object.groupBy` and `Map.groupBy` bucket arrays retain their originating
+Array prototype after SDK cleanup. Group keys and elements retain identity,
+and the outer Object grouping result remains null-prototype.
+Array, typed-array, Map, and Set entry iterators preserve the originating
+Array prototype of each new entry pair. Keys and values inside those pairs
+retain identity; values-only iteration does not re-prototype payload arrays.
+`Iterator.prototype` constructor and tag setters honor Proxy descriptor/write
+traps and existing own setters without replacing property attributes.
+`Iterator.prototype.toArray` retains the method's originating Array prototype
+for empty and non-empty results, including SDK calls with foreign iterators.
+It checks the `arrayLength` budget before appending each collected value,
+including direct SDK calls.
+Collected values keep their identity and prototypes.
+Array, typed-array, Map, Set, and string iterator `next()` result objects
+retain the method's originating Object prototype, including exhausted results
+and borrowed SDK calls. Yielded values are not re-prototyped.
+Lazy iterator helpers preserve the called next/return method's Object
+prototype through yielding, early return, exhaustion and public replay.
+Following the ECMAScript 2027 draft, `take` and `drop` reject finite limits
+above `Number.MAX_SAFE_INTEGER` and close the input before reading `next`.
+Positive `Infinity` remains accepted; fractional limits are truncated.
+`Iterator.concat(...inputs)` captures each input's iterator method immediately,
+then opens and consumes inputs sequentially on demand. Early return closes
+only the active input. Unopened inputs and active cursors participate in data
+accounting and snapshot recovery. Primitive inputs, including strings, are
+rejected; pass an iterable object instead.
+`Iterator.zip(inputs, options)` and `Iterator.zipKeyed(inputs, options)` support
+`shortest` (default), `longest`, and `strict` modes from the ECMAScript 2027
+draft. Longest mode accepts iterable padding for `zip` and keyed padding for
+`zipKeyed`. Inputs are opened eagerly and advanced lazily; keyed rows have null
+prototypes and include enumerable own string and symbol keys. Retained cursors,
+padding, and keys participate in data accounting and snapshot recovery.
+`Promise.any` rejection errors expose a writable, configurable, non-enumerable
+`errors` property, including empty input and public replay. Rejection elements
+retain their identity.
+Error constructors called through exported closures after cleanup retain their
+originating prototypes and non-enumerable fields. Error, Number, String,
+Boolean, Object, Array, Date, RegExp, Map, and Set constructors select default
+prototypes from a foreign newTarget's originating realm. Explicit custom
+newTarget prototypes remain supported. Focused checks cover ordinary, bound,
+bound-class and Proxy targets, plus replay and calls after cleanup.
+Ordinary function and class construction also uses the newTarget realm's
+Object prototype when its `prototype` property is not an object, including
+derived classes and field initialization.
+ArrayBuffer, DataView, and typed-array constructors likewise use foreign
+newTarget realm defaults. Focused checks cover native typed-array types,
+Float16Array, replaced global bindings, and target replay after cleanup.
+Intl constructors use namespace-qualified defaults from the newTarget realm,
+including after replacing the `Intl` global binding or replaying the target.
+Revocation during prototype lookup is checked before locale/options processing.
+Exported non-strict functions and eval calls retain access to their runtime
+global and owning eval identity after cleanup, including public replay and a
+replaced `globalThis` binding. Snapshot-resolution tables are still released.
+Foreign eval executes in its owning realm: global writes and declarations stay
+there, caller locals remain inaccessible, and errors use the owning prototypes.
+Focused checks cover normal, indirect and optional calls and independent replay.
+Dynamic Function, AsyncFunction, GeneratorFunction and AsyncGeneratorFunction
+constructors use foreign newTarget prototype defaults without changing the
+function body's originating global environment. Focused checks cover execution
+and independent replay of the factory and target realms.
+Borrowed dynamic constructors compile their bodies in the constructor owner's
+global environment, not the caller's. Global writes stay in that owner realm;
+neither the caller's locals nor the owner script's private locals are captured.
+Ordinary, async, arrow, class and built-in functions retain their owning
+Function/AsyncFunction prototype after cleanup. This also preserves inherited
+properties and later binding operations; explicit null/custom prototypes win.
+Reusing a budget for a new realm starts a fresh function-prototype table while
+existing function objects retain their original prototype defaults.
+Borrowed eval and dynamic constructors also select their saved execution context
+by intrinsic realm identity, so a reused budget does not select an earlier run.
+Foreign intrinsic calls receive their owner's compilation context. Borrowed
+RegExp construction and recompilation therefore preserve ownership checks
+without rejecting valid cross-realm calls, including bound/Proxy calls and replay.
+Errors created by foreign intrinsics use the owner's error prototypes, including
+asynchronously implemented calls. Already-captured caller errors retain their
+identity and prototypes when propagated through those calls.
+`AggregateError.errors` retains the constructor realm's Array prototype,
+independently of a custom prototype supplied for the Error object.
+Error constructors check `options.cause` through guest property operations,
+including inherited Proxy `has`/`get` traps and their failures. Cause properties
+remain non-enumerable; message conversion precedes cause access, and
+`AggregateError` consumes its errors iterable afterward.
+Promise construction, async returns and `then` results retain their
+originating Promise prototype after cleanup.
+Promise construction honors foreign newTarget default prototypes, including
+bound and Proxy targets and replay. Prototype lookup failures occur before
+the executor is invoked; invalid executors are checked before prototype lookup.
+Iterator subclass construction and both disposable-stack constructors use the
+foreign newTarget realm's default prototype when its prototype is not an object.
+This includes bound and Proxy targets after cleanup and replay; explicit custom
+prototypes still win, and stack instances retain working disposal state.
+Borrowed `then`, `resolve` and `reject` calls respect a foreign intrinsic
+constructor instead of allocating in the method's realm.
+Promise aggregate arrays, `allSettled` records and `withResolvers` capability
+objects retain the method's originating prototypes, including public replay.
+Their payload values retain identity and custom prototypes.
+`finally` cleanup respects foreign Promise species and preserves observable
+overridden `then` calls and cleanup Promise prototypes.
+`Iterator.from` fallback return results retain the called method's Object
+prototype when the underlying return method is absent or null. Custom next
+and return results are forwarded unchanged.
+Synchronous generators preserve delegated `yield*` result identity, including
+Proxy results, without eagerly reading their `value` property. Ordinary yields
+retain the generator realm's Object prototype; completed synchronous results
+use the called method's realm. Async generators retain the execution realm for
+body results and requests drained at completion, while later calls on a finished
+generator use the called method's realm. Focused checks cover borrowed calls,
+queued requests and public replay. The generator/snapshot validation run passed
+1,944 tests; this is focused evidence, not a full JavaScript conformance claim.
+RegExp iterator results follow the same rule for built-in and custom `exec`
+paths, including non-global matching. Custom match results retain identity.
+For `RegExp.prototype[Symbol.matchAll]` iterators, borrowed `next` calls
+distinguish the outer result's method realm from the match array's `exec`
+realm, including capture-index arrays.
+Default constructed matchers retain their RegExp prototype after cleanup.
+String `matchAll` also retains the internal matcher's realm for string,
+omitted, and coercible-object patterns, including borrowed iterator calls.
+Object literals retain their originating prototype after cleanup and when
+created later by exported closures. Explicit null prototypes stay null;
+modified prototype chains reject lossy data copying. `Object.fromEntries`
+results also preserve their originating prototype, including synchronous SDK
+adapter calls. `Object()` and `new Object()` with null or missing arguments
+retain their creation realm, while existing object inputs keep their identity.
+Object and array destructuring rest results also retain their originating
+prototype, including assignment and parameter patterns used by exported
+functions after run cleanup.
+Function rest-parameter arrays retain the function's originating array
+prototype as well, including calls made through exported SDK functions.
+Number, String, and Boolean construction and primitive `Object(value)`
+wrappers retain their originating prototypes after cleanup. Pristine wrappers
+remain copyable as data; modified prototype chains reject lossy copying.
+Boxed prototype mutation records are counted once when their owner is also
+reachable through a wrapper, without raising cleanup-test budget limits.
+Dates retain their originating prototype after run cleanup, including Dates
+created later by exported closures. Pristine Dates remain copyable as data;
+modified prototype chains reject copying rather than losing guest behavior.
+Array member calls also accept guest-defined own and inherited methods; missing
+or non-callable members fail the normal callability check.
+String `startsWith`, `endsWith`, and `includes` honor guest `Symbol.match`,
+string-conversion and position-conversion hooks in order, including Proxy
+lookups and abrupt completion. RegExp searches are rejected unless their
+`Symbol.match` override disables RegExp treatment. Primitive-only searches
+retain their synchronous direct-call path.
+String `indexOf` and `lastIndexOf` likewise honor guest string and position
+conversion, but do not inspect `Symbol.match`; `lastIndexOf` preserves its
+distinct handling of omitted and NaN positions.
+String `repeat` converts guest count objects through their numeric conversion
+hooks after receiver conversion, preserving thrown values, range validation,
+and output string-budget checks.
+String character access (`at`, `charAt`, `charCodeAt`, and `codePointAt`) also
+honors guest numeric index conversion, preserving each method's negative-index,
+out-of-range and UTF-16/code-point behavior.
+String `slice` and `substring` convert guest start/end bounds in order, retaining
+their distinct negative-index and reversed-bound behavior and output budgets.
+Legacy `substr` also converts guest start/length arguments in order, retaining
+its length-based semantics, including conversion for empty-result ranges.
+String `normalize` honors guest form-conversion hooks after receiver conversion,
+preserving the default form, native Unicode normalization and validation errors.
+String `padStart` and `padEnd` convert guest target lengths before fillers,
+skip filler conversion when no padding is needed, and preserve default spacing,
+empty-fill behavior and output budgets.
+Case conversion and trimming ignore extra argument values, including functions,
+while preserving normal caller-side evaluation of those arguments.
+String `concat` rejects Symbol arguments in both primitive-only and guest-object
+conversion paths, preserving conversion order and abrupt completion.
+`String.raw` uses guest conversion for raw entries and substitutions, including
+direct intrinsic calls. Raw values may be array-like objects or boxed primitives;
+length is captured once, Symbols are rejected, and iteration is budgeted.
+Template raw text normalizes literal CR and CRLF line endings to LF, including
+line continuations, while preserving escaped character spellings and source offsets.
+Malformed template escapes report positions in the original source, including
+after CRLF line endings.
+Tagged templates in `new` expressions run the tag before constructing its result,
+preserving substitutions, member receivers, constructor arguments and parentheses.
+Optional chains skip the remaining contiguous member accesses, calls and their
+arguments after a nullish short circuit. Parentheses end that propagation without
+discarding method receivers; ordinary undefined results still produce normal errors.
+Missing methods on functions and generators follow ordinary call evaluation:
+optional calls skip arguments, while non-optional calls evaluate them before throwing.
+Locale-list canonicalization observes Proxy membership and element reads in
+order, including inherited entries and throwing traps. This preserves locale
+selection for locale-aware case conversion, collation and Intl constructors.
+Direct intrinsic collation calls also use guest comparison, locale-entry and
+option conversion rather than copying those values into host data. Accessor
+invocation still requires an execution context; native getters are not executed.
+Direct SDK `Iterator.from` accepts strings after run cleanup, using the
+originating guest String prototype. Getter and Proxy-ancestor reads preserve
+the primitive receiver, including later guest iterator overrides.
+SDK typed-array input conversion follows Proxy reads and calls for array-like
+inputs, iterator factories, iterator objects, and result objects. Iterator
+acquisition also observes methods supplied by Proxy traps or Proxy ancestors,
+including async iteration and its synchronous fallback.
+Direct SDK `TypedArray.from` calls observe Proxy inputs, mapping callbacks, and
+constructor receivers, preserving mapper `this` and index arguments.
+Direct SDK `TypedArray.of` calls support Proxy constructor receivers and element
+conversion hooks. Primitive conversion observes Proxy hooks and Proxy ancestors
+instead of treating their private carriers as ordinary objects.
+Direct SDK `Iterator.from` and its wrapper methods dispatch Proxy iterator
+factories, iterator objects, and methods through guest operations. Wrappers cache
+`next`, read `return` lazily, and preserve iterator receivers and revocation checks.
+SDK Iterator subclass construction observes Proxy `newTarget.prototype` reads,
+including nested/accessor-backed traps, and rejects revoked constructor targets.
+SDK iterator disposal observes Proxy `return` lookup and invocation with the
+original receiver, including inherited accessors and revoked methods.
+SDK eager iterator consumers (`toArray`, `reduce`, `forEach`, `some`, `every`,
+and `find`) observe Proxy receivers, methods, result objects, and callbacks,
+including iterator closing on early return or callback failure.
+SDK lazy iterator helpers (`map`, `filter`, `take`, `drop`, and `flatMap`) also
+dispatch Proxy operations during creation, advancement, and closing. `flatMap`
+closes active inner and outer Proxy iterators in the tested native order.
+Public Proxy binding reads the prototype and own length descriptor through traps
+before reading length and name, including null prototypes and nested Proxies.
+Promise operations dispatch Proxy constructors, executors, reaction callbacks,
+callable thenable hooks, and overridden `then` methods used by `catch`/`finally`.
+Promise resolution also reads `then` through Proxy traps, preserving the receiver,
+read/call ordering, and rejection on trap errors or revocation. Nested and
+callable Proxies, callback/async returns, and checkpoint recovery have focused
+coverage. Inherited `then` lookup also reaches Proxy ancestors with the original
+receiver; an own `then` property stops lookup before a revoked Proxy ancestor.
+Proxy-valued `then` getters retain guest call context, including inherited and
+nested getters, thrown trap errors, and checkpoint recovery.
+Promise adoption also leaves the intrinsic fast path when `then` lookup reaches
+a Proxy ancestor of the shared Promise prototype.
+Constructor and species reads follow Proxy ancestors with the original receiver,
+including trap errors, custom species selection, and own-property shadowing.
+Other host-boundary interactions still need auditing.
+
+`Array.isArray` follows nested Proxy targets without invoking traps and rejects
+revoked proxies. Other internal array-identity consumers still need integration.
+`JSON.stringify` recognizes wrapped arrays and replacer arrays, enumerates Proxy
+objects through key and descriptor traps, and invokes callable Proxy replacers
+and `toJSON` hooks. Focused native comparisons cover trap ordering, length
+coercion, mutation during enumeration, cycles, and revocation.
+Date serialization uses the current `toJSON` property: deleting the inherited
+hook or replacing the prototype no longer forces ISO date conversion.
+Generic `Date.prototype.toJSON` calls box BigInt and Symbol receivers before
+running conversion hooks, just as they do for other primitive receivers.
+`structuredClone` rejects Proxy values with `DataCloneError`, including nested
+and revoked Proxies, without invoking traps or detaching transfer buffers.
+This follows native clone behavior; it is separate from Proxy checkpoint support.
+Object.prototype.toString reads custom tags through non-callable Proxies and
+preserves wrapped-array identity. Ordinary receivers also read inherited tags
+through Proxy ancestors with the original receiver. Callable Proxies use the
+`Function` fallback tag while honoring custom tags and rejecting revoked Proxies.
+Ordinary-constructor `instanceof` checks follow Proxy prototype chains, including
+bound constructors. Native comparisons also cover callable Proxy constructors,
+custom `Symbol.hasInstance`, revocation, and wrapped Array, Map, Error, and
+Uint8Array instances. These cases pass without further runtime changes; they do
+not establish conformance for every built-in or host constructor.
+
+The later internal freeze/seal implementation now prevents target extension and
+updates properties through Proxy traps, with tested ordering and partial-failure
+behavior. Integrity queries (`Object.isFrozen` and `Object.isSealed`) also use
+Proxy extensibility and descriptor operations, with tested early exits.
+
+At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
+24 files. This is not a full-package gate or evidence of public Proxy support.
+The snapshot suite subsequently passed 1,692 tests across 127 files, including
+28 Proxy graph tests. Host boundaries and
+remaining array species/identity consumers still need integration.
+See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
+the tested scope and remaining work.
+
+An earlier working-tree gate includes the generator result-realm and
+synchronous yield-star forwarding fixes. It passed 24,368 tests, failed three,
+and skipped 37 across 950 files. The discovered inputs retained their source/test
+fingerprint; three later regression files were checked separately.
+Two failures concern native Promise own-property imports, whose admission
+policy remains unresolved. The third exposed unnecessary result-prototype
+retention in internal async-function frames. Restricting that metadata to
+actual async generators passes 1,955 generator, snapshot and accounting tests,
+plus lint, TypeScript and build checks. This is not a green full-package
+gate or an isolated committed-tree result.
+See the [full gate record](../../docs/plans/safejs-realm-lifetime-full-gate.md).
+The public data-copy boundary now rejects guest Proxy values explicitly instead
+of silently producing empty objects. Use an owning realm's retained guest
+references to preserve identity and trap behavior; explicit callable wrappers
+remain available. Transparent Proxy export is not implemented.
+Host and realm callback bridges now dispatch callable Proxies through guest
+operations, including nested Proxies, accessor-backed traps, async targets,
+revocation, and checkpoint recovery. Both callback routes preserve explicit
+receivers. Raw host callback replay stores receivers and arguments in one graph
+to preserve aliases. Receiver-bearing records use host replay version 2;
+argument-only histories retain version 1, and both versions are accepted.
+Re-issued callbacks reject changed receivers as well as changed arguments.
+
+Experimental work remains uncommitted. Pushes and releases are paused; local
+implementation, remote delivery, and successful publication are separate
+milestones.
+
+The WeakMap/WeakSet public API, symbol-registry validation and linter support
+are committed locally but unreleased. Snapshot integration preserves entries
+whose keys are strongly reachable, including chains of weak-map values, without
+promoting weak-only keys into snapshot roots. Portable weak-symbol lifetime
+support across all supported Node.js 18 versions remains unresolved. See the
+[public integration record](../../docs/plans/safejs-weak-collection-public-reconciliation.md).
+
+The four weak-object constructors have read-only `prototype` properties,
+including after replay; ordinary function constructors remain writable.
+
+The `WeakRef` and `FinalizationRegistry` public APIs are committed locally but
+unreleased. Weak-state snapshots retain strongly reachable targets and preserve
+aliases; weak-only targets and unregister tokens are omitted. Finalization held
+values remain strong, and rejected restoration rolls back pending registrations.
+Focused coverage includes job-scoped target retention, held-value budgets,
+owner-scheduled cleanup, cancellation, and heap snapshot restoration. Cleanup
+errors are reported to the owning run or persistent realm. These changes are not
+released or fully validated: unique-symbol weak references still fail on older
+Node.js 18 runtimes, and low-level registry restoration requires an execution
+owner with error reporting. All 2,134 snapshot tests across 157 files pass on
+Node 22.23.2, and 42 selected weak snapshot tests pass on Node 18.20.8; these
+are not full-package or conformance results.
+
 ## Meaningful limitations
 
-- **Not a full JavaScript engine.** No user-defined classes, async generators, dynamic imports, or automatic multi-file/npm resolution. No browser build, DOM, general Node API, `eval`, or `Function` constructor. Ordinary guest constructor prototypes are supported, but native and exotic prototype chains are not. Built-in coverage is selective; lint success is not a runtime compatibility guarantee.
-- **Some familiar syntax differs.** Binary `in` is unsupported; use `Object.hasOwn(object, key)` for own-property checks. Regex supports `g`, `i`, `m`, and `s`, but not lookaround, backreferences, named groups, Unicode property escapes, or other flags. Compilation and matching have fixed limits in addition to configured budgets.
+The [September 10 completeness inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-10.md)
+separates locally implemented features from remaining defects, compatibility
+gaps and unverified conformance. The full package gate is not yet green.
+
+Instant string formatting accepts an owned ZonedDateTime as its `timeZone`
+option and reads its private zone without invoking public accessors.
+Duration `total`, `compare`, and `round` also accept that zone form inside a
+`relativeTo` date bag, preserving the bag's date and calendar for DST arithmetic.
+Blank Duration totals return positive zero at both PlainDate range boundaries
+without constructing an out-of-range calendar interval.
+The Temporal namespace, Now wiring, and all eight constructors and method adapters
+are committed locally but unreleased; broader snapshot qualification remains unfinished.
+Replay-data encoding now retains the private slots of all eight Temporal types,
+including MonthDay/YearMonth reference dates and exact nanosecond epochs. JSON
+round trips preserve aliases, data descriptors, symbol cycles, explicit null
+prototypes and frozen state. Malformed slot records and accessor properties are
+rejected. This codec integration does not complete heap restoration or qualify
+the full snapshot system. Heap capture and restoration now also have typed records
+for all eight Temporal types, preserving private slots alongside object state.
+Focused heap tests cover aliases, cycles, custom prototypes and invalid records;
+these results do not establish complete cross-realm transport or a green package.
+Raw owned Temporal values now resolve their default prototype from the receiving
+realm's registered Temporal constructors. Explicit custom or null prototypes
+take precedence; this does not add support for arbitrary foreign host subclasses.
+PlainMonthDay's current checks pass on Node 18.20.8 and 26.8.1, but three ISO
+month-name locale checks still fail on Node 22.23.2; local integration is not a
+claim of complete locale support or a green package gate.
+PlainYearMonth likewise passes its 102 current checks on Node 18.20.8 and
+26.8.1; three ISO month-name locale checks remain failing on Node 22.23.2.
+PlainDate conversions to MonthDay, YearMonth, and ZonedDateTime are also committed
+locally, preserving private calendar fields and destination-realm prototypes.
+MonthDay input conversion preserves an owned YearMonth's private calendar while
+still reading its public date fields; shadowing `calendar` does not override it.
+PlainDate, PlainDateTime, ZonedDateTime and Duration relative-date conversion
+also use owned Temporal calendars before looking for an ordinary `calendar`
+property. Proxies do not inherit their targets' private Temporal brands.
+
+Temporal support is partial despite the local public integration. The runtime provides owned
+`Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainTime`, `Temporal.PlainDateTime`, and `Temporal.PlainDate` values
+with focused snapshot, replay and host-copy coverage. PlainTime currently has
+construction, subclassing, six field getters, `from`, `compare`, `equals`, `add`,
+`subtract`, `round`, `with`, `until`, `since`, `toString`, `toJSON`, `toLocaleString`,
+and the always-throwing `valueOf`. Method presence does not establish complete
+Temporal/Intl interoperability or conformance.
+`PlainTime.with` rejects owned date/time values before reading partial fields or
+options; `PlainTime.from` still accepts explicitly supplied time fields on a date.
+PlainDateTime has construction, calendar/date/time getters, `from`, `compare`,
+`equals`, `toPlainTime`, `toPlainDate`, `with`, `withPlainTime`, `withCalendar`, `add`, `subtract`, `until`, `since`, `round`, `toString`, `toJSON`, `toLocaleString`, and `valueOf`, with
+focused copy and snapshot/replay coverage. Its `toZonedDateTime` conversion
+supports compatible, earlier, later and reject disambiguation. Expanded-year parsing preserves option-read order before
+representable-range validation.
+PlainDate currently has construction, calendar/date getters, `from`, `compare`, `equals`, `add`, `subtract`, `until`, `since`, `with`, `withCalendar`, `toPlainDateTime`, `toZonedDateTime`, `toString`, `toJSON`, `toLocaleString`,
+and `valueOf`, with private data copying, host bindings, and heap/replay support.
+Its local `toPlainYearMonth` and `toPlainMonthDay` conversions use private fields,
+with focused calendar and receiver-brand checks; public integration remains
+uncommitted. `PlainDate.from` accepts ISO strings, calendar-based date bags
+and owned date/date-time/zoned values, with ordered field/options reads and
+private-slot copies. `PlainDateTime.from` also accepts owned zoned local fields;
+both date types reject ZonedDateTime partial updates before reading public properties.
+PlainDateTime input conversion and differences accept owned PlainDate values
+at midnight using their private ISO/calendar fields, without public getter reads.
+Calendar identifiers accept owned PlainDate, PlainDateTime and ZonedDateTime values via private slots.
+Duration `relativeTo` accepts owned PlainDate and PlainDateTime values using their private ISO
+date and calendar, without reading shadowed public fields or using the time of day.
+Temporal string and relative-input validation rejects overflowing offset
+minutes/seconds rather than silently normalizing them; valid precise offsets
+and leap-second clock values remain supported.
+Instant formatting and Duration relative-input bags accept zone-bearing time,
+year-month and month-day strings, with date and annotation validation.
+Direct `Intl.DateTimeFormat` formatting, parts and ranges now accept owned
+PlainDate, PlainTime, PlainDateTime and Instant values, with requested options preserved in new snapshots.
+These public adapters are committed locally. Owned ZonedDateTime values are
+rejected without primitive coercion, even if their `valueOf` is overridden.
+Cached DateTimeFormat/NumberFormat `format` and Collator `compare` functions
+preserve guest proxy coercion, including calls after completed replay and calls
+through cached functions restored from a guest heap.
+Restored bound constructors also retain an explicit alternate `newTarget`,
+including nested binds, while ordinary construction still selects the original
+target's prototype.
+Legacy formatter snapshots lack original requested options and use their saved
+resolved options as a fallback.
+`PlainTime.toLocaleString`, `PlainDateTime.toLocaleString` and `PlainDate.toLocaleString` accept valid fixed-offset
+time zones on Node 18 and preserve their wall-clock fields. Fixed-offset numeric Date/Instant and direct
+Intl formatting on older hosts remain incomplete.
+The earlier full SafeJS run includes the working-tree PlainDateTime, PlainDate
+and direct-Intl integration: 26,777 tests passed, four failed and 41 were skipped.
+Two failures concern native Promise property-import expectations; two exceeded
+the 5-second timeout in completed replay and PPR2 continuation tests.
+All 100 filesystem type contracts passed, and the source fingerprint matched
+before and after the run. No Temporal/Intl tests failed, but this is not a green
+package gate or complete JavaScript conformance; see the
+[full-run record](../../docs/plans/safejs-post-plain-date-full-gate.md).
+The newer [ZonedDateTime integration gate](../../docs/plans/safejs-post-zoned-integration-gate.md)
+completed with 26,915 passed, 15 failed and 41 skipped, plus 100 passing filesystem
+type contracts. Its source fingerprint matched before and after. The failures
+were two Promise import expectations, ten timeouts and three dependent setup
+assertions. No Temporal-named tests failed, but the integration gate is not green.
+Instant differences (`until`/`since`) return
+Durations, and Instant `toLocaleString` supports locale-aware formatting.
+`Temporal.ZonedDateTime` now has a constructor, field getters, owned copying,
+host-binding admission and heap/replay storage in the working tree. It converts
+to Instant, PlainDate, PlainTime and PlainDateTime using private fields. Its
+`from()` accepts zoned strings, property bags and owned values with overflow,
+offset and DST-disambiguation options. `compare()` orders instants, while
+`equals()` also considers time zone and calendar. `withTimeZone()` changes the
+zone while preserving the instant and calendar. `withCalendar()` changes the
+calendar while preserving the instant and zone; calendar-taking date methods
+also accept owned ZonedDateTime values. `toString()` supports precision,
+rounding and calendar/zone/offset display options; `toJSON()` preserves the
+default exact representation. `startOfDay()` returns the first valid instant
+of the local date, including dates with skipped midnight. `withPlainTime()`
+changes local time with compatible gap/overlap resolution, or selects the start
+of day when omitted. Time-taking methods read owned ZonedDateTime time slots;
+PlainTime partial updates reject ZonedDateTime values. `getTimeZoneTransition()`
+finds the next or previous transition, returning null when none exists.
+`add()` and `subtract()` distinguish calendar units from elapsed time across
+offset changes and support constrained or rejected calendar overflow.
+`round()` supports day and time units, accounting for actual local day length
+and offset transitions.
+`until()` and `since()` distinguish elapsed-time and calendar differences,
+support rounding, and validate calendar/zone compatibility.
+`with()` applies partial date/time fields using calendar-aware merging and
+explicit overflow, offset and disambiguation policies.
+`toLocaleString()` formats the owned zone with guest locale/option coercion,
+rejects an explicit `timeZone` option, and checks non-ISO calendar compatibility.
+On Node 18, fixed-offset zone locale formatting remains unsupported by the
+current backend; named zones work in the focused checks.
+Method presence does not establish full Temporal conformance.
+The local `Temporal.Now` namespace provides `timeZoneId`, `instant`,
+`plainDateTimeISO`, `zonedDateTimeISO`, `plainDateISO` and `plainTimeISO`.
+Clock and default-zone reads are recorded for replay. The injected clock retains
+millisecond precision; returning nanosecond units does not invent finer precision.
+The local `Temporal.PlainYearMonth` implementation
+supports construction, `from`, `compare`, `equals`, `with`, calendar getters, `toString`, `toJSON`, and rejecting
+`valueOf`, with private-slot copying, host imports, and heap/replay preservation.
+Owned year-months also supply private calendars to calendar-bearing inputs and
+are rejected as partial field bags. `toPlainDate` selects a calendar day with
+constrained overflow, and `PlainDate.toPlainYearMonth` produces a canonical
+year-month. `add` and `subtract` support calendar years/months and reject nonzero
+smaller duration units. `until` and `since` return calendar-year/month differences
+with rounding and matching-calendar validation. `toLocaleString` validates guest
+locales/options and matching calendars, without shifting the year-month by an
+explicit time zone. Native ICU locale data can affect output order; the known
+missing-ISO-month issue on Node 22.23.2 also affects year-month formatting.
+Direct `Intl.DateTimeFormat` formatting, parts and same-type ranges accept
+owned year-months, with calendar/component compatibility checks.
+Extreme-range formatting remains incomplete: some valid `PlainDate`,
+`PlainDateTime` and `PlainYearMonth` values construct and format as ISO strings
+but throw `RangeError` from `toLocaleString` or direct Intl formatting. The
+backend's numeric-date formatting path does not cover the full Temporal range.
+See the [boundary verification record](../../docs/plans/safejs-temporal-intl-extreme-range.md).
+The local `Temporal.PlainMonthDay` implementation supports construction and
+`calendarId`, `monthCode`, and `day` getters, `from`, `with`, `equals`, `toString`, `toJSON`, and rejecting
+`valueOf`, with private-slot copying, host imports and snapshot/replay
+preservation. Owned month-days can also supply calendars without public field
+reads. `toPlainDate` selects a calendar year and constrains leap-day overflow;
+`PlainDate.toPlainMonthDay` converts private date fields to a canonical month-day.
+PlainMonthDay locale formatting validates calendar compatibility and guest
+options. ISO-calendar month names are missing on the tested Node 22.23.2 and
+26.4.0 runtimes due to an upstream ICU defect; the same focused tests pass on
+Node 18.18.2 and patched Node 26.8.1. See [Node's ICU fix](https://github.com/nodejs/node/pull/64678).
+Instant `toZonedDateTimeISO()` preserves the exact epoch in a selected zone and
+ISO calendar. Instant input operations accept owned ZonedDateTime epochs without
+consulting public coercion hooks.
+Duration `compare` supports exact time comparisons and calendar/DST-relative inputs.
+Duration `compare`, `round`, and `total` accept owned ZonedDateTime `relativeTo`
+values through private slots, preserving the exact instant, zone and calendar
+without reading public getters.
+Duration `round` supports rounding modes, increments and calendar-relative inputs.
+Duration `total` supports unit strings and plain/zoned `relativeTo` strings or
+property bags, with exact time-unit and calendar-fraction division. Broader
+calendar conformance qualification remains open. Host Temporal subclasses and arbitrary foreign-realm
+instances are not generally supported. This is not complete Temporal support
+or a claim about the released package.
+
+The [September 10 gap inventory](../../docs/plans/safejs-current-gap-inventory-2026-09-10.md)
+separates current API presence from behavioral, recovery and validation gaps.
+It includes newer native APIs that are still proposals; matching a native
+property list is not proof of JavaScript conformance.
+
+The unreleased runtime also provides `Map.prototype.getOrInsert(key, value)`
+and `getOrInsertComputed(key, callback)`. These newer compatibility methods
+preserve existing values and use collection budgets for insertions; computed
+defaults run only for missing keys. See the [Map validation record](../../docs/plans/safejs-map-upsert.md).
+The corresponding WeakMap methods are committed locally but unreleased;
+they retain the older-Node weak-symbol limitations above.
+See the [WeakMap integration record](../../docs/plans/safejs-weakmap-upsert.md).
+
+The unreleased runtime supports `Atomics` integer operations on ordinary
+ArrayBuffer-backed typed arrays, including BigInt views. Experimental,
+shared-memory work adds fixed/growable `SharedArrayBuffer`, typed
+array and DataView aliases, shared structured cloning, and `waitAsync`/`notify`.
+Focused tests cover direct shared-buffer snapshot and replay-data round-trips,
+including shared growth and distinct wrapper identities. Host-boundary transport
+remains under review. Pending waits inside a run now use a per-run Node worker;
+run completion or cancellation awaits worker termination, removing that run's
+native wait registrations without notifying unrelated waiters. Standalone
+intrinsic calls without a run lifecycle retain native waiter lifetime.
+Focused async-wait tests cover
+timeouts, notification order, await cancellation, and pending source replay.
+The low-level heap restorer additionally preserves pending wait state and exposes
+`await restored.activateAtomicWaits()` to register those waits before restored
+guest closures are used. Focused tests cover FIFO order, BigInt offsets, remaining
+timeouts, re-checkpointing before activation, and run-owned cleanup. This internal
+activation API is distinct from the public SDK's source-replay restore path;
+these checks do not establish deterministic timeout replay or arbitrary concurrent
+shared-memory recovery;
+do not treat this as complete shared-memory support. Synchronous `Atomics.wait`
+cannot block the sandbox's host event-loop agent. Non-shared waits reject, and
+`notify` returns zero for valid non-shared views.
+
+The local `Atomics.pause()` implementation follows the current 2027 draft:
+it returns `undefined` and ignores arguments and the receiver. It sends a native
+CPU spin-wait hint when available and otherwise performs no timing operation;
+both paths charge the step budget. It is not a sleep or an event-loop yield.
+
+Managed shared-buffer host round-trips are being integrated. Focused checks now
+cover isolated settlement-time bytes, replayed argument aliases, and host writes
+and growth even when no shared buffer is returned. Experimental journal-wide
+tracking now passes focused replay tests for later mutations through retained
+arguments and host-returned buffers, including growth and synchronous or
+asynchronous calls. Capture ordering prevents older buffer images from
+overwriting newer effects. Further concurrency, callback, and budget-failure
+audits remain; shared host-call history is not yet fully verified.
+Async replay separates invocation-time shared writes from final settlement
+effects. Focused tests cover two-stage growth, pending-call prefixes, and an
+intermediate write observed through another host checkpoint. Arbitrary
+intermediate async visibility is not yet fully verified.
+
+- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef` and `FinalizationRegistry` are experimental local work with the limitations above. Shared-memory and Proxy support are incomplete as described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+- **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.
 - **Filesystem access is a grant, not an OS sandbox.** The helper is a subset of `node:fs/promises`, with text-oriented results and no file handles, streams, or Buffer API. Root checks do not isolate the process from concurrent filesystem changes. Prefer narrow host operations when a script only needs a few files.

@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
 import { FsError, type FileStat } from "../../contracts/index.js";
 import { writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { MikeError, type NativeWork } from "./native-work.js";
@@ -14,13 +15,13 @@ export async function publishInPlace(path: string, data: Uint8Array, original: F
   const outputContext = { signal: work.signal, ...(work.context.registerCleanup ? { registerCleanup: work.context.registerCleanup } : {}) };
   let settled!: () => void;
   const writerDone = new Promise<void>(resolve => { settled = resolve; });
-  work.register(async () => {
+  work.register(retainFileSystemCleanup(fs, async cleanup => {
     await writerDone;
     if (created) {
-      try { await fs.rm(temporary); }
+      try { await cleanup.rm(temporary); }
       catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
     }
-  });
+  }, { maxOperations: 1 }));
   try {
     await work.track(writeFileOutputCounted(outputContext, data, async () => {
       await fs.writeFile(temporary, data, { flag: "wx", mode: original.mode & 0o7777, signal: work.signal });

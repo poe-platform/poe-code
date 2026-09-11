@@ -1,0 +1,30 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+let checkpoint;
+
+export default async (frontmatter) => {
+  const receiver = { base: 2 };
+  function add(value) { return [this.base + value, this.self === bound]; }
+  const bind = add.bind;
+  Object.setPrototypeOf(add, { tag: "original" });
+  Object.defineProperty(add, "name", {
+    get() { Object.setPrototypeOf(add, null); return "renamed"; }
+  });
+  const bound = bind.call(add, receiver, 3);
+  receiver.self = bound;
+  function Box(value) { this.value = value; this.correctTarget = new.target === Box; }
+  const BoundBox = Box.bind(null, 7);
+  checkpoint = { bound, BoundBox };
+  await Promise.resolve(0);
+  let checksum = 0;
+  for (let index = 0; index < 20; index++) checksum += index;
+  const result = checkpoint.bound();
+  const instance = new checkpoint.BoundBox();
+  if (result[0] !== 5 || !result[1] || bound.tag !== "original" ||
+      bound.name !== "bound renamed" || instance.value !== 7 || !instance.correctTarget ||
+      !(instance instanceof BoundBox) || checksum !== 190) {
+    throw new Error("Bound function snapshot regression");
+  }
+  return { title: frontmatter.title, ok: true, value: result[0], cycle: result[1], constructed: instance.value };
+};

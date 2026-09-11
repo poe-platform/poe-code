@@ -13,7 +13,7 @@ function deferred<Value>() {
   return { promise, resolve, reject };
 }
 
-for (const name of ["sha256sum", "sha1sum", "md5sum", "cksum"]) {
+for (const name of ["sha512sum", "sha384sum", "sha224sum", "sha256sum", "sha1sum", "md5sum", "cksum"]) {
   test(`${name}: giant chunks match streaming partitions, including arbitrary bytes`, async () => {
     const bytes = Uint8Array.from({ length: 3 * 1024 * 1024 + 257 }, (_, index) => (index * 17 + (index >>> 8)) & 255);
     const whole = await run(name, [], { stdin: bytes });
@@ -33,7 +33,7 @@ for (const name of ["sha256sum", "sha1sum", "md5sum", "cksum"]) {
 }
 
 test("blocked source cancellation returns promptly and observes late next/return rejections", { timeout: 2000 }, async () => {
-  for (const args of [[], ["-c"]]) {
+  for (const name of ["sha512sum", "sha384sum", "sha224sum", "sha256sum"]) for (const args of [[], ["--tag"], ["-c"]]) {
     const controller = new AbortController();
     const requested = deferred<void>();
     const next = deferred<IteratorResult<Uint8Array>>();
@@ -44,7 +44,7 @@ test("blocked source cancellation returns promptly and observes late next/return
       return() { returned = true; return cleanup.promise; },
     }; } };
     const reason = new Error("blocked source canceled");
-    const running = run("sha256sum", args, { stdin: input, signal: controller.signal });
+    const running = run(name, args, { stdin: input, signal: controller.signal });
     await requested.promise;
     controller.abort(reason);
     await assert.rejects(running, error => error === reason);
@@ -193,6 +193,11 @@ test("checksum generation and verification invoke no VFS write methods", async (
   assert.equal((await run("sha256sum", ["data"], { fs: guarded })).exitCode, 0);
   assert.equal((await run("sha256sum", ["-c", "list"], { fs: guarded })).exitCode, 0);
   assert.equal((await run("cksum", ["data"], { fs: guarded })).exitCode, 0);
+  for (const name of ["sha512sum", "sha384sum", "sha224sum"]) {
+    const tagged = await run(name, ["--tag", "data"], { fs: guarded });
+    assert.equal(tagged.exitCode, 0);
+    assert.equal((await run(name, ["-c"], { fs: guarded, stdin: tagged.stdout })).exitCode, 0);
+  }
 });
 
 test("ignore-missing does not hide ENOENT after data has already been read", async () => {

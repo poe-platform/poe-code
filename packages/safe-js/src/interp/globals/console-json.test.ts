@@ -8,8 +8,28 @@ import {
   type SandboxObject
 } from "../values.js";
 import { createConsoleJsonGlobals } from "./console-json.js";
+import { HostCallJournal } from "../host-call.js";
 
 describe("createConsoleJsonGlobals", () => {
+  it("keeps console function property shape identical with and without journaling", () => {
+    const hostCalls = new HostCallJournal("console-property-shape");
+    try {
+      const plain = createConsoleJsonGlobals({ budget: new Budget() });
+      const journaled = createConsoleJsonGlobals({ budget: new Budget(), hostCalls });
+      for (const name of ["log", "error"]) {
+        const plainFunction = getClosure(getProperty(plain.console, name));
+        const journaledFunction = getClosure(getProperty(journaled.console, name));
+        expect(plainFunction.properties).toBeDefined();
+        expect(plainFunction.properties).toMatchObject({ name, length: 0 });
+        expect(Object.getOwnPropertyDescriptors(plainFunction.properties!)).toEqual(
+          Object.getOwnPropertyDescriptors(journaledFunction.properties!)
+        );
+        expect(Object.isExtensible(plainFunction.properties)).toBe(true);
+        expect(Object.isExtensible(journaledFunction.properties)).toBe(true);
+      }
+    } finally { hostCalls.dispose(); }
+  });
+
   it("writes console output through the provided sink", async () => {
     const sink = {
       error: vi.fn(),
@@ -223,7 +243,7 @@ describe("createConsoleJsonGlobals", () => {
     expect(sink.log).toHaveBeenCalledWith(undefined, null, NaN, Infinity);
   });
 
-  it("rejects invalid JSON.parse and JSON.stringify arguments", async () => {
+  it("rejects malformed JSON and ignores inapplicable stringify options", async () => {
     const globals = createConsoleJsonGlobals({
       budget: new Budget()
     });
@@ -231,12 +251,8 @@ describe("createConsoleJsonGlobals", () => {
     const stringifyJson = getClosure(getProperty(globals.JSON, "stringify"));
 
     await expect(parseJson.call(["{"])).rejects.toThrow(SyntaxError);
-    await expect(stringifyJson.call([{ ok: true }, "x"])).rejects.toThrow(
-      "JSON.stringify(value, replacer, indent) only supports function, null, or undefined replacers."
-    );
-    await expect(stringifyJson.call([{ ok: true }, null, false])).rejects.toThrow(
-      "JSON.stringify(value, replacer, indent) requires indent to be a string, number, or undefined."
-    );
+    await expect(stringifyJson.call([{ ok: true }, "x"])).resolves.toBe('{"ok":true}');
+    await expect(stringifyJson.call([{ ok: true }, null, false])).resolves.toBe('{"ok":true}');
   });
 
   it("rejects JSON.parse input that exceeds the string-length budget", async () => {

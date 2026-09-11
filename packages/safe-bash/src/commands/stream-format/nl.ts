@@ -65,7 +65,7 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
           if (numbered) blanks = 0;
         } else if (current === "t") numbered = record.length > 0;
         else if (current === "n") numbered = false;
-        else numbered = current.find(bytes.toString("latin1"), budget) !== undefined;
+        else numbered = (await current.find(bytes.toString("latin1"), budget)) !== undefined;
         if (numbered) {
           if (number < -(1n << 63n) || number >= 1n << 63n) throw new UsageError("line number overflow");
           let label = number.toString();

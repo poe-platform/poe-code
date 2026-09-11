@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const input = 'a' + 'x'.repeat(25);
+  const parts = input.split(/a|(x+)+y/, 1);
+  const captures = input.split(/(a)|(x+)+y/, 2);
+  await 0;
+  if (parts.length !== 1 || parts[0] !== '')
+    throw new Error('Split did not stop at its result limit');
+  if (captures.length !== 2 || captures[0] !== '' || captures[1] !== 'a')
+    throw new Error('Capture limit handling failed');
+  const empty = 'abc'.split(/(?:)/, 2);
+  if (empty.join('|') !== 'a|b') throw new Error('Empty-match progress failed');
+  return { ok: true, title: frontmatter.title, parts, captures, empty };
+}

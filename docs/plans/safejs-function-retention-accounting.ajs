@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const method = Math.abs;
+  method.extra = { nested: "initial" };
+  await 0;
+  method.extra.nested = "changed";
+  const nested = method.extra.nested;
+  Object.defineProperty(method, "extra", { value: "replacement", configurable: true });
+  const replaced = method.extra;
+  delete method.extra;
+  const removed = !Object.hasOwn(method, "extra");
+  const symbol = Symbol("metadata");
+  method[symbol] = "symbol value";
+  Object.freeze(method);
+  if (nested !== "changed" || replaced !== "replacement" || !removed ||
+      method[symbol] !== "symbol value" || !Object.isFrozen(method) || method(-7) !== 7) {
+    throw new Error("Function property mutation accounting regression");
+  }
+  return { title: frontmatter.title, ok: true, nested, replaced, removed };
+};

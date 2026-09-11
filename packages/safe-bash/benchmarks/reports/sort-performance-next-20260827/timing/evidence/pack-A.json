@@ -1,8 +1,0 @@
-{
-  "code": 1,
-  "signal": null,
-  "pid": 17768,
-  "timedOut": false,
-  "stdout": "",
-  "stderr": "Exit prior to config file resolving\ncause\ndouble-loading config \"/dev/null\" as \"global\", previously loaded as \"user\"\n"
-}

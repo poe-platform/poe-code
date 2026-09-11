@@ -9,6 +9,7 @@ export interface ReviewResult {
   receipts: ReviewReceipt[];
 }
 export function runSuite(root: unknown, network: unknown, options?: {
+  expectedDefaults?: Readonly<Record<string, number>>;
   baseline?: boolean;
   validators?: boolean;
   select?: (spec: { name: string }) => boolean;

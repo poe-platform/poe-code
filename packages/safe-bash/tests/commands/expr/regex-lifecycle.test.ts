@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { createRequire, syncBuiltinESMExports } from "node:module";
@@ -70,7 +71,7 @@ test("expr skipped regex branches submit/compile zero jobs and never access stdi
     const { context } = await run(["1"]);
     Object.defineProperty(context, "stdin", { get() { throw new Error("stdin accessed"); } });
     Object.defineProperty(context, "args", { value: args });
-    assert.ok((await createExprCommand().execute(context)).exitCode < 2);
+    assert.ok((await createExprCommand({ regexExecutor: createNodeRegexProvider() }).execute(context)).exitCode < 2);
   }
   assert.equal(workers.length, from);
 });
@@ -248,7 +249,7 @@ test("idle retirement and executor dispose keep expr sessions bounded", async ()
 
 test("actual Shell abort settles after regex retirement and leaves siblings usable", async () => {
   const from = workers.length;
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(exprCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(exprCommands({ regexExecutor: createNodeRegexProvider() }));
   const controller = new AbortController();
   let held = false;
   intercept = () => { held = true; return true; };

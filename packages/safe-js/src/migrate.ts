@@ -35,7 +35,11 @@ export function inspectSnapshotMigration(snapshot: SafeJSSnapshot, options: { so
   validateSnapshotData(snapshot);
   validateDumpEnvelope(snapshot);
   validateMigrationSemantics(snapshot.executionSemantics);
-  const sourceHash = hashSource(options.source);
+  const sourceHash = hashSource(
+    options.source,
+    undefined,
+    snapshot.executionSemantics === EXECUTION_SEMANTICS
+  );
   if (snapshot.sourceHash !== sourceHash)
     throw new TypeError(
       `Migration requires the original executable source (checkpoint hash ${snapshot.sourceHash}, supplied ${sourceHash}). Preserve the checkpoint; do not replace its hash.`

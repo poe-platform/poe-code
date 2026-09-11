@@ -14,8 +14,9 @@ const require = createRequire(import.meta.url);
 function kernelExports(bash, filesystem) {
   return [
     `export { Shell } from ${JSON.stringify(resolve(bash, "shell/index.js"))};`,
-    `export { createMemoryFileSystem, resolvePath, normalizePath, readBytes, FsError } from ${JSON.stringify(filesystem)};`,
-    `export { createAgentCommands } from ${JSON.stringify(resolve(bash, "plugins/index.js"))};`
+    `export { createMemoryFileSystem, resolvePath, normalizePath, readBytes, withFileSystemQuota, FsError } from ${JSON.stringify(filesystem)};`,
+    `export { createAgentCommands } from ${JSON.stringify(resolve(bash, "plugins/index.js"))};`,
+    `export { createNodeRegexProvider as createWorkerRegexProvider } from ${JSON.stringify(resolve(bash, "commands/regex-execution/client.js"))};`
   ].join("\n");
 }
 
@@ -34,20 +35,19 @@ function resolveBrowserBuiltin(id, worker, polyfillsRoot, importer) {
 }
 
 export async function buildBrowserEngine(options = {}) {
-  const installed = require.resolve
-    .paths("safe-bash-engine")
-    .find((path) => existsSync(resolve(path, "safe-bash-engine/package.json")));
-  if (!options.engineRoot && !installed)
-    throw new Error("Install the pinned safe-bash-engine devDependency before building");
-  const engineRoot = options.engineRoot ?? resolve(installed, "safe-bash-engine");
+  const engineRoot = options.engineRoot ?? resolve(directory, "../../../..");
   const manifest = JSON.parse(await readFile(resolve(engineRoot, "package.json"), "utf8"));
-  if (manifest.name !== "poe-code" || manifest.version !== "14.0.4") {
-    throw new Error(
-      "Browser adapters require the pinned safe-bash-engine alias: npm:poe-code@14.0.4"
-    );
+  const bashManifest = JSON.parse(await readFile(resolve(engineRoot, "packages/safe-bash/package.json"), "utf8"));
+  const filesystemManifest = JSON.parse(await readFile(resolve(engineRoot, "packages/safe-fs/package.json"), "utf8"));
+  if (manifest.name !== "poe-code" || bashManifest.name !== "virtual-bash" || bashManifest.private !== true ||
+      filesystemManifest.name !== "@poe-code/safe-fs" || filesystemManifest.private !== true) {
+    throw new Error("Browser adapters require the current SafeBash and SafeFS workspaces");
   }
   const bash = resolve(engineRoot, "packages/safe-bash/dist");
-  const filesystem = resolve(engineRoot, "packages/safe-js/dist/browser/safe-fs.js");
+  const filesystem = resolve(engineRoot, "packages/safe-fs/dist/core.js");
+  if (!existsSync(resolve(bash, "index.js")) || !existsSync(filesystem)) {
+    throw new Error("Build the current engine with npm run build:workspaces -- --workspace=safe-bash-playground");
+  }
   const polyfillsRoot = resolve(require.resolve("@jspm/core/nodelibs/buffer"), "../../..");
   const sources = {};
   const inputs = new Set();
@@ -84,12 +84,12 @@ export async function buildBrowserEngine(options = {}) {
         contents: kernelExports(bash, filesystem),
         resolveDir: directory
       }));
-      builder.onResolve({ filter: /^poe-code\/safe-fs$/ }, () => ({
+      builder.onResolve({ filter: /^poe-code\/safe-fs(?:\/core)?$/ }, () => ({
         path: "filesystem",
         namespace: "safe-bash-browser"
       }));
       builder.onLoad({ filter: /^filesystem$/, namespace: "safe-bash-browser" }, () => ({
-        contents: `export * from ${JSON.stringify(filesystem)}; export * from ${JSON.stringify(resolve(directory, "path.ts"))};`,
+        contents: `export * from ${JSON.stringify(filesystem)};`,
         resolveDir: directory
       }));
       builder.onResolve({ filter: /^node:/ }, (args) => ({
@@ -122,7 +122,9 @@ export async function buildBrowserEngine(options = {}) {
   }
   const result = options.workersOnly ? undefined : await build({
     ...shared,
-    ...(options.kernelOnly
+    ...(options.entry
+      ? { entryPoints: [resolve(directory, options.entry)] }
+      : options.kernelOnly
       ? { stdin: { contents: 'export * from "virtual:safe-bash-kernel";', resolveDir: directory } }
       : { entryPoints: [resolve(directory, "index.ts")] }),
     format: "esm",
@@ -145,6 +147,7 @@ export async function buildBrowserEngine(options = {}) {
 
 export function safeBashBrowserPlugin() {
   let compiled;
+  const watched = new Set();
   const prepare = () => compiled ??= buildBrowserEngine({ workersOnly: true });
   const globals = {
     name: "safe-bash-module-globals",
@@ -161,24 +164,24 @@ export function safeBashBrowserPlugin() {
     resolveId(id, importer) {
       if (id === "virtual:safe-bash-kernel") return "\0safe-bash-browser-kernel";
       if (id === "virtual:safe-bash-worker-sources") return "\0safe-bash-browser-workers";
-      if (id === "poe-code/safe-fs") return "\0safe-bash-browser-filesystem";
+      if (id === "poe-code/safe-fs" || id === "poe-code/safe-fs/core") return "\0safe-bash-browser-filesystem";
       if (id.startsWith("node:")) return prepare().then(result => resolveBrowserBuiltin(id, false, result.polyfillsRoot, importer));
     },
     async load(id) {
       if (!["\0safe-bash-browser-kernel", "\0safe-bash-browser-workers", "\0safe-bash-browser-filesystem"].includes(id)) return;
       const result = await prepare();
-      for (const input of result.inputs) {
-        const file = resolve(input);
-        if (file.startsWith(`${directory}/`)) this.addWatchFile(file);
+      for (const file of [...result.inputs.map(input => resolve(input)).filter(file => existsSync(file)), result.filesystem]) {
+        this.addWatchFile(file);
+        watched.add(file);
       }
-      for (const name of ["platform.ts", "path.ts", "worker-context.mjs", "workers.mjs"]) this.addWatchFile(resolve(directory, name));
+      for (const name of ["platform.ts", "worker-context.mjs", "workers.mjs"]) this.addWatchFile(resolve(directory, name));
       if (id === "\0safe-bash-browser-kernel") return kernelExports(result.bash, result.filesystem);
       if (id === "\0safe-bash-browser-workers") return `export const sources = ${JSON.stringify(result.workerSources)};`;
-      return `export * from ${JSON.stringify(result.filesystem)}; export * from ${JSON.stringify(resolve(directory, "path.ts"))};`;
+      return `export * from ${JSON.stringify(result.filesystem)};`;
     },
     async transform(code, id) {
       const filename = id.split("?")[0];
-      if (!filename.endsWith(".js") || !filename.includes("/safe-bash-engine/packages/")) return;
+      if (!filename.endsWith(".js")) return;
       const prepared = await prepare();
       if (!filename.startsWith(`${prepared.bash}/`) && !filename.startsWith(`${dirname(prepared.filesystem)}/`)) return;
       const adapter = prepared.adapters.get(filename);
@@ -195,7 +198,7 @@ export function safeBashBrowserPlugin() {
       return { code: transformed.outputFiles[0].text, map: null };
     },
     watchChange(id) {
-      if (id.startsWith(`${directory}/`)) compiled = undefined;
+      if (id.startsWith(`${directory}/`) || watched.has(id)) compiled = undefined;
     },
     async generateBundle() {
       if (compiled) {

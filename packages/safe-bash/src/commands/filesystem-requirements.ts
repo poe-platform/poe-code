@@ -21,6 +21,7 @@ export const filesystemCommandRequirements = {
   ],
   mv: [
     { id: "rename", description: "Rename files or directories", capabilities: ["stat", "rename"], mutates: true },
+    { id: "no-replace", description: "Atomically preserve an existing destination (-n)", capabilities: ["stat", "rename", "atomicRenameNoReplace"], mutates: true },
     { id: "cross-source", description: "Remove file sources after an existing cross-device transfer", capabilities: ["stat", "remove"], mutates: true },
     { id: "cross-directory-source", description: "Traverse and remove cross-device source directories", capabilities: ["stat", "readdir", "removeDirectory"], mutates: true },
     { id: "cross-link-source", description: "Inspect and remove cross-device source links", capabilities: ["stat", "readlink", "remove"], mutates: true },

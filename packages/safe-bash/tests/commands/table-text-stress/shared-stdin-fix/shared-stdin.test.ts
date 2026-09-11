@@ -52,14 +52,18 @@ test("one shared cursor owns reused Buffer chunks until exhaustion", async () =>
 
 test("producer failure wins over duplicate close", async () => {
   let finished = 0;
+  const failure = new Error("producer failed");
+  const reported: unknown[] = [];
   async function* source() {
-    try { yield Buffer.from("a\na\n"); throw new Error("producer failed"); }
+    try { yield Buffer.from("a\na\n"); throw failure; }
     finally { finished++; }
   }
-  const result = await runTable(fixture("comm", ["--total", "-", "-"]), {}, { stdin: source() });
+  const result = await runTable(fixture("comm", ["--total", "-", "-"]), {}, { stdin: source(), onInternalError(error) { reported.push(error); } });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdoutHex, "0909610a");
-  assert.equal(result.stderr, "comm: producer failed\n");
+  assert.equal(result.stderr, "comm: internal error\n");
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0], failure);
   assert.equal(finished, 1);
 });
 

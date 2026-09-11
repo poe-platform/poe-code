@@ -1,6 +1,7 @@
 import { yieldTurn } from "../../contracts/yield.js";
 import type { CommandContext } from "../../contracts/index.js";
-import type { RegexExecutionOptions } from "../regex-execution/client.js";
+import type { RegexExecutionOptions } from "../regex-execution/protocol.js";
+import type { BoundedRegexProvider } from "../regex-execution/provider.js";
 import { exprMatchCeilings } from "../regex-execution/protocol.js";
 
 export interface ExprLimits {
@@ -22,6 +23,7 @@ export interface ExprCommandsOptions {
   readonly replace?: boolean;
   readonly limits?: Partial<ExprLimits>;
   readonly regex?: RegexExecutionOptions;
+  readonly regexExecutor?: BoundedRegexProvider;
 }
 
 export class ExprError extends Error {

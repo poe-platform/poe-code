@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          filter: blob:none
           ref: ${{ github.sha }}
       - name: Check release tree admission
         id: release-admission
@@ -36,15 +37,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
-      - name: Build tiny-stdio-mcp-server
-        working-directory: packages/tiny-stdio-mcp-server
-        run: npm run build
-      - name: Build terminal-png
-        working-directory: packages/terminal-png
-        run: npm run build
-      - name: Build terminal-png-mcp
-        working-directory: packages/terminal-png-mcp
-        run: npm run build
+      - name: Build terminal-png packages and dependencies
+        run: npm run build:workspaces -- --workspace=terminal-png-mcp
       - name: Compute next version
         id: version
         run: |
@@ -68,8 +62,6 @@ jobs:
         if: steps.release-admission.outputs.publish == 'true'
       - name: Publish terminal-png-mcp
         working-directory: packages/terminal-png-mcp
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if npm view "terminal-png-mcp@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
             echo "terminal-png-mcp@${{ steps.version.outputs.next }} is already published"

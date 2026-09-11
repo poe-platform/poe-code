@@ -1,6 +1,8 @@
 import { boundIdentifiers } from "./bindings.js";
-import { tokenize, type Position, type Token } from "./tokenizer.js";
+import { validatePrivateNames } from "./private-names.js";
+import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, type Position, type Token } from "./tokenizer.js";
 import { assignIds } from "./assign-ids.js";
+import { evalFunctionDeclarations, functionSources, functionStrictness, templateSources } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
 import {
   createExportDefaultDeclaration,
@@ -17,6 +19,8 @@ export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-e
 
 const MAX_CONDITIONAL_EXPRESSION_DEPTH = 256;
 const MAX_IF_STATEMENT_DEPTH = 2_048;
+const STRICT_BINDING_NAMES = new Set(["eval", "arguments", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield"]);
+const functionBodyStrictness = new WeakMap<object, boolean>();
 
 export type SourceSpan = {
   start: Position;
@@ -32,6 +36,7 @@ export class DisallowedSyntaxError extends Error {
 
 type BaseNode = {
   nodeId?: number;
+  labels?: string[];
   type: string;
   span: SourceSpan;
 };
@@ -41,6 +46,8 @@ export type Identifier = BaseNode & {
   name: string;
 };
 
+export type PrivateIdentifier = BaseNode & { type: "PrivateIdentifier"; name: string };
+
 export type ThisExpression = BaseNode & {
   type: "ThisExpression";
 };
@@ -49,6 +56,12 @@ export type NumericLiteral = BaseNode & {
   type: "NumericLiteral";
   raw: string;
   value: number;
+};
+
+export type BigIntLiteral = BaseNode & {
+  type: "BigIntLiteral";
+  raw: string;
+  value: string;
 };
 
 export type StringLiteral = BaseNode & {
@@ -109,6 +122,7 @@ export type SpreadElement = BaseNode & {
 
 export type Property = BaseNode & {
   type: "Property";
+  kind?: "get" | "set";
   computed: boolean;
   shorthand: boolean;
   key: Expression;
@@ -252,6 +266,7 @@ export type MemberExpression = BaseNode & {
   computed: boolean;
   object: Expression;
   optional: boolean;
+  continuesOptionalChain?: true;
   property: Expression;
 };
 
@@ -259,6 +274,12 @@ export type MetaProperty = BaseNode & {
   type: "MetaProperty";
   meta: Identifier & { name: "import" };
   property: Identifier & { name: "meta" };
+};
+
+export type ImportExpression = BaseNode & {
+  type: "ImportExpression";
+  source: Expression;
+  options?: Expression;
 };
 
 export type AssignmentOperator =
@@ -291,6 +312,7 @@ export type CallExpression = BaseNode & {
   arguments: Array<Expression | SpreadElement>;
   callee: Expression;
   optional: boolean;
+  continuesOptionalChain?: true;
 };
 
 export type NewExpression = BaseNode & {
@@ -311,6 +333,7 @@ export type VariableDeclaration = BaseNode & {
   type: "VariableDeclaration";
   declarations: VariableDeclarator[];
   kind: VariableDeclarationKind;
+  disposal?: "sync" | "async";
 };
 
 export type ReturnStatement = BaseNode & {
@@ -340,6 +363,7 @@ export type EmptyStatement = BaseNode & {
 export type BlockStatement = BaseNode & {
   type: "BlockStatement";
   body: Statement[];
+  labels?: string[];
 };
 
 export type FunctionDeclaration = BaseNode & {
@@ -347,7 +371,7 @@ export type FunctionDeclaration = BaseNode & {
   async: boolean;
   body: BlockStatement;
   generator: boolean;
-  id: Identifier;
+  id?: Identifier;
   params: ArrowFunctionExpression["params"];
 };
 
@@ -360,6 +384,41 @@ export type FunctionExpression = BaseNode & {
   method?: true;
   params: ArrowFunctionExpression["params"];
 };
+
+export type ClassElement =
+  | (BaseNode & {
+      type: "MethodDefinition";
+      computed: boolean;
+      key: Expression;
+      kind: "constructor" | "method" | "get" | "set";
+      static: boolean;
+      value: FunctionExpression;
+    })
+  | (BaseNode & {
+      type: "PropertyDefinition";
+      computed: boolean;
+      key: Expression;
+      static: boolean;
+      value?: Expression;
+    })
+  | (BaseNode & { type: "StaticBlock"; body: BlockStatement });
+
+export type ClassBody = BaseNode & { type: "ClassBody"; body: ClassElement[] };
+export type ClassDeclaration = BaseNode & {
+  type: "ClassDeclaration";
+  id: Identifier;
+  superClass?: Expression;
+  body: ClassBody;
+};
+export type ClassExpression = BaseNode & {
+  type: "ClassExpression";
+  id?: Identifier;
+  superClass?: Expression;
+  body: ClassBody;
+};
+export type ClassNode = ClassDeclaration | ClassExpression;
+export type SuperExpression = BaseNode & { type: "Super" };
+export type NewTargetExpression = BaseNode & { type: "NewTargetExpression" };
 
 export type IfStatement = BaseNode & {
   type: "IfStatement";
@@ -380,6 +439,7 @@ export type ForStatement = BaseNode & {
 
 export type ForOfStatement = BaseNode & {
   type: "ForOfStatement";
+  await?: boolean;
   left: PatternTarget | VariableDeclaration;
   right: Expression;
   body: Statement;
@@ -389,7 +449,7 @@ export type ForOfStatement = BaseNode & {
 
 export type ForInStatement = BaseNode & {
   type: "ForInStatement";
-  left: Identifier | VariableDeclaration;
+  left: PatternTarget | VariableDeclaration;
   right: Expression;
   body: Statement;
   label?: string;
@@ -402,6 +462,12 @@ export type WhileStatement = BaseNode & {
   body: Statement;
   label?: string;
   labels?: string[];
+};
+
+export type WithStatement = BaseNode & {
+  type: "WithStatement";
+  object: Expression;
+  body: Statement;
 };
 
 export type DoWhileStatement = BaseNode & {
@@ -471,6 +537,7 @@ export type Module = BaseNode & {
 
 export type Statement =
   | BlockStatement
+  | ClassDeclaration
   | BreakStatement
   | DoWhileStatement
   | ExportDefaultDeclaration
@@ -489,7 +556,8 @@ export type Statement =
   | SwitchStatement
   | ThrowStatement
   | VariableDeclaration
-  | WhileStatement;
+  | WhileStatement
+  | WithStatement;
 
 export type ArrowFunctionExpression = BaseNode & {
   type: "ArrowFunctionExpression";
@@ -510,18 +578,24 @@ export type Expression =
   | BooleanLiteral
   | CallExpression
   | ConditionalExpression
+  | ClassExpression
   | FunctionExpression
   | Identifier
+  | ImportExpression
+  | PrivateIdentifier
   | LogicalExpression
   | MemberExpression
   | MetaProperty
   | NewExpression
+  | NewTargetExpression
   | NullLiteral
   | NumericLiteral
+  | BigIntLiteral
   | ObjectExpression
   | RegexLiteral
   | SequenceExpression
   | StringLiteral
+  | SuperExpression
   | TaggedTemplateExpression
   | TemplateLiteral
   | ThisExpression
@@ -538,6 +612,7 @@ type ParsedExpression = {
 };
 
 type ExpressionParseOptions = {
+  allowIn?: boolean;
   allowSequence?: boolean;
 };
 
@@ -552,6 +627,7 @@ const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
 const MAX_UNICODE_CODE_POINT = 0x10ffff;
 const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "break",
+  "class",
   "const",
   "continue",
   "do",
@@ -570,7 +646,11 @@ export function parse(source: string, filename = "<input>", owner?: CompileOwner
   const compilation = new CompileScope(owner);
   try {
     const result = assignIds(
-      parseTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+      new Parser(
+        tokenize(source, { allowRegexLiterals: true, compilation }),
+        source,
+        compilation
+      ).parseTopLevel()
     );
     const regexLiteral = findRegexLiteral(result);
     if (regexLiteral !== undefined) {
@@ -579,6 +659,7 @@ export function parse(source: string, filename = "<input>", owner?: CompileOwner
       );
     }
     throwIfImportMetaAssignment(result);
+    if (source.includes("#")) validatePrivateNames(result);
     return result;
   } catch (error) {
     if (error instanceof DisallowedSyntaxError || error instanceof SandboxError) {
@@ -596,9 +677,15 @@ export function parse(source: string, filename = "<input>", owner?: CompileOwner
 export function parseModule(source: string, filename = "<input>", owner?: CompileOwner): Module {
   const compilation = new CompileScope(owner);
   try {
-    return assignIds(
-      parseModuleTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+    const result = assignIds(
+      new Parser(
+        tokenize(source, { allowRegexLiterals: true, compilation }),
+        source,
+        compilation
+      ).parseModule()
     );
+    if (source.includes("#")) validatePrivateNames(result);
+    return result;
   } catch (error) {
     if (error instanceof DisallowedSyntaxError || error instanceof SandboxError) {
       throw error;
@@ -620,9 +707,16 @@ export function parseExecutableModule(
   const compilation = new CompileScope(owner);
   try {
     const result = assignIds(
-      parseModuleTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+      new Parser(
+        tokenize(source, { allowRegexLiterals: true, compilation }),
+        source,
+        compilation,
+        "top-level",
+        { ...ordinaryFunctionContext, newTarget: false, requireAsyncAwait: true }
+      ).parseModule()
     );
     throwIfImportMetaAssignment(result);
+    if (source.includes("#")) validatePrivateNames(result);
     return result;
   } catch (error) {
     if (error instanceof DisallowedSyntaxError || error instanceof SandboxError) {
@@ -637,37 +731,156 @@ export function parseExecutableModule(
   }
 }
 
-function parseTokens(tokens: Token[], compilation?: CompileScope): ParseResult {
-  return new Parser(tokens, compilation).parseTopLevel();
+export type EvalParseContext = {
+  strict?: boolean;
+  newTarget?: boolean;
+  superProperty?: boolean;
+  superCall?: boolean;
+  arguments?: boolean;
+  privateNames?: ReadonlySet<string>;
+};
+
+export function parseEvalScript(
+  source: string,
+  context: EvalParseContext = {},
+  owner?: CompileOwner
+): {node: Module; strict: boolean} {
+  const compilation = new CompileScope(owner);
+  try {
+    const limit = owner?.budget.limits.stringLength;
+    if (limit !== undefined && source.length > limit)
+      throw new SandboxError({budget: "stringLength", current: source.length, limit});
+    if (owner !== undefined) for (let index = 0; index < source.length; index++) owner.budget.visitNode();
+    const grammar = {await: false, yield: false, strict: context.strict === true};
+    const parser = new Parser(tokenize(source, {
+      allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true,
+      allowHtmlComments: true, compilation
+    }), source, compilation, "normal", {
+      grammar, newTarget: context.newTarget === true,
+      superProperty: context.superProperty === true, superCall: context.superCall === true,
+      arguments: context.arguments !== false, return: false, await: false, strictAwait: true
+    }, false);
+    const node = assignIds(parser.parseScript());
+    if (source.includes("#")) validatePrivateNames(node, context.privateNames);
+    for (const statement of node.body) {
+      if (statement.type === "FunctionDeclaration") evalFunctionDeclarations.add(statement);
+    }
+    return {node, strict: grammar.strict};
+  } catch (error) {
+    if (error instanceof SandboxError) throw error;
+    throw new SyntaxError(error instanceof Error ? error.message : String(error));
+  } finally { compilation.dispose(); }
 }
 
-function parseModuleTokens(tokens: Token[], compilation?: CompileScope): Module {
-  return new Parser(tokens, compilation).parseModule();
+export type DynamicFunctionKind = "normal" | "generator" | "async" | "async-generator";
+
+export function parseDynamicFunction(
+  kind: DynamicFunctionKind,
+  parameters: string,
+  body: string,
+  owner?: CompileOwner
+): FunctionExpression {
+  const compilation = new CompileScope(owner);
+  const prefix = `${kind === "async" || kind === "async-generator" ? "async " : ""}function${kind === "generator" || kind === "async-generator" ? "*" : ""}`;
+  try {
+    const length = prefix.length + " anonymous(\n) {\n\n}".length + parameters.length + body.length;
+    const limit = owner?.budget.limits.stringLength;
+    if (limit !== undefined && length > limit)
+      throw new SandboxError({budget: "stringLength", current: length, limit});
+    if (owner !== undefined) for (let index = 0; index < length; index++) owner.budget.visitNode();
+    const parameterSource = `(${parameters}\n)`;
+    const bodySource = `{\n${body}\n}`;
+    const source = `${prefix} anonymous(${parameters}\n) ${bodySource}`;
+    const createParser = (text: string) => new Parser(
+      tokenize(text, {allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,
+      kind, {...ordinaryFunctionContext, grammar: {
+        await: kind === "async" || kind === "async-generator",
+        yield: kind === "generator" || kind === "async-generator", strict: false
+      }}, false
+    );
+    createParser(parameterSource).parseDynamicParameters();
+    createParser(bodySource).parseDynamicBody();
+    const node = assignIds(createParser(source).parseDynamicExpression());
+    if (source.includes("#")) validatePrivateNames(node);
+    return node;
+  } catch (error) {
+    if (error instanceof SandboxError) throw error;
+    throw new SyntaxError(error instanceof Error ? error.message : String(error));
+  } finally { compilation.dispose(); }
 }
 
-function parseExpressionTokens(tokens: Token[], compilation?: CompileScope): Expression {
-  return new Parser(tokens, compilation).parseExpressionOnly();
-}
-
-type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
+type ParserBindingKind = "lexical" | "function" | "legacy-function" | "parameter" | "catch";
 type ParserScope = Map<string, ParserBindingKind>;
+type FunctionParseContext = "top-level" | "normal" | "async" | "generator" | "async-generator" | "parameters";
+type LexicalParseContext = {
+  grammar?: {await: boolean; yield: boolean; strict: boolean};
+  newTarget: boolean;
+  superProperty: boolean;
+  superCall: boolean;
+  arguments: boolean;
+  return: boolean;
+  await: boolean;
+  strictAwait?: boolean;
+  requireAsyncAwait?: boolean;
+};
+const ordinaryFunctionContext: LexicalParseContext = {
+  newTarget: true, superProperty: false, superCall: false,
+  arguments: true, return: true, await: true
+};
 
 class Parser {
   private index = 0;
+  private allowIn = true;
   private breakableDepth = 0;
   private conditionalExpressionDepth = 0;
   private ifStatementDepth = 0;
   private loopDepth = 0;
-  private generatorBody = false;
+  private activeLabels = new Map<string, boolean>();
+  private forInInitializerEnd?: Token;
   private readonly scopes: ParserScope[] = [new Map()];
   private readonly functionScopes = new WeakSet<ParserScope>();
+  private readonly parenthesizedNodes = new WeakSet<Expression>();
   private readonly varNames = new WeakMap<ParserScope, Set<string>>();
 
   constructor(
     private readonly tokens: Token[],
-    private readonly compilation?: CompileScope
+    private readonly source: string,
+    private readonly compilation?: CompileScope,
+    private functionContext: FunctionParseContext = "top-level",
+    private lexicalContext: LexicalParseContext = { ...ordinaryFunctionContext, newTarget: false },
+    private readonly allowImportMeta = true
   ) {
     this.functionScopes.add(this.scopes[0]!);
+  }
+
+  private withFunctionSource<T extends FunctionNode | ClassNode>(node: T): T {
+    if ((node.type === "FunctionDeclaration" || node.type === "FunctionExpression") &&
+        node.id !== undefined && functionBodyStrictness.get(node.body) && STRICT_BINDING_NAMES.has(node.id.name))
+      throw new Error(`Invalid strict function name '${node.id.name}'.`);
+    if (this.lexicalContext.grammar !== undefined && node.type !== "ClassDeclaration" && node.type !== "ClassExpression")
+      functionStrictness.set(node, functionBodyStrictness.get(node.body) ?? this.lexicalContext.grammar.strict);
+    functionSources.set(node, {
+      text: this.source,
+      start: node.span.start.offset,
+      end: node.span.end.offset
+    });
+    return node;
+  }
+
+  parseDynamicParameters(): void {
+    this.parseArrowParameters();
+    this.expectEof();
+  }
+
+  parseDynamicBody(): void {
+    this.parseBlockStatement([]);
+    this.expectEof();
+  }
+
+  parseDynamicExpression(): FunctionExpression {
+    const node = this.parseFunctionExpression();
+    this.expectEof();
+    return node;
   }
 
   parseTopLevel(): ParseResult {
@@ -700,6 +913,15 @@ class Parser {
     return {
       type: "Module",
       body,
+      span: createSpan(body[0]?.span.start ?? end, body[body.length - 1]?.span.end ?? end)
+    };
+  }
+
+  parseScript(): Module {
+    const body = this.parseStatementList(undefined, true);
+    const end = this.currentToken().end;
+    return {
+      type: "Module", body,
       span: createSpan(body[0]?.span.start ?? end, body[body.length - 1]?.span.end ?? end)
     };
   }
@@ -750,27 +972,71 @@ class Parser {
   }
 
   private parseExpression(options: ExpressionParseOptions = {}): ParsedExpression {
-    const first = this.parseAssignmentExpression();
-    if (options.allowSequence !== true || this.consumePunctuator(",") === undefined) {
-      return first;
+    const previousAllowIn = this.allowIn;
+    this.allowIn = options.allowIn ?? true;
+    try {
+      const first = this.parseAssignmentExpression();
+      if (options.allowSequence !== true || this.consumePunctuator(",") === undefined) {
+        return first;
+      }
+
+      const expressions = [first.node];
+      do {
+        expressions.push(this.parseAssignmentExpression().node);
+      } while (this.consumePunctuator(",") !== undefined);
+
+      return {
+        node: {
+          type: "SequenceExpression",
+          expressions,
+          span: createSpan(expressions[0]!.span.start, expressions[expressions.length - 1]!.span.end)
+        },
+        parenthesized: false
+      };
+    } finally {
+      this.allowIn = previousAllowIn;
     }
-
-    const expressions = [first.node];
-    do {
-      expressions.push(this.parseAssignmentExpression().node);
-    } while (this.consumePunctuator(",") !== undefined);
-
-    return {
-      node: {
-        type: "SequenceExpression",
-        expressions,
-        span: createSpan(expressions[0]!.span.start, expressions[expressions.length - 1]!.span.end)
-      },
-      parenthesized: false
-    };
   }
 
   private parseAssignmentExpression(): ParsedExpression {
+    const token = this.currentToken();
+    if (token.type === "keyword" && token.value === "yield" && !this.isContextualIdentifier(token)) {
+      if (this.functionContext !== "generator" && this.functionContext !== "async-generator") {
+        throw new Error(
+          `yield is only valid inside a generator body at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+
+      this.index += 1;
+      if (
+        hasLineBreakBetween(token, this.currentToken()) &&
+        this.currentToken().type === "punctuator" &&
+        this.currentToken().value === "*"
+      ) {
+        throw unexpectedTokenError(this.currentToken());
+      }
+      const delegate = this.consumePunctuator("*") !== undefined;
+      const next = this.currentToken();
+      const hasArgument =
+        delegate ||
+        (!hasLineBreakBetween(token, next) &&
+          !(next.type === "punctuator" && isYieldArgumentTerminator(next.value)) &&
+          next.type !== "eof");
+      const argument = hasArgument ? this.parseAssignmentExpression().node : undefined;
+      if (delegate && argument === undefined) {
+        throw unexpectedTokenError(next);
+      }
+      return {
+        node: {
+          type: "YieldExpression",
+          argument,
+          delegate,
+          span: createSpan(token.start, argument?.span.end ?? token.end)
+        },
+        parenthesized: false
+      };
+    }
+
     const arrowFunction = this.tryParseArrowFunctionExpression();
     if (arrowFunction !== undefined) {
       return {
@@ -810,14 +1076,20 @@ class Parser {
     if (this.isAsyncArrowWithParenthesizedParams()) {
       const asyncToken = this.currentToken();
       this.index += 1;
-      const params = this.parseArrowParameters();
+      const params = this.withLexicalContext({
+        ...this.lexicalContext,
+        ...(this.lexicalContext.grammar === undefined ? {} : {grammar: {...this.lexicalContext.grammar, await: true}})
+      }, () => this.parseArrowParameters());
       return this.finishArrowFunctionExpression(asyncToken.start, true, params);
     }
 
     if (this.isAsyncArrowWithSingleParam()) {
       const asyncToken = this.currentToken();
       this.index += 1;
-      const param = this.parseBindingIdentifier();
+      const param = this.withLexicalContext({
+        ...this.lexicalContext,
+        ...(this.lexicalContext.grammar === undefined ? {} : {grammar: {...this.lexicalContext.grammar, await: true}})
+      }, () => this.parseBindingIdentifier());
       return this.finishArrowFunctionExpression(asyncToken.start, true, [param]);
     }
 
@@ -846,15 +1118,18 @@ class Parser {
       }
     });
     this.expectPunctuator("=>");
-    const body = this.parseArrowFunctionBody(params);
-    return {
+    const body = this.withLexicalContext({
+      ...this.lexicalContext, return: true, await: isAsync || this.lexicalContext.strictAwait !== true,
+      ...(this.lexicalContext.grammar === undefined ? {} : {grammar: {...this.lexicalContext.grammar, await: isAsync, yield: false}})
+    }, () => this.parseArrowFunctionBody(params, isAsync));
+    return this.withFunctionSource({
       type: "ArrowFunctionExpression",
       async: isAsync,
       body,
       expression: body.type !== "BlockStatement",
       params,
       span: createSpan(start, body.span.end)
-    };
+    });
   }
 
   private parseConditionalExpression(): ParsedExpression {
@@ -891,23 +1166,26 @@ class Parser {
   }
 
   private parseArrowFunctionBody(
-    params: ArrowFunctionExpression["params"]
+    params: ArrowFunctionExpression["params"],
+    async: boolean
   ): BlockStatement | Expression {
     if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
-      return this.withFunctionContext(false, () => this.parseBlockStatement(params));
+      return this.withFunctionContext(async ? "async" : "normal", () => this.parseBlockStatement(params));
     }
 
-    return this.withFunctionContext(false, () => this.parseExpression().node);
+    return this.withFunctionContext(async ? "async" : "normal", () => this.parseExpression({ allowIn: this.allowIn }).node);
   }
 
   private parseBlockStatement(
     params?: ArrowFunctionExpression["params"],
-    catchParam?: CatchClause["param"]
+    catchParam?: CatchClause["param"],
+    allowDuplicateParameters = false
   ): BlockStatement {
     const start = this.expectPunctuator("{");
     return this.withScope(() => {
       for (const param of params ?? []) {
         for (const identifier of boundIdentifiers(param)) {
+          if (allowDuplicateParameters && this.scopes[this.scopes.length - 1]?.has(identifier.name)) continue;
           this.declareBinding(identifier, "parameter");
         }
       }
@@ -916,35 +1194,99 @@ class Parser {
           this.declareBinding(identifier, catchParam.type === "Identifier" ? "catch" : "lexical");
         }
       }
-      return this.parseBlockStatementBody(start);
+      let directiveTokenIndex = this.index;
+      const body = this.parseBlockStatementBody(start, params !== undefined);
+      if (params !== undefined && this.lexicalContext.grammar?.strict) {
+        const names = new Set<string>();
+        for (const param of params) for (const identifier of boundIdentifiers(param)) {
+          if (names.has(identifier.name) || STRICT_BINDING_NAMES.has(identifier.name))
+            throw new Error(`Invalid strict function parameter '${identifier.name}'.`);
+          names.add(identifier.name);
+        }
+      }
+      if (params?.some(param => param.type !== "Identifier")) {
+        for (const statement of body.body) {
+          const token = this.tokens[directiveTokenIndex];
+          if (
+            statement.type !== "ExpressionStatement" ||
+            statement.expression.type !== "StringLiteral" ||
+            token?.type !== "string" ||
+            statement.span.start.offset !== token.start.offset ||
+            statement.span.end.offset !== token.end.offset
+          ) break;
+          if (statement.expression.raw === '"use strict"' || statement.expression.raw === "'use strict'")
+            throw new Error(
+              "A function with non-simple parameters cannot contain a use strict directive."
+            );
+          directiveTokenIndex += this.tokens[directiveTokenIndex + 1]?.value === ";" ? 2 : 1;
+        }
+      }
+      if (params !== undefined && this.lexicalContext.grammar !== undefined)
+        functionBodyStrictness.set(body, this.lexicalContext.grammar.strict);
+      return body;
     }, params !== undefined);
   }
 
-  private parseBlockStatementBody(start: Token): BlockStatement {
-    const body: Statement[] = [];
+  private parseBlockStatementBody(start: Token, functionBody = false): BlockStatement {
+    const body = this.parseStatementList(start, functionBody);
+    return {
+      type: "BlockStatement", body,
+      span: createSpan(start.start, this.previousToken().end)
+    };
+  }
 
-    while (this.consumePunctuator("}") === undefined) {
+  private parseStatementList(start?: Token, directivePrologue = false): Statement[] {
+    const body: Statement[] = [];
+    let legacyDirective = false;
+
+    while (start === undefined || this.consumePunctuator("}") === undefined) {
       if (this.currentToken().type === "eof") {
+        if (start === undefined) break;
         throw new Error(
           `Unterminated block at line ${start.start.line}, column ${start.start.column}.`
         );
       }
 
+      const firstToken = this.currentToken();
       const statement = this.parseStatement();
       body.push(statement);
+      if (directivePrologue && this.lexicalContext.grammar !== undefined) {
+        directivePrologue = statement.type === "ExpressionStatement" &&
+          statement.expression.type === "StringLiteral" && firstToken.type === "string" &&
+          statement.span.start.offset === firstToken.start.offset && statement.span.end.offset === firstToken.end.offset;
+        if (directivePrologue && statement.type === "ExpressionStatement" &&
+          statement.expression.type === "StringLiteral" &&
+          (statement.expression.raw === '"use strict"' || statement.expression.raw === "'use strict'")) {
+          if (legacyDirective) throw new Error("Legacy escape sequences are not supported in strict directives.");
+          this.lexicalContext.grammar.strict = true;
+        }
+        if (directivePrologue && firstToken.legacyEscape) legacyDirective = true;
+      }
+      let semicolons = 0;
       while (statement.type !== "EmptyStatement" && this.consumePunctuator(";") !== undefined) {
-        continue;
+        if (++semicolons > 1) directivePrologue = false;
       }
     }
 
-    return {
-      type: "BlockStatement",
-      body,
-      span: createSpan(start.start, this.previousToken().end)
-    };
+    return body;
   }
 
-  private parseStatement(): Statement {
+  private parseStatement(allowDeclarations = true): Statement {
+    const statement = this.parseStatementBody(allowDeclarations);
+    if (!allowDeclarations && (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration" ||
+        (statement.type === "VariableDeclaration" && statement.kind !== "var")))
+      throw new DisallowedSyntaxError("declaration in a statement body", statement.span.start);
+    if (this.lexicalContext.grammar !== undefined &&
+      ["ExpressionStatement", "ReturnStatement", "ThrowStatement", "VariableDeclaration", "BreakStatement", "ContinueStatement"].includes(statement.type)) {
+      const next = this.currentToken();
+      if (next.type !== "eof" && next.value !== ";" && next.value !== "}" &&
+        next.start.line === statement.span.end.line)
+        throw unexpectedTokenError(next);
+    }
+    return statement;
+  }
+
+  private parseStatementBody(allowDeclarations: boolean): Statement {
     const emptyStatement = this.parseEmptyStatement();
     if (emptyStatement !== undefined) {
       return emptyStatement;
@@ -952,8 +1294,13 @@ class Parser {
 
     const token = this.currentToken();
 
+    if (this.resourceDeclarationHint() !== undefined) {
+      if (!allowDeclarations) throw unexpectedTokenError(token);
+      return this.parseResourceDeclaration();
+    }
+
     if (
-      token.type === "identifier" &&
+      this.isLabelIdentifier(token) &&
       this.peekToken(1).type === "punctuator" &&
       this.peekToken(1).value === ":"
     ) {
@@ -962,6 +1309,10 @@ class Parser {
     }
 
     this.assertAllowedStatementStart(token);
+
+    if (token.value === "class") return this.parseClass(true) as ClassDeclaration;
+    if (token.value === "return" && !this.lexicalContext.return)
+      throw new DisallowedSyntaxError("return in a static block", token.start);
 
     if (token.type === "punctuator" && token.value === "{") {
       return this.parseBlockStatement();
@@ -990,6 +1341,16 @@ class Parser {
       return this.parseWhileStatement();
     }
 
+    if (token.type === "keyword" && token.value === "with") {
+      if (this.lexicalContext.grammar?.strict !== false) throw new DisallowedSyntaxError("with", token.start);
+      this.index++;
+      this.expectPunctuator("(");
+      const object = this.parseExpression({allowSequence: true}).node;
+      this.expectPunctuator(")");
+      const body = this.parseStatement(false);
+      return {type: "WithStatement", object, body, span: createSpan(token.start, body.span.end)};
+    }
+
     if (token.type === "keyword" && token.value === "do") {
       return this.parseDoWhileStatement();
     }
@@ -998,7 +1359,9 @@ class Parser {
       return this.parseTryStatement();
     }
 
-    if (token.type === "keyword" && token.value === "import" && !this.isImportMetaStart()) {
+    if (token.type === "keyword" && token.value === "import" && !this.isImportMetaStart() && this.peekToken(1).value !== "(") {
+      if (this.lexicalContext.grammar !== undefined)
+        throw new SyntaxError("Static import declarations are not allowed in dynamic functions.");
       return this.parseImportDeclaration();
     }
 
@@ -1038,21 +1401,19 @@ class Parser {
       };
     }
 
-    if (
-      (token.type === "keyword" && (token.value === "const" || token.value === "let")) ||
-      (token.type === "identifier" && token.value === "var")
-    ) {
+    if (this.isVariableDeclarationStart(allowDeclarations)) {
       return this.parseVariableDeclaration();
     }
 
     if (token.type === "keyword" && token.value === "break") {
-      if (this.breakableDepth === 0) {
+      this.index += 1;
+      const label = this.consumeControlLabel(token);
+      if (label !== undefined && !this.activeLabels.has(label.value)) throw new Error(`Unknown break label '${label.value}'.`);
+      if (label === undefined && this.breakableDepth === 0) {
         throw new Error(
           `Illegal break statement outside a loop or switch at line ${token.start.line}, column ${token.start.column}.`
         );
       }
-      this.index += 1;
-      const label = this.consumeControlLabel(token);
       return {
         type: "BreakStatement",
         ...(label === undefined ? {} : { label: label.value }),
@@ -1068,6 +1429,7 @@ class Parser {
       }
       this.index += 1;
       const label = this.consumeControlLabel(token);
+      if (label !== undefined && this.activeLabels.get(label.value) !== true) throw new Error(`Invalid continue label '${label.value}'.`);
       return {
         type: "ContinueStatement",
         ...(label === undefined ? {} : { label: label.value }),
@@ -1099,7 +1461,7 @@ class Parser {
     const token = this.currentToken();
 
     if (
-      token.type === "identifier" &&
+      this.isLabelIdentifier(token) &&
       this.peekToken(1).type === "punctuator" &&
       this.peekToken(1).value === ":"
     ) {
@@ -1107,19 +1469,46 @@ class Parser {
       return this.parseLabeledStatement([...labels, token.value], firstLabelToken);
     }
 
-    if (token.type === "keyword" && token.value === "for") {
-      return this.parseForStatement(labels);
+    const iteration = token.type === "keyword" && ["for", "while", "do"].includes(token.value);
+    const seen = new Set<string>();
+    for (const label of labels) {
+      if (seen.has(label) || this.activeLabels.has(label)) throw new Error(`Duplicate label '${label}'.`);
+      seen.add(label);
     }
-
-    if (token.type === "keyword" && token.value === "while") {
-      return this.parseWhileStatement(labels);
+    for (const label of labels) this.activeLabels.set(label, iteration);
+    try {
+      if (token.type === "keyword" && token.value === "for") return this.parseForStatement(labels);
+      if (token.type === "keyword" && token.value === "while") return this.parseWhileStatement(labels);
+      if (token.type === "keyword" && token.value === "do") return this.parseDoWhileStatement(labels);
+      if (token.type === "punctuator" && token.value === "{") return { ...this.parseBlockStatement(), labels };
+      if (token.type === "keyword" && token.value === "function" &&
+          this.lexicalContext.grammar?.strict === false && this.peekToken(1).value !== "*") {
+        const declaration = this.parseFunctionDeclaration();
+        declaration.labels = labels;
+        return declaration;
+      }
+      if (["const", "class", "function", "export"].includes(token.value) ||
+          (token.value === "let" && this.isVariableDeclarationStart(false)) ||
+          (token.value === "import" && this.peekToken(1).value !== "(") ||
+          this.isAsyncFunctionDeclarationStart() || this.resourceDeclarationHint() !== undefined)
+        throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
+      const statement = this.parseStatement(false);
+      if (statement.type === "ImportDeclaration" || statement.type === "ExportDefaultDeclaration" || statement.type === "ExportNamedDeclaration")
+        throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
+      return { ...statement, labels, span: createSpan(firstLabelToken.start, statement.span.end) };
+    } finally {
+      for (const label of labels) this.activeLabels.delete(label);
     }
+  }
 
-    if (token.type === "keyword" && token.value === "do") {
-      return this.parseDoWhileStatement(labels);
-    }
-
-    throw new DisallowedSyntaxError("label", firstLabelToken.start);
+  private parseIfClause(): Statement {
+    const start = this.currentToken().start;
+    const functionClause = this.currentToken().value === "function" || this.isAsyncFunctionDeclarationStart();
+    const statement = functionClause ? this.withScope(() => this.parseFunctionDeclaration()) : this.parseStatement(false);
+    if (statement.type !== "FunctionDeclaration") return statement;
+    if (this.lexicalContext.grammar?.strict !== false || statement.async || statement.generator)
+      throw new DisallowedSyntaxError("function declaration in an if clause", start);
+    return {type: "BlockStatement", body: [statement], span: statement.span};
   }
 
   private parseIfStatement(): IfStatement {
@@ -1136,7 +1525,7 @@ class Parser {
       this.expectPunctuator("(");
       const test = this.parseExpression({ allowSequence: true }).node;
       this.expectPunctuator(")");
-      const consequent = this.parseStatement();
+      const consequent = this.parseIfClause();
       if (consequent.type !== "BlockStatement") {
         while (
           this.currentToken().type === "punctuator" &&
@@ -1148,7 +1537,7 @@ class Parser {
         }
       }
       const elseToken = this.consumeKeyword("else");
-      const alternate = elseToken === undefined ? undefined : this.parseStatement();
+      const alternate = elseToken === undefined ? undefined : this.parseIfClause();
       return {
         type: "IfStatement",
         test,
@@ -1239,19 +1628,28 @@ class Parser {
     return token.type === "punctuator" && token.value === value;
   }
 
-  private parseForStatement(labels?: string[]): ForInStatement | ForOfStatement | ForStatement {
+  private parseForStatement(labels?: string[]): ForInStatement | ForOfStatement | ForStatement | BlockStatement {
     const forToken = this.expectKeyword("for");
+    const awaitToken = this.consumeKeyword("await");
+    if (awaitToken !== undefined && this.functionContext !== "top-level" &&
+        this.functionContext !== "async" && this.functionContext !== "async-generator") {
+      throw new Error("for await is only valid at top level or inside an async function.");
+    }
     return this.withScope(() => {
       this.expectPunctuator("(");
       const iterationOperator = this.findTopLevelForIterationOperator(this.index);
+      if (awaitToken !== undefined && iterationOperator?.value !== "of") {
+        throw new Error("for await requires an of loop.");
+      }
 
       if (iterationOperator?.value === "in") {
-        const left = this.parseForInLeft();
+        if (this.resourceDeclarationHint() !== undefined) throw unexpectedTokenError(this.currentToken());
+        const left = this.parseForOfLeft(this.lexicalContext.grammar?.strict === false ? iterationOperator : undefined);
         this.expectKeyword("in");
-        const right = this.parseExpression().node;
+        const right = this.parseExpression({allowSequence: true}).node;
         this.expectPunctuator(")");
-        const body = this.withLoopContext(() => this.parseStatement());
-        return {
+        const body = this.withLoopContext(() => this.parseStatement(false));
+        const loop: ForInStatement = {
           type: "ForInStatement",
           left,
           right,
@@ -1259,16 +1657,29 @@ class Parser {
           ...createLoopLabelFields(labels),
           span: createSpan(forToken.start, body.span.end)
         };
+        const declaration = left.type === "VariableDeclaration" ? left.declarations[0] : undefined;
+        if (left.type === "VariableDeclaration" && declaration?.init !== undefined && declaration.id.type === "Identifier") {
+          const { init: ignoredInit, ...binding } = declaration;
+          loop.left = {...left, declarations: [{...binding, id: {...declaration.id}, span: declaration.id.span}]};
+          return {type: "BlockStatement", body: [left, loop], span: loop.span};
+        }
+        return loop;
       }
 
       if (iterationOperator?.value === "of") {
+        if (this.currentToken().type === "keyword" && this.currentToken().value === "let" &&
+            !this.isVariableDeclarationStart()) throw unexpectedTokenError(this.currentToken());
+        if (awaitToken === undefined && this.currentToken().type === "keyword" &&
+            this.currentToken().value === "async" && this.peekToken(1).value === "of")
+          throw unexpectedTokenError(this.currentToken());
         const left = this.parseForOfLeft();
         this.expectKeyword("of");
         const right = this.parseExpression().node;
         this.expectPunctuator(")");
-        const body = this.withLoopContext(() => this.parseStatement());
+        const body = this.withLoopContext(() => this.parseStatement(false));
         return {
           type: "ForOfStatement",
+          ...(awaitToken === undefined ? {} : { await: true }),
           left,
           right,
           body,
@@ -1279,13 +1690,10 @@ class Parser {
 
       let init: Expression | VariableDeclaration | undefined;
       if (this.consumePunctuator(";") === undefined) {
-        init =
-          (this.currentToken().type === "keyword" || this.currentToken().type === "identifier") &&
-          (this.currentToken().value === "const" ||
-            this.currentToken().value === "let" ||
-            this.currentToken().value === "var")
-            ? this.parseVariableDeclaration()
-            : this.parseExpression({ allowSequence: true }).node;
+        init = this.resourceDeclarationHint() !== undefined ? this.parseResourceDeclaration(false, false) :
+          this.isVariableDeclarationStart()
+            ? this.parseVariableDeclaration(false)
+            : this.parseExpression({ allowSequence: true, allowIn: false }).node;
         this.expectPunctuator(";");
       }
 
@@ -1301,7 +1709,7 @@ class Parser {
           : this.parseExpression({ allowSequence: true }).node;
 
       this.expectPunctuator(")");
-      const body = this.withLoopContext(() => this.parseStatement());
+      const body = this.withLoopContext(() => this.parseStatement(false));
       return {
         type: "ForStatement",
         init,
@@ -1314,29 +1722,18 @@ class Parser {
     });
   }
 
-  private parseForInLeft(): Identifier | VariableDeclaration {
-    const left = this.parseForOfLeft();
-    const target = left.type === "VariableDeclaration" ? left.declarations[0]?.id : left;
-    if (target?.type !== "Identifier") {
-      throw new Error("for...in keys are strings; destructure inside the body");
+  private parseForOfLeft(legacyInitializerEnd?: Token): PatternTarget | VariableDeclaration {
+    if (this.resourceDeclarationHint() !== undefined && this.peekToken(1).value !== "of") {
+      return this.parseResourceDeclaration(true);
     }
-    return left as Identifier | VariableDeclaration;
-  }
-
-  private parseForOfLeft(): PatternTarget | VariableDeclaration {
-    if (
-      (this.currentToken().type === "keyword" || this.currentToken().type === "identifier") &&
-      (this.currentToken().value === "const" ||
-        this.currentToken().value === "let" ||
-        this.currentToken().value === "var")
-    ) {
-      return this.parseForOfDeclaration();
+    if (this.isVariableDeclarationStart()) {
+      return this.parseForOfDeclaration(legacyInitializerEnd);
     }
 
     return this.toPatternTarget(this.parseAssignmentTarget());
   }
 
-  private parseForOfDeclaration(): VariableDeclaration {
+  private parseForOfDeclaration(legacyInitializerEnd?: Token): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
       (kindToken.type !== "keyword" && kindToken.type !== "identifier") ||
@@ -1347,10 +1744,19 @@ class Parser {
 
     this.index += 1;
     const id = this.parseBindingTarget();
-    if (this.currentToken().type === "punctuator" && this.currentToken().value === "=") {
-      throw new Error(
+    if (kindToken.value !== "var") {
+      for (const identifier of boundIdentifiers(id))
+        if (identifier.name === "let") throw unexpectedTokenError(kindToken);
+    }
+    let init: Expression | undefined;
+    if (this.consumePunctuator("=") !== undefined) {
+      if (legacyInitializerEnd === undefined || kindToken.value !== "var" || id.type !== "Identifier") throw new Error(
         `for...of declarations cannot include an initializer at line ${kindToken.start.line}, column ${kindToken.start.column}.`
       );
+      const previousEnd = this.forInInitializerEnd;
+      this.forInInitializerEnd = legacyInitializerEnd;
+      try { init = this.parseExpression().node; }
+      finally { this.forInInitializerEnd = previousEnd; }
     }
     if (this.currentToken().type === "punctuator" && this.currentToken().value === ",") {
       throw new Error(
@@ -1361,15 +1767,18 @@ class Parser {
     const declarator: VariableDeclarator = {
       type: "VariableDeclarator",
       id,
-      span: id.span
+      ...(init === undefined ? {} : {init}),
+      span: createSpan(id.span.start, init?.span.end ?? id.span.end)
     };
-    this.declarePatternBindings(id);
+    if (kindToken.value === "var") {
+      for (const identifier of boundIdentifiers(id)) this.declareVarBinding(identifier);
+    } else this.declarePatternBindings(id);
 
     return {
       type: "VariableDeclaration",
       declarations: [declarator],
       kind: kindToken.value,
-      span: createSpan(kindToken.start, id.span.end)
+      span: createSpan(kindToken.start, init?.span.end ?? id.span.end)
     };
   }
 
@@ -1378,7 +1787,7 @@ class Parser {
     this.expectPunctuator("(");
     const test = this.parseExpression({ allowSequence: true }).node;
     this.expectPunctuator(")");
-    const body = this.withLoopContext(() => this.parseStatement());
+    const body = this.withLoopContext(() => this.parseStatement(false));
     return {
       type: "WhileStatement",
       test,
@@ -1390,7 +1799,7 @@ class Parser {
 
   private parseDoWhileStatement(labels?: string[]): DoWhileStatement {
     const doToken = this.expectKeyword("do");
-    const body = this.withLoopContext(() => this.parseStatement());
+    const body = this.withLoopContext(() => this.parseStatement(false));
     this.expectKeyword("while");
     this.expectPunctuator("(");
     const test = this.parseExpression({ allowSequence: true }).node;
@@ -1565,11 +1974,15 @@ class Parser {
   private parseExportDefaultDeclaration(exportToken: Token): ExportDefaultDeclaration {
     this.index += 1;
 
+    if (this.currentToken().value === "function" ||
+        (this.currentToken().value === "async" && this.peekToken(1).value === "function" &&
+         !hasLineBreakBetween(this.currentToken(), this.peekToken(1)))) {
+      return createExportDefaultDeclaration(exportToken, this.parseFunctionDeclaration(true));
+    }
+
     if (this.currentToken().value === "class") {
-      throw new DisallowedSyntaxError(
-        `export default ${this.currentToken().value}`,
-        this.currentToken().start
-      );
+      const named = isIdentifierLikeToken(this.peekToken(1)) && this.peekToken(1).value !== "extends";
+      return createExportDefaultDeclaration(exportToken, this.parseClass(named));
     }
 
     const declaration = this.parseExpression().node;
@@ -1592,7 +2005,19 @@ class Parser {
     };
   }
 
-  private parseVariableDeclaration(): VariableDeclaration {
+  private isVariableDeclarationStart(allowDeclarations = true): boolean {
+    const token = this.currentToken();
+    if ((token.type === "identifier" && token.value === "var") ||
+        (token.type === "keyword" && token.value === "const")) return true;
+    if (token.type !== "keyword" || token.value !== "let") return false;
+    if (this.lexicalContext.grammar?.strict !== false) return true;
+    const next = this.peekToken(1);
+    // Statement-only positions allow sloppy `let` as an expression, but never `let [`.
+    return next.value === "[" || (allowDeclarations &&
+      (next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next)));
+  }
+
+  private parseVariableDeclaration(allowIn = true): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
       (kindToken.type !== "keyword" && kindToken.type !== "identifier") ||
@@ -1605,8 +2030,10 @@ class Parser {
     const declarations: VariableDeclaration["declarations"] = [];
 
     while (true) {
-      const declarator = this.parseVariableDeclarator(kindToken.value);
+      const declarator = this.parseVariableDeclarator(kindToken.value, allowIn);
       if (kindToken.value !== "var") {
+        for (const identifier of boundIdentifiers(declarator.id))
+          if (identifier.name === "let") throw unexpectedTokenError(kindToken);
         this.declarePatternBindings(declarator.id);
       } else {
         for (const identifier of boundIdentifiers(declarator.id)) {
@@ -1628,30 +2055,51 @@ class Parser {
     };
   }
 
-  private parseFunctionDeclaration(): FunctionDeclaration {
+  private resourceDeclarationHint(): "sync" | "async" | undefined {
+    const token = this.currentToken();
+    const offset = token.value === "await" && this.peekToken(1).value === "using" ? 1 : 0;
+    const using = offset === 0 ? token : this.peekToken(1);
+    const binding = this.peekToken(offset + 1);
+    if (using.value !== "using" || hasLineBreakBetween(using, binding) || !isIdentifierLikeToken(binding)) return undefined;
+    if (offset === 1 && hasLineBreakBetween(token, using)) throw unexpectedTokenError(using);
+    return offset === 1 ? "async" : "sync";
+  }
+
+  private parseResourceDeclaration(iteration = false, allowIn = true): VariableDeclaration {
+    const start = this.currentToken();
+    const disposal = this.resourceDeclarationHint()!;
+    if (disposal === "async") {
+      if (!this.lexicalContext.await || !["top-level", "async", "async-generator"].includes(this.functionContext)) {
+        throw unexpectedTokenError(start);
+      }
+      this.index++;
+    }
+    this.index++;
+    const declarations: VariableDeclarator[] = [];
+    do {
+      const id = this.parseBindingIdentifier();
+      if (id.name === "let" || (disposal === "async" && id.name === "await") ||
+          (iteration && disposal === "sync" && id.name === "of")) throw new Error(`Invalid resource binding '${id.name}'.`);
+      this.declarePatternBindings(id);
+      const init = iteration ? undefined : (this.expectPunctuator("="), this.parseExpression({ allowIn }).node);
+      declarations.push({type: "VariableDeclarator", id, ...(init === undefined ? {} : {init}), span: createSpan(id.span.start, init?.span.end ?? id.span.end)});
+    } while (!iteration && this.consumePunctuator(",") !== undefined);
+    return {type: "VariableDeclaration", kind: "const", disposal, declarations, span: createSpan(start.start, declarations.at(-1)!.span.end)};
+  }
+
+  private parseFunctionDeclaration(defaultExport = false): FunctionDeclaration {
     const asyncToken = this.consumeKeyword("async");
     const functionToken = this.expectKeyword("function");
     const generatorToken = this.consumePunctuator("*");
-    if (asyncToken !== undefined && generatorToken !== undefined) {
-      throw new Error(
-        `async function* is not supported at line ${asyncToken.start.line}, column ${asyncToken.start.column}.`
-      );
-    }
-    const id = this.parseBindingIdentifier();
-    this.declareBinding(id, "function");
-    const params = this.withScope(() => {
-      const parsedParams = this.parseArrowParameters();
-      for (const param of parsedParams) {
-        for (const identifier of boundIdentifiers(param)) {
-          this.declareBinding(identifier);
-        }
-      }
-      return parsedParams;
-    });
+    const id = defaultExport && this.currentToken().value === "("
+      ? undefined : this.parseBindingIdentifier();
+    const legacyBlockFunction = !defaultExport && asyncToken === undefined && generatorToken === undefined &&
+      this.lexicalContext.grammar?.strict === false && !this.functionScopes.has(this.scopes[this.scopes.length - 1]!);
+    if (id !== undefined) this.declareBinding(id, defaultExport ? "lexical" : legacyBlockFunction ? "legacy-function" : "function");
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator, () => this.parseBlockStatement(params));
+    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext, undefined, asyncToken !== undefined);
 
-    return {
+    return this.withFunctionSource({
       type: "FunctionDeclaration",
       async: asyncToken !== undefined,
       body,
@@ -1659,15 +2107,167 @@ class Parser {
       id,
       params,
       span: createSpan(asyncToken?.start ?? functionToken.start, body.span.end)
-    };
+    });
   }
 
-  private parseVariableDeclarator(kind: VariableDeclarationKind): VariableDeclarator {
+  private parseClass(declaration: boolean): ClassNode {
+    return this.withLexicalContext({
+      ...this.lexicalContext,
+      ...(this.lexicalContext.grammar === undefined ? {} : {grammar: {...this.lexicalContext.grammar, strict: true}})
+    }, () => this.parseClassBody(declaration));
+  }
+
+  private parseClassBody(declaration: boolean): ClassNode {
+    const start = this.expectKeyword("class");
+    const id = isIdentifierLikeToken(this.currentToken()) && this.currentToken().value !== "extends"
+      ? this.parseBindingIdentifier()
+      : undefined;
+    if (declaration && id === undefined) throw unexpectedTokenError(this.currentToken());
+    if (declaration) this.declareBinding(id!);
+    return this.withScope(() => {
+      if (id !== undefined) this.declareBinding(id);
+      const superClass = this.consumeKeyword("extends") === undefined
+        ? undefined
+        : this.parseLeftHandSideExpression().node;
+      const open = this.expectPunctuator("{");
+      const elements: ClassElement[] = [];
+      let constructorSeen = false;
+      while (this.consumePunctuator("}") === undefined) {
+        if (this.currentToken().type === "eof") throw unexpectedTokenError(this.currentToken());
+        if (this.consumePunctuator(";") !== undefined) continue;
+        const element = this.parseClassElement(superClass !== undefined);
+        if (element.type === "MethodDefinition" && element.kind === "constructor") {
+          if (constructorSeen) throw new Error("A class may only have one constructor.");
+          constructorSeen = true;
+        }
+        elements.push(element);
+      }
+      const body: ClassBody = {
+        type: "ClassBody", body: elements,
+        span: createSpan(open.start, this.previousToken().end)
+      };
+      return this.withFunctionSource({
+        type: declaration ? "ClassDeclaration" : "ClassExpression",
+        id, superClass, body, span: createSpan(start.start, body.span.end)
+      } as ClassNode);
+    });
+  }
+
+  private parseFunctionParts(
+    generator: boolean,
+    lexicalContext: LexicalParseContext,
+    accessor?: "get" | "set",
+    async = false
+  ): {
+    params: ArrowFunctionExpression["params"];
+    body: BlockStatement;
+  } {
+    const inheritedGrammar = this.lexicalContext.grammar;
+    if (inheritedGrammar !== undefined) lexicalContext = {
+      ...lexicalContext, grammar: {await: async, yield: generator, strict: inheritedGrammar.strict}
+    };
+    return this.withLexicalContext(lexicalContext, () => {
+      let allowDuplicateParameters = false;
+      const params = this.withScope(() => {
+        const parsed = this.parseArrowParameters();
+        allowDuplicateParameters = lexicalContext.grammar !== undefined && !lexicalContext.grammar.strict &&
+          !lexicalContext.superProperty && parsed.every(param => param.type === "Identifier");
+        const names = new Set<string>();
+        for (const param of parsed)
+          for (const identifier of boundIdentifiers(param)) {
+            if (allowDuplicateParameters && names.has(identifier.name)) continue;
+            this.declareBinding(identifier);
+            names.add(identifier.name);
+          }
+        return parsed;
+      });
+      if (accessor === "get" && params.length !== 0)
+        throw new Error("A getter cannot have parameters.");
+      if (accessor === "set" && (params.length !== 1 || params[0]?.type === "RestElement"))
+        throw new Error("A setter must have exactly one non-rest parameter.");
+      const body = this.withFunctionContext(generator ? async ? "async-generator" : "generator" : async ? "async" : "normal", () => this.parseBlockStatement(params, undefined, allowDuplicateParameters));
+      return { params, body };
+    });
+  }
+
+  private parseClassElement(derived: boolean): ClassElement {
+    const start = this.currentToken();
+    let isStatic = false;
+    if (start.type !== "private-identifier" && start.value === "static" && !["(", "=", ";", "}"].includes(this.peekToken(1).value)) {
+      this.index++;
+      isStatic = true;
+      if (this.currentToken().value === "{") {
+        const body = this.withLexicalContext({
+          newTarget: true, superProperty: true, superCall: false,
+          arguments: false, return: false, await: false, strictAwait: true
+        }, () => this.withFunctionContext("normal", () => this.parseBlockStatement([])));
+        return { type: "StaticBlock", body, span: createSpan(start.start, body.span.end) };
+      }
+    }
+    const methodStart = this.currentToken();
+    let async = false;
+    if (methodStart.type !== "private-identifier" && methodStart.value === "async" && !hasLineBreakBetween(methodStart, this.peekToken(1)) &&
+        (this.peekToken(1).value === "*" || this.isObjectMethodStart())) {
+      this.index++;
+      async = true;
+    }
+    const generator = this.consumePunctuator("*") !== undefined;
+    let accessor: "get" | "set" | undefined;
+    const modifier = this.currentToken();
+    if (modifier.type !== "private-identifier" && (modifier.value === "get" || modifier.value === "set") && this.isObjectMethodStart()) {
+      if (async || generator || modifier.end.offset - modifier.start.offset !== modifier.value.length)
+        throw unexpectedTokenError(modifier);
+      accessor = modifier.value;
+      this.index++;
+    }
+    const computed = this.consumePunctuator("[") !== undefined;
+    const key = computed
+      ? this.parseExpression({ allowSequence: true }).node
+      : this.currentToken().type === "string"
+        ? createStringLiteral(this.tokens[this.index++]!)
+        : this.currentToken().type === "numeric"
+          ? createNumericLiteral(this.tokens[this.index++]!)
+          : this.currentToken().type === "private-identifier" ? this.parsePrivateIdentifier() : this.parseIdentifierName();
+    if (computed) this.expectPunctuator("]");
+    const name = computed ? undefined : key.type === "Identifier" ? key.name
+      : key.type === "StringLiteral" || key.type === "NumericLiteral" ? String(key.value) : undefined;
+    if (isStatic && name === "prototype") throw new Error("A static class element cannot be named prototype.");
+    if (this.currentToken().value === "(") {
+      const constructor = !isStatic && name === "constructor";
+      if (constructor && (async || generator || accessor !== undefined)) throw new Error("A class constructor must be an ordinary method.");
+      const { params, body } = this.parseFunctionParts(generator, {
+        newTarget: true, superProperty: true, superCall: constructor && derived,
+        arguments: true, return: true, await: async, strictAwait: true
+      }, accessor, async);
+      const value = this.withFunctionSource({
+        type: "FunctionExpression", async, generator, method: true, params, body,
+        span: createSpan(methodStart.start, body.span.end)
+      } as FunctionExpression);
+      return {
+        type: "MethodDefinition", key, computed, static: isStatic,
+        kind: accessor ?? (constructor ? "constructor" : "method"), value,
+        span: createSpan(start.start, value.span.end)
+      };
+    }
+    if (async || generator) throw unexpectedTokenError(this.currentToken());
+    if (name === "constructor") throw new Error("A class field cannot be named constructor.");
+    const value = this.consumePunctuator("=") === undefined ? undefined : this.withLexicalContext({
+      newTarget: true, superProperty: true, superCall: false,
+      arguments: false, return: false, await: false, strictAwait: true
+    }, () => this.withFunctionContext("normal", () => this.parseExpression().node));
+    const end = value?.span.end ?? key.span.end;
+    if (this.consumePunctuator(";") === undefined && this.currentToken().value !== "}" &&
+        !hasLineBreakBetween(this.previousToken(), this.currentToken()))
+      throw unexpectedTokenError(this.currentToken());
+    return { type: "PropertyDefinition", key, computed, static: isStatic, value, span: createSpan(start.start, end) };
+  }
+
+  private parseVariableDeclarator(kind: VariableDeclarationKind, allowIn = true): VariableDeclarator {
     const id = this.parseBindingTarget();
     let init: Expression | undefined;
 
     if (this.consumePunctuator("=") !== undefined) {
-      init = this.parseExpression().node;
+      init = this.parseExpression({ allowIn }).node;
     }
 
     if (kind === "const" && init === undefined) {
@@ -1691,38 +2291,40 @@ class Parser {
   }
 
   private parseArrowParameters(): ArrowFunctionExpression["params"] {
-    this.expectPunctuator("(");
-    const params: ArrowFunctionExpression["params"] = [];
+    return this.withFunctionContext("parameters", () => {
+      this.expectPunctuator("(");
+      const params: ArrowFunctionExpression["params"] = [];
 
-    if (this.consumePunctuator(")") !== undefined) {
-      return params;
-    }
-
-    while (true) {
-      const param = this.parseBindingElement();
-      params.push(param);
-
-      const comma = this.consumePunctuator(",");
-      if (comma === undefined) {
-        break;
+      if (this.consumePunctuator(")") !== undefined) {
+        return params;
       }
 
-      if (param.type === "RestElement") {
-        if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
-          throw unexpectedTokenError(comma);
+      while (true) {
+        const param = this.parseBindingElement();
+        params.push(param);
+
+        const comma = this.consumePunctuator(",");
+        if (comma === undefined) {
+          break;
         }
-        throw new Error(
-          `Rest element must be the last parameter at line ${comma.start.line}, column ${comma.start.column}.`
-        );
+
+        if (param.type === "RestElement") {
+          if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
+            throw unexpectedTokenError(comma);
+          }
+          throw new Error(
+            `Rest element must be the last parameter at line ${comma.start.line}, column ${comma.start.column}.`
+          );
+        }
+
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
+          break;
+        }
       }
 
-      if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
-        break;
-      }
-    }
-
-    this.expectPunctuator(")");
-    return params;
+      this.expectPunctuator(")");
+      return params;
+    });
   }
 
   private parseBindingElement():
@@ -1758,7 +2360,7 @@ class Parser {
   private parseBindingTarget(): ArrayPattern | Identifier | ObjectPattern {
     const token = this.currentToken();
 
-    if (isIdentifierLikeToken(token)) {
+    if (isIdentifierLikeToken(token) || this.isContextualIdentifier(token)) {
       return this.parseBindingIdentifier();
     }
 
@@ -1775,12 +2377,22 @@ class Parser {
 
   private parseBindingIdentifier(): Identifier {
     const token = this.currentToken();
-    if (!isIdentifierLikeToken(token)) {
+    if (this.lexicalContext.grammar?.strict && STRICT_BINDING_NAMES.has(token.value))
+      throw unexpectedTokenError(token);
+    if (!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) {
       throw unexpectedTokenError(token);
     }
 
     this.index += 1;
     return createIdentifier(token);
+  }
+
+  private isContextualIdentifier(token: Token): boolean {
+    const grammar = this.lexicalContext.grammar;
+    return grammar !== undefined && (token.type === "keyword" || token.type === "escaped-keyword") &&
+      ((token.value === "await" && !grammar.await) ||
+        (token.value === "yield" && !grammar.yield && !grammar.strict) ||
+        (token.value === "let" && !grammar.strict));
   }
 
   private parseArrayPattern(): ArrayPattern {
@@ -1919,9 +2531,9 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (token.type === "identifier") {
+    if (token.type === "identifier" || token.type === "keyword" || token.type === "escaped-keyword") {
       this.index += 1;
-      const key = createIdentifier(token);
+      const key = createIdentifierName(token);
       if (this.consumePunctuator(":") !== undefined) {
         const value = this.parseBindingElement();
         if (value.type === "RestElement") {
@@ -1937,7 +2549,10 @@ class Parser {
         };
       }
 
+      if (!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) throw unexpectedTokenError(token);
+      assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
       let value: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern = key;
+      this.assertUnrestrictedTarget(key);
       if (this.consumePunctuator("=") !== undefined) {
         const right = this.parseExpression().node;
         value = {
@@ -1980,10 +2595,12 @@ class Parser {
 
   private tryParsePatternAssignmentExpression(): AssignmentExpression | undefined {
     const token = this.currentToken();
+    const following = this.tokenAfterBalancedGroup(this.index);
     if (
       token.type !== "punctuator" ||
       (token.value !== "[" && token.value !== "{") ||
-      !this.isPatternAssignmentStart(this.index)
+      following?.type !== "punctuator" ||
+      following.value !== "="
     ) {
       return undefined;
     }
@@ -2025,7 +2642,7 @@ class Parser {
       return this.toPatternTarget(left);
     }
 
-    const right = this.parseAssignmentExpression().node;
+    const right = this.parseExpression().node;
     return {
       type: "AssignmentPattern",
       left: this.toPatternTarget(left),
@@ -2036,23 +2653,27 @@ class Parser {
 
   private parseAssignmentTarget(): AssignmentTarget {
     const token = this.currentToken();
-
-    if (token.type === "punctuator" && token.value === "[") {
-      return this.parseAssignmentArrayPattern();
-    }
-
-    if (token.type === "punctuator" && token.value === "{") {
-      return this.parseAssignmentObjectPattern();
+    if (token.type === "punctuator" && (token.value === "[" || token.value === "{")) {
+      const following = this.tokenAfterBalancedGroup(this.index);
+      const literalContinuation =
+        following?.type === "template" ||
+        (following?.type === "punctuator" && [".", "[", "(", "?."].includes(following.value));
+      if (!literalContinuation) {
+        return token.value === "["
+          ? this.parseAssignmentArrayPattern()
+          : this.parseAssignmentObjectPattern();
+      }
     }
 
     const expression = this.parseLeftHandSideExpression().node;
     if (expression.type === "Identifier") {
+      this.assertUnrestrictedTarget(expression);
       return expression;
     }
 
     if (
       expression.type === "MetaProperty" ||
-      (expression.type === "MemberExpression" && !expression.optional)
+      (expression.type === "MemberExpression" && !this.hasOptionalAssignmentChain(expression))
     ) {
       return expression;
     }
@@ -2163,13 +2784,13 @@ class Parser {
   private parseAssignmentObjectPatternProperty(): AssignmentProperty | RestElement {
     if (this.consumePunctuator("...") !== undefined) {
       const start = this.previousToken().start;
-      const token = this.currentToken();
-      if (token.type !== "identifier") {
+      const argument = this.parseAssignmentTarget();
+      if (argument.type !== "Identifier" &&
+          (argument.type !== "MemberExpression" || this.hasOptionalAssignmentChain(argument))) {
         throw new Error(
-          `Object rest element must bind to an identifier at line ${token.start.line}, column ${token.start.column}.`
+          `Object rest assignment requires an identifier or member target at line ${argument.span.start.line}, column ${argument.span.start.column}.`
         );
       }
-      const argument = this.parseBindingIdentifier();
       return {
         type: "RestElement",
         argument,
@@ -2196,9 +2817,9 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (token.type === "identifier") {
+    if (token.type === "identifier" || token.type === "keyword" || token.type === "escaped-keyword") {
       this.index += 1;
-      const key = createIdentifier(token);
+      const key = createIdentifierName(token);
       if (this.consumePunctuator(":") !== undefined) {
         const value = this.parseAssignmentPatternElement();
         if (value.type === "RestElement") {
@@ -2214,10 +2835,13 @@ class Parser {
         };
       }
 
+      if (!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) throw unexpectedTokenError(token);
+      assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
       let value: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern =
         key;
+      this.assertUnrestrictedTarget(key);
       if (this.consumePunctuator("=") !== undefined) {
-        const right = this.parseAssignmentExpression().node;
+        const right = this.parseExpression().node;
         value = {
           type: "AssignmentPattern",
           left: createIdentifier(token),
@@ -2313,6 +2937,15 @@ class Parser {
   }
 
   private parseRelationalExpression(): ParsedExpression {
+    if (this.currentToken().type === "private-identifier") {
+      const left = this.parsePrivateIdentifier();
+      if (!this.allowIn) throw unexpectedTokenError(this.currentToken());
+      this.expectKeyword("in");
+      const right = this.parseShiftExpression();
+      return this.parseBinaryExpression(() => this.parseShiftExpression(), RELATIONAL_OPERATORS,
+        { node: { type: "BinaryExpression", operator: "in", left, right: right.node,
+          span: createSpan(left.span.start, right.node.span.end) }, parenthesized: false });
+    }
     return this.parseBinaryExpression(() => this.parseShiftExpression(), RELATIONAL_OPERATORS);
   }
 
@@ -2341,7 +2974,7 @@ class Parser {
       return left;
     }
 
-    if (!left.parenthesized && left.node.type === "UnaryExpression") {
+    if (!left.parenthesized && (left.node.type === "UnaryExpression" || left.node.type === "AwaitExpression")) {
       const operator = this.previousToken();
       throw new Error(
         `Unary expressions cannot be used as the left-hand side of '**' without parentheses at line ${operator.start.line}, column ${operator.start.column}.`
@@ -2379,47 +3012,21 @@ class Parser {
       };
     }
 
-    if (token.type === "keyword" && token.value === "yield") {
-      if (!this.generatorBody) {
-        throw new Error(
-          `yield is only valid inside a generator body at line ${token.start.line}, column ${token.start.column}.`
-        );
-      }
-
-      this.index += 1;
-      if (
-        hasLineBreakBetween(token, this.currentToken()) &&
-        this.currentToken().type === "punctuator" &&
-        this.currentToken().value === "*"
-      ) {
-        throw unexpectedTokenError(this.currentToken());
-      }
-      const delegate = this.consumePunctuator("*") !== undefined;
-      const next = this.currentToken();
-      const hasArgument =
-        delegate ||
-        (!hasLineBreakBetween(token, next) &&
-          !(next.type === "punctuator" && isYieldArgumentTerminator(next.value)) &&
-          next.type !== "eof");
-      const argument = hasArgument ? this.parseAssignmentExpression().node : undefined;
-      if (delegate && argument === undefined) {
-        throw unexpectedTokenError(next);
-      }
-      return {
-        node: {
-          type: "YieldExpression",
-          argument,
-          delegate,
-          span: createSpan(token.start, argument?.span.end ?? token.end)
-        },
-        parenthesized: false
-      };
-    }
-
-    if (token.type === "keyword" && token.value === "await") {
-      if (this.generatorBody) {
+    if (token.type === "keyword" && token.value === "await" && !this.isContextualIdentifier(token)) {
+      if (!this.lexicalContext.await) throw new DisallowedSyntaxError("await in a class element", token.start);
+      if (this.functionContext === "generator") {
         throw new Error(
           `generators cannot await; use a regular async function at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+      if (this.functionContext === "parameters") {
+        throw new Error(
+          `await is not valid in function parameters at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+      if (this.functionContext === "normal" && this.lexicalContext.requireAsyncAwait) {
+        throw new SyntaxError(
+          `await is only valid at top level or inside an async function at line ${token.start.line}, column ${token.start.column}.`
         );
       }
       this.index += 1;
@@ -2440,6 +3047,8 @@ class Parser {
     ) {
       this.index += 1;
       const argument = this.parseUnaryExpression();
+      if (token.value === "delete" && argument.node.type === "Identifier" && this.lexicalContext.grammar?.strict === true)
+        throw new SyntaxError("Cannot delete an unqualified identifier in strict mode.");
       return {
         node: {
           type: "UnaryExpression",
@@ -2477,11 +3086,15 @@ class Parser {
     let expression = this.parsePrimaryExpression();
 
     while (true) {
+      // Parentheses end short-circuit propagation without discarding a method receiver.
+      const continuesOptionalChain = !expression.parenthesized &&
+        (expression.node.type === "MemberExpression" || expression.node.type === "CallExpression") &&
+        (expression.node.optional || expression.node.continuesOptionalChain === true);
       const optionalChain = this.consumePunctuator("?.");
       if (optionalChain !== undefined) {
         if (this.consumePunctuator("(") !== undefined) {
           expression = {
-            node: this.createCallExpression(expression.node, true),
+            node: this.createCallExpression(expression.node, true, continuesOptionalChain),
             parenthesized: false
           };
           continue;
@@ -2496,6 +3109,7 @@ class Parser {
               computed: true,
               object: expression.node,
               optional: true,
+              ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
               property: property.node,
               span: createSpan(expression.node.span.start, end.end)
             },
@@ -2504,13 +3118,14 @@ class Parser {
           continue;
         }
 
-        const property = this.parseIdentifierName();
+        const property = this.currentToken().type === "private-identifier" ? this.parsePrivateIdentifier() : this.parseIdentifierName();
         expression = {
           node: {
             type: "MemberExpression",
             computed: false,
             object: expression.node,
             optional: true,
+            ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
             property,
             span: createSpan(expression.node.span.start, property.span.end)
           },
@@ -2520,13 +3135,14 @@ class Parser {
       }
 
       if (this.consumePunctuator(".") !== undefined) {
-        const property = this.parseIdentifierName();
+        const property = this.currentToken().type === "private-identifier" ? this.parsePrivateIdentifier() : this.parseIdentifierName();
         expression = {
           node: {
             type: "MemberExpression",
             computed: false,
             object: expression.node,
             optional: false,
+            ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
             property,
             span: createSpan(expression.node.span.start, property.span.end)
           },
@@ -2544,6 +3160,7 @@ class Parser {
             computed: true,
             object: expression.node,
             optional: false,
+            ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
             property: property.node,
             span: createSpan(expression.node.span.start, end.end)
           },
@@ -2554,26 +3171,15 @@ class Parser {
 
       if (this.consumePunctuator("(") !== undefined) {
         expression = {
-          node: this.createCallExpression(expression.node, false),
+          node: this.createCallExpression(expression.node, false, continuesOptionalChain),
           parenthesized: false
         };
         continue;
       }
 
       if (this.currentToken().type === "template") {
-        const quasi = createTemplateLiteral(
-          this.currentToken(),
-          { allowMalformedEscapes: true },
-          this.compilation
-        );
-        this.index += 1;
         expression = {
-          node: {
-            type: "TaggedTemplateExpression",
-            tag: expression.node,
-            quasi,
-            span: createSpan(expression.node.span.start, quasi.span.end)
-          },
+          node: this.parseTaggedTemplate(expression.node),
           parenthesized: false
         };
         continue;
@@ -2608,6 +3214,18 @@ class Parser {
   private parsePrimaryExpression(): ParsedExpression {
     const token = this.currentToken();
 
+    if (token.value === "class") return { node: this.parseClass(false) as ClassExpression, parenthesized: false };
+    if (token.type === "keyword" && token.value === "super") {
+      const next = this.peekToken(1).value;
+      if (!(next === "(" ? this.lexicalContext.superCall :
+          (next === "." || next === "[") && this.lexicalContext.superProperty))
+        throw new DisallowedSyntaxError("super", token.start);
+      this.index++;
+      return { node: { type: "Super", span: createTokenSpan(token) }, parenthesized: false };
+    }
+    if (token.value === "arguments" && !this.lexicalContext.arguments)
+      throw new DisallowedSyntaxError("arguments in a class element", token.start);
+
     if (token.type === "keyword" && token.value === "this") {
       this.index += 1;
       return {
@@ -2633,8 +3251,8 @@ class Parser {
       return this.parseNewExpression();
     }
 
-    if (isIdentifierLikeToken(token)) {
-      assertAllowedIdentifierReference(token);
+    if (isIdentifierLikeToken(token) || this.isContextualIdentifier(token)) {
+      assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
       this.index += 1;
       return {
         node: createIdentifier(token),
@@ -2669,12 +3287,32 @@ class Parser {
     if (token.type === "template") {
       this.index += 1;
       return {
-        node: createTemplateLiteral(token, { allowMalformedEscapes: false }, this.compilation),
+        node: createTemplateLiteral(
+          token,
+          {
+            allowMalformedEscapes: false,
+            functionContext: this.functionContext,
+            lexicalContext: this.lexicalContext,
+            source: this.source
+          },
+          this.compilation
+        ),
         parenthesized: false
       };
     }
 
     if (token.type === "keyword") {
+      if (token.value === "import" && this.peekToken(1).value === "(") {
+        this.index += 2;
+        const source = this.parseExpression().node;
+        let options: Expression | undefined;
+        if (this.consumePunctuator(",") !== undefined && this.currentToken().value !== ")") {
+          options = this.parseExpression().node;
+          this.consumePunctuator(",");
+        }
+        const end = this.expectPunctuator(")");
+        return {node:{type:"ImportExpression",source,...(options === undefined ? {} : {options}),span:createSpan(token.start,end.end)},parenthesized:false};
+      }
       if (this.isImportMetaStart()) {
         return {
           node: this.parseImportMeta(),
@@ -2694,6 +3332,7 @@ class Parser {
       const expression = this.parseExpression({ allowSequence: true });
       const end = this.expectPunctuator(")");
       expression.node.span = createSpan(start.start, end.end);
+      this.parenthesizedNodes.add(expression.node);
       return {
         node: expression.node,
         parenthesized: true
@@ -2720,15 +3359,21 @@ class Parser {
   private parseNewExpression(): ParsedExpression {
     const newToken = this.currentToken();
     this.index += 1;
+    if (this.currentToken().value === "import" && this.peekToken(1).value === "(")
+      throw unexpectedTokenError(this.currentToken());
 
     if (this.consumePunctuator(".") !== undefined) {
-      throw new DisallowedSyntaxError(newToken.value, newToken.start);
+      const target = this.currentToken();
+      if (target.value !== "target" || !this.lexicalContext.newTarget)
+        throw new DisallowedSyntaxError(newToken.value, newToken.start);
+      this.index++;
+      return { node: { type: "NewTargetExpression", span: createSpan(newToken.start, target.end) }, parenthesized: false };
     }
 
     let callee = this.parsePrimaryExpression();
     while (true) {
       if (this.consumePunctuator(".") !== undefined) {
-        const property = this.parseIdentifierName();
+        const property = this.currentToken().type === "private-identifier" ? this.parsePrivateIdentifier() : this.parseIdentifierName();
         callee = {
           node: {
             type: "MemberExpression",
@@ -2760,11 +3405,19 @@ class Parser {
         continue;
       }
 
+      if (this.currentToken().type === "template") {
+        callee = { node: this.parseTaggedTemplate(callee.node), parenthesized: false };
+        continue;
+      }
+
       break;
     }
 
     const optional = this.consumePunctuator("?.");
-    if (optional !== undefined) throw new DisallowedSyntaxError("new optional chain", optional.start);
+    if (optional !== undefined)
+      throw new DisallowedSyntaxError("new optional chain", optional.start);
+    if (callee.node.type === "Super")
+      throw new DisallowedSyntaxError("new super", newToken.start);
     const args = this.consumePunctuator("(") === undefined ? [] : this.parseArguments();
     const end = this.previousToken();
 
@@ -2779,31 +3432,41 @@ class Parser {
     };
   }
 
+  private parseTaggedTemplate(tag: Expression): TaggedTemplateExpression {
+    const quasi = createTemplateLiteral(
+      this.currentToken(),
+      {
+        allowMalformedEscapes: true,
+        functionContext: this.functionContext,
+        lexicalContext: this.lexicalContext,
+        source: this.source
+      },
+      this.compilation
+    );
+    this.index += 1;
+    return {
+      type: "TaggedTemplateExpression",
+      tag,
+      quasi,
+      span: createSpan(tag.span.start, quasi.span.end)
+    };
+  }
+
   private parseFunctionExpression(): FunctionExpression {
     const asyncToken = this.consumeKeyword("async");
     const functionToken = this.expectKeyword("function");
     const generatorToken = this.consumePunctuator("*");
-    if (asyncToken !== undefined && generatorToken !== undefined) {
-      throw new Error(
-        `async function* is not supported at line ${asyncToken.start.line}, column ${asyncToken.start.column}.`
-      );
-    }
-    const id = isIdentifierLikeToken(this.currentToken())
-      ? this.parseBindingIdentifier()
-      : undefined;
-    const params = this.withScope(() => {
-      const parsedParams = this.parseArrowParameters();
-      for (const param of parsedParams) {
-        for (const identifier of boundIdentifiers(param)) {
-          this.declareBinding(identifier);
-        }
-      }
-      return parsedParams;
-    });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator, () => this.parseBlockStatement(params));
+    const grammar = this.lexicalContext.grammar;
+    const id = this.withLexicalContext({
+      ...this.lexicalContext,
+      ...(grammar === undefined ? {} : {grammar: {...grammar, await: asyncToken !== undefined, yield: generator}})
+    }, () => isIdentifierLikeToken(this.currentToken()) || this.isContextualIdentifier(this.currentToken())
+      ? this.parseBindingIdentifier()
+      : undefined);
+    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext, undefined, asyncToken !== undefined);
 
-    return {
+    return this.withFunctionSource({
       type: "FunctionExpression",
       async: asyncToken !== undefined,
       body,
@@ -2811,7 +3474,7 @@ class Parser {
       id,
       params,
       span: createSpan(asyncToken?.start ?? functionToken.start, body.span.end)
-    };
+    });
   }
 
   private parseArrayExpression(): ArrayExpression {
@@ -2927,34 +3590,41 @@ class Parser {
             this.peekToken(1).value === "*"
           ? this.peekToken(1)
           : undefined;
-    if (generatorToken !== undefined) {
-      throw new Error(
-        `Generator shorthand methods are not supported at line ${generatorToken.start.line}, column ${generatorToken.start.column}.`
-      );
+    const asyncGeneratorToken = generatorToken !== undefined && this.currentToken().value === "async"
+      ? this.currentToken() : undefined;
+    if (asyncGeneratorToken !== undefined) {
+      if (hasLineBreakBetween(asyncGeneratorToken, generatorToken!)) throw unexpectedTokenError(generatorToken!);
+      this.index++;
     }
+    if (generatorToken !== undefined) this.index++;
 
+    let accessor: "get" | "set" | undefined;
+    let accessorStart: Position | undefined;
     if (
+      generatorToken === undefined &&
       this.currentToken().type === "identifier" &&
       (this.currentToken().value === "get" || this.currentToken().value === "set") &&
       this.isObjectMethodStart()
     ) {
       const token = this.currentToken();
-      const syntax = token.value === "get" ? "Getter" : "Setter";
-      throw new Error(
-        `${syntax} shorthand methods are not supported at line ${token.start.line}, column ${token.start.column}.`
-      );
+      if (token.end.offset - token.start.offset !== token.value.length)
+        throw unexpectedTokenError(token);
+      accessor = token.value === "get" ? "get" : "set";
+      accessorStart = token.start;
+      this.index++;
     }
 
     const modifierToken = this.currentToken();
-    const asyncToken =
+    const asyncToken = asyncGeneratorToken ?? (
+      generatorToken === undefined &&
       modifierToken.type === "keyword" &&
       modifierToken.value === "async" &&
       modifierToken.end.offset - modifierToken.start.offset === modifierToken.value.length &&
       this.isObjectMethodStart() &&
       !hasLineBreakBetween(modifierToken, this.peekToken(1))
         ? modifierToken
-        : undefined;
-    if (asyncToken !== undefined) {
+        : undefined);
+    if (asyncToken !== undefined && asyncGeneratorToken === undefined) {
       this.index += 1;
     }
 
@@ -2963,16 +3633,18 @@ class Parser {
       const key = this.parseExpression();
       this.expectPunctuator("]");
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, propertyStart.start);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? propertyStart.start, accessor, generatorToken);
         return {
           type: "Property",
+          ...(accessor === undefined ? {} : { kind: accessor }),
           computed: true,
           shorthand: false,
           key: key.node,
           value,
-          span: createSpan(asyncToken?.start ?? propertyStart.start, value.span.end)
+          span: createSpan(value.span.start, value.span.end)
         };
       }
+      if (generatorToken !== undefined) throw unexpectedTokenError(this.currentToken());
       this.expectPunctuator(":");
       const value = this.parseExpression();
       return {
@@ -2986,27 +3658,25 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (
-      isIdentifierLikeToken(token) ||
-      (token.type === "keyword" &&
-        this.peekToken(1).type === "punctuator" &&
-        this.peekToken(1).value === "(")
-    ) {
+    if (token.type === "identifier" || token.type === "keyword" || token.type === "escaped-keyword") {
       this.index += 1;
-      const key = createIdentifier(token);
+      const key = createIdentifierName(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, key.span.start);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor, generatorToken);
         return {
           type: "Property",
+          ...(accessor === undefined ? {} : { kind: accessor }),
           computed: false,
           shorthand: false,
           key,
           value,
-          span: createSpan(asyncToken?.start ?? key.span.start, value.span.end)
+          span: createSpan(value.span.start, value.span.end)
         };
       }
+      if (generatorToken !== undefined) throw unexpectedTokenError(this.currentToken());
       if (this.consumePunctuator(":") === undefined) {
-        assertAllowedIdentifierReference(token);
+        if (!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) throw unexpectedTokenError(token);
+        assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
         return {
           type: "Property",
           computed: false,
@@ -3031,16 +3701,18 @@ class Parser {
       this.index += 1;
       const key = createLiteralFromToken(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, key.span.start);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor, generatorToken);
         return {
           type: "Property",
+          ...(accessor === undefined ? {} : { kind: accessor }),
           computed: false,
           shorthand: false,
           key,
           value,
-          span: createSpan(asyncToken?.start ?? key.span.start, value.span.end)
+          span: createSpan(value.span.start, value.span.end)
         };
       }
+      if (generatorToken !== undefined) throw unexpectedTokenError(this.currentToken());
       this.expectPunctuator(":");
       const value = this.parseExpression();
       return {
@@ -3080,7 +3752,9 @@ class Parser {
     }
     return (
       (propertyToken.type === "identifier" ||
+        propertyToken.type === "private-identifier" ||
         propertyToken.type === "keyword" ||
+        propertyToken.type === "escaped-keyword" ||
         propertyToken.type === "numeric" ||
         propertyToken.type === "string") &&
       this.peekToken(2).type === "punctuator" &&
@@ -3090,38 +3764,42 @@ class Parser {
 
   private parseObjectMethod(
     asyncToken: Token | undefined,
-    methodStart: Position
+    methodStart: Position,
+    accessor?: "get" | "set",
+    generatorToken?: Token
   ): FunctionExpression {
-    const params = this.withScope(() => {
-      const parsedParams = this.parseArrowParameters();
-      for (const param of parsedParams) {
-        for (const identifier of boundIdentifiers(param)) {
-          this.declareBinding(identifier);
-        }
-      }
-      return parsedParams;
-    });
-    const body = this.withFunctionContext(false, () => this.parseBlockStatement(params));
+    const { params, body } = this.parseFunctionParts(generatorToken !== undefined, {
+      ...ordinaryFunctionContext,
+      superProperty: true,
+      ...(accessor === undefined ? {} : { await: false, strictAwait: true })
+    }, accessor, asyncToken !== undefined);
 
-    return {
+    return this.withFunctionSource({
       type: "FunctionExpression",
       async: asyncToken !== undefined,
       body,
-      generator: false,
+      generator: generatorToken !== undefined,
       id: undefined,
       method: true,
       params,
-      span: createSpan(asyncToken?.start ?? methodStart, body.span.end)
-    };
+      span: createSpan(asyncToken?.start ?? generatorToken?.start ?? methodStart, body.span.end)
+    });
   }
 
   private parseIdentifierName(): Identifier {
     const token = this.currentToken();
-    if (token.type !== "identifier" && token.type !== "keyword") {
+    if (token.type !== "identifier" && token.type !== "keyword" && token.type !== "escaped-keyword") {
       throw unexpectedTokenError(token);
     }
     this.index += 1;
     return createIdentifierName(token);
+  }
+
+  private parsePrivateIdentifier(): PrivateIdentifier {
+    const token = this.currentToken();
+    if (token.type !== "private-identifier") throw unexpectedTokenError(token);
+    this.index++;
+    return { type: "PrivateIdentifier", name: token.value, span: createSpan(token.start, token.end) };
   }
 
   private parseArguments(): Array<Expression | SpreadElement> {
@@ -3163,7 +3841,7 @@ class Parser {
     return args;
   }
 
-  private createCallExpression(callee: Expression, optional: boolean): CallExpression {
+  private createCallExpression(callee: Expression, optional: boolean, continuesOptionalChain = false): CallExpression {
     const args = this.parseArguments();
     const end = this.previousToken();
     return {
@@ -3171,6 +3849,7 @@ class Parser {
       arguments: args,
       callee,
       optional,
+      ...(continuesOptionalChain ? { continuesOptionalChain: true as const } : {}),
       span: createSpan(callee.span.start, end.end)
     };
   }
@@ -3200,13 +3879,14 @@ class Parser {
 
   private parseBinaryExpression(
     parseOperand: () => ParsedExpression,
-    operators: ReadonlySet<BinaryOperator>
+    operators: ReadonlySet<BinaryOperator>,
+    initial?: ParsedExpression
   ): ParsedExpression {
-    let left = parseOperand();
+    let left = initial ?? parseOperand();
 
     while (true) {
       const token = this.currentToken();
-      if (!operators.has(token.value as BinaryOperator)) {
+      if (token === this.forInInitializerEnd || (!this.allowIn && token.value === "in") || token.type === "escaped-keyword" || !operators.has(token.value as BinaryOperator)) {
         return left;
       }
 
@@ -3237,8 +3917,15 @@ class Parser {
     }
   }
 
+  private assertUnrestrictedTarget(identifier: Identifier): void {
+    if (this.lexicalContext.grammar?.strict !== false &&
+        (identifier.name === "eval" || identifier.name === "arguments"))
+      throw new Error(`Invalid strict binding target '${identifier.name}'.`);
+  }
+
   private toAssignmentTarget(node: Expression): AssignmentTarget {
     if (node.type === "Identifier") {
+      this.assertUnrestrictedTarget(node);
       return node;
     }
 
@@ -3259,6 +3946,7 @@ class Parser {
 
   private toUpdateTarget(node: Expression): UpdateTarget {
     if (node.type === "Identifier") {
+      this.assertUnrestrictedTarget(node);
       return node;
     }
 
@@ -3355,23 +4043,21 @@ class Parser {
     property: Property | SpreadElement
   ): AssignmentProperty | RestElement {
     if (property.type === "SpreadElement") {
-      if (property.argument.type !== "Identifier") {
+      if (property.argument.type !== "Identifier" &&
+          (property.argument.type !== "MemberExpression" || this.hasOptionalAssignmentChain(property.argument))) {
         throw new Error(
-          `Object rest element must bind to an identifier at line ${property.argument.span.start.line}, column ${property.argument.span.start.column}.`
+          `Object rest assignment requires an identifier or member target at line ${property.argument.span.start.line}, column ${property.argument.span.start.column}.`
         );
       }
 
       return {
         type: "RestElement",
-        argument: property.argument,
+        argument: this.toPatternTarget(this.toAssignmentTarget(property.argument)),
         span: property.span
       };
     }
 
-    const value =
-      property.shorthand && property.value.type === "Identifier"
-        ? property.value
-        : this.toObjectPropertyValue(property.value);
+    const value = this.toObjectPropertyValue(property.value);
 
     return {
       type: "AssignmentProperty",
@@ -3381,6 +4067,16 @@ class Parser {
       value,
       span: property.span
     };
+  }
+
+  private hasOptionalAssignmentChain(node: Expression): boolean {
+    while (node.type === "MemberExpression" || node.type === "CallExpression") {
+      if (node.optional) return true;
+      const base = node.type === "MemberExpression" ? node.object : node.callee;
+      if (this.parenthesizedNodes.has(base)) return false;
+      node = base;
+    }
+    return false;
   }
 
   private toObjectPropertyValue(
@@ -3398,13 +4094,13 @@ class Parser {
     return this.toPatternTarget(this.toAssignmentTarget(value));
   }
 
-  private isPatternAssignmentStart(startIndex: number): boolean {
+  private tokenAfterBalancedGroup(startIndex: number): Token | undefined {
     const startToken = this.tokens[startIndex];
     if (
       startToken?.type !== "punctuator" ||
       (startToken.value !== "[" && startToken.value !== "{")
     ) {
-      return false;
+      return undefined;
     }
 
     const stack: string[] = [];
@@ -3426,19 +4122,17 @@ class Parser {
         }
 
         if (stack.length === 0) {
-          return (
-            this.tokens[index + 1]?.type === "punctuator" && this.tokens[index + 1]?.value === "="
-          );
+          return this.tokens[index + 1];
         }
       }
     }
 
-    return false;
+    return undefined;
   }
 
   private isSingleParamArrowFunction(): boolean {
     const token = this.currentToken();
-    if (!isIdentifierLikeToken(token) || this.peekToken(1).value !== "=>") {
+    if ((!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) || this.peekToken(1).value !== "=>") {
       return false;
     }
 
@@ -3457,7 +4151,7 @@ class Parser {
     if (
       token.type !== "keyword" ||
       token.value !== "async" ||
-      this.peekToken(1).type !== "identifier" ||
+      (!isIdentifierLikeToken(this.peekToken(1)) && !this.isContextualIdentifier(this.peekToken(1))) ||
       this.peekToken(2).value !== "=>"
     ) {
       return false;
@@ -3546,7 +4240,9 @@ class Parser {
   }
 
   private findTopLevelForIterationOperator(startIndex: number): Token | undefined {
+    let operator: Token | undefined;
     let depth = 0;
+    let conditionalDepth = 0;
     let previousToken: Token | undefined;
 
     for (let index = startIndex; index < this.tokens.length; index += 1) {
@@ -3556,22 +4252,30 @@ class Parser {
           depth += 1;
         } else if (token.value === ")" || token.value === "]" || token.value === "}") {
           if (depth === 0 && token.value === ")") {
-            return undefined;
+            return operator;
           }
           depth -= 1;
         } else if (depth === 0 && token.value === ";") {
           return undefined;
+        } else if (depth === 0 && token.value === "?") {
+          conditionalDepth++;
+        } else if (depth === 0 && token.value === ":" && conditionalDepth > 0) {
+          conditionalDepth--;
         }
       }
 
       if (
-        depth === 0 &&
+        depth === 0 && conditionalDepth === 0 &&
         token.type === "keyword" &&
         (token.value === "of" || token.value === "in") &&
+        index !== startIndex &&
+        !(token.value === "of" && index === startIndex + 1 &&
+          previousToken?.type !== "escaped-keyword" &&
+          ["const", "let", "var"].includes(previousToken?.value ?? "")) &&
         previousToken?.value !== "." &&
         previousToken?.value !== "?."
       ) {
-        return token;
+        operator ??= token;
       }
 
       previousToken = token;
@@ -3582,11 +4286,12 @@ class Parser {
 
   private shouldParseTopLevelStatement(): boolean {
     const token = this.currentToken();
+    if (this.resourceDeclarationHint() !== undefined) return true;
     if (this.isAsyncFunctionDeclarationStart()) {
       return true;
     }
     if (token.type === "keyword" && TOP_LEVEL_STATEMENT_KEYWORDS.has(token.value)) {
-      if (token.value === "import" && this.isImportMetaStart()) {
+      if (token.value === "import" && (this.isImportMetaStart() || this.peekToken(1).value === "(")) {
         return false;
       }
       return true;
@@ -3626,9 +4331,15 @@ class Parser {
     }
   }
 
+  private isLabelIdentifier(token: Token): boolean {
+    if (this.lexicalContext.grammar?.strict !== false && STRICT_BINDING_NAMES.has(token.value) &&
+        token.value !== "eval" && token.value !== "arguments") return false;
+    return isIdentifierLikeToken(token) || this.isContextualIdentifier(token);
+  }
+
   private consumeControlLabel(token: Token): Token | undefined {
     if (
-      this.currentToken().type === "identifier" &&
+      this.isLabelIdentifier(this.currentToken()) &&
       !hasLineBreakBetween(token, this.currentToken())
     ) {
       const label = this.currentToken();
@@ -3647,20 +4358,33 @@ class Parser {
     );
   }
 
-  private withFunctionContext<T>(generatorBody: boolean, callback: () => T): T {
+  private withFunctionContext<T>(functionContext: FunctionParseContext, callback: () => T): T {
     const previousBreakableDepth = this.breakableDepth;
     const previousLoopDepth = this.loopDepth;
-    const previousGeneratorBody = this.generatorBody;
+    const previousLabels = this.activeLabels;
+    const previousFunctionContext = this.functionContext;
     this.breakableDepth = 0;
     this.loopDepth = 0;
-    this.generatorBody = generatorBody;
+    this.activeLabels = new Map();
+    this.functionContext = functionContext;
     try {
       return callback();
     } finally {
       this.breakableDepth = previousBreakableDepth;
       this.loopDepth = previousLoopDepth;
-      this.generatorBody = previousGeneratorBody;
+      this.activeLabels = previousLabels;
+      this.functionContext = previousFunctionContext;
     }
+  }
+
+  private withLexicalContext<T>(context: LexicalParseContext, callback: () => T): T {
+    const previous = this.lexicalContext;
+    if (previous.requireAsyncAwait && context.requireAsyncAwait === undefined)
+      context = { ...context, requireAsyncAwait: true };
+    if (context.grammar === undefined && previous.grammar !== undefined)
+      context = {...context, grammar: {...previous.grammar}};
+    this.lexicalContext = context;
+    try { return callback(); } finally { this.lexicalContext = previous; }
   }
 
   private withLoopContext<T>(callback: () => T): T {
@@ -3710,7 +4434,8 @@ class Parser {
     const variableFunction = kind === "function" && this.functionScopes.has(scope);
     if (
       (existing !== undefined &&
-        !(variableFunction && (existing === "function" || existing === "parameter"))) ||
+        !(variableFunction && (existing === "function" || existing === "parameter")) &&
+        !(kind === "legacy-function" && existing === "legacy-function")) ||
       (!variableFunction && this.varNames.get(scope)?.has(identifier.name))
     ) {
       throw new Error(
@@ -3725,7 +4450,8 @@ class Parser {
     for (let index = this.scopes.length - 1; index >= 0; index--) {
       const scope = this.scopes[index]!;
       const existing = scope.get(identifier.name);
-      if (existing === "lexical" || (existing === "function" && !this.functionScopes.has(scope))) {
+      if (existing === "lexical" || existing === "legacy-function" ||
+          (existing === "function" && !this.functionScopes.has(scope))) {
         throw new Error(
           `Cannot redeclare binding '${identifier.name}' at line ${identifier.span.start.line}, column ${identifier.span.start.column}.`
         );
@@ -3798,7 +4524,13 @@ class Parser {
   }
 
   private currentToken(): Token {
-    return this.tokens[this.index] ?? this.tokens[this.tokens.length - 1];
+    const token = this.tokens[this.index] ?? this.tokens[this.tokens.length - 1];
+    if (this.lexicalContext.grammar?.strict !== false && token.legacyEscape)
+      throw new Error("Legacy escape sequences are not supported in strict mode.");
+    if (this.lexicalContext.grammar?.strict !== false && token.type === "numeric" &&
+      token.value[0] === "0" && isDecimalDigit(token.value[1] ?? ""))
+      throw new Error("Legacy numeric literals are not supported in strict mode.");
+    return token;
   }
 
   private peekToken(offset: number): Token {
@@ -3819,6 +4551,7 @@ class Parser {
 
   private parseImportMeta(): MetaProperty {
     const importToken = this.currentToken();
+    if (!this.allowImportMeta) throw new Error("import.meta is only valid in module source.");
     if (!this.isImportMetaStart()) {
       throw unexpectedTokenError(importToken);
     }
@@ -3991,6 +4724,8 @@ function findImportMetaAssignmentInNode(
         findImportMetaAssignmentInNode(node.callee) ??
         findImportMetaAssignmentInList(node.arguments)
       );
+    case "ImportExpression":
+      return findImportMetaAssignmentInNode(node.source) ?? findImportMetaAssignmentInOptionalExpression(node.options);
     case "TaggedTemplateExpression":
       return findImportMetaAssignmentInNode(node.tag) ?? findImportMetaAssignmentInNode(node.quasi);
     case "TemplateLiteral":
@@ -4005,6 +4740,7 @@ function findImportMetaAssignmentInNode(
     case "BooleanLiteral":
     case "NullLiteral":
     case "NumericLiteral":
+    case "BigIntLiteral":
     case "StringLiteral":
     case "ThisExpression":
     case "RegexLiteral":
@@ -4103,14 +4839,21 @@ function isAssignmentOperator(value: string): value is AssignmentOperator {
 }
 
 function isYieldArgumentTerminator(value: string): boolean {
-  return value === ";" || value === "}" || value === ")" || value === "]" || value === ",";
+  return value === ";" || value === "}" || value === ")" || value === "]" || value === "," || value === ":";
 }
 
-function createNumericLiteral(token: Token): NumericLiteral {
+function createNumericLiteral(token: Token): NumericLiteral | BigIntLiteral {
+  if (token.value.endsWith("n")) return {
+    type: "BigIntLiteral",
+    raw: token.value,
+    value: token.value.slice(0, -1).replaceAll("_", ""),
+    span: createTokenSpan(token)
+  };
   return {
     type: "NumericLiteral",
     raw: token.value,
-    value: Number(token.value.replaceAll("_", "")),
+    value: token.value.length > 1 && token.value[0] === "0" && [...token.value].every(isOctalDigit)
+      ? Number.parseInt(token.value, 8) : Number(token.value.replaceAll("_", "")),
     span: createTokenSpan(token)
   };
 }
@@ -4119,7 +4862,7 @@ function createStringLiteral(token: Token): StringLiteral {
   return {
     type: "StringLiteral",
     raw: token.value,
-    value: decodeEscapedText(token.value.slice(1, -1)),
+    value: decodeEscapedText(token.value.slice(1, -1), token.legacyEscape),
     span: createTokenSpan(token)
   };
 }
@@ -4197,7 +4940,7 @@ function createKeywordLiteral(token: Token): BooleanLiteral | NullLiteral | Unde
 
 function createLiteralFromToken(
   token: Token
-): BooleanLiteral | NullLiteral | NumericLiteral | StringLiteral | UndefinedLiteral {
+): BooleanLiteral | NullLiteral | NumericLiteral | BigIntLiteral | StringLiteral | UndefinedLiteral {
   if (token.type === "numeric") {
     return createNumericLiteral(token);
   }
@@ -4211,50 +4954,44 @@ function createLiteralFromToken(
 
 function createTemplateLiteral(
   token: Token,
-  options: { allowMalformedEscapes: boolean } = { allowMalformedEscapes: false },
+  options: {
+    allowMalformedEscapes: boolean;
+    functionContext: FunctionParseContext;
+    lexicalContext: LexicalParseContext;
+    source: string;
+  },
   compilation?: CompileScope
 ): TemplateLiteral {
   const raw = token.value;
   const expressions: Expression[] = [];
   const quasis: TemplateElement[] = [];
-  let cursor = 1;
   let quasiStart = 1;
 
-  while (cursor < raw.length - 1) {
-    const char = raw[cursor];
-
-    if (char === "\\") {
-      cursor = skipEscapedCharacter(raw, cursor);
-      continue;
-    }
-
-    if (char === "$" && raw[cursor + 1] === "{") {
-      quasis.push(createTemplateElement(token.start, raw, quasiStart, cursor, false, options));
-      const expressionStart = cursor + 2;
-      const expressionEnd = findTemplateExpressionEnd(raw, expressionStart);
-      expressions.push(
-        parseEmbeddedExpression(
-          raw.slice(expressionStart, expressionEnd),
-          positionWithinRaw(token.start, raw, expressionStart),
-          compilation
-        )
-      );
-      quasiStart = expressionEnd + 1;
-      cursor = expressionEnd + 1;
-      continue;
-    }
-
-    cursor += 1;
+  for (const { start: expressionStart, end: expressionEnd } of token.templateExpressions ?? []) {
+    quasis.push(createTemplateElement(token.start, raw, quasiStart, expressionStart - 2, false, options));
+    expressions.push(
+      parseEmbeddedExpression(
+        raw.slice(expressionStart, expressionEnd),
+        positionWithinRaw(token.start, raw, expressionStart),
+        options.functionContext,
+        options.lexicalContext,
+        options.source,
+        compilation
+      )
+    );
+    quasiStart = expressionEnd + 1;
   }
 
   quasis.push(createTemplateElement(token.start, raw, quasiStart, raw.length - 1, true, options));
 
-  return {
+  const node: TemplateLiteral = {
     type: "TemplateLiteral",
     expressions,
     quasis,
     span: createTokenSpan(token)
   };
+  templateSources.set(node, options.source);
+  return node;
 }
 
 function assertBareImportSpecifier(specifier: StringLiteral): void {
@@ -4352,7 +5089,7 @@ function createTemplateElement(
     type: "TemplateElement",
     tail,
     value: {
-      raw: rawValue,
+      raw: normalizeTemplateLineTerminators(rawValue),
       cooked: cooked.invalid === undefined ? cooked.value : undefined
     },
     span: createSpan(
@@ -4366,14 +5103,13 @@ function decodeTemplateElementCooked(
   value: string,
   allowMalformedEscapes: boolean
 ): { invalid?: { index: number; message: string }; value?: string } {
-  const normalized = normalizeTemplateLineTerminators(value);
-  const invalid = findMalformedTemplateEscape(normalized);
+  const invalid = findMalformedTemplateEscape(value);
   if (invalid !== undefined) {
     return allowMalformedEscapes ? { invalid } : { invalid };
   }
 
   return {
-    value: decodeEscapedText(normalized)
+    value: decodeEscapedText(normalizeTemplateLineTerminators(value))
   };
 }
 
@@ -4419,6 +5155,10 @@ function findMalformedTemplateEscape(
       continue;
     }
 
+    if (next === "8" || next === "9") {
+      return { index, message: "Invalid decimal escape sequence in template" };
+    }
+
     if (isOctalDigit(next)) {
       return { index, message: "Legacy octal escape sequences are not supported" };
     }
@@ -4452,130 +5192,7 @@ function isValidUnicodeEscape(value: string, start: number): boolean {
   return hex.length === 4 && [...hex].every(isHexDigit);
 }
 
-function findTemplateExpressionEnd(raw: string, start: number): number {
-  let depth = 1;
-  let index = start;
-
-  while (index < raw.length - 1) {
-    const char = raw[index];
-
-    if (char === "'" || char === '"') {
-      index = skipQuotedString(raw, index, char);
-      continue;
-    }
-
-    if (char === "`") {
-      index = skipNestedTemplate(raw, index);
-      continue;
-    }
-
-    if (char === "/" && raw[index + 1] === "/") {
-      index = skipLineComment(raw, index);
-      continue;
-    }
-
-    if (char === "/" && raw[index + 1] === "*") {
-      index = skipBlockComment(raw, index);
-      continue;
-    }
-
-    if (char === "{") {
-      depth += 1;
-      index += 1;
-      continue;
-    }
-
-    if (char === "}") {
-      depth -= 1;
-      if (depth === 0) {
-        return index;
-      }
-      index += 1;
-      continue;
-    }
-
-    index += 1;
-  }
-
-  throw new Error(`Unterminated template literal at line ${1}, column ${raw.length}.`);
-}
-
-function skipQuotedString(raw: string, start: number, quote: string): number {
-  let index = start + 1;
-
-  while (index < raw.length) {
-    const char = raw[index];
-    if (char === "\\") {
-      index = skipEscapedCharacter(raw, index);
-      continue;
-    }
-    if (char === quote) {
-      return index + 1;
-    }
-    index += 1;
-  }
-
-  return index;
-}
-
-function skipNestedTemplate(raw: string, start: number): number {
-  let index = start + 1;
-
-  while (index < raw.length) {
-    const char = raw[index];
-    if (char === "\\") {
-      index = skipEscapedCharacter(raw, index);
-      continue;
-    }
-    if (char === "`") {
-      return index + 1;
-    }
-    if (char === "$" && raw[index + 1] === "{") {
-      index = findTemplateExpressionEnd(raw, index + 2) + 1;
-      continue;
-    }
-    index += 1;
-  }
-
-  return index;
-}
-
-function skipLineComment(raw: string, start: number): number {
-  let index = start + 2;
-  while (index < raw.length && raw[index] !== "\n" && raw[index] !== "\r") {
-    index += 1;
-  }
-  return index;
-}
-
-function skipBlockComment(raw: string, start: number): number {
-  let index = start + 2;
-  while (index < raw.length - 1) {
-    if (raw[index] === "*" && raw[index + 1] === "/") {
-      return index + 2;
-    }
-    index += 1;
-  }
-  return raw.length;
-}
-
-function skipEscapedCharacter(raw: string, start: number): number {
-  const next = raw[start + 1];
-  if (next === "\r") {
-    if (raw[start + 2] === "\n") {
-      return start + 3;
-    }
-    return start + 2;
-  }
-
-  if (next === "\n") {
-    return start + 2;
-  }
-
-  return Math.min(start + 2, raw.length);
-}
-
-function decodeEscapedText(value: string): string {
+function decodeEscapedText(value: string, allowLegacy = false): string {
   let decoded = "";
   let index = 0;
 
@@ -4593,7 +5210,7 @@ function decodeEscapedText(value: string): string {
       break;
     }
 
-    if (next === "\n") {
+    if (next === "\n" || next === "\u2028" || next === "\u2029") {
       index += 2;
       continue;
     }
@@ -4625,6 +5242,14 @@ function decodeEscapedText(value: string): string {
       }
     }
 
+    if (allowLegacy && isOctalDigit(next)) {
+      const start = index + 1;
+      const limit = next <= "3" ? 3 : 2;
+      index = start + 1;
+      while (index < start + limit && isOctalDigit(value[index] ?? "")) index++;
+      decoded += String.fromCharCode(Number.parseInt(value.slice(start, index), 8));
+      continue;
+    }
     decoded += decodeEscapeCharacter(next);
     index += 2;
   }
@@ -4703,14 +5328,21 @@ function decodeHexEscape(value: string, start: number): { value: string; end: nu
 function parseEmbeddedExpression(
   source: string,
   base: Position,
+  functionContext: FunctionParseContext,
+  lexicalContext: LexicalParseContext,
+  fullSource: string,
   compilation?: CompileScope
 ): Expression {
-  const tokens = tokenize(source, { allowRegexLiterals: true, compilation }).map((token) => ({
+  const tokens = tokenize(source, {
+    allowRegexLiterals: true, allowLegacyNumbers: lexicalContext.grammar?.strict === false,
+    allowLegacyEscapes: lexicalContext.grammar?.strict === false,
+    allowHtmlComments: lexicalContext.grammar !== undefined, compilation
+  }).map((token) => ({
     ...token,
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
-  return parseExpressionTokens(tokens, compilation);
+  return new Parser(tokens, fullSource, compilation, functionContext, lexicalContext).parseExpressionOnly();
 }
 
 export function findRegexLiteral(node: unknown): RegexLiteral | undefined {
@@ -4814,33 +5446,25 @@ function rebasePosition(position: Position, base: Position): Position {
 }
 
 function isLiteralPropertyKey(token: Token): boolean {
-  if (token.type === "numeric" || token.type === "string") {
-    return true;
-  }
-
-  return (
-    token.type === "keyword" &&
-    (token.value === "true" ||
-      token.value === "false" ||
-      token.value === "null" ||
-      token.value === "undefined")
-  );
+  return token.type === "numeric" || token.type === "string";
 }
 
 function isIdentifierLikeToken(token: Token): boolean {
-  return token.type === "identifier" || (token.type === "keyword" && token.value === "async");
+  return (token.type === "identifier" && !RESERVED_IDENTIFIER_SPELLINGS.has(token.value)) ||
+    ((token.type === "keyword" || token.type === "escaped-keyword") && (token.value === "async" || token.value === "of" || token.value === "as"));
 }
 
 function isNewToken(token: Token): boolean {
-  return token.value === "new";
+  return token.type !== "escaped-keyword" && token.value === "new";
 }
 
 function createTokenSpan(token: Token): SourceSpan {
   return createSpan(token.start, token.end);
 }
 
-function assertAllowedIdentifierReference(token: Token): void {
-  if (token.value === "new") {
+function assertAllowedIdentifierReference(token: Token, strict: boolean): void {
+  if (token.value === "new" || (strict && STRICT_BINDING_NAMES.has(token.value) &&
+      token.value !== "eval" && token.value !== "arguments")) {
     throw new DisallowedSyntaxError(token.value, token.start);
   }
 }

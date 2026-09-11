@@ -2,7 +2,7 @@
 
 Poe Code lets developers use their preferred coding agents through Poe.
 One Poe subscription should be enough to run Claude Code, Codex, OpenCode,
-Kimi, Goose, and future agents without juggling provider accounts, API keys,
+Goose, and future agents without juggling provider accounts, API keys,
 or one-off configuration systems.
 
 The product should feel like a thin, reliable layer over tools people already

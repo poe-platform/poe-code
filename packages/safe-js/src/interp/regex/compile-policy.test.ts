@@ -19,6 +19,7 @@ import { dump } from "../../dump.js";
 import { restore, type SafeJSSnapshot } from "../../restore.js";
 import { declareHostOperation } from "../host-bridge.js";
 import capture from "../../../test/fixtures/regexp-compile-hash-ea469.json" with { type: "json" };
+import { expectLegacyDumpGraph } from "../../../test/helpers/legacy-dump-graph.js";
 
 const limits = vi.hoisted(() => ({ sourceLength: 32, flagsLength: 4, depth: 2, allocations: 256 }));
 vi.mock("../budget.js", async (importOriginal) => ({
@@ -138,10 +139,79 @@ describe("compile checkpoint hash compatibility", () => {
       ...capture.completed,
       bindings: {
         ...capture.completed.bindings,
+        ArrayBuffer: { kind: "fn", name: "ArrayBuffer" },
+        DataView: { kind: "fn", name: "DataView" },
+        Uint8Array: { kind: "fn", name: "Uint8Array" },
+        Int8Array: { kind: "fn", name: "Int8Array" },
+        Uint8ClampedArray: { kind: "fn", name: "Uint8ClampedArray" },
+        Int16Array: { kind: "fn", name: "Int16Array" },
+        Uint16Array: { kind: "fn", name: "Uint16Array" },
+        Int32Array: { kind: "fn", name: "Int32Array" },
+        Uint32Array: { kind: "fn", name: "Uint32Array" },
+        Float64Array: { kind: "fn", name: "Float64Array" },
+        BigInt64Array: { kind: "fn", name: "BigInt64Array" },
+        BigUint64Array: { kind: "fn", name: "BigUint64Array" },
+        Float16Array: { kind: "fn", name: "Float16Array" },
+        Iterator: { kind: "fn", name: "Iterator" },
+        Intl: {
+          Collator: { kind: "fn", name: "Collator" },
+          NumberFormat: { kind: "fn", name: "NumberFormat" },
+          ListFormat: { kind: "fn", name: "ListFormat" },
+          RelativeTimeFormat: { kind: "fn", name: "RelativeTimeFormat" },
+          DisplayNames: { kind: "fn", name: "DisplayNames" },
+          DateTimeFormat: { kind: "fn", name: "DateTimeFormat" },
+          PluralRules: { kind: "fn", name: "PluralRules" },
+          Segmenter: { kind: "fn", name: "Segmenter" },
+          DurationFormat: { kind: "fn", name: "DurationFormat" },
+          Locale: { kind: "fn", name: "Locale" },
+          getCanonicalLocales: { kind: "fn", name: "getCanonicalLocales" },
+          supportedValuesOf: { kind: "fn", name: "supportedValuesOf" },
+          [Symbol.toStringTag]: "Intl"
+        },
+        Reflect: {
+          apply: { kind: "fn", name: "apply" },
+          construct: { kind: "fn", name: "construct" },
+          defineProperty: { kind: "fn", name: "defineProperty" },
+          deleteProperty: { kind: "fn", name: "deleteProperty" },
+          get: { kind: "fn", name: "get" },
+          getOwnPropertyDescriptor: { kind: "fn", name: "getOwnPropertyDescriptor" },
+          getPrototypeOf: { kind: "fn", name: "getPrototypeOf" },
+          has: { kind: "fn", name: "has" },
+          isExtensible: { kind: "fn", name: "isExtensible" },
+          ownKeys: { kind: "fn", name: "ownKeys" },
+          preventExtensions: { kind: "fn", name: "preventExtensions" },
+          set: { kind: "fn", name: "set" },
+          setPrototypeOf: { kind: "fn", name: "setPrototypeOf" },
+          [Symbol.toStringTag]: "Reflect"
+        },
+        Symbol: { kind: "fn", name: "Symbol" },
+        BigInt: { kind: "fn", name: "BigInt" },
         Date: { kind: "fn", name: "Date" },
+        URIError: { kind: "fn", name: "URIError" },
+        EvalError: { kind: "fn", name: "EvalError" },
+        SuppressedError: { kind: "fn", name: "SuppressedError" },
+        DisposableStack: { kind: "fn", name: "DisposableStack" },
+        AsyncDisposableStack: { kind: "fn", name: "AsyncDisposableStack" },
+        encodeURI: { kind: "fn", name: "encodeURI" },
+        encodeURIComponent: { kind: "fn", name: "encodeURIComponent" },
+        decodeURI: { kind: "fn", name: "decodeURI" },
+        decodeURIComponent: { kind: "fn", name: "decodeURIComponent" },
+        escape: { kind: "fn", name: "escape" },
+        unescape: { kind: "fn", name: "unescape" },
+        WeakMap: { kind: "fn", name: "WeakMap" },
+        WeakSet: { kind: "fn", name: "WeakSet" },
+        Function: { kind: "fn", name: "Function" },
         Object: { kind: "fn", name: "Object" },
+        JSON: {
+          ...capture.completed.bindings.JSON,
+          [Symbol.toStringTag]: "JSON",
+          rawJSON: { kind: "fn", name: "rawJSON" },
+          isRawJSON: { kind: "fn", name: "isRawJSON" }
+        },
         Math: {
           ...capture.completed.bindings.Math,
+          [Symbol.toStringTag]: "Math",
+          sumPrecise: { kind: "fn", name: "sumPrecise" },
           f16round: { kind: "fn", name: "f16round" }
         }
       }
@@ -180,9 +250,9 @@ describe("compile checkpoint hash compatibility", () => {
       expect(pair[0]).toBe(regex);
       expect(pair[1]).toBe(regex);
       const serialized: SafeJSSnapshot = JSON.parse(await dump(result));
+      expect(restore(serialized, { source })).toBe(serialized);
+      expectLegacyDumpGraph(serialized, expectedCompleted, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer", "WeakRef", "FinalizationRegistry", "Temporal"]);
       for (const field of [
-        "bindings",
-        "heap",
         "hostCalls",
         "replay",
         "promiseReplay",
@@ -329,7 +399,7 @@ describe("compile preimage policy", () => {
     const regex = createSandboxRegex("a", "g");
     Reflect.set(regex, "source", "b");
     Reflect.set(regex, "flags", "i");
-    const cursor = { [Symbol.toPrimitive]: vi.fn(() => 0) };
+    const cursor = { [Symbol.toPrimitive]: 7 };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const native = deepCopyFromSandbox(regex) as RegExp;
     expect([native.source, native.flags]).toEqual(["b", "i"]);
@@ -339,7 +409,8 @@ describe("compile preimage policy", () => {
       enumerable: false,
       configurable: false
     });
-    expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
+    expect(native.lastIndex).not.toBe(cursor);
+    expect(() => Number(native.lastIndex)).toThrow(TypeError);
   });
   it("RED source ceiling", () => {
     limits.sourceLength = 3;
@@ -431,18 +502,25 @@ describe("compile preimage policy", () => {
       expect(hook).not.toHaveBeenCalled();
     }
   );
-  it("CONTROL supported grammar, captures, raw cursor and native alias behavior", () => {
+  it("CONTROL supported grammar, captures, isolated cursor data and native aliases", () => {
     expect(parseRegex("(a)", "g").captureCount).toBe(1);
-    expect(() => parseRegex("a", "u")).toThrow(SyntaxError);
-    expect(() => parseRegex("a", "y")).toThrow(SyntaxError);
+    expect(parseRegex("a", "u").flags.unicode).toBe(true);
+    expect(parseRegex("a", "y").flags.sticky).toBe(true);
     const regex = createSandboxRegex("a", "g", 2);
-    const cursor = { [Symbol.toPrimitive]: vi.fn(() => 0) };
+    const cursor = { [Symbol.toPrimitive]: 7 };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const copy = deepCopyFromSandbox([regex, regex]) as RegExp[];
     expect(copy[0]).toBe(copy[1]);
     expect(copy[0].source).toBe("a");
     expect(copy[0].flags).toBe("g");
-    expect(copy[0].lastIndex).toBe(cursor);
-    expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
+    expect(copy[0].lastIndex).not.toBe(cursor);
+    expect(copy[0].lastIndex).toEqual(cursor);
+  });
+  it.each([Symbol.toPrimitive, "valueOf"])("rejects a host-injected cursor function at %s without invoking it", key => {
+    const regex = createSandboxRegex("a", "g");
+    const hook = vi.fn(() => { throw new Error("coerced"); });
+    Object.defineProperty(regex, "lastIndex", { value: { [key]: hook } });
+    expect(() => deepCopyFromSandbox(regex)).toThrow(TypeError);
+    expect(hook).not.toHaveBeenCalled();
   });
 });

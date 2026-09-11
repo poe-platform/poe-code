@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const exact = 9_007_199_254_740_993n;
+  const result = exact + 2n;
+  if (result !== 9007199254740995n) throw new Error('BigInt lost precision');
+  const box = Object(result);
+  if (box.valueOf() !== result) throw new Error('Boxed BigInt lost precision');
+  if (BigInt.asUintN(8, -1n) !== 255n) throw new Error('BigInt width mismatch');
+  let rejected = false;
+  try { result + 1; } catch (error) { rejected = error.name === 'TypeError'; }
+  if (!rejected) throw new Error('Mixed arithmetic was accepted');
+  await 0;
+  return { ok: true, title: frontmatter.title, exact: String(exact), result: box.toString(), rejected };
+}

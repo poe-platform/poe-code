@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const capability = Promise.withResolvers();
+  if (capability.resolve.name !== "" || capability.resolve.length !== 1 ||
+      capability.reject.name !== "" || capability.reject.length !== 1) {
+    throw new Error("Promise resolver metadata mismatch");
+  }
+  Object.defineProperty(capability.resolve, "name", { value: "custom" });
+  capability.resolve(42);
+  const answer = await capability.promise;
+  if (answer !== 42 || capability.resolve.name !== "custom") {
+    throw new Error("Resolver metadata mutation changed settlement");
+  }
+  return { title: frontmatter.title, ok: true, answer };
+};

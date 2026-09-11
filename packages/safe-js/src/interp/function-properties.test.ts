@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { Budget, run } from "../core.js";
 import { dump } from "../snapshot/dump.js";
 import { serialize, type RuntimeSnapshotValue } from "../snapshot/serialize.js";
+import { restore as restoreInterpreterSnapshot } from "../snapshot/restore.js";
+import { restore as restoreDump } from "../restore.js";
 import { encodeReplayData } from "../snapshot/replay-data.js";
 import {
   deepCopyFromSandbox,
@@ -71,7 +73,7 @@ describe("guest function objects through the public core", () => {
 
   it("keeps host constructors and internal closure fields inaccessible", async () => {
     const result = await run(
-      "function Counter() {} let denied = false; try { Math.abs.label = 'changed'; } catch (error) { denied = true; } return denied && Counter.constructor === undefined && Counter.kind === undefined && Counter.properties === undefined && Math.abs.constructor === undefined;",
+      "function Counter() {} Math.abs.label = 'changed'; return Math.abs.label === 'changed' && Counter.constructor === Function && Counter.constructor('return typeof process')() === 'undefined' && Counter.kind === undefined && Counter.properties === undefined && Math.abs.constructor === Function && Math.abs.kind === undefined && Math.abs.properties === undefined;",
       { budget: new Budget() }
     );
     expect(result).toMatchObject({ ok: true, returnValue: true });
@@ -79,12 +81,12 @@ describe("guest function objects through the public core", () => {
 
   it("does not inherit native fields from intrinsic function property tables", async () => {
     const result = await run(
-      "return [Array.constructor, Array.__proto__, Number.constructor, String.constructor, Promise.constructor];",
+      "return [Array.constructor === Function, Array.__proto__ === Object.getPrototypeOf(Array), Number.constructor === Function, String.constructor === Function, Promise.constructor === Function, Array.__proto__.constructor === Function, Array.__proto__.kind, Array.__proto__.properties];",
       { budget: new Budget() }
     );
     expect(result).toMatchObject({
       ok: true,
-      returnValue: [undefined, undefined, undefined, undefined, undefined]
+      returnValue: [true, true, true, true, true, true, undefined, undefined]
     });
   });
 
@@ -117,10 +119,19 @@ describe("guest function objects through the public core", () => {
 
   it.each([
     "function Counter() {} Counter.value = 7; return 1;",
-    "function Counter() {} const instance = new Counter(); return 1;"
-  ])("rejects unsupported snapshots rather than dropping function state: %s", async (source) => {
+    "function Counter() {} const instance = new Counter(); return 1;",
+    "function Parent() {} function Child() {} Object.setPrototypeOf(Child, Parent); return 1;",
+    "Object.setPrototypeOf(Number, { value: 7 }); return 1;",
+    "Object.setPrototypeOf(Number, null); return 1;"
+  ])("preserves the complete guest heap through public dump and replay: %s", async (source) => {
     const result = await run(source, { budget: new Budget() });
-    await expect(dump(result)).rejects.toThrow(/function properties|prototype links/i);
+    expect(result).toMatchObject({ ok: true, returnValue: 1 });
+    const snapshot = JSON.parse(await dump(result));
+    const replayed = await run(source, { snapshot: restoreDump(snapshot, { source }), budget: new Budget() });
+    expect(replayed).toMatchObject({ ok: true, returnValue: 1 });
+    const recaptured = JSON.parse(await dump(replayed));
+    expect(recaptured.heap).toEqual(snapshot.heap);
+    expect(recaptured.bindings).toEqual(snapshot.bindings);
   });
 
   it("rejects data copies that would discard guest prototype identity", async () => {
@@ -137,7 +148,7 @@ describe("guest function objects through the public core", () => {
 
   it("validates all descriptors before defineProperties mutates its target", async () => {
     const result = await run(
-      "const target = {}; try { Object.defineProperties(target, { valid: { value: 7 }, invalid: { get: () => 9 } }); } catch (error) {} return Object.hasOwn(target, 'valid');",
+      "const target = {}; try { Object.defineProperties(target, { valid: { value: 7 }, invalid: { get: 9 } }); } catch (error) {} return Object.hasOwn(target, 'valid');",
       { budget: new Budget() }
     );
     expect(result).toMatchObject({ ok: true, returnValue: false });
@@ -153,26 +164,38 @@ describe("guest function objects through the public core", () => {
 
   it.each([
     "function Counter() {} Counter.value = 7; return Counter;",
-    "function Counter() {} return new Counter();"
-  ])("refuses unsupported state in each serialization path: %s", async (source) => {
+    "function Counter() {} return new Counter();",
+    "function Parent() {} function Child() {} Object.setPrototypeOf(Child, Parent); return Child;",
+    "Object.setPrototypeOf(Number, { value: 7 }); return Number;",
+    "Object.setPrototypeOf(Number, null); return Number;"
+  ])("preserves guest state in heap and direct run snapshots while refusing unsupported replay-data encoding: %s", async (source) => {
     const result = await run(source, { budget: new Budget() });
     if (!result.ok) throw new Error("Guest evaluation failed");
     expect(() => encodeReplayData(result.returnValue as SandboxValue)).toThrow(
       /function properties|prototype links/i
     );
-    expect(() =>
-      serialize({
+    const snapshot = serialize({
         source,
         currentAstNodeId: 1,
         scopeChain: [{ id: 1, bindings: { value: result.returnValue as RuntimeSnapshotValue } }],
         callStack: [],
         pendingPromises: [],
         moduleBindings: {}
-      })
-    ).toThrow(/function properties|prototype links/i);
-    await expect(
-      run(source, { snapshot: result.snapshot, budget: new Budget() })
-    ).rejects.toThrow();
+      });
+    const restored = restoreInterpreterSnapshot(JSON.parse(JSON.stringify(snapshot)), { source });
+    const binding = restored.currentScope.lookup("value");
+    if (!binding.found) throw new Error("Missing restored guest value");
+    expect(binding.value).not.toBe(result.returnValue);
+    const recaptured = serialize({ source, currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { value: binding.value as RuntimeSnapshotValue } }],
+      callStack: [], pendingPromises: [], moduleBindings: {} });
+    expect(JSON.parse(JSON.stringify(recaptured))).toEqual(JSON.parse(JSON.stringify(snapshot)));
+    const resumed = await run(source, { snapshot: result.snapshot, budget: new Budget() });
+    expect(resumed.ok).toBe(true);
+    const resumedGraph = serialize({ source, currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { value: resumed.returnValue as RuntimeSnapshotValue } }],
+      callStack: [], pendingPromises: [], moduleBindings: {} });
+    expect(JSON.parse(JSON.stringify(resumedGraph))).toEqual(JSON.parse(JSON.stringify(snapshot)));
   });
 
   it("keeps separate runs isolated", async () => {
@@ -230,17 +253,11 @@ describe("guest function budgets", () => {
     expect(measureSandboxData([array])).toBeGreaterThanOrEqual(400);
   });
   it.each([
-    "Object.setPrototypeOf(function Child() {}, {});",
     "Object.setPrototypeOf([], {});",
-    "Object.create(function Parent() {});",
     "function Counter() {} Counter.prototype = []; new Counter();"
-  ])("explicitly rejects unsupported exotic prototype links: %s", async (source) => {
-    const result = await run(
-      `try { ${source} return false; } catch (error) { return error.message; }`,
-      { budget: new Budget() }
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.returnValue).toMatch(/ordinary sandbox objects/);
+  ])("supports explicit array prototype links: %s", async (source) => {
+    expect(await run(`${source} return true;`, { budget: new Budget() }))
+      .toMatchObject({ ok: true, returnValue: true });
   });
 
   it("rejects a non-callable instanceof operand", async () => {

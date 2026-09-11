@@ -1,3 +1,4 @@
+import { classDefinitionContains, visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -90,6 +91,10 @@ class ASMissingAsyncScanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitFunctionExpression(node);
@@ -130,7 +135,8 @@ class ASMissingAsyncScanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
       case "BreakStatement":
@@ -227,6 +233,10 @@ class ASMissingAsyncScanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -238,6 +248,10 @@ class ASMissingAsyncScanner {
         return;
       case "FunctionExpression":
         this.visitFunctionExpression(node);
+        return;
+      case "ImportExpression":
+        this.visitExpression(node.source);
+        if (node.options !== undefined) this.visitExpression(node.options);
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -278,6 +292,7 @@ class ASMissingAsyncScanner {
       case "MetaProperty":
       case "NullLiteral":
       case "NumericLiteral":
+      case "BigIntLiteral":
       case "RegexLiteral":
       case "StringLiteral":
       case "UndefinedLiteral":
@@ -493,6 +508,10 @@ function statementListContainsAwait(statements: readonly Statement[]): boolean {
 
 function statementContainsAwait(node: Statement): boolean {
   switch (node.type) {
+    case "WithStatement":
+      return expressionContainsAwait(node.object) || statementContainsAwait(node.body);
+    case "ClassDeclaration":
+      return classDefinitionContains(node, expressionContainsAwait);
     case "BlockStatement":
       return statementListContainsAwait(node.body);
     case "ExpressionStatement":
@@ -547,7 +566,9 @@ function statementContainsAwait(node: Statement): boolean {
     case "ExportNamedDeclaration":
       return variableDeclarationContainsAwait(node.declaration);
     case "ExportDefaultDeclaration":
-      return expressionContainsAwait(node.declaration);
+      return node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration"
+        ? statementContainsAwait(node.declaration)
+        : expressionContainsAwait(node.declaration);
     case "ImportDeclaration":
     case "FunctionDeclaration":
     case "BreakStatement":
@@ -575,6 +596,15 @@ function variableDeclarationContainsAwait(node: VariableDeclaration): boolean {
 
 function expressionContainsAwait(node: Expression): boolean {
   switch (node.type) {
+    case "ImportExpression":
+      return expressionContainsAwait(node.source) || (node.options !== undefined && expressionContainsAwait(node.options));
+    case "PrivateIdentifier":
+      return false;
+    case "ClassExpression":
+      return classDefinitionContains(node, expressionContainsAwait);
+    case "NewTargetExpression":
+    case "Super":
+      return false;
     case "AwaitExpression":
       return true;
     case "YieldExpression":
@@ -630,6 +660,7 @@ function expressionContainsAwait(node: Expression): boolean {
     case "MetaProperty":
     case "NullLiteral":
     case "NumericLiteral":
+    case "BigIntLiteral":
     case "RegexLiteral":
     case "StringLiteral":
     case "ThisExpression":

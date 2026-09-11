@@ -456,10 +456,7 @@ for (const timeoutMs of [0, -1, NaN, Infinity]) test(`invalid timeout is rejecte
 });
 
 async function native(script: string, input: string | Uint8Array, eof: boolean, args: string[] = [], locale = "C"): Promise<Buffer> {
-  const executable = authenticateOracle({
-    SAFE_BASH_TEST_BASH: process.env.SAFE_BASH_TEST_BASH ?? "/tmp/safe-bash-scripting-oracles-20260904/bash-5.2.37/bash",
-    SAFE_BASH_TEST_BASH_SHA256: process.env.SAFE_BASH_TEST_BASH_SHA256 ?? "f5b331844c67482075aea7883153127668cc67f83a60a7b4362cc8469a9dc77d",
-  });
+  const executable = authenticateOracle();
   const child = spawn(executable, ["--noprofile", "--norc", "-c", `IFS= read -r gate; ${script}`, "probe", ...args], { env: { LC_ALL: locale, PATH: "/__no_native_path__" }, stdio: ["pipe", "pipe", "pipe"] });
   const stdout: Buffer[] = [];
   const stderr: Buffer[] = [];

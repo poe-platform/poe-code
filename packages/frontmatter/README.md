@@ -36,3 +36,5 @@ This package reads no environment variables.
 ## Configuration Options
 
 This package has no configuration options.
+
+Diagnostics retain source offsets, including CRLF input. Opening fences may have trailing spaces or tabs; a missing closing fence is reported as a diagnostic. Writing frontmatter requires an object root.

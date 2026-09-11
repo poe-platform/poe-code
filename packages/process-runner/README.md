@@ -39,3 +39,5 @@ This package exposes no environment variables.
 ## Configuration
 
 This package currently exposes no package-level configuration options.
+
+Workspace transfer validates a positive finite upload limit and applies gitignore traversal rules: an ignored parent must be unignored before its children can be included. Docker template hashing honors `.dockerignore`. Docker port mappings, wait output, and detached completion markers are validated before use.

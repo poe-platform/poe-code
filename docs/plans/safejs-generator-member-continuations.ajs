@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function* values() {
+    let count = 0;
+    function select() { count++; return { x: 7 }; }
+    const value = select()[yield 1];
+    return { count, value };
+  }
+  const iterator = values();
+  const first = iterator.next();
+  await 0;
+  const last = iterator.next("x");
+  if (first.value !== 1 || first.done || !last.done || last.value.count !== 1 || last.value.value !== 7) {
+    throw new Error("Member continuation changed");
+  }
+  return { title: frontmatter.title, ok: true, result: last.value };
+};

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { once } from "node:events";
 import test from "node:test";
 import { createMemoryFileSystem, FsError, type FileSystem } from "poe-code/safe-fs";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import { Shell } from "../../../../src/shell/shell.js";
 import { ShellLimitError } from "../../../../src/shell/types.js";
 
@@ -21,7 +21,9 @@ function deferred() {
 }
 
 function setup(fs: FileSystem = createMemoryFileSystem()) {
-  return new Shell({ fs, env: { LC_ALL: "C" } }).use(browserCommands());
+  const internalErrors: unknown[] = [];
+  const shell = new Shell({ fs, env: { LC_ALL: "C" }, onInternalError: error => { internalErrors.push(error); } }).use(agentCommands());
+  return Object.assign(shell, { internalErrors });
 }
 
 test("default redirect matches the native-qualified rename-retention witness", async context => {
@@ -174,7 +176,8 @@ for (const reason of [false, 0, "", null]) test(`mapped close failure ${String(r
   const result = await shell.exec("printf a >out || printf recovered");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "recovered");
-  assert.equal(result.stderr, `shell: line 1: ${String(reason)}\n`);
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.deepEqual(shell.internalErrors, [reason]);
   assert.equal(closes, 1);
   assert.deepEqual(await backing.readFile("/out"), Uint8Array.of(97));
 });
@@ -261,15 +264,18 @@ test("pipeline consumer closure cancels the retained writer without escaping the
 
 test("a diagnosed close failure preserves a previously nonzero command status", async context => {
   const backing = createMemoryFileSystem();
+  const failure = new Error("close failed");
   const shell = setup(override(backing, { async open(path, options) {
     const descriptor = await backing.open!(path, options);
-    return override(descriptor, { async close() { await descriptor.close(); throw new Error("close failed"); } });
+    return override(descriptor, { async close() { await descriptor.close(); throw failure; } });
   } }));
   shell.register({ name: "unsuccessful", async execute() { return { exitCode: 7 }; } });
   context.after(() => shell.dispose());
   const result = await shell.exec("unsuccessful >out");
   assert.equal(result.exitCode, 7);
-  assert.equal(result.stderr, "shell: line 1: close failed\n");
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(shell.internalErrors.length, 1);
+  assert.equal(shell.internalErrors[0], failure);
 });
 
 for (const reason of [false, 0, "", null]) test(`ignored writer failure ${String(reason)} defeats successful completion without close-error masking`, async context => {
@@ -291,7 +297,8 @@ for (const reason of [false, 0, "", null]) test(`ignored writer failure ${String
   const result = await shell.exec("ignore >out || printf recovered");
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "recovered");
-  assert.equal(result.stderr, `shell: line 1: ${String(reason)}\n`);
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.deepEqual(shell.internalErrors, [reason]);
   assert.equal(writes, 1);
   assert.equal(closes, 1);
 });
@@ -420,32 +427,38 @@ test("affirmative capability with no canonical method refuses without fallback",
 
 for (const source of ["exit 7 >out", "f() { return 7 >out; }; f"]) test(`control completion diagnoses close failure without replacing status: ${source}`, async context => {
   const backing = createMemoryFileSystem();
+  const failure = new Error("close failed");
   const shell = setup(override(backing, { async open(path, options) {
     const descriptor = await backing.open!(path, options);
-    return override(descriptor, { async close() { await descriptor.close(); throw new Error("close failed"); } });
+    return override(descriptor, { async close() { await descriptor.close(); throw failure; } });
   } }));
   context.after(() => shell.dispose());
   const result = await shell.exec(source);
   assert.equal(result.exitCode, 7);
-  assert.equal(result.stderr, "shell: line 1: close failed\n");
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(shell.internalErrors.length, 1);
+  assert.equal(shell.internalErrors[0], failure);
 });
 
 for (const redirect of ["&>out", "2>err >out"]) test(`close diagnostics use restored stderr after ${redirect}`, async context => {
   const backing = createMemoryFileSystem();
+  const failure = new Error("close failed");
   let closes = 0;
   const shell = setup(override(backing, { async open(path, options) {
     const descriptor = await backing.open!(path, options);
     return override(descriptor, { async close() {
       closes++;
       await descriptor.close();
-      if (path === "/out") throw new Error("close failed");
+      if (path === "/out") throw failure;
     } });
   } }));
   context.after(() => shell.dispose());
   const result = await shell.exec(`printf a ${redirect} || printf recovered`);
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "recovered");
-  assert.equal(result.stderr, "shell: line 1: close failed\n");
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(shell.internalErrors.length, 1);
+  assert.equal(shell.internalErrors[0], failure);
   assert.equal(closes, redirect === "&>out" ? 1 : 2);
   assert.deepEqual(await backing.readFile("/out"), Uint8Array.of(97));
 });

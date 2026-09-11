@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { randomBytes } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { test } from "node:test";
-import { gzipSync } from "node:zlib";
+import { gunzipSync, gzipSync } from "node:zlib";
 import { createBytePipe, type ByteSource } from "../../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { parseOptions } from "../../../../src/commands/bytes/compression/options.js";
@@ -33,12 +33,46 @@ test("backpressure limits read-ahead while stdout write is blocked", { timeout: 
     stdout: { async write() { writes++; entered.resolve(); await release.promise; } },
   });
   await entered.promise;
+  const blockedPulls = produced;
   await delay(30);
+  assert.equal(produced, blockedPulls, "no additional source pulls while the sink is blocked");
   assert.ok(produced < 12, `read ahead ${produced} chunks`);
   assert.equal(writes, 1);
   release.resolve();
   assert.equal((await pending).exitCode, 0);
   assert.equal(produced, 80);
+});
+
+test("compression owns bounded slabs before advancing a reused producer Buffer", async () => {
+  const expected = Buffer.concat(Array.from({ length: 8 }, (_, index) => Buffer.alloc(70001, index + 1)));
+  const encoded = await run("gzip", [], (async function* () {
+    const borrowed = Buffer.alloc(70001);
+    for (let index = 1; index <= 8; index++) { borrowed.fill(index); yield borrowed; }
+  })());
+  assert.equal(encoded.exitCode, 0, encoded.stderr);
+  assert.deepEqual(gunzipSync(encoded.stdout), expected);
+  const decoded = await run("gunzip", [], (async function* () {
+    const borrowed = Buffer.alloc(7);
+    for (let offset = 0; offset < encoded.stdout.length; offset += borrowed.length) {
+      const length = encoded.stdout.copy(borrowed, 0, offset, offset + borrowed.length);
+      yield borrowed.subarray(0, length);
+    }
+  })());
+  assert.equal(decoded.exitCode, 0, decoded.stderr);
+  assert.deepEqual(decoded.stdout, expected);
+});
+
+test("no-output inflate work yields a task and preserves cancellation identity", { timeout: 3000 }, async () => {
+  const blocks = Buffer.alloc(5 * 30000);
+  for (let offset = 0; offset < blocks.length; offset += 5) { blocks[offset + 3] = 255; blocks[offset + 4] = 255; }
+  const input = Buffer.concat([helloMember.subarray(0, 10), blocks, Buffer.from([1, 0, 0, 255, 255]), Buffer.alloc(8)]);
+  const controller = new AbortController();
+  const reason = new Error("cancel no-output codec work");
+  const pending = run("gunzip", [], chunks(input), { signal: controller.signal, stdout: { async write() { assert.fail("empty members produce no output"); } } });
+  const rejected = assert.rejects(pending, error => error === reason);
+  // Queue a task, not a timer whose minimum delay can outlast the whole decode.
+  const task = setImmediate(() => controller.abort(reason));
+  try { await rejected; } finally { clearImmediate(task); }
 });
 
 test("source cancellation returns the original reason and observes late next rejection", { timeout: 3_000 }, async () => {
@@ -98,9 +132,15 @@ test("sink error tears down a producer blocked in next and return", { timeout: 3
       };
     },
   };
-  const result = await run("gzip", [], source, { stdout: { async write() { throw new Error("broken consumer"); } } });
+  const failure = new Error("broken consumer");
+  const reported: unknown[] = [];
+  const result = await run("gzip", [], source, {
+    stdout: { async write() { throw failure; } }, onInternalError(error) { reported.push(error); },
+  });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /broken consumer/);
+  assert.equal(result.stderr, "gzip: internal error\n");
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0], failure);
   pendingNext.reject(new Error("late next"));
   pendingReturn.reject(new Error("late return"));
   await delay(10);
@@ -133,22 +173,32 @@ test("invalid gzip input closes its source without waiting for EOF", { timeout: 
 test("producer error cancels a blocked stdout write", { timeout: 3_000 }, async () => {
   const entered = deferred();
   const sink = deferred();
+  const failure = new Error("producer exploded");
+  const reported: unknown[] = [];
   const result = await run("gunzip", [], (async function* () {
     yield gzipSync(randomBytes(64 * 1024));
     await entered.promise;
-    throw new Error("producer exploded");
-  })(), { stdout: { async write() { entered.resolve(); await sink.promise; } } });
+    throw failure;
+  })(), { stdout: { async write() { entered.resolve(); await sink.promise; } }, onInternalError(error) { reported.push(error); } });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /producer exploded/);
+  assert.equal(result.stderr, "gunzip: internal error\n");
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0], failure);
   sink.reject(new Error("late sink"));
   await delay(10);
 });
 
 test("invalid byte-source chunks fail cleanly", async () => {
-  const source = { async *[Symbol.asyncIterator]() { yield "not bytes"; } } as unknown as ByteSource;
-  const result = await run("gzip", [], source);
+  let returned = 0;
+  const reported: unknown[] = [];
+  const source = { async *[Symbol.asyncIterator]() { try { yield "not bytes"; } finally { returned++; } } } as unknown as ByteSource;
+  const result = await run("gzip", [], source, { onInternalError(error) { reported.push(error); } });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /Uint8Array/);
+  assert.equal(result.stderr, "gzip: internal error\n");
+  assert.equal(reported.length, 1);
+  assert.ok(reported[0] instanceof TypeError);
+  assert.match(reported[0].message, /Uint8Array/);
+  assert.equal(returned, 1);
 });
 
 test("already-aborted invocation never reads or writes", async () => {
@@ -197,6 +247,7 @@ for (const failure of ["cancellation", "producer error"]) {
     const aborted = deferred();
     const release = deferred();
     const reason = new Error(`blocked file ${failure}`);
+    const reported: unknown[] = [];
     let active = false;
     let settled = false;
     let sourceSignal: AbortSignal | undefined;
@@ -232,13 +283,15 @@ for (const failure of ["cancellation", "producer error"]) {
         await memory.rm(path, options);
       },
     });
-    const pending = run("gzip", ["input"], undefined, { fs, signal: controller.signal });
+    const pending = run("gzip", ["input"], undefined, { fs, signal: controller.signal, onInternalError(error) { reported.push(error); } });
     void pending.then(() => { settled = true; }, () => { settled = true; });
     const checked = failure === "cancellation"
       ? assert.rejects(pending, (error) => error === reason)
       : pending.then((result) => {
         assert.equal(result.exitCode, 1);
-        assert.match(result.stderr, /blocked file producer error/);
+        assert.equal(result.stderr, "gzip: internal error\n");
+        assert.equal(reported.length, 1);
+        assert.equal(reported[0], reason);
       });
     await entered.promise;
     if (failure === "cancellation") controller.abort(reason);
@@ -250,6 +303,7 @@ for (const failure of ["cancellation", "producer error"]) {
     assert.equal((await memory.readdir("/")).length, 2);
     release.resolve();
     await checked;
+    if (failure === "cancellation") assert.deepEqual(reported, []);
     assert.deepEqual((await memory.readdir("/")).map((entry) => entry.name), ["input"]);
     assert.ok(Buffer.from(await memory.readFile("/input")).equals(original));
   });

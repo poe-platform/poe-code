@@ -1,5 +1,5 @@
-import { Shell, browserCommands, browserLimits, createMemoryFileSystem } from "./engine/index.js";
-import type { FileSystem } from "./engine/index.js";
+import { browserLimits, createMemoryFileSystem, supportedCommands, withFileSystemQuota } from "./engine/index.js";
+import { executeInWorker } from "./execution.js";
 import { sampleFiles } from "./samples.js";
 
 export const MAX_FILE_BYTES = 2 * 1024 * 1024;
@@ -140,13 +140,7 @@ export async function createSession(): Promise<PlaygroundSession> {
   for (const [path, text] of Object.entries(sampleFiles))
     await fs.writeFile(path, encoder.encode(text));
 
-  let mutationQueue: Promise<unknown> = Promise.resolve();
-  const mutate = (operation: () => Promise<void>): Promise<void> => {
-    const result = mutationQueue.then(operation);
-    mutationQueue = result.catch(() => undefined);
-    return result;
-  };
-  async function checkCapacity(path: string, size: number, append = false): Promise<void> {
+  async function checkCapacity(path: string, size: number): Promise<void> {
     let previousSize = 0;
     let links = 1;
     try {
@@ -157,80 +151,20 @@ export async function createSession(): Promise<PlaygroundSession> {
       if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") throw error;
     }
     const total = (await entries()).reduce((sum, entry) => sum + entry.size, 0);
-    if (total + (append ? size : size - previousSize) * links > MAX_WORKSPACE_BYTES) {
+    if (total + (size - previousSize) * links > MAX_WORKSPACE_BYTES) {
       throw new Error("Workspace must not exceed 16 MiB");
     }
   }
-  const mutations: Partial<FileSystem> = {
-    writeFile(path, data, options) {
-      return mutate(async () => {
-        await checkCapacity(path, data.length, options?.flag === "a" || options?.flag === "ax");
-        await fs.writeFile(path, data, options);
-      });
-    },
-    appendFile(path, data, options) {
-      return mutate(async () => {
-        await checkCapacity(path, data.length, true);
-        await fs.appendFile(path, data, options);
-      });
-    },
-    copyFile(source, destination, options) {
-      return mutate(async () => {
-        await checkCapacity(destination, (await fs.stat(source)).size);
-        await fs.copyFile(source, destination, options);
-      });
-    },
-    truncate(path, length = 0, options) {
-      return mutate(async () => {
-        await checkCapacity(path, length);
-        await fs.truncate!(path, length, options);
-      });
-    },
-    link(source, destination, options) {
-      return mutate(async () => {
-        await checkCapacity(destination, (await fs.stat(source)).size);
-        await fs.link!(source, destination, options);
-      });
-    },
-    symlink(target, path, options) {
-      return mutate(async () => {
-        await checkCapacity(path, encoder.encode(target).length);
-        await fs.symlink!(target, path, options);
-      });
-    },
-    async writeStream(path, source, options) {
-      await guardedFs.writeFile(path, new Uint8Array(), options);
-      for await (const chunk of source) await guardedFs.appendFile(path, chunk, options);
-    }
-  };
-  const guardedFs: FileSystem = new Proxy(fs, {
-    get(target, property) {
-      const replacement = Reflect.get(mutations, property);
-      if (replacement) return replacement;
-      const original = Reflect.get(target, property);
-      return typeof original === "function" ? original.bind(target) : original;
-    }
+  const guardedFs = withFileSystemQuota(fs, {
+    maxBytes: MAX_WORKSPACE_BYTES,
+    maxScanEntries: Number.MAX_SAFE_INTEGER,
+    maxScanDepth: Number.MAX_SAFE_INTEGER
   });
-  const shell = new Shell({
-    fs: guardedFs,
-    cwd,
-    env: { HOME: "/home" },
-    limits: browserLimits
-  }).use(browserCommands());
-  shell.register({
-    name: "help",
-    description: "Show playground commands, examples, and resource limits",
-    async execute(context) {
-      const commands = shell.commands
-        .list()
-        .map((command) => command.name)
-        .filter((name) => name !== "help")
-        .sort();
-      const tasks = sampleFiles["/home/WELCOME.md"]!.split("\n")
+  const commands = supportedCommands;
+  const tasks = sampleFiles["/home/WELCOME.md"]!.split("\n")
         .filter((line) => line.startsWith("  "))
         .join("\n");
-      await context.stdout.write(
-        encoder.encode(`Safe Bash playground
+  const help = `Safe Bash playground
 
 Engine / Registered commands:
 ${commands.join(" ")}
@@ -259,7 +193,12 @@ Limits:
   Shell files may exceed the upload/edit limit within the workspace budget.
   Output: ${browserLimits.maxOutputBytes! / 1024} KiB; source: ${browserLimits.maxSourceBytes! / 1024} KiB.
   Commands: ${browserLimits.maxCommands}; loop iterations: ${browserLimits.maxLoopIterations}.
-  A 5-second timeout requests cooperative cancellation, not a hard CPU/heap limit.
+  A page-owned 5-second deadline terminates the dedicated shell worker.
+  Shell execution is off-page; filesystem/UI work still runs on the page.
+  Termination is not a hard heap limit; acknowledged file changes are retained.
+  Regex/ERE workers use protocol work/byte budgets and timeouts.
+  Node resourceLimits heap/stack caps are not enforced in browser workers.
+  Worker cleanup does not guarantee page survival under memory exhaustion.
 
 Cwd and files persist between commands; variables and functions do not.
 Uploads are saved under /home/uploads. Reload/Reset discards the workspace.
@@ -267,11 +206,7 @@ Download anything you want to keep. Tab completes commands and paths.
 Python, Node.js, TypeScript, Rust, Go, C, Ruby, and Java runtimes are not installed.
 All ${commands.length} agent commands are available, including grep, rg, sed, awk, jq, and find.
 Regex searches and [[ =~ ]] run in Web Workers. Network/OS commands remain unavailable.
-`)
-      );
-      return { exitCode: 0 };
-    }
-  });
+`;
 
   async function entries(): Promise<FileEntry[]> {
     const result: FileEntry[] = [];
@@ -307,25 +242,17 @@ Regex searches and [[ =~ ]] run in Web Workers. Network/OS commands remain unava
     },
     run(command) {
       return serial(async () => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
         try {
-          const result = await shell.exec(command, {
-            cwd,
-            signal: controller.signal,
-            onState(state) {
-              cwd = state.cwd;
-            }
+          return await executeInWorker(guardedFs, command, cwd, help, (nextCwd) => {
+            cwd = nextCwd;
           });
-          return { stdout: result.stdout, stderr: result.stderr, exitCode: result.exitCode };
         } catch (error) {
           return {
             stdout: "",
             stderr: `${error instanceof Error ? error.message : String(error)}\n`,
-            exitCode: controller.signal.aborted ? 124 : 1
+            exitCode: 1
           };
         } finally {
-          clearTimeout(timeout);
           await recoverCwd();
         }
       });
@@ -427,7 +354,8 @@ Regex searches and [[ =~ ]] run in Web Workers. Network/OS commands remain unava
       const candidates = new Set<string>();
       if (token.commandPosition && !token.value.includes("/")) {
         for (const command of [
-          ...shell.commands.list().map((command) => command.name),
+          ...supportedCommands,
+          "help",
           ...shellBuiltins,
           "sh",
           "bash"

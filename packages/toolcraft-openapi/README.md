@@ -99,6 +99,9 @@ toolcraft-openapi-generate --check
 
 - `bearerTokenAuth(opts)`
 - `requestJson(options)`
+- `generate(document, options)`
+- `generateSkill(document, options)`
+- `validateArrayJsonHelperValue(value, definition, label)`
 - `HttpError`
 - `readToolcraftConfig(path)`
 - `validateToolcraftConfig(value)`
@@ -107,6 +110,7 @@ toolcraft-openapi-generate --check
 - `formatDiagnostic(diagnostic)`
 - `formatDiagnostics(diagnostics)`
 - `resolveOpenApiBaseUrl(options)`
+- `mockFetch(options)` from the `toolcraft-openapi/mock` subpath for spec-backed test doubles.
 - `DIAGNOSTIC_CODES`
 - `TokenSource`
 - `CommandContributor`
@@ -167,6 +171,12 @@ Mapped idempotent methods with `client_settings.idempotency_header` get an optio
 `rawResponse` param that returns `{ data, response }`; the CLI accepts both `--raw-response` and
 `--raw`.
 
+Generated JSON helper params for arrays validate `minItems` and `maxItems` before dispatch. Nested
+request-body object fields are exposed as typed `S.Object(...)` params, including required
+properties and `additionalProperties: false` validation when the OpenAPI schema forbids unknown
+keys. For OpenAPI compositions where every equivalent `oneOf`/`anyOf` branch has enum values,
+generation preserves the merged enum values in the resulting schema.
+
 Diagnostics use stable codes:
 
 - `TOOLCRAFT_OPENAPI_001` - endpoint is not mapped or listed in `unspecified_endpoints`.
@@ -176,6 +186,12 @@ Diagnostics use stable codes:
 - `TOOLCRAFT_OPENAPI_005` - reserved method name.
 - `TOOLCRAFT_OPENAPI_006` - missing or unsupported edition.
 - `TOOLCRAFT_OPENAPI_007` - invalid config shape.
+
+### Mock fetch
+
+`toolcraft-openapi/mock` exports `mockFetch(options)` for tests. It matches requests against an
+OpenAPI document, records requests, validates path/query/header parameters and request bodies, and
+validates response fixtures against exact or range response schemas such as `2XX`.
 
 ### `bearerTokenAuth(opts)`
 

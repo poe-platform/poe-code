@@ -60,6 +60,7 @@ for (const phase of ["source", "guest"] as const) {
 
 test("fixture: sink early-close aborts queued writes and preserves prior byte effects", async () => {
   const error = Object.assign(new Error("downstream closed"), { code: "EPIPE" });
+  const internalErrors: unknown[] = [];
   let writes = 0;
   const actual: number[] = [];
   const runtime = contractRuntime(async (_source, options) => {
@@ -67,13 +68,15 @@ test("fixture: sink early-close aborts queued writes and preserves prior byte ef
     try { await operation(options, "stdio", "writeBytes")([2]); } catch {}
     try { await operation(options, "stdio", "writeBytes")([3]); } catch {}
   });
-  const result = await execute(["-e", "fixture"], { runtime }, "", { stdout: { async write(bytes) {
+  const result = await execute(["-e", "fixture"], { runtime }, "", { onInternalError(reason) { internalErrors.push(reason); }, stdout: { async write(bytes) {
     writes++;
     if (writes === 2) throw error;
     actual.push(...bytes);
   } } });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /downstream closed/u);
+  assert.equal(result.stderr, "safejs: internal error\n");
+  assert.equal(internalErrors.length, 1);
+  assert.equal(internalErrors[0], error);
   assert.deepEqual(actual, [1]);
   assert.equal(writes, 2);
 });

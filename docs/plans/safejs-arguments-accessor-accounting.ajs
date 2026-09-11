@@ -1,0 +1,23 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let reads = 0;
+  function capture() {
+    let payload = "retained";
+    Object.defineProperty(arguments, "hidden", {
+      get() { reads++; return payload; },
+      set(value) { payload = value; },
+      configurable: true
+    });
+    return arguments;
+  }
+  const value = capture();
+  await 0;
+  if (reads !== 0) throw new Error("Accounting invoked the getter");
+  if (value.hidden !== "retained") throw new Error("Getter capture changed");
+  value.hidden = "updated";
+  if (value.hidden !== "updated" || reads !== 2) throw new Error("Accessor behavior changed");
+  delete value.hidden;
+  return { title: frontmatter.title, ok: true, reads };
+};

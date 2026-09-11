@@ -1,1 +1,1 @@
-export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, assertPathWithin, posixPath, basename, dirname, extname, joinPath, isAbsolutePath } from "poe-code/safe-fs";
+export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, assertPathWithin, basename, dirname, extname, joinPath, isAbsolutePath, posixPath } from "poe-code/safe-fs/core";

@@ -23,7 +23,7 @@ async function fixture(reason: unknown, explicitPriority: boolean, options: { le
   let closes = 0;
   const cleanups: (() => void | Promise<void>)[] = [];
   const fs = intercept<FileSystem>(memory, {
-    ...(options.legacy ? { capabilities: { ...memory.capabilities, open: false } } : {}),
+    ...(options.legacy ? { capabilities: { ...memory.capabilities, open: false, retainedRead: false } } : {}),
     async open(...args) {
       if (options.legacy) throw new FsError("ENOTSUP", { syscall: "open" });
       const descriptor = await memory.open(...args);

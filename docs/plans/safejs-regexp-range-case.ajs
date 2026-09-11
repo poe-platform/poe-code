@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const matched = /[E-f]+/i.exec('Axyz')[0];
+  if (matched !== 'Axyz') throw new Error('Folded range lost valid characters');
+  if (!/[µ-ÿ]/i.test('μ')) throw new Error('Non-ASCII range folding failed');
+  if (/[a-z]/i.test('ſ') || !/[a-z]/iu.test('ſ'))
+    throw new Error('Unicode and legacy folding were conflated');
+  const replaced = 'xyz!'.replace(/[E-f]+/ig, '?');
+  if (replaced !== '?!') throw new Error('Replacement range mismatch');
+  await 0;
+  return { ok: true, title: frontmatter.title, matched, replaced };
+}

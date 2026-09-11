@@ -1,0 +1,10 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const values = new Uint8Array([1, 2]);
+  const key = Symbol("metadata");
+  Object.defineProperty(values, key, { get() { return values; } });
+  await 0;
+  if (values[key] !== values) throw new Error("Typed array metadata identity was lost");
+  return { title: frontmatter.title, ok: true, length: values.length };
+};

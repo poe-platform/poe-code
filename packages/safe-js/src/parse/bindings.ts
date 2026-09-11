@@ -98,6 +98,7 @@ export function* hoistedVarDeclarations(
         yield* hoistedVarDeclarations([node.body]);
         break;
       case "WhileStatement":
+      case "WithStatement":
       case "DoWhileStatement":
         yield* hoistedVarDeclarations([node.body]);
         break;

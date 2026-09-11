@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const match = /(?<face>😀)\k<face>/du.exec('😀😀');
+  if (match[0] !== '😀😀' || match.indices[0][1] !== 4)
+    throw new Error('Unicode matching lost UTF-16 indices');
+  if (!/\p{Script=Greek}+/u.test('αβ') || !/^[a-z]+$/iu.test('Kſ'))
+    throw new Error('Unicode character classification failed');
+  const pieces = '😀x'.split(/(?:)/u);
+  if (pieces.length !== 2 || pieces[0] !== '😀') throw new Error('Split broke a surrogate pair');
+  if ('😀'.replace(/(?:)/gu, '-') !== '-😀-') throw new Error('Empty match failed to advance');
+  await 0;
+  return { ok: true, title: frontmatter.title, matched: match[0], indices: match.indices, pieces };
+}

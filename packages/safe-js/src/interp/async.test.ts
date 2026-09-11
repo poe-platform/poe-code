@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { parse, type ParseResult } from "../parse.js";
 import { parseModule } from "../parse/parser.js";
-import { emitResumeBreakpoint, type InterpreterYieldPoint } from "./async.js";
+import { emitResumeBreakpoint, suspendAsyncFunctionValue, type InterpreterYieldPoint } from "./async.js";
+import { bindOtelSpan } from "../observability/otel.js";
 import { Budget } from "./budget.js";
 import { interpret, type InterpreterValue } from "./interpreter.js";
 import { createPromiseGlobals } from "./promise.js";
@@ -10,6 +11,21 @@ import { Scope } from "./scope.js";
 import { createSandboxClosure, createSandboxPromise, type SandboxValue } from "./values.js";
 
 describe("emitResumeBreakpoint", () => {
+  it("preserves the awaited promise span for represented async frames", async () => {
+    const pending = createSandboxPromise(Promise.resolve(7));
+    const span = {setAttribute: vi.fn(), addEvent: vi.fn(), end: vi.fn()};
+    bindOtelSpan(pending, span);
+    const points: InterpreterYieldPoint[] = [];
+    const node = {...parse("await pending"), nodeId: 1};
+    await expect(suspendAsyncFunctionValue(pending, node, {
+      scope: new Scope(), budget: new Budget(),
+      onYield: point => {points.push(point);},
+      generatorYield: async () => ({type: "normal", value: 7})
+    })).resolves.toBe(7);
+    expect(points).toHaveLength(1);
+    expect(points[0]?.otelSpan).toBe(span);
+  });
+
   it("emits a lazy snapshot for non-await breakpoints", () => {
     const scope = new Scope({ phase: "setup", iteration: 3 });
     const snapshotScope = vi.spyOn(scope, "snapshot");

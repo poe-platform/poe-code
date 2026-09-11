@@ -57,12 +57,6 @@ const agentMcpConfigs: Record<string, AgentMcpConfig> = {
     format: "json",
     shape: "opencode"
   },
-  kimi: {
-    configFile: "~/.kimi/mcp.json",
-    configKey: "mcpServers",
-    format: "json",
-    shape: "standard"
-  },
   goose: {
     configFile: "~/.config/goose/config.yaml",
     configKey: "extensions",

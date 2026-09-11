@@ -56,13 +56,15 @@ test("Unicode, newline, terminal controls and link targets round-trip without co
   for (const name of names) await fs.writeFile(`/${name}`, new Uint8Array());
   await fs.symlink!("line\nfeed", "/symlink");
   const text = await shellRun(fs, ["--noreport"]);
-  assert.equal(text.stdout.split("\n").length, names.length + 3);
+  assert.equal(text.stdout.split("\n").length, names.length + 5);
   assert.match(text.stdout, /\\033\[31m/u);
   assert.match(text.stdout, /symlink -> line\\nfeed/u);
   assert.doesNotMatch(text.stdout, /[\u001b\u0085\u202e\u2028]/u);
   const result = await shellRun(fs, ["-Ji", "--noreport"]);
   assert.doesNotMatch(result.stdout, /[\u001b\u0085\u202e\u2028]/u);
-  assert.deepEqual(JSON.parse(result.stdout)[0].contents.map((entry: { name: string }) => entry.name).sort(), [...names, "symlink"].sort());
+  assert.deepEqual(JSON.parse(result.stdout)[0].contents.map((entry: { name: string }) => entry.name).sort(), [...names, "symlink", "dev"].sort());
+  assert.deepEqual(JSON.parse(result.stdout)[0].contents.find((entry: { name: string }) => entry.name === "dev"),
+    { type: "directory", name: "dev", contents: [{ type: "character", name: "null" }] });
 });
 
 test("default nofollow includes operands; -l skips ancestors but traverses sibling aliases", async () => {

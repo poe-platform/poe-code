@@ -1,0 +1,27 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let count = 0;
+  const accessor = { get value() { return ++count; } };
+  Number.isNaN.note = "snapshot-v2";
+  function* values() {
+    try { return accessor.value; }
+    finally { yield "checkpoint"; }
+  }
+  const iterator = values();
+  const first = iterator.next();
+  await 0;
+  const last = iterator.next();
+  let label = "missing";
+  complete: {
+    label = "preserved";
+    break complete;
+  }
+  if (first.value !== "checkpoint" || first.done || last.value !== 1 || !last.done || count !== 1)
+    throw new Error("Generator completion or accessor state changed");
+  if (Number.isNaN.note !== "snapshot-v2" || label !== "preserved")
+    throw new Error("Intrinsic property or labeled block changed");
+  return { title: frontmatter.title, ok: true, accessorCalls: count, completion: last.value, label };
+};

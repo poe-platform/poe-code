@@ -1,4 +1,5 @@
 import { attachErrorSpan } from "../error/shape.js";
+import { createModuleNamespace } from "../interp/module-namespace.js";
 import type { Budget, CompileOwner } from "../interp/budget.js";
 import type { HostCallJournal } from "../interp/host-call.js";
 import { wrapCancelableBindings } from "../interp/cancel.js";
@@ -8,7 +9,8 @@ import {
   type RealmBridge,
   type CallerInjectedBinding
 } from "../interp/host-bridge.js";
-import type { SandboxValue } from "../interp/values.js";
+import type { SandboxValue, SandboxClosure } from "../interp/values.js";
+import type { ModuleFunctionOrigin } from "../interp/module-function-origin.js";
 import type {
   ImportDeclaration,
   ImportDefaultSpecifier,
@@ -26,6 +28,79 @@ export type ModuleExports =
 export type ModuleRegistry = ReadonlyMap<string, ModuleExports> | Record<string, ModuleExports>;
 
 type NormalizedModuleRegistry = Map<string, Map<string, CallerInjectedBinding>>;
+
+export type ModuleEnvironment = {
+  available: string[];
+  namespaces: Record<string, SandboxValue>;
+};
+
+export type ModuleEnvironmentOptions = {
+  budget: Budget;
+  realm?: RealmBridge;
+  wrappedModules?: Map<string, Record<string, SandboxValue>>;
+  compileOwner?: CompileOwner;
+  hostCalls?: HostCallJournal;
+  signal?: AbortSignal;
+  prepareNamespace?: (namespace: Record<string,SandboxValue>, moduleName: string) => Record<string,SandboxValue>;
+};
+
+const moduleEnvironments = new WeakMap<ModuleEnvironment, {
+  registry: NormalizedModuleRegistry;
+  options: ModuleEnvironmentOptions;
+  prepared: Set<string>;
+  capabilities: Map<string, SandboxClosure>;
+}>();
+
+export function createModuleEnvironment(modules: ModuleRegistry | undefined, options: ModuleEnvironmentOptions, restored?: ModuleEnvironment): ModuleEnvironment {
+  const registry = normalizeModuleRegistry(modules);
+  const environment: ModuleEnvironment = restored ?? {
+    available: [...registry.keys()],
+    namespaces: createBindingRecord(Object.fromEntries(options.wrappedModules ?? []))
+  };
+  moduleEnvironments.set(environment, {registry,options,prepared:new Set(),capabilities:new Map()});
+  return environment;
+}
+
+export function resolveModuleNamespace(environment: ModuleEnvironment, moduleName: string, prepare = true): Record<string, SandboxValue> {
+  const backend = moduleEnvironments.get(environment);
+  if (backend === undefined) throw new TypeError("Module environment has not been attached to a runtime.");
+  if (!environment.available.includes(moduleName))
+    throw new Error(createUnknownModuleMessage(moduleName, environment.available));
+  const {options} = backend;
+  if (Object.hasOwn(environment.namespaces,moduleName)) {
+    let namespace = environment.namespaces[moduleName] as Record<string, SandboxValue>;
+    if (prepare && options.prepareNamespace !== undefined && !backend.prepared.has(moduleName)) {
+      namespace = options.prepareNamespace(namespace,moduleName);
+      environment.namespaces[moduleName] = namespace;
+      options.wrappedModules?.set(moduleName,namespace);
+      backend.prepared.add(moduleName);
+    }
+    return namespace;
+  }
+  const exports = backend.registry.get(moduleName);
+  if (exports === undefined) throw new Error(createUnknownModuleMessage(moduleName,[...backend.registry.keys()]));
+  let namespace = createModuleNamespace(wrapCancelableBindings(
+    wrapCallerInjectedBindings(Object.fromEntries(exports), {
+      realm: options.realm, budget: options.budget, compileOwner: options.compileOwner,
+      hostCalls: options.hostCalls, moduleId: moduleName, signal: options.signal,
+      moduleCapabilities: backend.capabilities
+    }),options.signal
+  ));
+  if (prepare && options.prepareNamespace !== undefined) {
+    namespace = options.prepareNamespace(namespace,moduleName);
+    backend.prepared.add(moduleName);
+  }
+  environment.namespaces[moduleName] = namespace;
+  options.wrappedModules?.set(moduleName,namespace);
+  return namespace;
+}
+
+export function resolveModuleFunction(environment: ModuleEnvironment, origin: ModuleFunctionOrigin): SandboxClosure {
+  resolveModuleNamespace(environment, origin.module, false);
+  const capability = moduleEnvironments.get(environment)!.capabilities.get(JSON.stringify([origin.module, ...origin.path]));
+  if (capability === undefined) throw new TypeError(`Missing module function '${origin.module}:${origin.path.join(".")}'.`);
+  return capability;
+}
 
 export function createUnknownModuleMessage(
   moduleName: string,
@@ -53,26 +128,20 @@ export function createUnknownExportMessage(
 export function resolveModuleImports(
   module: Module,
   modules: ModuleRegistry | undefined,
-  options: {
-    budget: Budget;
-    realm?: RealmBridge;
-    wrappedModules?: Map<string, Record<string, SandboxValue>>;
-    compileOwner?: CompileOwner;
-    hostCalls?: HostCallJournal;
-    signal?: AbortSignal;
+  options: ModuleEnvironmentOptions & {
+    environment?: ModuleEnvironment;
     allowMissing?: boolean;
   }
 ): Record<string, SandboxValue> {
-  const registry = normalizeModuleRegistry(modules);
+  const environment = options.environment ?? createModuleEnvironment(modules,options);
   const bindings = createBindingRecord();
-  const wrappedModules = options.wrappedModules ?? new Map<string, Record<string, SandboxValue>>();
 
   for (const statement of module.body) {
     if (statement.type !== "ImportDeclaration") {
       continue;
     }
 
-    bindImportDeclaration(statement, registry, wrappedModules, bindings, options);
+    bindImportDeclaration(statement, environment, bindings, options);
   }
 
   return bindings;
@@ -80,8 +149,7 @@ export function resolveModuleImports(
 
 function bindImportDeclaration(
   declaration: ImportDeclaration,
-  registry: NormalizedModuleRegistry,
-  wrappedModules: Map<string, Record<string, SandboxValue>>,
+  environment: ModuleEnvironment,
   bindings: Record<string, SandboxValue>,
   options: {
     budget: Budget;
@@ -93,33 +161,15 @@ function bindImportDeclaration(
   }
 ): void {
   const moduleName = declaration.source.value;
-  const moduleExports = registry.get(moduleName);
-
-  if (moduleExports === undefined) {
+  if (!environment.available.includes(moduleName)) {
     if (options.allowMissing) return;
     throw createModuleImportError(
-      createUnknownModuleMessage(moduleName, [...registry.keys()]),
+      createUnknownModuleMessage(moduleName, environment.available),
       declaration.source.span
     );
   }
 
-  const wrappedExports =
-    wrappedModules.get(moduleName) ??
-    createBindingRecord(
-      wrapCancelableBindings(
-        wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
-          realm: options.realm,
-          budget: options.budget,
-          compileOwner: options.compileOwner,
-          hostCalls: options.hostCalls,
-          moduleId: moduleName,
-          signal: options.signal
-        }),
-        options.signal
-      )
-    );
-
-  wrappedModules.set(moduleName, wrappedExports);
+  const wrappedExports = resolveModuleNamespace(environment,moduleName);
 
   for (const specifier of declaration.specifiers) {
     const localName = specifier.local.name;
@@ -209,7 +259,6 @@ function normalizeModuleExports(moduleExports: ModuleExports): Map<string, Calle
 
   return new Map(
     entries
-      .filter(([exportName]) => exportName.length > 0)
       .sort(([left], [right]) => left.localeCompare(right))
   );
 }

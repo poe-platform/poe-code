@@ -1,0 +1,29 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  function* values(start) { yield start; yield start + 1; }
+  const first = values(1);
+  const second = values(7);
+  const next = first.next;
+  const borrowed = next.call(second);
+  const sync = [];
+  for await (const value of first) { sync.push(value); }
+  async function* asyncValues() { yield 9; }
+  const asynchronous = asyncValues();
+  const asyncNext = asynchronous.next;
+  await 0;
+  const asyncResult = await asyncNext.call(asynchronous);
+  let wrongReceiver = false;
+  try { await asyncNext.call({}); } catch (error) { wrongReceiver = error.name === "TypeError"; }
+  if (next !== first.next || Object.getPrototypeOf(first) !== values.prototype ||
+      borrowed.value !== 7 || sync.join(',') !== '1,2' || asyncResult.value !== 9 ||
+      !wrongReceiver || Object.prototype.toString.call(asynchronous) !== '[object AsyncGenerator]') {
+    throw new Error('Generator intrinsic graph failed');
+  }
+  if (first.constructor !== Object.getPrototypeOf(values) || values.constructor !== undefined) {
+    throw new Error('Generator constructor boundary failed');
+  }
+  return { title: frontmatter.title, ok: true, borrowed, sync, asyncResult, wrongReceiver };
+};

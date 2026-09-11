@@ -1,0 +1,14 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  async function* values() { yield (yield 1); return 9; }
+  const iterator = values();
+  const first = await iterator.next();
+  const second = await iterator.next(4);
+  const final = await iterator.next(5);
+  if (first.value !== 1 || second.value !== 4 || second.done || final.value !== 9 || !final.done)
+    throw new Error("Nested yield check failed");
+  return { title: frontmatter.title, ok: true, values: [first.value, second.value, final.value] };
+};

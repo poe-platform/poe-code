@@ -1,3 +1,42 @@
+import type { ValueAllocation } from "../contracts/value.js";
+
+export interface GetoptsInput {
+  readonly args: readonly string[];
+}
+
+const ownedInputs = new WeakMap<GetoptsInput, { bytes?: number }>();
+
+export function getoptsInputAllocationSize(argumentsCount: number): { bytes: number; slots: number } {
+  return { bytes: 256 + argumentsCount * 8, slots: argumentsCount + 2 };
+}
+
+export async function createGetoptsInput(args: readonly string[], allocation: ValueAllocation | undefined, controls: GetoptsWork): Promise<GetoptsInput> {
+  const work = new ScanWork(controls);
+  if (!Array.isArray(args)) throw new GetoptsError("INVALID_INPUT", "Getopts requires an argument array");
+  const length = args.length;
+  if (length > work.maxArguments) throw new GetoptsError("ARGUMENT_LIMIT", "Getopts argument limit exceeded");
+  const size = getoptsInputAllocationSize(length);
+  const reservation = allocation?.reserve(size.bytes, size.slots);
+  try {
+    const snapshot: string[] = [];
+    for (let index = 0; index < length; index++) {
+      const waiting = work.step();
+      if (waiting) await waiting;
+      snapshot.push(args[index]!);
+    }
+    await work.flush();
+    if (args.length !== length) throw new GetoptsError("INVALID_INPUT", "Getopts argument extent changed during admission");
+    const input = Object.freeze({ args: Object.freeze(snapshot) });
+    reservation?.commit(input);
+    ownedInputs.set(input, {});
+    return input;
+  } catch (error) {
+    try { reservation?.release(); }
+    catch (cleanup) { throw new AggregateError([error, cleanup], "Getopts input allocation and release failed"); }
+    throw error;
+  }
+}
+
 export interface GetoptsState {
   readonly index: number;
   readonly active?: { readonly argument: number; readonly offset: number };
@@ -103,6 +142,8 @@ class ScanWork {
     this.signal?.throwIfAborted();
   }
 
+  get inputBytes(): number { return this.bytes; }
+
   step(): Promise<void> | undefined {
     this.check();
     if (this.steps === this.maxSteps) throw new GetoptsError("STEP_LIMIT", "Getopts work step limit exceeded");
@@ -154,19 +195,25 @@ async function validateString(value: unknown, work: ScanWork, optstring = false)
   }
 }
 
-export async function scanGetopts(state: GetoptsState, optstring: string, args: readonly string[], options: GetoptsScanOptions): Promise<GetoptsScanResult> {
+export async function scanGetopts(state: GetoptsState, optstring: string, input: readonly string[] | GetoptsInput, options: GetoptsScanOptions): Promise<GetoptsScanResult> {
   if (!record(options) || typeof options.reportErrors !== "boolean") throw new GetoptsError("INVALID_INPUT", "Getopts requires explicit diagnostic policy and work controls");
   const work = new ScanWork(options.work);
   const original = cloneGetoptsState(state);
+  const owned = ownedInputs.get(input as GetoptsInput);
+  const args: readonly string[] = owned ? (input as GetoptsInput).args : input as readonly string[];
   if (!Array.isArray(args)) throw new GetoptsError("INVALID_INPUT", "Getopts requires an argument array");
   if (args.length > work.maxArguments) throw new GetoptsError("ARGUMENT_LIMIT", "Getopts argument limit exceeded");
   const starting = work.step();
   if (starting) await starting;
   await validateString(optstring, work, true);
-  for (let argument = 0; argument < args.length; argument++) {
-    const waiting = work.step();
-    if (waiting) await waiting;
-    await validateString(args[argument], work);
+  const specificationBytes = work.inputBytes;
+  if (owned?.bytes !== undefined) work.addBytes(owned.bytes);
+  else {
+    for (let argument = 0; argument < args.length; argument++) {
+      const waiting = work.step();
+      if (waiting) await waiting;
+      await validateString(args[argument], work);
+    }
   }
   const silent = optstring.startsWith(":");
   const specification = new Int8Array(128).fill(-1);
@@ -182,6 +229,7 @@ export async function scanGetopts(state: GetoptsState, optstring: string, args: 
     const waiting = work.step();
     if (waiting) await waiting;
     await work.flush();
+    if (owned) owned.bytes = work.inputBytes - specificationBytes;
     return { state: active === undefined ? { index } : { index, active: { ...active } }, kind, status: kind === "end" ? 1 : 0, option, optind: index, argument, diagnostic };
   };
   const end = (): Promise<GetoptsScanResult> => {

@@ -1,0 +1,39 @@
+import { S } from "schema";
+
+export const schema = S.Object({title: S.String()});
+
+export default async (frontmatter) => {
+  const callbacks = [];
+  function C(executor) {
+    executor(value => { this.value = value; }, reason => { this.reason = reason; });
+  }
+  C.resolve = value => ({then(ok, fail) { callbacks.push([ok, fail]); }});
+  const result = Promise.allSettled.call(C, [1, 2]);
+  callbacks[0][0](7);
+  await 0;
+  callbacks[1][1]("second");
+  if (result.value[0].value !== 7 || result.value[1].reason !== "second")
+    throw new Error("Constructor-scoped resolvers lost their state");
+
+  let saved;
+  function Uninitialized(executor) { saved = executor; }
+  try {
+    Promise.all.call(Uninitialized, []);
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+  }
+  saved.label = "kept";
+  await 0;
+  saved(undefined, undefined);
+  saved(undefined, undefined);
+  saved(() => {}, () => {});
+  let locked = false;
+  try {
+    saved(() => {}, () => {});
+  } catch (error) {
+    locked = error instanceof TypeError;
+  }
+  if (!locked || saved.label !== "kept" || saved.length !== 2)
+    throw new Error("Escaped executor state or metadata changed");
+  return {title: frontmatter.title, ok: true, constructorCapture: true, locked, agentSpawns: 0};
+};

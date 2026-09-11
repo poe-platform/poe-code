@@ -1,0 +1,24 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const make = Symbol.for;
+  const keyFor = Symbol.keyFor;
+  const key = make("saved");
+  const object = { [key]: "value" };
+  const map = new Map([[key, object]]);
+  Symbol.for = () => Symbol("replacement");
+  Symbol.keyFor = () => "replacement";
+  try {
+    await 0;
+    if (make("saved") !== key || keyFor(key) !== "saved")
+      throw new Error("Saved registry alias lost identity");
+    if (map.get(make("saved"))[key] !== "value")
+      throw new Error("Registered symbol key was lost");
+    return { title: frontmatter.title, key: keyFor(key), value: object[key] };
+  } finally {
+    Symbol.for = make;
+    Symbol.keyFor = keyFor;
+  }
+};

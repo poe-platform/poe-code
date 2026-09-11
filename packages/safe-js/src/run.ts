@@ -1,9 +1,9 @@
-import { AsyncLocalStorage } from "node:async_hooks";
 import { attachExecutionControl, SandboxJobQueue, type ExecutionControl } from "./interp/jobs.js";
+import { createHostCallbackContext } from "#safe-js-platform";
 import { runWithExtensions, type RealmOptions } from "./realm.js";
 
 import { hashParsedAst, hashSource } from "./parse/hash.js";
-import { withRunResources } from "./interp/resources.js";
+import { runResources, withRunResources } from "./interp/resources.js";
 import { createReplayableRandom } from "./random.js";
 import {
   attachErrorSpan,
@@ -69,7 +69,8 @@ import {
   type SandboxValue,
   type SandboxPromise
 } from "./interp/values.js";
-import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import { createModuleEnvironment, resolveModuleImports, resolveModuleNamespace, type ModuleEnvironment, type ModuleEnvironmentOptions, type ModuleRegistry } from "./modules/registry.js";
+import { createModuleNamespace } from "./interp/module-namespace.js";
 import {
   activateOtelSink,
   getActiveOtelSpan,
@@ -78,10 +79,10 @@ import {
 } from "./observability/otel.js";
 import type { SnapshotBackend } from "./snapshot/backend.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
-import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS } from "./snapshot/dump-format.js";
+import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS, inMemoryRunSnapshots } from "./snapshot/dump-format.js";
 import { createSnapshotScheduler, type SnapshotScheduler } from "./snapshot/scheduler.js";
 import { UnsnapshotableValueError } from "./snapshot/serialize.js";
-import { prepareReplayInputs } from "./snapshot/replay-inputs.js";
+import { prepareReplayInputs, type ReplayInputs } from "./snapshot/replay-inputs.js";
 import {
   decodeReplayData,
   MissingReplayCapabilityError,
@@ -183,7 +184,7 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
   let capturePausedSnapshot: (() => RunSnapshot) | undefined;
   const lifecycle = {
     hostCallbackDepth: 0,
-    hostCallbackContext: new AsyncLocalStorage<boolean>()
+    hostCallbackContext: createHostCallbackContext()
   };
   const dumpController = createDumpController(lifecycle, {
     isPaused: () => jobs.executionState === "paused",
@@ -221,11 +222,15 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
               ? undefined
               : restore(options.snapshot, { source }, operation.owner);
           const executionSemantics =
-            restoredSnapshot?.executionSemantics === "jobs-v6" ? "jobs-v6" : EXECUTION_SEMANTICS;
+            restoredSnapshot?.executionSemantics === "jobs-v6" ||
+            restoredSnapshot?.executionSemantics === "jobs-v7"
+              ? restoredSnapshot.executionSemantics
+              : EXECUTION_SEMANTICS;
+          runResources.getStore()!.functionSourceText = executionSemantics === EXECUTION_SEMANTICS;
           const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
             executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
           if (restoredSnapshot !== undefined) {
-            leaveSnapshotRun = enterSnapshotRun(restoredSnapshot);
+            leaveSnapshotRun = enterSnapshotRun(options.snapshot ?? restoredSnapshot);
           }
           promiseReplay.attachBudget(budget);
           const filename = options.filename ?? "<input>";
@@ -233,8 +238,8 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
           promiseReplay.validateNodes(module);
           const sourceHash =
             findRegexLiteral(module) === undefined
-              ? hashSource(source, operation.owner)
-              : hashParsedAst(module);
+              ? hashSource(source, operation.owner, executionSemantics === EXECUTION_SEMANTICS)
+              : hashParsedAst(module, executionSemantics === EXECUTION_SEMANTICS);
           const hostCalls = new HostCallJournal(
             sourceHash,
             readHostCallSnapshot(restoredSnapshot),
@@ -268,9 +273,16 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
                   lifecycle
                 })
           );
-          const builtinBindings = createBuiltinBindings({ compileOwner: operation.owner, budget, hostCalls, sink: options.sink, random: random?.generator.next, clock: options.clock });
+          const builtinBindings = createBuiltinBindings({
+            compileOwner: operation.owner,
+            budget,
+            hostCalls,
+            sink: options.sink,
+            random: random?.generator.next,
+            clock: options.clock
+          });
           const importMeta = convertInitialInput(
-            () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
+            () => deepCopyToSandbox(options.importMeta ?? {}, { compilation }) as Record<string, SandboxValue>
           );
           if (restoredSnapshot?.migration !== undefined) {
             if (Object.hasOwn(importMeta, "migration"))
@@ -284,50 +296,77 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
               writable: true
             });
           }
-          const initialInputs = prepareReplayInputs(
+          const inputPromiseReplacements = new WeakMap<SandboxPromise, SandboxPromise>();
+          const prepareInputPromise = (promise: SandboxPromise | undefined, id: string): SandboxPromise => {
+            if (promise !== undefined) observeSandboxPromise(promise);
+            const operation = declareHostOperation(() => {
+              if (promise === undefined) throw new TypeError(`Missing initial promise '${id}'.`);
+              return promise.promise;
+            }, "read-side-effect");
+            const binding = wrapCallerInjectedBindings({[id]:operation},{
+              budget,hostCalls,moduleId:"<inputs>",compileOwner:compilation.owner,signal:options.signal,lifecycle,
+              promiseReplacements: inputPromiseReplacements
+            })[id]!;
+            if (!isSandboxClosure(binding)) throw new TypeError("Invalid initial promise operation.");
+            const prepared = binding.call([]) as SandboxPromise;
+            hostCalls.registerInputPromise(prepared);
+            if (promise !== undefined) inputPromiseReplacements.set(promise, prepared);
+            return prepared;
+          };
+          let moduleEnvironment: ModuleEnvironment | undefined;
+          const moduleOptions: ModuleEnvironmentOptions = {budget,compileOwner:operation.owner,hostCalls,signal:options.signal};
+          const moduleInputOwner = {};
+          let moduleInputSize = 0;
+          const initialInputs = prepareReplayInputs<ReplayInputs>(
             {
               bindings: callerBindings,
-              imports: convertInitialInput(() =>
-                resolveModuleImports(module, options.modules, {
+              imports: convertInitialInput(() => {
+                const modules = options.modules;
+                moduleEnvironment = createModuleEnvironment(modules, moduleOptions);
+                return resolveModuleImports(module, modules, {
+                  environment: moduleEnvironment,
                   budget,
                   compileOwner: operation.owner,
                   hostCalls,
                   signal: options.signal,
                   allowMissing: restoredSnapshot?.initialInputs !== undefined
-                })
-              ),
+                });
+              }),
               entryPointArgs: convertInitialInput(() =>
                 options.entryPointArgs === undefined
                   ? undefined
-                  : (deepCopyToSandbox([...options.entryPointArgs]) as SandboxValue[])
+                  : (deepCopyToSandbox([...options.entryPointArgs], { compilation }) as SandboxValue[])
               ),
               importMeta
             },
             restoredSnapshot?.initialInputs,
-            (promise, id) => {
-              if (promise !== undefined) observeSandboxPromise(promise);
-              const operation = declareHostOperation(() => {
-                if (promise === undefined) throw new TypeError(`Missing initial promise '${id}'.`);
-                return promise.promise;
-              }, "read-side-effect");
-              const binding = wrapCallerInjectedBindings(
-                { [id]: operation },
-                {
-                  budget,
-                  hostCalls,
-                  moduleId: "<inputs>",
-                  compileOwner: compilation.owner,
-                  signal: options.signal,
-                  lifecycle
-                }
-              )[id]!;
-              if (!isSandboxClosure(binding))
-                throw new TypeError("Invalid initial promise operation.");
-              return binding.call([]) as SandboxPromise;
-            },
+            prepareInputPromise,
             hostCalls.rebindHostCapability.bind(hostCalls),
             compilation
           );
+          leaveInputReplay = () => {
+            budget.setRetainedDataUsage(initialInputs,0);
+            budget.setRetainedDataUsage(moduleInputOwner,0);
+          };
+          if (moduleEnvironment !== undefined) {
+            moduleOptions.prepareNamespace = (namespace,name) => {
+              const prepared = initialInputs.prepareNamespace(namespace,name);
+              const included = new Set<CompileTicket>();
+              const size = measureSandboxData([prepared],{ignoreClosureCaptures:true,compileTickets:included});
+              budget.reconcileCompileData(moduleInputSize+size,included,included,moduleInputOwner);
+              moduleInputSize += size;
+              return prepared;
+            };
+            for (const name of Object.keys(initialInputs.snapshot.namespaceRoots ?? {})) {
+              if (moduleEnvironment.available.includes(name)) resolveModuleNamespace(moduleEnvironment,name,false);
+              else {
+                moduleEnvironment.available.push(name);
+                moduleEnvironment.namespaces[name] = createModuleNamespace({});
+              }
+            }
+            for (const [name, namespace] of Object.entries(moduleEnvironment.namespaces))
+              initialInputs.captureNamespace(namespace as Record<string,SandboxValue>,name);
+          }
           hostCalls.validateHostCapabilities();
           const inputTickets = new Set<CompileTicket>();
           const inputSize = measureSandboxData(
@@ -340,7 +379,6 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
             { ignoreClosureCaptures: true, compileTickets: inputTickets }
           );
           budget.reconcileCompileData(inputSize, inputTickets, inputTickets, initialInputs);
-          leaveInputReplay = () => budget.setRetainedDataUsage(initialInputs, 0);
           const entryPointArgs = initialInputs.values.entryPointArgs;
           const cancelableCallerBindings = wrapCancelableBindings(
             initialInputs.values.bindings,
@@ -354,13 +392,14 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
             { chargeData: false },
             interpreterSnapshot?.bindings as Record<string, SandboxValue> | undefined
           );
-          const callerScope = scope.child(cancelableCallerBindings);
+          const callerScope = scope.child(cancelableCallerBindings, {globalEnvironment: true});
           const executionScope = new Scope(
             initialInputs.values.imports,
             callerScope,
             initialInputs.values.importMeta,
             { functionBoundary: true }
           );
+          executionScope.moduleEnvironment = moduleEnvironment;
           const activeSnapshotScheduler = createSnapshotScheduler<RunSnapshot>({
             snapshotBackend: options.snapshotBackend,
             snapshotIntervalMs: options.snapshotIntervalMs,
@@ -509,8 +548,7 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
             budget,
             [
               ...Object.values(result.snapshot.bindings),
-              ...(result.ok && "returnValue" in result ? [result.returnValue] : []),
-              ...budget.retainedValues()
+              ...(result.ok && "returnValue" in result ? [result.returnValue] : [])
             ],
             compilation
           );
@@ -715,7 +753,7 @@ function createExecutableNode(module: Module): ParseResult {
 }
 
 function createRunSnapshot(input: {
-  executionSemantics: "jobs-v6" | typeof EXECUTION_SEMANTICS;
+  executionSemantics: "jobs-v6" | "jobs-v7" | typeof EXECUTION_SEMANTICS;
   migration?: SafeJSSnapshot["migration"];
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;
@@ -735,7 +773,7 @@ function createRunSnapshot(input: {
     | undefined;
   sourceHash: string;
 }): RunSnapshot {
-  return {
+  const snapshot: RunSnapshot = {
     version: DUMP_FORMAT_VERSION,
     executionSemantics: input.executionSemantics,
     sourceHash: input.sourceHash,
@@ -747,7 +785,7 @@ function createRunSnapshot(input: {
       : { hostCalls: input.hostCalls }),
     ...(input.loopIterations === undefined ? {} : { loopIterations: input.loopIterations }),
     ...(input.replay === undefined ? {} : { replay: input.replay }),
-    ...(input.initialInputs === undefined ? {} : { initialInputs: input.initialInputs }),
+    ...(input.initialInputs === undefined ? {} : { initialInputs: structuredClone(input.initialInputs) }),
     ...(input.promiseReplay === undefined ? {} : { promiseReplay: input.promiseReplay }),
     ...(input.pendingAwaits === undefined || input.pendingAwaits.length === 0
       ? {}
@@ -764,6 +802,8 @@ function createRunSnapshot(input: {
             state: input.random.generator.snapshot()
           }
   };
+  inMemoryRunSnapshots.add(snapshot);
+  return snapshot;
 }
 
 function readHostCallSnapshot(snapshot: SafeJSSnapshot | undefined): HostCallRecord[] {

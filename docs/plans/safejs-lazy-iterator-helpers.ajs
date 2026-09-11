@@ -1,0 +1,26 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const values = [1, 2, 3, 4].values()
+    .map((value, index) => value + index)
+    .filter(value => value > 1)
+    .drop(1)
+    .take(1)
+    .flatMap(value => [value, value * 10])
+    .toArray();
+  if (JSON.stringify(values) !== "[5,50]") throw new Error("Lazy helper composition failed");
+  const events = [];
+  function* source() {
+    try { yield 1; yield 2; }
+    finally { events.push("closed"); }
+  }
+  const helper = source().map(value => value * 2);
+  const first = helper.next();
+  await 0;
+  helper.return();
+  if (first.value !== 2 || events.join() !== "closed" || !helper.next().done)
+    throw new Error("Lazy helper cleanup failed");
+  return { title: frontmatter.title, values, first, events, ok: true };
+};

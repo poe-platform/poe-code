@@ -109,7 +109,7 @@ test("find -type c distinguishes entries and follows links only when requested",
   const shell = await fixture();
   context.after(() => shell.dispose());
   for (const [source, expected] of [
-    ["find / -type c", "/character\n"],
+    ["find / -type c", "/character\n/dev/null\n"],
     ["find -L /character /link /regular -type c", "/character\n/link\n"],
     ["find /character -type f", ""],
   ] as const) {

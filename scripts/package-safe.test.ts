@@ -23,8 +23,11 @@ function optionalLeftovers() {
   }
   data["/repo/packages/safe-fs/dist/core.js"] = "export {};\n";
   data["/repo/packages/safe-fs/dist/core.d.ts"] = "export {};\n";
-  for (const target of Object.values(bashManifest.exports) as Record<string, string>[]) {
-    for (const file of Object.values(target)) data["/repo/packages/safe-bash/" + file.replace("./", "").replaceAll("*", "probe")] = "export {};\n";
+  const targets: unknown[] = Object.values(bashManifest.exports);
+  while (targets.length) {
+    const target = targets.pop();
+    if (typeof target === "string") data["/repo/packages/safe-bash/" + target.replace("./", "").replaceAll("*", "probe")] = "export {};\n";
+    else if (target && typeof target === "object") targets.push(...Object.values(target));
   }
   const excluded = (bashManifest.files as string[]).filter(file => file.startsWith("!"));
   for (const file of excluded) {
@@ -55,8 +58,8 @@ describe("scoped safe package artifacts", () => {
     expect(actual).toEqual(expected);
     const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
     expect(Object.keys(manifest.exports)).toEqual(Object.keys(bashManifest.exports));
-    for (const [key, target] of Object.entries(bashManifest.exports) as [string, Record<string, string>][]) {
-      expect(manifest.exports[key]).toEqual(Object.fromEntries(Object.entries(target).map(([condition, filename]) => [condition, filename.replace("./dist/", "./dist/safe-bash/")])));
+    for (const [key, target] of Object.entries(bashManifest.exports)) {
+      expect(manifest.exports[key]).toEqual(JSON.parse(JSON.stringify(target, (_key, value: unknown) => typeof value === "string" ? value.replace("./dist/", "./dist/safe-bash/") : value)));
     }
   });
 
@@ -123,9 +126,10 @@ describe("scoped safe package artifacts", () => {
     const volume = Volume.fromJSON({
       "/repo/package.json": JSON.stringify({ license: "MIT", dependencies: { external: "^2.0.0" }, exports: {
         "./safe-js": { types: "./packages/safe-js/dist/index.d.ts", import: "./packages/safe-js/dist/index.js" },
+        "./safe-js/workerd": { types: "./packages/safe-js/dist/workerd.d.ts", workerd: "./packages/safe-js/dist/workerd.js", browser: null, import: "./packages/safe-js/dist/workerd.js" },
         "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" },
       } }),
-      "/repo/packages/safe-js/package.json": JSON.stringify({ name: "private-js", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } }),
+      "/repo/packages/safe-js/package.json": JSON.stringify({ name: "private-js", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" }, "./workerd": { types: "./dist/workerd.d.ts", import: "./dist/workerd.js" } } }),
       "/repo/packages/safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" }, "./core": { types: "./dist/core.d.ts", import: "./dist/core.js" }, "./node": { types: "./dist/node-host.d.ts", import: "./dist/node-host.js" } } }),
       "/repo/packages/safe-bash/package.json": JSON.stringify({ name: "private-bash", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } }),
       "/repo/packages/safe-js/README.md": "# SafeJS\n",
@@ -134,6 +138,7 @@ describe("scoped safe package artifacts", () => {
       "/repo/packages/safe-js/dist/index.js": 'export { value } from "./chunks/shared.js";',
       "/repo/packages/safe-js/dist/chunks/shared.js": 'import external from "external"; export const value = external;',
       "/repo/packages/safe-js/dist/index.d.ts": 'export type { Value } from "../../helper/dist/index.js"; export { FsError } from "../../safe-fs/dist/index.js";',
+      "/repo/packages/safe-js/dist/workerd.d.ts": 'export { value } from "./index.js";',
       "/repo/packages/helper/dist/index.d.ts": 'export interface Value { ok: boolean }',
       "/repo/packages/safe-js/dist/safe-fs.js": 'export class FsError extends Error {}',
       "/repo/packages/safe-fs/dist/index.d.ts": 'export declare class FsError extends Error {}',
@@ -147,7 +152,9 @@ describe("scoped safe package artifacts", () => {
       "/repo/packages/safe-bash/dist/index.d.ts": 'export { FsError } from "poe-code/safe-fs";',
     });
     const files = createFsFromVolume(volume).promises;
-    const bundle = vi.fn(async () => ({ outputFiles: [{ path: "/repo/packages/safe-js/dist/index.js", contents: Buffer.from('export { value } from "./chunks/shared.js"; export { FsError } from "@poe-platform/safe-fs";') }] }));
+    const bundle = vi.fn(async (options: { conditions?: string[]; entryPoints?: Record<string, string> }) => ({ outputFiles: options.conditions?.includes("workerd")
+      ? [{ path: "/repo/packages/safe-js/dist/workerd.js", contents: Buffer.from('export const value = "workerd-context";') }]
+      : [{ path: "/repo/packages/safe-js/dist/index.js", contents: Buffer.from('export { value } from "./chunks/shared.js"; export { FsError } from "@poe-platform/safe-fs";') }] }));
     const options = { rootDir: "/repo", version: "0.1.0", files, bundle };
     await packageSafeLibraries({ ...options, outDir: "/output" });
     const read = (path: string) => volume.readFileSync(path, "utf8").toString();
@@ -166,6 +173,11 @@ describe("scoped safe package artifacts", () => {
     }));
     expect(js.name).toBe("@poe-platform/safe-js");
     expect(js.private).toBeUndefined();
+    expect(js.exports["./workerd"].workerd).toBe("./dist/safe-js/workerd.js");
+    expect(js.exports["./workerd"].browser).toBeNull();
+    expect(read("/output/safe-js/dist/safe-js/workerd.js")).toContain("workerd-context");
+    expect(bundle).toHaveBeenCalledWith(expect.objectContaining({ conditions: ["workerd"], splitting: false }));
+    expect(Object.keys(bundle.mock.calls[0]![0].entryPoints!)).not.toContain("workerd");
     expect(js.files).toEqual(["dist"]);
     expect(js.repository.directory).toBe("packages/safe-js");
     expect(js.dependencies).toEqual({ external: "^2.0.0", "@poe-platform/safe-fs": "0.1.0" });
@@ -195,13 +207,13 @@ function optionalArtifact() {
     devDependencies: { "virtual-bash": "*", "@poe-code/safe-fs": "*" },
   }));
   volume.writeFileSync("/repo/packages/safe-bash-optional/README.md", "# Explicit optional tools\n");
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/index.js";');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.d.ts", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/index.js";');
+  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.js", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/mike.js";');
+  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/optional.d.ts", 'export * from "./fs/devices/index.js"; export * from "./commands/yq/mike.js";');
   volume.writeFileSync("/repo/packages/safe-bash-optional/dist/fs/devices/index.js", 'import { FsError } from "@poe-platform/safe-fs"; import { host } from "@poe-platform/safe-bash/optional-host"; const asset = new URL("./profile.json", import.meta.url); export { FsError, host, asset };');
   volume.writeFileSync("/repo/packages/safe-bash-optional/dist/fs/devices/index.d.ts", 'export type Value = import("@poe-platform/safe-bash").Value; export type FS = import("@poe-platform/safe-fs").FS;');
   volume.writeFileSync("/repo/packages/safe-bash-optional/dist/fs/devices/profile.json", '{"profile":"fixture"}\n');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/index.js", 'export const yaml = () => import("yaml");');
-  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/index.d.ts", 'export type YAML = import("yaml").Document;');
+  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/mike.js", 'export const yaml = () => import("yaml");');
+  volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/mike.d.ts", 'export type YAML = import("yaml").Document;');
   volume.writeFileSync("/repo/packages/safe-bash-optional/dist/unreachable.js", 'import "private-unused";');
   return fixture;
 }
@@ -295,7 +307,7 @@ describe("explicit optional safe package artifact", () => {
 
   it("handles cycles without copying a module twice", async () => {
     const { volume, options } = optionalArtifact();
-    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/index.js", 'export * from "../../optional.js";');
+    volume.writeFileSync("/repo/packages/safe-bash-optional/dist/commands/yq/mike.js", 'export * from "../../optional.js";');
     const result = await packageSafeLibraries({ ...options, outDir: "/output", includeOptional: true });
     expect(result.at(-1)?.files).toBe(7);
   });

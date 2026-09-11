@@ -1,0 +1,13 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const value = { first: 1, second: 2, omitted: 3 };
+  const json = JSON.stringify(value, ['second', 'first', 'second']);
+  if (json !== '{"second":2,"first":1}') throw new Error('Property-list order mismatch');
+  const nested = JSON.stringify([{ first: 1, omitted: 2 }, 3], ['first']);
+  if (nested !== '[{"first":1},3]') throw new Error('Array property filtering mismatch');
+  await 0;
+  return { ok: true, title: frontmatter.title, json, nested };
+}

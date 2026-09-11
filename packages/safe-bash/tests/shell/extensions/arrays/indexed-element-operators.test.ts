@@ -163,7 +163,12 @@ test("indexed operator parser retains selector and nested substitution form", ()
   assert.equal(command.kind, "simple");
   if (command.kind !== "simple") return;
   const part = command.words[1]!.parts.find(part => part.kind === "variable")!;
-  assert.deepEqual(getArraySelector(part), { kind: "element", index: { decimal: "1" } });
+  const selector = getArraySelector(part);
+  assert.equal(selector?.kind, "element");
+  if (selector?.kind !== "element") throw new Error("Expected element selector");
+  assert.equal(selector.index.decimal, "1");
+  assert.equal(selector.index.source, "1");
+  assert.equal(selector.index.word?.plain, "1");
   assert.equal(part.operator, "-");
   const substitution = part.alternate!.parts.find(part => part.kind === "substitution")!;
   assert.equal(substitution.form, "dollar-parenthesis");
@@ -175,7 +180,20 @@ for (const syntax of [undefined, { arrayKeys: true }, { indexedDeclarations: ["r
   });
 }
 
-for (const expression of ["${values[1]:-x}", "${values[1]:+x}", "${values[1]=x}", "${values[1]?x}", "${values[1]#x}", "${values[1]:1}", "${values[@]-x}", "${!values[@]+x}", "${#values[1]-x}", "${values[index]-x}"]) {
+test("indexed operators preserve named subscript syntax", () => {
+  const script = parseShell("printf ${values[index]-x}", 0, arraysExtension().syntax);
+  const command = script.lists[0]!.pipelines[0]!.commands[0]!;
+  assert.equal(command.kind, "simple");
+  if (command.kind !== "simple") throw new Error("Expected simple command");
+  const part = command.words[1]!.parts.find(part => part.kind === "variable")!;
+  const selector = getArraySelector(part);
+  assert.equal(selector?.kind, "element");
+  if (selector?.kind !== "element") throw new Error("Expected element selector");
+  assert.equal(selector.index.source, "index");
+  assert.equal(part.operator, "-");
+});
+
+for (const expression of ["${values[1]:-x}", "${values[1]:+x}", "${values[1]=x}", "${values[1]?x}", "${values[1]#x}", "${values[1]:1}", "${values[@]-x}", "${!values[@]+x}", "${#values[1]-x}"]) {
   test(`broader indexed forms remain outside the increment: ${expression}`, () => {
     assert.throws(() => parseShell(`printf '${expression}' ${expression}`, 0, arraysExtension().syntax), ShellSyntaxError);
   });

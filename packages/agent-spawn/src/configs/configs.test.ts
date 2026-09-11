@@ -12,7 +12,6 @@ import {
 import { codexSpawnConfig } from "./codex.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { openCodeSpawnConfig } from "./opencode.js";
-import { kimiSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 import { cursorSpawnConfig } from "./cursor.js";
@@ -71,7 +70,6 @@ describe("configs/getSpawnConfig", () => {
     expect(pi?.config).toBe(piSpawnConfig);
     expect(resolveSpawnableAgent("claude-desktop")).toBeUndefined();
     expect(resolveSpawnableAgent("pi")?.supportsMcpSpawn).toBe(false);
-    expect(resolveSpawnableAgent("kimi")?.supportsMcpSpawn).toBe(true);
   });
 
   it("does not allow returned config mutations to affect future spawns", () => {
@@ -99,7 +97,6 @@ describe("configs/mcp support", () => {
     expect(supportsMcpAtSpawn("claude-code")).toBe(true);
     expect(supportsMcpAtSpawn("codex")).toBe(true);
     expect(supportsMcpAtSpawn("goose")).toBe(true);
-    expect(supportsMcpAtSpawn("kimi")).toBe(true);
     expect(supportsMcpAtSpawn("opencode")).toBe(true);
   });
 
@@ -114,7 +111,6 @@ describe("configs/mcp support", () => {
       "codex",
       "cursor",
       "opencode",
-      "kimi",
       "goose"
     ]);
   });
@@ -164,7 +160,6 @@ describe("configs/auto mode", () => {
     );
     expect(cursorSpawnConfig.modes.auto).toBeUndefined();
     expect(openCodeSpawnConfig.modes.auto).toBeUndefined();
-    expect(kimiSpawnConfig.modes.auto).toBeUndefined();
     expect(gooseSpawnConfig.modes.auto).toBeUndefined();
   });
 
@@ -264,14 +259,6 @@ describe("resume.args (in-spawn injection)", () => {
     expect(openCodeSpawnConfig.resume!.args(threadId, cwd)).toEqual(["--session", threadId]);
   });
 
-  it("kimi injects --session and --work-dir flags", () => {
-    expect(kimiSpawnConfig.resume!.args(threadId, cwd)).toEqual([
-      "--session",
-      threadId,
-      "--work-dir",
-      cwd
-    ]);
-  });
 
   it("goose injects --resume with --session-id", () => {
     expect(gooseSpawnConfig.resume!.args(threadId, cwd)).toEqual([
@@ -318,9 +305,6 @@ describe("resume.hintArgs (printed shell hint)", () => {
     expect(claudeCodeSpawnConfig.resume!.hintArgs).toBeUndefined();
   });
 
-  it("kimi falls back to args when hintArgs is omitted", () => {
-    expect(kimiSpawnConfig.resume!.hintArgs).toBeUndefined();
-  });
 });
 
 describe("serializeGooseMcpArgs", () => {
@@ -400,14 +384,6 @@ describe("configs/MCP serialization", () => {
     ]);
   });
 
-  it("preserves special MCP server names in Kimi JSON arguments", () => {
-    const args = kimiSpawnConfig.mcpArgs!(
-      JSON.parse('{"__proto__":{"command":"custom-server"}}')
-    );
-    const serialized = JSON.parse(args[1]!) as { mcpServers: Record<string, unknown> };
-
-    expect(Object.hasOwn(serialized.mcpServers, "__proto__")).toBe(true);
-  });
 
   it("preserves special MCP server names in OpenCode environment config", () => {
     const env = serializeOpenCodeMcpEnv(

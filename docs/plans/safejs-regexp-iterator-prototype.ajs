@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({title:S.String(),text:S.String()});
+
+export default async (frontmatter) => {
+  const iterator=frontmatter.text.matchAll(/./gu);
+  Object.defineProperty(iterator,'self',{get(){return iterator}});
+  const first=iterator.next();
+  await 0;
+  const rest=Array.from(iterator,match=>match[0]);
+  const common=Object.getPrototypeOf(Object.getPrototypeOf([].values()));
+  if (first.value[0]!=='a' || rest.join('')!=='😀b' || iterator.self!==iterator ||
+      iterator.next!==iterator.next || iterator[Symbol.iterator]()!==iterator ||
+      Object.getPrototypeOf(Object.getPrototypeOf(iterator))!==common || !iterator.next().done)
+    throw new Error('RegExp iterator prototype, cursor or identity failed');
+  return {title:frontmatter.title,ok:true,first:first.value[0],rest};
+};

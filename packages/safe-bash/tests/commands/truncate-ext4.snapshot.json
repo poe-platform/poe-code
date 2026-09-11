@@ -1,0 +1,1556 @@
+{
+  "profile": {
+    "platform": "linux",
+    "architecture": "x64",
+    "kernel": "5.15.0-1084-aws",
+    "filesystemType": 61267,
+    "blockSize": 4096,
+    "version": "truncate (GNU coreutils) 8.30",
+    "executable": "/usr/bin/truncate",
+    "executableSha256": "72577f960652d3abb3f3a61b807b061fe433f0deaa8edec1f9230087806e299c",
+    "sourceSha256": "2c56bcf96be1e78deea35b74292c31ad18411dc44edda09a7844297d1770f099",
+    "locale": "C",
+    "umask": 18,
+    "maximumCapturedFileBytes": 64,
+    "timeoutMs": 3000,
+    "capturedAt": "2026-09-09T17:58:19.476Z"
+  },
+  "cases": [
+    {
+      "name": "maximum-zero",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<0",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-zero",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<0",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-zero",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<0",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-zero",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<0",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-one",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AA==",
+          "size": 1,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-one",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-one",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AA==",
+          "size": 1,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-one",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-eight",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<8",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AAAAAAAAAAA=",
+          "size": 8,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-eight",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<8",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVmAAA=",
+          "size": 8,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-eight",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<8",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AAAAAAAAAAA=",
+          "size": 8,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "maximum-eight",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<8",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVmAAA=",
+          "size": 8,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-one",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775806",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AA==",
+          "size": 1,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-one",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775806",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-one",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775806",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AA==",
+          "size": 1,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-one",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775806",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-zero",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775807",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-zero",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775807",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-zero",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775807",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-to-zero",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775807",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-below-zero",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775808",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-below-zero",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775808",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-below-zero",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775808",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "subtract-below-zero",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s-9223372036854775808",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "extend-overflow",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s+1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IGV4dGVuZGluZyBzaXplIG9mIGZpbGUgJ3RhcmdldCcK",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "extend-overflow",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s+1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IGV4dGVuZGluZyBzaXplIG9mIGZpbGUgJ3RhcmdldCcK",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "extend-overflow",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s+1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IGV4dGVuZGluZyBzaXplIG9mIGZpbGUgJ3RhcmdldCcK",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "extend-overflow",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s+1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IGV4dGVuZGluZyBzaXplIG9mIGZpbGUgJ3RhcmdldCcK",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-overflow",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%2",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IHJvdW5kaW5nIHVwIHNpemUgb2YgZmlsZSAndGFyZ2V0Jwo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-overflow",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%2",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IHJvdW5kaW5nIHVwIHNpemUgb2YgZmlsZSAndGFyZ2V0Jwo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-overflow",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%2",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IHJvdW5kaW5nIHVwIHNpemUgb2YgZmlsZSAndGFyZ2V0Jwo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-overflow",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%2",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IG92ZXJmbG93IHJvdW5kaW5nIHVwIHNpemUgb2YgZmlsZSAndGFyZ2V0Jwo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "minimum-too-large",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s>1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "minimum-too-large",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s>1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "minimum-too-large",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s>1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "minimum-too-large",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s>1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-down-too-large",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-down-too-large",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-down-too-large",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-down-too-large",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-too-large",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-too-large",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-too-large",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-too-large",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "reference-too-large",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "reference-too-large",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "reference-too-large",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "",
+          "size": 0,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "reference-too-large",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGZhaWxlZCB0byB0cnVuY2F0ZSAndGFyZ2V0JyBhdCA5MjIzMzcyMDM2ODU0Nzc1ODA3IGJ5dGVzOiBGaWxlIHRvbyBsYXJnZQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-down-zero",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "round-down-zero",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-down-zero",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "round-down-zero",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s/0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-zero",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "round-up-zero",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "round-up-zero",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "round-up-zero",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s%0",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGRpdmlzaW9uIGJ5IHplcm8K",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "absolute-with-reference",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IHlvdSBtdXN0IHNwZWNpZnkgYSByZWxhdGl2ZSAnLS1zaXplJyB3aXRoICctLXJlZmVyZW5jZScKVHJ5ICd0cnVuY2F0ZSAtLWhlbHAnIGZvciBtb3JlIGluZm9ybWF0aW9uLgo=",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "absolute-with-reference",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IHlvdSBtdXN0IHNwZWNpZnkgYSByZWxhdGl2ZSAnLS1zaXplJyB3aXRoICctLXJlZmVyZW5jZScKVHJ5ICd0cnVuY2F0ZSAtLWhlbHAnIGZvciBtb3JlIGluZm9ybWF0aW9uLgo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "absolute-with-reference",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IHlvdSBtdXN0IHNwZWNpZnkgYSByZWxhdGl2ZSAnLS1zaXplJyB3aXRoICctLXJlZmVyZW5jZScKVHJ5ICd0cnVuY2F0ZSAtLWhlbHAnIGZvciBtb3JlIGluZm9ybWF0aW9uLgo=",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "absolute-with-reference",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s1",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IHlvdSBtdXN0IHNwZWNpZnkgYSByZWxhdGl2ZSAnLS1zaXplJyB3aXRoICctLXJlZmVyZW5jZScKVHJ5ICd0cnVuY2F0ZSAtLWhlbHAnIGZvciBtb3JlIGluZm9ybWF0aW9uLgo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YWJjZGVm",
+          "size": 6,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "no-create",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-c",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "no-create",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-c",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "no-create",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-c",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": false
+        }
+      }
+    },
+    {
+      "name": "no-create",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-c",
+        "-s<1",
+        "target"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "directory-then-target",
+      "populated": false,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGNhbm5vdCBvcGVuICdyZWZlcmVuY2UnIGZvciB3cml0aW5nOiBJcyBhIGRpcmVjdG9yeQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AA==",
+          "size": 1,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "directory-then-target",
+      "populated": false,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGNhbm5vdCBvcGVuICdyZWZlcmVuY2UnIGZvciB3cml0aW5nOiBJcyBhIGRpcmVjdG9yeQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "directory-then-target",
+      "populated": true,
+      "existing": false,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGNhbm5vdCBvcGVuICdyZWZlcmVuY2UnIGZvciB3cml0aW5nOiBJcyBhIGRpcmVjdG9yeQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "AA==",
+          "size": 1,
+          "mode": 420,
+          "type": "file"
+        }
+      }
+    },
+    {
+      "name": "directory-then-target",
+      "populated": true,
+      "existing": true,
+      "argv": [
+        "-r",
+        "reference",
+        "-s<1",
+        "reference",
+        "target"
+      ],
+      "expected": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "dHJ1bmNhdGU6IGNhbm5vdCBvcGVuICdyZWZlcmVuY2UnIGZvciB3cml0aW5nOiBJcyBhIGRpcmVjdG9yeQo=",
+        "target": {
+          "exists": true,
+          "bytesBase64": "YQ==",
+          "size": 1,
+          "mode": 416,
+          "type": "file"
+        }
+      }
+    }
+  ]
+}

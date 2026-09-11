@@ -94,12 +94,25 @@ describe("opt-in named host mutations", () => {
     } finally { await realm.close(); }
   });
 
-  it("preserves a false deletion result for an existing named property", async () => {
+  it("preserves a false deletion result in non-strict code", async () => {
     const { realm, values } = storageRealm({ named: { delete: () => false } });
     values.set("keep", 1);
     try {
-      expect(await realm.evaluate("return [delete storage.keep, storage.keep, delete storage.missing];"))
+      expect(await realm.evaluate('return Function("storage", "return [delete storage.keep, storage.keep, delete storage.missing]")(storage);'))
         .toMatchObject({ returnValue: [false, 1, true] });
+    } finally { await realm.close(); }
+  });
+
+  it("throws on a false named deletion result in strict code without removing the property", async () => {
+    const { realm, values } = storageRealm({ named: { delete: () => false } });
+    values.set("keep", 1);
+    try {
+      const source = 'let error;try{delete storage.keep}catch(e){error=e.name}return [error,storage.keep,delete storage.missing]';
+      const nativeStorage = new Proxy({keep: 1}, {deleteProperty: (target, key) => !Object.hasOwn(target, key)});
+      const expected = new Function("storage", `"use strict";${source}`)(nativeStorage);
+      expect(expected).toEqual(["TypeError", 1, true]);
+      expect(await realm.evaluate(source)).toMatchObject({returnValue: expected});
+      expect(values.get("keep")).toBe(1);
     } finally { await realm.close(); }
   });
 

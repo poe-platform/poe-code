@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let count = 0;
+  first: if (true) {
+    count++;
+    break first;
+  }
+  second: switch (count) {
+    case 1:
+      count++;
+      break second;
+    default:
+      throw new Error("Labeled switch selected the wrong case");
+  }
+  third: count++;
+  if (count !== 3) throw new Error("Labeled statements changed control flow");
+  return { title: frontmatter.title, ok: true, count };
+};

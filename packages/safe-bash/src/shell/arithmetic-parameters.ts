@@ -1,8 +1,10 @@
 import { prepareArithmetic } from "./arithmetic.js";
 import type { ArithmeticProgram } from "./arithmetic.js";
+import type { ParseBudget } from "./parse-budget.js";
 import type { Admission, ArrayOwner } from "./arrays/ledger.js";
 
 interface PositionalArithmeticOptions {
+  readonly parseBudget?: ParseBudget;
   readonly positional: readonly string[];
   readonly arg0: string;
   readonly maximumBytes: number;
@@ -119,7 +121,7 @@ export function evaluatePositionalArithmetic(
     reserve(bytes);
     const expanded = chunks.join("");
     options.checkpoint();
-    return evaluate(prepareArithmetic(expanded));
+    return evaluate(prepareArithmetic(expanded, options.parseBudget));
   } finally {
     for (let position = admissions.length - 1; position >= 0; position--) admissions[position]!.release();
     header?.release();

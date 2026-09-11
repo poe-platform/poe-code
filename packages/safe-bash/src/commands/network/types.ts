@@ -7,8 +7,13 @@ export interface HttpRequest {
   readonly method: string;
   readonly headers: HttpHeaders;
   readonly body?: ByteSource;
+  /** Consumer body intent, independent of method. Omitted means "read".
+   * "omit" permits an empty body; "omit-on-http-error" permits it only for
+   * status >= 400. Neither changes the HTTP request or response status/headers. */
+  readonly responseBodyMode?: "omit" | "omit-on-http-error" | "read";
   readonly signal: AbortSignal;
   readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
+  readonly denyPrivateNetworks?: true;
 }
 
 export interface HttpResponse {
@@ -20,7 +25,9 @@ export interface HttpResponse {
   dispose(): Promise<void>;
 }
 
-export type HttpTransport = (request: HttpRequest) => Promise<HttpResponse>;
+export type HttpTransport = ((request: HttpRequest) => Promise<HttpResponse>) & {
+  readonly supportsPrivateNetworkDeny?: true;
+};
 
 export interface NetworkAuthorization {
   readonly url: string;
@@ -28,6 +35,7 @@ export interface NetworkAuthorization {
   readonly redirectFrom?: string;
   readonly attempt: number;
   readonly signal: AbortSignal;
+  readonly requirePrivateNetworkDeny?: () => void;
 }
 
 export type NetworkAuthorizer = (request: NetworkAuthorization) => boolean | Promise<boolean>;
@@ -41,6 +49,7 @@ export interface NetworkLimits {
   readonly maxRetries: number;
   readonly maxUrls: number;
   readonly maxTimeMs: number;
+  readonly maxTotalTimeMs: number;
 }
 
 export interface NetworkCommandsOptions {
@@ -59,6 +68,7 @@ export const defaultNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
   maxRetries: 5,
   maxUrls: 32,
   maxTimeMs: 120_000,
+  maxTotalTimeMs: 120_000,
 });
 
 export const cloudflareWorkerNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
@@ -70,6 +80,7 @@ export const cloudflareWorkerNetworkLimits: Readonly<NetworkLimits> = Object.fre
   maxRetries: 1,
   maxUrls: 8,
   maxTimeMs: 10_000,
+  maxTotalTimeMs: 10_000,
 });
 
 export class CurlError extends Error {

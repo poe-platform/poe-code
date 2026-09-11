@@ -416,8 +416,6 @@ class SpawnTest(unittest.TestCase):
                 "gemini-cli",
                 "gemini",
                 "goose",
-                "kimi",
-                "kimi-cli",
                 "opencode",
                 "pi",
                 "pi-agent",

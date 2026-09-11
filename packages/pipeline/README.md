@@ -100,6 +100,13 @@ steps:
 
 Each step can override `agent`, `model`, and `mode`. An omitted `mode` uses the shared `agent-spawn` default (`auto`).
 
+Pipeline plans validate task shapes before execution. Unknown task properties,
+empty inline step names, and empty task-status step names are rejected. A task
+with an empty step key is still considered runnable instead of being treated as
+complete.
+
+`{{file 'path'}}` document variables may read only files inside the project root.
+
 ## MCP Servers
 
 The optional `mcp` key passes MCP servers to every agent execution:
@@ -153,6 +160,8 @@ Pipeline processes tasks sequentially in plan order:
 6. Continue until a stop condition
 
 Stop conditions: all work complete, a task/step fails, cancellation, or `maxRuns` reached.
+
+Pass `--worktree` to the `poe-code pipeline run` CLI to run the whole pipeline in one managed git worktree and reconcile successful output afterward. Worktree mode requires a clean source checkout before the run starts. The root `poe-code` SDK wrapper also supports worktrees; the package-level runner below does not accept a `worktree` option.
 
 A failed task or step blocks all later tasks.
 
@@ -211,7 +220,7 @@ POE_PIPELINE_TUI=true poe-code pipeline run
 poe-code pipeline install [--agent <name>] [--local|--global] [--force]
 poe-code pipeline validate <file> [--preview]
 poe-code pipeline plan-path
-poe-code pipeline run [--agent <name>] [--model <model>] [--tui|--no-tui] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>]
+poe-code pipeline run [--agent <name>] [--model <model>] [--tui|--no-tui] [--task <id>] [--plan <path>] [--plans <paths...>] [--max-runs <n>] [--worktree]
 ```
 
 Example:

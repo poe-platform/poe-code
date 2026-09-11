@@ -89,7 +89,12 @@ test("explicit Overlay cleanup retries pending garbage deletion after metadata-o
   mutations.length = 0; denyCleanup = false;
   const checked = trace(overlay); const result = await shellRun(checked.fs, ["-bs", "tree"]);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.deepEqual(checked.calls.map(call => call.method), ["lstat", "readdir"]);
+  assert.deepEqual(checked.calls.map(({ method, path }) => ({ method, path })), [
+    { method: "lstat", path: "/tree" },
+    { method: "lstat", path: "/tree" },
+    { method: "readdir", path: "/tree" },
+  ]);
+  assert.ok(checked.calls.every(call => call.signal instanceof AbortSignal));
   assert.deepEqual(mutations, []);
   assert.deepEqual(await upper.readdir("/"), before);
   await overlay.cleanup();

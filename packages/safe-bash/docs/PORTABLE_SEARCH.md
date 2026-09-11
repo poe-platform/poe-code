@@ -36,11 +36,11 @@ from the Node and browser entries. It uses the package's cooperative ERE
 interpreter and byte-literal matcher, not native guest `RegExp`, a subprocess, or a Node/browser Worker.
 It can run inside a workerd request context without Node compatibility flags.
 
-Literal modes accept **valid non-NUL UTF-8 patterns and subjects**; regex modes
-remain ASCII-only. Invalid UTF-8 and embedded NUL in a subject or pattern are
+Literal modes accept **valid non-NUL UTF-8 patterns and subjects**. Grep regex
+modes accept ASCII patterns and valid non-NUL UTF-8 subjects. Invalid UTF-8 and embedded NUL in a subject or pattern are
 explicitly rejected, including malformed subjects when the pattern list is empty.
-Literal matching compares original bytes without decoding, normalization, case
-folding, or replacement characters. Supported results retain original byte
+Literal matching compares original bytes without normalization or replacement
+characters; grep `-i` additionally equates ASCII letter case. Supported results retain original byte
 offsets and command output bytes, including BOM bytes.
 
 These are provider admission rules. Normal `rg` binary detection still handles
@@ -50,13 +50,15 @@ provider rejection. No command-level binary policy is overridden by this profile
 
 | Mode | Supported behavior |
 | --- | --- |
-| `grep -E` | Case-sensitive restricted ASCII ERE, leftmost-longest matching |
-| `grep -F` | Case-sensitive valid UTF-8 literal matching |
-| plain `grep` | Conservative BRE subset: ordinary literals, `.`, bracket classes, repetition `*`, leading `^`, and trailing `$`; escapes, interior anchors, leading `*`, and extended operator syntax are rejected |
+| `grep -E` | Restricted ASCII ERE patterns over UTF-8 scalars, leftmost-longest matching; optional ASCII `-i` |
+| `grep -F` | Valid UTF-8 literal matching; optional ASCII `-i` |
+| plain `grep` | Conservative BRE subset: literals, `.`, bracket classes, repetition `*`, leading `^`, trailing `$`, and escaped basic metacharacters; unescaped `+?(){}|` are literal |
 | `rg -F` | Case-sensitive valid UTF-8 fixed-string matching |
 | plain regex `rg` | Rejected; POSIX ERE spans are not advertised as rg regex semantics |
-| `grep -o` / `rg -o` | Rejected; all-match enumeration is not supported |
-| Unicode regex, case folding, smart case, word matching | Rejected |
+| `grep -o` | Bounded non-overlapping extraction for the supported fixed/BRE/ERE profiles |
+| `grep -i` | ASCII A–Z/a–z equivalence for fixed, BRE and ERE selection and extraction; original output case preserved |
+| `rg -o` | Rejected; rg all-match enumeration is not supported |
+| Non-ASCII regex patterns, Unicode character classes, Unicode folding, rg case modes, smart case, word matching | Unsupported |
 | rg path globs | Rejected, including validation with no candidate rows |
 
 Pattern lists, empty patterns, zero-pattern lists, whole-record selection, and
@@ -68,6 +70,34 @@ run even when a batch has no subject rows. Sed continues to use its existing
 separate instruction interpreter and limits; this provider does not redefine
 sed's dialect.
 
+In plain grep BRE, a backslash can quote `\\`, `.`, `^`, `$`, `[`, `]`, or `*`
+outside bracket expressions. For example, `upload\.wikimedia\.org` matches
+literal dots, and unescaped `a+b` matches a literal plus. Bracket expressions
+interpret their own members, so `[+]` and `[()]` select those literal symbols;
+backslash inside a bracket expression remains a literal member. Escaped groups
+`\(...\)`, intervals `\{...\}`, escaped extended operators `\+`, `\?`, `\|`,
+backreferences and word extensions remain explicitly unsupported. Interior
+anchors and leading `*` also remain unsupported. Selecting `grep -E` still gives
+extended operators their ERE meaning; this does not change BRE into ERE.
+
+Grep BRE/ERE matching treats each Unicode scalar as one subject character:
+`.` matches one scalar, including an emoji; ASCII bracket ranges and named
+classes match only their ASCII members, while negated classes can match
+non-ASCII scalars. Combining marks remain separate characters. There is no
+normalization, Unicode property matching, or locale-dependent classification.
+`LC_ALL=C` does not change this profile into byte-wise regex matching. For example,
+ordinary `grep -n 'section-title'` can select an HTML line containing `⚽` and
+preserves its original UTF-8 bytes; `grep -Eo '.'` on `é😀` emits each scalar
+separately. Use `grep -F` for non-ASCII literal patterns.
+
+With grep `-i`, ASCII letter comparisons ignore case. Bracket sets include both
+cases before negation, so `[^a]` excludes both `a` and `A`; `[:upper:]` and
+`[:lower:]` both include ASCII letters in either case. Non-ASCII scalars remain
+distinct: fixed `é` does not match `É`, and `k` does not match the Kelvin sign
+`K`. Regex patterns remain ASCII-only. No locale changes this policy, and input
+or output is never lowercased. `-i` works independently of `-o`; both use the same
+work, allocation, match-count and output limits. Unicode folding is not performed.
+
 The worker protocol is unchanged: grep pattern strings contain raw bytes in
 Latin-1 code units and are validated as UTF-8 bytes; rg pattern strings contain
 Unicode text and are encoded only after rejecting unpaired UTF-16 surrogates.
@@ -76,6 +106,16 @@ For literal selection, grep returns the first matching pattern's first span;
 rg returns the earliest span, breaking ties by pattern order. Whole-record
 matching compares the complete byte sequence. Ordinary rg mode still rejects
 multiline patterns; NUL-delimited records do not permit embedded NUL payloads.
+
+For grep extraction, matches are selected by earliest start, then greatest
+length across patterns. Searches continue after the preceding nonempty match,
+using offsets into the original record so anchors retain their meaning. Empty
+matches select a record but produce no `-o` output; iteration advances by one
+valid character after an empty match. Fixed matching preserves UTF-8 byte spans;
+BRE/ERE extraction uses the same UTF-8 scalar profile as ordinary selection,
+with spans expressed as original byte offsets.
+Count, quiet, filename-only, and inverted-selection modes request selection
+instead of enumerating ranges when `-o` does not produce extracted output.
 
 ### Provider budgets
 
@@ -88,17 +128,25 @@ All provider options are optional. Their defaults are:
 | `maxPatternBytes` | 8,192 | Aggregate encoded pattern bytes per request |
 | `maxRows` | 128 | Subject rows per request |
 | `maxInputBytes` | 65,536 | Aggregate subject bytes per request |
-| `maxResultBytes` | 2,048 | Result-span storage admitted at 16 bytes per row |
+| `maxResultBytes` | 2,048 | Aggregate result-span storage, 16 bytes per retained match |
+| `maxMatchesPerLine` | 128 | Retained matches per subject row |
+| `maxTotalMatches` | 128 | Retained matches across the request's rows |
 | `maxWork` | 2,000,000 | Cumulative validation, encoding and matching work per request |
 | `maxAllocationUnits` | 1,000,000 | Cumulative algorithmic allocation accounting per request |
 | `maxStates` | 65,536 | Cumulative interpreter states or literal failure-table entries per request |
 
 Options must be positive safe integers. Hard ceilings are 32 workers, 128
 patterns, 65,532 pattern bytes, 4,096 rows, 1,048,576 input bytes, 65,536 result
-bytes, 33,554,432 work units, 4,000,000 allocation units, and 65,536 states.
+bytes, 100,000 matches per row and per request, 33,554,432 work units,
+4,000,000 allocation units, and 65,536 states.
 Unknown options and explicit `undefined` values are rejected. To increase a
 batch size, increase both its input/row limits and the independent result and
 work/storage limits as needed; changing one limit does not widen the others.
+Count and result-byte limits apply before retaining each match, including empty
+matches used for record selection. These limits are per provider request; command
+output and execution limits separately bound work across successive requests.
+Request admission also retains its conservative one-span-per-row result reserve,
+even for rows that eventually have no match.
 
 The provider rejects overload rather than storing an endpoint-local request
 queue. Each endpoint owns at most one request at a time. Its work, state,

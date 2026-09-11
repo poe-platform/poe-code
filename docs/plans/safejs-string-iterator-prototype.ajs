@@ -1,0 +1,14 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String(), text: S.String() });
+export default async (frontmatter) => {
+  const iterator = frontmatter.text[Symbol.iterator]();
+  const first = iterator.next();
+  iterator.self = iterator;
+  await 0;
+  const tail = Array.from(iterator);
+  if (first.value !== "a" || tail.join("") !== "😀b" || iterator.self !== iterator)
+    throw new Error("String iterator cursor or identity was lost");
+  if (!iterator.next().done || Object.prototype.toString.call(iterator) !== "[object String Iterator]")
+    throw new Error("String iterator exhaustion or tag is incorrect");
+  return { title: frontmatter.title, ok: true, first: first.value, tail };
+};

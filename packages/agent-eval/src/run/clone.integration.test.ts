@@ -111,75 +111,88 @@ describe("cloneTarget", () => {
     await expect(simpleGit(dest).revparse(["HEAD"])).resolves.toBe(fixtureTemplate.headSha);
   });
 
-  it("reuses a cached bare repo across new and previously deleted worktree destinations", async () => {
-    const root = await tempRoot();
-    const cacheDir = path.join(root, "cache");
-    const secondDest = path.join(root, "second");
+  describe("cached repository reuse", () => {
+    let root: string;
+    let cacheDir: string;
+    let secondDest: string;
 
-    await expect(
-      cloneTarget({
+    beforeAll(async () => {
+      root = await mkdtemp(path.join(tmpdir(), "agent-eval-clone-reuse-"));
+      cacheDir = path.join(root, "cache");
+      secondDest = path.join(root, "second");
+      await expect(cloneTarget({
         repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest: path.join(root, "first"),
         cacheDir
-      })
-    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
+      })).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
+    }, 5000);
 
-    await expect(
-      cloneTarget({
+    afterAll(async () => {
+      if (root) await rm(root, { recursive: true, force: true });
+    });
+
+    it("reuses a cached bare repo across new and previously deleted worktree destinations", async () => {
+      await expect(cloneTarget({
         repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest: secondDest,
         cacheDir
-      })
-    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
+      })).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
 
-    await rm(secondDest, { recursive: true, force: true });
+      await rm(secondDest, { recursive: true, force: true });
 
-    await expect(
-      cloneTarget({
+      await expect(cloneTarget({
         repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest: secondDest,
         cacheDir
-      })
-    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
+      })).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
 
-    const cachedRepos = await readdir(cacheDir);
-    expect(cachedRepos).toHaveLength(1);
-    expect(cachedRepos[0]?.endsWith(".git")).toBe(true);
+      const cachedRepos = await readdir(cacheDir);
+      expect(cachedRepos).toHaveLength(1);
+      expect(cachedRepos[0]?.endsWith(".git")).toBe(true);
+    }, 5000);
   });
 
-  it("fetches cached bare repos before creating later worktrees", async () => {
-    const root = await tempRoot();
-    const fixture = await copyFixtureRepo(root);
-    const cacheDir = path.join(root, "cache");
+  describe("cached repository updates", () => {
+    let root: string;
+    let fixture: FixtureRepo;
+    let cacheDir: string;
+    let updatedSha: string;
 
-    await expect(
-      cloneTarget({
+    beforeAll(async () => {
+      root = await mkdtemp(path.join(tmpdir(), "agent-eval-clone-update-"));
+      fixture = await copyFixtureRepo(root);
+      cacheDir = path.join(root, "cache");
+      await expect(cloneTarget({
         repo: fixture.bareRepo,
         ref: "main",
         dest: path.join(root, "first"),
         cacheDir
-      })
-    ).resolves.toEqual({ resolvedSha: fixture.headSha });
+      })).resolves.toEqual({ resolvedSha: fixture.headSha });
 
-    const updatedSha = await commitFixtureChange(
-      fixture.sourceRepo,
-      "README.md",
-      "third\n",
-      "third"
-    );
-    await simpleGit(fixture.sourceRepo).push(fixture.bareRepo, "main");
+      updatedSha = await commitFixtureChange(
+        fixture.sourceRepo,
+        "README.md",
+        "third\n",
+        "third"
+      );
+      await simpleGit(fixture.sourceRepo).push(fixture.bareRepo, "main");
+    }, 5000);
 
-    await expect(
-      cloneTarget({
+    afterAll(async () => {
+      if (root) await rm(root, { recursive: true, force: true });
+    });
+
+    it("fetches cached bare repos before creating later worktrees", async () => {
+      await expect(cloneTarget({
         repo: fixture.bareRepo,
         ref: "main",
         dest: path.join(root, "second"),
         cacheDir
-      })
-    ).resolves.toEqual({ resolvedSha: updatedSha });
+      })).resolves.toEqual({ resolvedSha: updatedSha });
+    }, 5000);
   });
 
   it("cleans up the destination when an in-flight clone is aborted", async () => {

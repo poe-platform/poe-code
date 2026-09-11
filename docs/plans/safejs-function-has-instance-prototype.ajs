@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  function Box() {}
+  const prototype = Object.getPrototypeOf(Box);
+  const method = prototype[Symbol.hasInstance];
+  const descriptor = Object.getOwnPropertyDescriptor(prototype, Symbol.hasInstance);
+  Object.defineProperty(Box, Symbol.hasInstance, { value(value) { return value === 7; } });
+  const BoundBox = Box.bind(null);
+  const ordinary = method.call(Box, new Box());
+  const delegated = method.call(BoundBox, 7);
+  const custom = new Box() instanceof Box;
+  await 0;
+  if (!ordinary || !delegated || custom || method.call({}, {}) ||
+      method.name !== "[Symbol.hasInstance]" || method.length !== 1 ||
+      descriptor.writable || descriptor.enumerable || descriptor.configurable) {
+    throw new Error("Function has-instance intrinsic regression");
+  }
+  return { title: frontmatter.title, ok: true, ordinary, delegated, custom };
+};

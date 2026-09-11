@@ -60,7 +60,7 @@ function setup(args: readonly ShellValue[] = ["-t"]) {
     async diagnostic(message) { diagnostics.push(message); },
     registerCleanup(cleanup) { cleanups.push(cleanup); },
   };
-  const execute = () => Promise.resolve(mapfileExtension().create().builtins[0]!.execute(context));
+  const execute = () => Promise.resolve(mapfileExtension({ replace: true }).create().builtins[0]!.execute(context));
   return { context, controller, cells, cleanups, records, diagnostics, callbacks, writer, input, execute, reads: () => reads, closed: () => ({ writer: writerClosed, input: inputClosed }) };
 }
 

@@ -198,7 +198,7 @@ test("independent short-consumer pipelines match native stdout stderr and PIPEST
   const fs = createMemoryFileSystem();
   await fs.writeFile("/left", Buffer.alloc(131072, 97));
   await fs.writeFile("/right", Buffer.alloc(131072, 98));
-  const shell = new Shell({ fs, limits: { maxWallClockMs: 2000 } }).use(agentCommands()).use(cmpCommands());
+  const shell = new Shell({ fs, limits: { maxWallClockMs: 2000 } }).use(agentCommands()).use(cmpCommands({ replace: true }));
   try {
     for (const lines of [1, 3]) {
       const status = "; printf 'status:%s\\n' \"${PIPESTATUS[*]}\"";
@@ -221,8 +221,11 @@ test("independent cmp VFS script workflow preserves status and output redirectio
   await fs.writeFile("/left", Buffer.from("a"));
   await fs.writeFile("/right", Buffer.from("b"));
   await fs.writeFile("/job.sh", Buffer.from("cmp -s /left /right\nprintf 'different:%s\\n' \"$?\"\ncmp -n0 /left /right\nprintf 'zero:%s\\n' \"$?\"\ncmp -b /left /right >/difference\ncat /difference\n"));
-  const shell = new Shell({ fs }).use(agentCommands()).use(cmpCommands());
+  const shell = new Shell({ fs }).use(agentCommands());
   try {
+    assert.equal((await shell.exec("command -v cmp")).stdout, "cmp\n");
+    assert.throws(() => cmpCommands().setup(shell), { message: "Command already registered: cmp" });
+    shell.use(cmpCommands({ replace: true }));
     const result = await shell.exec("sh /job.sh");
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");

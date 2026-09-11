@@ -71,6 +71,19 @@ Native skills are never overwritten. Callers, including the spawn runner, surfac
 
 When bridge creates entries inside a git repository, `.git/info/exclude` gets a per-run marked block containing only successfully bridged target entries. Cleanup removes only that run's marked block.
 
+## Validation and safety
+
+- Skill names are canonical path tokens. Blank names and names with surrounding whitespace are rejected.
+- Project skill stat errors are surfaced instead of falling back to a user-scope skill with the same name.
+- Bridged source skill directories must contain only supported filesystem entries.
+- The bridge detects source-skill changes and does not reuse stale active targets after the source changes.
+- Cleanup removes duplicate-run exclude blocks after a manifest is cloned.
+- Workspace-root checks allow the normal macOS `/var` system alias but still reject user-controlled symlink escapes.
+
+## Installing arbitrary skills
+
+`installSkill(agentId, { name, content }, options)` writes one `SKILL.md` file into the selected native skill directory for the agent. `options.scope` is `local` or `global`; callers may also pass `cwd`, `homeDir`, `dryRun`, `fs`, and mutation observers. The higher-level `poe-code skill install` CLI and `poe-code` SDK export use this same path, so validation and dry-run behavior match declarative skill configuration.
+
 ## Public API
 
 ```ts

@@ -14,7 +14,7 @@ function createContext(overrides: Partial<StageContext> = {}): StageContext {
       },
       reviewer: {
         id: "reviewer",
-        agent: ["codex", "kimi"],
+        agent: ["codex", "goose"],
         mode: "read"
       },
       planner: {
@@ -65,7 +65,7 @@ describe("runWorkflowStage", () => {
     );
 
     expect(getRunAgentInput(context)).toEqual({
-      agent: "kimi",
+      agent: "goose",
       prompt: "Review the changes",
       mode: "read",
       cwd: "/workspace"

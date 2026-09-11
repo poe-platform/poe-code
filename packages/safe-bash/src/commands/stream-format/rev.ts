@@ -1,3 +1,4 @@
+import { PublicDiagnostic } from "../../diagnostics.js";
 import type { CommandDefinition } from "../../contracts/index.js";
 import { diagnostic, options, UsageError } from "../internal.js";
 import { command, records, type Session, type StreamFormatLimits } from "./shared.js";
@@ -49,7 +50,7 @@ export function createRevCommand(limits: StreamFormatLimits): CommandDefinition 
           await session.text("\n");
         }
         if (length !== record.length) {
-          await diagnostic(session.context, new Error(`${name === "-" ? "stdin" : name}: Illegal byte sequence`));
+          await diagnostic(session.context, new PublicDiagnostic(`${name === "-" ? "stdin" : name}: Illegal byte sequence`));
           session.failed = true;
           break;
         }

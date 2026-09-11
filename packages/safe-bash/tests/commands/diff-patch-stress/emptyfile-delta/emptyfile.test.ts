@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, execute, observe, setup, snapshot, target } from "./helpers.js";
+import { Shell, diffPatchCommands } from "../../../../src/index.js";
+import { contents, execute, observe, quote, setup, snapshot, target } from "./helpers.js";
 import { created, creation, deletion, formats, payload, vectors } from "./vectors.js";
 
 for (const vector of vectors) test(`${vector.status === 0 ? "GNU default" : "atomic extension no-publication"}: ${vector.name}`, { timeout: 4000 }, async () => {
@@ -91,12 +92,31 @@ for (const method of ["writeFile", "rm"] as const) for (const after of [false, t
     const fs = await setup();
     for (const name of ["first", "second", "third"]) await fs.writeFile(`/work/${name}`, Buffer.from(method === "rm" ? payload : ""));
     const observed = observe(fs, { method, path: "/work/second", after });
+    const failures: unknown[] = [], reported: unknown[] = [];
+    const source = new Proxy(observed.fs, { get(backing, property) {
+      const value: unknown = Reflect.get(backing, property, backing);
+      if (typeof value !== "function") return value;
+      if (property !== method) return value.bind(backing);
+      return async (...args: unknown[]) => {
+        try { return await Reflect.apply(value, backing, args); }
+        catch (error) { failures.push(error); throw error; }
+      };
+    } });
     const controller = new AbortController();
     const input = ["first", "second", "third"].map(name => method === "rm" ? deletion("context", name) : creation("unified", name)).join("");
-    const result = await execute(observed.fs, ["--atomic", "--remove-empty-files"], input, controller.signal);
+    const shell = new Shell({ fs: source, cwd: "/work", limits: { maxOutputBytes: 65_536 }, onInternalError(error) { reported.push(error); } }).use(diffPatchCommands());
+    let result;
+    try { result = await shell.exec(["patch", "--atomic", "--remove-empty-files"].map(quote).join(" "), { stdin: input, signal: controller.signal }); }
+    finally { await shell.dispose(); }
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /commit stopped; 1\/3 files committed; failing operation may have side effects/u);
-    assert.match(result.stderr, new RegExp(`injected-${after ? "after" : "before"}-effect`, "u"));
+    assert.match(result.stderr, /internal error/u);
+    assert.doesNotMatch(result.stderr, /injected-(?:before|after)-effect/u);
+    assert.equal(failures.length, 1);
+    assert.equal(reported.length, 1);
+    assert.equal(reported[0], failures[0]);
+    assert.ok(failures[0] instanceof Error);
+    assert.equal(failures[0].message, `injected-${after ? "after" : "before"}-effect`);
     assert.equal(result.stdout, "");
     const original = method === "rm" ? payload : "";
     const changed = method === "rm" ? null : created;

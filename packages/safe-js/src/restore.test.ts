@@ -2,9 +2,27 @@ import { describe, expect, it } from "vitest";
 
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
+import { run } from "./run.js";
 import { SnapshotValidationError } from "./snapshot/validation.js";
 
 describe("restore", () => {
+  it("does not transfer runtime snapshot trust to a copied envelope", async () => {
+    const source = "host.extra=7;return host()";
+    const result = await run(source, { bindings: { host: () => 1 } });
+    expect(restore(result.snapshot, { source })).toBe(result.snapshot);
+    expect(() => restore({ ...result.snapshot }, { source })).toThrow("cannot be restored");
+  });
+
+  it("rejects an execution-semantics accessor without evaluating it", () => {
+    let reads = 0;
+    const snapshot = Object.defineProperty({ version: 1, sourceHash: hashSource("1") }, "executionSemantics", {
+      enumerable: true,
+      get() { reads++; throw new Error("snapshot getter ran"); }
+    });
+    expect(() => restore(snapshot, { source: "1" })).toThrow("must be a data property");
+    expect(reads).toBe(0);
+  });
+
   it("accepts snapshots whose source hash matches the current source", () => {
     const snapshot = {
       version: 1,
@@ -30,17 +48,26 @@ describe("restore", () => {
     expect(restore(snapshot, { source: "1 + 2" })).toBe(snapshot);
   });
 
-  it("accepts snapshots when only formatting and raw literal syntax change", () => {
+  it("accepts formatting and raw literal changes outside function source", () => {
     const snapshot = {
       version: 1,
-      sourceHash: hashSource("({ value = 0x1f }) => `hi ${value}`")
+      sourceHash: hashSource("const { value = 0x1f } = {}; `hi ${value}`")
     };
 
     expect(
       restore(snapshot, {
-        source: "({value = 31}) => `hi ${ value }`"
+        source: "const {value = 31}={}; `hi ${ value }`"
       })
     ).toBe(snapshot);
+  });
+
+  it("rejects raw literal changes observable through function toString", () => {
+    const snapshot = {
+      version: 1,
+      sourceHash: hashSource("({ value = 0x1f }) => `hi ${value}`")
+    };
+    expect(() => restore(snapshot, { source: "({value = 31}) => `hi ${ value }`" }))
+      .toThrow("source changed since snapshot");
   });
 
   it("rejects snapshots when the source hash no longer matches", () => {
@@ -67,7 +94,7 @@ describe("restore", () => {
 
   it.each([
     ["missing version", { sourceHash: hashSource("1 + 2") }, "$.version"],
-    ["unknown version", { version: 2, sourceHash: hashSource("1 + 2") }, "$.version"],
+    ["unknown version", { version: 3, sourceHash: hashSource("1 + 2") }, "$.version"],
     ["missing hash", { version: 1 }, "$.sourceHash"],
     [
       "unsafe clock cursor",
@@ -138,7 +165,7 @@ describe("restore", () => {
 
   it("does not expose host stack frames", () => {
     try {
-      restore({ version: 2, sourceHash: "bad" }, { source: "1 + 2" });
+      restore({ version: 3, sourceHash: "bad" }, { source: "1 + 2" });
     } catch (error) {
       expect(error).toBeInstanceOf(SnapshotValidationError);
       expect((error as Error).stack).toBe(

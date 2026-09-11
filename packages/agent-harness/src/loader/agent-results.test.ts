@@ -39,7 +39,7 @@ describe("agent result policies through the harness loader", () => {
     expect(vol.existsSync(options.snapshotPath)).toBe(true);
     expect(spawn).toHaveBeenCalledOnce();
     const snapshot = JSON.parse(vol.readFileSync(options.snapshotPath, "utf8") as string);
-    expect(snapshot.executionSemantics).toBe("jobs-v7");
+    expect(snapshot.executionSemantics).toBe("jobs-v8");
     expect(() =>
       restore(snapshot, { source: vol.readFileSync("/repo/test.ajs", "utf8") as string })
     ).not.toThrow();

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { gunzipSync } from "node:zlib";
+import { FsError } from "../../../../src/contracts/errors.js";
+import { MockS3Client, S3FileSystem } from "../../../../src/fs/s3/index.js";
 
 const historical = new URL("./historical/", import.meta.url);
 const repository = new URL("../../../../", import.meta.url);
@@ -10,11 +11,6 @@ const manifest = JSON.parse(readFileSync(new URL("manifest.json", historical), "
   survivingClassificationReport: { archived: string; sha256: string };
   unavailablePriorRaw: { existsAtSeal: boolean };
   originalFixture: { path: string; archived: string; sha256: string };
-  originalFailure: {
-    raw: { path: string; storedSha256: string; decodedSha256: string; lineStart: number; lineEnd: number; excerptSha256: string };
-    repositoryManifest: { path: string; sha256: string };
-    routing: { path: string; sha256: string; id: string; name: string; error: string; assertionPath: string };
-  };
 };
 const sha256 = (bytes: Uint8Array | string): string => createHash("sha256").update(bytes).digest("hex");
 
@@ -25,22 +21,29 @@ test("historical report and unconditional fixture remain authenticated captured 
   assert.equal(manifest.unavailablePriorRaw.existsAtSeal, false);
 });
 
-test("original frozen raw rejection failure remains authenticated and failing", () => {
-  const { raw, routing, repositoryManifest } = manifest.originalFailure;
-  const stored = readFileSync(new URL(raw.path, repository));
-  assert.equal(sha256(stored), raw.storedSha256);
-  const decoded = gunzipSync(Buffer.from(stored.toString().trim(), "base64"));
-  assert.equal(sha256(decoded), raw.decodedSha256);
-  const excerpt = decoded.toString().split("\n").slice(raw.lineStart - 1, raw.lineEnd).join("\n") + "\n";
-  assert.equal(sha256(excerpt), raw.excerptSha256);
-  assert.ok(excerpt.includes(`not ok 16491 - ${routing.name}`));
-  assert.ok(excerpt.includes(`error: '${routing.error}'`));
-  assert.ok(excerpt.includes(routing.assertionPath));
-  const routingBytes = readFileSync(new URL(routing.path, repository));
-  assert.equal(sha256(routingBytes), routing.sha256);
-  const failures = (JSON.parse(routingBytes.toString()) as { failures: { id: string; status: string; error: string }[] }).failures;
-  assert.deepEqual(failures.filter(failure => failure.id === routing.id).map(failure => [failure.status, failure.error]), [["fail", "Missing expected rejection."]]);
-  assert.equal(sha256(readFileSync(new URL(repositoryManifest.path, repository))), repositoryManifest.sha256);
+test("live S3 snapshot removal still fails the unconditional rejection assertion", async () => {
+  const bucket = "safe-workflows";
+  const mock = new MockS3Client({ buckets: [bucket] });
+  const fs = new S3FileSystem({ transport: mock, bucket });
+  const nested = "/work/scratch/nested";
+  await fs.mkdir(nested, { recursive: true });
+  await fs.writeFile("/sentinel", new Uint8Array([255, 3]));
+  assert.equal(fs.capabilities.snapshotRmdir, true);
+  const requestStart = mock.requests.length;
+  await assert.rejects(assert.rejects(fs.rmdir(nested), error => {
+    assert.ok(error instanceof FsError);
+    assert.equal(error.code, "ENOTSUP");
+    assert.equal(error.syscall, "rmdir");
+    assert.equal(error.path, nested);
+    return true;
+  }), { code: "ERR_ASSERTION", message: "Missing expected rejection." });
+  assert.deepEqual(mock.requests.slice(requestStart).filter(request =>
+    ["putObject", "copyObject", "deleteObject"].includes(request.operation)), [
+    { operation: "deleteObject", input: { Bucket: bucket, Key: "work/scratch/nested/" } },
+  ]);
+  await assert.rejects(fs.stat(nested), { code: "ENOENT" });
+  for (const path of ["/work", "/work/scratch"]) assert.equal((await fs.stat(path)).type, "directory");
+  assert.deepEqual(await fs.readFile("/sentinel"), new Uint8Array([255, 3]));
 });
 
 test("migration preserves original workflow inputs, unrelated cases and exact WebDAV refusal guards", () => {

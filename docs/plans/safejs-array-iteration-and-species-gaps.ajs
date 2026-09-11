@@ -1,0 +1,28 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Items extends Array {}
+  const values = new Items(1, 2);
+  const results = [values.map(x => x), values.filter(x => true), values.slice(),
+    values.concat(3), values.flat(), values.flatMap(x => [x]), values.splice(0, 1)];
+  for (const result of results) {
+    if (!(result instanceof Items)) throw new Error("Array species was not preserved");
+  }
+  const log = [];
+  const source = [1, 2];
+  source.constructor = { [Symbol.species]: function(length) {
+    log.push(length);
+    return { set length(value) { log.push(value); } };
+  } };
+  const mapped = source.map(x => x * 2);
+  const sliced = source.slice();
+  await 0;
+  if (mapped[0] !== 2 || sliced[1] !== 2 || log.length !== 3 ||
+      log[0] !== 2 || log[1] !== 2 || log[2] !== 2 ||
+      values.toReversed() instanceof Items || Array[Symbol.species] !== Array) {
+    throw new Error("Custom species result semantics failed");
+  }
+  return { title: frontmatter.title, ok: true, methods: results.length, log };
+};

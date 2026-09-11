@@ -1,0 +1,12 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  function* values() { yield 1e20; yield 0.1; yield -1e20; }
+  const result = Math.sumPrecise(values());
+  if (result !== 0.1 || !Object.is(Math.sumPrecise([]), -0)) {
+    throw new Error("Exact summation validation failed");
+  }
+  return { title: frontmatter.title, ok: true, result };
+};

@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  if (Math.abs.name !== "abs" || Math.abs.length !== 1 || Math.random.length !== 0) {
+    throw new Error("Math function metadata validation failed");
+  }
+  Object.defineProperty(Math.abs, "name", { value: "absolute" });
+  Math.abs.extra = 7;
+  if (Math.abs.name !== "absolute" || Math.abs.extra !== 7 || Math.abs(-7) !== 7) {
+    throw new Error("Math function mutation validation failed");
+  }
+  return { title: frontmatter.title, ok: true, name: Math.abs.name };
+};

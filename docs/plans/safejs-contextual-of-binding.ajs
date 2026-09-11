@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const of = 8;
+  const ratio = of / 2;
+  const formatted = `quarter=${of / 4}`;
+  let total = 0;
+  for (const of of [2, 4]) total += of;
+  let letters = "";
+  for (const of of /xy/.source) letters += of;
+  const read = of => of + 1;
+  await 0;
+  if (ratio !== 4 || formatted !== "quarter=2" || total !== 6 ||
+      letters !== "xy" || read(of) !== 9 || { of }.of !== 8) {
+    throw new Error("Contextual of parser regression");
+  }
+  return { title: frontmatter.title, ok: true, ratio, total, letters };
+};

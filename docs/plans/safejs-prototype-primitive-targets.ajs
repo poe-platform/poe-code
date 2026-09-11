@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let checked=0;
+  for(const value of [42,true,"text",Symbol("x")]) {
+    if(Object.setPrototypeOf(value,{})!==value || Object.setPrototypeOf(value,null)!==value) {
+      throw new Error("Primitive target was changed");
+    }
+    let rejected=false;
+    try {Object.setPrototypeOf(value,1)}catch(error){rejected=error instanceof TypeError}
+    if(!rejected) throw new Error("Invalid prototype accepted");
+    checked++;
+  }
+  return {title:frontmatter.title,ok:true,checked};
+};

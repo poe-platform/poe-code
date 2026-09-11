@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { Decimal, isNumber, numberText } from "./numbers.js";
 
 export type Json = null | boolean | number | Decimal | string | Json[] | { [key: string]: Json };
@@ -45,6 +45,7 @@ export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
 export class Budget {
   private steps = 0;
   private nextYield = 1024;
+  private lastYield = monotonicNow();
   inputBytes = 0;
   outputBytes = 0;
   results = 0;
@@ -55,12 +56,13 @@ export class Budget {
     this.steps += count;
     if (this.steps > this.limits.maxSteps) throw new JqLimitError("maxSteps");
   }
-  async tick(): Promise<void> {
-    this.step();
-    if (this.steps >= this.nextYield) {
-      this.nextYield = this.steps + 1024;
+  async tick(count = 1): Promise<void> {
+    this.step(count);
+    if (this.steps >= this.nextYield || monotonicNow() - this.lastYield >= 25) {
       await yieldTurn(this.signal);
       this.signal.throwIfAborted();
+      this.nextYield = this.steps + 1024;
+      this.lastYield = monotonicNow();
     }
   }
   collection(size: number): void {
@@ -88,7 +90,7 @@ export class Budget {
           visit((current as Record<string, Json>)[key]!, depth + 1);
         }
       } else {
-        if (typeof current === "string") this.text(current);
+        if (typeof current === "string") { this.step(current.length); this.text(current); }
         bytes += Buffer.byteLength(scalarJson(current, this));
       }
       if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
@@ -104,6 +106,11 @@ export function object(): Record<string, Json> {
   return result;
 }
 export function objectKeys(value: Record<string, Json>): string[] { return keyOrders.get(value)?.slice() ?? Object.keys(value); }
+export function* objectKeyIterator(value: Record<string, Json>): IterableIterator<string> {
+  const keys = keyOrders.get(value);
+  if (keys) yield* keys;
+  else for (const key in value) if (Object.hasOwn(value, key)) yield key;
+}
 export function objectSize(value: Record<string, Json>): number { return keyOrders.get(value)?.length ?? Object.keys(value).length; }
 export function put(value: Record<string, Json>, key: string, item: Json): void {
   if (!Object.hasOwn(value, key)) keyOrders.get(value)?.push(key);

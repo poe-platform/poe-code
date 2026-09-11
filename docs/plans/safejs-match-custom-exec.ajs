@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const regex = /a/g;
+  const cursors = [];
+  Object.defineProperty(regex, 'unicode', { value: true });
+  regex.exec = function(input) {
+    if (input !== '😀') throw new Error('Wrong exec input');
+    cursors.push(this.lastIndex);
+    return cursors.length === 1 ? { 0: '' } : null;
+  };
+  const matches = '😀'.match(regex);
+  if (matches.length !== 1 || matches[0] !== '' || cursors.join('|') !== '0|2')
+    throw new Error('Custom exec progression failed');
+  const single = /a/;
+  const result = { custom: true };
+  single.exec = () => result;
+  if ('a'.match(single) !== result) throw new Error('Result identity failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, matches, cursors, identity: true };
+}

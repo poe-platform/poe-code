@@ -26,6 +26,7 @@ globalThis.RegExp = new Proxy(NativeRegExp, {
   },
 });
 const api = await import(process.argv[2] ?? "virtual-bash");
+const { createNodeRegexProvider } = await import(process.argv[2] === undefined ? "virtual-bash/node" : new URL("./node.js", process.argv[2]).href);
 const mode = process.argv[3] ?? "controls";
 const evidence = { node: process.version, mode, checks: [], hostPatterns, workers: [] };
 const state = () => workers.map(worker => ({ exited: worker.exited, threadId: worker.threadId, terminationCalls: worker.terminationCalls, listeners: Object.fromEntries(["message", "messageerror", "error", "exit"].map(event => [event, worker.listenerCount(event)])) }));
@@ -55,7 +56,7 @@ async function fixture(files) {
 async function run(name, command, expected, files = {}, stdin) {
   const fs = await fixture(files);
   const before = workers.length;
-  const shell = new api.Shell({ fs, cwd: "/work" }).use(api.agentCommands());
+  const shell = new api.Shell({ fs, cwd: "/work" }).use(api.agentCommands({ regexExecutor: createNodeRegexProvider() }));
   check(`${name}: registration`, () => assert.equal(workers.length, before));
   try {
     const result = await shell.exec(command, stdin === undefined ? {} : { stdin });
@@ -67,7 +68,7 @@ async function run(name, command, expected, files = {}, stdin) {
 try {
   if (mode === "lifecycle") {
     for (const command of ["grep -E '^a' | head -n 1", "rg '^a' | head -n 1"]) {
-      const shell = new api.Shell({ fs: new api.MemoryFileSystem() }).use(api.agentCommands());
+      const shell = new api.Shell({ fs: new api.MemoryFileSystem() }).use(api.agentCommands({ regexExecutor: createNodeRegexProvider() }));
       const result = await shell.exec(command, { stdin: "ab\n".repeat(200) });
       check(`${command}: triple`, () => assert.deepEqual({ code: result.exitCode, stdout: result.stdout, stderr: result.stderr }, { code: 0, stdout: "ab\n", stderr: "" }));
       check(`${command}: exec exact cleanup`, () => assert.equal(workers.filter(worker => !worker.exited).length, 0));
@@ -87,7 +88,7 @@ try {
     await run("ignore", "rg --files", { code: 0, stdout: "ALPHA.TS\nalpha.js\nsub/alpha.ts\nsub/beta.md\n", stderr: "" }, { ...files, ".ignore": "alpha.ts\n", "sub/.ignore": "!alpha.ts\n" });
     await run("override", "rg --files -g 'alpha.ts'", { code: 0, stdout: "alpha.ts\nsub/alpha.ts\n", stderr: "" }, { ...files, ".ignore": "alpha.ts\n" });
     check("host glob containment", () => assert.deepEqual(hostPatterns, []));
-    const shell = new api.Shell({ fs: await fixture(files), cwd: "/work" }).use(api.agentCommands());
+    const shell = new api.Shell({ fs: await fixture(files), cwd: "/work" }).use(api.agentCommands({ regexExecutor: createNodeRegexProvider() }));
     try {
       const malformed = await shell.exec("rg -g '[z-a]' -f missing");
       check("malformed glob before pattern-file I/O", () => { assert.equal(malformed.exitCode, 2); assert.match(malformed.stderr, /invalid glob/u); assert.doesNotMatch(malformed.stderr, /ENOENT|no such/u); });

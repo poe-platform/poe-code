@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const regex = /a/g;
+  Object.defineProperty(regex, 'global', { value: false });
+  const single = 'aa'.match(regex);
+  if (single.length !== 1 || single.index !== 0) throw new Error('Global override ignored');
+  const empty = /()/g;
+  Object.defineProperty(empty, 'unicode', { value: true });
+  const matches = '😀'.match(empty);
+  if (matches.length !== 2) throw new Error('Unicode advancement failed');
+  const installed = /a/g;
+  Object.defineProperty(installed, 'global', { get() { installed.exec = () => null; return true; } });
+  if ('a'.match(installed) !== null) throw new Error('Getter-installed exec ignored');
+  await 0;
+  return { ok: true, title: frontmatter.title, single: single[0], index: single.index, emptyMatches: matches.length };
+}

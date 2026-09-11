@@ -573,7 +573,11 @@ describe("run snapshot checkpointing", () => {
       i: 0,
       total: 0
     });
-    await flushMicrotasks();
+    // The first yield is the loop entry. Observe its pending await explicitly
+    // before requesting the next iteration, without relying on microtask counts.
+    const firstAwaitSnapshot = JSON.parse(await dump(result));
+    expect(firstAwaitSnapshot.pendingAwaits[0].span.start.line).toBe(4);
+    expect(firstAwaitSnapshot.bindings).toMatchObject({ i: 0, total: 0 });
     const snapshotPromise = dump(result);
     waits[0]?.resolve();
     await flushMicrotasks();

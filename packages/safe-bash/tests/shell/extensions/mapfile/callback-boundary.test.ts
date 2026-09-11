@@ -20,7 +20,7 @@ for (const origin of origins) for (const prefix of prefixes) {
 
   test(`mapfile callback capacity ${origin} ${prefix.name}: exact native effects`, {}, async context => {
     const native = primaryReference(import.meta.url, script, input);
-    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });
     for (const command of basicCommands()) shell.register(command);
     context.after(() => shell.dispose());
     const actual = await shell.exec(script, { stdin: Buffer.from(input) });
@@ -30,7 +30,7 @@ for (const origin of origins) for (const prefix of prefixes) {
   });
 
   test(`mapfile callback capacity ${origin} ${prefix.name}: admitted source bytes`, async context => {
-    const extension = mapfileExtension();
+    const extension = mapfileExtension({ replace: true });
     const create = extension.create;
     const sources: Buffer[] = [];
     extension.create = () => {

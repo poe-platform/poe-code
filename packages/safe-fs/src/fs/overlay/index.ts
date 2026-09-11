@@ -1,5 +1,5 @@
 import { platform } from "#safe-fs-platform";
-import { requireCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, requireCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -11,8 +11,8 @@ import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry,
-  FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions,
+  AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
+  FileStat, FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions,
   ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 
@@ -55,12 +55,14 @@ interface LinkOrigin {
 type LinkMetadata = Pick<FileStat, "mode" | "atimeMs" | "mtimeMs">;
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, ioBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
     ...(ioBlockSize === undefined ? {} : { ioBlockSize }),
+    ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
+    ...(revision === undefined ? {} : { revision }),
     ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
@@ -133,6 +135,9 @@ export class OverlayFileSystem implements FileSystem {
       typeof backend.readStream === "function" ? backend.capabilities.streamingRead : false);
     const streamingRead = readable.every((capability) => capability === true) ? true
       : readable.every((capability) => capability === false) ? false : undefined;
+    const retained = [this.#upper, this.#lower].map((backend) => retainedReadCapabilities(backend).retainedRead);
+    const retainedRead = retained.every((capability) => capability === true) ? true
+      : retained.every((capability) => capability === false) ? false : undefined;
     const streamingWrite = writable && this.#upper.capabilities.streamingWrite === true
       && this.#upper.capabilities.streamingRead === true
       && typeof this.#upper.writeStream === "function" && typeof this.#upper.readStream === "function"
@@ -165,12 +170,15 @@ export class OverlayFileSystem implements FileSystem {
     this.capabilities = Object.freeze({
       ...semantics,
       open: false,
+      atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,
       ...(upper.readOnly === undefined ? {} : { readOnly: upper.readOnly }),
       ...(effectiveAppend === undefined ? {} : { append: effectiveAppend }),
-      atomicRename: false,
+      atomicRename: false, atomicRenameNoReplace: false,
+      descriptorWriteStream: false,
+      retainedResize: false, atomicResize: false,
       hardlinks: false,
       symlinks: writable && this.#upper.capabilities.symlinks === true
         && typeof this.#upper.symlink === "function" && typeof this.#upper.readlink === "function"
@@ -178,6 +186,7 @@ export class OverlayFileSystem implements FileSystem {
       permissions: writable && this.#upper.capabilities.permissions === true && typeof this.#upper.chmod === "function",
       timestamps: writable && this.#upper.capabilities.timestamps === true && typeof this.#upper.utimes === "function",
       ...(streamingRead === undefined ? {} : { streamingRead }),
+      ...(retainedRead === undefined ? {} : { retainedRead }),
       ...(effectiveStreamingWrite === undefined ? {} : { streamingWrite: effectiveStreamingWrite }),
     });
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
@@ -205,6 +214,31 @@ export class OverlayFileSystem implements FileSystem {
     } finally {
       release();
     }
+  }
+
+  capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
+    return this.run(options, async () => {
+      const location = await this.resolve(path, options, true, true);
+      const backend = location.entry?.backend ?? this.#upper;
+      const capabilities = await backend.capabilitiesFor?.(location.path, options) ?? backend.capabilities;
+      options.signal?.throwIfAborted();
+      const { retainedRead: ignoredRetainedRead, ...composed } = this.capabilities;
+      const retainedRead = retainedReadCapabilities(backend, capabilities).retainedRead;
+      return Object.freeze({ ...composed, ...(retainedRead === undefined ? {} : { retainedRead }) });
+    }, false);
+  }
+
+  openReadFile(path: string, options: OpenReadFileOptions = {}) {
+    return this.run(options, async () => {
+      const entry = await this.required(path, options);
+      if (entry.stat.type !== "file") {
+        const allowDirectory = options.allowDirectory === true;
+        options.signal?.throwIfAborted();
+        if (entry.stat.type !== "directory" || !allowDirectory) fail("EISDIR", path);
+      }
+      this.permission(entry, 4);
+      return openRetainedReadFile(entry.backend, entry.path, options);
+    }, false);
   }
 
   private writable(path: string): void {
@@ -690,8 +724,9 @@ export class OverlayFileSystem implements FileSystem {
     if (entry.stat.type === "directory") await this.preserve(entry.path, entry.stat, options);
   }
 
-  async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {
+  async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     return this.run(options, async () => {
+      if (options.noReplace) fail("ENOTSUP", source, "atomic no-replace rename is unsupported");
       this.writable(source);
       const original = await this.required(source, options, false);
       const target = await this.resolve(destination, options, false, true);

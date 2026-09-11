@@ -10,7 +10,9 @@ const current = readFileSync(new URL("./review.test.ts", import.meta.url));
 const receipt = readFileSync(new URL("./fixture-revision.json", import.meta.url));
 const observerInsertion = '      observe() { throw new Error("Mapfile must not acquire a descriptor observer"); },\n';
 const referenceInsertion = '      async prepareReference() { throw new Error("unexpected reference binding"); },\n';
-const observerOffset = 6884 + Buffer.byteLength(referenceInsertion);
+const observerOffset = current.indexOf(observerInsertion);
+const currentReferenceOffset = current.indexOf(referenceInsertion);
+assert.ok(observerOffset > 0 && currentReferenceOffset > 0);
 const referenceOffset = 6677;
 const expectedRevision = {
   fixture: fixture.file,
@@ -53,6 +55,59 @@ const syntaxRevision = {
   ],
 };
 const expectedReceipt = { schemaVersion: 3, referenceSHA256, fixtures: [expectedRevision, syntaxRevision] };
+const replacementReceipt = JSON.parse(receipt.toString()) as {
+  schemaVersion: number; predecessor: typeof expectedReceipt;
+  revisions: { fixture: string; previousSHA256: string; currentSHA256: string; replacements: { offset: number; insertion: string; removed: string; beforeSHA256: string; afterSHA256: string }[] }[];
+};
+
+function predecessorBytes(file: string, bytes: Uint8Array): Buffer {
+  const revision = replacementReceipt.revisions.find(entry => entry.fixture === file)!;
+  assert.ok(revision);
+  let reconstructed = Buffer.from(bytes);
+  for (const step of [...revision.replacements].reverse()) {
+    assert.equal(createHash("sha256").update(reconstructed).digest("hex"), step.afterSHA256);
+    const inserted = Buffer.from(step.insertion);
+    assert.deepEqual(reconstructed.subarray(step.offset, step.offset + inserted.length), inserted);
+    reconstructed = Buffer.concat([reconstructed.subarray(0, step.offset), Buffer.from(step.removed), reconstructed.subarray(step.offset + inserted.length)]);
+    assert.equal(createHash("sha256").update(reconstructed).digest("hex"), step.beforeSHA256);
+  }
+  assert.equal(createHash("sha256").update(reconstructed).digest("hex"), revision.previousSHA256);
+  return reconstructed;
+}
+
+test("replacement revision admits only six exact fixture updates with bounded reverse steps", () => {
+  assert.deepEqual(replacementReceipt.revisions.map(entry => [entry.fixture, entry.replacements.length]), [
+    ["arguments.test.ts", 1], ["behavior.test.ts", 1], ["review.test.ts", 8],
+    ["evaluation-exit-review.test.ts", 1], ["callback-boundary.test.ts", 2], ["syntax.test.ts", 7],
+  ]);
+  for (const revision of replacementReceipt.revisions) {
+    const bytes = readFileSync(new URL(revision.fixture, import.meta.url));
+    const historical = predecessorBytes(revision.fixture, bytes);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), revision.currentSHA256);
+    assert.equal(createHash("sha256").update(historical).digest("hex"), revision.previousSHA256);
+    const original = expectedReceipt.fixtures.find(entry => entry.fixture === revision.fixture)?.originalSHA256 ?? revision.previousSHA256;
+    verifyMapfileFixtureRevision({ file: revision.fixture, sha256: original }, bytes, referenceSHA256, receipt);
+    const altered = Buffer.from(bytes);
+    altered[0] = altered[0]! ^ 1;
+    assert.throws(() => verifyMapfileFixtureRevision({ file: revision.fixture, sha256: original }, altered, referenceSHA256, receipt));
+    assert.throws(() => verifyMapfileFixtureRevision({ file: revision.fixture, sha256: original }, historical, referenceSHA256, receipt));
+  }
+});
+
+for (const mutation of ["replacement bytes", "removed bytes", "offset", "missing step", "reordered steps", "predecessor hash", "historical receipt"] as const) {
+  test(`version four rejects drift in ${mutation}`, () => {
+    const altered = structuredClone(replacementReceipt);
+    const revision = altered.revisions[2]!;
+    if (mutation === "replacement bytes") revision.replacements[0]!.insertion += " ";
+    else if (mutation === "removed bytes") revision.replacements[0]!.removed += " ";
+    else if (mutation === "offset") revision.replacements[0]!.offset++;
+    else if (mutation === "missing step") revision.replacements.pop();
+    else if (mutation === "reordered steps") revision.replacements.reverse();
+    else if (mutation === "predecessor hash") revision.previousSHA256 = "0".repeat(64);
+    else altered.predecessor.fixtures[0]!.insertions[0]!.insertion += " ";
+    assert.throws(() => verifyMapfileFixtureRevision(fixture, current, referenceSHA256, Buffer.from(JSON.stringify(altered, null, 2) + "\n")));
+  });
+}
 
 test("the exact observer mock insertion reconstructs the sealed native fixture", () => {
   verifyMapfileFixtureRevision(fixture, current, referenceSHA256, receipt);
@@ -96,17 +151,19 @@ test("receipt tampering is rejected before parsing", () => {
 });
 
 test("the receipt and candidate fixture retain their admission size limits", () => {
-  assert.throws(() => verifyMapfileFixtureRevision(fixture, current, referenceSHA256, Buffer.alloc(4097)));
+  assert.throws(() => verifyMapfileFixtureRevision(fixture, current, referenceSHA256, Buffer.alloc(16385)));
   assert.throws(() => verifyMapfileFixtureRevision(fixture, Buffer.alloc(65537), referenceSHA256, receipt));
 });
 
-test("version three retains the exact review insertion chain alongside the syntax revision", () => {
-  assert.deepEqual(JSON.parse(receipt.toString()), expectedReceipt);
+test("version four retains the exact version-three receipt and historical insertion chains", () => {
+  assert.equal(replacementReceipt.schemaVersion, 4);
+  assert.deepEqual(replacementReceipt.predecessor, expectedReceipt);
+  assert.equal(createHash("sha256").update(JSON.stringify(replacementReceipt.predecessor, null, 2) + "\n").digest("hex"), "b07cc2354705898b8da94433f47c9cf59eae3bf9045622ef720b434b0708ed09");
   verifyMapfileFixtureRevision(fixture, current, referenceSHA256, receipt);
 });
 
 test("each inverse step reconstructs its sealed predecessor and finally the native fixture", () => {
-  let reconstructed = Buffer.from(current);
+  let reconstructed = predecessorBytes(fixture.file, current);
   for (const step of [...expectedRevision.insertions].reverse()) {
     assert.equal(createHash("sha256").update(reconstructed).digest("hex"), step.afterSHA256);
     const insertion = Buffer.from(step.insertion);
@@ -120,19 +177,20 @@ test("each inverse step reconstructs its sealed predecessor and finally the nati
 
 test("altering the new unexpected-call failure is not an authorized insertion", () => {
   const altered = Buffer.from(current);
-  altered[referenceOffset + 6] = altered[referenceOffset + 6]! ^ 1;
+  altered[currentReferenceOffset + 6] = altered[currentReferenceOffset + 6]! ^ 1;
   assert.throws(() => verifyMapfileFixtureRevision(fixture, altered, referenceSHA256, receipt));
 });
 
 test("removing only the new insertion cannot admit the predecessor as the current fixture", () => {
-  const predecessor = Buffer.concat([current.subarray(0, referenceOffset), current.subarray(referenceOffset + Buffer.byteLength(referenceInsertion))]);
+  const historical = predecessorBytes(fixture.file, current);
+  const predecessor = Buffer.concat([historical.subarray(0, referenceOffset), historical.subarray(referenceOffset + Buffer.byteLength(referenceInsertion))]);
   assert.equal(createHash("sha256").update(predecessor).digest("hex"), expectedRevision.insertions[1]!.beforeSHA256);
   assert.throws(() => verifyMapfileFixtureRevision(fixture, predecessor, referenceSHA256, receipt));
 });
 
 test("moving the new insertion cannot preserve admission", () => {
-  const end = referenceOffset + Buffer.byteLength(referenceInsertion);
-  const moved = Buffer.concat([current.subarray(0, referenceOffset - 1), current.subarray(referenceOffset, end), current.subarray(referenceOffset - 1, referenceOffset), current.subarray(end)]);
+  const end = currentReferenceOffset + Buffer.byteLength(referenceInsertion);
+  const moved = Buffer.concat([current.subarray(0, currentReferenceOffset - 1), current.subarray(currentReferenceOffset, end), current.subarray(currentReferenceOffset - 1, currentReferenceOffset), current.subarray(end)]);
   assert.throws(() => verifyMapfileFixtureRevision(fixture, moved, referenceSHA256, receipt));
 });
 
@@ -149,7 +207,7 @@ const mutations: readonly { name: string; change(revision: typeof expectedRevisi
 for (const mutation of mutations) test(`receipt rejects ${mutation.name}`, () => {
   const altered = structuredClone(expectedReceipt);
   mutation.change(altered.fixtures[0]!);
-  assert.throws(() => verifyMapfileFixtureRevision(fixture, current, referenceSHA256, Buffer.from(JSON.stringify(altered, null, 2) + "\n")));
+  assert.throws(() => verifyMapfileFixtureRevision(fixture, current, referenceSHA256, Buffer.from(JSON.stringify({ ...replacementReceipt, predecessor: altered }, null, 2) + "\n")));
 });
 
 test("receipt rejects old receipt schema", () => {
@@ -159,7 +217,7 @@ test("receipt rejects old receipt schema", () => {
 
 test("syntax capability comparison reconstructs the entire original sealed test", () => {
   verifyMapfileFixtureRevision(syntaxFixture, syntaxCurrent, referenceSHA256, receipt);
-  let reconstructed = Buffer.from(syntaxCurrent);
+  let reconstructed = predecessorBytes(syntaxFixture.file, syntaxCurrent);
   for (const step of [...syntaxRevision.insertions].reverse()) {
     assert.equal(createHash("sha256").update(reconstructed).digest("hex"), step.afterSHA256);
     const insertion = Buffer.from(step.insertion);
@@ -178,7 +236,8 @@ for (const offset of [684, 721, 0, syntaxCurrent.length - 2]) test(`syntax fixtu
 
 test("syntax fixture rejects undoing only the second capability projection", () => {
   const step = syntaxRevision.insertions[1]!;
-  const predecessor = Buffer.concat([syntaxCurrent.subarray(0, step.offset), syntaxCurrent.subarray(step.offset + Buffer.byteLength(step.insertion))]);
+  const historical = predecessorBytes(syntaxFixture.file, syntaxCurrent);
+  const predecessor = Buffer.concat([historical.subarray(0, step.offset), historical.subarray(step.offset + Buffer.byteLength(step.insertion))]);
   assert.equal(createHash("sha256").update(predecessor).digest("hex"), step.beforeSHA256);
   assert.throws(() => verifyMapfileFixtureRevision(syntaxFixture, predecessor, referenceSHA256, receipt));
 });
@@ -193,16 +252,16 @@ test("review and syntax fixture identities cannot be exchanged", () => {
 test("receipt rejects transplanting the review insertion chain onto the syntax fixture", () => {
   const altered = structuredClone(expectedReceipt);
   altered.fixtures[1]!.insertions = altered.fixtures[0]!.insertions;
-  assert.throws(() => verifyMapfileFixtureRevision(syntaxFixture, syntaxCurrent, referenceSHA256, Buffer.from(JSON.stringify(altered, null, 2) + "\n")));
+  assert.throws(() => verifyMapfileFixtureRevision(syntaxFixture, syntaxCurrent, referenceSHA256, Buffer.from(JSON.stringify({ ...replacementReceipt, predecessor: altered }, null, 2) + "\n")));
 });
 
 test("syntax receipt offsets and intermediate hashes remain authenticated", () => {
   const moved = structuredClone(expectedReceipt);
   moved.fixtures[1]!.insertions[0]!.offset++;
-  assert.throws(() => verifyMapfileFixtureRevision(syntaxFixture, syntaxCurrent, referenceSHA256, Buffer.from(JSON.stringify(moved, null, 2) + "\n")));
+  assert.throws(() => verifyMapfileFixtureRevision(syntaxFixture, syntaxCurrent, referenceSHA256, Buffer.from(JSON.stringify({ ...replacementReceipt, predecessor: moved }, null, 2) + "\n")));
   const replaced = structuredClone(expectedReceipt);
   replaced.fixtures[1]!.insertions[1]!.beforeSHA256 = "0".repeat(64);
-  assert.throws(() => verifyMapfileFixtureRevision(syntaxFixture, syntaxCurrent, referenceSHA256, Buffer.from(JSON.stringify(replaced, null, 2) + "\n")));
+  assert.throws(() => verifyMapfileFixtureRevision(syntaxFixture, syntaxCurrent, referenceSHA256, Buffer.from(JSON.stringify({ ...replacementReceipt, predecessor: replaced }, null, 2) + "\n")));
 });
 
 test("native reference remains the unchanged authenticated 170-record capture", () => {

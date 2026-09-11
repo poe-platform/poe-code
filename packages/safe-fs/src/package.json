@@ -1,6 +1,12 @@
 {
   "type": "module",
   "imports": {
+    "#safe-fs-native-seek": {
+      "types": "./native/loader.d.ts",
+      "workerd": null,
+      "browser": null,
+      "default": "./native/loader.mjs"
+    },
     "#safe-fs-platform": {
       "browser": "./platform/browser.js",
       "default": "./platform/node.js"

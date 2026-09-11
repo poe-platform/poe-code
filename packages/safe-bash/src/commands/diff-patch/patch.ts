@@ -1,3 +1,4 @@
+import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { dirname, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
 import { applyHunks, reversePatch, type FilePatch, type HunkOutcome } from "./unified.js";
@@ -294,7 +295,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     catch (error) {
       context.signal.throwIfAborted();
       if (committed === 0 && !publishing) throw error;
-      throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${activePath}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${activePath}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
     }
   }
   if (options.atomic && !options.dryRun) {
@@ -304,7 +305,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       try { await publish(item, budget, rejects); committed++; }
       catch (error) {
         context.signal.throwIfAborted();
-        throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${error instanceof Error ? error.message : String(error)}`);
+        throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
       }
       for (const parent of item.parents) parents.add(parent);
     }

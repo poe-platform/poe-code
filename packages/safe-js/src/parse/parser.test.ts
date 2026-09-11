@@ -113,9 +113,8 @@ describe("parse", () => {
     });
 
     expect(parse("undefined")).toEqual({
-      type: "UndefinedLiteral",
-      raw: "undefined",
-      value: undefined,
+      type: "Identifier",
+      name: "undefined",
       span: {
         start: { line: 1, column: 1, offset: 0 },
         end: { line: 1, column: 10, offset: 9 }
@@ -475,13 +474,11 @@ describe("parse", () => {
   });
 
   it.each([
-    ["generator", "{ *gen() {} }", "Generator shorthand methods are not supported"],
-    ["async generator", "{ async *gen() {} }", "Generator shorthand methods are not supported"],
-    ["getter", "{ get value() { return 1; } }", "Getter shorthand methods are not supported"],
-    ["computed getter", "{ get [value]() {} }", "Getter shorthand methods are not supported"],
-    ["setter", "{ set value(next) {} }", "Setter shorthand methods are not supported"],
-    ["literal setter", "{ set 'value'(next) {} }", "Setter shorthand methods are not supported"]
-  ])("rejects %s object method shorthand clearly", (_syntax, source, message) => {
+    ["getter", "{ get value(next) { return 1; } }", "A getter cannot have parameters"],
+    ["computed getter", "{ get [value](next) {} }", "A getter cannot have parameters"],
+    ["setter", "{ set value() {} }", "A setter must have exactly one non-rest parameter"],
+    ["literal setter", "{ set 'value'(...next) {} }", "A setter must have exactly one non-rest parameter"]
+  ])("rejects invalid or unsupported %s object method syntax", (_syntax, source, message) => {
     expect(() => parse(source)).toThrowError(message);
   });
 
@@ -3340,8 +3337,8 @@ describe("parse", () => {
   });
 
   it("locates invalid regex flags in parser diagnostics", () => {
-    expect(() => parseModule("const pattern = /a/u;")).toThrowError(
-      "Unsupported regex flag 'u' at line 1, column 20."
+    expect(() => parseModule("const pattern = /a/z;")).toThrowError(
+      "Unsupported regex flag 'z' at line 1, column 20."
     );
   });
 
@@ -3444,10 +3441,9 @@ describe("parse", () => {
       }
     });
 
-    expect(() => parse("() => { label: work(); }")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("() => { label: work(); }")).toThrowError(
-      "Disallowed syntax 'label' at line 1, column 9."
-    );
+    expect(parse("() => { label: work(); }")).toMatchObject({
+      body: { body: [{ type: "ExpressionStatement", labels: ["label"] }] }
+    });
 
     expect(parseModule("for (const x in obj) {}")).toMatchObject({
       body: [
@@ -3463,12 +3459,12 @@ describe("parse", () => {
       ]
     });
 
-    expect(() => parseModule("for (const [key] in obj) {}")).toThrowError(
-      "for...in keys are strings; destructure inside the body"
-    );
-    expect(() => parseModule("for ({ key } in obj) {}")).toThrowError(
-      "for...in keys are strings; destructure inside the body"
-    );
+    expect(parseModule("for (const [key] in obj) {}")).toMatchObject({
+      body: [{ type: "ForInStatement", left: { type: "VariableDeclaration", declarations: [{ id: { type: "ArrayPattern" } }] } }]
+    });
+    expect(parseModule("for ({ key } in obj) {}")).toMatchObject({
+      body: [{ type: "ForInStatement", left: { type: "ObjectPattern" } }]
+    });
 
     expect(() => parseModule("break;")).toThrowError(
       "Illegal break statement outside a loop or switch at line 1, column 1."
@@ -3654,15 +3650,15 @@ describe("parse", () => {
     );
   });
 
-  it("parses sync generator declarations and rejects async generators", () => {
+  it("parses sync and async generator declarations", () => {
     expect(parse("function* values() {}")).toMatchObject({
       type: "FunctionDeclaration",
       async: false,
       generator: true
     });
-    expect(() => parse("async function* values() {}")).toThrowError(
-      "async function* is not supported"
-    );
+    expect(parse("async function* values() {} ")).toMatchObject({
+      type: "FunctionDeclaration", async: true, generator: true
+    });
   });
 
   it("does not treat async followed by a line break as an async function declaration", () => {

@@ -1,0 +1,44 @@
+import { S } from "schema";
+
+export const schema = S.Object({title: S.String()});
+
+export default async (frontmatter) => {
+  const order = [];
+  let finish;
+  let reject;
+  let calls = 0;
+  const promise = Promise.resolve({
+    get then() {
+      order.push("getter");
+      return (resolve, fail) => {
+        calls++;
+        finish = resolve;
+        reject = fail;
+        order.push("then");
+      };
+    }
+  });
+  order.push("caller");
+  await 0;
+  const target = {};
+  Object.defineProperty(target, "value", {set: finish});
+  target.value = 7;
+  reject(99);
+  const result = await promise;
+  if (result !== 7 || calls !== 1 || order.join(",") !== "getter,caller,then")
+    throw new Error("Thenable ordering or first-settlement state changed");
+
+  let first;
+  let second;
+  const nested = Promise.resolve({then(resolve) { first = resolve; }});
+  await 0;
+  first({then(resolve) { second = resolve; }});
+  await 0;
+  const bound = second.bind(null, 9);
+  bound();
+  first(99);
+  const nestedValue = await nested;
+  if (nestedValue !== 9 || second.name !== "" || second.length !== 1)
+    throw new Error("Nested thenable callback state changed");
+  return {title: frontmatter.title, ok: true, result, nestedValue, order, calls, agentSpawns: 0};
+};

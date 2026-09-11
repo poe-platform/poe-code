@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setImmediate as tick } from "node:timers/promises";
 import { Budget, ExprError, type ExprLimits } from "../../../src/commands/expr/internal.js";
-import { RegexExecutor, RegexExecutionError, RegexSession } from "../../../src/commands/regex-execution/client.js";
+import { RegexExecutor, RegexExecutionError, RegexSession } from "../../../src/commands/regex-execution/portable.js";
 import type { InvocationCleanup } from "../../../src/contracts/command.js";
 import { deferred, run } from "./helpers.js";
 

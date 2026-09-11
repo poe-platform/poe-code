@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const date = new Date(0);
+  date.setUTCFullYear({ valueOf() { date.setTime(86400000); return 2001; } });
+  const invalid = new Date(NaN);
+  const result = invalid.setUTCDate({ valueOf() { invalid.setTime(7); return 1; } });
+  await 0;
+  if (date.getTime() !== Date.UTC(2001, 0, 1) || !Number.isNaN(result) || invalid.getTime() !== 7) {
+    throw new Error("Date setter conversion ordering failed");
+  }
+  return { title: frontmatter.title, ok: true, time: date.getTime() };
+};

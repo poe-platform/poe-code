@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { setTimeout as delay } from "node:timers/promises";
 import test from "node:test";
+import { createNodeRegexProvider } from "../../../src/node.js";
 import { createSearchCommands } from "../../../src/commands/search/index.js";
 import { toByteSource, type ByteSource } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -13,7 +14,7 @@ const input = Buffer.from("foo\n\0\nno\n");
 const warning = 'binary file matches (found "\\0" byte around offset 4)\n';
 
 async function search(stdin: ByteSource, write: (chunk: Uint8Array) => Promise<void>, signal = new AbortController().signal) {
-  return createSearchCommands()[0]!.execute({
+  return createSearchCommands({ regexExecutor: createNodeRegexProvider() })[0]!.execute({
     command: "rg", args: ["foo", "-"], cwd: "/", env: {}, fs: new MemoryFileSystem(), signal, stdin, stdinIsDefault: false,
     stdout: { write }, stderr: { async write() { assert.fail("unexpected diagnostic"); } },
   });

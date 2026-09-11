@@ -10,7 +10,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "typecheck:contracts": "node scripts/check-http-headers-type-contract.mjs"
   },
   "repository": {
     "type": "git",

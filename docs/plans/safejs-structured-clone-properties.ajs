@@ -1,0 +1,19 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const trace = [];
+  const buffer = new ArrayBuffer(4);
+  const source = {
+    buffer,
+    get nested() { trace.push("nested"); return { get value() { trace.push("value"); return 7; } }; },
+    get self() { trace.push("self"); new Uint8Array(buffer)[0] = 42; return this; }
+  };
+  const copy = structuredClone(source, { transfer: [buffer] });
+  await 0;
+  if (trace.join(",") !== "nested,value,self" || copy.self !== copy || copy.nested.value !== 7)
+    throw new Error("Getter order or cyclic clone identity failed");
+  if (!buffer.detached || new Uint8Array(copy.buffer)[0] !== 42)
+    throw new Error("Getter byte mutation was lost during transfer");
+  return { title: frontmatter.title, ok: true, trace };
+};

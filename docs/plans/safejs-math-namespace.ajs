@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const tag = Object.prototype.toString.call(Math);
+  const descriptor = Object.getOwnPropertyDescriptor(Math, "PI");
+  if (tag !== "[object Math]" || Object.keys(Math).length !== 0) {
+    throw new Error("Math namespace validation failed");
+  }
+  if (descriptor.writable || descriptor.enumerable || descriptor.configurable) {
+    throw new Error("Math constant validation failed");
+  }
+  if (Math.abs(-7) !== 7) throw new Error("Math method validation failed");
+  return { title: frontmatter.title, ok: true, tag };
+};

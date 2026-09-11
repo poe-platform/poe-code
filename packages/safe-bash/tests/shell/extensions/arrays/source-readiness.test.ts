@@ -227,17 +227,18 @@ for (const code of ["ENOENT", "EACCES", "EIO"] as const) test(`canonical ${code}
   } finally { await subject.close(); }
 });
 
-test("documented unsupported open falls back unchanged but leaves provenance unknown", async () => {
+test("disabled canonical open retains opened-reader provenance and bytes", async () => {
   const subject = fixture();
   await subject.fs.writeFile("/input", Uint8Array.of(65, 10));
   const fs = intercept<FileSystem>(subject.fs, { capabilities: { ...subject.fs.capabilities, open: false }, async open() { throw new FsError("ENOTSUP", { syscall: "open" }); } });
   const prepared = await prepareFileInput({ ...subject.context, fs }, "/input", subject.budget);
   const input = new ShellInput(prepared.source, subject.budget, subject.budget.signal, prepared.options);
   try {
-    assert.equal(prepared.options.provenance, "unknown");
-    assert.equal(input.readiness(), "unknown");
-    await assert.rejects(input.line(true, { timeoutMs: 1 }), /provenance/);
-    const result = await input.line(true);
+    assert.equal(prepared.options.provenance, "regular");
+    assert.equal(prepared.options.stat?.type, "file");
+    assert.equal(typeof prepared.options.seek, "function");
+    assert.equal(input.readiness(), "ready");
+    const result = await input.line(true, { timeoutMs: 0.000001 });
     assert.equal(result.value, "A");
     await result.release();
     const legacy = await fileInput(fs, "/input", 100, subject.budget.signal);
@@ -421,11 +422,12 @@ for (const reason of [false, null, 0, ""]) test(`root cancellation outranks expl
 
 test("legacy pending read receives owner-close cancellation and returns its iterator", async () => {
   const subject = fixture();
+  await subject.fs.writeFile("/input", Uint8Array.of(65));
   let supplied: AbortSignal | undefined;
   let finish!: () => void;
   let returns = 0;
   const fs = intercept<FileSystem>(subject.fs, {
-    capabilities: { ...subject.fs.capabilities, open: false },
+    capabilities: { ...subject.fs.capabilities, open: false, retainedRead: false },
     async open() { throw new FsError("ENOTSUP"); },
     readStream(_path, options) {
       supplied = options?.signal;

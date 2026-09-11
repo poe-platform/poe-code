@@ -1,5 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { types } from "node:util";
+import { guestProxyStates } from "./interp/guest-proxy.js";
+import { callGuestProxy } from "./interp/guest-proxy-call.js";
+import { sandboxGetProperty } from "./interp/guest-proxy-get.js";
+import { invokeBuiltinClosure } from "./interp/builtin-call.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { CompileScope } from "./interp/regex/compile-guard.js";
 import { createBuiltinBindings } from "./interp/globals.js";
@@ -41,6 +45,7 @@ import {
   measureSandboxData,
   reconcileCompiledValues,
   type SandboxClosure,
+  type SandboxCallContext,
   type SandboxValue
 } from "./interp/values.js";
 import {
@@ -54,7 +59,7 @@ import {
   type HostOperation,
   type SafeJSExtension
 } from "./extensions.js";
-import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import { createModuleEnvironment, resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 import { parseExecutableModule } from "./parse/parser.js";
 import { createReplayableRandom } from "./random.js";
 import { hashSource } from "./parse/hash.js";
@@ -121,6 +126,7 @@ class RealmState {
   readonly extensions: readonly SafeJSExtension[];
   readonly consoleExtension?: string;
   readonly cleanups: Array<() => void | Promise<void>> = [];
+  readonly referenceReleases = new Set<() => void>();
   readonly callbacks = new Map<Callback, SandboxClosure>();
   readonly pendingCallbacks = new Set<{ closure: SandboxClosure; promise?: Promise<unknown> }>();
   readonly callbackCache = new WeakMap<SandboxClosure, Callback>();
@@ -297,7 +303,7 @@ class RealmState {
       }
       if (captured.length > 0)
         this.budget.reconcileDataUsage(
-          measureSandboxData([...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()])
+          measureSandboxData([...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()])
         );
       return { args: values, rollback };
     } catch (error) {
@@ -314,7 +320,7 @@ class RealmState {
     if (this.active === undefined)
       reconcileCompiledValues(
         this.budget,
-        [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
+        [...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()],
         this.compilation
       );
   };
@@ -351,11 +357,17 @@ class RealmState {
     }
   };
 
-  onCleanup = (cleanup: () => void | Promise<void>): void => {
+  onCleanup = (cleanup: () => void | Promise<void>): (() => void) => {
     this.assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be a function.");
     this.checkCollection(this.cleanups.length + 1, this.limits.cleanups, "cleanup");
-    this.cleanups.push(cleanup);
+    // Each registration has its own identity even when callbacks are reused.
+    const registration = () => cleanup();
+    this.cleanups.push(registration);
+    return () => {
+      const index = this.cleanups.indexOf(registration);
+      if (index !== -1) this.cleanups.splice(index,1);
+    };
   };
 
   checkCollection(count: number, limit: number, name: string): void {
@@ -508,7 +520,7 @@ class RealmState {
     });
     try {
       this.budget.reconcileDataUsage(
-        measureSandboxData([...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()])
+        measureSandboxData([...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()])
       );
     } catch (error) {
       this.poison(error);
@@ -524,7 +536,7 @@ class RealmState {
     if (this.active === undefined)
       reconcileCompiledValues(
         this.budget,
-        [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
+        [...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()],
         this.compilation
       );
   };
@@ -565,11 +577,22 @@ class RealmState {
           options.thisValue,
           [...(options.args ?? [])]
         ]) as SandboxValue[];
-        const value = await closure.call(values[1] as SandboxValue[], {
+        const callerContext: SandboxCallContext = {
           thisValue: values[0],
           compilation: this.compilation,
-          stack: []
-        });
+          stack: [],
+          getProperty: (object, key) => sandboxGetProperty(object, key, object, this.budget, bridge)
+        };
+        const bridge: SandboxCallContext = {
+          ...callerContext,
+          invokeClosure: (target, args, receiver, construct, newTarget) =>
+            invokeBuiltinClosure(target, args, this.budget, callerContext, receiver, construct, newTarget)
+        };
+        const value = await (guestProxyStates.has(closure)
+          ? callGuestProxy(closure, values[1] as SandboxValue[], this.budget, bridge, values[0])
+          : closure.call(values[1] as SandboxValue[], {
+            thisValue: values[0], compilation: this.compilation, stack: []
+          }));
         const settlement = awaitSandboxValue(value, this.controller.signal, this.budget);
         void settlement.catch(() => undefined);
         if (isSandboxPromise(value) && value.synchronousPrefix !== undefined)
@@ -586,7 +609,7 @@ class RealmState {
     try {
       const active = this.active !== undefined;
       const pending = withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, add: this.onCleanup }, () =>
+        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup, reportError: reason => this.poison(reason) }, () =>
           withCancellationSignal(this.controller.signal, () =>
             active && this.phase.getStore()?.active ? runAsyncPrefix(invoke) : this.queue.run(invoke)
           )
@@ -602,7 +625,7 @@ class RealmState {
       if (!this.closed && this.active === undefined)
         reconcileCompiledValues(
           this.budget,
-          [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
+          [...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()],
           this.compilation
         );
     }
@@ -615,7 +638,8 @@ class RealmState {
     for (const extension of this.extensions) {
       const context: ExtensionContext = Object.freeze({
         signal: this.controller.signal,
-        onCleanup: this.onCleanup,
+        // Detachment is internal, not an extension capability.
+        onCleanup: cleanup => { this.onCleanup(cleanup); },
         chargeWork: this.chargeWork,
         createHostObject: this.createHostObject,
         startCallback: this.startCallback,
@@ -726,10 +750,13 @@ class RealmState {
     if (typeof source !== "string") throw new TypeError("Realm source must be a string.");
     const module = parseExecutableModule(source, filename, this.lease.owner);
     this.initialize();
+    const moduleEnvironment = createModuleEnvironment(this.modules, {...this.bridgeOptions(),wrappedModules:this.convertedModules});
     const imports = resolveModuleImports(module, this.modules, {
+      environment: moduleEnvironment,
       ...this.bridgeOptions(),
       wrappedModules: this.convertedModules
     });
+    this.scope!.moduleEnvironment = moduleEnvironment;
     for (const [name, value] of Object.entries(imports)) {
       const binding = this.scope!.lookup(name);
       if (!binding.found) this.scope!.declare(name, "const", value);
@@ -804,7 +831,7 @@ class RealmState {
     if (this.active !== undefined) throw new SandboxError("reentry");
     const pending = Promise.resolve().then(() =>
       withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, add: this.onCleanup }, () =>
+        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup, reportError: reason => this.poison(reason) }, () =>
           withCancellationSignal(this.controller.signal, task)
         )
       )
@@ -825,18 +852,19 @@ class RealmState {
       if (!this.closed)
         reconcileCompiledValues(
           this.budget,
-          [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
+          [...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()],
           this.compilation
         );
       return result;
     } catch (error) {
-      this.poison(error);
+      const reason = this.failure === undefined ? error : this.failure.reason;
+      this.poison(reason);
       try {
         await this.dispose();
       } catch (cleanup) {
-        throw new AggregateError([error, cleanup], "Realm execution and cleanup failed.");
+        throw new AggregateError([reason, cleanup], "Realm execution and cleanup failed.");
       }
-      throw error;
+      throw reason;
     } finally {
       this.active = undefined;
     }
@@ -863,6 +891,8 @@ class RealmState {
     this.hostObjects.clear();
     for (const reference of this.guestReferences.keys()) revokeGuestReference(reference, this);
     this.guestReferences.clear();
+    for (const release of this.referenceReleases) release();
+    this.referenceReleases.clear();
     this.budget.setRetainedValues(this, undefined);
     releaseObjectPrototype(this.budget);
     this.disposal = (async () => {

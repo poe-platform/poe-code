@@ -165,9 +165,12 @@ test("D06 paired timestamp restoration preserves deleted counterparts with fresh
   }
   const failed = await backend();
   failed.state.statError = new Error("independent post-write observation refused");
-  const result = await run(failed.fs, masked(record("mtime", ""), record("atime", localText)));
+  const reported: unknown[] = [];
+  const result = await run(failed.fs, masked(record("mtime", ""), record("atime", localText)), undefined, {}, undefined, error => { reported.push(error); });
   assert.equal(result.exitCode, 2);
-  assert.match(result.stderr, /independent post-write observation refused/u);
+  assert.equal(result.stderr, "tar: internal error\n");
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0], failed.state.statError);
   assert.equal(failed.state.publications, 1);
   assert.deepEqual(failed.state.times, []);
   assert.equal((await failed.observe("/out/safe")).mtimeMs, normalMtime);
@@ -175,7 +178,9 @@ test("D06 paired timestamp restoration preserves deleted counterparts with fresh
   const controller = new AbortController();
   const reason = new Error("independent timestamp observation abort");
   cancelled.state.abortOnStat = { controller, reason };
-  await assert.rejects(run(cancelled.fs, masked(record("mtime", ""), record("atime", localText)), undefined, {}, controller.signal), error => error === reason);
+  const cancelledReports: unknown[] = [];
+  await assert.rejects(run(cancelled.fs, masked(record("mtime", ""), record("atime", localText)), undefined, {}, controller.signal, error => { cancelledReports.push(error); }), error => error === reason);
+  assert.deepEqual(cancelledReports, []);
   assert.equal(cancelled.state.publications, 1);
   assert.deepEqual(cancelled.state.times, []);
 });

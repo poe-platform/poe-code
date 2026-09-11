@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
-import test from "node:test";
+import test, { after, before } from "node:test";
 import { fileURLToPath } from "node:url";
 
 type CopyBoundaries = { heldSourceFiles: string[]; heldEvidenceDirectories: string[] };
 const { validateBoundaries }: { validateBoundaries(value: unknown): CopyBoundaries } = await import(new URL("../../../../../scripts/integration-inputs.mjs", import.meta.url).href);
 const { isHeldInputPath }: { isHeldInputPath(path: string, boundaries: CopyBoundaries): boolean } = await import(new URL("../../../../../scripts/typecheck-integration-inputs.mjs", import.meta.url).href);
+const { prepareArchiveDependencies, stageArchiveDependencies, assertArchiveDependencies, assertArchiveDependencyLock, resolveTools } = await import(new URL("../../../../integration/s3-http-exports/committed-archive.mjs", import.meta.url).href);
 
 const root = fileURLToPath(new URL("../../../../../", import.meta.url));
 const base = "tests/stress/byte-ownership-20260827/remaining-consumers";
@@ -18,8 +19,16 @@ const driver = `${base}/writer-isolation/capture.mjs`;
 const args = ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-reporter=tap", canonical];
 const childEnv: NodeJS.ProcessEnv = { ...process.env, VIRTUAL_BASH_DIRECT_CURL_CAPTURE: "" };
 delete childEnv.NODE_TEST_CONTEXT;
+let dependencyDirectory: string | undefined;
+let dependencies: { name: string; files: { path: string; sha256: string }[] }[] = [];
+const dependencyLock = JSON.parse(readFileSync(join(root, "../../package-lock.json"), "utf8"));
+before(async () => {
+  dependencyDirectory = realpathSync(mkdtempSync(join(tmpdir(), "virtual-bash-writer-dependencies-")));
+  dependencies = await prepareArchiveDependencies({ manifest: JSON.parse(readFileSync(join(root, "package.json"), "utf8")), lock: dependencyLock }, resolveTools(), dependencyDirectory);
+});
+after(() => { if (dependencyDirectory) rmSync(dependencyDirectory, { recursive: true, force: true }); });
 const sandbox = (sourceRoot = root) => {
-  const directory = mkdtempSync(join(tmpdir(), "virtual-bash-writer-test-"));
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), "virtual-bash-writer-test-")));
   try {
     const boundaries = validateBoundaries(JSON.parse(readFileSync(join(sourceRoot, "integration-boundaries.json"), "utf8")));
     cpSync(join(sourceRoot, "src"), join(directory, "src"), { recursive: true, filter: source => {
@@ -53,6 +62,12 @@ const sandbox = (sourceRoot = root) => {
     mkdirSync(join(directory, "node_modules"));
     symlinkSync(peerRoot, join(directory, "node_modules/poe-code"), "dir");
     symlinkSync(dirname(fileURLToPath(import.meta.resolve("tsx/package.json"))), join(directory, "node_modules/tsx"), "dir");
+    const manifest = JSON.parse(readFileSync(join(sourceRoot, "package.json"), "utf8"));
+    assertArchiveDependencyLock(manifest, dependencyLock);
+    if (Object.keys(manifest.dependencies ?? {}).length) {
+      stageArchiveDependencies(dependencies, directory);
+      assertArchiveDependencies(dependencies, directory);
+    }
     return directory;
   } catch (error) { rmSync(directory, { recursive: true, force: true }); throw error; }
 };
@@ -108,9 +123,28 @@ test("copied writer fixtures retain public canonical identity and refuse a missi
     assert.match(refused.stderr, /ERR_MODULE_NOT_FOUND/);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
-const immutable = (directory: string) => Object.fromEntries(readdirSync(join(directory, base, "direct-curl/artifacts")).sort().map(name => [name,
-  createHash("sha256").update(readFileSync(join(directory, base, "direct-curl/artifacts", name))).digest("hex"),
-]));
+test("copied writer dependencies reject byte drift and never fall back when missing", () => {
+  const directory = sandbox();
+  try {
+    assert.deepEqual(dependencies.map(dependency => dependency.name), ["@noble/hashes", "pako"]);
+    const runtime = join(directory, "node_modules/@noble/hashes/sha2.js");
+    writeFileSync(runtime, "untrusted replacement");
+    assert.throws(() => assertArchiveDependencies(dependencies, directory), /dependency bytes drift/);
+    rmSync(join(directory, "node_modules/@noble/hashes"), { recursive: true });
+    const refused = spawnSync(process.execPath, ["--input-type=module", "-e", 'await import("@noble/hashes/sha2.js");'], {
+      cwd: directory, env: childEnv, encoding: "utf8", timeout: 5_000, maxBuffer: 1024 * 1024,
+    });
+    assert.equal(refused.error, undefined);
+    assert.equal(refused.status, 1);
+    assert.match(refused.stderr, /ERR_MODULE_NOT_FOUND/);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+const immutable = (directory: string) => {
+  assertArchiveDependencies(dependencies, directory);
+  return Object.fromEntries(readdirSync(join(directory, base, "direct-curl/artifacts")).sort().map(name => [name,
+    createHash("sha256").update(readFileSync(join(directory, base, "direct-curl/artifacts", name))).digest("hex"),
+  ]));
+};
 const canonicalChild = (directory: string) => new Promise<string>((resolve, reject) => {
   const child = spawn(process.execPath, args, {
     cwd: directory, env: childEnv, stdio: ["ignore", "pipe", "pipe"],
@@ -174,10 +208,14 @@ for (const corrupt of [false, true]) {
       assert.match(readFileSync(join(captureDirectory, "raw.tap"), "utf8"), corrupt ? /# fail 1\n/ : /# pass 2\n/);
       if (corrupt) assert.notDeepEqual(observations[0].requests[1].bytes, observations[0].expectedSecond);
       assert.deepEqual(immutable(directory), before);
+      // Refusal must happen before loading capture-only admission dependencies.
+      rmSync(join(directory, "scripts"), { recursive: true });
       for (const options of [{ args: [captureDirectory], env: childEnv }, { args: [], env: { ...childEnv, TMPDIR: directory, TMP: directory, TEMP: directory } }]) {
         const refused = spawnSync(process.execPath, ["--unhandled-rejections=strict", driver, ...options.args], {
           cwd: directory, env: options.env, encoding: "utf8", timeout: 5_000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024,
         });
+        assert.equal(refused.error, undefined, `Refusal child error; signal=${refused.signal}: ${refused.stderr}`);
+        assert.equal(refused.signal, null);
         assert.equal(refused.status, 1);
         assert.match(refused.stderr, /Capture accepts no paths|temp root must be outside/);
       }

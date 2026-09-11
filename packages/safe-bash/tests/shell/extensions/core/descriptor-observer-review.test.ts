@@ -257,7 +257,7 @@ for (const maxExpansionBytes of [0, 64]) test(`observer review: acquisition fail
   context.after(() => subject.close());
   let touches = 0;
   let registrations = 0;
-  const scope = override(subject.scope, { register(cleanup) { registrations++; subject.scope.register(cleanup); } });
+  const scope = override(subject.scope, { register(cleanup) { registrations++; return subject.scope.register(cleanup); } });
   const source: DescriptorObservationSource = { get readable() { touches++; return true; }, async probeRead() { touches++; return { readiness: "ready", timeout: "ignore" }; } };
   assert.throws(() => observeDescriptor(source, scope, subject.budget, subject.budget.signal), ShellLimitError);
   assert.equal(registrations, 1);

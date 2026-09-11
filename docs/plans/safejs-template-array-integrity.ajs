@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function tag(strings) { return strings; }
+  const template = tag`before ${1} after`;
+  await 0;
+  let rejected = false;
+  try {
+    template.raw[0] = "changed";
+  } catch (error) {
+    rejected = error.name === "TypeError";
+  }
+  if (!Object.isFrozen(template) || !Object.isFrozen(template.raw) ||
+      !rejected || template.raw[0] !== "before ") {
+    throw new Error("Template array integrity changed");
+  }
+  return { title: frontmatter.title, ok: true, rejected };
+};

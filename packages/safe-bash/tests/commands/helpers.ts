@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../src/node.js";
 import { CommandRegistry, toByteSource, type ByteSource, type CommandContext, type CommandHandler, type FileSystem } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
@@ -19,18 +20,20 @@ export interface RunOptions {
   readonly env?: Record<string, string>;
   readonly cwd?: string;
   readonly signal?: AbortSignal;
+  readonly onInternalError?: CommandContext["onInternalError"];
   readonly execute?: CommandHandler;
 }
 
 export async function run(command: string, args: readonly string[] = [], options: RunOptions = {}) {
   const fs = options.fs ?? await fixture();
   const registry = new CommandRegistry();
-  await standardCommands(options.execute ? { execute: options.execute } : {}).setup({ commands: registry, use() {}, registerFileSystem() {} });
+  await standardCommands({ regexExecutor: createNodeRegexProvider(), ...(options.execute ? { execute: options.execute } : {}) }).setup({ commands: registry, use() {}, registerFileSystem() {} });
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   const context: CommandContext = {
     command, args, cwd: options.cwd ?? "/work", env: options.env ?? {}, fs,
     signal: options.signal ?? new AbortController().signal,
+    ...(options.onInternalError === undefined ? {} : { onInternalError: options.onInternalError }),
     stdin: typeof options.stdin === "string" || options.stdin instanceof Uint8Array || options.stdin === undefined
       ? toByteSource(options.stdin ?? "") : options.stdin,
     stdout: { async write(chunk) { stdout.push(chunk.slice()); } },

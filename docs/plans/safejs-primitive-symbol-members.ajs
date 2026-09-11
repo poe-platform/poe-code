@@ -1,0 +1,9 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const key = Symbol("member");
+  Object.defineProperty(Number.prototype, key, { get() { return this === 7; } });
+  if ((7)[key] !== true) throw new Error("Primitive symbol receiver was lost");
+  await 0;
+  return { title: frontmatter.title, ok: true };
+};

@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../src/node.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { collectBytes, toByteSource, writeText } from "../../src/contracts/index.js";
@@ -218,7 +219,7 @@ for (const [source, options, expectedCode, expectedOutput] of [
 ] satisfies [string, ShellExecOptions, number, string][]) {
   test(`stdin origin: rg integration ${source} supplied=${options.stdin !== undefined}`, async () => {
     const { shell, fs, commands } = setup();
-    for (const command of [...createStandardCommands(), ...createSearchCommands()]) commands.register(command);
+    for (const command of [...createStandardCommands({ regexExecutor: createNodeRegexProvider() }), ...createSearchCommands({ regexExecutor: createNodeRegexProvider() })]) commands.register(command);
     await fs.writeFile("/matched", new TextEncoder().encode("match\n"));
     await fs.writeFile("/empty", new Uint8Array());
     await fs.mkdir("/.patterns");

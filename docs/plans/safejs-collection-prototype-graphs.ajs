@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const results=[];
+  for (const prototype of [new Map(),new Set()]) {
+    prototype.answer=42;
+    const value=Object.create(prototype);
+    const keys=[];
+    for(const key in value) keys.push(key);
+    if(value.answer!==42 || keys.join(",")!=="answer") {
+      throw new Error("Collection prototype lookup or enumeration failed");
+    }
+    let rejected=false;
+    try {value.has(1)} catch(error){rejected=error instanceof TypeError}
+    if(!rejected) throw new Error("Inherited collection storage was accepted");
+    results.push({answer:value.answer,keys,rejected});
+  }
+  return {title:frontmatter.title,ok:true,results};
+};

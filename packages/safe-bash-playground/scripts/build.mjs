@@ -7,6 +7,7 @@ await build({
   configFile: false,
   base: "./",
   plugins: [safeBashBrowserPlugin()],
+  worker: { format: "es", plugins: () => [safeBashBrowserPlugin()] },
   build: {
     outDir: "dist/site",
     emptyOutDir: true,
@@ -16,7 +17,7 @@ await build({
         onlyExplicitManualChunks: true,
         manualChunks(id) {
           if (id.includes("/@jspm/core/") || id.includes("/@noble/hashes/")) return "browser-platform";
-          if (id.includes("/safe-bash-engine/packages/safe-js/dist/browser/")) return "browser-filesystem";
+          if (id.includes("/packages/safe-fs/")) return "browser-filesystem";
           if (id === "\0safe-bash-browser-workers") return "browser-workers";
           if (id.includes("/safe-bash/dist/shell/")) return "browser-shell";
           if (id.includes("/safe-bash/dist/commands/structured/")) return "browser-structured";

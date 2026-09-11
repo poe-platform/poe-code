@@ -1,0 +1,41 @@
+import { S } from "schema";
+
+export const schema = S.Object({title: S.String()});
+
+export default async (frontmatter) => {
+  let resolves = 0;
+  class P extends Promise {
+    static resolve(value) {
+      resolves++;
+      return super.resolve(value);
+    }
+  }
+  const allInput = Promise.withResolvers();
+  const all = P.all([3, allInput.promise]);
+  await 0;
+  allInput.resolve(7);
+  const values = await all;
+  if (values[0] !== 3 || values[1] !== 7 || !(all instanceof P) || resolves !== 2)
+    throw new Error("Aggregate order, subclass identity or resolve count changed");
+
+  const settledInput = Promise.withResolvers();
+  const settled = Promise.allSettled([Promise.reject("first"), settledInput.promise]);
+  await 0;
+  settledInput.resolve(9);
+  const outcomes = await settled;
+  if (outcomes[0].reason !== "first" || outcomes[1].value !== 9)
+    throw new Error("Mixed aggregate outcomes changed");
+
+  const anyInput = Promise.withResolvers();
+  const any = Promise.any([Promise.reject("first"), anyInput.promise]);
+  anyInput.reject("second");
+  const errors = await any.catch(error => error.errors);
+  if (errors[0] !== "first" || errors[1] !== "second")
+    throw new Error("Aggregate rejection order changed");
+
+  const raceInput = Promise.withResolvers();
+  const race = Promise.race([new Promise(() => {}), raceInput.promise]);
+  raceInput.resolve(11);
+  if (await race !== 11) throw new Error("Race settlement changed");
+  return {title: frontmatter.title, ok: true, methods: 4, resolves, agentSpawns: 0};
+};

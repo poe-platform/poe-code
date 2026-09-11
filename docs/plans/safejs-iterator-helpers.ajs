@@ -1,0 +1,14 @@
+import { S } from "schema";
+export const schema=S.Object({title:S.String()});
+export default async (frontmatter)=>{
+  const events=[];
+  function* numbers(){try{yield 1;yield 2;yield 3}finally{events.push('closed')}}
+  const found=numbers().some(value=>value===2);
+  await 0;
+  const sum=numbers().reduce((total,value)=>total+value,0);
+  const values=numbers().toArray();
+  if(!found || sum!==6 || values.join(',')!=='1,2,3' || events.length!==3 ||
+      !values.values().every(value=>value>0) || values.values().find(value=>value===3)!==3)
+    throw new Error('Iterator consumer validation failed');
+  return {title:frontmatter.title,ok:true,sum,values,events};
+};

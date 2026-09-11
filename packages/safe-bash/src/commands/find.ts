@@ -1,14 +1,20 @@
+import { PublicDiagnostic } from "../diagnostics.js";
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
 import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
+import { escapeText } from "../escaping.js";
 import { createDirectoryReader } from "./directory-admission.js";
+import { assertCommandRequirements } from "../contracts/command-requirements.js";
+import { filesystemCommandRequirements } from "./filesystem-requirements.js";
+import { compileFindFormat, FindFormatBudget, type FindFormatEntry } from "./find-format.js";
 
-interface Entry { path: string; display: string; stat: FileStat; depth: number; prune: boolean }
+interface Entry extends FindFormatEntry { path: string; symlink: boolean; prune: boolean }
 type Expression = (entry: Entry) => Promise<boolean>;
 
 export function findCommands(execute: CommandHandler, maxDirectoryEntries?: number): CommandDefinition[] {
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
   return [define("find", async context => {
+    const startedAt = Date.now();
     const argumentValues = getCommandArguments(context);
     const args = [...argumentValues.args];
     const values = [...argumentValues.values];
@@ -20,6 +26,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     let maxDepth = Infinity;
     let minDepth = 0;
     let depthFirst = false;
+    let explicitDepth = false;
     for (let index = 0; index < args.length;) {
       if (args[index] === "-exec") {
         index++;
@@ -31,13 +38,19 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (args[index] === "-maxdepth") maxDepth = number; else minDepth = number;
         args.splice(index, 2);
         values.splice(index, 2);
-      } else if (args[index] === "-depth") { depthFirst = true; args.splice(index, 1); values.splice(index, 1); }
+      } else if (args[index] === "-depth") { depthFirst = true; explicitDepth = true; args.splice(index, 1); values.splice(index, 1); }
+      else if (["-name", "-iname", "-path", "-ipath", "-type", "-size", "-mtime", "-mmin", "-newer", "-printf"].includes(args[index]!)) index += 2;
       else index++;
     }
     let offset = 0;
     let explicitAction = false;
     let exitCode = 0;
+    let deletes = false;
+    let prunes = false;
+    const references = new Map<string, number>();
     const flushes: (() => Promise<void>)[] = [];
+    const formats: (() => Promise<void>)[] = [];
+    const formatBudget = new FindFormatBudget(context);
     const primary = (): Expression => {
       const token = args[offset++];
       if (token === undefined) throw new UsageError("missing expression");
@@ -47,9 +60,28 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (args[offset++] !== ")") throw new UsageError("missing ')'");
         return inner;
       }
-      if (["-name", "-iname", "-path", "-ipath", "-type", "-size"].includes(token)) {
+      if (["-name", "-iname", "-path", "-ipath", "-type", "-size", "-mtime", "-mmin", "-newer"].includes(token)) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
+        if (token === "-newer") {
+          references.set(operand, 0);
+          return async entry => entry.stat.mtimeMs > references.get(operand)!;
+        }
+        if (token === "-mtime" || token === "-mmin") {
+          const match = /^([+-]?)([0-9]+)$/u.exec(operand);
+          if (!match) throw new UsageError(`invalid time '${operand}'`);
+          const amount = integer(match[2]!);
+          const unit = token === "-mtime" ? 86_400_000 : 60_000;
+          const origin = startedAt - (token === "-mtime" ? match[1] === "-" ? 1000 : unit : 0);
+          const reference = origin - amount * unit;
+          if (!Number.isSafeInteger(amount * unit) || !Number.isSafeInteger(reference) || !Number.isSafeInteger(reference + unit)) {
+            throw new UsageError(`invalid time '${operand}': comparison is out of range`);
+          }
+          return async entry => {
+            const delta = entry.stat.mtimeMs - reference;
+            return match[1] === "+" ? delta < 0 : match[1] === "-" ? delta > 0 : delta > 0 && delta <= unit;
+          };
+        }
         if (token === "-type") {
           const types: Record<string, string> = { f: "file", d: "directory", l: "symlink", c: "character" };
           if (!types[operand]) throw new UsageError(`unsupported file type '${operand}'`);
@@ -76,10 +108,39 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       }
       if (token === "-true" || token === "-false") return async () => token === "-true";
       if (token === "-empty") return async entry => entry.stat.type === "directory" ? !(await readDirectory(context, entry.path)).length : entry.stat.type === "file" && entry.stat.size === 0;
-      if (token === "-prune") return async entry => { entry.prune = true; return true; };
+      if (token === "-prune") { prunes = true; return async entry => { entry.prune = true; return true; }; }
+      if (token === "-delete") {
+        explicitAction = true;
+        depthFirst = true;
+        deletes = true;
+        return async entry => {
+          context.signal.throwIfAborted();
+          if (entry.display === ".") return true;
+          try {
+            const directory = entry.stat.type === "directory" && !entry.symlink;
+            const capabilities = await context.fs.capabilitiesFor?.(entry.path, { signal: context.signal }) ?? context.fs.capabilities;
+            assertCommandRequirements(context, directory ? filesystemCommandRequirements.rmdir : filesystemCommandRequirements.rm,
+              [directory ? "directory" : "file"], capabilities);
+            if (directory) {
+              if (!context.fs.rmdir || capabilities.snapshotRmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path: entry.path });
+              await context.fs.rmdir(entry.path, { signal: context.signal });
+            } else await context.fs.rm(entry.path, { recursive: false, signal: context.signal });
+            context.signal.throwIfAborted();
+            return true;
+          } catch (error) { await diagnostic(context, error); exitCode = 1; return false; }
+        };
+      }
       if (token === "-print" || token === "-print0") {
         explicitAction = true;
-        return async entry => { await output(context, entry.display + (token === "-print0" ? "\0" : "\n")); return true; };
+        return async entry => { await output(context, token === "-print0" ? `${entry.display}\0` : `${escapeText(entry.display, "display")}\n`); return true; };
+      }
+      if (token === "-printf") {
+        if (args[offset] === undefined) throw new UsageError("-printf requires a format");
+        const operand = values[offset++]!;
+        let render: ((entry: FindFormatEntry) => Promise<void>) | undefined;
+        formats.push(async () => { render = await compileFindFormat(operand, formatBudget); });
+        explicitAction = true;
+        return async entry => { await render!(entry); return true; };
       }
       if (token === "-exec") {
         explicitAction = true;
@@ -135,30 +196,46 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     };
     const evaluate: Expression = args.length ? disjunction() : async () => true;
     if (offset !== args.length) throw new UsageError(`unexpected expression '${args[offset]}'`);
-    const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>): Promise<void> => {
+    for (const prepare of formats) await prepare();
+    if (deletes && prunes && !explicitDepth) throw new PublicDiagnostic("-delete implies -depth; -prune is ineffective unless -depth is explicitly supplied");
+    for (const reference of references.keys()) {
+      context.signal.throwIfAborted();
+      const path = pathOf(context, reference);
+      let stat: FileStat;
+      try { stat = await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
+      catch (error) {
+        context.signal.throwIfAborted();
+        if (!follow || codeOf(error) !== "ENOENT") throw error;
+        stat = await context.fs.lstat(path, { signal: context.signal });
+      }
+      context.signal.throwIfAborted();
+      references.set(reference, stat.mtimeMs);
+    }
+    const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string): Promise<void> => {
       context.signal.throwIfAborted();
       const path = pathOf(context, display);
       try {
         if (depth > 1024) throw new FsError("ELOOP", { path, message: "find depth limit exceeded (1024)" });
         let stat = await context.fs.lstat(path, { signal: context.signal });
+        const symlink = stat.type === "symlink";
         if (follow && stat.type === "symlink") {
           try { stat = await context.fs.stat(path, { signal: context.signal }); }
           catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
         }
-        const entry: Entry = { path, display, stat, depth, prune: false };
-        const apply = async () => { if (depth >= minDepth && await evaluate(entry) && !explicitAction) await output(context, `${display}\n`); };
+        const entry: Entry = { path, display, stat, symlink, depth, root, relative, prune: false };
+        const apply = async () => { if (depth >= minDepth && await evaluate(entry) && !explicitAction) await output(context, `${escapeText(display, "display")}\n`); };
         if (!depthFirst) await apply();
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
           const physical = await context.fs.realpath(path, { signal: context.signal });
           if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
           const next = new Set(ancestors).add(physical);
           const children = await readDirectory(context, path, true);
-          for (const child of children) await visit(`${display.replace(/\/$/u, "")}/${child.name}`, depth + 1, next);
+          for (const child of children) await visit(`${display.replace(/\/$/u, "")}/${child.name}`, depth + 1, next, root, relative ? `${relative}/${child.name}` : child.name);
         }
         if (depthFirst) await apply();
-      } catch (error) { await diagnostic(context, error); exitCode = 1; }
+      } catch (error) { if (formatBudget.exhausted) throw error; await diagnostic(context, error); exitCode = 1; }
     };
-    for (const root of roots) await visit(root, 0, new Set());
+    for (const root of roots) await visit(root, 0, new Set(), root, "");
     for (const flush of flushes) await flush();
     return { exitCode };
   })];

@@ -1,3 +1,4 @@
+import { visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -12,6 +13,7 @@ import {
   type ForOfStatement,
   type ForStatement,
   type FunctionExpression,
+  type FunctionDeclaration,
   type IfStatement,
   type LogicalExpression,
   type MemberExpression,
@@ -125,6 +127,10 @@ class Scanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         for (const param of node.params) {
@@ -140,13 +146,14 @@ class Scanner {
           this.pushDiagnostic(
             "AS-EXPORT-DEFAULT-NOT-ARROW",
             "error",
-            "Export default initializer must be an arrow or function expression.",
+            "Export default must be an arrow, function expression, or function declaration.",
             node.declaration.span
           );
         } else {
           this.visitDefaultExportSignature(node.declaration);
         }
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "BlockStatement":
         for (const statement of node.body) {
@@ -206,7 +213,7 @@ class Scanner {
   }
 
   private visitDefaultExportSignature(
-    node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression
+    node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression | FunctionDeclaration
   ): void {
     const parameters = this.defaultExport?.parameters;
     if (parameters === undefined) {
@@ -298,6 +305,10 @@ class Scanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -319,6 +330,10 @@ class Scanner {
           this.visitAssignmentTarget(param);
         }
         this.visitStatement(node.body);
+        return;
+      case "ImportExpression":
+        this.visitExpression(node.source);
+        if (node.options !== undefined) this.visitExpression(node.options);
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -499,13 +514,13 @@ class Scanner {
 }
 
 function isDefaultExportCallable(
-  node: Expression
-): node is Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression {
-  return node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression";
+  node: Expression | import("../../parse/parser.js").ClassDeclaration | FunctionDeclaration
+): node is Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression | FunctionDeclaration {
+  return node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression" || node.type === "FunctionDeclaration";
 }
 
 function hasParameterNames(
-  node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression,
+  node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression | FunctionDeclaration,
   names: readonly string[]
 ): boolean {
   if (node.params.length !== names.length) {

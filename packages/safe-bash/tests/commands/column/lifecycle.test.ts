@@ -159,13 +159,17 @@ test("cancellation during CPU work yields cooperatively", async () => {
 
 test("primary read error survives a cleanup error", async () => {
   let returned = 0;
+  const failure = new Error("primary read failure");
+  const reported: unknown[] = [];
   const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
-    async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("primary read failure"); },
+    async next(): Promise<IteratorResult<Uint8Array>> { throw failure; },
     async return(): Promise<IteratorResult<Uint8Array>> { returned++; throw new Error("secondary return failure"); },
   }; } };
-  const result = await run(["-t"], "", {}, { stdin });
+  const result = await run(["-t"], "", {}, { stdin, onInternalError(error) { reported.push(error); } });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /primary read failure/);
+  assert.equal(result.stderr, "column: internal error\n");
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0], failure);
   assert.doesNotMatch(result.stderr, /secondary/);
   assert.equal(returned, 1);
 });
@@ -173,13 +177,15 @@ test("primary read error survives a cleanup error", async () => {
 for (const mode of ["reported", "sink"] as const) test(`column settlement preserves ${mode} falsey primary identities`, async () => {
   for (const primary of [undefined, null, false, 0, 0n, "", NaN, new Error("primary")]) {
     const cleanup = new Error("secondary cleanup");
+    const readFailure = mode === "reported" ? primary : new Error("read failure");
+    const reported: unknown[] = [];
     let returns = 0, diagnostics = 0;
     const stderr: Uint8Array[] = [];
     const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
-      async next(): Promise<IteratorResult<Uint8Array>> { throw mode === "reported" ? primary : new Error("read failure"); },
+      async next(): Promise<IteratorResult<Uint8Array>> { throw readFailure; },
       async return(): Promise<IteratorResult<Uint8Array>> { returns++; throw cleanup; },
     }; } };
-    const pending = run(["-t"], "", {}, { stdin, stderr: { async write(bytes) {
+    const pending = run(["-t"], "", {}, { stdin, onInternalError(error) { reported.push(error); }, stderr: { async write(bytes) {
       diagnostics++;
       if (mode === "sink") throw primary;
       stderr.push(Uint8Array.from(bytes));
@@ -187,8 +193,10 @@ for (const mode of ["reported", "sink"] as const) test(`column settlement preser
     if (mode === "sink") await assert.rejects(pending, error => Object.is(error, primary));
     else {
       assert.equal((await pending).exitCode, 1);
-      assert.equal(Buffer.concat(stderr).toString(), `column: ${primary instanceof Error ? primary.message : String(primary)}\n`);
+      assert.equal(Buffer.concat(stderr).toString(), "column: internal error\n");
     }
+    assert.equal(reported.length, 1);
+    assert.ok(Object.is(reported[0], readFailure));
     assert.equal(diagnostics, 1);
     assert.equal(returns, 1);
   }

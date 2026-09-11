@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+import { build } from "esbuild";
 import { Budget, resolveJqLimits } from "../../../src/commands/structured/limits.js";
 import { type JqLimits } from "../../../src/commands/structured/index.js";
 import { runWithBytes, chunks, run } from "./helpers.js";
@@ -52,9 +54,20 @@ test("depth limits cover inputs, constructed outputs, and source AST", async () 
   }
   const source = "[".repeat(9) + "0" + "]".repeat(9);
   assert.match((await run(["-nc", source], "", { limits: { maxDepth: 8 } })).stderr, /maxDepth/);
-  for (const filter of ["(".repeat(1000) + "0" + ")".repeat(1000), Array(1000).fill(".").join("|"), "." + ".a".repeat(1000)]) {
-    const result = await run(["-nc", filter]); assert.match(result.stderr, /maxAstDepth|expected property/); assert.doesNotMatch(result.stderr, /RangeError|call stack/);
+  for (const filter of ["(".repeat(1000) + "0" + ")".repeat(1000), Array(1000).fill(".").join("|"), ".a".repeat(1000)]) {
+    const result = await run(["-nc", filter]);
+    assert.equal(result.exitCode, 5);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /maxAstDepth/);
+    assert.doesNotMatch(result.stderr, /RangeError|call stack/);
   }
+});
+
+test("malformed recursive descent property syntax retains the current compile diagnostic", async () => {
+  const result = await run(["-nc", "..a"]);
+  assert.equal(result.exitCode, 3);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "jq: error: syntax error, unexpected IDENT, expecting end of file (Unix shell quoting issues?) at <top-level>, line 1:\n..a  \njq: 1 compile error\n");
 });
 
 test("limits protect hidden Cartesian expansion, collections, and emitted results", async () => {
@@ -90,9 +103,14 @@ test("input, source, output, slurp and result budgets enforce boundary values", 
   assert.match((await run(["-nc", "0,1"], "", { limits: { maxResults: 1 } })).stderr, /maxResults/);
 });
 
-test("hazardous expansion cases have a one-second killable outer deadline", () => {
+test("hazardous expansion cases have a one-second killable outer deadline", async () => {
+  const prepared = await build({
+    entryPoints: [fileURLToPath(new URL("./hazard-worker.ts", import.meta.url))],
+    bundle: true, packages: "external", platform: "node", format: "esm", target: "es2022", write: false,
+  });
   for (const scenario of ["source", "json", "expansion", "allocation", "cancel"]) {
-    const result = spawnSync(process.execPath, ["--import", "tsx", new URL("./hazard-worker.ts", import.meta.url).pathname, scenario], { encoding: "utf8", timeout: 1000, maxBuffer: 4096 });
-    assert.ifError(result.error); assert.equal(result.status, 0, `${scenario}: ${result.stderr}`); assert.equal(result.stdout.trim(), "ok");
+    const result = spawnSync(process.execPath, ["--input-type=module", "-", scenario], { input: prepared.outputFiles[0]!.text, encoding: "utf8", timeout: 1000, maxBuffer: 4096 });
+    if (result.error) throw new Error(`${scenario}: hazard worker failed`, { cause: result.error });
+    assert.equal(result.status, 0, `${scenario}: ${result.stderr}`); assert.equal(result.stdout.trim(), "ok");
   }
 });

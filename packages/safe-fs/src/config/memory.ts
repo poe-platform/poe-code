@@ -1,13 +1,12 @@
 import type { FileSystemFactory } from "../contracts/filesystem.js";
-import { readConfigRecord, type FileSystemAdapterDescriptor } from "../config.js";
+import type { FileSystemAdapterDescriptor } from "../config.js";
+import { normalizeMemoryFileSystemLimits } from "../fs/memory/limits.js";
 
 export function createMemoryFileSystemAdapter(
   create: FileSystemFactory
 ): FileSystemAdapterDescriptor {
   return {
-    validateOptions(options) {
-      readConfigRecord(options, "memory option", []);
-    },
+    validateOptions: normalizeMemoryFileSystemLimits,
     create
   };
 }

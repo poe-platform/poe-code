@@ -12,8 +12,29 @@ import {
   isSandboxSet
 } from "../interp/values.js";
 import { decodeReplayData, encodeReplayData } from "./replay-data.js";
+import { setSandboxPrototype } from "../interp/object-model.js";
 
 describe("replay result data", () => {
+  it("does not discard an unsupported prototype on a capability property table", () => {
+    const closure = createSandboxClosure({call: () => 7, properties: {extra: 1}});
+    setSandboxPrototype(closure.properties!, {inherited: 7});
+    expect(() => encodeReplayData(closure, {
+      identifyCapability: () => "fn", captureCapabilityProperties: true
+    })).toThrow("prototype links");
+  });
+  it.each([false, true])("preserves aliases to a capability property table across graph roots (table first=%s)", tableFirst => {
+    const closure = createSandboxClosure({call: () => 7, properties: {extra: 1}});
+    Object.defineProperty(closure.properties!, "name", {value: "fn", configurable: true});
+    const encoded = encodeReplayData(tableFirst ? [closure.properties, closure] : [closure, closure.properties], {
+      identifyCapability: () => "fn", captureCapabilityProperties: true
+    });
+    const values = decodeReplayData(encoded, {resolveCapability: () => closure}) as any[];
+    const restored = tableFirst ? [values[1], values[0]] : values;
+    expect(restored[0].properties).toBe(restored[1]);
+    restored[1].extra = 2;
+    expect(restored[0].properties.extra).toBe(2);
+    expect(closure.properties?.extra).toBe(1);
+  });
   it("round-trips explicitly registered capabilities without serializing executable code", () => {
     const closure = createSandboxClosure({ call: () => 42 });
     const encoded = encodeReplayData([closure, { callback: closure }], {
@@ -42,7 +63,9 @@ describe("replay result data", () => {
     expect(restored[0].properties.box).toBe(restored[1]);
     expect(restored[1].owner).toBe(restored[0]);
     expect(restored[1].value).toBe(5);
-    expect(Object.isFrozen(restored[0].properties)).toBe(true);
+    expect(Object.isFrozen(restored[0].properties)).toBe(false);
+    restored[0].properties.extra = 7;
+    expect(closure.properties).not.toHaveProperty("extra");
   });
 
   it.each([undefined, "", 7, {}, "unknown"])(

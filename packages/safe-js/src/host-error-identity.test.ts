@@ -404,7 +404,7 @@ describe.each<Surface>(["module", "bindings"])("public restored %s error shape",
       ]);
       const snapshot = JSON.parse(await dump(original, { mode: "replay" }));
       const unchanged = JSON.stringify(snapshot);
-      expect(snapshot.executionSemantics).toBe("jobs-v7");
+      expect(snapshot.executionSemantics).toBe("jobs-v8");
       const record = snapshot.replay.calls[0];
       expect(record.policy).toBe("read-side-effect");
       const replacement = async () => {

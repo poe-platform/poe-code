@@ -49,9 +49,13 @@ for (const command of ["paste", "comm", "join"] as const) {
 
   test(`${command}: producer exceptions retain failure and cleanup`, async () => {
     let returned = false;
-    const stdin = (async function* () { try { throw new Error("injected producer failure"); yield new Uint8Array(); } finally { returned = true; } })();
-    const result = await runTable(fixture(command, command === "paste" ? ["-"] : ["-", "right"], { right: "a x\n" }), {}, { stdin });
-    assert.equal(result.exitCode, 1); assert.match(result.stderr, /injected producer failure/u); assert.equal(returned, true);
+    const failure = new Error("injected producer failure");
+    const reported: unknown[] = [];
+    const stdin = (async function* () { try { throw failure; yield new Uint8Array(); } finally { returned = true; } })();
+    const result = await runTable(fixture(command, command === "paste" ? ["-"] : ["-", "right"], { right: "a x\n" }), {}, { stdin, onInternalError(error) { reported.push(error); } });
+    assert.equal(result.exitCode, 1); assert.equal(result.stderr, `${command}: internal error\n`); assert.equal(returned, true);
+    assert.equal(reported.length, 1);
+    assert.equal(reported[0], failure);
   });
 
   test(`${command}: unsupported locale is explicit where ordering is required`, async () => {

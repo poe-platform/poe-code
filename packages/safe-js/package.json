@@ -3,6 +3,18 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "imports": {
+    "#safe-fs-native-seek": {
+      "types": "./dist/native/fs-seek/loader.d.ts",
+      "workerd": null,
+      "browser": null,
+      "default": "./dist/native/fs-seek/loader.mjs"
+    },
+    "#safe-js-platform": {
+      "workerd": "./dist/platform/workerd.js",
+      "default": "./dist/platform/node.js"
+    }
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -21,26 +33,52 @@
     "./cli": {
       "types": "./dist/cli.d.ts",
       "import": "./dist/cli.js"
+    },
+    "./workerd": {
+      "types": {
+        "workerd": "./dist/workerd.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/workerd.d.ts"
+      },
+      "workerd": "./dist/workerd.js",
+      "browser": null,
+      "import": "./dist/workerd.js"
     }
   },
   "dependencies": {
+    "@formatjs/bigdecimal": "0.2.7",
+    "@formatjs/intl-durationformat": "0.10.18",
+    "@formatjs/intl-localematcher": "0.8.13",
+    "@formatjs/intl-numberformat": "9.4.0",
+    "@formatjs/intl-pluralrules": "6.3.13",
+    "@petamoriken/float16": "^3.9.3",
     "@poe-code/agent-spawn": "*",
     "@poe-code/frontmatter": "*",
     "@poe-code/safe-fs": "*",
-    "tiny-mcp-client": "*"
+    "tiny-mcp-client": "*",
+    "temporal-polyfill": "1.0.4"
   },
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc && node ../../scripts/set-bin-executable.mjs",
+    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs",
+    "postbuild": "node --test scripts/built-imports.test.mjs",
     "example:experiment": "tsx src/cli.ts examples/experiment.md",
     "example:pipeline": "tsx src/cli.ts examples/pipeline.md",
     "example:superintendent": "tsx src/cli.ts examples/superintendent.md",
+    "pretest": "node scripts/numberformat-data.mjs && npm run typecheck:fs",
     "test": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
+    "pretest:unit": "node scripts/numberformat-data.mjs && npm run typecheck:fs",
     "test:unit": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
     "test:adversarial": "cd ../.. && vitest run packages/safe-js/test/adversarial",
-    "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts"
+    "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts",
+    "typecheck:contracts": "node scripts/check-fs-type-contract.mjs",
+    "test:conformance": "tsx test/conformance/command.ts",
+    "typecheck:fs": "node scripts/fs-type-contract.mjs"
   },
   "files": [
     "dist",
     "examples"
-  ]
+  ],
+  "devDependencies": {
+    "cldr-units-full": "48.2.0"
+  }
 }

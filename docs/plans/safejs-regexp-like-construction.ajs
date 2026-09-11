@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const regex = /a/g;
+  regex[Symbol.match] = false;
+  regex.lastIndex = 2;
+  const copy = RegExp(regex);
+  if (copy === regex || copy.source !== 'a' || copy.flags !== 'g' || copy.lastIndex !== 0)
+    throw new Error('RegExp copy identity failed');
+  const order = [];
+  const pattern = {
+    [Symbol.match]: true,
+    get source() { order.push('source'); return { toString() { order.push('source string'); return 'a'; } }; },
+    get flags() { order.push('flags'); return 'i'; }
+  };
+  const constructed = RegExp(pattern);
+  if (!constructed.test('A') || order.join('|') !== 'source|flags|source string')
+    throw new Error('Regex-like construction failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, copied: copy !== regex, flags: constructed.flags, order };
+}

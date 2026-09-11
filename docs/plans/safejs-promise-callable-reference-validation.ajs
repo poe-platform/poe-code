@@ -1,0 +1,26 @@
+import { S } from "schema";
+
+export const schema = S.Object({title: S.String()});
+
+export default async (frontmatter) => {
+  const callbacks = [];
+  let result;
+  const resolve = value => { result = value; };
+  const reject = () => {};
+  function C(executor) { executor(resolve, reject); }
+  C.resolve = value => ({then(ok) { callbacks.push(ok); }});
+  Promise.all.call(C, [1, 2, 3]);
+
+  const setter = {};
+  const getter = {};
+  Object.defineProperty(setter, "value", {set: callbacks[0]});
+  Object.defineProperty(getter, "value", {get: callbacks[1]});
+  const bound = callbacks[2].bind(null, 9);
+  await 0;
+  setter.value = 7;
+  getter.value;
+  await bound();
+  if (result[0] !== 7 || result[1] !== undefined || result[2] !== 9)
+    throw new Error("Aggregate callable references changed behavior");
+  return {title: frontmatter.title, ok: true, callableForms: 3, agentSpawns: 0};
+};

@@ -1,0 +1,28 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class CustomError extends TypeError {}
+  const error = new CustomError("message", { cause: 7 });
+  const aggregate = new AggregateError(new Set([error, 2]), "group");
+  const message = Object.getOwnPropertyDescriptor(error, "message");
+  const detached = new Error("detached");
+  Object.setPrototypeOf(detached, null);
+  const frozen = Object.freeze(new TypeError("frozen"));
+  let caught = false;
+  try { throw frozen; } catch (value) { caught = value === frozen; }
+  await 0;
+  if (!(error instanceof CustomError) || !(error instanceof TypeError) ||
+      !(error instanceof Error) || error.cause !== 7 ||
+      Object.getPrototypeOf(TypeError) !== Error ||
+      Object.getPrototypeOf(TypeError.prototype) !== Error.prototype ||
+      Object.getPrototypeOf(error) !== CustomError.prototype ||
+      String(error) !== "TypeError: message" || message.enumerable ||
+      !message.writable || !message.configurable || detached instanceof Error ||
+      !caught || aggregate.errors[0] !== error || aggregate.errors.length !== 2 ||
+      Object.hasOwn(new Error(), "message")) {
+    throw new Error("Error intrinsic prototype regression");
+  }
+  return { title: frontmatter.title, ok: true, message: String(error), caught };
+};

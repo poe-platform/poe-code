@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function regexpProperties(frontmatter) {
+  await 0;
+  const pattern = /t/;
+  pattern.extra = 7;
+  pattern[Symbol.match] = function(value) { return this === pattern ? value + "!" : "wrong"; };
+  if ("text".match(pattern) !== "text!") throw new Error("RegExp symbol hook failed");
+  Object.defineProperty(pattern, "source", { value: "guest" });
+  if (pattern.source !== "guest" || !pattern.test("t"))
+    throw new Error("Guest property changed engine source");
+  const descriptor = Object.getOwnPropertyDescriptor(pattern, "lastIndex");
+  if (descriptor.enumerable || descriptor.configurable || !descriptor.writable)
+    throw new Error("lastIndex descriptor failed");
+  if (Object.keys(pattern).join() !== "extra" || Object.getOwnPropertySymbols(pattern).length !== 1)
+    throw new Error("RegExp property enumeration failed");
+  Object.seal(pattern);
+  if (!Object.isSealed(pattern) || Object.isFrozen(pattern)) throw new Error("RegExp sealing failed");
+  return { title: frontmatter.title, hooks: true, descriptors: true, isolation: true };
+}

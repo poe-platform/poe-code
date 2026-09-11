@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  const keys = [];
+  for (const [first, second] in { ab: 1, cd: 2 }) keys.push(first + second);
+  const target = {};
+  for (target.key in { x: 1 }) keys.push(target.key);
+  function* values() {
+    const [first, second = yield 1] = [2];
+    return [first, second];
+  }
+  const iterator = values();
+  const initial = iterator.next();
+  const final = iterator.next(4);
+  if (keys.join() !== "ab,cd,x" || initial.value !== 1 ||
+      !final.done || final.value.join() !== "2,4") throw new Error("Pattern smoke check failed");
+  return { title: frontmatter.title, ok: true, keys, result: final.value };
+};

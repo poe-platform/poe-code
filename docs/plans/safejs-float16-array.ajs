@@ -1,0 +1,17 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const values = new Float16Array([1.1, -0, 65520]);
+  if (values[0] !== 1.099609375 || !Object.is(values[1], -0) || values[2] !== Infinity)
+    throw new Error("Half-float rounding failed");
+  const a = new Float16Array([1.5, 2.5, 3.5]);
+  a.set(a.subarray(0, 2), 1);
+  const copied = structuredClone({ a, bytes: new Uint16Array(a.buffer) });
+  await 0;
+  if (!ArrayBuffer.isView(copied.a) || !(copied.a instanceof Float16Array) || copied.a.buffer !== copied.bytes.buffer)
+    throw new Error("Float16 clone identity failed");
+  if (copied.a[1] !== 1.5 || copied.a[2] !== 2.5)
+    throw new Error("Overlapping copy failed");
+  return { title: frontmatter.title, ok: true, values: Array.from(copied.a) };
+};

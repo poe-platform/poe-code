@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({title:S.String()});
+
+export default async (frontmatter) => {
+  const source=new Map([[2,4],[6,8]]);
+  const iterator=source.entries();
+  const first=iterator.next();
+  Object.defineProperty(iterator,'self',{get(){return iterator}});
+  await 0;
+  source.set(10,12);
+  const rest=Array.from(iterator);
+  const common=Object.getPrototypeOf(Object.getPrototypeOf([].values()));
+  if (iterator[Symbol.iterator]()!==iterator || iterator.next!==iterator.next ||
+      iterator.self!==iterator || Object.getPrototypeOf(Object.getPrototypeOf(iterator))!==common ||
+      first.value[0]!==2 || rest.length!==2 || rest[1][1]!==12)
+    throw new Error('Map iterator prototype, live cursor or identity failed');
+  const setIterator=new Set([3]).values();
+  if (Object.getPrototypeOf(Object.getPrototypeOf(setIterator))!==common ||
+      setIterator[Symbol.iterator]()!==setIterator || setIterator.next().value!==3)
+    throw new Error('Set iterator prototype or cursor failed');
+  return {title:frontmatter.title,ok:true,first:first.value,rest};
+};

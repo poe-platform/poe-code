@@ -4,6 +4,15 @@ import { basicCommands } from "../../../../src/commands/basic.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { Shell } from "../../../../src/shell/shell.js";
 import { nativeOptions, runNative } from "../trap/oracle.js";
+import { ShellLimitError } from "../../../../src/shell/types.js";
+
+for (const locale of ["C", "en_US.UTF-8"]) test(`length expansion admits source bytes before scanning: ${locale}`, async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: locale, value: "é".repeat(2048) } });
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.register(command);
+  await assert.rejects(shell.exec('printf "%s" "${#value}"', { limits: { maxExpansionBytes: 512 } }),
+    error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+});
 
 const source = `set -- $'\\xe2\\x82' 'é' a b c d e f g tail; printf '<%s>' "\${#1}" "\${#2}" "\${#10}" "\${#}"`;
 for (const [locale, expected] of [["C", "<2><2><4><10>"], ["en_US.UTF-8", "<2><1><4><10>"]] as const) {

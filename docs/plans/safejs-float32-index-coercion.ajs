@@ -1,0 +1,17 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  await 0;
+  const value = new Float32Array([1, 2]);
+  const replacement = { valueOf() { return 7; } };
+  const result = value[0] = replacement;
+  if (value[0] !== 7 || result !== replacement) throw new Error("Assignment conversion/identity failed");
+  value[1] = { [Symbol.toPrimitive](hint) { if (hint !== "number") throw new Error("Wrong hint"); return 3; } };
+  let calls = 0;
+  value[8] = { valueOf() { calls++; return 4; } };
+  if (calls !== 1 || value.length !== 2) throw new Error("Invalid index conversion failed");
+  Object.assign(value, { 0: { valueOf() { return 5; } } });
+  if (value.join() !== "5,3") throw new Error("Object.assign conversion failed");
+  return { title: frontmatter.title, ok: true, values: Array.from(value), calls };
+};

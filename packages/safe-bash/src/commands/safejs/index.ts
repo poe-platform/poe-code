@@ -1,4 +1,6 @@
+import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { toByteSource, writeBytes, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
+import { writeDiagnostic } from "../../escaping.js";
 import { makeSafeJsFsModule } from "../../integrations/safejs/index.js";
 import { record, withSignal } from "../../integrations/safejs/values.js";
 import { pathOf, UsageError } from "../internal.js";
@@ -22,6 +24,10 @@ export interface SafeJsCommandDialect {
   };
 }
 
+class GuestDiagnostic extends PublicDiagnostic {
+  constructor(readonly info: { name: string; code: string; message: string }) { super(info.message); }
+}
+
 function errorInfo(error: unknown): { name: string; code: string; message: string } {
   if (typeof error === "string") return { name: "Error", code: "", message: error };
   if (typeof error !== "object" || error === null) return { name: "Error", code: "", message: "SafeJS execution failed" };
@@ -30,6 +36,12 @@ function errorInfo(error: unknown): { name: string; code: string; message: strin
     return descriptor && "value" in descriptor && typeof descriptor.value === "string" ? descriptor.value : "";
   };
   return { name: field("name"), code: field("code"), message: field("message") || "SafeJS execution failed" };
+}
+
+function statusField(error: unknown, name: "name" | "code"): string {
+  if (typeof error !== "object" || error === null) return "";
+  const descriptor = Object.getOwnPropertyDescriptor(error, name);
+  return descriptor && "value" in descriptor && typeof descriptor.value === "string" ? descriptor.value : "";
 }
 
 function validateRuntime<Budget>(runtime: SafeJsRuntime<Budget> | undefined): void {
@@ -50,13 +62,13 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
     const diagnose = async (message: string): Promise<void> => {
       const diagnostic = new AbortController();
       const timer = setTimeout(() => diagnostic.abort(), Math.max(1, Math.min(limits.timeoutMs, deadline - Date.now())));
-      try { await writeBytes(context.stderr, Buffer.from(`${dialect.name}: ${message.slice(0, 4096)}\n`), AbortSignal.any([context.signal, diagnostic.signal])); }
+      try { await writeDiagnostic(context.stderr, `${dialect.name}: ${message.slice(0, 4096)}\n`, AbortSignal.any([context.signal, diagnostic.signal])); }
       catch (error) { context.signal.throwIfAborted(); if (!diagnostic.signal.aborted) throw error; }
       finally { clearTimeout(timer); }
     };
     let parsed;
     try { parsed = dialect.invocation(context.args); }
-    catch (error) { await diagnose(errorInfo(error).message); return { exitCode: 2 }; }
+    catch (error) { await diagnose(publicDiagnosticMessage(error, context.onInternalError)); return { exitCode: 2 }; }
     context.signal.throwIfAborted();
     if (parsed.help) { await writeBytes(context.stdout, Buffer.from(dialect.help), context.signal); return { exitCode: 0 }; }
     if (!runtime) { await diagnose("runtime not installed; inject run, createBudget, makeFsModule and declareHostOperation"); return { exitCode: 127 }; }
@@ -83,7 +95,9 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       let filename = parsed.file;
       if (source === undefined) {
         if (!fromStdin) filename = pathOf(context, parsed.file);
-        const bytes = fromStdin ? context.stdin : context.fs.readStream && context.fs.capabilities.streamingRead !== false
+        const capabilities = fromStdin ? undefined : await withSignal(signal, async () =>
+          await context.fs.capabilitiesFor?.(filename, { signal }) ?? context.fs.capabilities);
+        const bytes = fromStdin ? context.stdin : context.fs.readStream && capabilities?.streamingRead !== false
           ? context.fs.readStream(filename, { signal, chunkSize: 65536 })
           : toByteSource(await withSignal(signal, () => context.fs.readFile(filename, { signal, maxBytes: limits.maxSourceBytes })));
         const reader = new GuestInput(bytes, limits.maxSourceBytes, signal, fail, "maxSourceBytes");
@@ -121,20 +135,24 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       })), "SafeJS run result");
       signal.throwIfAborted();
       if (result.ok !== true && result.ok !== false) throw new TypeError("Invalid SafeJS run result.ok");
-      if (!result.ok) throw result.error;
+      if (!result.ok) {
+        const info = errorInfo(result.error);
+        throw new GuestDiagnostic(info);
+      }
       if (parsed.print && result.returnValue !== undefined) await output.result(result.returnValue);
       await output.drain();
-    } catch (error) { thrown = failure ?? error; failed = true; }
+    } catch (error) { thrown = hasFailure ? failure : error; failed = true; }
     finally {
-      try { await output.drain(); } catch (error) { thrown = failure ?? error; failed = true; }
+      try { await output.drain(); } catch (error) { thrown = hasFailure ? failure : error; failed = true; }
       controller.abort();
       clearTimeout(timeout);
       await input?.close().catch(() => {});
     }
     context.signal.throwIfAborted();
     if (failed) {
-      const info = errorInfo(thrown);
-      if (!output.stderrFailed) await diagnose(info.message);
+      const info = thrown instanceof GuestDiagnostic ? thrown.info : { name: statusField(thrown, "name"), code: statusField(thrown, "code") };
+      const detail = thrown instanceof SafeJsCommandLimitError ? thrown.message : publicDiagnosticMessage(thrown, context.onInternalError);
+      if (!output.stderrFailed) await diagnose(detail);
       return { exitCode: thrown instanceof SafeJsCommandLimitError || info.code === "budgetExceeded" ? 124
         : thrown instanceof UsageError || info.name === "ParseError" ? 2 : 1 };
     }

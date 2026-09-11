@@ -1,0 +1,8 @@
+export declare function oraclePath(tool: "diff" | "patch"): string;
+export declare function oracleIdentity(tool: "diff" | "patch"): {
+  path: string;
+  realpath: string;
+  version: string;
+  dialect: string;
+  sha256: string;
+};

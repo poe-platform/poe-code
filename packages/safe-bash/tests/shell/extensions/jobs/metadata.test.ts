@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "poe-code/safe-fs";
 import { Shell } from "../../../../src/shell/shell.js";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import { jobsExtension } from "../../../../src/shell/extensions/jobs/index.js";
 import { commandRuntimeIdentity } from "../../../../src/contracts/command.js";
 import { shellValueFromBytes } from "../../../../src/contracts/value.js";
@@ -58,7 +58,7 @@ for (const kind of ["getter", "hole", "extra", "duplicate", "wrong", "missing"])
 }
 
 test("extension names do not activate syntax or builtins", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [{ name: "jobs", create: () => ({ builtins: [] }) }] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [{ name: "jobs", create: () => ({ builtins: [] }) }] }).use(agentCommands());
   context.after(() => shell.dispose());
   assert.equal((await shell.exec("true &")).exitCode, 2);
   assert.equal((await shell.exec("wait")).exitCode, 127);
@@ -70,7 +70,7 @@ test("captured hook callbacks survive mutation of original definitions", async c
     builtins: [{ name: "mutate", execute: () => { hook.lookup = () => "after"; return 0; } }],
     specialParameters: [hook],
   }) };
-  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(browserCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("mutate; printf '%s' \"$!\"");
   assert.equal(result.stdout, "before");
@@ -83,7 +83,7 @@ test("captured special parameters retain generic length and alternate expansion 
     create: () => ({ builtins: [{ name: "fill", execute: () => { value = shellValueFromBytes(Uint8Array.of(255, 97)); return 0; } }],
       specialParameters: [{ name: "!", lookup: () => value }],
     }),
-  }] }).use(browserCommands());
+  }] }).use(agentCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("printf '%s:' \"${!:-missing}\"; fill; printf '%s:%s' \"${#!}\" \"${!}\"");
   assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.concat([Buffer.from("missing:2:"), Buffer.from([255, 97])]));

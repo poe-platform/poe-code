@@ -145,16 +145,19 @@ jobs:
           fi
           npm publish --provenance --access public
         if: steps.release-admission.outputs.publish == 'true'
-      - name: Wait for toolcraft-schema registry availability
+      - name: Wait for toolcraft-schema registry and attestation availability
         timeout-minutes: 11
         run: |
           for _ in {1..120}; do
-            if npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+            if npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
+              && curl --fail --silent --show-error --max-time 10 --output /dev/null \
+                "https://registry.npmjs.org/-/npm/v1/attestations/toolcraft-schema@${{ steps.version.outputs.next }}"; then
               exit 0
             fi
             sleep 5
           done
-          npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version
+          echo "toolcraft-schema version or provenance attestation did not become available" >&2
+          exit 1
         if: steps.release-admission.outputs.publish == 'true'
       - name: Verify packed Toolcraft signatures
         run: |
@@ -181,18 +184,22 @@ jobs:
           fi
           npm publish --provenance --access public
         if: steps.release-admission.outputs.publish == 'true'
-      - name: Wait for Toolcraft registry availability
+      - name: Wait for Toolcraft registry and attestation availability
         timeout-minutes: 11
         run: |
           for _ in {1..120}; do
             if npm view "toolcraft@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
-              && npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
+              && npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
+              && curl --fail --silent --show-error --max-time 10 --output /dev/null \
+                "https://registry.npmjs.org/-/npm/v1/attestations/toolcraft@${{ steps.version.outputs.next }}" \
+              && curl --fail --silent --show-error --max-time 10 --output /dev/null \
+                "https://registry.npmjs.org/-/npm/v1/attestations/toolcraft-openapi@${{ steps.version.outputs.next }}"; then
               exit 0
             fi
             sleep 5
           done
-          npm view "toolcraft@${{ steps.version.outputs.next }}" version
-          npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version
+          echo "Toolcraft versions or provenance attestations did not become available" >&2
+          exit 1
         if: steps.release-admission.outputs.publish == 'true'
       - name: Verify installed Toolcraft signatures
         run: |

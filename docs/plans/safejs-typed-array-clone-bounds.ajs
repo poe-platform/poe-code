@@ -1,0 +1,22 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const results = [];
+  for (const Type of [Float32Array,Float64Array,Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array]) {
+    const width = Type.BYTES_PER_ELEMENT;
+    const buffer = new ArrayBuffer(width*4,{maxByteLength:width*8});
+    const view = new Type(buffer,width,2);
+    buffer.resize(width);
+    let error;
+    try { structuredClone({view}); } catch (caught) { error = [caught.name,caught.code]; }
+    if (!error || error[0] !== "DataCloneError" || error[1] !== 25)
+      throw new Error("Invalid view was not rejected correctly");
+    if (buffer.byteLength !== width) throw new Error("Source buffer was changed");
+    buffer.resize(width*4);
+    await 0;
+    if (view.length !== 2 || view.buffer !== buffer) throw new Error("Source view did not revive");
+    results.push(Type.name);
+  }
+  return { title: frontmatter.title, ok: true, results };
+};

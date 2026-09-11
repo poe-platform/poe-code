@@ -123,15 +123,20 @@ test("selected execution rejection outranks an external close rejection", { time
 
 test("a reported primary read failure is not replaced by a secondary return failure", { timeout: 2000 }, async () => {
   const { shell } = setup();
+  const primary = new Error("primary source read");
+  const secondary = new Error("secondary source return");
+  const observed: unknown[] = [];
   let returns = 0;
   const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
-    async next() { throw new Error("primary source read"); },
-    async return() { returns++; throw new Error("secondary source return"); },
+    async next() { throw primary; },
+    async return() { returns++; throw secondary; },
   }; } };
   try {
-    const result = await shell.exec("pass", { stdin });
+    const result = await shell.exec("pass", { stdin, onInternalError(error) { observed.push(error); } });
     assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /primary source read/u);
+    assert.equal(result.stderr, "shell: line 1: internal error\n");
+    assert.equal(observed.length, 1);
+    assert.equal(observed[0], primary);
     assert.doesNotMatch(result.stderr, /secondary source return/u);
     assert.equal(returns, 1);
   } finally { await shell.dispose(); }

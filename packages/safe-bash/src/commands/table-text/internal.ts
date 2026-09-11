@@ -1,6 +1,7 @@
+import { PublicDiagnostic } from "../../diagnostics.js";
 import { yieldTurn } from "../../contracts/yield.js";
-import { FsError, readBytes, resolvePath, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
-import { diagnostic } from "../internal.js";
+import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
+import { diagnostic, pathOf } from "../internal.js";
 
 export interface TableTextLimits {
   readonly maxInputBytes: number;
@@ -129,7 +130,7 @@ export class RecordReader {
   }
   async closeOperand(name: string): Promise<void> {
     this.budget.context.signal.throwIfAborted();
-    if (this.closed) throw new Error(`${name}: Bad file descriptor`);
+    if (this.closed) throw new PublicDiagnostic(`${name}: Bad file descriptor`);
     await this.close();
   }
   async close(): Promise<void> {
@@ -154,10 +155,11 @@ export class Inputs {
     let source: ByteSource;
     if (name === "-") source = this.context.stdin;
     else {
-      const path = resolvePath(this.context.cwd, name);
+      const path = pathOf(this.context, name);
       const stat = await this.context.fs.stat(path, { signal: this.signal });
       if (stat.type === "directory") throw new FsError("EISDIR", { path });
-      if (this.context.fs.readStream) source = this.context.fs.readStream(path, { signal: this.signal });
+      const capabilities = await this.context.fs.capabilitiesFor?.(path, { signal: this.signal }) ?? this.context.fs.capabilities;
+      if (this.context.fs.readStream && capabilities.streamingRead !== false) source = this.context.fs.readStream(path, { signal: this.signal });
       else {
         const { context, signal, budget } = this;
         source = (async function* () {
@@ -196,7 +198,7 @@ export class OrderCheck {
       const message = `file ${file} is not in sorted order`;
       if (this.mode === "check") fail(message);
       this.warned.add(file); this.failed = true;
-      await diagnostic(this.context, new Error(message));
+      await diagnostic(this.context, new PublicDiagnostic(message));
     }
   }
 }

@@ -63,19 +63,34 @@ test("timestamps persist in object metadata and truncate preserves bytes and pad
   assert.notEqual((await reopened.stat("/input")).mtimeMs, 5678);
 });
 
-test("root named-file gzip stages, publishes, preserves input with -k and removes input without -k", async () => {
-  const transport = new MockS3Client({ buckets: ["tools"] });
-  const fs = new S3FileSystem({ transport, bucket: "tools" });
-  const shell = new Shell({ fs });
-  shell.use(agentCommands());
-  await fs.writeFile("/input", bytes("hello\n"));
-  const compressed = await shell.exec("gzip -k /input && gzip -dc /input.gz");
-  assert.equal(compressed.exitCode, 0, compressed.stderr);
-  assert.equal(compressed.stdout, "hello\n");
-  assert.deepEqual(await fs.readFile("/input"), bytes("hello\n"));
-  await fs.rm("/input");
-  const decompressed = await shell.exec("gzip -d /input.gz");
-  assert.equal(decompressed.exitCode, 0, decompressed.stderr);
-  assert.deepEqual(await fs.readFile("/input"), bytes("hello\n"));
-  assert.deepEqual(await fs.readdir("/"), [{ name: "input", type: "file" }]);
+test("root named-file gzip refuses unsupported S3 publication before acquiring or mutating entries", async () => {
+  for (const decompress of [false, true]) {
+    const transport = new MockS3Client({ buckets: ["tools"] });
+    const fs = new S3FileSystem({ transport, bucket: "tools" });
+    const shell = new Shell({ fs });
+    shell.use(agentCommands());
+    try {
+      await fs.writeFile("/input", bytes("hello\n"));
+      if (decompress) {
+        const prepared = await shell.exec("gzip -c /input > /input.gz");
+        assert.equal(prepared.exitCode, 0, prepared.stderr);
+        await fs.rm("/input");
+      }
+      const source = decompress ? "/input.gz" : "/input";
+      const destination = decompress ? "/input" : "/input.gz";
+      const sourceBytes = await fs.readFile(source);
+      const requestCount = transport.requests.length;
+      const result = await shell.exec(decompress ? "gzip -d /input.gz" : "gzip -k /input");
+      const commandRequests = transport.requests.slice(requestCount);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, `gzip: ENOTSUP: file output requires stable scoped entry identities '${source}'\n`);
+      assert.equal(result.stdout, "");
+      assert.deepEqual(commandRequests.filter(request => !["headObject", "listObjectsV2"].includes(request.operation)), []);
+      assert.deepEqual(await fs.readFile(source), sourceBytes);
+      await assert.rejects(fs.stat(destination), error => isFsError(error, "ENOENT"));
+      assert.deepEqual(await fs.readdir("/"), [{ name: source.slice(1), type: "file" }]);
+    } finally {
+      await shell.dispose();
+    }
+  }
 });

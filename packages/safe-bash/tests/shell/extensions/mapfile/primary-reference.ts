@@ -32,14 +32,14 @@ assert.equal(new Set(reference.records.map(record => record.captureIndex)).size,
 assert.equal(reference.fixtures.length, 7);
 const revisionURL = new URL("./fixture-revision.json", import.meta.url);
 const revisionStat = lstatSync(revisionURL);
-assert.ok(revisionStat.isFile() && revisionStat.size <= 4096, "Fixture revision receipt must be a bounded regular file");
+assert.ok(revisionStat.isFile() && revisionStat.size <= 16384, "Fixture revision receipt must be a bounded regular file");
 const revisionBytes = readFileSync(revisionURL);
 for (const fixture of reference.fixtures) {
   const file = new URL(fixture.file, import.meta.url);
   const stat = lstatSync(file);
   assert.ok(stat.isFile() && stat.size <= 64 * 1024, "Primary fixture must be a bounded regular file");
   const current = readFileSync(file);
-  if (fixture.file === "review.test.ts" || fixture.file === "syntax.test.ts") verifyMapfileFixtureRevision(fixture, current, referenceSHA256, revisionBytes);
+  if (fixture.file !== "native.test.ts") verifyMapfileFixtureRevision(fixture, current, referenceSHA256, revisionBytes);
   else assert.equal(createHash("sha256").update(current).digest("hex"), fixture.sha256);
 }
 

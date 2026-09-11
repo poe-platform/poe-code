@@ -109,9 +109,15 @@ test("loopback agentCommands touch and named gzip reads work with streamed uploa
     assert.equal((await fs.stat("/new")).atimeMs, 12345);
     assert.equal((await fs.stat("/new")).mtimeMs, 67890);
     await fs.rm("/file.gz");
+    const entriesBefore = [...mock.base.files.keys()].sort();
+    const requestCount = mock.base.requests.length;
     const namedOutput = await shell.exec("gzip -k /file");
+    const commandRequests = mock.base.requests.slice(requestCount);
     assert.equal(namedOutput.exitCode, 1);
-    assert.match(namedOutput.stderr, /ENOTSUP: mkdir mode/);
+    assert.equal(namedOutput.stderr, "gzip: ENOTSUP: file output requires stable scoped entry identities '/file'\n");
+    assert.deepEqual(commandRequests.filter(request => !["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")), []);
+    assert.deepEqual([...mock.base.files.keys()].sort(), entriesBefore);
+    assert.equal(mock.base.files.has("/file.gz"), false);
     assert.deepEqual(await fs.readFile("/file"), new Uint8Array([0, 255, 128, 10]));
     assert.equal(mock.base.locks.size, 0);
   });

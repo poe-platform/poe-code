@@ -368,9 +368,16 @@ test("optional scripting leaves stay outside the default build and package expor
     "src/shell/extensions/mapfile/index.ts",
     "src/shell/extensions/read/index.ts",
   ]) assert.ok(configuration.exclude.includes(path), `optional source must not ship in the default build: ${path}`);
-  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf", "!dist/commands/truncate", "!dist/commands/yes", "!dist/commands/yq", "!dist/fs/devices", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs", "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read"]) {
+  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf", "!dist/commands/truncate", "!dist/commands/yes", "!dist/fs/devices", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs", "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read"]) {
     assert.ok(metadata.files.includes(path), `optional artifacts must remain unpublished after explicit compilation: ${path}`);
   }
+  for (const name of ["arguments", "evaluate", "expression", "inplace", "mike", "native-encoder", "native-work", "nodes"]) {
+    for (const suffix of ["js", "js.map", "d.ts", "d.ts.map"]) {
+      const path = `!dist/commands/yq/${name}.${suffix}`;
+      assert.ok(metadata.files.includes(path), `optional YAML artifact must remain unpublished: ${path}`);
+    }
+  }
+  assert.equal(metadata.files.includes("!dist/commands/yq"), false, "shared restricted yq must remain packaged");
   for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices", "./shell/extensions/trap", "./shell/extensions/mapfile", "./shell/extensions/read"]) {
     assert.equal(Object.hasOwn(metadata.exports, path), false, `optional leaf is not a default package export: ${path}`);
   }
@@ -415,14 +422,41 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/commands/bytes/input-budget.test.ts",
     "tests/commands/node-safejs.test.ts",
+    "tests/commands/node-export-boundary.test.ts",
     "tests/commands/input.test.ts",
     "tests/commands/network/mounted-output.test.ts",
+    "tests/commands/network/aggregate-deadline.test.ts",
+    "tests/commands/network/response-body-mode.test.ts",
     "tests/contracts/value.test.ts",
     "tests/contracts/runtime-identity.test.ts",
     "tests/plugins/optional-runtime.test.ts",
     "tests/plugins/optional-host.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
+    "tests/shell/globstar.test.ts",
+    "tests/shell/prefix-names.test.ts",
+    "tests/shell/parameter-transforms.test.ts",
+    "tests/shell/select.test.ts",
+    "tests/shell/arithmetic-for.test.ts",
+    "tests/shell/mapfile.test.ts",
+    "tests/shell/mapfile-eval-arguments.test.ts",
+    "tests/shell/associative-arrays.test.ts",
+    "tests/commands/network/wget.test.ts",
+    "tests/commands/bytes-stress/portable-compression.test.ts",
+    "tests/commands/bytes/compression/bounded-codec.test.ts",
+    "tests/commands/bytes/compression/checkpoint-propagation.test.ts",
+    "tests/commands/bytes/compression/cleanup-outcome.test.ts",
+    "tests/commands/bytes/compression/file-lifecycle.test.ts",
+    "tests/commands/bytes/compression/ownership.test.ts",
+    "tests/commands/bytes/compression/late-source.test.ts",
+    "tests/commands/bytes/compression/planning.test.ts",
+    "tests/commands/bytes/compression/capabilities.test.ts",
+    "tests/commands/bytes/compression/snapshot-rmdir.test.ts",
+    "tests/commands/bytes/compression/opaque-next.test.ts",
+    "tests/commands/bytes/compression/native-codecs.test.ts",
+    "tests/source-census.test.ts",
+    "tests/commands/bytes/compression/native-codec-safety.test.ts",
+    "tests/shell/network-execution-deadline.test.ts",
   ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);
   for (const path of [
     "tests/contracts/filesystem-descriptor.test.ts",
@@ -746,10 +780,123 @@ function assertSource7Discovery(files) {
   for (const path of added) assert.ok(files.includes(path), "retained filesystem test is missing: " + path);
   assert.ok(files.includes("tests/fs/conformance/provenance.test.ts"));
   assert.ok(files.includes("tests/integration/typecheck-consumer-resolution.test.ts"));
+  assert.ok(files.includes("tests/integration/s3-http-exports/native-peer.test.ts"));
+  assert.ok(files.includes("tests/plugins/qualified-native-peer.test.ts"));
+  assert.ok(files.includes("tests/plugins/qualified-native-required-peer.test.ts"));
   assert.ok(files.includes("tests/shell/redirect-limits.test.ts"));
+  assert.ok(files.includes("tests/shell/opaque-errors.test.ts"));
+  assert.ok(files.includes("tests/shell/filesystem-budget.test.ts"));
+  assert.ok(files.includes("tests/shell/path-lookup-budget.test.ts"));
+  assert.ok(files.includes("tests/shell/pattern-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/pattern-boundaries.test.ts"));
+  assert.ok(files.includes("tests/shell/cleanup-retention.test.ts"));
+  assert.ok(files.includes("tests/shell/getopts-validation.test.ts"));
+  assert.ok(files.includes("tests/shell/brace-reservations.test.ts"));
+  assert.ok(files.includes("tests/shell/value-scope-reservations.test.ts"));
+  assert.ok(files.includes("tests/commands/predicate-depth.test.ts"));
+  assert.ok(files.includes("tests/commands/move-no-replace.test.ts"));
+  assert.ok(files.includes("tests/commands/structured/whole-value-admission.test.ts"));
+  assert.ok(files.includes("tests/plugins/portable-agent.test.ts"));
+  assert.ok(files.includes("tests/plugins/portable-default-agent.test.ts"));
+  assert.ok(files.includes("tests/plugins/default-executor-refactor.test.ts"));
+  assert.ok(files.includes("tests/commands/bytes/checksums/portable.test.ts"));
+  assert.ok(files.includes("tests/commands/portable-random.test.ts"));
+  assert.ok(files.includes("tests/commands/timeout-portable.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-concat-work-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/sed-program-budget.test.ts"));
+  assert.ok(files.includes("tests/shell/memory-storage-limits.test.ts"));
+  assert.ok(files.includes("tests/shell/virtual-null-device.test.ts"));
+  assert.ok(files.includes("tests/commands/device-stream-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/cmp.test.ts"));
+  assert.ok(files.includes("tests/commands/cmp-adversarial.test.ts"));
+  assert.ok(files.includes("tests/commands/cmp-skip.test.ts"));
+  assert.ok(files.includes("tests/commands/fmt.test.ts"));
+  assert.ok(files.includes("tests/commands/fmt-adversarial.test.ts"));
+  assert.ok(files.includes("tests/plugins/fmt-registration.test.ts"));
+  assert.ok(files.includes("tests/commands/shuf.test.ts"));
+  assert.ok(files.includes("tests/plugins/shuf-registration.test.ts"));
+  assert.ok(files.includes("tests/commands/numfmt.test.ts"));
+  assert.ok(files.includes("tests/commands/numfmt-field-buffer.test.ts"));
+  assert.ok(files.includes("tests/plugins/numfmt-registration.test.ts"));
+  assert.ok(files.includes("tests/plugins/truncate-registration.test.ts"));
+  assert.ok(files.includes("tests/commands/truncate.test.ts"));
+  assert.ok(files.includes("tests/shell/command-input.test.ts"));
+  assert.ok(files.includes("tests/shell/parse-budget.test.ts"));
+  assert.ok(files.includes("tests/shell/parse-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
+  assert.ok(files.includes("tests/shell/source-line-units.test.ts"));
+  assert.ok(files.includes("tests/shell/parser-integration.test.ts"));
+  assert.ok(files.includes("tests/shell/input-integration.test.ts"));
+  assert.ok(files.includes("tests/shell/ifs-membership.test.ts"));
+  assert.ok(files.includes("tests/shell/child-dispatch-retirement.test.ts"));
+  assert.ok(files.includes("tests/shell/inline-input-retirement.test.ts"));
+  assert.ok(files.includes("tests/shell/printf-variable.test.ts"));
+  assert.ok(files.includes("tests/shell/brace-expansion.test.ts"));
+  assert.ok(files.includes("tests/shell/brace-expansion-differential.test.ts"));
+  assert.ok(files.includes("tests/shell/xargs-parallel-lifecycle.test.ts"));
+  assert.ok(files.includes("tests/shell/tail-follow-lifecycle.test.ts"));
+  assert.ok(files.includes("tests/shell/input-pending-return.test.ts"));
+  assert.ok(files.includes("tests/commands/tee-target-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/tail-follow.test.ts"));
+  assert.ok(files.includes("tests/commands/diagnostic-display.test.ts"));
+  assert.ok(files.includes("tests/contracts/diagnostic-escaping.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-parallel.test.ts"));
+  assert.ok(files.includes("tests/contracts/missing-target.test.ts"));
+  assert.ok(files.includes("tests/commands/copy-preflight-canonicalization.test.ts"));
+  assert.ok(files.includes("tests/commands/join-render-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/ere-work-accounting.test.ts"));
+  assert.ok(files.includes("tests/commands/find-time-delete.test.ts"));
+  assert.ok(files.includes("tests/commands/sed-null-data.test.ts"));
+  assert.ok(files.includes("tests/commands/ls-human-sort.test.ts"));
+  assert.ok(files.includes("tests/commands/rg-file-types.test.ts"));
+  assert.ok(files.includes("tests/commands/jq-control-flow.test.ts"));
+  assert.ok(files.includes("tests/commands/jq-control-flow-limits.test.ts"));
+  assert.ok(files.includes("tests/commands/yq-control-flow.test.ts"));
+  assert.ok(files.includes("tests/commands/yq-toml.test.ts"));
+  assert.ok(files.includes("tests/commands/yq-toml-parser.test.ts"));
+  assert.ok(files.includes("tests/commands/yq-toml-review.test.ts"));
+  assert.ok(files.includes("tests/commands/xml-query.test.ts"));
+  assert.ok(files.includes("tests/commands/xml-query-review.test.ts"));
+  assert.ok(files.includes("tests/commands/sort-human-numeric.test.ts"));
+  assert.ok(files.includes("tests/commands/realpath-missing-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));
+  assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/string-operations.test.ts"));
+  assert.ok(files.includes("tests/shell/parameter-depth.test.ts"));
+  assert.ok(files.includes("tests/shell/runtime-parameter-depth.test.ts"));
+  assert.ok(files.includes("tests/shell/backtick-parameter-failure.test.ts"));
+  assert.ok(files.includes("tests/shell/backtick-compound-eof.test.ts"));
+  assert.ok(files.includes("tests/shell/invocation-cleanup-census.test.ts"));
+  assert.ok(files.includes("tests/commands/structured/string-work.test.ts"));
+  assert.ok(files.includes("tests/commands/cut-bom.test.ts"));
+  assert.ok(files.includes("tests/commands/line-fragment-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/yq-author-20260828/input-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/commands/directory-admission.test.ts"));
   assert.ok(files.includes("tests/commands/recursive-filesystem-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-retention.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-reader-retention.test.ts"));
+  assert.ok(files.includes("tests/contracts/filesystem-direct-output.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-file-output-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/sed-file-output-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-format-integration.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-format-work-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/format-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/substitution-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/nfa-work.test.ts"));
+  assert.ok(files.includes("tests/commands/network/private-addresses.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/command.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/openai.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/elevenlabs.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/exports.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/review.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/provider-acceptance.test.ts"));
+  assert.ok(files.includes("tests/commands/network/private-address-integration.test.ts"));
+  assert.ok(files.includes("tests/commands/network/address-policy.test.ts"));
+  assert.ok(files.includes("tests/commands/network/dns-pinning.test.ts"));
+  assert.ok(files.includes("tests/commands/core-sort/record-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/core-sort/record-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
   assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));
@@ -1657,7 +1804,8 @@ test("frozen lint inventory adds only its 1804 literal exclusions and preserves 
   const tests = discoverTests(root, boundaries);
   assertSource7Discovery(tests);
   assert.ok(tests.includes("tests/plugins/git-removal.test.ts"));
-  assert.equal(currentConsumerPaths().length, 36);
+  assert.equal(currentConsumerPaths().length, 37);
+  assert.ok(currentConsumerPaths().includes("tests/plugins/qualified-current-release/current-shell-parse-limits.mts"));
   assert.equal(negativeGroups.length, 3);
   const protectedPaths = [
     ...tests,
@@ -2106,9 +2254,134 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/capability-requirements.test.ts"));
   assert.ok(files.includes("tests/commands/filesystem-output.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output.test.ts"));
+  assert.ok(files.includes("tests/contracts/filesystem-output-task-reactions.test.ts"));
+  assert.ok(files.includes("tests/contracts/filesystem-output-descriptor-stream.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/portable.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/provider.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/bounded-provider.test.ts"));
+  assert.ok(files.includes("tests/commands/grep-only-matching.test.ts"));
+  assert.ok(files.includes("tests/commands/grep-utf8-subjects.test.ts"));
+  assert.ok(files.includes("tests/commands/grep-insensitive.test.ts"));
+  assert.ok(files.includes("tests/commands/grep-bre-literals.test.ts"));
+  assert.ok(files.includes("tests/commands/archive/permissions.test.ts"));
+  assert.ok(files.includes("tests/commands/find-printf.test.ts"));
+  assert.ok(files.includes("tests/shell/filesystem-cleanup.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-codec.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-atomic-ownership.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-format.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-review.test.ts"));
+  assert.ok(files.includes("tests/commands/zip.test.ts"));
+  assert.ok(files.includes("tests/commands/zip-standard-flags.test.ts"));
+    assert.ok(files.includes("tests/commands/zip-standard-flags-native.test.ts"));
+    assert.ok(files.includes("tests/commands/rpc-atomic-host.test.ts"));
+  assert.ok(files.includes("tests/commands/unzip.test.ts"));
+  assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/zip-safety.test.ts"));
+  assert.ok(files.includes("tests/plugins/csplit-commands.test.ts"));
+  assert.ok(files.includes("tests/shell/owned-output-drain.test.ts"));
+  assert.ok(files.includes("tests/plugins/pr-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/tsort-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/factor-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/getopt-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/hexdump-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/iconv-commands.test.ts"));
+  assert.ok(files.includes("tests/plugins/line-ending-commands.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/native.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/core.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/core-lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/providers.test.ts"));
+  assert.ok(files.includes("tests/commands/llm/exports.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/extra-native.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings/publication.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/snapshot.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/line-endings-independent/acquisition-close.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/boundaries.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/extent-diagnostics.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv-independent/synchronous-close.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv-independent/acquisition-close.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/native.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/review.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/translit-policy.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/translit-streams.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/translit.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/fresh.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/native.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/path.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/admission.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/native-errors.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/extent.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/snapshot.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/synchronous-close.test.ts"));
+  assert.ok(files.includes("tests/commands/hexdump-independent/acquisition-close.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt/native.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt-independent/review.test.ts"));
+  assert.ok(files.includes("tests/commands/getopt-independent/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/parameters/raw-pattern-trim/raw-pattern-trim.test.ts"));
+  assert.ok(files.includes("tests/parameters/raw-pattern-trim/eval-source.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/native.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/bounds.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/delimiter.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/source-lifetime.test.ts"));
+  assert.ok(files.includes("tests/shell/raw-expansion-independent/handoff.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/native.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/pattern.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/options.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/warning.test.ts"));
+  assert.ok(files.includes("tests/commands/xargs-byte-input/trace-controls.test.ts"));
+  assert.ok(files.includes("tests/commands/factor/native.test.ts"));
+  assert.ok(files.includes("tests/commands/factor/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/factor/getters.test.ts"));
+  assert.ok(files.includes("tests/commands/factor-independent/review.test.ts"));
+  assert.ok(files.includes("tests/commands/factor-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/factor-independent/limits.test.ts"));
+  assert.ok(files.includes("tests/commands/command-getter-admission/pr-tsort.test.ts"));
+  assert.ok(files.includes("tests/commands/command-getter-admission/fs-getters.test.ts"));
+  assert.ok(files.includes("tests/commands/tsort/native.test.ts"));
+  assert.ok(files.includes("tests/commands/tsort/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/tsort-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/tsort-independent/limits.test.ts"));
+  assert.ok(files.includes("tests/commands/tsort-independent/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/pr/native.test.ts"));
+  assert.ok(files.includes("tests/commands/pr/devices.test.ts"));
+  assert.ok(files.includes("tests/commands/pr/extra.test.ts"));
+  assert.ok(files.includes("tests/commands/pr/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/pr-independent/native.test.ts"));
+  assert.ok(files.includes("tests/commands/pr-independent/limits.test.ts"));
+  assert.ok(files.includes("tests/commands/pr-independent/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit/numeric.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit/regex.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit/diagnostics.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit/extended.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit/api.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit/work.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit-review/engine.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit-review/native-command.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit-review/lifecycle.test.ts"));
+  assert.ok(files.includes("tests/commands/csplit-review/session.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/bre-search/search.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/bre-search/native.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/bre-search/node-worker.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/bre-search/safety.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/utf8-subject-review.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/bounded-expr-provider.test.ts"));
+  assert.ok(files.includes("tests/commands/expr/bre-engine.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/default-provider.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/node-provider.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/range-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/reply-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/regex-execution/worker-range-admission.test.ts"));
   assert.ok(files.includes("tests/commands/search/capability-requirements.test.ts"));
   assert.ok(files.includes("tests/commands/search/grep-pattern-admission.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-modes/batch-controls.test.ts"));
@@ -2132,6 +2405,18 @@ test("repository boundaries preserve unaccepted YQ as active source tests", () =
   assert.ok(selected.includes("tests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts"));
 });
 
+test("optional node workerd acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of [
+    "tests/integration/optional-node-workerd/worker.mjs",
+    "tests/integration/optional-node-workerd/config.capnp",
+  ]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
 test("UTF-8 literal workerd acceptance remains admitted current input", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
@@ -2149,21 +2434,23 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   const source = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
+  const mirror = target => typeof target === "string" ? `./packages/safe-bash${target.slice(1)}` : target === null ? null : Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, mirror(value)]));
   const expected = Object.fromEntries(Object.entries(source.exports).map(([key, conditions]) => [
     key === "." ? "./safe-bash" : `./safe-bash${key.slice(1)}`,
-    Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, `./packages/safe-bash${target.slice(1)}`])),
+    mirror(conditions),
   ]));
   assert.deepEqual(Object.fromEntries(Object.entries(root.exports).filter(([key]) => key === "./safe-bash" || key.startsWith("./safe-bash/"))), expected);
   assert.equal(root.exports["./safe-bash/*"], undefined);
+  assert.equal(root.exports["./safe-bash/node"].browser, null);
   assert.equal(root.engines.node, ">=18.18");
   assert.equal(source.engines.node, ">=22");
   assert.equal(source.name, "virtual-bash");
   assert.equal(source.private, true);
-  assert.equal(Object.keys(source.dependencies ?? {}).length, 0);
+  assert.deepEqual(source.dependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
   assert.equal(root.dependencies["virtual-bash"], undefined);
   assert.equal(root.devDependencies["virtual-bash"], "*");
   assert.ok(root.files.includes("packages/safe-bash/dist"));
-  assert.deepEqual(source.poeCode.packageLint.sourceExclude, build.exclude.filter(path => path.startsWith("src/")));
+  assert.deepEqual([...source.poeCode.packageLint.sourceExclude].sort(), build.exclude.filter(path => path.startsWith("src/")).sort());
   const entry = readFileSync(new URL("../../../src/index.ts", import.meta.url), "utf8");
   assert.equal(entry.includes("virtual-bash"), false);
   assert.equal(entry.includes("safe-bash"), false);
@@ -2190,6 +2477,7 @@ test("Turbo admits maintained tests with a build dependency and prunes exact hel
   assert.ok(turbo.globalDependencies.includes("scripts/guard-package-dist.mjs"));
   assert.ok(turbo.tasks["//#test:unit"].inputs.includes("!packages/safe-bash/**"));
   assert.equal(source.scripts.test, "node scripts/test.mjs");
+  assert.ok(source.scripts["test:runner"].split(" ").includes("scripts/historical-type-models.test.mjs"));
   assert.equal(source.scripts["test:unit"], "npm run test:runner && node scripts/test.mjs");
 });
 
@@ -2263,10 +2551,30 @@ test("source7 inventory admits exactly the already sealed thirteen-entry source 
   const files = new Map(["captured-types.json", "staged-types.json", "inventory.json"].map(name => ["/package/" + prefix + name, readRegularInput(root, prefix + name, 300000, fs, boundaries)]));
   const reads = [];
   const memory = fileSystemFor(files);
-  const { captured, staged, inventory } = readTypecheckInventories("/package", boundaries, {
+  const { captured, staged, inventory: currentInventory } = readTypecheckInventories("/package", boundaries, {
     ...memory,
     readFileSync(path) { reads.push(path); return memory.readFileSync(path); },
   });
+  assert.equal(currentInventory.entries.length, 214);
+  assert.deepEqual(currentInventory.counts, { "frozen-evidence": 166, current: 37, declaration: 7, "frozen-oracle": 1, "negative-types": 3 });
+  const inventory = structuredClone(currentInventory);
+  const currentAddition = "tests/plugins/qualified-current-release/current-shell-parse-limits.mts";
+  assert.equal(inventory.entries.filter(entry => entry.path === currentAddition).length, 1);
+  inventory.entries = inventory.entries.filter(entry => entry.path !== currentAddition);
+  inventory.counts.current = 36;
+  for (const [path, currentHash, historicalHash] of [
+    ["tests/commands/network-zero-caps-review/mutations.d.mts", "1fd70e40845f82d08813d4f78145794383a2ee7fcdaff3f22f7f58739fc8c92b", "09cda7f29f79d2625f9c892c0c25c1c65cc3d3f23942a60349599b42a6c53d8f"],
+    ["tests/commands/network-zero-caps-review/runtime.d.mts", "b37c3800ae2ad8c164b1b4a5311133729662cd4023217d2ed61158205673766b", "83a8579f6bcf3e42adda383e3519edaeb3fb49b98b471b8a56ebe758595aa1bc"],
+  ]) {
+    const entry = inventory.entries.find(member => member.path === path);
+    assert.ok(entry);
+    assert.equal(entry.classification, "declaration");
+    assert.equal(entry.sha256, currentHash);
+    assert.equal(entry.reason, "Maintained support declaration for the adjacent review helper; issue 624 adds an optional explicit current-default expectation while preserving the legacy default. Not standalone executable or negative API evidence.");
+    entry.sha256 = historicalHash;
+    entry.reason = "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.";
+  }
+  assert.equal(createHash("sha256").update(JSON.stringify(inventory, null, 2) + "\n").digest("hex"), "ad4b990db1317e78a32db465a198d90b57008612ca6de490815d5fdd83604ea7");
   const types = JSON.parse(readRegularInput(root, "integration-type-inputs.json", 100000, fs, boundaries));
   const sealed = types.cohorts.flatMap(cohort => cohort.entries).filter(entry => entry.path.endsWith(".mts"));
   assert.equal(sealed.length, 13);
@@ -2296,6 +2604,128 @@ test("source7 inventory admits exactly the already sealed thirteen-entry source 
   assert.deepEqual(mergedPrevious.counts, inventory.counts);
   assert.deepEqual(mergedPrevious.entries.map(entry => entry.path).sort(), inventory.entries.map(entry => entry.path).sort());
   assert.deepEqual(reads, [...files.keys()]);
+});
+
+test("native declaration classification admits the current maintained preflight without dropping routes", async () => {
+  const { verifyTypecheckInputs } = await import("./typecheck-inputs.mjs");
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const admitted = verifyTypecheckInputs(root);
+  assert.equal(admitted.standaloneInventory.declaration, 10);
+  assert.equal(admitted.standaloneInventory.current, 37);
+  assert.equal(admitted.standaloneInventory["negative-types"], 3);
+  assert.ok(admitted.standaloneAdmission.heldEvidence.length > 0);
+  assert.ok(admitted.currentSourceConsumerGroups.length > 0);
+});
+
+function nativeDeclarationFixture() {
+  const declarations = [
+    "src/commands/bytes/compression/native/generated/bz2.d.mts",
+    "src/commands/bytes/compression/native/generated/xz.d.mts",
+    "src/commands/bytes/compression/native/generated/zstd.d.mts",
+  ];
+  const bytes = Buffer.from('import type { RawCodecFactory } from "../types.js";\ndeclare const create: RawCodecFactory;\nexport default create;\n');
+  const memory = createFsFromVolume(Volume.fromJSON(Object.fromEntries(declarations.map(path => ["/package/" + path, bytes]))));
+  const read = path => readRegularInput("/package", path, 1024, memory, boundary);
+  const inventory = { entries: [], counts: { declaration: 0 } };
+  return { declarations, bytes, memory, read, inventory };
+}
+
+test("native declaration classification adds only three exact authenticated declaration entries", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const before = structuredClone(fixture.inventory);
+  const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+  assert.deepEqual(inventory.entries, fixture.declarations.map(path => ({
+    path,
+    classification: "declaration",
+    sha256: "c4539600528ca49e815605ce0ec33ab3382ac4123d5afa7d31a262f92e18934a",
+  })));
+  assert.deepEqual(fixture.inventory, before);
+  assert.deepEqual(inventory.counts, { declaration: 3 });
+  const admitted = verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, boundary);
+  assert.deepEqual(admitted.checked, { declaration: 3 });
+  assert.deepEqual(admitted.heldEvidence, []);
+});
+
+test("native declaration classification rejects changed and missing declaration contents", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  for (const index of [0, 1, 2]) {
+    const fixture = nativeDeclarationFixture();
+    const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+    const path = "/package/" + fixture.declarations[index];
+    fixture.memory.writeFileSync(path, "export default 0;\n");
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, boundary), /inventory changed/);
+    fixture.memory.unlinkSync(path);
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, boundary), /nonliteral type-input filename/);
+  }
+});
+
+test("native declaration classification rejects unknown mts and absent tracked declarations before payload reads", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+  const read = () => assert.fail("census rejection must precede content reads");
+  for (const unknown of ["src/commands/bytes/compression/native/generated/unknown.d.mts", "src/unknown.mts"]) {
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, [...fixture.declarations, unknown], [], [], read, boundary), /standalone inventory changed/);
+  }
+  for (const missing of fixture.declarations) {
+    assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations.filter(path => path !== missing), [], [], read, boundary), /standalone inventory changed/);
+  }
+});
+
+test("native declaration classification cannot override existing entries or hide declarations as held evidence", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const duplicate = includeCurrentSourceDeclarations({ entries: [{ path: fixture.declarations[0], classification: "current" }], counts: { current: 1 } });
+  assert.throws(() => verifyAdmittedStandaloneInventory(duplicate, fixture.declarations, [], [], fixture.read, boundary), /standalone inventory changed/);
+  const inventory = includeCurrentSourceDeclarations(fixture.inventory);
+  const held = { ...boundary, heldEvidenceDirectories: [...boundary.heldEvidenceDirectories, "src/commands/bytes/compression/native/generated"] };
+  assert.throws(() => verifyAdmittedStandaloneInventory(inventory, fixture.declarations, [], [], fixture.read, held), /cannot be withheld/);
+});
+
+test("native declaration classification preserves current and negative consumer route guards", async () => {
+  const { includeCurrentSourceDeclarations, verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const fixture = nativeDeclarationFixture();
+  const current = "tests/current/consumer.mts";
+  const negative = "tests/negative/consumer.mts";
+  const inventory = includeCurrentSourceDeclarations({ entries: [
+    { path: current, classification: "current" },
+    { path: negative, classification: "negative-types", sha256: createHash("sha256").update(fixture.bytes).digest("hex") },
+  ], counts: { current: 1, "negative-types": 1 } });
+  fixture.memory.mkdirSync("/package/tests/negative", { recursive: true });
+  fixture.memory.writeFileSync("/package/" + negative, fixture.bytes);
+  const tracked = [...fixture.declarations, current, negative];
+  assert.deepEqual(verifyAdmittedStandaloneInventory(inventory, tracked, [current], [negative], fixture.read, boundary).checked, { current: 1, "negative-types": 1, declaration: 3 });
+  assert.throws(() => verifyAdmittedStandaloneInventory(inventory, tracked, [], [negative], fixture.read, boundary), /current consumers must have an explicit/);
+  assert.throws(() => verifyAdmittedStandaloneInventory(inventory, tracked, [current], [], fixture.read, boundary), /negative consumers must have exact/);
+});
+
+test("current standalone inventory explicitly admits the shell parse-limits consumer", async () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const { inventory } = readTypecheckInventories(root, boundaries);
+  const { currentConsumerPaths } = await import("../tests/plugins/qualified-current-release/consumers.mjs");
+  const { verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const path = "tests/plugins/qualified-current-release/current-shell-parse-limits.mts";
+  const current = currentConsumerPaths();
+  const entries = inventory.entries.filter(entry => entry.classification === "current");
+  const currentInventory = { entries, counts: { current: inventory.counts.current } };
+  const read = () => assert.fail("current-route admission must not read historical payloads");
+  const admitted = verifyAdmittedStandaloneInventory(currentInventory, current, current, [], read, boundaries);
+  assert.deepEqual(admitted.checked, { current: 37 });
+  assert.equal(inventory.entries.length, 214);
+  assert.equal(inventory.counts.current, 37);
+  const selected = entries.filter(entry => entry.path === path);
+  assert.equal(selected.length, 1);
+  assert.equal(selected[0].classification, "current");
+  assert.equal(selected[0].group, "shell-parse-limits-public");
+  assert.throws(() => verifyAdmittedStandaloneInventory({
+    entries: entries.filter(entry => entry.path !== path), counts: { current: 36 },
+  }, current, current, [], read, boundaries), /standalone inventory changed/);
+  const unregistered = "tests/plugins/qualified-current-release/unregistered-current.mts";
+  assert.throws(() => verifyAdmittedStandaloneInventory({
+    entries: [...entries, { path: unregistered, classification: "current" }], counts: { current: 38 },
+  }, [...current, unregistered], current, [], read, boundaries), /current consumers must have an explicit compile\/runtime route/);
 });
 
 test("source7 standalone union preserves old and new inventory epochs without double counting", async () => {
@@ -2391,6 +2821,29 @@ test("standalone admission retains held evidence accounting without fabricating 
   inventory.entries[2].classification = "current";
   assert.throws(() => verifyAdmittedStandaloneInventory(inventory, [current, frozen, held], [current, held], [], read, boundary), /current|count/);
   assert.equal(reads.length, 0);
+});
+
+test("built package prerequisites include nested platform conditions and preserve denials", async () => {
+  const { requireBuiltPackage } = await import("./typecheck-inputs.mjs");
+  const memory = createFsFromVolume(Volume.fromJSON({
+    "/package/package.json": JSON.stringify({ exports: {
+      ".": { types: { browser: "./dist/core.d.ts", default: "./dist/index.d.ts" }, browser: "./dist/core.browser.js", import: "./dist/index.js" },
+      "./node": { types: "./dist/node.d.ts", browser: null, import: "./dist/node.js" },
+      "./contracts/*": { types: "./dist/contracts/*.d.ts", import: "./dist/contracts/*.js" },
+    } }),
+    "/package/dist/core.d.ts": "",
+    "/package/dist/index.d.ts": "",
+    "/package/dist/core.browser.js": "",
+    "/package/dist/index.js": "",
+    "/package/dist/node.d.ts": "",
+    "/package/dist/node.js": "",
+  }));
+  assert.doesNotThrow(() => requireBuiltPackage("/package", memory));
+  for (const path of ["core.d.ts", "index.d.ts", "core.browser.js", "index.js", "node.d.ts", "node.js"]) {
+    memory.unlinkSync(`/package/dist/${path}`);
+    assert.throws(() => requireBuiltPackage("/package", memory), { code: "TYPECHECK_BUILD_REQUIRED" });
+    memory.writeFileSync(`/package/dist/${path}`, "");
+  }
 });
 
 test("alternate typecheck emission guards output before compilation and preserves failures", async () => {

@@ -100,6 +100,21 @@ test("redirected cancellation never falls back even for ENOTSUP", async (suite) 
   }
 });
 
+test("redirected buffered sources read only on demand and close unused inputs without reading", async suite => {
+  const backend = await bufferedBackend();
+  const read = suite.mock.method(backend, "readFile");
+  const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
+  const source = await fileInput(fs, "/data/note", 9, new AbortController().signal);
+  assert.equal(read.mock.callCount(), 0);
+  const unused = source[Symbol.asyncIterator]();
+  await unused.return?.();
+  assert.equal(read.mock.callCount(), 0);
+  const consumed = await fileInput(fs, "/data/note", 9, new AbortController().signal);
+  assert.equal(read.mock.callCount(), 0);
+  assert.equal(new TextDecoder().decode(await collectBytes(consumed, { maxBytes: 9 })), "buffered\n");
+  assert.equal(read.mock.callCount(), 1);
+});
+
 test("redirected fallback cancels pending reads and observes late failures", async (suite) => {
   const backend = await bufferedBackend();
   const controller = new AbortController();
@@ -222,6 +237,7 @@ for (const streaming of [false, true]) {
   for (const size of [65_537, 65_538]) {
     test(`redirected input has an independent bound: streaming=${streaming}, size=${size}`, async () => {
       const fs: FileSystem = new MemoryFileSystem();
+      Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
       if (!streaming) Object.defineProperty(fs, "readStream", { value: undefined });
       await fs.writeFile("/large", new Uint8Array(size));
       const shell = new Shell({ fs, limits: { maxInputBytes: 65_537, maxOutputBytes: 65_536 } }).use(standardCommands());
@@ -241,6 +257,7 @@ for (const streaming of [false, true]) {
 
   test(`redirected input preserves cancellation: streaming=${streaming}`, async () => {
     const fs: FileSystem = new MemoryFileSystem();
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
     await fs.writeFile("/input", new Uint8Array([1]));
     const controller = new AbortController();
     const reason = new Error("cancel redirected read");
@@ -270,6 +287,7 @@ for (const streaming of [false, true]) {
 test("redirected input rejects oversized adapter results and counts stream chunks cumulatively", async () => {
   for (const streaming of [false, true]) {
     const fs: FileSystem = new MemoryFileSystem();
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
     await fs.writeFile("/input", new Uint8Array([1]));
     let closed = false;
     if (streaming) {

@@ -1,0 +1,29 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const values = new Float32Array(3);
+  const trace = [];
+  values.set({
+    get length() { trace.push("length"); return 2; },
+    get 0() { trace.push("0"); return { valueOf() { return 2.5; } }; },
+    get 1() { trace.push("1"); return 4; },
+    get [Symbol.iterator]() { throw new Error("set must not iterate"); }
+  }, { valueOf() { trace.push("offset"); return 1; } });
+  const text = new Float32Array(2);
+  text.set("24");
+  const overlap = new Float32Array([1, 2, 3]);
+  overlap.set(overlap.subarray(0, 2), 1);
+  const partial = new Float32Array(2);
+  let caught;
+  try { partial.set({ length: 2, 0: 7, get 1() { throw 3; } }); }
+  catch (error) { caught = error; }
+  await 0;
+  if (values.join(",") !== "0,2.5,4" || text.join(",") !== "2,4" ||
+      overlap.join(",") !== "1,1,2" || partial.join(",") !== "7,0" ||
+      caught !== 3 || trace.join(",") !== "offset,length,0,1") {
+    throw new Error("Float32Array.set input regression");
+  }
+  return { title: frontmatter.title, ok: true, values: Array.from(values), trace };
+};

@@ -1,0 +1,26 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = new Float32Array([1, 2, 3]);
+  const trace = [];
+  const copy = value.slice({
+    valueOf() { trace.push("start"); value[1] = 7; return 1; }
+  }, { valueOf() { trace.push("end"); return 3; } });
+  const view = value.subarray({ get valueOf() { return () => 1; } });
+  view[1] = 9;
+  let caught;
+  try {
+    value.slice({ valueOf() { throw 7; } }, {
+      valueOf() { throw new Error("end must not run"); }
+    });
+  } catch (error) { caught = error; }
+  await 0;
+  if (copy.join(",") !== "7,3" || view.join(",") !== "7,9" ||
+      value.join(",") !== "1,7,9" || caught !== 7 ||
+      trace.join(",") !== "start,end") {
+    throw new Error("Float32Array range coercion regression");
+  }
+  return { title: frontmatter.title, ok: true, trace, values: Array.from(value) };
+};

@@ -1,3 +1,4 @@
+import { createNodeRegexProvider } from "../../../src/node.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../../src/shell/index.js";
@@ -14,7 +15,7 @@ const files = {
 
 test("agent finds TODO locations and derives sorted source file list", async () => {
   const fs = await makeFileSystem({ args: [], files });
-  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(searchCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor: createNodeRegexProvider() })).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   const result = await shell.exec("rg -n -g '*.ts' TODO src | cut -d: -f1 | sort -u | tee changed");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "src/first.ts\nsrc/ignored.ts\nsrc/space name.ts\n");
@@ -23,7 +24,7 @@ test("agent finds TODO locations and derives sorted source file list", async () 
 
 test("NUL file lists feed xargs without splitting spaces", async () => {
   const fs = await makeFileSystem({ args: [], files });
-  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(searchCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor: createNodeRegexProvider() })).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   const result = await shell.exec("rg -l0 TODO src | xargs -0 cat | rg -n TODO");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "2:// TODO: validate\n3:// TODO: stream\n");
@@ -31,7 +32,7 @@ test("NUL file lists feed xargs without splitting spaces", async () => {
 
 test("file inventory and missing matches drive shell conditions", async () => {
   const fs = await makeFileSystem({ args: [], files });
-  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(searchCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor: createNodeRegexProvider() })).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   const result = await shell.exec("rg --files -g '*.ts' | sort; rg -q FIXME src || printf 'clean\\n'");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "src/first.ts\nsrc/ignored.ts\nsrc/space name.ts\nclean\n");
@@ -39,7 +40,7 @@ test("file inventory and missing matches drive shell conditions", async () => {
 
 test("negative globs preserve repository ignore rules in file inventory pipelines", async () => {
   const fs = await makeFileSystem({ args: [], files });
-  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(searchCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor: createNodeRegexProvider() })).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
   const result = await shell.exec("rg --files -g '!*.md' | sort");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "src/first.ts\nsrc/space name.ts\n");

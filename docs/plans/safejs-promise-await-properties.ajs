@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let calls = 0;
+  class Child extends Promise {
+    then(resolve, reject) { calls++; return super.then(resolve, reject); }
+  }
+  const answer = await Child.resolve(42);
+  const value = Promise.resolve(1);
+  Object.setPrototypeOf(value, null);
+  if (answer !== 42 || calls !== 1 || (await value) !== value) {
+    throw new Error("Await property observation failed");
+  }
+  return { title: frontmatter.title, ok: true, answer };
+};

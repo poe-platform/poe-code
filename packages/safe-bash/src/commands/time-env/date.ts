@@ -1,4 +1,5 @@
-import { FsError, resolvePath } from "../../contracts/index.js";
+import { FsError } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 import { TimeZone, millisecondsInstant, parseDate } from "./calendar.js";
 import { formatDate } from "./format.js";
 import { command, CommandFailure, emit, ownEnvironment, type Settings } from "./shared.js";
@@ -102,7 +103,7 @@ export function createDateCommand(configuration: Settings) {
     if (parsed.reference !== undefined) {
       try {
         if (!parsed.reference) throw new FsError("ENOENT", { path: parsed.reference });
-        const stat = await context.fs.stat(resolvePath(context.cwd, parsed.reference), { signal: context.signal });
+        const stat = await context.fs.stat(pathOf(context, parsed.reference), { signal: context.signal });
         context.signal.throwIfAborted();
         instant = millisecondsInstant(stat.mtimeMs);
       } catch (error) {

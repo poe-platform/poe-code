@@ -1,17 +1,37 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { createSession, SESSION_LIMITS } from "./session.js";
 import { sampleFiles } from "./samples.js";
+import { browserWorkerFixture } from "../test/browser-worker.js";
+
+vi.mock("virtual:safe-bash-worker-sources", async () => {
+  const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
+  return { sources: (await buildBrowserEngine({ workersOnly: true })).workerSources };
+});
 
 vi.mock("./engine/index.js", async () => {
   const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
   const built = await buildBrowserEngine();
   return import(
-    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(built.code).toString("base64")}`
+    /* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(`const navigator = { language: "en-US" };\n${built.code}\n//# sourceURL=safe-bash-browser-session.mjs`).toString("base64")}`
   );
 });
 
 const fileLimit = 2 * 1024 * 1024;
 const workspaceLimit = 16 * 1024 * 1024;
+let fixture: ReturnType<typeof browserWorkerFixture>;
+beforeAll(async () => {
+  const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
+  fixture = browserWorkerFixture((await buildBrowserEngine({ entry: "../execution-worker.ts" })).code);
+  vi.stubGlobal("Worker", fixture.Worker);
+});
+afterEach(async () => {
+  try {
+    expect(fixture.workers.size).toBe(0);
+  } finally {
+    await fixture.close();
+  }
+});
+afterAll(() => vi.unstubAllGlobals());
 
 describe("PlaygroundSession", () => {
   it("publishes the same byte budgets used by editing and uploads", () => {
@@ -35,16 +55,24 @@ describe("PlaygroundSession", () => {
     expect(result.stdout).toContain("2 MiB");
     expect(result.stdout).toContain("16 MiB");
     expect(result.stdout).toContain("64 KiB");
-    expect(result.stdout).toContain("cooperative");
+    expect(result.stdout).toContain("5-second deadline terminates the dedicated shell worker");
     expect(result.stdout).toContain("not installed");
-    expect(result.stdout).toContain("All 79 agent commands");
+    expect(result.stdout).toContain("All 110 agent commands");
+    for (const name of ["bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd"]) {
+      expect(result.stdout).toContain(name);
+    }
     expect(result.stdout).toContain("Web Workers");
+    expect(result.stdout).toContain("Regex/ERE workers use protocol work/byte budgets and timeouts.");
+    expect(result.stdout).toContain("Node resourceLimits heap/stack caps are not enforced in browser workers.");
+    expect(result.stdout).toContain("Worker cleanup does not guarantee page survival under memory exhaustion.");
     expect(result.stdout).not.toContain("grep, rg, sed, awk, jq, and [[ =~ ]] are unavailable");
     expect(await session.complete("hel")).toContain("help");
     const builtins = result.stdout.split("Shell builtins:\n")[1]!.split("\n")[0]!.split(" ");
-    for (const builtin of builtins) {
-      expect((await session.run(`type -t ${builtin}`)).stdout, builtin).toBe("builtin\n");
-    }
+    const types = await session.run(`type -t ${builtins.join(" ")}`);
+    expect(types.exitCode).toBe(0);
+    expect(types.stderr).toBe("");
+    expect(types.stdout.split("\n").slice(0, -1), builtins.join(", ")).toEqual(builtins.map(() => "builtin"));
+    expect(types.stdout.endsWith("\n")).toBe(true);
   });
 
   it("supports real help pipelines, redirects, and command dispatch", async () => {
@@ -245,7 +273,7 @@ describe("PlaygroundSession", () => {
   it.each([
     "cd examples; echo ready > /home/cancellation.txt; while true; do :; done",
     "cd examples; (cd /; echo ready > /home/cancellation.txt; while true; do :; done)"
-  ])("preserves root cwd on cooperative timeout: %s", async (command) => {
+  ])("preserves acknowledged root cwd on worker termination: %s", async (command) => {
     const session = await createSession();
     const timers = vi.spyOn(globalThis, "setTimeout");
     try {
@@ -301,6 +329,37 @@ describe("PlaygroundSession", () => {
     expect((await session.entries()).reduce((sum, entry) => sum + entry.size, 0)).toBe(
       workspaceLimit
     );
+  });
+
+  it("resizes shared binary files through the actual worker filesystem", async () => {
+    const session = await createSession();
+    expect(await session.run("printf abcdef > resize.bin; ln resize.bin alias.bin; truncate -s9 resize.bin; stat -c '%n %s' resize.bin alias.bin; od -An -tx1 resize.bin; truncate -s2 alias.bin; od -An -tx1 resize.bin; truncate -r /dev/null empty.bin; stat -c '%n %s' empty.bin; truncate -s+1 /dev/null")).toEqual({
+      stdout: "resize.bin 9\nalias.bin 9\n 61 62 63 64 65 66 00 00 00\n 61 62\nempty.bin 0\n",
+      stderr: "truncate: failed to truncate '/dev/null' at 1 bytes: Invalid argument\n",
+      exitCode: 1
+    });
+    expect(await session.readBytes("resize.bin")).toEqual(new Uint8Array([97, 98]));
+    expect(await session.readBytes("alias.bin")).toEqual(new Uint8Array([97, 98]));
+    expect(await session.readBytes("empty.bin")).toEqual(new Uint8Array());
+  });
+
+  it("charges retained resize growth for every hardlink before changing bytes", async () => {
+    const session = await createSession();
+    await session.writeFile("shared.txt", "old");
+    expect((await session.run("ln shared.txt other.txt")).exitCode).toBe(0);
+    const used = (await session.entries()).reduce((sum, entry) => sum + entry.size, 0);
+    await session.upload(Array.from({ length: 7 }, (_, index) => ({
+      name: `full-${index}.txt`, data: new Uint8Array(fileLimit)
+    })));
+    await session.writeFile("last.txt", "a".repeat(workspaceLimit - used - 7 * fileLimit - 1));
+    expect((await session.run("truncate -s4 shared.txt")).exitCode).not.toBe(0);
+    expect(await session.readFile("shared.txt")).toBe("old");
+    expect(await session.readFile("other.txt")).toBe("old");
+    expect((await session.entries()).reduce((sum, entry) => sum + entry.size, 0)).toBe(workspaceLimit - 1);
+    expect(await session.run("truncate -s2 other.txt")).toEqual({ stdout: "", stderr: "", exitCode: 0 });
+    expect(await session.readFile("shared.txt")).toBe("ol");
+    expect(await session.run("truncate -s3 shared.txt")).toEqual({ stdout: "", stderr: "", exitCode: 0 });
+    expect(await session.readBytes("other.txt")).toEqual(new Uint8Array([111, 108, 0]));
   });
 
   it("reserves capacity across concurrent edits and upload batches", async () => {

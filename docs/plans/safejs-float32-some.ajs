@@ -1,0 +1,15 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(12, { maxByteLength: 16 });
+  const values = new Float32Array(buffer);
+  await 0;
+  let calls = 0;
+  const result = values.some((item, index) => {
+    calls++;
+    if (index === 0) buffer.resize(0);
+    return item === undefined;
+  });
+  if (!result || calls !== 2) throw new Error("Short-circuit regression");
+  return { title: frontmatter.title, ok: true };
+};

@@ -306,13 +306,36 @@ async function expectSuccessfulRun(result: Promise<RunResult>) {
 }
 
 function hasBinding(snapshot: RunSnapshot, name: string, expected: unknown): boolean {
-  return JSON.stringify(snapshot.bindings[name]) === JSON.stringify(expected);
+  return JSON.stringify(readBinding(snapshot, name)) === JSON.stringify(expected);
 }
 
 function hasSuspendedGenerator(snapshot: RunSnapshot, name: string, outputLength: number): boolean {
-  const generator = snapshot.bindings[name] as { state?: string } | undefined;
-  const output = snapshot.bindings.output as unknown[] | undefined;
-  return generator?.state === "suspended" && output?.length === outputLength;
+  const generator = readBinding(snapshot, name) as { kind?: string; state?: string } | undefined;
+  const output = readBinding(snapshot, "output");
+  return (generator?.kind === "generator" || generator?.kind === "guest-generator") &&
+    generator.state === "suspended" && Array.isArray(output) && output.length === outputLength;
+}
+
+function readBinding(snapshot: RunSnapshot, name: string): unknown {
+  let value: unknown = snapshot.bindings[name];
+  if (value !== null && typeof value === "object" && (value as { kind?: string }).kind === "ref") {
+    const id = (value as { id: number }).id;
+    value = (snapshot.heap as Record<string, unknown>)[String(id)];
+  }
+  if (value !== null && typeof value === "object" && (value as { kind?: string }).kind === "array") {
+    const items = (value as { items?: unknown[] }).items;
+    if (Array.isArray(items)) return items;
+  }
+  if (value !== null && typeof value === "object" && (value as { kind?: string }).kind === "guest-array") {
+    const array = value as { state: { properties: { properties: Array<[string, { kind: string; value: unknown }]> } } };
+    const properties = Object.fromEntries(array.state.properties.properties);
+    expect(properties.length).toMatchObject({ kind: "data", value: expect.any(Number) });
+    return Array.from({ length: properties.length.value as number }, (_, index) => {
+      expect(properties[index]).toMatchObject({ kind: "data" });
+      return properties[index].value;
+    });
+  }
+  return value;
 }
 
 function createHostStub(policy: "read-side-effect" | "re-issue", results: string[]) {

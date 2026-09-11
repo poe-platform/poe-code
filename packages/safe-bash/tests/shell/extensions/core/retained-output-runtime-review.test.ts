@@ -4,7 +4,7 @@ import { once } from "node:events";
 import { lstatSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { createMemoryFileSystem, FsError, type FileSystem } from "poe-code/safe-fs";
-import { browserCommands } from "../../../../src/browser.js";
+import { agentCommands } from "../../../../src/index.js";
 import { openCommandFile } from "../../../../src/contracts/filesystem-descriptor.js";
 import { Shell } from "../../../../src/shell/shell.js";
 import { ShellLimitError } from "../../../../src/shell/types.js";
@@ -24,7 +24,9 @@ function deferred() {
 }
 
 function setup(fs: FileSystem) {
-  return new Shell({ fs, env: { LC_ALL: "C" }, limits: { maxWallClockMs: 1500 } }).use(browserCommands());
+  const internalErrors: unknown[] = [];
+  const shell = new Shell({ fs, env: { LC_ALL: "C" }, limits: { maxWallClockMs: 1500 }, onInternalError: error => { internalErrors.push(error); } }).use(agentCommands());
+  return Object.assign(shell, { internalErrors });
 }
 
 function registerClosedPipeProducer(shell: Shell, entered: Promise<void>, assertPending: () => void): void {
@@ -174,7 +176,8 @@ for (const reason of [undefined, null, false, 0, ""]) test(`retained output inde
   shell.register({ name: "status7", async execute(command) { await command.stdout.write(Buffer.from("a")); return { exitCode: 7 }; } });
   const result = await shell.exec("status7 >out");
   assert.equal(result.exitCode, 7);
-  assert.equal(result.stderr, `shell: line 1: ${String(reason)}\n`);
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.deepEqual(shell.internalErrors, [reason]);
   assert.equal(result.stdout, "");
   assert.deepEqual(await backing.readFile("/out"), Uint8Array.of(97));
   assert.equal(closes, 1);
@@ -297,6 +300,7 @@ for (const scriptFile of [false, true]) test(`retained output independent mapped
 
 test("retained output independent multiple mapped close failures acknowledge each resource once", async context => {
   const backing = createMemoryFileSystem();
+  const failure = new FsError("EIO");
   const closed: string[] = [];
   const shell = setup(intercept(backing, { async open(path, options) {
     const descriptor = await backing.open!(path, options);
@@ -304,29 +308,38 @@ test("retained output independent multiple mapped close failures acknowledge eac
       closed.push(path);
       await descriptor.close();
       if (path === "/first") throw false;
-      throw new FsError("EIO");
+      throw failure;
     } });
   } }));
   context.after(() => shell.dispose());
   const result = await shell.exec("printf a 3>first 4>second 5>&4 >&3; printf 'status:%s' \"$?\"");
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "status:1");
-  assert.equal(result.stderr, "shell: line 1: Invocation cleanup failed\n");
+  assert.equal(result.stderr, "shell: line 1: internal error\n");
+  assert.equal(shell.internalErrors.length, 1);
+  const aggregate = shell.internalErrors[0];
+  assert.ok(aggregate instanceof AggregateError);
+  assert.equal(aggregate.errors.length, 2);
+  assert.ok(aggregate.errors.includes(false));
+  assert.ok(aggregate.errors.includes(failure));
   assert.deepEqual(closed.sort(), ["/first", "/second"]);
 });
 
 for (const source of ["{ printf a; exit 7; } >out", "f() { printf a; return 7; }; f >out", "for item in a; do { printf a; break; } >out; done"]) {
   test(`retained output independent mapped close failure preserves control flow: ${source}`, async context => {
     const backing = createMemoryFileSystem();
+    const failure = new Error("close failed");
     let closes = 0;
     const shell = setup(intercept(backing, { async open(path, options) {
       const descriptor = await backing.open!(path, options);
-      return intercept(descriptor, { async close() { closes++; await descriptor.close(); throw new Error("close failed"); } });
+      return intercept(descriptor, { async close() { closes++; await descriptor.close(); throw failure; } });
     } }));
     context.after(() => shell.dispose());
     const result = await shell.exec(source);
     assert.equal(result.exitCode, source.includes("7") ? 7 : 0);
-    assert.equal(result.stderr, "shell: line 1: close failed\n");
+    assert.equal(result.stderr, "shell: line 1: internal error\n");
+    assert.equal(shell.internalErrors.length, 1);
+    assert.equal(shell.internalErrors[0], failure);
     assert.equal(result.stdout, "");
     assert.deepEqual(await backing.readFile("/out"), Uint8Array.of(97));
     assert.equal(closes, 1);

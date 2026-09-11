@@ -23,6 +23,8 @@ async function harness(context: TestContext, hooks: RemovalHooks = {}) {
   const removals: { path: string; options: FsOptions }[] = [];
   const ordinary: { path: string; options: RemoveOptions | undefined }[] = [];
   const listings: string[] = [];
+  const nativeErrors: unknown[] = [];
+  const internalErrors: unknown[] = [];
   const filesystem: FileSystem = new Proxy(backing, {
     get(target, property) {
       if (property === "rmdir") return hooks.absent ? undefined : async function(this: FileSystem, path: string, options: FsOptions = {}) {
@@ -31,7 +33,8 @@ async function harness(context: TestContext, hooks: RemovalHooks = {}) {
         options.signal?.throwIfAborted();
         await hooks.beforeRemove?.(path, options);
         options.signal?.throwIfAborted();
-        await native.rmdir(`${root}${path}`);
+        try { await native.rmdir(`${root}${path}`); }
+        catch (error) { nativeErrors.push(error); throw error; }
       };
       if (property === "rm") return async (path: string, options?: RemoveOptions) => {
         ordinary.push({ path, options });
@@ -47,7 +50,16 @@ async function harness(context: TestContext, hooks: RemovalHooks = {}) {
       return typeof member === "function" ? member.bind(target) : member;
     },
   });
-  return { fs: filesystem, backing, root, removals, ordinary, listings };
+  return { fs: filesystem, backing, root, removals, ordinary, listings, nativeErrors, internalErrors,
+    onInternalError(error: unknown) { internalErrors.push(error); } };
+}
+
+function assertNativeFailure(command: string, result: { stderr: string }, observed: Awaited<ReturnType<typeof harness>>, code: string) {
+  assert.equal(result.stderr, `${command}: internal error\n`);
+  assert.ok(observed.nativeErrors.length > 0);
+  assert.equal((observed.nativeErrors.at(-1) as NodeJS.ErrnoException).code, code);
+  assert.equal(observed.internalErrors.length, observed.nativeErrors.length);
+  for (const [index, error] of observed.nativeErrors.entries()) assert.equal(observed.internalErrors[index], error);
 }
 
 const consumers = [
@@ -93,10 +105,10 @@ for (const { command, flags } of consumers) {
     }
     await observed.backing.mkdir("/work/empty");
     assert.deepEqual(await observed.backing.readdir("/work/empty"), []);
-    const result = await run(command, [...flags, "empty"], { fs: observed.fs });
+    const result = await run(command, [...flags, "empty"], { fs: observed.fs, onInternalError: observed.onInternalError });
     assert.equal(inserted, true);
     assert.equal(result.exitCode, 1, "must not recursively delete the newly inserted child");
-    assert.match(result.stderr, /ENOTEMPTY/u);
+    assertNativeFailure(command, result, observed, "ENOTEMPTY");
     assert.deepEqual(await observed.backing.readFile("/work/empty/concurrent-child"), Uint8Array.of(0, 255, 13, 10));
     assert.deepEqual(observed.ordinary, []);
     assert.equal(observed.removals.length, 1);
@@ -108,9 +120,10 @@ for (const { command, flags } of consumers) {
         async beforeRemove(path) { throw new FsError(code, { syscall: "rmdir", path }); },
       });
       await observed.backing.mkdir("/work/empty");
-      const result = await run(command, [...flags, "empty"], { fs: observed.fs });
+      const result = await run(command, [...flags, "empty"], { fs: observed.fs, onInternalError: observed.onInternalError });
       assert.equal(result.exitCode, 1);
       assert.match(result.stderr, new RegExp(code, "u"));
+      assert.deepEqual(observed.internalErrors, []);
       assert.equal((await observed.backing.stat("/work/empty")).type, "directory");
       assert.deepEqual(observed.ordinary, []);
     });
@@ -155,13 +168,13 @@ for (const { command, flags } of consumers) {
     });
   }
 
-  test(`${command} retains a nonempty directory and reports native error`, async context => {
+  test(`${command} retains a nonempty directory and reports native error only to the host`, async context => {
     const observed = await harness(context);
     await observed.backing.mkdir("/work/parent");
     await observed.backing.writeFile("/work/parent/child", Uint8Array.of(1));
-    const result = await run(command, [...flags, "parent"], { fs: observed.fs });
+    const result = await run(command, [...flags, "parent"], { fs: observed.fs, onInternalError: observed.onInternalError });
     assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /ENOTEMPTY/u);
+    assertNativeFailure(command, result, observed, "ENOTEMPTY");
     assert.deepEqual(await observed.backing.readFile("/work/parent/child"), Uint8Array.of(1));
     assert.deepEqual(observed.ordinary, []);
   });
@@ -174,9 +187,9 @@ for (const { command, flags } of consumers) {
       },
     });
     await observed.backing.mkdir("/work/empty");
-    const result = await run(command, [...flags, "empty"], { fs: observed.fs });
+    const result = await run(command, [...flags, "empty"], { fs: observed.fs, onInternalError: observed.onInternalError });
     assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /ENOTDIR/u);
+    assertNativeFailure(command, result, observed, "ENOTDIR");
     assert.deepEqual(await observed.backing.readFile("/work/empty"), Uint8Array.of(0, 255));
     assert.equal((await observed.backing.stat("/work/original")).type, "directory");
     assert.deepEqual(observed.ordinary, []);
@@ -187,9 +200,26 @@ for (const { command, flags } of consumers) {
     await observed.backing.mkdir("/work/kept");
     await observed.backing.writeFile("/work/file", Uint8Array.of(5));
     for (const [path, code] of [["missing/../kept", "ENOENT"], ["file/../kept", "ENOTDIR"]]) {
-      const result = await run(command, [...flags, path!], { fs: observed.fs });
+      await assert.rejects(native.rmdir(`${observed.root}/work/${path}`), { code });
+      const removalsBefore = observed.removals.length;
+      const nativeErrorsBefore = observed.nativeErrors.length;
+      const internalErrorsBefore = observed.internalErrors.length;
+      const result = await run(command, [...flags, path!], { fs: observed.fs, onInternalError: observed.onInternalError });
       assert.equal(result.exitCode, 1);
-      assert.match(result.stderr, new RegExp(code!, "u"));
+      if (command === "rmdir" && code === "ENOENT") {
+        assertNativeFailure(command, result, observed, code);
+        assert.deepEqual(observed.removals.slice(removalsBefore).map(entry => entry.path), [`/work/${path}`]);
+      }
+      else if (command === "rmdir") {
+        assert.equal(result.stderr, `rmdir: ENOTDIR: not a directory, lstat '/work/${path}'\n`);
+        assert.equal(observed.removals.length, removalsBefore);
+        assert.equal(observed.nativeErrors.length, nativeErrorsBefore);
+        assert.equal(observed.internalErrors.length, internalErrorsBefore);
+      }
+      else {
+        assert.match(result.stderr, new RegExp(code!, "u"));
+        assert.deepEqual(observed.internalErrors, []);
+      }
       assert.equal((await observed.backing.stat("/work/kept")).type, "directory");
     }
     assert.deepEqual(observed.ordinary, []);
@@ -225,11 +255,20 @@ test("rmdir never unlinks a final symlink or file and reports missing paths", as
   await observed.backing.writeFile("/work/file", Uint8Array.of(9));
   await observed.backing.symlink!("directory", "/work/link");
   for (const path of ["file", "link"]) {
-    const result = await run("rmdir", [path], { fs: observed.fs });
+    await assert.rejects(native.rmdir(`${observed.root}/work/${path}`), { code: "ENOTDIR" });
+    const result = await run("rmdir", [path], { fs: observed.fs, onInternalError: observed.onInternalError });
     assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /ENOTDIR/u);
+    assert.equal(result.stderr, `rmdir: ENOTDIR: not a directory, rmdir '/work/${path}'\n`);
+    assert.deepEqual(observed.removals, []);
+    assert.deepEqual(observed.nativeErrors, []);
+    assert.deepEqual(observed.internalErrors, []);
   }
-  assert.match((await run("rmdir", ["missing"], { fs: observed.fs })).stderr, /ENOENT/u);
+  await assert.rejects(native.rmdir(`${observed.root}/work/missing`), { code: "ENOENT" });
+  const missing = await run("rmdir", ["missing"], { fs: observed.fs, onInternalError: observed.onInternalError });
+  assert.equal(missing.exitCode, 1);
+  assertNativeFailure("rmdir", missing, observed, "ENOENT");
+  assert.deepEqual(observed.removals.map(({ path }) => path), ["/work/missing"]);
+  assert.equal((await observed.backing.stat("/work/directory")).type, "directory");
   assert.equal((await observed.backing.lstat("/work/link")).type, "symlink");
   assert.deepEqual(await observed.backing.readFile("/work/file"), Uint8Array.of(9));
   assert.deepEqual(observed.ordinary, []);
@@ -242,9 +281,9 @@ test("rmdir -p removes only empty parents and stops before a concurrent sibling"
     },
   });
   await observed.backing.mkdir("/work/parent/child", { recursive: true });
-  const result = await run("rmdir", ["-p", "parent/child"], { fs: observed.fs });
+  const result = await run("rmdir", ["-p", "parent/child"], { fs: observed.fs, onInternalError: observed.onInternalError });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /ENOTEMPTY/u);
+  assertNativeFailure("rmdir", result, observed, "ENOTEMPTY");
   assert.deepEqual(observed.removals.map(entry => entry.path), ["/work/parent/child", "/work/parent"]);
   await assert.rejects(observed.backing.stat("/work/parent/child"), { code: "ENOENT" });
   assert.deepEqual(await observed.backing.readFile("/work/parent/sibling"), Uint8Array.of(7));

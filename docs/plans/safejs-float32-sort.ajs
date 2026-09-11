@@ -1,0 +1,13 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const values = new Float32Array([10, 2, -1]);
+  await 0;
+  const result = values.sort();
+  if (result !== values || result.join() !== "-1,2,10") {
+    throw new Error("Typed-array numeric sort regression");
+  }
+  values.sort((left, right) => ({ valueOf() { return right - left; } }));
+  if (values.join() !== "10,2,-1") throw new Error("Typed-array comparator coercion regression");
+  return { title: frontmatter.title, ok: true, result: Array.from(result) };
+};

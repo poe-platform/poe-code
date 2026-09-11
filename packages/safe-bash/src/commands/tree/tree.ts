@@ -1,4 +1,5 @@
 import { FsError, resolvePath, type CommandDefinition, type FileStat } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 import { compareObservedEntries } from "../copy-identity.js";
 import { parse, help, type Arguments } from "./arguments.js";
 import { escaped, message, TreeLimitError, UsageError, WalkBudget } from "./io.js";
@@ -179,7 +180,7 @@ class Walker {
       this.budget.text(operand);
       this.budget.entry();
       if (this.args.json && index) await this.write(`,${this.newline()}`);
-      const entry = await this.inspect(resolvePath(this.budget.context.cwd, operand), operand, operand);
+      const entry = await this.inspect(pathOf(this.budget.context, operand), operand, operand);
       await this.visit(entry, [], "", true, 0);
     }
     if (this.args.report) {

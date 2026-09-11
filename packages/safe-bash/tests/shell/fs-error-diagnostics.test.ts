@@ -76,28 +76,41 @@ for (const [code, description] of Object.entries(descriptions) as [ErrnoCode, st
   });
 }
 
-test("plugin-provided CLI bytes and arbitrary code-like errors are not rewritten", async () => {
+test("plugin-provided CLI bytes stay literal and arbitrary code-like errors stay opaque", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
+  const failure = Object.assign(new Error("ENOENT: not a filesystem operation; retain this context"), { code: "ENOENT" });
+  const observed: unknown[] = [];
   shell.register({ name: "literal", async execute({ stderr }) { await stderr.write(Buffer.from("tool: EACCES: extra context\0\n")); return { exitCode: 7 }; } });
-  shell.register({ name: "arbitrary", execute() { throw Object.assign(new Error("ENOENT: not a filesystem operation; retain this context"), { code: "ENOENT" }); } });
+  shell.register({ name: "arbitrary", execute() { throw failure; } });
   try {
     const literal = await shell.exec("literal");
     assert.equal(literal.exitCode, 7);
     assert.deepEqual(literal.stderrBytes, Uint8Array.from(Buffer.from("tool: EACCES: extra context\0\n")));
-    const arbitrary = await shell.exec("arbitrary");
+    const arbitrary = await shell.exec("arbitrary", { onInternalError(error) { observed.push(error); } });
     assert.equal(arbitrary.exitCode, 1);
-    assert.equal(arbitrary.stderr, "shell: line 1: ENOENT: not a filesystem operation; retain this context\n");
+    assert.equal(arbitrary.stderr, "shell: line 1: internal error\n");
+    assert.equal(observed.length, 1);
+    assert.equal(observed[0], failure);
   } finally { await shell.dispose(); }
 });
 
-test("middleware replacement of a cd error retains the replacement diagnostic", async () => {
+test("middleware replacement of a cd error retains private identity without exposing its diagnostic", async () => {
   const fs = new FaultFileSystem(new FsError("ENOENT", { path: "/blocked" }));
   const shell = new Shell({ fs });
+  const observed: unknown[] = [];
+  let replacement: Error | undefined;
   shell.use(async (_context, next) => {
     try { return await next(); }
-    catch (cause) { throw new Error("host policy refused cd", { cause }); }
+    catch (cause) { replacement = new Error("host policy refused cd", { cause }); throw replacement; }
   });
-  try { assert.equal((await shell.exec("cd blocked")).stderr, "shell: line 1: host policy refused cd\n"); }
+  try {
+    const result = await shell.exec("cd blocked", { onInternalError(error) { observed.push(error); } });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "shell: line 1: internal error\n");
+    assert.equal(observed.length, 1);
+    assert.equal(observed[0], replacement);
+    assert.equal(replacement?.cause, fs.failure);
+  }
   finally { await shell.dispose(); }
 });
 

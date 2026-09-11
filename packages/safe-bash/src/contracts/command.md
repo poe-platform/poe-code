@@ -34,6 +34,134 @@ the workspace and root package file lists exclude optional artifacts even after
 this build. Default registries, package exports, and normal build membership do
 not gain the optional commands. A subsequent normal clean build can remove the
 optional artifacts; rerun the explicit build when needed.
+# Execution identity
+
+`CommandContext.executionScope?: object` is an optional, opaque borrowed identity
+for one execution. Each `Shell.exec` owns a fresh frozen empty object on its
+runtime `Budget`. Commands dispatched within that execution receive the same
+identity, including pipelines, substitutions, interpreters and nested `invoke`
+calls. Concurrent executions do not share it, even on the same `Shell`.
+
+The identity exposes no budget values, cancellation controller or mutation
+authority. Commands must not attach state to it. A command factory may associate
+private execution-local state with it through a `WeakMap`; the host's configured
+limits remain authoritative. Forward the identity through transparent custom
+context adapters rather than manufacturing a new one for each command.
+
+Direct/custom hosts may omit the field. Curl then uses an independent scope for
+each invocation, including all its URLs. Such hosts can explicitly share an
+object across invocations when they represent one execution. The field does not
+change `CommandInvokeOptions` or create a separate runtime budget. See
+`network-deadline.md` for curl's aggregate deadline and cleanup contract.
+
+# Shared command input
+
+`CommandContext.inputBudget` optionally exposes the host's `maxBytes` input
+allowance and `check(totalBytes)`. A command can check a combined stdin and VFS
+byte count before retaining bytes and bound reads by the remaining allowance;
+`llm` uses this for stdin and attachments. The check preserves the shell's normal
+`maxInputBytes` failure and cancellation. It does not consume a global counter
+or change existing per-source accounting; forwarding or rereading an input does
+not independently debit a cumulative shell ledger. Custom hosts may omit it.
+
+`CommandContext.stdinInput?: CommandInput` is an optional byte-oriented view of
+the same input cursor as `stdin`. It does not change the generic `ByteSource`
+contract. Direct/custom hosts may omit it; consumers must not assume a pipe or
+an arbitrary byte source has file metadata or random access.
+
+```ts
+export interface CommandInput {
+  readonly stat?: FileStat;
+  readonly position: number;
+  read(maxBytes: number, signal: AbortSignal): Promise<IteratorResult<Uint8Array>>;
+  seek?(absolutePosition: number, signal: AbortSignal): Promise<void>;
+}
+```
+
+`read` fills up to the requested number of bytes, stopping early only at EOF.
+A nonempty final read has `done: false`; a subsequent positive-sized read at EOF
+has `done: true`. Zero requests return an empty `done: false` result without
+pulling the producer. Sizes and seek positions must be nonnegative safe integers.
+Allocation follows admitted bytes, not the requested maximum; a huge valid
+request does not allocate a huge buffer. Assembly remains subject to shell input
+limits. Empty chunks do not escape this method. Periodic cooperative checkpoints
+explicitly check the maintained shell CPU budget and yield for cancellation and
+wall-clock deadlines, including empty-only producers and nonempty chunk loops.
+Result assembly also checks CPU limits and yields periodically; bytes and logical
+position are not published after an assembly-budget failure.
+
+Results and retained producer fragments are owned bytes, not producer slab
+aliases. A valid bounded `read` call activates shared cumulative producer-byte
+admission against shell `maxInputBytes`, including a zero-byte call. It first
+checks all bytes already produced for earlier iterator consumers, then admits
+every newly produced chunk before ownership copying. Activation persists across
+later `read`, iteration, shell reads and transparent invocation on that cursor;
+switching APIs or aliases cannot reset the count. Invalid read arguments do not
+activate admission.
+
+A producer chunk larger than the remaining budget is rejected in full even when
+the bounded consumer requested only one byte. Already-owned remainder or
+cancelled-read restoration is not charged again; newly produced bytes after a
+retained-handle seek are charged, including rereads. Iterator-only commands that
+never use this bounded API retain their existing command-owned input-limit
+policy; merely inspecting `stdinInput` does not activate the shell limit. Existing
+file-input guards remain independent and continue to constrain redirections.
+
+Inline `Shell.exec` strings and byte arrays follow this iterator-only policy;
+their owned snapshot also exposes readiness to optional shell reads. The internal
+`prepareBytesInput` helper is a separate finite-input contract: it admits its
+whole snapshot against `maxInputBytes` before copying and can reject it with
+`EFBIG`. It is not the admission route for public inline Shell input.
+
+`position` counts only bytes delivered or consumed by the shared cursor,
+including raw delimiters and escapes consumed by shell `read` and script-source
+line reads. Read-ahead is retained for the next consumer, not charged to logical
+position. A cancelled bounded read restores its staged bytes and preserves the
+exact cancellation reason; serialized readers cannot race over the remainder.
+
+Shell descriptor duplication shares the cursor, position and metadata. Omitted
+invoke input, and explicit `stdin: context.stdin`, preserve this identity; a new
+stream or pipe gets an independent cursor without stale file provenance. No new
+invoke option is needed for transparent forwarding. Arbitrary wrapper streams
+are replacements, not automatic claims of shared identity. Context provenance
+tracks the actual input object even when middleware replaces that object.
+
+Input redirection retains the `FileStat` already admitted by the shell for
+sequential inputs, without an additional pathname stat. After a successful
+retained open, tracked `handle.stat()` supplies the authoritative metadata of the
+opened entry instead: the prior pathname snapshot cannot describe a replacement
+opened during that interval. This is an admission-time fstat snapshot, not a
+promise of current size after subsequent mutation. Seek is exposed only when
+that handle reports a regular file and the selected VFS explicitly supports
+`retainedRead`. Disabled capabilities are not overridden; `ENOTSUP` from handle
+acquisition falls back to sequential input with metadata but without seek.
+Failure of an acquired handle's stat is not retried through a pathname reopen.
+
+Seeks use absolute handle offsets, clear read-ahead, work after EOF and do not
+reopen the pathname. The retained handle pins the opened entry across subsequent
+rename/replacement; its metadata and reads describe that same opened entry,
+subject to the VFS handle guarantees. Stream-only backends retain their existing
+weaker pathname-stat/open semantics and remain nonseekable.
+Read limits apply to retained-handle bytes, including rereads after seeking;
+seeking itself does not allocate or read skipped bytes. Shell-owned handle cleanup
+is registered before acquisition, blocks new work and awaits admitted late
+acquisition/stat/read work and one idempotent close, including cancellation.
+
+# Output file target
+
+`CommandContext.stdoutFile?: { readonly path: string }` identifies the absolute
+VFS pathname admitted for the actual stdout sink, in the context's filesystem.
+It is not a lexical `/dev/null` flag, a character-device classification or an
+eager metadata query. Commands that need metadata must use their admitted VFS
+capabilities and budgets to query this target themselves.
+
+Descriptor aliases and transparent budget/signal wrappers preserve the target.
+Transparent invocation preserves it; replacement sinks, pipes, closed descriptors
+and changed sink write methods do not inherit it. The context lookup follows the
+current sink, including middleware replacement. This is pathname provenance,
+not retained output-descriptor fstat: later rename/replacement can change what
+a pathname query observes. It does not establish atomic host-descriptor identity
+or authorize an optimization when a backend cannot establish the needed identity.
 
 # Literal invocation environment
 
@@ -247,3 +375,45 @@ operands (including split-string token generation), xargs fixed/replaced argv,
 find -exec and timeout transport explicit carriers rather than recover values
 by text equality. Existing string environment/path interfaces and xargs' strict
 UTF-8 stdin parser remain separate boundaries, not newly certified binary APIs.
+
+
+## Unexpected errors and host diagnostics
+
+ShellOptions and ShellExecOptions accept an optional onInternalError callback.
+The per-exec callback overrides the shell default; omission inherits it.
+The same callback is available on CommandContext for direct command hosts.
+Its type is (error: unknown) => void | Promise<void>.
+
+Unexpected failures converted into utility/shell diagnostics are reported at
+their conversion boundary with the original thrown value, including falsey
+values. The callback runs synchronously before writing the safe diagnostic.
+Independent conversions of the same value are separate events; there is no
+identity-deduplication set, retained error collection or result field.
+Tagged intermediate wrappers preserve the original value for this callback.
+An already-public FsError message remains public; its cause is not traversed,
+reported as a new event, or included in tenant output.
+
+Callback throws and returned-promise rejections are consumed without recursive
+notification, tenant output or status changes. Returned promises are observed
+but not awaited, tracked as invocation work or awaited by dispose. Thus a
+pending host callback cannot delay shell settlement. The host owns asynchronous
+logging lifetime and delivery; completion is not a promise of log persistence.
+This does not preempt synchronous blocking or other effects of trusted host JS.
+If a callback aborts the caller signal, normal subsequent cancellation checks
+still govern; the callback does not acquire a new cancellation channel.
+
+Existing cancellation, flow, EPIPE, shell-limit and cleanup outcomes retain
+their original precedence and direct host rejection identity. Such outcomes
+do not become observer events solely because they terminate execution.
+Other swallowed diagnostic-sink faults are reported without changing status.
+Unknown failures render internal error; explicitly authored utility diagnostics
+and FsError messages retain their existing public text and status. Adapter
+authors must use virtual operands in public fields and keep native details in
+causes. This is accidental-disclosure defense, not hostile-host-JS isolation.
+Explicit guest-error results from an injected interpreter remain guest data;
+an injected host hook throwing or rejecting is an unexpected host failure.
+This also applies when an interpreter rejects a guest error instead of returning
+an explicit failed result: a rejection alone does not establish public-message
+provenance. SafeJS retains its existing syntax/budget exit-status mapping from
+own name/code fields, but those fields never authorize exposing a rejected
+error's message. The host callback receives the original rejection.

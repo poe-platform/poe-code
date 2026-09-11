@@ -259,19 +259,19 @@ describe("direct collection iteration", () => {
   });
 });
 
-describe("explicit eager collection iteration methods", () => {
+describe("explicit live collection iteration methods", () => {
   it.each([
-    { method: "keys", expected: ["start", "deleted", "kept"] },
-    { method: "values", expected: [0, 1, 2] },
+    { method: "keys", expected: ["start", "kept", "end"] },
+    { method: "values", expected: [0, 99, 3] },
     {
       method: "entries",
       expected: [
         ["start", 0],
-        ["deleted", 1],
-        ["kept", 2]
+        ["kept", 99],
+        ["end", 3]
       ]
     }
-  ])("preserves Map.$method() snapshots", async ({ method, expected }) => {
+  ])("keeps Map.$method() live", async ({ method, expected }) => {
     await expect(
       run(`
         const work = new Map([["start", 0], ["deleted", 1], ["kept", 2]]);
@@ -284,7 +284,7 @@ describe("explicit eager collection iteration methods", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: [
-        true,
+        false,
         expected,
         [
           ["start", 0],
@@ -296,17 +296,17 @@ describe("explicit eager collection iteration methods", () => {
   });
 
   it.each([
-    { method: "keys", expected: ["start", "deleted", "kept"] },
-    { method: "values", expected: ["start", "deleted", "kept"] },
+    { method: "keys", expected: ["start", "kept", "end"] },
+    { method: "values", expected: ["start", "kept", "end"] },
     {
       method: "entries",
       expected: [
         ["start", "start"],
-        ["deleted", "deleted"],
-        ["kept", "kept"]
+        ["kept", "kept"],
+        ["end", "end"]
       ]
     }
-  ])("preserves Set.$method() snapshots", async ({ method, expected }) => {
+  ])("keeps Set.$method() live", async ({ method, expected }) => {
     await expect(
       run(`
         const work = new Set(["start", "deleted", "kept"]);
@@ -321,7 +321,7 @@ describe("explicit eager collection iteration methods", () => {
       `)
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: [true, expected, ["start", "kept", "end"], 3]
+      returnValue: [false, expected, ["start", "kept", "end"], 3]
     });
   });
 });

@@ -7,9 +7,9 @@ import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem, FileSystemCapabilities,
-  FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
-import { davChild, davChildren, parseXml, scalar } from "./xml.js";
+import { davChild, davChildren, parseXml, scalar, XmlResponseLimitError } from "./xml.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type { XmlElement } from "./xml.js";
@@ -193,7 +193,7 @@ export class WebDavFileSystem implements FileSystem {
     open: false,
     read: true, stat: true, readdir: true, realpath: true, access: true,
     write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
-    mkdir: true, recursiveMkdir: true, remove: true, recursiveRemove: true, rename: true, copy: true,
+    mkdir: true, recursiveMkdir: true, remove: true, recursiveRemove: true, rename: true, atomicRenameNoReplace: false, copy: true,
     exclusiveCopy: true, readlink: false, truncate: false, randomAccessWrite: false,
     removeDirectory: false as boolean, streamingAppend: false as boolean,
     symlinks: false, hardlinks: false, permissions: false, timestamps: true,
@@ -489,13 +489,11 @@ export class WebDavFileSystem implements FileSystem {
     }
   }
 
-  private async xml(response: Response, signal: AbortSignal): Promise<XmlElement> {
+  private async xml(response: Response, signal: AbortSignal, maxResponses?: number): Promise<XmlElement> {
     const data = await this.bytes(response, this.maxXmlBytes, signal);
     const encoding = (data[0] === 0xff && data[1] === 0xfe) || (data[0] === 0x3c && data[1] === 0)
       ? "utf-16le" : (data[0] === 0xfe && data[1] === 0xff) || (data[0] === 0 && data[1] === 0x3c) ? "utf-16be" : "utf-8";
-    return parseXml(new TextDecoder(encoding, { fatal: true }).decode(data), {
-      maxNodes: this.maxXmlBytes, maxAttributes: this.maxXmlBytes,
-    });
+    return parseXml(new TextDecoder(encoding, { fatal: true }).decode(data), maxResponses === undefined ? undefined : { maxResponses });
   }
 
   private async multistatus(response: Response, signal: AbortSignal, method = "PROPFIND", path = ""): Promise<XmlElement[]> {
@@ -503,7 +501,12 @@ export class WebDavFileSystem implements FileSystem {
     if (link && /\brel\s*=\s*(?:"[^"]*\bnext\b[^"]*"|'[^']*\bnext\b[^']*'|next\b)/i.test(link)) {
       fail("ENOTSUP", method, path, "paginated WebDAV responses are unsupported");
     }
-    const root = await this.xml(response, signal);
+    let root: XmlElement;
+    try { root = await this.xml(response, signal, this.maxEntries); }
+    catch (error) {
+      if (error instanceof XmlResponseLimitError) fail("EFBIG", method, path, "response exceeds entry limit");
+      throw error;
+    }
     if (root.namespace !== "DAV:" || root.localName !== "multistatus") throw new Error("expected DAV:multistatus");
     const responses = davChildren(root, "response");
     if (responses.length > this.maxEntries) fail("EFBIG", method, path, "response exceeds entry limit");
@@ -1097,7 +1100,11 @@ export class WebDavFileSystem implements FileSystem {
     }
   }
 
-  async rename(source: string, destination: string, options: FsOptions = {}): Promise<void> {
+  async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
+    if (options.noReplace) {
+      options.signal?.throwIfAborted();
+      fail("ENOTSUP", "rename", source, "atomic no-replace rename is unsupported");
+    }
     await this.transfer("MOVE", source, destination, options);
   }
 

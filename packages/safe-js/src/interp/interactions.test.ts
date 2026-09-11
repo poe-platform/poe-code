@@ -108,7 +108,7 @@ describe("language feature interactions", () => {
     expect(first).toMatchObject({ ok: true, returnValue: 7 });
 
     if (!first.ok) return;
-    await expect(run(source, { snapshot: first.snapshot })).rejects.toThrow(/prototype links/);
+    await expect(run(source, { snapshot: first.snapshot })).resolves.toMatchObject({ok:true,returnValue:7});
   });
 
   it("round-trips shared collection identity, cycles, and insertion order", async () => {
@@ -119,7 +119,7 @@ describe("language feature interactions", () => {
       first.set("self", first);
       await Promise.resolve();
       return [
-        first.keys()[0] === second.values()[0],
+        first.keys().next().value === second.values().next().value,
         first.get("self") === first,
         Array.from(first.keys()).map((key) => key.id || key),
         Array.from(second.values()).map((value) => value.id || value)
@@ -137,12 +137,12 @@ describe("language feature interactions", () => {
       const key = { id: 1 };
       const source = new Map([[key, new Set([[1, 2], [3, 4]])]]);
       const clone = structuredClone(source);
-      const clonedKey = clone.keys()[0];
-      const clonedSet = clone.values()[0];
+      const clonedKey = clone.keys().next().value;
+      const clonedSet = clone.values().next().value;
       return [
         clone !== source,
         clonedKey !== key,
-        clonedSet.values().map(([left, right]) => left + right)
+        Array.from(clonedSet.values()).map(([left, right]) => left + right)
       ];
     `);
 

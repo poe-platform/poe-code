@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  function sum(left, right) { return this.base + left + right; }
+  const prototype = Object.getPrototypeOf(sum);
+  const call = sum.call;
+  const applied = sum.apply({ base: 1 }, [2, 3]);
+  const bound = sum.bind({ base: 4 }, 5);
+  await 0;
+  const called = call.call(sum, { base: 7 }, 8, 9);
+  if (typeof prototype !== "function" || prototype() !== undefined ||
+      Object.getPrototypeOf(prototype) !== Object.prototype ||
+      call !== sum.call || call.name !== "call" || call.length !== 1 ||
+      applied !== 6 || bound(6) !== 15 || called !== 24 || sum.constructor !== undefined) {
+    throw new Error("Shared function invocation prototype failed");
+  }
+  return { title: frontmatter.title, ok: true, applied, bound: bound(6), called };
+};

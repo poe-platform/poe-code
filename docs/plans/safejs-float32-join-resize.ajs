@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(12, { maxByteLength: 16 });
+  const tracking = new Float32Array(buffer);
+  tracking.set([1, 2, 3]);
+  const partial = tracking.join({ toString() { buffer.resize(4); return "-"; } });
+  if (partial !== "1--") throw new Error("Partial shrink join regression");
+  buffer.resize(12);
+  const fixed = new Float32Array(buffer, 4, 2);
+  const missing = fixed.join({ toString() { buffer.resize(4); return "-"; } });
+  if (missing !== "-") throw new Error("Out-of-bounds join regression");
+  await 0;
+  const empty = tracking.join({ toString() { buffer.resize(0); return "-"; } });
+  if (empty !== "") throw new Error("Full shrink join regression");
+  return { title: frontmatter.title, ok: true, partial, missing, empty };
+};

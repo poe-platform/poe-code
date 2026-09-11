@@ -279,7 +279,7 @@ should supply a deadline signal when they require a wall-clock deadline.
 ## Deliberate gaps
 
 - Not the entire jq language: no user definitions/modules, `as` binding,
-  recursion/`..`, reduce/foreach, labels/break, try/catch syntax, interpolation,
+  recursion, labels/break, interpolation,
   regex/date/math libraries, formats such as `@csv`, or arbitrary jq builtins.
 - Assignment paths do not include slices, piped selections, optional paths, or
   computed object/array constructions. These are compilation errors, not silent

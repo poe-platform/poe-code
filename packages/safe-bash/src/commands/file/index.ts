@@ -1,4 +1,5 @@
-import { FsError, readBytes, resolvePath, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
+import { FsError, readBytes, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 import { classify, type Classification } from "./classify.js";
 import { limitMessage, FileFailure, FileLimitError, settings, SharedBudget, type FileCommandsOptions } from "./shared.js";
 
@@ -87,10 +88,11 @@ async function inspect(context: CommandContext, name: string, follow: boolean, d
     return result;
   }
   if (!name || name.includes("\0")) throw new FsError(name ? "EINVAL" : "ENOENT", { path: name });
-  const path = resolvePath(context.cwd, name);
+  const path = pathOf(context, name);
   const fs = context.fs;
   const stat: FileStat = await budget.host(() => follow ? fs.stat(path, { signal: budget.signal }) : fs.lstat(path, { signal: budget.signal }));
   if (stat.type === "directory") return { description: "directory", mime: "inode/directory", encoding: "binary" };
+  if (stat.type === "character") return { description: "character special", mime: "inode/chardevice", encoding: "binary" };
   if (stat.type === "symlink") {
     if (follow) throw new FsError("ENOTSUP", { path, message: "followed stat returned a symbolic link" });
     const target = fs.readlink ? await budget.host(() => fs.readlink!(path, { signal: budget.signal })) : undefined;
@@ -99,7 +101,10 @@ async function inspect(context: CommandContext, name: string, follow: boolean, d
   }
   if (stat.type !== "file") throw new FsError("ENOTSUP", { path, message: "unsupported filesystem entry type" });
   let sample: { bytes: Uint8Array; complete: boolean };
-  if (fs.readStream) {
+  const capabilities = fs.capabilitiesFor
+    ? await budget.host(() => fs.capabilitiesFor!(path, { signal: budget.signal }))
+    : fs.capabilities;
+  if (fs.readStream && capabilities.streamingRead !== false) {
     const controller = new AbortController();
     const signal = AbortSignal.any([budget.signal, controller.signal]);
     try {

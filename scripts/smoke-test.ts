@@ -22,7 +22,6 @@ const COMMANDS = [
   "poe-code configure claude-code --yes --dry-run --verbose",
   "poe-code configure codex --yes --dry-run --verbose",
   "poe-code configure opencode --yes --dry-run --verbose",
-  "poe-code configure kimi --yes --dry-run --verbose",
   "poe-code unconfigure claude-code --dry-run --verbose",
   "poe-code spawn claude-code 'hello' --mode yolo --dry-run --verbose",
   "poe-code login --dry-run",
@@ -64,7 +63,7 @@ function install(): InstallContext {
   const packagePath = path.join(tmpDir, tgz);
   const sdkProjectDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-sdk-"));
   execSync("npm init -y", { cwd: sdkProjectDir, stdio: "pipe" });
-  execSync(`npm install "${packagePath}" --loglevel=error`, {
+  execSync(`npm install "${packagePath}" "typescript@${ts.version}" --loglevel=error`, {
     cwd: sdkProjectDir,
     stdio: "pipe"
   });
@@ -141,7 +140,7 @@ function runSdkImportSmoke(sdkProjectDir: string): boolean {
       "const referenceResult = await run(referenceSource, {bindings: referenceBindings});",
       "const referenceSnapshot = JSON.parse(await dump(referenceResult));",
       "const referenceReplay = await runCore(referenceSource, {bindings: referenceBindings, snapshot: referenceSnapshot});",
-      'if (JSON.stringify(referenceResult.returnValue) !== "[14,1,2e+100]" || JSON.stringify(referenceReplay.returnValue) !== "[14,1,2e+100]" || referenceReads !== 1 || referenceSnapshot.executionSemantics !== "jobs-v7") throw new Error("SafeJS reference evaluation or numeric checkpoint replay failed.");',
+      'if (JSON.stringify(referenceResult.returnValue) !== "[14,1,2e+100]" || JSON.stringify(referenceReplay.returnValue) !== "[14,1,2e+100]" || referenceReads !== 1 || referenceSnapshot.executionSemantics !== "jobs-v8") throw new Error("SafeJS reference evaluation or numeric checkpoint replay failed.");',
       "let effects = 0;",
       'const recoverySource = "effect(); let total=0; for(let index=0; index<50; index++) total += index; return total;";',
       "const recoveryBindings = { effect() { effects++; } };",
@@ -248,11 +247,14 @@ function runSafeFsImportSmoke(sdkProjectDir: string): boolean {
     [
       'import assert from "node:assert/strict";',
       'import { readFileSync, readdirSync } from "node:fs";',
+      'import { lstat, open, readFile, readdir, realpath } from "node:fs/promises";',
+      'import { fileURLToPath } from "node:url";',
       'import * as fs from "poe-code/safe-fs";',
       'import * as peer from "./safe-fs-peer.mjs";',
       'import { run } from "poe-code/safejs";',
       'import { run as runCore } from "poe-code/safejs/core";',
       'import { findBundleIssues } from "./node_modules/poe-code/packages/package-lint/dist/bundle-policy.js";',
+      'import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "./node_modules/poe-code/packages/package-lint/dist/native-assets.js";',
       "assert.equal(run, runCore);",
       'assert.equal((await run("return 1;")).returnValue, 1);',
       "assert.equal(fs.FsError, peer.FsError);",
@@ -267,6 +269,12 @@ function runSafeFsImportSmoke(sdkProjectDir: string): boolean {
       'const root = new URL("./node_modules/poe-code/", import.meta.url);',
       'const manifest = JSON.parse(readFileSync(new URL("package.json", root), "utf8"));',
       'const metafile = JSON.parse(readFileSync(new URL("dist/metafile.json", root), "utf8"));',
+      'Object.assign(metafile, await collectCanonicalNativeAssets(fileURLToPath(root), {',
+      '  readdir: directory => readdir(directory, { withFileTypes: true }),',
+      '  readFile: filename => readFile(filename, "utf8"),',
+      '  lstat, realpath,',
+      '  readBytes: (filename, maximum) => readBoundedNativeBytes(open, filename, maximum)',
+      '}));',
       "const packed = new Set();",
       'function visit(directory, prefix = "") { for (const entry of readdirSync(directory, { withFileTypes: true })) {',
       '  if (entry.name === "node_modules") continue;',

@@ -5,13 +5,13 @@ import { archiveCommands, createArchiveCommands, DEFAULT_ARCHIVE_LIMITS } from "
 import { archive, binary, direct, fixture, member, source, wrapped } from "./helpers.js";
 
 test("archive plugin is explicit, collision-atomic, and validates limits", async () => {
-  assert.deepEqual(createArchiveCommands().map(command => command.name), ["tar"]);
+  assert.deepEqual(createArchiveCommands().map(command => command.name), ["tar", "zip", "unzip"]);
   const registry = new CommandRegistry([{ name: "tar", execute: () => ({ exitCode: 19 }) }]);
   const host: PluginHost = { commands: registry, use() {}, registerFileSystem() {} };
   assert.throws(() => archiveCommands().setup(host), /already registered/u);
   assert.equal(registry.list().length, 1);
   archiveCommands({ replace: true }).setup(host);
-  assert.equal(registry.list().length, 1);
+  assert.equal(registry.list().length, 3);
   assert.throws(() => createArchiveCommands({ limits: { maxMembers: 0 } }), /limit/u);
   assert.throws(() => createArchiveCommands({ limits: { chunkSize: 1 } }), /chunkSize/u);
   assert.equal(DEFAULT_ARCHIVE_LIMITS.maxEntryBytes, 64 * 1024 * 1024);

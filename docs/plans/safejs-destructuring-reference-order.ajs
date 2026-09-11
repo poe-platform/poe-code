@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function referenceOrder(frontmatter) {
+  await 0;
+  const log = [];
+  const target = {};
+  function key() { log.push("key"); return "value"; }
+  function* source() { log.push("next"); yield 7; }
+  [target[key()]] = source();
+  const object = { get field() { log.push("get"); return 8; } };
+  ({ field: target[key()] } = object);
+  if (log.join(",") !== "key,next,key,get" || target.value !== 8)
+    throw new Error("Assignment reference ordering failed");
+  return { title: frontmatter.title, log, target };
+}

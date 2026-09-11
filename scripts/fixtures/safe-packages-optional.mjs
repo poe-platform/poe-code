@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import * as core from "@poe-platform/safe-bash";
-import * as browser from "@poe-platform/safe-bash/browser";
+import { expectedAgentCommandNames } from "./safe-packages-mixed-entry-runtime.mjs";
 import { createMemoryFileSystem, createMountFileSystem, FsError, scopeFileSystem } from "@poe-platform/safe-fs";
 import * as optional from "@poe-platform/safe-bash-optional";
 
@@ -82,18 +82,23 @@ for (const definition of definitions) {
 }
 for (const name of extensionNames) assert.equal(optional[name]().runtimeIdentity, core.commandRuntimeIdentity, name);
 const defaultNames = core.createAgentCommands().map(command => command.name);
-const browserNames = browser.createBrowserCommands().map(command => command.name);
-assert.equal(defaultNames.length, 79);
-assert.equal(new Set(defaultNames).size, 79);
-assert.equal(browserNames.length, 28);
-assert.equal(new Set(browserNames).size, 28);
+assert.deepEqual([...defaultNames].sort(), expectedAgentCommandNames);
+assert.equal(new Set(defaultNames).size, expectedAgentCommandNames.length);
+const overlappingDefaults = new Set(["cmp", "shuf", "truncate"]);
 for (const [name] of factories) {
-  assert.equal(defaultNames.includes(name), false, name);
-  assert.equal(browserNames.includes(name), false, name);
+  assert.equal(defaultNames.includes(name), overlappingDefaults.has(name), name);
 }
-for (const name of [...extensionNames, "createDeviceFileSystem", "createYesCommand", "createCmpCommand", "createDdCommand", "createShufCommand", "createTruncateCommand", "createInstallCommand", "createYqCommand"]) {
+for (const name of [...extensionNames, "createDeviceFileSystem", "createYesCommand", "createCmpCommand", "createDdCommand", "createShufCommand", "createTruncateCommand", "createInstallCommand"]) {
   assert.equal(Object.hasOwn(core, name), false, name);
-  assert.equal(Object.hasOwn(browser, name), false, name);
+}
+assert.equal(typeof core.createYqCommand, "function");
+assert.notEqual(core.createYqCommand, optional.createYqCommand);
+
+for (const [name, , , plugin] of factories) {
+  if (!overlappingDefaults.has(name)) continue;
+  const duplicate = new core.Shell({ fs: createMemoryFileSystem() }).use(core.agentCommands()).use(plugin());
+  try { await assert.rejects(duplicate.exec("true"), /already registered/i); }
+  finally { await duplicate.dispose(); }
 }
 
 const foreignCoreArtifact = await installedEntry(foreignRoot, "@poe-platform/safe-bash");
@@ -164,7 +169,11 @@ for (const commands of [registry, laterRegistry]) {
   };
   try {
     owner.shell = new core.Shell({ fs, limits: { maxWallClockMs: 2000 } }).use(core.agentCommands());
-    for (const [, , , plugin] of factories) owner.shell.use(plugin());
+    for (const [name, , , plugin] of factories) {
+      owner.shell.use(plugin({ replace: overlappingDefaults.has(name) }));
+    }
+    const initialized = await owner.shell.exec("true");
+    assert.equal(initialized.exitCode, 0, initialized.stderr);
     assert.deepEqual(owner.shell.commands.list().map(command => command.name).filter(name => factories.some(([optionalName]) => optionalName === name)).sort(), factories.map(([name]) => name).sort());
     const yes = await owner.shell.exec(String.raw`yes $'\377' | head -c 3`);
     assert.equal(yes.exitCode, 0, yes.stderr);
@@ -291,7 +300,7 @@ for (const pipefail of [false, true]) {
   const owner = {};
   const fs = createMemoryFileSystem();
   try {
-    owner.shell = new core.Shell({ fs, extensions: extensionNames.map(name => optional[name]()) }).use(core.agentCommands());
+    owner.shell = new core.Shell({ fs, extensions: extensionNames.map(name => name === "mapfileExtension" ? optional.mapfileExtension({ replace: true }) : optional[name]()) }).use(core.agentCommands());
     const source = [
       "values=(left ''); printf '<%s><%s>;' \"${values[1]-fallback}\" \"${values[1]+present}\"",
       "read -r -d '' -a raw; printf '%s' \"${raw[@]}\"",
@@ -440,6 +449,7 @@ for (const wait of ['wait "$child"', 'wait -n -p chosen "$child"']) {
     const memory = createMemoryFileSystem();
     await memory.writeFile("/source", Uint8Array.of(255, 0, 195, 169));
     const fs = new Proxy(memory, { get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, streamingWrite: false };
       if (property === "writeStream") return undefined;
       if (property === "writeFile") return async (...args) => {
         active++;
@@ -456,7 +466,7 @@ for (const wait of ['wait "$child"', 'wait -n -p chosen "$child"']) {
     const checked = assert.rejects(owner.running, error => error === false);
     void checked.catch(() => undefined);
     void owner.running.then(() => { settled = true; }, () => { settled = true; });
-    await Promise.race([entered.promise, owner.running.then(() => assert.fail("ended before writer admission"))]);
+    await Promise.race([entered.promise, owner.running.then(result => assert.fail(`ended before writer admission: ${JSON.stringify(result)}`))]);
     controller.abort(false);
     await new Promise(resolveTurn => setImmediate(resolveTurn));
     assert.equal(settled, false);

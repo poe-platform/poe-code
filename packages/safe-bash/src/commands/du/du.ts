@@ -1,4 +1,6 @@
-import { createOutputOperation, resolvePath, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "../../contracts/index.js";
+import { createOutputOperation, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
+import { PublicDiagnostic } from "../../diagnostics.js";
 import { parse, helpText, type Arguments } from "./arguments.js";
 import { Budget, DuLimitError } from "./budget.js";
 import { formatSize } from "./format.js";
@@ -36,7 +38,7 @@ class Walker {
   private async add(left: Amount, right: Amount, display: string): Promise<Amount> {
     this.budget.step();
     if (right.bytes > Number.MAX_SAFE_INTEGER - left.bytes) {
-      await this.failure(new Error("aggregate exceeds safe integer range; total suppressed"), display);
+      await this.failure(new PublicDiagnostic("aggregate exceeds safe integer range; total suppressed"), display);
       return { bytes: left.bytes, complete: false };
     }
     return { bytes: left.bytes + right.bytes, complete: left.complete && right.complete };
@@ -53,15 +55,15 @@ class Walker {
     let entries: DirectoryEntry[];
     try { entries = await this.budget.fs(() => context.fs.readdir(path, { signal: context.signal })); }
     catch (error) { await this.failure(error, display); return undefined; }
-    if (!Array.isArray(entries)) { await this.failure(new Error("invalid directory listing"), display); return undefined; }
+    if (!Array.isArray(entries)) { await this.failure(new PublicDiagnostic("invalid directory listing"), display); return undefined; }
     this.budget.check(entries.length, limits.maxDirectoryEntries, "directory entry");
     const names = new Set<string>();
     for (const entry of entries) {
       this.budget.step();
-      if (!entry || typeof entry.name !== "string") { await this.failure(new Error("invalid directory entry"), display); return undefined; }
+      if (!entry || typeof entry.name !== "string") { await this.failure(new PublicDiagnostic("invalid directory entry"), display); return undefined; }
       this.budget.text(entry.name);
       if (!entry.name || entry.name === "." || entry.name === ".." || /[\/\0]/u.test(entry.name) || names.has(entry.name)) {
-        await this.failure(new Error("invalid or duplicate directory entry name"), display); return undefined;
+        await this.failure(new PublicDiagnostic("invalid or duplicate directory entry name"), display); return undefined;
       }
       names.add(entry.name);
     }
@@ -78,18 +80,18 @@ class Walker {
     this.budget.text(path);
     this.budget.text(display);
     if (display === "") {
-      await this.failure(new Error("invalid zero-length file name"));
+      await this.failure(new PublicDiagnostic("invalid zero-length file name"));
       return { bytes: 0, complete: false };
     }
     let stat: FileStat;
     try {
       stat = await this.budget.fs(() => context.fs.lstat(path, { signal: context.signal }));
-      if (!stat || !["file", "directory", "symlink"].includes(stat.type)) throw new Error("invalid entry type");
+      if (!stat || !["file", "directory", "symlink", "character"].includes(stat.type)) throw new PublicDiagnostic("invalid entry type");
     } catch (error) { await this.failure(error, display); return { bytes: 0, complete: false }; }
     const bytes = this.args.apparent ? stat.type === "directory" ? 0 : stat.size : stat.allocatedBytes;
     let amount: Amount;
     if (bytes === undefined || !Number.isSafeInteger(bytes) || bytes < 0) {
-      await this.failure(new Error(`${this.args.apparent ? "apparent size" : "allocated bytes"} ${bytes === undefined ? "unknown" : "invalid"}; total suppressed`), display);
+      await this.failure(new PublicDiagnostic(`${this.args.apparent ? "apparent size" : "allocated bytes"} ${bytes === undefined ? "unknown" : "invalid"}; total suppressed`), display);
       amount = { bytes: 0, complete: false };
     } else amount = { bytes, complete: true };
     if (this.duplicate(stat)) return { bytes: 0, complete: amount.complete };
@@ -114,10 +116,9 @@ class Walker {
     const { context } = this.budget;
     this.budget.text(context.cwd);
     const paths = this.args.operands.map(operand => {
-      const path = resolvePath(context.cwd, operand);
-      const resolved = operand.endsWith("/") && path !== "/" ? path + "/" : path;
-      this.budget.text(resolved);
-      return resolved;
+      const path = pathOf(context, operand === "" ? "." : operand);
+      this.budget.text(path);
+      return path;
     });
     for (let index = 0; index < paths.length; index++) {
       const amount = await this.walk(paths[index]!, this.args.operands[index]!, 0);

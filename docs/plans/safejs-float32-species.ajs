@@ -1,0 +1,29 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Samples extends Float32Array {}
+  const samples = new Samples([1, 2, 3]);
+  const copied = samples.slice(1);
+  const shared = samples.subarray(1);
+  if (!(copied instanceof Samples) || !(shared instanceof Samples)) {
+    throw new Error("TypedArray subclass species regression");
+  }
+  shared[0] = 7;
+  if (samples[1] !== 7 || copied[0] !== 2) throw new Error("Species storage regression");
+  const buffer = new ArrayBuffer(8, { maxByteLength: 16 });
+  const tracking = new Float32Array(buffer);
+  const trace = [];
+  tracking.constructor = { [Symbol.species]: function (...args) {
+    trace.push([args.length, args[0] === buffer, args[1], args[2] === undefined]);
+    return new Float32Array(...args);
+  } };
+  const tail = tracking.subarray(1);
+  await 0;
+  buffer.resize(16);
+  if (tail.length !== 3 || trace[0].join(",") !== "3,true,4,true") {
+    throw new Error("Tracking species constructor regression");
+  }
+  return { title: frontmatter.title, ok: true, copied: Array.from(copied), shared: Array.from(shared), trace };
+};

@@ -1,3 +1,4 @@
+import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { FsError, basename, dirname, isFsError, resolvePath, type FileStat } from "../../contracts/index.js";
 import { safeTarget } from "./patch-path.js";
 import { Budget, ToolError, host, inspect } from "./shared.js";
@@ -199,7 +200,7 @@ export async function pruneDirectories(parents: ReadonlySet<string>, budget: Bud
       budget.context.signal.throwIfAborted();
       if (isFsError(error, "ENOENT")) continue;
       if (isFsError(error) || error instanceof ToolError) throw error;
-      throw new ToolError(`cannot prune directory ${parent}: ${error instanceof Error ? error.message : String(error)}`);
+      throw new ToolError(`cannot prune directory ${parent}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
     }
   }
 }

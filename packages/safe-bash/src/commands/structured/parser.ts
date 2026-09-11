@@ -8,6 +8,9 @@ export type Ast =
   | { kind: "binary"; operator: string; left: Ast; right: Ast }
   | { kind: "unary"; operand: Ast }
   | { kind: "optional"; operand: Ast }
+  | { kind: "descend" }
+  | { kind: "try"; body: Ast; handler: Ast | undefined }
+  | { kind: "reduce" | "foreach"; source: Ast; name: string; init: Ast; update: Ast; extract: Ast | undefined }
   | { kind: "index"; base: Ast; index: Ast }
   | { kind: "slice"; base: Ast; start: Ast | undefined; end: Ast | undefined }
   | { kind: "iterate"; base: Ast }
@@ -58,6 +61,9 @@ function tokenize(source: string): Token[] {
     }
     const name = /^[A-Za-z_][A-Za-z_0-9]*/u.exec(source.slice(offset));
     if (name) { tokens.push({ text: name[0], offset, kind: "name" }); offset += name[0].length; continue; }
+    if (source.startsWith("..", offset)) {
+      tokens.push({ text: "..", offset, kind: "symbol" }); offset += 2; continue;
+    }
     const symbol = /^(?:\/\/=|\|=|\+=|-=|\*=|\/=|%=|==|!=|<=|>=|\/\/|[.\[\]{}(),:;?$|+*/%<>=-])/u.exec(source.slice(offset));
     if (!symbol) throw new JqError(`unexpected character at offset ${offset}`, 3);
     tokens.push({ text: symbol[0], offset, kind: "symbol" }); offset += symbol[0].length;
@@ -83,6 +89,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   let position = 0;
   let nesting = 0;
   const unresolved = new Map<Ast, Token>();
+  const bindings = new Map<string, number>();
   const peek = (): Token => tokens[Math.min(position, tokens.length - 1)]!;
   const take = (): Token => { const token = peek(); if (token.kind !== "end") position++; return token; };
   const accept = (text: string): boolean => { if (peek().text !== text) return false; take(); return true; };
@@ -133,7 +140,26 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   const primary = (): Ast => {
     const token = take();
     let result: Ast;
-    if (token.text === ".") {
+    if (token.text === "..") result = { kind: "descend" };
+    else if (token.text === "try") {
+      const body = expression(10);
+      result = { kind: "try", body, handler: accept("catch") ? expression(10) : undefined };
+    } else if (token.text === "reduce" || token.text === "foreach") {
+      const source = expression(10); expect("as"); expect("$");
+      const name = take(); if (name.kind !== "name") fail("expected variable name");
+      expect("("); const init = expression(); expect(";");
+      const previous = bindings.get(name.text) ?? 0;
+      bindings.set(name.text, previous + 1);
+      try {
+        const update = expression();
+        const extract = token.text === "foreach" && accept(";") ? expression() : undefined;
+        expect(")");
+        result = { kind: token.text, source, name: name.text, init, update, extract };
+      } finally {
+        if (previous) bindings.set(name.text, previous);
+        else bindings.delete(name.text);
+      }
+    } else if (token.text === ".") {
       result = { kind: "identity" };
       if ((peek().kind === "name" && peek().offset === token.offset + 1) || peek().kind === "string") {
         const key = take(); result = { kind: "index", base: result, index: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) };
@@ -155,7 +181,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       expect("}"); result = { kind: "object", fields };
     } else if (token.text === "$") {
       const name = take(); if (name.kind !== "name") fail("expected variable name");
-      if (!variables.has(name.text)) fail(`undefined variable $${name.text}`);
+      if (!bindings.has(name.text) && !variables.has(name.text)) fail(`undefined variable $${name.text}`);
       result = { kind: "variable", name: name.text };
     } else if (token.text === "-") result = { kind: "unary", operand: expression(10) };
     else if (token.text === "if") result = guardedConditional();
@@ -214,6 +240,11 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     else if (node.kind === "object") for (const field of node.fields) children.push(field.key, field.value);
     else if (node.kind === "call") children.push(...node.args);
     else if (node.kind === "if") children.push(node.condition, node.yes, node.no);
+    else if (node.kind === "try") { children.push(node.body); if (node.handler) children.push(node.handler); }
+    else if (node.kind === "reduce" || node.kind === "foreach") {
+      children.push(node.source, node.init, node.update);
+      if (node.extract) children.push(node.extract);
+    }
     for (const child of children.reverse()) pending.push({ node: child, depth: depth + 1 });
   }
   if (errors.length) throw new JqError(`${errors.join("\njq: ")}\njq: ${errors.length} compile error${errors.length === 1 ? "" : "s"}`, 3);

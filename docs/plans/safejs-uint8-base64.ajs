@@ -1,0 +1,18 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = Uint8Array.fromBase64("-___", { alphabet: "base64url" });
+  await 0;
+  if (value.toHex() !== "fbffff" || value.toBase64() !== "+///")
+    throw new Error("Base64 round trip failed");
+  const target = new Uint8Array(4);
+  let error;
+  try { target.setFromBase64("Zm9v!!"); } catch (caught) { error = caught.name; }
+  if (error !== "SyntaxError" || target.toHex() !== "666f6f00")
+    throw new Error("Decoded prefix was not preserved");
+  const bounded = new Uint8Array(1).setFromBase64("Zm9v");
+  if (bounded.read !== 0 || bounded.written !== 0)
+    throw new Error("Oversized chunk was partially consumed");
+  return { title: frontmatter.title, ok: true, encoded: value.toBase64(), bounded };
+};

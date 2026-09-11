@@ -9,20 +9,20 @@ Before writing code, determine which features the agent supports. This drives wh
 | Feature              | Description                                             | Example agents                                     |
 | -------------------- | ------------------------------------------------------- | -------------------------------------------------- |
 | **Configure**        | Write config files so the agent talks to the Poe API    | all agents                                         |
-| **Unconfigure**      | Reverse the configure step                              | claude-code, codex, kimi, opencode                 |
-| **Models**           | Agent supports model selection at configure time        | claude-code, codex, kimi                           |
-| **Install**          | Automated binary install via `ServiceInstallDefinition` | claude-code, codex, kimi, opencode                 |
-| **Test**             | Health-check command (`poe-code test`)                  | claude-code, codex, kimi, opencode                 |
-| **Spawn (CLI)**      | Run the agent's CLI binary with a prompt                | claude-code, codex, kimi, opencode                 |
-| **Spawn (ACP)**      | Run the agent via Agent Control Protocol                | kimi, opencode                                     |
-| **Adapter**          | Custom stream parser for the agent's JSON output        | claude-code, codex, kimi, opencode                 |
-| **Stdin prompt**     | Accept prompt via stdin instead of CLI arg              | claude-code, kimi                                  |
-| **Interactive mode** | Launch the agent in interactive (REPL) mode             | kimi, opencode                                     |
-| **Resume**           | Resume an existing thread/session                       | claude-code, kimi, opencode                        |
-| **MCP (config)**     | Write MCP server entries into the agent's config file   | claude-code, claude-desktop, codex, kimi, opencode |
-| **MCP (spawn)**      | Pass MCP servers as CLI args at spawn time              | claude-code, codex, kimi, opencode                 |
+| **Unconfigure**      | Reverse the configure step                              | claude-code, codex, opencode                 |
+| **Models**           | Agent supports model selection at configure time        | claude-code, codex                           |
+| **Install**          | Automated binary install via `ServiceInstallDefinition` | claude-code, codex, opencode                 |
+| **Test**             | Health-check command (`poe-code test`)                  | claude-code, codex, opencode                 |
+| **Spawn (CLI)**      | Run the agent's CLI binary with a prompt                | claude-code, codex, opencode                 |
+| **Spawn (ACP)**      | Run the agent via Agent Control Protocol                | opencode                                     |
+| **Adapter**          | Custom stream parser for the agent's JSON output        | claude-code, codex, opencode                 |
+| **Stdin prompt**     | Accept prompt via stdin instead of CLI arg              | claude-code                                  |
+| **Interactive mode** | Launch the agent in interactive (REPL) mode             | opencode                                     |
+| **Resume**           | Resume an existing thread/session                       | claude-code, opencode                        |
+| **MCP (config)**     | Write MCP server entries into the agent's config file   | claude-code, claude-desktop, codex, opencode |
+| **MCP (spawn)**      | Pass MCP servers as CLI args at spawn time              | claude-code, codex, opencode                 |
 | **Skills**           | Support global/local skill directories                  | claude-code, codex, opencode                       |
-| **Isolated env**     | Run inside an isolated home directory for testing       | claude-code, codex, kimi, opencode                 |
+| **Isolated env**     | Run inside an isolated home directory for testing       | claude-code, codex, opencode                 |
 | **Templates**        | Mustache templates for config file generation           | codex                                              |
 
 ## Files to touch
@@ -129,7 +129,7 @@ Rewrite rules:
 export const <agent>SpawnConfig: CliSpawnConfig = {
   kind: "cli",
   agentId: string,
-  adapter: AdapterType,              // "claude" | "codex" | "kimi" | "opencode" | "native"
+  adapter: AdapterType,              // "claude" | "codex" | "opencode" | "native"
   promptFlag: string,                // e.g. "-p"
   modelFlag?: string,
   modelStripProviderPrefix: boolean,

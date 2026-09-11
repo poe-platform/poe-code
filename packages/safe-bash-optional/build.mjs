@@ -175,7 +175,13 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
     publicImports.add(specifier);
     return specifier;
   };
-  const routes = (owner, declaration) => Object.entries(owner.exports ?? {}).map(([key, value]) => ({ key, target: value?.[declaration ? "types" : "import"] })).filter(route => typeof route.target === "string");
+  const routes = (owner, declaration) => Object.entries(owner.exports ?? {}).map(([key, value]) => {
+    let target = value;
+    while (target && typeof target === "object" && !Array.isArray(target)) {
+      target = declaration && target.types !== undefined ? target.types : target.import ?? target.default;
+    }
+    return { key, target };
+  }).filter(route => typeof route.target === "string");
   const publicRoute = (owner, directory, filename, declaration) => {
     for (const { key, target } of routes(owner, declaration).sort((left, right) => Number(left.key.includes("*")) - Number(right.key.includes("*")))) {
       const absolute = path.resolve(directory, target);

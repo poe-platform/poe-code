@@ -84,7 +84,7 @@ describe("parse exports", () => {
     ).toMatchObject({
       type: "ExportDefaultDeclaration",
       declaration: {
-        type: "FunctionExpression",
+        type: "FunctionDeclaration",
         async: true,
         id: {
           type: "Identifier",
@@ -182,7 +182,10 @@ describe("parse exports", () => {
     expect(() => parseModule("const handler = () => {}; export { handler };")).toThrowError(
       DisallowedSyntaxError
     );
-    expect(() => parseModule("export default class Run {}")).toThrowError(DisallowedSyntaxError);
+    expect(parseModule("export default class Run {}").body[0]).toMatchObject({
+      type: "ExportDefaultDeclaration",
+      declaration: { type: "ClassDeclaration", id: { name: "Run" } }
+    });
     expect(() => parseModule("export const { x } = value")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export const [x] = value")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export let x = 1")).toThrowError(DisallowedSyntaxError);

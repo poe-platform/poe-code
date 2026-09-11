@@ -7,9 +7,15 @@ import type { FsOptions } from "../contracts/filesystem.js";
 export type PlatformErrno = number;
 export type PlatformComparisonCallback<Callback> = Callback;
 
-const systemErrnos = typeof util.getSystemErrorMap === "function"
-  ? new Map([...util.getSystemErrorMap()].map(([errno, [name]]) => [name, errno]))
-  : new Map(Object.entries(constants.errno).map(([name, errno]) => [name, -Math.abs(errno)]));
+const systemErrnos = (() => {
+  const fallback = new Map(Object.entries(constants.errno).map(([name, errno]) => [name, -Math.abs(errno)]));
+  if (typeof util.getSystemErrorMap !== "function") return fallback;
+  try {
+    return new Map([...util.getSystemErrorMap()].map(([errno, [name]]) => [name, errno]));
+  } catch {
+    return fallback;
+  }
+})();
 const negotiating = new AsyncLocalStorage<boolean>();
 
 export const platform = Object.freeze({

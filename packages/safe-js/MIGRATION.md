@@ -150,8 +150,8 @@ It returns `inspection` and, for a migration, `outputPath` and `dryRun`.
 - Completed predecessor effects are never automatically invoked by migration or
   replayed against new source. The continuation can deliberately call an old
   operation again; SafeJS cannot infer business-level deduplication from code.
-- Format-1 dumps with complete version-1 replay journals and `jobs-v1` through
-  `jobs-v6` markers are accepted. Unknown formats, missing histories, malformed
+- Format-1 and format-2 dumps with complete version-1 replay journals and `jobs-v1`
+  through `jobs-v8` markers are accepted. New checkpoints use format 2. Unknown formats, missing histories, malformed
   identities, and unportable checkpoints fail closed. Keep the original runtime
   for checkpoints outside that explicit compatibility envelope.
 

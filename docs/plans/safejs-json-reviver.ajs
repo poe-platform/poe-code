@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const visited = [];
+  const result = JSON.parse('{"amount":9007199254740993,"remove":true}', function (key, value, context) {
+    visited.push(key);
+    if (key === "amount") return context.source;
+    if (key === "remove") return undefined;
+    return value;
+  });
+  if (result.amount !== "9007199254740993" || "remove" in result ||
+      visited.join(",") !== "amount,remove,") {
+    throw new Error("JSON reviver validation failed");
+  }
+  return { title: frontmatter.title, ok: true, result, visited };
+};

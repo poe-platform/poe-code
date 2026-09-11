@@ -57,6 +57,9 @@ Behavior notes:
 - `builder run` executes only the builder role.
 - `inspector run` executes one named inspector, or all configured inspectors when `name` is omitted.
 
+Invalid config is reported instead of falling back to defaults, and missing
+documents produce domain not-found errors.
+
 ## MCP tool names
 
 MCP server entrypoint:

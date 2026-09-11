@@ -1,8 +1,8 @@
 # Safe Bash playground
 
 Private, plain HTML/CSS/TypeScript playground with zero UI libraries, not zero
-dependencies. The build-time alias `safe-bash-engine` pins `poe-code@14.0.4`;
-its real shell is adapted and bundled into the site using the repository's
+dependencies. The current SafeBash and SafeFS workspace artifacts provide the
+real shell, adapted and bundled into the site using the repository's
 Vite/esbuild tooling. No engine or UI library is loaded from a CDN at runtime.
 
 ## Development
@@ -11,7 +11,7 @@ Use the repository's installed dependencies and build tools. From its root:
 
 ```sh
 npm run dev --workspace packages/safe-bash-playground
-npm run build --workspace packages/safe-bash-playground
+npm run build:workspaces -- --workspace=safe-bash-playground
 npm run build:site --workspace packages/safe-bash-playground
 npm run test:unit --workspace packages/safe-bash-playground
 ```
@@ -24,8 +24,8 @@ over HTTP rather than opening `index.html` through `file://`.
 
 Application HTML, CSS, and TypeScript changes reload live. The engine plugin
 also watches its browser shims and invalidates the compiled kernel when they
-change. Changing the pinned engine dependency requires reinstalling it and
-restarting `dev`.
+change. Build the workspace dependency closure before starting `dev`; rebuilding
+engine artifacts invalidates the watched browser worker sources.
 
 Relative assets let the same output run beneath `/poe-code/safe-bash/` or another
 static-host prefix. The existing Pages workflow stages it at `safe-bash/` in the

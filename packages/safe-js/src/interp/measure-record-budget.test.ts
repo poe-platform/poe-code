@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createSandboxArguments } from "./arguments.js";
 import { Budget, SandboxError } from "./budget.js";
+import { markDescriptorObject } from "./object-model.js";
 import {
   createSandboxClosure,
   measureSandboxData,
@@ -9,6 +10,55 @@ import {
 } from "./values.js";
 
 describe("ordinary-record data accounting", () => {
+  it("does not capture descriptors for uncharged hidden ordinary fields", () => {
+    const value = Object.defineProperty({ word: "abc" }, "hidden", { value: "ignored" });
+    const descriptors = vi.spyOn(Object, "getOwnPropertyDescriptor");
+    try {
+      const units = measureSandboxData([value]);
+      const hiddenReads = descriptors.mock.calls.filter(([owner, key]) => owner === value && key === "hidden");
+      expect(units).toBe(9);
+      expect(hiddenReads).toHaveLength(0);
+    } finally { descriptors.mockRestore(); }
+  });
+
+  it("still captures hidden fields on managed descriptor records", () => {
+    const value = Object.defineProperty({ word: "abc" }, "hidden", { value: "charged" });
+    markDescriptorObject(value);
+    expect(measureSandboxData([value])).toBe(23);
+  });
+
+  it("does not introduce extra proxy descriptor traps during key selection", () => {
+    const reads: PropertyKey[] = [];
+    const value = new Proxy(Object.defineProperty({ word: "abc" }, "hidden", { value: "ignored" }), {
+      getOwnPropertyDescriptor(target, key) {
+        reads.push(key);
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      }
+    });
+    expect(measureSandboxData([value])).toBe(9);
+    expect(reads.filter(key => typeof key === "string")).toEqual(["word", "hidden"]);
+  });
+
+  it("observes managed-state changes made while proxy descriptors are captured", () => {
+    const target = Object.defineProperty({}, "hidden", { value: "charged" });
+    Object.defineProperty(target, "word", { value: "abc", enumerable: true });
+    const value = new Proxy(target, {
+      getOwnPropertyDescriptor(owner, key) {
+        if (key === "word") markDescriptorObject(value);
+        return Reflect.getOwnPropertyDescriptor(owner, key);
+      }
+    });
+    expect(measureSandboxData([value])).toBe(23);
+  });
+
+  it("captures descriptors without constructing a descriptor dictionary", () => {
+    const value = { word: "abc" };
+    const dictionaries = vi.spyOn(Object, "getOwnPropertyDescriptors");
+    try {
+      expect(measureSandboxData([value])).toBe(9);
+      expect(dictionaries.mock.calls.some(([owner]) => owner === value)).toBe(false);
+    } finally { dictionaries.mockRestore(); }
+  });
   it.each([
     { name: "empty", value: {}, units: 1 },
     { name: "undefined", value: { alpha: undefined }, units: 7 },
@@ -34,8 +84,9 @@ describe("ordinary-record data accounting", () => {
         }
       }
     });
-    Object.defineProperty(value, Symbol("ignored"), { value: "not charged", enumerable: true });
-    expect(measureSandboxData([value])).toBe(16);
+    Object.defineProperty(value, Symbol("counted"), { value: "now charged", enumerable: true });
+    // 16 existing units + one property + eight symbol units + eleven payload units.
+    expect(measureSandboxData([value])).toBe(36);
     expect(reads).toBe(0);
   });
 
@@ -134,7 +185,8 @@ describe("ordinary-record data accounting", () => {
   it("keeps the existing non-enumerable arguments-length charge", () => {
     const value = createSandboxArguments(["word"]);
     expect(Object.getOwnPropertyDescriptor(value, "length")?.enumerable).toBe(false);
-    expect(measureSandboxData([value])).toBe(14);
+    // Includes the own Symbol.iterator property and its retained symbol identity.
+    expect(measureSandboxData([value])).toBe(31);
   });
 
   it.each([25, 26, 27])("preserves the exact dataSize boundary at %i units", (limit) => {

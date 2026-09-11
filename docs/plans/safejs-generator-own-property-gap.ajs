@@ -1,0 +1,27 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = (function* () { yield 1; yield 2; })();
+  value.channel = "public";
+  value.self = value;
+  const key = Symbol("metadata");
+  value[key] = 7;
+  Object.defineProperty(value, "answer", { get() { return this[key]; }, enumerable: true });
+  Object.freeze(value);
+  const first = value.next();
+  await 0;
+  const second = value.next();
+  const own = [];
+  for (const name in value) own.push(name);
+  const overridden = (function* () { yield 3; })();
+  overridden.next = () => ({ done: true });
+  const empty = Array.from(overridden);
+  if (value.channel !== "public" || value.self !== value || value.answer !== 7 ||
+      !Object.isFrozen(value) || first.value !== 1 || second.value !== 2 ||
+      own.join(",") !== "channel,self,answer" || empty.length !== 0) {
+    throw new Error("Generator public-property isolation failed");
+  }
+  return { title: frontmatter.title, ok: true, first, second, own };
+};

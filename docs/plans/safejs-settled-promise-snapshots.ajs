@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class TaggedPromise extends Promise {
+    #tag = "settled";
+    tag() { return this.#tag; }
+  }
+  const value = { count: 7 };
+  const fulfilled = TaggedPromise.resolve(value);
+  Object.defineProperty(fulfilled, "label", { value: "saved" });
+  const rejected = Promise.reject("reason");
+  const reason = await rejected.catch(error => error);
+  await fulfilled;
+  await 0;
+  const same = (await fulfilled) === value;
+  const tag = fulfilled.tag();
+  const label = fulfilled.label;
+  if (!same || tag !== "settled" || label !== "saved" || reason !== "reason")
+    throw new Error("Settled promise behavior failed");
+  return { title: frontmatter.title, same, tag, label, reason, ok: true };
+};

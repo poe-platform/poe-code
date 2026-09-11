@@ -1,0 +1,29 @@
+name: Set up authenticated Bash oracle
+description: Build the pinned GNU Bash 5.2.37 source in runner temporary storage
+runs:
+  using: composite
+  steps:
+    - name: Build and verify GNU Bash 5.2.37
+      shell: bash
+      run: |
+        set -euo pipefail
+        oracle_root=$(mktemp -d "${RUNNER_TEMP:?}/poe-bash-oracle.XXXXXX")
+        oracle_archive="$oracle_root/bash-5.2.37.tar.gz"
+        curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
+          https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz --output "$oracle_archive"
+        printf '%s  %s\n' 9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff "$oracle_archive" | sha256sum --check --status
+        tar --extract --gzip --file "$oracle_archive" --directory "$oracle_root"
+        cd "$oracle_root/bash-5.2.37"
+        ./configure --without-bash-malloc > "$oracle_root/configure.log" 2>&1 || { cat "$oracle_root/configure.log"; exit 1; }
+        make -j2 > "$oracle_root/build.log" 2>&1 || { cat "$oracle_root/build.log"; exit 1; }
+        oracle_bash="$PWD/bash"
+        test -f "$oracle_bash" && test ! -L "$oracle_bash" && test -x "$oracle_bash"
+        test "$(wc -c < "$oracle_bash")" -le 33554432
+        oracle_version=$("$oracle_bash" --version)
+        case "$oracle_version" in
+          'GNU bash, version 5.2.37('* ) ;;
+          *) printf '%s\n' 'Unexpected Bash oracle version' >&2; exit 1 ;;
+        esac
+        oracle_digest=$(sha256sum "$oracle_bash")
+        printf 'SAFE_BASH_TEST_BASH=%s\nSAFE_BASH_TEST_BASH_SHA256=%s\n' \
+          "$oracle_bash" "${oracle_digest%% *}" >> "$GITHUB_ENV"

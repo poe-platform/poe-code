@@ -1,0 +1,21 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const values = ["initial", , "tail"];
+  let reads = 0;
+  Object.defineProperty(values, "metadata", { value: { count: 0 }, enumerable: false });
+  Object.defineProperty(values, "1", { configurable: true, get() { reads++; return "middle"; } });
+  for (let index = 0; index < 100; index++) {
+    values.metadata.count = index;
+    values[0] = String(index);
+  }
+  await 0;
+  if (reads !== 0) throw new Error("Measurement invoked an array accessor");
+  if (values.join(":") !== "99:middle:tail" || reads !== 1)
+    throw new Error("Array accessor behavior changed");
+  if (values.metadata.count !== 99) throw new Error("Hidden metadata mutation was lost");
+  delete values[1];
+  if (values.length !== 3 || Object.hasOwn(values, "1")) throw new Error("Sparse array behavior changed");
+  return { title: frontmatter.title, ok: true, reads, length: values.length };
+};

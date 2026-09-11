@@ -110,7 +110,7 @@ describe("FileSnapshotBackend", () => {
 
     await backend.write(snapshot);
 
-    await expect(backend.read()).resolves.toEqual(snapshot);
+    await expect(backend.read()).resolves.toEqual({ ...snapshot, version: 2 });
   });
 
   it("retains the previous snapshot when deep serialization exceeds the budget", async () => {
@@ -129,7 +129,7 @@ describe("FileSnapshotBackend", () => {
         limit: MAX_DATA_DEPTH
       }) satisfies Partial<SnapshotBudgetError>
     );
-    await expect(backend.read()).resolves.toEqual({ version: 1, ...previous });
+    await expect(backend.read()).resolves.toEqual({ version: 2, ...previous });
     expect(vol.readdirSync("/snapshots")).toEqual(["run.json"]);
   });
 

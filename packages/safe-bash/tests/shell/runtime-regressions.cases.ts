@@ -138,8 +138,14 @@ test("redirection failure diagnostics honor descriptors already established", as
   assert.match(values[1]!, /missing/u);
   assert.equal(result.stderr, "");
   assert.equal(new TextDecoder().decode(await fs.readFile("/keep")), "keep");
-  assert.equal((await shell.exec("status 999 2>errors")).stderr, "");
-  assert.match(new TextDecoder().decode(await fs.readFile("/errors")), /Exit status/u);
+  const observed: unknown[] = [];
+  const invalid = await shell.exec("status 999 2>errors", { onInternalError(error) { observed.push(error); } });
+  assert.equal(invalid.exitCode, 1);
+  assert.equal(invalid.stderr, "");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/errors")), "shell: line 1: internal error\n");
+  assert.equal(observed.length, 1);
+  assert.ok(observed[0] instanceof RangeError);
+  assert.equal(observed[0].message, "Exit status must be an integer between 0 and 255");
 });
 
 test("declarations preserve expanded whitespace and functions export prefix values", async () => {

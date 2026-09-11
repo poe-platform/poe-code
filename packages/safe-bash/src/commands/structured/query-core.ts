@@ -14,7 +14,7 @@ import { parse, type Ast } from "./parser.js";
 const checkpointWidth = 1023;
 
 const yqQueryLimits: Readonly<JqLimits> = Object.freeze({
-  maxInputBytes: 67_108_864,
+  maxInputBytes: 16_000_000,
   maxValueBytes: 8_388_608,
   maxOutputBytes: 16_777_216,
   maxSourceBytes: 8_192,

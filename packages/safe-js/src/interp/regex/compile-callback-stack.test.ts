@@ -8,7 +8,7 @@ describe("compile callback stack control", () => {
         function inner() {
           const replace = "a".replace;
           const callback = () => new Error("marker").stack;
-          return replace("a", callback);
+          return replace.call("a", "a", callback);
         }
         return inner();
       }

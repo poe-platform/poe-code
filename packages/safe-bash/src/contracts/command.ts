@@ -1,4 +1,4 @@
-import type { FileSystem } from "./filesystem.js";
+import type { FileStat, FileSystem } from "./filesystem.js";
 import type { CommandFileSystemRequirement } from "./command-requirements.js";
 import type { ByteSink, ByteSource } from "./io.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText, type ShellValue, type ValueAllocation, type ValueReservation } from "./value.js";
@@ -15,6 +15,12 @@ export interface CommandArguments {
 }
 
 const argumentCarriers = new WeakSet<CommandArguments>();
+
+export class CommandArgumentIdentityError extends TypeError {
+  constructor() {
+    super("Command argument identity does not match its carrier");
+  }
+}
 
 function argumentAllocation(allocation?: ValueAllocation) {
   const reservations: ValueReservation[] = [];
@@ -163,8 +169,15 @@ export function getCommandArguments(context: Pick<CommandContext, "args" | "argu
   const carrier = context.argumentValues;
   if (carrier === undefined) return createCommandArguments(context.args);
   if (!argumentCarriers.has(carrier)) throw new TypeError("Expected owned command arguments");
-  if (carrier.args !== context.args) throw new TypeError("Command argument identity does not match its carrier");
+  if (carrier.args !== context.args) throw new CommandArgumentIdentityError();
   return carrier;
+}
+
+export interface CommandInput {
+  readonly stat?: FileStat;
+  readonly position: number;
+  read(maxBytes: number, signal: AbortSignal): Promise<IteratorResult<Uint8Array>>;
+  seek?(absolutePosition: number, signal: AbortSignal): Promise<void>;
 }
 
 export interface CommandInvokeOptions {
@@ -187,18 +200,25 @@ export type CommandInvoker = (
 
 export type InvocationCleanup = () => void | Promise<void>;
 
+export type InternalErrorHandler = (error: unknown) => void | Promise<void>;
+
 export interface CommandContext {
+  readonly onInternalError?: InternalErrorHandler | undefined;
+  readonly executionScope?: object;
   readonly command: string;
   readonly args: readonly string[];
   readonly argumentValues?: CommandArguments;
   readonly stdin: ByteSource;
+  readonly stdinInput?: CommandInput;
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;
+  readonly stdoutFile?: { readonly path: string };
   readonly stderr: ByteSink;
   cwd: string;
   env: Record<string, string>;
   readonly fs: FileSystem;
   readonly signal: AbortSignal;
+  readonly inputBudget?: { readonly maxBytes: number; check(totalBytes: number): void };
   readonly invoke?: CommandInvoker;
   readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
 }

@@ -390,14 +390,14 @@ test("callable open with omitted FS capability retains valid provider observatio
   assert.equal(subject.resources[0]!.closes, 1);
 });
 
-for (const globalOpen of [true, "omitted"] as const) test(`missing open method with FS capability ${globalOpen} is selected before acquisition`, async context => {
+for (const globalOpen of [true, "omitted"] as const) test(`missing backing open with FS capability ${globalOpen} selects retained fallback before canonical acquisition`, async context => {
   const subject = await provider({ globalOpen, missingOpen: true });
   let entered = false;
   const shell = setup(subject.fs, async () => { entered = true; return 0; });
   context.after(() => shell.dispose());
   const result = await shell.exec("inspect <resource");
-  assert.equal(result.exitCode, globalOpen === true ? 1 : 0, result.stderr);
-  assert.equal(entered, globalOpen !== true);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(entered, true);
   assert.equal(subject.resources.length, 0);
 });
 

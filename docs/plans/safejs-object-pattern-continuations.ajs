@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function* values() {
+    let count = 0;
+    function key() { count++; return "first"; }
+    const { [key()]: first = yield 1, ...rest } = { other: 2 };
+    return [count, first, rest.other];
+  }
+  const iterator = values();
+  const first = iterator.next();
+  const final = iterator.next(4);
+  if (first.value !== 1 || !final.done || final.value.join() !== "1,4,2")
+    throw new Error("Object pattern check failed");
+  return { title: frontmatter.title, ok: true, result: final.value };
+};

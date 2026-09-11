@@ -56,7 +56,8 @@ export class Cursor {
       if (input === "-") yield* readBytes(context.stdin, signal);
       else {
         const path = pathOf(context, input);
-        if (context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
+        const capabilities = await interruptible(() => Promise.resolve(context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities), signal);
+        if (context.fs.readStream && capabilities.streamingRead !== false) {
           yield* readBytes(context.fs.readStream(path, { signal, chunkSize: limits.maxChunkBytes }), signal);
         } else {
           const maxBytes = Math.min(limits.maxInputBytes, limits.maxBufferBytes);

@@ -133,15 +133,19 @@ test("readonly checked state ordering retains partial publications", async () =>
 
 for (const beforeTail of [true, false]) test(`output failure ${beforeTail ? "required cd print before" : "automatic print after"} tail publication`, async () => {
   const { shell } = await fixture();
+  const reason = new Error("stack sink");
+  const observed: unknown[] = [];
   let failed = false;
   shell.use((context, next) => {
-    if (context.command === "pushd") Object.assign(context, { stdout: { async write() { if (!failed) { failed = true; throw new Error("stack sink"); } } } });
+    if (context.command === "pushd") Object.assign(context, { stdout: { async write() { if (!failed) { failed = true; throw reason; } } } });
     return next();
   });
   try {
-    const result = await shell.exec(`${beforeTail ? "CDPATH=/search; pushd target" : "pushd /a"}; dirs -l -p`);
+    const result = await shell.exec(`${beforeTail ? "CDPATH=/search; pushd target" : "pushd /a"}; dirs -l -p`, { onInternalError(error) { observed.push(error); } });
     assert.equal(result.stdout, beforeTail ? "/search/target\n" : "/a\n/c\n");
-    assert.match(result.stderr, /stack sink/);
+    assert.equal(result.stderr, "shell: line 1: internal error\n");
+    assert.deepEqual(observed, [reason]);
+    assert.equal(observed[0], reason);
   } finally { await shell.dispose(); }
 });
 

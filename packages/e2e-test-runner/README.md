@@ -197,3 +197,5 @@ When used in this repo:
 - `npm run e2e:cleanup:aggressive`
 
 `npm run e2e:cleanup` removes podman containers/images only when `E2E_BACKEND=podman`; for `env` and `sandbox` it clears the local e2e cache only.
+
+Credential resolution reads the current `POE_API_KEY` value rather than retaining removed or blank values. Snapshot proxy configuration rejects unsupported `POE_SNAPSHOT_MISS` modes.

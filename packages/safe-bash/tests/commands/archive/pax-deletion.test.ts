@@ -189,9 +189,11 @@ test("D09 paired timestamp restoration preserves the missing counterpart and pro
     const originalStat = fs.stat.bind(fs);
     const controller = new AbortController();
     const reason = new Error("deleted-time cancellation");
+    const failure = new Error("deleted-time observation denied");
+    const reported: unknown[] = [];
     const deny = () => {
       if (abort) controller.abort(reason);
-      throw new Error("deleted-time observation denied");
+      throw failure;
     };
     try {
       if (stage === "stat") fs.stat = async (path, options) => {
@@ -199,13 +201,16 @@ test("D09 paired timestamp restoration preserves the missing counterpart and pro
         return originalStat(path, options);
       };
       else fs.utimes = async () => deny();
-      const execution = direct(["xf", "-", "-C", "/out"], fs, { signal: controller.signal, stdin: source(archive(extended("x", ["mtime", ""], ["atime", String(localTime)]), member("file", data), member("later", data))) });
+      const execution = direct(["xf", "-", "-C", "/out"], fs, { signal: controller.signal, onInternalError(error) { reported.push(error); }, stdin: source(archive(extended("x", ["mtime", ""], ["atime", String(localTime)]), member("file", data), member("later", data))) });
       if (abort) await assert.rejects(execution, error => error === reason);
       else {
         const result = await execution;
-        assert.notEqual(result.exitCode, 0);
-        assert.match(result.stderr, /deleted-time observation denied/u);
+        assert.equal(result.exitCode, 2);
+        assert.equal(result.stderr, "tar: internal error\n");
+        assert.equal(reported.length, 1);
+        assert.equal(reported[0], failure);
       }
+      if (abort) assert.deepEqual(reported, []);
       assert.deepEqual(await fs.readFile("/out/file"), data);
       await assert.rejects(fs.lstat("/out/later"), { code: "ENOENT" });
     } finally { await shell.dispose(); }

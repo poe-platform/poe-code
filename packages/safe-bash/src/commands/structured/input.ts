@@ -1,5 +1,5 @@
 import { readBytes, type ByteSource } from "../../contracts/index.js";
-import { Budget, JqError, JqLimitError, object, objectKeys, objectSize, put, scalarJson, type Json } from "./limits.js";
+import { Budget, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
 import { numericToken, isNumber } from "./numbers.js";
 
 export class JqParseError extends JqError {
@@ -287,31 +287,119 @@ export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Bud
   if (slurp || buffer) { budget.value(buffer); yield buffer; }
 }
 
-export function stringify(value: Json, budget: Budget, pretty = false, maxBytes = budget.limits.maxValueBytes, limitName: "maxValueBytes" | "maxOutputBytes" = "maxValueBytes"): string {
+export type JsonFragment = { readonly bytes: number; readonly text: string } | {
+  readonly bytes: number;
+  readonly value: string;
+  readonly start: number;
+  readonly end: number;
+  readonly quoted: boolean;
+};
+
+function* quotedFragments(value: string, budget: Budget): Generator<JsonFragment> {
+  yield { text: '"', bytes: 1 };
+  let offset = 0;
+  while (offset < value.length) {
+    const start = offset;
+    const limit = Math.min(start + 32, value.length);
+    budget.step(limit - start);
+    let bytes = 0;
+    while (offset < limit) {
+      const code = value.charCodeAt(offset);
+      if (code >= 0xd800 && code <= 0xdbff && offset + 1 === limit && limit < value.length) break;
+      if (code >= 0xd800 && code <= 0xdbff && offset + 1 < limit) {
+        const next = value.charCodeAt(offset + 1);
+        if (next >= 0xdc00 && next <= 0xdfff) { bytes += 4; offset += 2; continue; }
+      }
+      if (code === 34 || code === 92 || code === 8 || code === 9 || code === 10 || code === 12 || code === 13) bytes += 2;
+      else if (code < 32 || (code >= 0xd800 && code <= 0xdfff)) bytes += 6;
+      else bytes += code < 128 ? 1 : code < 2048 ? 2 : 3;
+      offset++;
+    }
+    yield { value, start, end: offset, bytes, quoted: true };
+  }
+  yield { text: '"', bytes: 1 };
+}
+
+export function renderJsonFragment(fragment: JsonFragment, budget: Budget): string {
+  if ("text" in fragment) return fragment.text;
+  budget.step(fragment.end - fragment.start);
+  const text = fragment.value.slice(fragment.start, fragment.end);
+  return fragment.quoted ? JSON.stringify(text).slice(1, -1) : text;
+}
+
+export function* jsonFragments(value: Json, budget: Budget, pretty = false, depth = 0): Generator<JsonFragment> {
+  budget.step();
+  if (depth > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+  if (typeof value === "string") { yield* quotedFragments(value, budget); return; }
+  if (value === null || typeof value !== "object" || isNumber(value)) {
+    const text = scalarJson(value, budget);
+    for (let start = 0; start < text.length; start += 32) {
+      const end = Math.min(start + 32, text.length);
+      budget.step(end - start);
+      yield { value: text, start, end, bytes: end - start, quoted: false };
+    }
+    return;
+  }
+  if (depth + 1 > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+  const array = Array.isArray(value);
+  if (array) budget.collection(value.length);
+  yield { text: array ? "[" : "{", bytes: 1 };
+  let count = 0;
+  const keys = array ? value.keys() : objectKeyIterator(value);
+  for (const key of keys) {
+    budget.step();
+    budget.collection(count + 1);
+    if (count++) yield { text: ",", bytes: 1 };
+    if (pretty) {
+      const bytes = 1 + 2 * (depth + 1);
+      budget.step(bytes);
+      yield { text: `\n${"  ".repeat(depth + 1)}`, bytes };
+    }
+    if (!array) {
+      yield* quotedFragments(String(key), budget);
+      yield { text: pretty ? ": " : ":", bytes: pretty ? 2 : 1 };
+    }
+    yield* jsonFragments((value as Record<string | number, Json>)[key]!, budget, pretty, depth + 1);
+  }
+  if (pretty && count) {
+    const bytes = 1 + 2 * depth;
+    budget.step(bytes);
+    yield { text: `\n${"  ".repeat(depth)}`, bytes };
+  }
+  yield { text: array ? "]" : "}", bytes: 1 };
+}
+
+export async function measureValue(value: Json, budget: Budget, depth = 0, maxBytes = budget.limits.maxValueBytes): Promise<number> {
+  await budget.tick(0);
+  let bytes = 0;
+  for (const fragment of jsonFragments(value, budget, false, depth)) {
+    await budget.tick(0);
+    bytes += fragment.bytes;
+    if (bytes > maxBytes) throw new JqLimitError("maxValueBytes");
+  }
+  return bytes;
+}
+
+export async function stringify(value: Json, budget: Budget, pretty = false, maxBytes = budget.limits.maxValueBytes, limitName: "maxValueBytes" | "maxOutputBytes" = "maxValueBytes", asStringValue = false): Promise<string> {
+  await budget.tick(0);
   const parts: string[] = [];
   let bytes = 0;
-  const append = (text: string): void => {
-    bytes += Buffer.byteLength(text);
+  let units = 0;
+  let stringBytes = 2;
+  for (const fragment of jsonFragments(value, budget, pretty)) {
+    await budget.tick(0);
+    bytes += fragment.bytes;
     if (bytes > maxBytes) throw new JqLimitError(limitName);
-    parts.push(text);
-  };
-  const visit = (current: Json, depth: number): void => {
-    budget.step();
-    if (depth > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
-    if (current === null || typeof current !== "object" || isNumber(current)) { append(scalarJson(current, budget)); return; }
-    const keys = Array.isArray(current) ? Object.keys(current) : objectKeys(current);
-    const array = Array.isArray(current);
-    append(array ? "[" : "{");
-    for (let index = 0; index < keys.length; index++) {
-      if (index) append(",");
-      if (pretty) append(`\n${"  ".repeat(depth + 1)}`);
-      const key = keys[index]!;
-      if (!array) { append(JSON.stringify(key)); append(pretty ? ": " : ":"); }
-      visit((current as Record<string, Json>)[key]!, depth + 1);
+    const text = renderJsonFragment(fragment, budget);
+    if (asStringValue) {
+      for (const encoded of quotedFragments(text, budget)) stringBytes += encoded.bytes;
+      stringBytes -= 2;
+      if (stringBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     }
-    if (pretty && keys.length) append(`\n${"  ".repeat(depth)}`);
-    append(array ? "]" : "}");
-  };
-  visit(value, 0);
+    budget.step();
+    units += text.length;
+    parts.push(text);
+  }
+  await budget.tick(units);
   return parts.join("");
 }

@@ -5,6 +5,9 @@ import { Shell } from "../../../../src/shell/index.js";
 import { chunks, encoder, fixture, overrideFs, registry, run } from "./helpers.js";
 
 const vectors = {
+  sha512sum: ["cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e", "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"],
+  sha384sum: ["38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b", "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7"],
+  sha224sum: ["d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f", "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7"],
   sha256sum: ["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"],
   sha1sum: ["da39a3ee5e6b4b0d3255bfef95601890afd80709", "a9993e364706816aba3e25717850c26c9cd0d89d"],
   md5sum: ["d41d8cd98f00b204e9800998ecf8427e", "900150983cd24fb0d6963f7d28e17f72"],
@@ -51,6 +54,65 @@ for (const [name, [empty, abc]] of Object.entries(vectors)) {
     assert.equal(failed.exitCode, 1);
     assert.equal(failed.stdout, "bytes: FAILED\n");
     assert.match(failed.stderr, /did NOT match/u);
+  });
+
+  test(`${name}: GNU tagged output, escaped names, NUL records and mixed manifest verification`, async () => {
+    const algorithm = name.slice(0, -3).toUpperCase();
+    const names = ["data", "line\nname", "back\\name", "part) = tail", "(data)", " data "];
+    const displayed = ["data", "line\\nname", "back\\\\name", "part) = tail", "(data)", " data "];
+    const fs = await fixture(Object.fromEntries(names.map(filename => [filename, "abc"])));
+    const expected = displayed.map((filename, index) => `${index === 1 || index === 2 ? "\\" : ""}${algorithm} (${filename}) = ${abc}\n`).join("");
+    const generated = await run(name, ["--tag", ...names], { fs });
+    assert.deepEqual(generated, { exitCode: 0, stdout: expected, stderr: "" });
+    const checked = await run(name, ["--check"], { fs, stdin: chunks(encoder.encode(`${expected}${abc} *data\n`), 1) });
+    assert.equal(checked.exitCode, 0, checked.stderr);
+    assert.equal(checked.stdout.split("\n").filter(Boolean).length, names.length + 1);
+    assert.match(checked.stdout, /\\line\\nname: OK/u);
+    assert.equal((await run(name, ["--tag", "-z", ...names], { fs })).stdout,
+      names.map(filename => `${algorithm} (${filename}) = ${abc}\0`).join(""));
+    assert.equal((await run(name, ["--tag"], { stdin: "abc" })).stdout, `${algorithm} (-) = ${abc}\n`);
+    for (const flags of [["-t", "--tag"], ["--tag", "-b"], ["-b", "--tag"], ["--tag", "-t", "--tag"]]) {
+      assert.equal((await run(name, [...flags, "data"], { fs })).stdout, `${algorithm} (data) = ${abc}\n`);
+    }
+    await fs.writeFile("/work/data", encoder.encode("changed"));
+    const mismatch = await run(name, ["-c"], { fs, stdin: `${algorithm} (data) = ${abc}\n` });
+    assert.equal(mismatch.exitCode, 1);
+    assert.equal(mismatch.stdout, "data: FAILED\n");
+  });
+
+  test(`${name}: tagged manifests reject mismatched labels, widths and malformed names before VFS reads`, async () => {
+    const algorithm = name.slice(0, -3).toUpperCase();
+    const fs = await fixture({ data: "abc" });
+    const guarded = overrideFs(fs, { readStream() { assert.fail("malformed manifest acquired a file"); } });
+    for (const entry of [
+      `OTHER (data) = ${abc}`, `${algorithm.toLowerCase()} (data) = ${abc}`,
+      `${algorithm}  (data) = ${abc}`, `${algorithm} (data) = ${abc.slice(1)}`,
+      `${algorithm} (data) = ${abc}0`, `${algorithm} (data) = ${abc} `,
+      `${algorithm} () = ${abc}`, `${algorithm} (data\0extra) = ${abc}`,
+      `\\${algorithm} (bad\\q) = ${abc}`, `\\${algorithm} (bad\\) = ${abc}`,
+    ]) {
+      const result = await run(name, ["-cw"], { fs: guarded, stdin: entry });
+      assert.equal(result.exitCode, 1, entry);
+      assert.match(result.stderr, /improperly formatted/u);
+      assert.equal(result.stdout, "");
+    }
+    for (const entry of [` \t${algorithm}(data)=${abc}`, `${algorithm} (data)\t=  ${abc.toUpperCase()}\r\n`]) {
+      assert.deepEqual(await run(name, ["-c", "--strict"], { fs, stdin: entry }), { exitCode: 0, stdout: "data: OK\n", stderr: "" });
+    }
+    const foreign = `${algorithm === "SHA512" ? "SHA384" : "SHA512"} (data) = ${abc}\n`;
+    assert.equal((await run(name, ["-c", "--strict"], { fs, stdin: `${algorithm} (data) = ${abc}\n${foreign}` })).exitCode, 1);
+  });
+
+  test(`${name}: invalid tag/check/text combinations fail before input acquisition`, async () => {
+    const fs = await fixture();
+    fs.readStream = () => { assert.fail("invalid flags acquired a file"); };
+    const stdin = { [Symbol.asyncIterator]() { assert.fail("invalid flags acquired stdin"); } };
+    for (const flags of [["--tag", "-c"], ["-c", "--tag"], ["--tag", "-t"], ["--tag", "--text", "-z"]]) {
+      const result = await run(name, [...flags, "missing"], { fs, stdin });
+      assert.equal(result.exitCode, 2);
+      assert.match(result.stderr, /--tag/u);
+      assert.equal(result.stdout, "");
+    }
   });
 }
 
@@ -105,7 +167,7 @@ test("manifest encoding, malformed escapes, NULs, comments, CRLF and final lines
 });
 
 test("all unknown flags and invalid combinations are rejected", async () => {
-  for (const args of [["--tag"], ["--algorithm=sha256"], ["--quiet"], ["--status"], ["--strict"], ["--ignore-missing"], ["-w"], ["-cz"], ["-cb"], ["-ct"], ["--check=yes"], ["-q"], ["--nope"]]) {
+  for (const args of [["--tag=yes"], ["--algorithm=sha256"], ["--quiet"], ["--status"], ["--strict"], ["--ignore-missing"], ["-w"], ["-cz"], ["-cb"], ["-ct"], ["--check=yes"], ["-q"], ["--nope"]]) {
     assert.equal((await run("sha256sum", args)).exitCode, 2, args.join(" "));
   }
   for (const args of [["-c"], ["--binary"], ["--text"], ["--algorithm=unknown"], ["--strict"]]) {

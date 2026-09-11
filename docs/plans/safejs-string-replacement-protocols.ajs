@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function replacementProtocols(frontmatter) {
+  await 0;
+  const replacement = {};
+  const pattern = { [Symbol.replace](value, next) { return this === pattern && value === "text" && next === replacement; } };
+  if (!"text".replaceAll(pattern, replacement)) throw new Error("Replacement hook failed");
+  const matcher = { [Symbol.matchAll](value) { return value + "!"; } };
+  if ("text".matchAll(matcher) !== "text!") throw new Error("matchAll hook failed");
+  const regex = /t/;
+  regex[Symbol.match] = false;
+  if ("text".replaceAll(regex, "x") !== "xext") throw new Error("RegExp opt-out replacement failed");
+  if (Array.from("text".matchAll(regex)).length !== 1) throw new Error("RegExp opt-out iteration failed");
+  return { title: frontmatter.title, replacement: true, matchAll: true, optOut: true };
+}

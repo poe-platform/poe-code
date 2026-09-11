@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Samples extends Float32Array {}
+  const trace = [];
+  const samples = Samples.of(2, {
+    [Symbol.toPrimitive](hint) { trace.push(hint); return 4.5; }
+  });
+  const factory = Float32Array.of;
+  await 0;
+  const parent = Object.getPrototypeOf(Float32Array);
+  if (!(samples instanceof Samples) || samples.join(",") !== "2,4.5" ||
+      trace.join(",") !== "number" || factory !== parent.of ||
+      factory.length !== 0 || factory.name !== "of" ||
+      factory.call(Samples, 7)[0] !== 7) {
+    throw new Error("TypedArray.of regression");
+  }
+  return { title: frontmatter.title, ok: true, values: Array.from(samples) };
+};

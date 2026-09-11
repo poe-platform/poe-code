@@ -1,1 +1,1 @@
-export { createReadOnlyFileSystem, ReadOnlyFileSystem } from "poe-code/safe-fs";
+export { createReadOnlyFileSystem, ReadOnlyFileSystem } from "poe-code/safe-fs/core";

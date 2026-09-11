@@ -1,0 +1,20 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const source = new ArrayBuffer(8, { maxByteLength: 16 });
+  const view = new Float32Array(source);
+  view.set([3, 4]);
+  const copied = source.transfer();
+  await 0;
+  if (!source.detached || !source.resizable || source.byteLength !== 0)
+    throw new Error("Detached source state changed");
+  if (view.buffer !== source || view.length !== 0)
+    throw new Error("Detached view lost its backing identity");
+  const values = Array.from(new Float32Array(copied));
+  if (values.join() !== "3,4") throw new Error("Transferred bytes changed");
+  let rejected = false;
+  try { view.values(); } catch (error) { rejected = error instanceof TypeError; }
+  if (!rejected) throw new Error("Detached view became usable");
+  return { title: frontmatter.title, ok: true, values, detached: source.detached };
+};

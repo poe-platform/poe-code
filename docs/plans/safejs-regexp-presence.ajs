@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  let reads = 0;
+  Object.defineProperty(RegExp.prototype, 'marker', {
+    get() { reads++; return 42; }
+  });
+  const symbol = Symbol('marker');
+  RegExp.prototype[symbol] = undefined;
+  class Pattern extends RegExp {}
+  const regex = new Pattern('a');
+  if (!('marker' in regex) || !(symbol in regex) || reads !== 0)
+    throw new Error('Property presence evaluated a getter or missed a property');
+  await 0;
+  return { ok: true, title: frontmatter.title, reads, inherited: true };
+}

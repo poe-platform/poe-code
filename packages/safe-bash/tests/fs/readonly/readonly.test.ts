@@ -325,13 +325,16 @@ for (const readlink of [false, true]) {
 test("capabilities are immutable, detached, conservative, and omit unknown extensions", () => {
   const capabilities = {
     readOnly: false, append: true, symlinks: true, hardlinks: true, permissions: true, timestamps: true,
-    atomicRename: true, streamingRead: true, streamingWrite: true, nativeExec: true, customWrites: true,
+    atomicRename: true, atomicResize: true, streamingRead: true, streamingWrite: true, nativeExec: true, customWrites: true,
+    atomicFileMutation: true, atomicFileStaging: true, atomicDirectoryMetadata: true,
   };
   const fixture = createFixture(true, capabilities);
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);
   assert.deepEqual(filesystem.capabilities, {
     readOnly: true, append: false, symlinks: true, hardlinks: false, permissions: false, timestamps: false,
-    atomicRename: false, streamingRead: true, streamingWrite: false,
+    atomicRename: false, atomicRenameNoReplace: false, streamingRead: true, streamingWrite: false, retainedRead: false, open: false,
+    descriptorWriteStream: false, retainedResize: false, atomicResize: false,
+    atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false,
     write: false, exclusiveCreate: false, mkdir: false, recursiveMkdir: false,
     remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
     copy: false, exclusiveCopy: false, truncate: false, streamingAppend: false, randomAccessWrite: false,
@@ -347,7 +350,7 @@ test("capabilities are immutable, detached, conservative, and omit unknown exten
   assert.equal(filesystem.capabilities.readOnly, true);
 });
 
-test("no delegate references or unknown convenience/native execution APIs are exposed", () => {
+test("no delegate references or unknown convenience/native execution APIs are exposed", async () => {
   const fixture = createFixture();
   Object.assign(fixture.filesystem, {
     nativeExec() { assert.fail("native execution must not be exposed"); },
@@ -356,7 +359,14 @@ test("no delegate references or unknown convenience/native execution APIs are ex
   });
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);
   assert.deepEqual(Reflect.ownKeys(filesystem), []);
-  for (const key of ["filesystem", "delegate", "inner", "nativeExec", "exec", "open", "writeTextFile"]) {
+  for (const key of ["filesystem", "delegate", "inner", "nativeExec", "exec", "writeTextFile"]) {
     assert.equal(Reflect.get(filesystem, key), undefined);
+  }
+  assert.notEqual(filesystem.open, fixture.filesystem.open);
+  for (const access of ["write", "readwrite"] as const) {
+    await assert.rejects(filesystem.open(path, { access }), fsError("EROFS", "open", path));
+  }
+  for (const options of [{ truncate: true }, { append: true }, { creation: "ifMissing" }, { creation: "exclusive" }] as const) {
+    await assert.rejects(filesystem.open(path, { access: "read", ...options }), fsError("EROFS", "open", path));
   }
 });

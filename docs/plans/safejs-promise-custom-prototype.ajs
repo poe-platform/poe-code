@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = Promise.resolve(41);
+  const then = Promise.prototype.then;
+  const prototype = { label: "custom" };
+  Object.setPrototypeOf(value, prototype);
+  if (Object.getPrototypeOf(value) !== prototype || value.label !== "custom" || value instanceof Promise) {
+    throw new Error("Custom Promise prototype failed");
+  }
+  const answer = await then.call(value, number => number + 1);
+  Object.setPrototypeOf(value, null);
+  if (value.then !== undefined || value.constructor !== undefined || answer !== 42) {
+    throw new Error("Promise prototype removal changed settlement or restored methods");
+  }
+  return { title: frontmatter.title, ok: true, answer };
+};

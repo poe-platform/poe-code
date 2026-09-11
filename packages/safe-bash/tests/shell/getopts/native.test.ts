@@ -22,13 +22,31 @@ interface Cohort {
   fixtures: { id: string; operations: (ScanFact | { operation: "index"; value: number })[] }[];
 }
 
-const cohort: Cohort = JSON.parse(readFileSync(new URL("./evidence/scanner-facts.json", import.meta.url), "utf8"));
+interface Archive {
+  originalManifestSHA256: string;
+  files: Record<string, { base64: string; bytes: number; sha256: string }>;
+}
 
-test("pre-candidate archive and scanner projections retain exact native provenance", () => {
+const retainedInputs = ["README.md", "evidence/design-v1/archive.json", "evidence/native-cohort.mjs", "evidence/verify.mjs", "evidence/scanner-facts.json"];
+const readInput = (name: string) => readFileSync(new URL(name, import.meta.url));
+
+function loadScannerEvidence(read = readInput): { cohort: Cohort; archive: Archive } {
+  const freeze: { paths: Record<string, string> } = JSON.parse(read("evidence/freeze.json").toString());
+  const inputs = new Map(retainedInputs.map(name => {
+    const bytes = read(name);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), freeze.paths[name], name);
+    return [name, bytes] as const;
+  }));
+  return {
+    cohort: JSON.parse(inputs.get("evidence/scanner-facts.json")!.toString()),
+    archive: JSON.parse(inputs.get("evidence/design-v1/archive.json")!.toString()),
+  };
+}
+
+const { cohort, archive } = loadScannerEvidence();
+
+test("retained pre-candidate inputs and scanner projections retain exact native provenance", () => {
   const hash = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
-  const freeze: { paths: Record<string, string> } = JSON.parse(readFileSync(new URL("./evidence/freeze.json", import.meta.url), "utf8"));
-  for (const [name, expected] of Object.entries(freeze.paths)) assert.equal(hash(readFileSync(new URL(name, import.meta.url))), expected, name);
-  const archive: { originalManifestSHA256: string; files: Record<string, { base64: string; bytes: number; sha256: string }> } = JSON.parse(readFileSync(new URL("./evidence/design-v1/archive.json", import.meta.url), "utf8"));
   const original: Record<string, string> = JSON.parse(Buffer.from(archive.files["SHA256SUMS.json"]!.base64, "base64").toString());
   assert.deepEqual(Object.keys(archive.files).sort(), [...Object.keys(original), "SHA256SUMS.json"].sort());
   for (const [name, file] of Object.entries(archive.files)) {
@@ -52,6 +70,23 @@ test("pre-candidate archive and scanner projections retain exact native provenan
   assert.equal(selectedCases.size, 17);
   assert.equal(cohort.nativeCaseInvocations, 124);
 });
+
+test("current scanner evidence never requests retired execution reports", () => {
+  const reads: string[] = [];
+  assert.deepEqual(loadScannerEvidence(name => { reads.push(name); return readInput(name); }), { cohort, archive });
+  assert.deepEqual(reads, ["evidence/freeze.json", ...retainedInputs]);
+});
+
+for (const name of ["evidence/freeze.json", ...retainedInputs]) {
+  test(`current scanner evidence rejects missing or changed required input ${name}`, () => {
+    const missing = Object.assign(new Error(`missing ${name}`), { code: "ENOENT" });
+    assert.throws(() => loadScannerEvidence(path => {
+      if (path === name) throw missing;
+      return readInput(path);
+    }), error => error === missing);
+    assert.throws(() => loadScannerEvidence(path => path === name ? Buffer.from("{}") : readInput(path)));
+  });
+}
 
 for (const fixture of cohort.fixtures) {
   test(`frozen Bash5.3 scanner projection: ${fixture.id}`, async () => {

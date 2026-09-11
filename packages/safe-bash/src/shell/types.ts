@@ -1,6 +1,6 @@
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
-import type { CommandArguments } from "../contracts/command.js";
 import type { ShellExtension } from "./extensions.js";
+import type { InternalErrorHandler, CommandArguments } from "../contracts/command.js";
 
 export interface ShellInvokeOptions {
   readonly argumentValues?: CommandArguments;
@@ -19,9 +19,12 @@ export interface ShellCommandContext extends CommandContext {
 }
 
 export interface ShellLimits {
+  readonly maxParseUnits?: number;
   readonly maxInputBytes?: number;
   readonly maxOutputBytes?: number;
   readonly maxCommands?: number;
+  readonly maxFileSystemOperations?: number;
+  readonly maxPathComponents?: number;
   /** Maximum redirects per executed command, including implicit |&; defaults to 64.
    * Zero permits only redirect-free commands. Not a global byte or filesystem-call budget. */
   readonly maxRedirects?: number;
@@ -36,7 +39,12 @@ export interface ShellLimits {
   readonly pipeHighWaterMark?: number;
 }
 
+export interface ShellParseOptions {
+  readonly maxParseUnits?: number;
+}
+
 export interface ShellOptions {
+  readonly onInternalError?: InternalErrorHandler;
   readonly fs: FileSystem;
   readonly commands?: CommandRegistry;
   readonly cwd?: string;
@@ -46,6 +54,7 @@ export interface ShellOptions {
 }
 
 export interface ShellExecOptions {
+  readonly onInternalError?: InternalErrorHandler;
   readonly fs?: FileSystem;
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;

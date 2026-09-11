@@ -1,0 +1,19 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const cause = { code: 7 };
+  const error = new TypeError("message", { cause });
+  error.ignored = () => 1;
+  const copy = structuredClone({ error, cause });
+  await 0;
+  if (!(copy.error instanceof TypeError) || copy.error.message !== "message" || copy.error.cause !== copy.cause)
+    throw new Error("Error clone data or identity failed");
+  if (Object.keys(copy.error).length !== 0)
+    throw new Error("Error clone copied ordinary properties");
+  const cyclic = new Error("cycle");
+  cyclic.cause = cyclic;
+  const cloned = structuredClone(cyclic);
+  if (cloned.cause !== cloned) throw new Error("Error cause cycle failed");
+  return { title: frontmatter.title, ok: true, message: copy.error.message };
+};

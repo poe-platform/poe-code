@@ -42,8 +42,8 @@ describe("tiny MCP server", () => {
   });
 
   it("serves prompts and resources over a real HTTP listener", async () => {
-    const server = createHttpServer({ name: "e2e-http", version: "1.0.0" })
-      .prompt({ name: "hello" }, () => ({ messages: [{ role: "user", content: { type: "text", text: "hello" } }] }))
+    const server = createHttpServer({ name: "e2e-http", version: "1.0.0" });
+    server.prompt({ name: "hello" }, () => ({ messages: [{ role: "user", content: { type: "text", text: "hello" } }] }))
       .resource({ uri: "memory://hello", name: "hello" }, () => ({ contents: [{ uri: "memory://hello", text: "hello" }] }));
     const handle = await server.listenHttp({ port: 0 });
     const client = new Client({ name: "e2e-http-client", version: "1.0.0" });

@@ -128,9 +128,9 @@ describe("independent STR-02 no-match validation", () => {
     expect(structuredClone(actual.returnValue)).toStrictEqual(expected);
   });
 
-  it.each(["y", "gy"])("keeps unsupported %s flags rejected", async (flags) => {
+  it.each(["y", "gy"])("does not search ahead with sticky %s flags", async (flags) => {
     await expect(
-      run(`return new RegExp("a", ${JSON.stringify(flags)});`, { modules: {} })
-    ).rejects.toThrow("Unsupported regex flag 'y'");
+      run(`return 'ba'.match(new RegExp("a", ${JSON.stringify(flags)}));`, { modules: {} })
+    ).resolves.toMatchObject({ ok: true, returnValue: null });
   });
 });

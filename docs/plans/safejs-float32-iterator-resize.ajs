@@ -1,0 +1,25 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const buffer = new ArrayBuffer(12, { maxByteLength: 16 });
+  const view = new Float32Array(buffer, 4, 2);
+  view.set([1, 2]);
+  const iterator = view.values();
+  const first = iterator.next();
+  buffer.resize(4);
+  let errorName;
+  try { iterator.next(); } catch (error) { errorName = error.name; }
+  if (errorName !== "TypeError") throw new Error("Iterator bounds regression");
+  await 0;
+  buffer.resize(12);
+  const next = iterator.next();
+  const done = iterator.next();
+  buffer.resize(16);
+  const stillDone = iterator.next();
+  if (first.value !== 1 || next.value !== 0 || next.done || !done.done || !stillDone.done) {
+    throw new Error("Iterator cursor recovery regression");
+  }
+  return { title: frontmatter.title, ok: true, errorName, first, next, done };
+};

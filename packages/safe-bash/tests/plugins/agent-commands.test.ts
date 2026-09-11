@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createNodeRegexProvider } from "../../src/node.js";
 import {
   agentCommands, createAgentCommands, CommandRegistry, createMemoryFileSystem, Shell,
   toByteSource,
@@ -27,22 +28,22 @@ test("aggregate definitions are exactly the delivered families, each registered 
   const expected = [
     "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
-    "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
-    "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
-    "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+    "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
+    "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
+    "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
     "paste", "comm", "join", "tac", "expand", "fold", "strings",
     "seq", "nl", "rev", "unexpand", "split",
-    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch",
+    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
   ].sort();
-  assert.equal(expected.length, 79);
-  assert.equal(new Set(expected).size, 79);
+  assert.equal(expected.length, 110);
+  assert.equal(new Set(expected).size, 110);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name).sort(), expected);
 });
 
-for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join", "date", "sleep", "printenv", "tree", "file"]) {
+for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "paste", "comm", "join", "date", "sleep", "printenv", "tree", "file"]) {
   test(`collision with ${conflict} leaves the entire host registry untouched`, () => {
     const commands = new CommandRegistry([{ name: conflict, execute: () => ({ exitCode: 23 }) }]);
     const before = commands.list();
@@ -58,9 +59,9 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 80);
+  assert.equal(target.commands.list().length, 111);
   assert.equal(target.commands.get("custom"), original[0]);
-  for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "tar", "paste", "comm", "join"]) {
+  for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "paste", "comm", "join"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));
   }
 });
@@ -73,8 +74,9 @@ test("invalid eager family limits install no commands", () => {
 
 for (const kind of ["definitions", "plugin"] as const) {
   test(`${kind} fallback resolves nested argv across families without a shell`, async () => {
-    const commands = kind === "definitions" ? new CommandRegistry(createAgentCommands()) : new CommandRegistry();
-    if (kind === "plugin") await agentCommands().setup(host(commands));
+    const options = { regexExecutor: createNodeRegexProvider() };
+    const commands = kind === "definitions" ? new CommandRegistry(createAgentCommands(options)) : new CommandRegistry();
+    if (kind === "plugin") await agentCommands(options).setup(host(commands));
     assert.deepEqual(await direct(commands, "env", ["sed", "s/a/A/"], "a\n"), { exitCode: 0, stdout: "A\n", stderr: "" });
     assert.deepEqual(await direct(commands, "xargs", ["jq", "-nc"], "'1+1'"), { exitCode: 0, stdout: "2\n", stderr: "" });
     assert.deepEqual(await direct(commands, "env", ["env", "rg", "a", "-"], "a\n"), { exitCode: 0, stdout: "a\n", stderr: "" });
@@ -117,7 +119,7 @@ const limited: readonly [AgentCommandsOptions, string, string, RegExp][] = [
 ];
 for (const [options, source, stdin, diagnostic] of limited) {
   test(`aggregate forwards ${Object.keys(options)[0]} limits without rewriting them`, async () => {
-    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(options));
+    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({ regexExecutor: createNodeRegexProvider(), ...options }));
     try {
       const result = await shell.exec(source, { stdin });
       assert.notEqual(result.exitCode, 0);
@@ -129,7 +131,7 @@ for (const [options, source, stdin, diagnostic] of limited) {
 test("search defaultInput remains an explicit family override", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/file", Buffer.from("match\n"));
-  const shell = new Shell({ fs }).use(agentCommands({ search: { defaultInput: "stdin" } }));
+  const shell = new Shell({ fs }).use(agentCommands({ regexExecutor: createNodeRegexProvider(), search: { defaultInput: "stdin" } }));
   try {
     const result = await shell.exec("rg match");
     assert.equal(result.exitCode, 1);

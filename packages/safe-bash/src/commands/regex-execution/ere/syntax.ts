@@ -72,7 +72,7 @@ class Parser {
   offset = 0;
   groups = 0;
   nodes = 0;
-  constructor(readonly pattern: string, readonly quoted: readonly boolean[] | null, readonly ledger: EreLedger, readonly signal: AbortSignal | undefined) {}
+  constructor(readonly pattern: string, readonly quoted: readonly boolean[] | null, readonly ledger: EreLedger, readonly signal: AbortSignal | undefined, readonly insensitive: boolean) {}
 
   at(character: string, offset = this.offset): boolean { return !this.quoted?.[offset] && this.pattern[offset] === character; }
 
@@ -155,7 +155,7 @@ class Parser {
   async atom(depth: number): Promise<EreNode> {
     const begin = this.offset;
     const character = this.pattern[this.offset++]!;
-    if (this.quoted?.[begin]) return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
+    if (this.quoted?.[begin]) return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), insensitive: this.insensitive, nullable: false, captured: false }));
     if (character === "(") {
       if (this.at("?")) throw new EreUnsupportedError("extended group syntax", begin);
       if (this.groups >= 32) throw new EreUnsupportedError("32-group grammar ceiling", begin);
@@ -170,13 +170,13 @@ class Parser {
       const escaped = this.pattern[this.offset++];
       if (escaped === undefined) throw new EreSyntaxError("trailing escape", begin);
       if (!special.includes(escaped)) throw new EreUnsupportedError("backreference or escape extension", begin);
-      return this.node(() => ({ kind: "literal", code: escaped.charCodeAt(0), nullable: false, captured: false }));
+      return this.node(() => ({ kind: "literal", code: escaped.charCodeAt(0), insensitive: this.insensitive, nullable: false, captured: false }));
     }
     if (character === "*" || character === "+" || character === "?" || character === "{") throw new EreSyntaxError("repetition without operand", begin);
     if (character === ".") return this.node(() => ({ kind: "dot", nullable: false, captured: false }));
     if (character === "^") return this.node(() => ({ kind: "start", nullable: true, captured: false }));
     if (character === "$") return this.node(() => ({ kind: "end", nullable: true, captured: false }));
-    return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
+    return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), insensitive: this.insensitive, nullable: false, captured: false }));
   }
 
   async set(begin: number): Promise<EreNode> {
@@ -190,12 +190,17 @@ class Parser {
       await this.ledger.checkpoint(this.signal);
       if (this.at("]") && !first) {
         this.offset++;
+        if (this.insensitive) for (let upper = 65; upper <= 90; upper++) {
+          this.ledger.charge("work", 1, this.signal);
+          await this.ledger.checkpoint(this.signal);
+          if (members[upper] || members[upper + 32]) members[upper] = members[upper + 32] = true;
+        }
         if (negate) for (let code = 1; code < 128; code++) {
           this.ledger.charge("work", 1, this.signal);
           await this.ledger.checkpoint(this.signal);
           members[code] = !members[code];
         }
-        return this.node(() => ({ kind: "set", members: Object.freeze(members), nullable: false, captured: false }));
+        return this.node(() => ({ kind: "set", members: Object.freeze(members), nonAscii: negate, nullable: false, captured: false }));
       }
       first = false;
       if (this.at("[") && (this.at(".", this.offset + 1) || this.at("=", this.offset + 1))) {
@@ -238,10 +243,11 @@ class Parser {
   }
 }
 
-export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal): Promise<EreProgram> {
+export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal, asciiInsensitive = false): Promise<EreProgram> {
   ledger.check(signal);
+  if (typeof asciiInsensitive !== "boolean") throw new TypeError("ASCII case mode must be boolean");
   const { pattern, quoted } = await flatten(input, ledger, signal);
-  const parser = new Parser(pattern, quoted, ledger, signal);
+  const parser = new Parser(pattern, quoted, ledger, signal, asciiInsensitive);
   const root = await parser.expression(0);
   if (parser.offset !== pattern.length) throw new EreSyntaxError("unmatched closing group", parser.offset);
   ledger.charge("allocationUnits", 3, signal);

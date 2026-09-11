@@ -1,10 +1,10 @@
 export const defaultLimits = Object.freeze({
   maxArgs: 128, maxArgumentBytes: 65536, maxInputFiles: 16,
-  maxInputBytes: 268435456, maxChunks: 262144, maxChunkBytes: 8388608,
+  maxInputBytes: 16000000, maxChunks: 262144, maxChunkBytes: 8388608,
   maxRecordBytes: 8388608, maxCellBytes: 4194304, maxColumns: 16384,
   maxRecords: 1000000, maxSelectorBytes: 16384, maxSelectorNodes: 4096,
   maxSelectorDepth: 2, maxSelectedColumns: 16384, maxLastRows: 4096,
-  maxWork: 1000000000, maxOutputBytes: 268435456, maxRetainedBytes: 33554432,
+  maxWork: 1000000000, maxOutputBytes: 16000000, maxRetainedBytes: 33554432,
 });
 export type XanLimits = { readonly [Key in keyof typeof defaultLimits]: number };
 export interface XanCommandsOptions {

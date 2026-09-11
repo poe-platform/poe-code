@@ -1,4 +1,4 @@
-import { validateHeaderName, validateHeaderValue } from "node:http";
+import { validateHeaderName, validateHeaderValue } from "./platform.js";
 import { CurlError, type NetworkLimits } from "./types.js";
 
 export interface DataArgument {
@@ -7,6 +7,9 @@ export interface DataArgument {
 }
 
 export interface CurlArguments {
+  agent?: string;
+  retryTransport?: boolean;
+  directoryIndex?: string;
   urls: string[];
   data: DataArgument[];
   headers: [string, string | null][];

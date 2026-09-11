@@ -1,0 +1,24 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  Math.max.state = { text: "initial" };
+  let getterReads = 0;
+  Object.defineProperty(Math.max, "cached", {
+    configurable: true,
+    get() { getterReads++; return Math.max.state.text; }
+  });
+  for (let index = 0; index < 100; index++) {
+    if (Math.max(index, 0) !== index) throw new Error("Intrinsic call changed");
+    Math.max.state.text = String(index);
+  }
+  await 0;
+  if (getterReads !== 0) throw new Error("Measurement invoked a getter");
+  if (Math.max.cached !== "99" || getterReads !== 1)
+    throw new Error("Nested intrinsic property mutation was lost");
+  Object.defineProperty(Math.max, "cached", { value: "replacement" });
+  if (Math.max.cached !== "replacement") throw new Error("Descriptor replacement was lost");
+  delete Math.max.cached;
+  if (Object.hasOwn(Math.max, "cached")) throw new Error("Descriptor deletion was lost");
+  return { title: frontmatter.title, ok: true, getterReads };
+};

@@ -1,0 +1,15 @@
+import { S } from "schema";
+export const schema = S.Object({ title: S.String() });
+export default async (frontmatter) => {
+  const events = [];
+  const input = { get [Symbol.iterator]() {
+    events.push("get");
+    return function () { events.push("factory"); return [1, 2][Symbol.iterator](); };
+  } };
+  function Output() { events.push("construct"); }
+  const result = Array.from.call(Output, input);
+  if (events.join(",") !== "get,construct,factory" || result.length !== 2)
+    throw new Error("Array.from construction order is incorrect");
+  await 0;
+  return { title: frontmatter.title, ok: true, events };
+};

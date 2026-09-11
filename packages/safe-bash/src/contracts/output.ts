@@ -17,6 +17,7 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   const capability = destination.ownedOutput;
   const callbacks: InvocationCleanup[] = [];
   const children: OutputOperation[] = [];
+  const writes = new Set<Promise<void>>();
   const closedReason = new Error("Output operation is closed");
   let accepting = true;
   let drain: Promise<void> | undefined;
@@ -30,7 +31,7 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
     accepting = false;
     drain = Promise.resolve().then(async () => {
       try {
-        const results = await Promise.allSettled(callbacks.map(async cleanup => cleanup()));
+        const results = await Promise.allSettled([...writes, ...callbacks.map(async cleanup => cleanup())]);
         const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
         if (failures.length === 1) throw failures[0];
         if (failures.length) throw new AggregateError(failures, "Output operation cleanup failed");
@@ -79,7 +80,15 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
       ...(destination[outputFailure] ? { [outputFailure]: destination[outputFailure] } : {}),
       async write(chunk) {
         assertOpen();
-        await writeBytes(capability ?? destination, chunk, signal);
+        if (!capability) return writeBytes(destination, chunk, signal);
+        let settled!: () => void;
+        const admitted = new Promise<void>(resolve => { settled = resolve; });
+        writes.add(admitted);
+        // Cancellation can settle the caller while the owned destination is still writing.
+        const pending = writeBytes(capability, chunk);
+        const finish = (): void => { writes.delete(admitted); settled(); };
+        void pending.then(finish, finish);
+        await wait(pending);
       },
     },
     registerCleanup,

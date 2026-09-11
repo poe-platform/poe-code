@@ -311,19 +311,22 @@ for (const reason of [false, null, { code: "ENOTSUP" }, new FsError("EACCES")]) 
   });
 }
 
-test("source review: ENOTSUP fallback keeps unknown provenance despite a stat-capable regular provider", async () => {
+test("source review: retained ENOTSUP fallback keeps unknown provenance despite pathname stat metadata", async () => {
   const subject = fixture();
   await subject.fs.writeFile("/input", Uint8Array.of(255, 0, 10));
-  let opens = 0, stats = 0, streams = 0;
+  let opens = 0, retainedOpens = 0, stats = 0, streams = 0;
   const fs: FileSystem = intercept<FileSystem>(subject.fs, {
     capabilities: { ...subject.fs.capabilities, open: false },
     open: async () => { opens++; throw new FsError("ENOTSUP"); },
+    openReadFile: async () => { retainedOpens++; throw new FsError("ENOTSUP"); },
     stat: async (...args) => { stats++; return subject.fs.stat(...args); },
     readStream(...args) { assert.equal(this, fs); streams++; return subject.fs.readStream(...args); },
   });
   try {
     const prepared = await prepareFileInput({ ...subject.context, fs }, "/input", subject.budget);
     assert.equal(prepared.options.provenance, "unknown");
+    assert.equal(prepared.options.stat?.type, "file");
+    assert.equal(prepared.options.seek, undefined);
     assert.equal(prepared.options.poll, undefined);
     const input = new ShellInput(prepared.source, subject.budget, subject.budget.signal, prepared.options);
     try {
@@ -333,7 +336,7 @@ test("source review: ENOTSUP fallback keeps unknown provenance despite a stat-ca
       assert.deepEqual(shellValueBytes(record.shellValue), Uint8Array.of(255, 0, 10));
       await record.release();
     } finally { await input.close(); await prepared.close(); }
-    assert.deepEqual({ opens, stats, streams }, { opens: 0, stats: 0, streams: 1 });
+    assert.deepEqual({ opens, retainedOpens, stats, streams }, { opens: 0, retainedOpens: 1, stats: 1, streams: 1 });
   } finally { await subject.close(); }
 });
 

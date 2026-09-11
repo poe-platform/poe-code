@@ -460,6 +460,56 @@ describe("array methods", () => {
     expect(shifted).toEqual([2, 3]);
   });
 
+  it("keeps synchronous push writes together like native push", async () => {
+    const nativeLog: string[] = [];
+    const native = new Proxy<number[]>([], {
+      set(target, key, value) {
+        nativeLog.push(String(key));
+        if (key === "0") queueMicrotask(() => nativeLog.push("microtask"));
+        return Reflect.set(target, key, value);
+      }
+    });
+    expect(native.push(1, 2)).toBe(2);
+    await Promise.resolve();
+
+    const values: SandboxValue[] = [];
+    const log: string[] = [];
+    await expect(callArrayMethod(values, "push", [1, 2], {
+      ...createOptions(new Budget()),
+      setProperty(receiver, key, value) {
+        log.push(key);
+        if (key === "0") queueMicrotask(() => log.push("microtask"));
+        if (!Reflect.set(receiver as object, key, value)) throw new TypeError("Write failed");
+      }
+    })).resolves.toBe(2);
+    expect(log).toEqual(nativeLog);
+    expect(values).toEqual(native);
+  });
+
+  it("awaits an asynchronous push setter before admitting the next write", async () => {
+    const values: SandboxValue[] = [];
+    const writes: string[] = [];
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    let entered!: () => void;
+    const started = new Promise<void>(resolve => { entered = resolve; });
+    const pending = callArrayMethod(values, "push", [1, 2], {
+      ...createOptions(new Budget()),
+      async setProperty(receiver, key, value) {
+        writes.push(key);
+        if (key === "0") { entered(); await held; }
+        if (!Reflect.set(receiver as object, key, value)) throw new TypeError("Write failed");
+      }
+    });
+    await started;
+    expect(writes).toEqual(["0"]);
+    expect(values).toEqual([]);
+    release();
+    await expect(pending).resolves.toBe(2);
+    expect(writes).toEqual(["0", "1", "length"]);
+    expect(values).toEqual([1, 2]);
+  });
+
   it("makes array mutations visible to later forEach callbacks", async () => {
     const options = createOptions(new Budget());
     const values = [1, 2, 3];

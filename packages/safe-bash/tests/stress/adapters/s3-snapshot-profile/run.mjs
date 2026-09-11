@@ -31,8 +31,7 @@ assert.equal(git("diff", "HEAD", "--name-only", "--", "src", ...configs), "", "s
 const helperPaths = ["tests/fs/conformance/fixtures.ts", "tests/fs/webdav/mock.ts"];
 const ownedInputs = ["assertions.ts", "profile-guards.test.ts", "preservation.test.ts", "run.mjs", "historical/manifest.json", "historical/README.md", "historical/author-start-inputs.json", "historical/classification-report.md.data", "historical/remote-safe-workflows.test.ts.data"].map(path => `${owned}/${path}`);
 const historical = JSON.parse(readFileSync(join(root, owned, "historical/manifest.json"), "utf8"));
-const referencedEvidence = [historical.originalFailure.raw.path, historical.originalFailure.routing.path, historical.originalFailure.repositoryManifest.path];
-const immutablePaths = [...new Set([...git("ls-files", "src").split("\n"), ...configs, ...helperPaths, ...controls.map(control => control[1]), ...referencedEvidence])].sort();
+const immutablePaths = [...new Set([...git("ls-files", "src").split("\n"), ...configs, ...helperPaths, ...controls.map(control => control[1])])].sort();
 const inputPaths = [...new Set([...immutablePaths, fixture, ...ownedInputs])].sort();
 const inputHashes = inputPaths.map(path => ({ path, sha256: sha256(readFileSync(join(root, path))) }));
 const report = {

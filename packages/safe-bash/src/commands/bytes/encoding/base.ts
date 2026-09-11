@@ -1,3 +1,4 @@
+import { PublicDiagnostic } from "../../../diagnostics.js";
 import type { CommandContext, CommandDefinition } from "../../../contracts/index.js";
 import { define, integer, options, output, requireOperands } from "../../internal.js";
 import { sources, validatedOption } from "./shared.js";
@@ -82,13 +83,13 @@ async function decode(context: CommandContext, files: readonly string[], alphabe
       }
     }
     if (pending.length) await output(context, Uint8Array.from(pending));
-    if (invalid) throw new Error("invalid input");
+    if (invalid) throw new PublicDiagnostic("invalid input");
   }
   if (quantum.length) {
     if (lastByte !== 61) while (quantum.length < alphabet.quantum) quantum.push(-1);
     const decoded = decodeQuantum(quantum, alphabet);
     if (decoded.bytes.length) await output(context, Uint8Array.from(decoded.bytes));
-    if (!decoded.valid) throw new Error("invalid input");
+    if (!decoded.valid) throw new PublicDiagnostic("invalid input");
   }
 }
 

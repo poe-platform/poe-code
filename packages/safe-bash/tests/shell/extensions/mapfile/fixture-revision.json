@@ -1,42 +1,231 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "referenceSHA256": "8b36b77a1a9e1d922dc7c69976c33da779a275251341bc5c8a96a532f48b3e6f",
-  "fixtures": [
+  "predecessorReceiptSHA256": "b07cc2354705898b8da94433f47c9cf59eae3bf9045622ef720b434b0708ed09",
+  "predecessor": {
+    "schemaVersion": 3,
+    "referenceSHA256": "8b36b77a1a9e1d922dc7c69976c33da779a275251341bc5c8a96a532f48b3e6f",
+    "fixtures": [
+      {
+        "fixture": "review.test.ts",
+        "originalSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
+        "currentSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
+        "insertions": [
+          {
+            "beforeSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
+            "afterSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
+            "offset": 6884,
+            "insertion": "      observe() { throw new Error(\"Mapfile must not acquire a descriptor observer\"); },\n"
+          },
+          {
+            "beforeSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
+            "afterSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
+            "offset": 6677,
+            "insertion": "      async prepareReference() { throw new Error(\"unexpected reference binding\"); },\n"
+          }
+        ]
+      },
+      {
+        "fixture": "syntax.test.ts",
+        "originalSHA256": "0d4163923fced16800c991e8ba5d3079cd9262019801139f8e94aef32d5e5911",
+        "currentSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
+        "insertions": [
+          {
+            "beforeSHA256": "0d4163923fced16800c991e8ba5d3079cd9262019801139f8e94aef32d5e5911",
+            "afterSHA256": "d7f11a817af67861b18ce2368ef7f8c5f83c58c721180957d2c1a5cfd58940eb",
+            "offset": 684,
+            "insertion": "?.arrayKeys"
+          },
+          {
+            "beforeSHA256": "d7f11a817af67861b18ce2368ef7f8c5f83c58c721180957d2c1a5cfd58940eb",
+            "afterSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
+            "offset": 721,
+            "insertion": "?.arrayKeys"
+          }
+        ]
+      }
+    ]
+  },
+  "revisions": [
+    {
+      "fixture": "arguments.test.ts",
+      "previousSHA256": "cb3b83e68db9772004a2cb28e014e06c5d04d365fdddca4030fd8776b5975086",
+      "currentSHA256": "59510e5ac45fa01249e73aa124cc07a98cadc6497ae76ccb1c0ee13158b8d873",
+      "replacements": [
+        {
+          "beforeSHA256": "cb3b83e68db9772004a2cb28e014e06c5d04d365fdddca4030fd8776b5975086",
+          "afterSHA256": "59510e5ac45fa01249e73aa124cc07a98cadc6497ae76ccb1c0ee13158b8d873",
+          "offset": 6691,
+          "removed": "  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });\n",
+          "insertion": "  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });\n"
+        }
+      ]
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "previousSHA256": "e14b4e3ffd03c90afd59bb175a1e537714bdd520f13bd7e2a934b26cc6ac8fce",
+      "currentSHA256": "318523b8a15408beed768be811c3ea2a11e7fbd5c861187e40cfabff80433927",
+      "replacements": [
+        {
+          "beforeSHA256": "e14b4e3ffd03c90afd59bb175a1e537714bdd520f13bd7e2a934b26cc6ac8fce",
+          "afterSHA256": "318523b8a15408beed768be811c3ea2a11e7fbd5c861187e40cfabff80433927",
+          "offset": 512,
+          "removed": "  const shell = new Shell({ fs, extensions: [mapfileExtension()] });\n",
+          "insertion": "  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });\n"
+        }
+      ]
+    },
     {
       "fixture": "review.test.ts",
-      "originalSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
-      "currentSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
-      "insertions": [
+      "previousSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
+      "currentSHA256": "169a49ff3ad2cf9fe746083da0d3236140411bff94f8b1d30a118dd5e4cbeb0a",
+      "replacements": [
         {
-          "beforeSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
-          "afterSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
-          "offset": 6884,
-          "insertion": "      observe() { throw new Error(\"Mapfile must not acquire a descriptor observer\"); },\n"
+          "beforeSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
+          "afterSHA256": "935d89d020c4138c5fcada9e47d32276bfadbfe7e20fda04a741d789ca236b8f",
+          "offset": 4199,
+          "removed": "  const shell = new Shell({ fs, extensions: [mapfileExtension()] });\n",
+          "insertion": "  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });\n"
         },
         {
-          "beforeSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
-          "afterSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
-          "offset": 6677,
-          "insertion": "      async prepareReference() { throw new Error(\"unexpected reference binding\"); },\n"
+          "beforeSHA256": "935d89d020c4138c5fcada9e47d32276bfadbfe7e20fda04a741d789ca236b8f",
+          "afterSHA256": "c35521089041876d8a5079c5977539db9418eda5465a594ee5449b7cda48b51f",
+          "offset": 7713,
+          "removed": "    execute: () => Promise.resolve(mapfileExtension().create().builtins[0]!.execute(context)),\n",
+          "insertion": "    execute: () => Promise.resolve(mapfileExtension({ replace: true }).create().builtins[0]!.execute(context)),\n"
+        },
+        {
+          "beforeSHA256": "c35521089041876d8a5079c5977539db9418eda5465a594ee5449b7cda48b51f",
+          "afterSHA256": "003c221bd99ac1419f912412b70827c298c995add4ccb500c213d37c08013091",
+          "offset": 12926,
+          "removed": "  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });\n",
+          "insertion": "  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });\n"
+        },
+        {
+          "beforeSHA256": "003c221bd99ac1419f912412b70827c298c995add4ccb500c213d37c08013091",
+          "afterSHA256": "559395f920843b780f553583e39d528ec4a85f22109b06fdeb0fa8418824fbca",
+          "offset": 14107,
+          "removed": "  const shell = new Shell({ fs, extensions: [mapfileExtension()] });\n",
+          "insertion": "  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });\n"
+        },
+        {
+          "beforeSHA256": "559395f920843b780f553583e39d528ec4a85f22109b06fdeb0fa8418824fbca",
+          "afterSHA256": "4421f82a55fdb4a957809b5af9a76415d9ace8dc4f4058aeec54047c804d122c",
+          "offset": 14918,
+          "removed": "  const extension = mapfileExtension(), create = extension.create;\n",
+          "insertion": "  const extension = mapfileExtension({ replace: true }), create = extension.create;\n"
+        },
+        {
+          "beforeSHA256": "4421f82a55fdb4a957809b5af9a76415d9ace8dc4f4058aeec54047c804d122c",
+          "afterSHA256": "b46abb407c268705814f6b2701e3bb8118be71c2bea54ca1e6f5284f5c5d39fb",
+          "offset": 16489,
+          "removed": "  const extension = mapfileExtension(), create = extension.create;\n",
+          "insertion": "  const extension = mapfileExtension({ replace: true }), create = extension.create;\n"
+        },
+        {
+          "beforeSHA256": "b46abb407c268705814f6b2701e3bb8118be71c2bea54ca1e6f5284f5c5d39fb",
+          "afterSHA256": "3ee01d158df1fb44d4d5ccaa1992f5d59d01b6a7e8a17fd59b3fed65508f9d5d",
+          "offset": 17845,
+          "removed": "  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });\n",
+          "insertion": "  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });\n"
+        },
+        {
+          "beforeSHA256": "3ee01d158df1fb44d4d5ccaa1992f5d59d01b6a7e8a17fd59b3fed65508f9d5d",
+          "afterSHA256": "169a49ff3ad2cf9fe746083da0d3236140411bff94f8b1d30a118dd5e4cbeb0a",
+          "offset": 18838,
+          "removed": "  const shell = new Shell({ fs, extensions: [mapfileExtension()] });\n",
+          "insertion": "  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });\n"
+        }
+      ]
+    },
+    {
+      "fixture": "evaluation-exit-review.test.ts",
+      "previousSHA256": "d1a04e104a1d77857d394a2123444bcae1d6a23856c51536a326f48453acf2b7",
+      "currentSHA256": "b5c58e6730acf697cbed5f05c43de22beb75883939470f147b0f0fa66b10a4d1",
+      "replacements": [
+        {
+          "beforeSHA256": "d1a04e104a1d77857d394a2123444bcae1d6a23856c51536a326f48453acf2b7",
+          "afterSHA256": "b5c58e6730acf697cbed5f05c43de22beb75883939470f147b0f0fa66b10a4d1",
+          "offset": 1502,
+          "removed": "  const extension = mapfileExtension();\n",
+          "insertion": "  const extension = mapfileExtension({ replace: true });\n"
+        }
+      ]
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "previousSHA256": "1b1827955b7a409e27e306cf3d9e35fa35cdae930e8ff25263c35ff8a115dee5",
+      "currentSHA256": "4c93979df068b6ab65e53d6c33e7c5c2893cf70a406f89c33e3067e07bdefd59",
+      "replacements": [
+        {
+          "beforeSHA256": "1b1827955b7a409e27e306cf3d9e35fa35cdae930e8ff25263c35ff8a115dee5",
+          "afterSHA256": "32daf5dc916d321403116140845680857b924e8e44daad538f8c32912bbc08a7",
+          "offset": 1404,
+          "removed": "    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });\n",
+          "insertion": "    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });\n"
+        },
+        {
+          "beforeSHA256": "32daf5dc916d321403116140845680857b924e8e44daad538f8c32912bbc08a7",
+          "afterSHA256": "4c93979df068b6ab65e53d6c33e7c5c2893cf70a406f89c33e3067e07bdefd59",
+          "offset": 2004,
+          "removed": "    const extension = mapfileExtension();\n",
+          "insertion": "    const extension = mapfileExtension({ replace: true });\n"
         }
       ]
     },
     {
       "fixture": "syntax.test.ts",
-      "originalSHA256": "0d4163923fced16800c991e8ba5d3079cd9262019801139f8e94aef32d5e5911",
-      "currentSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
-      "insertions": [
+      "previousSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
+      "currentSHA256": "33274084b7efd97bd5cb49b8e1781e2ddf9c4b75798bd8b1f18d4f3d954979d7",
+      "replacements": [
         {
-          "beforeSHA256": "0d4163923fced16800c991e8ba5d3079cd9262019801139f8e94aef32d5e5911",
-          "afterSHA256": "d7f11a817af67861b18ce2368ef7f8c5f83c58c721180957d2c1a5cfd58940eb",
-          "offset": 684,
-          "insertion": "?.arrayKeys"
+          "beforeSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
+          "afterSHA256": "29378589653cb61948ad98c3cccc10967575fe048ea089ac88850dc0dcf286ab",
+          "offset": 501,
+          "removed": "",
+          "insertion": "test(\"mapfile variant requires explicit replacement of current core builtins\", async context => {\n  const ordinary = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });\n  context.after(() => ordinary.dispose());\n  await assert.rejects(ordinary.exec(\":\"), /Extension builtin conflicts with existing builtin: mapfile/);\n  const replacement = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });\n  context.after(() => replacement.dispose());\n  const result = await replacement.exec(\"mapfile -t values\", { stdin: \"one\\n\" });\n  assert.equal(result.exitCode, 0, result.stderr);\n  assert.deepEqual(mapfileExtension({ replace: true }).create().builtins.map(builtin => builtin.replace), [true, true]);\n});\n\n"
         },
         {
-          "beforeSHA256": "d7f11a817af67861b18ce2368ef7f8c5f83c58c721180957d2c1a5cfd58940eb",
-          "afterSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
-          "offset": 721,
-          "insertion": "?.arrayKeys"
+          "beforeSHA256": "29378589653cb61948ad98c3cccc10967575fe048ea089ac88850dc0dcf286ab",
+          "afterSHA256": "ac6a35c9e525ca5d45ea5ec7850b153b44292fad94b32bd69b0f5af217431cb7",
+          "offset": 1340,
+          "removed": "  assert.deepEqual(mapfileExtension().syntax, { arrayKeys: true });\n  assert.deepEqual(mapfileExtension().syntax?.arrayKeys, arraysExtension().syntax?.arrayKeys);\n  assert.deepEqual(mapfileExtension().create().builtins.map(builtin => builtin.name), [\"mapfile\", \"readarray\"]);\n",
+          "insertion": "  assert.deepEqual(mapfileExtension({ replace: true }).syntax, { arrayKeys: true });\n  assert.deepEqual(mapfileExtension({ replace: true }).syntax?.arrayKeys, arraysExtension().syntax?.arrayKeys);\n  assert.deepEqual(mapfileExtension({ replace: true }).create().builtins.map(builtin => builtin.name), [\"mapfile\", \"readarray\"]);\n"
+        },
+        {
+          "beforeSHA256": "ac6a35c9e525ca5d45ea5ec7850b153b44292fad94b32bd69b0f5af217431cb7",
+          "afterSHA256": "affb2f36bb1d2980395b391e54a3113b5305081d083b5be6d97cdf78355c2f47",
+          "offset": 1797,
+          "removed": "    extensions: () => [mapfileExtension()],\n",
+          "insertion": "    extensions: () => [mapfileExtension({ replace: true })],\n"
+        },
+        {
+          "beforeSHA256": "affb2f36bb1d2980395b391e54a3113b5305081d083b5be6d97cdf78355c2f47",
+          "afterSHA256": "56e87adcb9ab8dc07959575ad07384d766175feedce37069f9b28f2abd14de63",
+          "offset": 2122,
+          "removed": "    extensions: () => arraysFirst ? [arraysExtension(), mapfileExtension()] : [mapfileExtension(), arraysExtension()],\n",
+          "insertion": "    extensions: () => arraysFirst ? [arraysExtension(), mapfileExtension({ replace: true })] : [mapfileExtension({ replace: true }), arraysExtension()],\n"
+        },
+        {
+          "beforeSHA256": "56e87adcb9ab8dc07959575ad07384d766175feedce37069f9b28f2abd14de63",
+          "afterSHA256": "7d675bf51943428949848f58adee9c894f61fb649bfdf58a29780f65ff9c5dca",
+          "offset": 2469,
+          "removed": "    extensions: () => [mapfileExtension()],\n",
+          "insertion": "    extensions: () => [mapfileExtension({ replace: true })],\n"
+        },
+        {
+          "beforeSHA256": "7d675bf51943428949848f58adee9c894f61fb649bfdf58a29780f65ff9c5dca",
+          "afterSHA256": "3e2159303ac4b70c92f67573fa40fe916c211e980f51dba094becc3c37c8cbaa",
+          "offset": 3326,
+          "removed": "test(\"constructing opt-in factories does not enable keys in a default Shell\", async context => {\n  mapfileExtension();\n",
+          "insertion": "test(\"constructing optional factories preserves current default array-key support\", async context => {\n  mapfileExtension({ replace: true });\n"
+        },
+        {
+          "beforeSHA256": "3e2159303ac4b70c92f67573fa40fe916c211e980f51dba094becc3c37c8cbaa",
+          "afterSHA256": "33274084b7efd97bd5cb49b8e1781e2ddf9c4b75798bd8b1f18d4f3d954979d7",
+          "offset": 3733,
+          "removed": "  assert.equal(actual.exitCode, 2);\n  assert.deepEqual(Buffer.from(actual.stdoutBytes), Buffer.alloc(0));\n  assert.equal(actual.stderr, \"shell: Unsupported parameter expansion at offset 30\\n\");\n",
+          "insertion": "  assert.equal(actual.exitCode, 0);\n  assert.equal(actual.stdout, \"<0><1>\");\n  assert.equal(actual.stderr, \"\");\n"
         }
       ]
     }

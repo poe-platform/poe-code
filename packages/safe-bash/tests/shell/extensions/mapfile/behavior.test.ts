@@ -9,7 +9,7 @@ import { primaryReference } from "./primary-reference.js";
 
 function setup() {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, extensions: [mapfileExtension()] });
+  const shell = new Shell({ fs, extensions: [mapfileExtension({ replace: true })] });
   for (const command of basicCommands()) shell.register(command);
   return { fs, shell };
 }

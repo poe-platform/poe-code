@@ -88,7 +88,7 @@ describe("genuine v6 checkpoint compatibility", () => {
       expect(readValue).not.toHaveBeenCalled();
       expect(provider).not.toHaveBeenCalled();
       expect(result.snapshot).toMatchObject({
-        version: 1,
+        version: 2,
         executionSemantics: "jobs-v6",
         initialInputs: completed.initialInputs,
         promiseReplay: completed.promiseReplay
@@ -122,7 +122,7 @@ describe("genuine v6 checkpoint compatibility", () => {
         expect(repeated.snapshot.replay).toStrictEqual(expectedReplay);
         expect(repeated.snapshot.initialInputs).toStrictEqual(completed.initialInputs);
         expect(repeated.snapshot.promiseReplay).toStrictEqual(completed.promiseReplay);
-        expect(repeated.snapshot.version).toBe(1);
+        expect(repeated.snapshot.version).toBe(2);
         expect(boundary).not.toHaveBeenCalled();
         expect(readValue).not.toHaveBeenCalled();
         expect(provider).not.toHaveBeenCalled();
@@ -184,7 +184,7 @@ describe("genuine v6 checkpoint compatibility", () => {
       reconciliation: { checkpointDigest: inspection.checkpointDigest, quiescent: true, calls: [] }
     });
     expect(JSON.stringify(fixture.snapshot)).toBe(before);
-    expect(migrated.executionSemantics).toBe("jobs-v7");
+    expect(migrated.executionSemantics).toBe("jobs-v8");
     expect(migrated.migration?.history[0]).toMatchObject({
       executionSemantics: "jobs-v6",
       replay: fixture.snapshot.replay
@@ -195,7 +195,7 @@ describe("genuine v6 checkpoint compatibility", () => {
     });
   });
 
-  it.each([undefined, "jobs-v1", "jobs-v5", "jobs-v8", null])(
+  it.each([undefined, "jobs-v1", "jobs-v5", "jobs-v9", null])(
     "rejects unsupported semantics %s before reading caller inputs",
     async (executionSemantics) => {
       const source = "return 7;";

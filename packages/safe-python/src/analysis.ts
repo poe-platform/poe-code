@@ -35,6 +35,7 @@ export function analyzeModule(text: string, options: LexerOptions = {}): ModuleA
     const scopes = resolveSymbols(collectSymbols(module,options.meter), options.filename,options.meter);
     const qualifiedNames = collectQualifiedNames(scopes.scope,options.meter);
     const staticAttributes = collectStaticAttributes(scopes.scope,options.meter);
+    options.meter?.checkpoint(1,96);
     return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
   } catch (error) {
     if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);

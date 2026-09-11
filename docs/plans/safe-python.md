@@ -12562,6 +12562,16 @@ extension, integration, or validation requirement is missing or unverified.
   thread-pool suite passes 8,810 tests in 584 files (95.30s; bodies 11.44s).
   Remaining analysis/compilation ingress accounting and end-to-end interpreter
   integration are not established by these lexical checks.
+- Analysis result resource accounting (2026-09-11): three failing tests isolated
+  the completed analysis record after static-attribute collection. Analysis now
+  reserves that record before returning it. All 23 focused analysis tests pass,
+  preserving source diagnostics, scope identities, discarded types and callbacks.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 8,813 tests in 585 files (65.01s; bodies 8.93s).
+  Integration inspection confirms that executeRuntimeProgram takes compiled
+  metadata and the native integration fixture separately calls unmetered analysis.
+  Next integration work is a source compilation entry sharing the execution meter
+  and recursion guard across analysis and code preparation; this is not yet wired.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

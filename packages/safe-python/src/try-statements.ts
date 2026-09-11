@@ -6,6 +6,8 @@ import { reservedWords } from "./keywords.js";
 import { normalizeNfkc } from "./normalization.js";
 
 export function readTry(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[]): Statement {
+  try {
+  cursor.meter?.checkpoint(1,224);
   const start = cursor.expect("try").start;
   const body = readSuite(cursor);
   const handlers: ExceptionHandler[] = [];
@@ -26,11 +28,13 @@ export function readTry(cursor: TokenCursor, readSuite: (cursor: TokenCursor) =>
     } else {
       exception = readExpression(cursor);
       if (cursor.peek().text === ",") {
+        cursor.meter?.checkpoint(0,104);
         const items = [exception];
         let end = exception.end;
         while (cursor.peek().text === ",") {
           end = cursor.take().end;
           if (cursor.peek().text === ":") break;
+          cursor.meter?.checkpoint(0,8);
           items.push(readExpression(cursor));
           end = items[items.length - 1]!.end;
         }
@@ -44,10 +48,12 @@ export function readTry(cursor: TokenCursor, readSuite: (cursor: TokenCursor) =>
         const name = normalizeNfkc(token.text,cursor.meter);
         if (name === "__debug__") throw cursor.error("cannot assign to __debug__");
         cursor.take();
+        cursor.meter?.checkpoint(0,64);
         alias = { name, spelling: token.text, start: token.start, end: token.end };
       }
     }
     const handlerBody = readSuite(cursor);
+    cursor.meter?.checkpoint(1,88);
     handlers.push({ exception, alias, body: handlerBody, start, end: handlerBody[handlerBody.length - 1]!.end });
   }
   let otherwise: Statement[] = [];
@@ -57,4 +63,5 @@ export function readTry(cursor: TokenCursor, readSuite: (cursor: TokenCursor) =>
   if (!handlers.length && !finalizer.length) throw cursor.error("expected 'except' or 'finally'");
   const lastBody = finalizer.length ? finalizer : otherwise.length ? otherwise : handlers[handlers.length - 1]!.body;
   return { kind: "try", group, body, handlers, otherwise, finalizer, start, end: lastBody[lastBody.length - 1]!.end };
+  } finally {cursor.meter?.checkpoint();}
 }

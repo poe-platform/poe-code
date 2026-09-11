@@ -12383,6 +12383,20 @@ extension, integration, or validation requirement is missing or unverified.
   lint and whitespace checks pass. The uncached full suite passes 8,643 tests
   in 572 files (159.96s; test bodies 12.66s). Module
   loading is not introduced by this parser change. Try/with/match remain next.
+- Try/with grammar resource accounting (2026-09-11): thirteen failing tests
+  isolated child readers and reproduced uncharged statement/handler/context
+  storage plus cancellation lost when suites returned or threw. The parenthesized
+  fixture explicitly allows existing speculative token-buffer copies. Try parsing
+  now charges its statement and three arrays, exception tuples/slots, aliases and
+  handler records. With parsing charges its statement/speculative closure, item
+  arrays and context records. Both readers preserve cancellation in finally.
+  All thirteen focused tests pass. Forty AST/diagnostic comparisons against
+  a90111b95 preserve behavior, and forty CPython compile-acceptance cases pass,
+  covering exception groups, unparenthesized exception tuples, aliases, finalizers,
+  manager-list backtracking and invalid targets. Build, typecheck, scoped lint
+  and whitespace checks pass. The uncached full suite passes 8,656 tests in 573
+  files (189.55s; test bodies 13.25s). Match/pattern
+  grammar allocation remains before enabling checked guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

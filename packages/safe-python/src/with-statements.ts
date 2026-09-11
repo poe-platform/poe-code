@@ -5,6 +5,8 @@ import { readExpression } from "./expression.js";
 import { validateTarget } from "./targets.js";
 
 export function readWith(cursor: TokenCursor, readSuite: (cursor: TokenCursor) => Statement[], asyncStart?: SourcePosition): Statement {
+  try {
+  cursor.meter?.checkpoint(1,160);
   const opening = cursor.expect("with");
   // Python tries the parenthesized manager-list grammar before ordinary expressions.
   const parenthesized = cursor.peek().text === "(" ? cursor.attempt(() => {
@@ -17,9 +19,11 @@ export function readWith(cursor: TokenCursor, readSuite: (cursor: TokenCursor) =
   const items = parenthesized ?? readItems(cursor, false);
   const body = readSuite(cursor);
   return { kind: "with", async: asyncStart !== undefined, items, body, start: asyncStart ?? opening.start, end: body[body.length - 1]!.end };
+  } finally {cursor.meter?.checkpoint();}
 }
 
 function readItems(cursor: TokenCursor, parenthesized: boolean): WithItem[] {
+  cursor.meter?.checkpoint(1,32);
   const items: WithItem[] = [];
   for (;;) {
     const context = readExpression(cursor);
@@ -29,6 +33,7 @@ function readItems(cursor: TokenCursor, parenthesized: boolean): WithItem[] {
       target = readExpression(cursor);
       validateTarget(target, cursor);
     }
+    cursor.meter?.checkpoint(1,72);
     items.push({ context, target, start: context.start, end: target?.end ?? context.end });
     if (cursor.peek().text !== ",") break;
     cursor.take();

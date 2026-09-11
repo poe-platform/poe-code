@@ -13164,6 +13164,25 @@ extension, integration, or validation requirement is missing or unverified.
   audit events and safe-fs remain unfinished. Build, typecheck, scoped lint and
   whitespace checks pass. The uncached full thread-pool suite passes 9,151 tests
   in 607 files (112.41s; bodies 20.19s).
+- Shared dynamic execution backend (2026-09-11): extracted eval/exec orchestration
+  from the native integration fixture into runtime-dynamic-execution. Execution
+  owns namespace defaults, compilation/recursion policy and optional builtins
+  payload resolution. Namespace selection and closure admission precede source
+  conversion; compilation policy is read only for admitted sources. Existing
+  module, function, class and generator-expression execution routes are reused,
+  preserving explicit module locals and invocation-time metering. Dynamically
+  compiled programs are registered before execution: a failing native regression
+  established that eval-created generator-expression code could not subsequently
+  be assigned to a function. The regression now passes, as does the equivalent
+  in-memory CPython probe. Additional native tests cover optimization inheritance
+  from the supplied policy, bypassing compilation for code objects, admission
+  ordering, fatal resource exhaustion despite callback return/throw, and explicit
+  builtins resolution without replacing the original guest payload. All existing
+  dynamic namespace/closure tests now exercise the production backend. Build,
+  typecheck, scoped lint and whitespace checks pass; the full uncached thread-pool
+  suite passes 9,156 tests in 607 files (89.66s; bodies 10.20s). Public interpreter
+  assembly, canonical builtin registration, full compilation flags, imports,
+  safe-fs and security/performance audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

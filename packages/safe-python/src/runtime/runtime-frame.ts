@@ -13,8 +13,8 @@ export interface RuntimeFrameState {
   readonly frame:RuntimeFrame;
 }
 
-export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,locals:(frame:RuntimeFrame)=>RuntimeValue,code:(code:RuntimeCompiledCode)=>RuntimeValue,publishFrame:(frame:RuntimeFrame)=>RuntimeValue):void {
-  for(const name of ["f_locals","f_globals","f_builtins","f_code","f_lineno","f_back"] as const){
+export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,locals:(frame:RuntimeFrame)=>RuntimeValue,code:(code:RuntimeCompiledCode)=>RuntimeValue,publishFrame:(frame:RuntimeFrame)=>RuntimeValue,generator:(frame:RuntimeFrame)=>RuntimeValue):void {
+  for(const name of ["f_locals","f_globals","f_builtins","f_code","f_lineno","f_back","f_generator"] as const){
   meter.checkpoint(0,96);
   owner.value.namespace.items.set(values.string(name),values.getsetDescriptor({owner,name,
     accepts:value=>value.kind==="instance"&&value.type===owner&&value.native?.kind==="frame",
@@ -23,6 +23,7 @@ export function installRuntimeFrameDescriptors(owner:TypeValue,values:RuntimeVal
       if(receiver.kind!=="instance"||receiver.native?.kind!=="frame")throw Error("frame locals require native frame storage");
       try{
         const frame=receiver.native.frame;
+        if(name==="f_generator")return generator(frame);
         if(name==="f_back"){
           const caller=frame.caller;
           if(caller===undefined)return values.none;

@@ -11289,6 +11289,31 @@ extension, integration, or validation requirement is missing or unverified.
   suite passes 7,947 tests in 527 files (220.36s; test bodies 12.52s).
   Automatic tracebacks, instruction metadata, tracing and overall interpreter
   completion remain separate unfinished requirements. No push was requested.
+- Suspended-object frame/code ownership (2026-09-10): seventeen failing generic
+  and native regressions confirmed missing activation retention and reflection.
+  GeneratorExecution now exposes optional host activation metadata only while its
+  body context is live; existing terminal cleanup releases it without new guest
+  callbacks or checkpoints. Function-created generators, coroutines and async
+  generators retain their compiled code separately and lazily publish gi_frame /
+  cr_frame / ag_frame and gi_code / cr_code / ag_code. Native f_generator uses a
+  registry-local weak owner link and verifies live execution ownership, so a
+  retained frame does not itself keep a generator alive or report a completed
+  owner. No host garbage-collection finalization equivalence is claimed.
+  Five generic and eighteen native cases cover first activation, rejected sends,
+  suspension, return, throw, unstarted close/throw, fatal cleanup, write-through
+  locals, canonical code/frame identity, readonly attributes and ignored close.
+  The focused two-file suite passes 947 tests. All 72 CPython comparisons match
+  across the three body kinds, six termination paths and source padding, including
+  retained code after frame release and exact mutation diagnostics. Workspace
+  build, typecheck, scoped lint and whitespace checks pass. The uncached one-worker
+  full package suite passes 7,970 tests in 527 files (126.32s; test bodies 10.22s).
+  After replacing a lint-flagged empty catch with explicit exception assertions,
+  the two-file suite again passes all 947 tests; production source is unchanged.
+  A read-only generator-expression probe confirms gi_code still fails explicitly
+  with missing compiled metadata rather than fabricating a code object.
+  Generator-expression compiled code metadata, automatic finalization,
+  traceback capture, imports, library coverage and safe-fs integration remain
+  unfinished; this change does not establish complete generator introspection.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

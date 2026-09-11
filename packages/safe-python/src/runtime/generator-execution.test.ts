@@ -14,6 +14,29 @@ function context():GeneratorExecutionContext<Value> {
     wrapStopIteration:error=>Object.assign(new PythonRuntimeError("RuntimeError","generator raised StopIteration"),{cause:error})};
 }
 
+it.each(["return","throw","close","fatal"])("releases owned frame metadata on %s",finish=>{
+  const frame={},policy={...context(),frame},meter=budget();
+  const state=new GeneratorExecution<Value>(request=>{
+    if(finish==="fatal"){meter.checkpoint(10001);throw Error("unreachable");}
+    if(request.kind==="throw")throw request.error;
+    return {done:true,value:7};
+  },policy,meter);
+  expect(state.frame).toBe(frame);
+  if(finish==="throw")expect(()=>state.resume({kind:"throw",error:new GuestExit()})).toThrow(GuestExit);
+  else if(finish==="fatal")expect(()=>state.resume({kind:"send",value:null})).toThrow(ExecutionLimitError);
+  else expect(state.resume(finish==="close"?{kind:"close"}:{kind:"send",value:null})).toEqual({done:true,value:finish==="close"?null:7});
+  expect(state.phase).toBe("closed");
+  expect(state.frame).toBeUndefined();
+});
+
+it("retains owned frame metadata through rejected sends and suspension",()=>{
+  const frame={},state=new GeneratorExecution<Value>(()=>({done:false,value:1}),{...context(),frame},budget());
+  expect(()=>state.resume({kind:"send",value:1})).toThrow(PythonRuntimeError);
+  expect(state.frame).toBe(frame);
+  state.resume({kind:"send",value:null});
+  expect(state.frame).toBe(frame);
+});
+
 it("starts lazily, sends values, and exposes a return value only on the completing resume",()=>{
   const requests:GeneratorRequest<Value>[]=[],policy=context();
   const state=new GeneratorExecution<Value>(request=>{requests.push(request);return requests.length===1?{done:false,value:7}:{done:true,value:42};},policy,budget());

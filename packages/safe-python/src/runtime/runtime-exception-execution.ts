@@ -23,6 +23,7 @@ import type { BuiltinInvocationContext, InstanceValue, RuntimeValue, RuntimeValu
 import { createExceptionAddNoteDescriptor } from "./builtin-exception-add-note.js";
 import { GeneratorExecution,type GeneratorInput,type GeneratorDelegation } from "./generator-execution.js";
 import type { CallStack } from "./call-stack.js";
+import { LexicalFrame } from "./lexical-frame.js";
 import { normalizeThrownException } from "./throw-normalization.js";
 
 /** Propagation must never render guest values or expose a host stack to Python. */
@@ -84,7 +85,7 @@ export class RuntimeExceptionExecution {
       }
       catch(error){throw this.prepare(error);}
     },{
-      none:values.none,kind:executionKind,delegation,enterDelegated:activate=>calls.enter(frame,{activate,retainCaller:false}),
+      none:values.none,frame,kind:executionKind,delegation,enterDelegated:activate=>calls.enter(frame,{activate,retainCaller:false}),
       enter:()=>{
         meter.checkpoint(0,64);
         const leave=calls.enter(frame,{retainCaller:false});
@@ -106,11 +107,15 @@ export class RuntimeExceptionExecution {
         return new RuntimeRaisedException(replacement,meter);
       }
     },meter);
+    let result:InstanceValue;
+    const code=frame instanceof LexicalFrame?frame.code:undefined;
     if(kind==="async-generator") {
       meter.checkpoint(0,64);
-      return values.instance(this.registry.asyncGeneratorType(),undefined,Object.freeze({kind:"async_generator",execution,exceptions:this,activity:{running:false,closed:false}}));
+      result=values.instance(this.registry.asyncGeneratorType(),undefined,Object.freeze({kind:"async_generator",execution,exceptions:this,code,activity:{running:false,closed:false}}));
     }
-    return values.instance(kind==="generator"?this.registry.generatorType():this.registry.coroutineType(),undefined,Object.freeze({kind,execution,exceptions:this}));
+    else result=values.instance(kind==="generator"?this.registry.generatorType():this.registry.coroutineType(),undefined,Object.freeze({kind,execution,exceptions:this,code}));
+    if(frame instanceof LexicalFrame)this.registry.registerFrameGenerator(frame,result);
+    return result;
   }
 
   private exceptionClass(value:RuntimeValue) {

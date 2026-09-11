@@ -22,6 +22,8 @@ export interface GeneratorDelegation<Value> {
 
 export interface GeneratorExecutionContext<Value> {
   readonly none:Value;
+  /** Optional interpreter activation; released with the body on termination. */
+  readonly frame?:object;
   readonly kind?:GeneratorKind;
   readonly delegation?:GeneratorDelegation<Value>;
   /** Host-only frame/handled-exception activation. Failure must restore its own
@@ -57,6 +59,7 @@ export class GeneratorExecution<Value> {
     meter.checkpoint(1,120);this.#driver=driver;this.#context=context;this.#none=context.none;this.#kind=context.kind??"generator";Object.freeze(this);
   }
   get phase():GeneratorPhase{return this.#phase;}
+  get frame():object|undefined{return this.#context?.frame;}
   get delegating():boolean{return this.#phase==="suspended"&&this.#context?.delegation?.active===true;}
   get yieldFrom():Value{return this.delegating?this.#context!.delegation!.target??this.#none:this.#none;}
 

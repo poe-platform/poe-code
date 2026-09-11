@@ -405,6 +405,29 @@ it.each([false,true].flatMap(asynchronous=>["close","throw"].map(operation=>({as
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it.each(["generator","coroutine","async-generator"].flatMap(kind=>["return","throw","close","unstarted-close","unstarted-throw"].map(finish=>({kind,finish}))))("reflects native $kind frame ownership through $finish",({kind,finish})=>{
+  const state=exceptionFixture(),{v}=state;
+  state.hooks.code=state.registry.code.bind(state.registry);
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){return state.registry.frame(state.calls.current as RuntimeFrame);}}));
+  state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  const prefix=kind==="generator"?"gi":kind==="coroutine"?"cr":"ag",declaration=kind==="generator"?"":"async ";
+  const next=kind==="async-generator"?"gen.__anext__().send(None)":"gen.send(None)";
+  const close=kind==="async-generator"?"gen.aclose().send(None)":"gen.close()";
+  const end=finish==="return"?next:finish.endsWith("throw")?(kind==="async-generator"?"gen.athrow(ValueError()).send(None)":"gen.throw(ValueError())"):close;
+  const unstarted=finish.startsWith("unstarted");
+  state.run(`class Pause:\n def __await__(self):yield 7\nseen=[]\n${declaration}def g(x):\n frame=current_frame()\n seen.append(frame.f_generator is gen and gen.${prefix}_frame is frame and x==9)\n ${kind==="coroutine"?"await Pause()":"yield x"}\ngen=g(7)\nframe=gen.${prefix}_frame\ncode=gen.${prefix}_code\ncreated=frame is gen.${prefix}_frame and frame.f_generator is gen and frame.f_back is None and code is g.__code__ and frame.f_code is code and frame.f_locals['x']==7\nframe.f_locals['x']=9\n${unstarted?"":"try:"+next+"\nexcept StopIteration:pass\n"}paused=frame.f_generator is gen and gen.${prefix}_frame is frame\ntry:${end}\nexcept (StopIteration,StopAsyncIteration,ValueError):pass\nclosed=gen.${prefix}_frame is None and frame.f_generator is None and gen.${prefix}_code is code and frame.f_code is code\nerrors=[]\ntry:gen.${prefix}_frame=None\nexcept AttributeError:errors.append(1)\ntry:del gen.${prefix}_code\nexcept AttributeError:errors.append(2)\ntry:frame.f_generator=None\nexcept AttributeError:errors.append(3)\ncorrect=created and paused and closed and errors==[1,2,3] and seen==${unstarted?"[]":"[True]"}\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each(["generator","coroutine","async-generator"])("retains native %s frame ownership when close is ignored",kind=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("GeneratorExit",state.registry.exceptionType("GeneratorExit"));
+  const prefix=kind==="generator"?"gi":kind==="coroutine"?"cr":"ag",declaration=kind==="generator"?"":"async ";
+  const next=kind==="async-generator"?"gen.__anext__().send(None)":"gen.send(None)",close=kind==="async-generator"?"gen.aclose().send(None)":"gen.close()",suspend=kind==="coroutine"?"await Pause()":"yield 7";
+  state.run(`class Pause:\n def __await__(self):yield 7\n${declaration}def g():\n try:${suspend}\n except GeneratorExit:${suspend}\ngen=g()\nframe=gen.${prefix}_frame\ntry:${next}\nexcept StopIteration:pass\ntry:${close}\nexcept RuntimeError:ignored=True\nretained=gen.${prefix}_frame is frame and frame.f_generator is gen\ntry:${next}\nexcept (StopIteration,StopAsyncIteration):pass\ncorrect=ignored and retained and gen.${prefix}_frame is None and frame.f_generator is None\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("reflects native frame line numbers during calls and after return",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));

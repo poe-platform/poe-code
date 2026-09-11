@@ -6,6 +6,7 @@ import {FrameLocalsMapping} from "./frame-locals-mapping.js";
 import type {RuntimeFrame} from "./runtime-program.js";
 import {installRuntimeFrameLocalsProxyDescriptors} from "./runtime-frame-locals-proxy.js";
 import {installRuntimeFrameDescriptors} from "./runtime-frame.js";
+import {installRuntimeSuspensionMetadata} from "./runtime-suspension-metadata.js";
 import {installRuntimeTracebackDescriptors,type RuntimeTracebackState} from "./runtime-traceback.js";
 import {Traceback} from "./traceback.js";
 import {createTracebackNewBuiltin} from "./builtin-traceback-new.js";
@@ -120,6 +121,7 @@ export class RuntimeTypeRegistry {
   readonly #codes=new WeakMap<RuntimeCompiledCode,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #tracebacks=new WeakMap<Traceback<RuntimeFrame>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frames=new WeakMap<RuntimeFrame,Extract<RuntimeValue,{kind:"instance"}>>();
+  readonly #frameGenerators=new WeakMap<RuntimeFrame,WeakRef<Extract<RuntimeValue,{kind:"instance"}>>>();
   readonly #frameLocalsMappings=new WeakMap<RuntimeFrame,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
   #sliceType: TypeValue | undefined;
   #rangeType: TypeValue | undefined;
@@ -466,6 +468,7 @@ export class RuntimeTypeRegistry {
     const layout=new RuntimeTypeLayout("generator",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:true,subclassable:false,instantiable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     installRuntimeGeneratorDescriptors(type,this.values,this.meter);
+    installRuntimeSuspensionMetadata(type,"gi",this.values,this.meter,this.frame.bind(this),this.code.bind(this));
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#generatorType=type;
     return type;
@@ -478,6 +481,7 @@ export class RuntimeTypeRegistry {
     const layout=new RuntimeTypeLayout(kind,[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:kind==="coroutine",subclassable:false,instantiable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     installRuntimeGeneratorDescriptors(type,this.values,this.meter,kind==="coroutine"?()=>this.coroutineType("coroutine_wrapper"):undefined);
+    if(kind==="coroutine")installRuntimeSuspensionMetadata(type,"cr",this.values,this.meter,this.frame.bind(this),this.code.bind(this));
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#coroutineTypes.set(kind,type);
     return type;
   }
@@ -489,6 +493,7 @@ export class RuntimeTypeRegistry {
     const layout=new RuntimeTypeLayout(kind,[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:kind==="async_generator",subclassable:false,instantiable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     installRuntimeAsyncGeneratorDescriptors(type,this.values,this.meter,kind=>this.asyncGeneratorType(kind));
+    if(kind==="async_generator")installRuntimeSuspensionMetadata(type,"ag",this.values,this.meter,this.frame.bind(this),this.code.bind(this));
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#asyncGeneratorTypes.set(kind,type);
     return type;
   }
@@ -546,13 +551,25 @@ export class RuntimeTypeRegistry {
     this.#codes.set(code,result);return result;
   }
 
+  /** A retained frame must not itself keep its generator alive. Finalization
+   * policy is separate; completed owners are filtered by their execution state. */
+  registerFrameGenerator(frame:RuntimeFrame,generator:Extract<RuntimeValue,{kind:"instance"}>):void {
+    this.meter.checkpoint(0,64);
+    const state=generator.native;
+    if((state?.kind!=="generator"&&state?.kind!=="coroutine"&&state?.kind!=="async_generator")||state.execution.frame!==frame)throw Error("generator does not own the supplied frame");
+    this.#frameGenerators.set(frame,new WeakRef(generator));
+  }
+
   frame(frame:RuntimeFrame):Extract<RuntimeValue,{kind:"instance"}> {
     this.meter.checkpoint();const existing=this.#frames.get(frame);if(existing!==undefined)return existing;
     if(this.#frameType===undefined){
       const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
       const layout=new RuntimeTypeLayout("frame",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
       const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
-      installRuntimeFrameDescriptors(type,this.values,this.meter,this.frameLocalsProxy.bind(this),this.code.bind(this),this.frame.bind(this));
+      installRuntimeFrameDescriptors(type,this.values,this.meter,this.frameLocalsProxy.bind(this),this.code.bind(this),this.frame.bind(this),frame=>{
+        const generator=this.#frameGenerators.get(frame)?.deref(),state=generator?.native;
+        return generator!==undefined&&(state?.kind==="generator"||state?.kind==="coroutine"||state?.kind==="async_generator")&&state.execution.frame===frame?generator:this.values.none;
+      });
       this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#frameType=type;
     }
     this.meter.checkpoint(0,96);

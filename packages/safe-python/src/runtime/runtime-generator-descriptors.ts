@@ -4,7 +4,8 @@ import type { RuntimeValue,RuntimeValues,TypeValue } from "./runtime-values.js";
 import { throwRuntimeGenerator } from "./runtime-generator-throw-request.js";
 
 /** Exact generator, coroutine and await-wrapper slots share descriptor dispatch.
- * Frame/code metadata, traceback attachment and finalization are separate work. */
+ * Frame/code descriptors are installed separately; traceback attachment and
+ * finalization remain separate lifecycle responsibilities. */
 export function installRuntimeGeneratorDescriptors(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,wrapperType?:()=>TypeValue):void {
   meter.checkpoint(0,256);
   const kind=owner.value.name;

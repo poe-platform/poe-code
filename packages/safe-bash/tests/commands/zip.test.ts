@@ -236,10 +236,10 @@ test("zip copies reusable read fragments and prepares all files before publicati
         completed = true;
       } };
     },
-    async writeFile(path, bytes, options) {
+    async createStagedFile(path, name, content, options) {
       assert.equal(completed, true);
       writes++;
-      return fs.writeFile(path, bytes, options);
+      return fs.createStagedFile!(path, name, content, options);
     },
   });
   assert.equal((await run(observed, ["bundle", "file", "tree/child"])).exitCode, 0);
@@ -364,12 +364,12 @@ for (const stop of [false, 0, "", null, "dispose"]) test(`zip drains an admitted
   let disposed = false;
   let writeSignal: AbortSignal | undefined;
   let disposal: Promise<void> | undefined;
-  const observed = wrapped(fs, { async writeFile(path, bytes, options) {
+  const observed = wrapped(fs, { async createStagedFile(path, name, content, options) {
     entered = true;
     writeSignal = options?.signal;
     try {
       await held;
-      await fs.writeFile(path, bytes, options);
+      return await fs.createStagedFile!(path, name, content, options);
     } finally { completed = true; finish(); }
   } });
   const shell = new Shell({ fs: observed, cwd: "/work" });
@@ -421,7 +421,7 @@ test("zip registers cleanup before filesystem admission and rejects new publicat
       }
       return fs.capabilities;
     },
-    async writeFile(path, bytes, options) { writes++; return fs.writeFile(path, bytes, options); },
+    async createStagedFile(path, name, content, options) { writes++; return fs.createStagedFile!(path, name, content, options); },
   });
   await assert.rejects(run(observed, ["bundle", "file"], {}, { registerCleanup(callback) { cleanup = callback; } }), reason => Object.is(reason, closingSignal?.reason));
   assert.equal(closure, repeatedClosure);
@@ -486,10 +486,9 @@ test("zip stages failed writes without destroying the old archive or leaving tem
   assert.equal((await run(fs, ["bundle", "file"])).exitCode, 0);
   const before = await fs.readFile("/work/bundle.zip");
   let failedPath: string | undefined;
-  const broken = wrapped(fs, { async writeFile(path, bytes, options) {
-    await fs.writeFile(path, bytes.subarray(0, 17), options);
+  const broken = wrapped(fs, { async createStagedFile(path) {
     failedPath = path;
-    throw new FsError("ENOSPC", { path, syscall: "writeFile" });
+    throw new FsError("ENOSPC", { path, syscall: "createStagedFile" });
   } });
   const result = await run(broken, ["bundle", "tree/child"]);
   assert.equal(result.exitCode, 2);
@@ -506,7 +505,7 @@ test("zip staged replacement preserves output mode and leaves temporary-name col
   const collision = new TextEncoder().encode("not owned by zip");
   await fs.writeFile("/work/.zip-1", collision);
   let source: string | undefined;
-  const observed = wrapped(fs, { async rename(from, to, options) { source = from; return fs.rename(from, to, options); } });
+  const observed = wrapped(fs, { async publishStagedFile(staging, to, options) { source = staging.file.path; return fs.publishStagedFile!(staging, to, options); } });
   assert.equal((await run(observed, ["bundle", "tree/child"])).exitCode, 0);
   assert.notEqual(source, undefined);
   assert.equal((await fs.stat("/work/bundle.zip")).mode & 0o7777, 0o640);
@@ -518,6 +517,8 @@ test("zip new archives honor provider modes while updates preserve existing mode
   const fs = await fixture();
   const defaults = wrapped(fs, { async writeFile(path, bytes, options) {
     await fs.writeFile(path, bytes, { ...options, mode: options?.mode ?? 0o644 });
+  }, async createStagedFile(path, name, content, options) {
+    return fs.createStagedFile!(path, name, content, { ...options, mode: options.mode ?? 0o644 });
   } });
   await defaults.writeFile("/work/control", Buffer.from("control"));
   const shell = new Shell({ fs: defaults, cwd: "/work" });
@@ -540,13 +541,16 @@ test("zip checks staging ownership after writes before restoring archive mode", 
   await fs.mkdir("/outside");
   let outside: Uint8Array | undefined;
   let staging = "";
-  const replaced = wrapped(fs, { async writeFile(path, bytes, options) {
-    await fs.writeFile(path, bytes, options);
+  const replaced = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    assert.equal(content.type, "file");
+    const bytes = content.type === "file" ? content.data : new Uint8Array();
     outside = Uint8Array.from(bytes);
     await fs.writeFile("/outside/archive.zip", bytes, { mode: 0o600 });
-    staging = path.slice(0, path.lastIndexOf("/"));
+    staging = path;
     await fs.rename(staging, "/work/held-stage");
     await fs.symlink!("/outside", staging);
+    return receipt;
   } });
   const shell = new Shell({ fs: replaced, cwd: "/work" });
   shell.commands.register(createZipCommand());
@@ -559,7 +563,7 @@ test("zip checks staging ownership after writes before restoring archive mode", 
   } finally { await shell.dispose(); }
 });
 
-for (const replacement of [false, true]) test(`zip unknown-identity acquisition limitation preserves ${replacement ? "foreign replacements" : "unverified directories"} after draining cancellation`, async () => {
+for (const replacement of [false, true]) test(`zip atomic acquisition preserves ${replacement ? "foreign replacements" : "owned cleanup"} after draining cancellation`, async () => {
   const fs = await fixture();
   assert.equal((await run(fs, ["bundle", "file"])).exitCode, 0);
   await fs.chmod!("/work/bundle.zip", 0o640);
@@ -576,9 +580,8 @@ for (const replacement of [false, true]) test(`zip unknown-identity acquisition 
   let settled = false;
   let staging = "";
   let acquisitionSignal: AbortSignal | undefined;
-  const acquired = wrapped(fs, { async mkdir(path, options) {
-    await fs.mkdir(path, options);
-    if (!path.startsWith("/work/.zip-")) return;
+  const acquired = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
     staging = path;
     acquisitionSignal = options?.signal;
     if (replacement) {
@@ -587,7 +590,7 @@ for (const replacement of [false, true]) test(`zip unknown-identity acquisition 
     }
     entered = true;
     controller.abort(false);
-    try { await held; }
+    try { await held; return receipt; }
     finally { completed = true; }
   } });
   const shell = new Shell({ fs: acquired, cwd: "/work" });
@@ -611,11 +614,13 @@ for (const replacement of [false, true]) test(`zip unknown-identity acquisition 
     assert.equal((await fs.stat("/outside/archive.zip")).mode & 0o777, 0o600);
     assert.equal((await fs.stat("/outside")).mode & 0o777, 0o701);
     if (replacement) assert.equal(await fs.readlink!(staging), "/outside");
-    const retained = replacement ? "/work/held-stage" : staging;
-    assert.equal((await fs.lstat(retained)).type, "directory");
-    assert.equal((await fs.lstat(retained)).mode & 0o777, 0o700);
-    assert.deepEqual(await fs.readdir(retained), []);
-    assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), replacement ? [".zip-1", "bundle.zip", "file", "held-stage", "tree"] : [".zip-1", "bundle.zip", "file", "tree"]);
+    if (replacement) {
+      const retained = "/work/held-stage";
+      assert.equal((await fs.lstat(retained)).type, "directory");
+      assert.equal((await fs.lstat(retained)).mode & 0o777, 0o700);
+      assert.deepEqual((await fs.readdir(retained)).map(entry => entry.name), ["archive.zip"]);
+    } else await assert.rejects(fs.lstat(staging));
+    assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), replacement ? [".zip-1", "bundle.zip", "file", "held-stage", "tree"] : ["bundle.zip", "file", "tree"]);
     assert.equal((await shell.exec(":")).exitCode, 0);
   } finally {
     release();

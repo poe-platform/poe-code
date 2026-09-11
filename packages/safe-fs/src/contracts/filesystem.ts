@@ -13,6 +13,7 @@ export interface FileStat {
   readonly atimeMs: number;
   readonly ctimeMs: number;
   readonly birthtimeMs?: number;
+  readonly revision?: number;
   readonly identityScope?: object | symbol;
   readonly ino?: number;
   readonly dev?: number;
@@ -55,6 +56,9 @@ export interface FileSystemCapabilities {
   readonly permissions?: boolean;
   readonly timestamps?: boolean;
   readonly atomicRename?: boolean;
+  readonly atomicFileStaging?: boolean;
+  readonly atomicFileMutation?: boolean;
+  readonly atomicDirectoryMetadata?: boolean;
   readonly atomicRenameNoReplace?: boolean;
   readonly snapshotRmdir?: boolean;
   readonly streamingRead?: boolean;
@@ -163,8 +167,61 @@ export interface ReadStreamOptions extends FsOptions {
   readonly chunkSize?: number;
 }
 
+export interface ConditionalWriteFileOptions extends FsOptions {
+  readonly parent: FileStat;
+  readonly expected: FileStat | null;
+  readonly append?: boolean;
+  readonly mode?: number;
+}
+
+export interface ConditionalRemoveFileOptions extends FsOptions {
+  readonly parent: FileStat;
+  readonly expected: FileStat;
+}
+
+export interface FileStagingEntry {
+  readonly path: string;
+  readonly stat: FileStat;
+}
+
+export interface FileStaging {
+  readonly parent: FileStagingEntry;
+  readonly directory: FileStagingEntry;
+  readonly file: FileStagingEntry;
+}
+
+export type StagedFileContent =
+  | { readonly type: "file"; readonly data: Uint8Array }
+  | { readonly type: "symlink"; readonly target: string };
+
+export interface CreateStagedFileOptions extends FsOptions {
+  readonly parent: FileStat;
+  readonly mode?: number;
+  readonly atimeMs?: number;
+  readonly mtimeMs?: number;
+}
+
+export interface PublishStagedFileOptions extends FsOptions {
+  readonly parent: FileStat;
+  readonly destination: FileStat | null;
+}
+
+export interface PrepareDirectoryOptions extends FsOptions {
+  readonly expected: FileStat | null;
+  readonly parent: FileStat;
+  readonly mode?: number;
+  readonly atimeMs?: number;
+  readonly mtimeMs?: number;
+}
+
 export interface FileSystem {
+  writeFileConditional?(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat>;
+  removeFileConditional?(path: string, options: ConditionalRemoveFileOptions): Promise<void>;
   readonly capabilities: FileSystemCapabilities;
+  prepareDirectory?(path: string, options: PrepareDirectoryOptions): Promise<FileStat>;
+  createStagedFile?(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging>;
+  publishStagedFile?(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void>;
+  removeStagedFile?(staging: FileStaging, options?: FsOptions): Promise<void>;
   openReadFile?(path: string, options?: OpenReadFileOptions): Promise<FileReadHandle>;
   openResizeFile?(path: string, options?: OpenResizeFileOptions): Promise<FileResizeHandle>;
   /** Missing targets reject ENOENT unless create is true; existing bytes survive refusals. */

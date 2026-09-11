@@ -1,4 +1,4 @@
-import { dirname, isPathWithin, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat } from "../../../contracts/index.js";
+import { dirname, isPathWithin, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat, type FileStaging } from "../../../contracts/index.js";
 import { retainFileSystemCleanup } from "poe-code/safe-fs/core";
 import { checkPath, display, fail, hasIdentity, sameIdentity, type ArchiveLimits } from "../internal.js";
 
@@ -74,12 +74,22 @@ export class Extraction {
     const { fs, signal } = this.context;
     for (const component of raw.split("/")) {
       if (!component || component === ".") continue;
+      const parent = await this.operation(() => fs.lstat(current, { signal }));
       current = resolvePath(current, component);
       const stat = await this.stat(current);
-      if (!stat && create) await this.operation(() => fs.mkdir(current, { signal, mode: 0o755 }));
+      if (!stat && create) await this.createDirectory(current, parent);
       else if (!stat || stat.type !== "directory") fail(`unsafe non-directory or symlink ancestor: ${display(current)}`);
     }
     return current;
+  }
+  async createDirectory(path: string, parent: FileStat): Promise<FileStat> {
+    const { fs, signal } = this.context;
+    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
+    if (capabilities.atomicDirectoryMetadata !== true || !fs.prepareDirectory) fail("extraction requires atomic directory creation");
+    return this.operation(() => fs.prepareDirectory!(path, {
+      signal, parent, expected: null,
+      ...(capabilities.permissions === false ? {} : { mode: 0o755 }),
+    }));
   }
   async parents(root: string, path: string, create: boolean): Promise<void> {
     if (!isPathWithin(root, path)) fail("extraction path escapes root");
@@ -143,75 +153,61 @@ export class Extraction {
     const current = await this.stat(path);
     if (!current || current.type !== expected.type || !sameIdentity(current, expected)) fail("extraction entry changed before mutation");
   }
-  async metadata(root: string, path: string, identity: FileStat, mode: number, modified: Date): Promise<void> {
+  async metadata(root: string, path: string, identity: FileStat, parent: FileStat, mode: number, modified: Date): Promise<void> {
     const { fs, signal } = this.context;
-    if (fs.chmod && fs.capabilities.permissions !== false) {
-      await this.checked(root, path, identity);
-      await this.operation(() => fs.chmod!(path, mode & 0o777, { signal }));
-    }
-    if (fs.utimes && fs.capabilities.timestamps !== false) {
-      await this.checked(root, path, identity);
-      await this.operation(() => fs.utimes!(path, modified.getTime(), modified.getTime(), { signal }));
-    }
+    await this.parents(root, path, false);
+    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
+    if (capabilities.permissions === false && capabilities.timestamps === false) return;
+    if (capabilities.atomicDirectoryMetadata !== true || !fs.prepareDirectory) fail("extraction metadata requires atomic entry conditions");
+    await this.operation(() => fs.prepareDirectory!(path, {
+      signal, expected: identity, parent,
+      ...(capabilities.permissions === false ? {} : { mode: mode & 0o777 }),
+      ...(capabilities.timestamps === false ? {} : { atimeMs: modified.getTime(), mtimeMs: modified.getTime() }),
+    }));
   }
-  publish(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, mode: number, modified: Date, target?: string): Promise<void> {
-    const publication = this.stage(root, path, chunks, expected, mode, modified, target);
+  publish(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target?: string): Promise<void> {
+    const publication = this.stage(root, path, chunks, expected, parent, mode, modified, target);
     this.publications.add(publication);
     return publication.finally(() => { this.publications.delete(publication); });
   }
-  private async stage(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, mode: number, modified: Date, target: string | undefined): Promise<void> {
+  private async stage(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target: string | undefined): Promise<void> {
     const { fs, signal } = this.context;
-    let temporary = "";
-    let identity: FileStat | undefined;
-    let created = false;
+    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
+    if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic owned file staging");
+    let staging: FileStaging | undefined;
     let failure: { reason: unknown } | undefined;
     const cleanup = retainFileSystemCleanup(fs, async view => {
-      if (!created || !identity) return;
-      try {
-        let parent = "/";
-        for (const component of dirname(temporary).split("/").filter(Boolean)) {
-          parent = resolvePath(parent, component);
-          if ((await view.lstat(parent)).type !== "directory") return;
-        }
-        const current = await view.lstat(temporary);
-        if (current.type === identity.type && sameIdentity(current, identity)) await view.rm(temporary);
-      } catch (error) {
-        if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "ENOENT") throw error;
+      if (staging) {
+        if (!view.removeStagedFile) fail("extraction atomic cleanup unavailable");
+        await view.removeStagedFile(staging);
       }
     }, { maxOperations: Math.min(4096, this.limits.maxDepth + 3) });
     try {
-      await this.parents(root, path, true);
-      for (let attempt = 0; attempt < this.limits.maxMembers; attempt++) {
-        temporary = resolvePath(dirname(path), `.unzip-${++this.serial}`);
-        checkPath(temporary, this.limits);
-        if (temporary === path || await this.stat(temporary)) continue;
-        await this.operation(async () => {
-          if (target === undefined) await fs.writeFile(temporary, new Uint8Array(), { signal, flag: "wx", mode: 0o600 });
-          else await fs.symlink!(target, temporary, { signal });
-          created = true;
-          identity = await fs.lstat(temporary);
-        });
-        if (!identity || !hasIdentity(identity)) fail("temporary file backing identity unavailable");
-        break;
-      }
-      if (!created) fail("temporary file attempt limit exceeded");
-      if (target === undefined) {
-        for (const chunk of chunks) {
-          await this.checked(root, temporary, identity!);
-          await this.operation(() => fs.appendFile(temporary, chunk, { signal }));
-        }
-        await this.metadata(root, temporary, identity!, mode, modified);
-      }
       await this.parents(root, path, false);
-      const current = await this.stat(path);
-      if (current ? !expected || !sameIdentity(current, expected) || current.type !== "file" : expected !== undefined) fail("destination changed before publication");
-      const staging = await this.stat(temporary);
-      if (!staging || !identity || !sameIdentity(staging, identity) || staging.type !== (target === undefined ? "file" : "symlink")) fail("temporary file changed before publication");
-      await this.operation(() => fs.rename(temporary, path, { signal }));
-      created = false;
-    } catch (error) {
-      failure = { reason: error };
-    }
+      const content = target === undefined ? { type: "file" as const, data: Buffer.concat(chunks) } : { type: "symlink" as const, target };
+      for (let attempt = 0; attempt < this.limits.maxMembers; attempt++) {
+        const temporary = resolvePath(dirname(path), `.unzip-${++this.serial}`);
+        checkPath(temporary, this.limits);
+        checkPath(`${temporary}/entry`, this.limits);
+        if (temporary === path) continue;
+        try {
+          await this.operation(async () => {
+            staging = await fs.createStagedFile!(temporary, "entry", content, {
+              signal, parent,
+              ...(target !== undefined || capabilities.permissions === false ? {} : { mode: mode & 0o777 }),
+              ...(target !== undefined || capabilities.timestamps === false ? {} : { atimeMs: modified.getTime(), mtimeMs: modified.getTime() }),
+            });
+          });
+          break;
+        } catch (error) {
+          signal.throwIfAborted();
+          if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "EEXIST") throw error;
+        }
+      }
+      if (!staging) fail("temporary file attempt limit exceeded");
+      await this.parents(root, path, false);
+      await this.operation(() => fs.publishStagedFile!(staging!, path, { signal, parent, destination: expected ?? null }));
+    } catch (error) { failure = { reason: error }; }
     try { await cleanup(); }
     catch (error) {
       if (failure) throw new AggregateError([failure.reason, error], "unzip publication and cleanup failed");

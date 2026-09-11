@@ -23,6 +23,11 @@ it("bounds cyclic abstract base graphs without using the host call stack",()=>{
   s.invocation.attribute=()=>cycle;
   expect(()=>runtimeRealClassSubclass(s.v.none,s.target,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:10000}),s.invocation)).toThrow(ExecutionLimitError);
 });
+it("does not enumerate abstract base siblings after an immediate successful branch",()=>{
+  const s=fixture(),bases=s.v.tuple([s.target,...Array<RuntimeValue>(10000).fill(s.v.none)]);
+  s.invocation.attribute=()=>bases;
+  expect(runtimeRealClassSubclass(s.v.none,s.target,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:1000}),s.invocation)).toBe(true);
+});
 it("walks deep single-base chains iteratively and short circuits later branches",()=>{
   const s=fixture(),nodes=Array.from({length:10000},(_,index)=>s.v.integer(index)),bases=new Map<RuntimeValue,RuntimeValue>();
   for(let index=0;index<nodes.length;index++)bases.set(nodes[index],s.v.tuple([nodes[index+1]??s.target]));

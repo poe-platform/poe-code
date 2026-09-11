@@ -44,6 +44,7 @@ import {LexicalFrame} from "./lexical-frame.js";
 import type {LexicalNamespaces} from "./lexical-frame.js";
 import {RuntimeDictionaryNamespace} from "./runtime-dictionary-namespace.js";
 import {Traceback} from "./traceback.js";
+import {createTypePredicateBuiltin} from "./builtin-type-predicate.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -486,6 +487,26 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("short circuits nested class tuples before invalid later entries",()=>{
+  const state=exceptionFixture(),{v}=state;for(const name of ["isinstance","issubclass"] as const)state.builtins.set(name,createTypePredicateBuiltin(name,v,state.meter));
+  state.run("class C:pass\nclass D(C):pass\ncorrect=isinstance(D(),((),(C,7))) and issubclass(D,((),(C,7))) and not isinstance(7,()) and not issubclass(7,())\nerrors=[]\ntry:isinstance(7,(C,7))\nexcept TypeError:errors.append(1)\ntry:issubclass(7,(C,7))\nexcept TypeError:errors.append(2)\ncorrect=correct and errors==[1,2]\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("distinguishes exact instance identity from virtual subclass checks",()=>{
+  const state=exceptionFixture(),{v}=state;for(const name of ["isinstance","issubclass"] as const)state.builtins.set(name,createTypePredicateBuiltin(name,v,state.meter));
+  state.run("events=[]\nclass Meta(type):\n def __instancecheck__(cls,value):\n  events.append('instance')\n  return False\n def __subclasscheck__(cls,value):\n  events.append('subclass')\n  return False\nclass C(metaclass=Meta):pass\nclass D(C):pass\ncorrect=isinstance(C(),C) and not isinstance(D(),C) and not issubclass(C,C) and events==['instance','subclass']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("supports class-like targets and virtual predicate objects",()=>{
+  const state=exceptionFixture(),{v}=state;for(const name of ["isinstance","issubclass"] as const)state.builtins.set(name,createTypePredicateBuiltin(name,v,state.meter));
+  state.run("class Target:__bases__=()\ntarget=Target()\nclass Subject:__class__=target\nclass Derived:__bases__=(target,)\nclass Predicate:\n def __instancecheck__(self,value):return [1]\n def __subclasscheck__(self,value):return []\ncorrect=isinstance(Subject(),target) and issubclass(Derived(),target) and isinstance(None,Predicate()) and not issubclass(None,Predicate())\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("uses tuple-subclass storage for class information without guest sequence callbacks",()=>{
+  const state=exceptionFixture(),{v}=state;state.builtins.set("tuple",state.registry.tupleType());for(const name of ["isinstance","issubclass"] as const)state.builtins.set(name,createTypePredicateBuiltin(name,v,state.meter));
+  state.run("class C:pass\nclass T(tuple):\n def __iter__(self):raise AssertionError('iter')\n def __len__(self):raise AssertionError('len')\n def __getitem__(self,key):raise AssertionError('getitem')\n def __instancecheck__(self,value):raise AssertionError('instance')\n def __subclasscheck__(self,value):raise AssertionError('subclass')\nclasses=T((C,))\ncorrect=isinstance(C(),classes) and issubclass(C,classes)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("exposes default type instance and subclass checks without reentering virtual overrides",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("events=[]\nclass Meta(type):\n def __instancecheck__(cls,value):\n  events.append('instance')\n  return type.__instancecheck__(cls,value)\n def __subclasscheck__(cls,value):\n  events.append('subclass')\n  return type.__subclasscheck__(cls,value)\nclass C(metaclass=Meta):pass\nclass D(C):pass\ncorrect=C.__instancecheck__(D()) and C.__subclasscheck__(D) and not C.__instancecheck__(7) and not C.__subclasscheck__(object) and events==['instance','subclass','instance','subclass']\n");

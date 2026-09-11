@@ -49,6 +49,13 @@ it("registers anext with explicit default wrapping",()=>{
   expect(builtin.value.invoke([v.none],keywords,meter)).toBe(v.false);
   expect(builtin.value.invoke([v.none,v.true],keywords,meter)).toEqual(v.tuple([v.false,v.true]));
 });
+it("registers both public type predicates",()=>{
+  const {meter,v,context}=fixture(),builtins=createRuntimeBuiltins(v,meter,context);
+  for(const name of ["isinstance","issubclass"]){
+    const value=builtins.get(name);expect(value?.kind).toBe("builtin_function_or_method");
+    if(value?.kind==="builtin_function_or_method")expect(value.value.name).toBe(name);
+  }
+});
 it("registers aiter with the configured async acquisition policy",()=>{
   const {meter,v,context,keywords}=fixture();
   context.aiter={lookupSpecial:()=>v.true,hasSpecial:()=>true,call:()=>v.false,typeName:()=>"Custom"};

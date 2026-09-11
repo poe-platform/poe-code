@@ -29,11 +29,13 @@ import { createRoundBuiltin } from "./builtin-round.js";
 import { createSortedBuiltin } from "./builtin-sorted.js";
 import { createSumBuiltin } from "./builtin-sum.js";
 import { createZipBuiltin } from "./builtin-zip.js";
+import {createTypePredicateBuiltin} from "./builtin-type-predicate.js";
 
 /** Execution-owned capabilities; contracts stay derived from their factories.
  * Optional protocols retain each factory's native fallback. Required policies
  * never fall back to host attributes, console output or filesystem access. */
 export interface RuntimeBuiltinContexts {
+  typeChecks?:Parameters<typeof createTypePredicateBuiltin>[3];
   abs?: Parameters<typeof createAbsBuiltin>[2];
   aiter?:Parameters<typeof createAiterBuiltin>[2];
   anext?:Parameters<typeof createAnextBuiltin>[2];
@@ -78,6 +80,7 @@ export function createRuntimeBuiltins(values: RuntimeValues, meter: ExecutionMet
     namespace.set(value.value.name, value);
   };
   register(createAbsBuiltin(values, meter, context.abs));
+  for(const name of ["isinstance","issubclass"] as const)register(createTypePredicateBuiltin(name,values,meter,context.typeChecks));
   register(createAiterBuiltin(values,meter,context.aiter));
   register(createAnextBuiltin(values,meter,context.anext));
   for (const name of ["all", "any"] as const) register(createAllAnyBuiltin(name, values, meter, context.allAny));

@@ -11646,6 +11646,35 @@ extension, integration, or validation requirement is missing or unverified.
   not their public argument-dispatch surface or ABC registration.
   References: https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/abstract.c
   and https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/object.c
+- Public type predicates (2026-09-11): a failing builtin-assembly test reproduced
+  the absence of isinstance and issubclass. Both functions are now registered,
+  validate positional arity/keyword rejection before dispatch and accept an
+  explicit typeChecks context or the execution invocation policy. Runtime
+  predicate dispatch supports actual types, nested tuples (including tuple
+  subclass storage), metaclass and arbitrary predicate-object special methods,
+  apparent classes and class-like __bases__ targets. Exact instance identity
+  bypasses virtual instance checks; custom subclass checks do not receive that
+  shortcut. Guest truth and descriptor failures preserve normal ordering.
+  Shared abstract-base helpers now serve generalized default instance/subclass
+  checks without guest iteration. No new host discovery or filesystem capability
+  is introduced. Two failing resource tests exposed eager queuing of unused tuple
+  alternatives and abstract-base siblings; both traversals now retain lazy
+  indexed frames and stop before inspecting later alternatives after success.
+  Tests cover 10,000 nested tuples, an equally deep base chain, bounded cyclic
+  graphs, early success within a small budget and cancellation over lookup,
+  call, truth and actual-type callback faults. Tuple-subclass sequence and
+  predicate overrides do not replace owned tuple storage.
+  The focused five-file suite passes 1,062 tests. All 332 new scoped CPython
+  comparisons match: 192 type/tuple/class-like cases, 80 virtual-check cases and
+  60 descriptor/error/argument cases. The earlier 1,880 type-check and matching
+  comparisons also pass, for 2,212 scoped CPython comparisons in total. Workspace
+  build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,146 tests in 534 files
+  (138.17s; test bodies 10.95s).
+  Runtime union and parameterized-generic objects are not implemented yet, so
+  their construction and class-information paths remain required work. This
+  milestone does not claim complete public predicate compatibility or full Python.
+  Reference: https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/abstract.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

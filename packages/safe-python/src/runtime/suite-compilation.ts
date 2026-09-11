@@ -12,18 +12,20 @@ export function compileSuite<Value>(
   body: readonly Statement[], stripDocstring: boolean,
   constants: Pick<CodeConstants<Value>, "string">, meter: ExecutionMeter
 ): { readonly docstring: { readonly value: Value } | undefined; readonly statements: readonly Statement[] } {
-  meter.checkpoint();
+  try {
+  meter.checkpoint(1, 80);
   const first = body[0];
   const hasDocstring = first?.kind === "expression-statement" && first.expression.kind === "literal" && first.expression.literalKind === "string";
   let docstring: { readonly value: Value } | undefined;
   if (hasDocstring && !stripDocstring) {
     const text = cleanDocstring(first.expression.value as Uint32Array, meter);
-    meter.checkpoint();
+    meter.checkpoint(1, 32);
     docstring = { value: constants.string(text) };
   }
   const statements: Statement[] = [];
   for (let index = hasDocstring ? 1 : 0; index < body.length; index++) {
-    meter.checkpoint(); statements.push(body[index]);
+    meter.checkpoint(1, 8); statements.push(body[index]);
   }
   return { docstring, statements };
+  } finally { meter.checkpoint(); }
 }

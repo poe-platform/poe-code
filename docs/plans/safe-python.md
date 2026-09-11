@@ -12122,6 +12122,25 @@ extension, integration, or validation requirement is missing or unverified.
   (254.51s; test bodies 13.82s). This fixes these demonstrated boundaries, not
   all remaining AST/compiler allocation accounting. Suite compilation still
   needs statement-copy allocation and docstring callback termination auditing.
+- Suite/docstring compilation resource accounting (2026-09-11): seven failing
+  tests reproduced ignored empty-suite and statement-copy allocation, uncharged
+  docstring expansion/temporary storage, and cancelled docstring factories
+  returning successfully or masking termination with another exception. Suite
+  compilation now charges result/list storage, per-statement slots and the
+  docstring wrapper before allocation, and checks termination in finally.
+  Docstring cleanup charges expansion fragments, joined/split UTF-16 storage,
+  line/indent arrays, sliced lines, final output and encoding-error construction;
+  code-point error positions remain separate from UTF-16 storage accounting.
+  Final checkpoints preserve cancellation. Two positive tests preserve stripped
+  docstring omission and ordinary factory errors. The initial focused five-file
+  suite passes 60 tests. All 144 CPython comparisons match cleaned function
+  docstrings across tabs, indentation, astral text, CR, LF, VT, FF, NBSP and NUL.
+  A further 24 CPython comparisons match encoding, expanded code-point input,
+  start/end and reason for surrogate encoding errors, including separate high/low
+  surrogates after astral text, tabs and line breaks. Build, typecheck, scoped
+  lint and whitespace checks pass. The final uncached one-worker full suite
+  passes 8,432 tests in 556 files (155.39s; test bodies 13.36s). Remaining
+  compiler metadata construction and AST allocation audits are still required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

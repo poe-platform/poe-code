@@ -21,6 +21,13 @@ function fixture(source = 'def f(a):\n "doc"\n return a') {
 }
 
 describe("function definition state", () => {
+  it("selects builtins and preserves present undefined module metadata through adapters",()=>{
+    const state=fixture(),marker={},seen:unknown[]=[];
+    state.globals.set("__builtins__",marker);state.globals.set("__name__",undefined);
+    const globals={lookup:(name:string)=>state.globals.has(name)?{value:state.globals.get(name)}:undefined,store:state.globals.set.bind(state.globals),delete:state.globals.delete.bind(state.globals)};
+    const value=createFunctionState(state.code,state.defaults,{...state.context,globals,resolveBuiltins(selected){seen.push(selected);return state.builtins;}},budget());
+    expect(value.globals).toBe(globals);expect(value.builtins).toBe(state.builtins);expect(value.module).toBeUndefined();expect(seen).toEqual([marker]);
+  });
   it("receives definition-time defaults and binds the resulting function state", () => {
     const state = fixture("def f(a=seed): return a"), seed = {};
     const node = state.code.scope.scope.node;
@@ -35,7 +42,7 @@ describe("function definition state", () => {
     const value = state.globals.get("f") as FunctionState<unknown>;
     expect(value.code).toBe(state.code);
     expect(value.defaults.get("a")).toBe(seed);
-    expect(value.globals.get("f")).toBe(value);
+    expect(lookupNamespace(value.globals,"f")?.value).toBe(value);
   });
 
   it("initializes compiled metadata and retains live defining dictionaries", () => {
@@ -57,7 +64,7 @@ describe("function definition state", () => {
     const state = fixture(), module = {};
     state.globals.set("__name__", module); const value = state.run();
     state.globals.set("__name__", "later"); state.globals.set("dynamic", 1);
-    expect(value.module).toBe(module); expect(value.globals.get("dynamic")).toBe(1);
+    expect(value.module).toBe(module); expect(lookupNamespace(value.globals,"dynamic")?.value).toBe(1);
   });
   it("uses None only for absent module/doc metadata, not guest undefined", () => {
     const state = fixture("f=lambda: 1"); state.globals.delete("__name__");

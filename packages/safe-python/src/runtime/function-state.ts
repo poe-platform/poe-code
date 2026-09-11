@@ -1,7 +1,7 @@
 import type { CompiledFunction } from "./function-compilation.js";
 import type { LexicalCell, LexicalNamespaces } from "./lexical-frame.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { NameNamespace } from "./namespace-lookup.js";
+import {lookupNamespace,type NameNamespace} from "./namespace-lookup.js";
 
 export interface FunctionCreationContext<Value> extends LexicalNamespaces<Value> {
   readonly none: Value;
@@ -56,9 +56,10 @@ export function createFunctionState<Value>(
 ): FunctionState<Value> {
   meter.checkpoint();
   let builtins = context.builtins;
-  if (context.globals.has("__builtins__")) {
+  const selectedBuiltins=lookupNamespace(context.globals,"__builtins__");
+  if (selectedBuiltins!==undefined) {
     if (context.resolveBuiltins === undefined) throw new Error("builtin namespace resolution is unavailable");
-    builtins = context.resolveBuiltins(context.globals.get("__builtins__")!);
+    builtins = context.resolveBuiltins(selectedBuiltins.value);
     meter.checkpoint();
   }
   const closure = new Map<string, LexicalCell<Value>>();
@@ -71,11 +72,11 @@ export function createFunctionState<Value>(
   const capturedDefaults = new Map<string, Value>();
   for (const [name, value] of defaults) { meter.checkpoint(); capturedDefaults.set(name, value); }
   meter.checkpoint();
-  const module = context.globals.has("__name__") ? context.globals.get("__name__")! : context.none;
+  const module=lookupNamespace(context.globals,"__name__");
   return {
     code, globals: context.globals, builtins, closure,
     defaults: capturedDefaults, attributes: new Map(),
-    name: code.name, qualifiedName: code.qualifiedName, module,
+    name: code.name, qualifiedName: code.qualifiedName, module:module===undefined?context.none:module.value,
     doc: code.docstring === undefined ? context.none : code.docstring.value
   };
 }

@@ -4,7 +4,7 @@ import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js"
 import { PythonRuntimeError } from "./error.js";
 import type { LexicalCell, LexicalNamespaces } from "./lexical-frame.js";
 import type { LocalNamespace } from "./module-frame.js";
-import { lookupNamespace } from "./namespace-lookup.js";
+import { lookupNamespace,storeNamespace } from "./namespace-lookup.js";
 
 export interface ClassNamespaces<Value> extends LexicalNamespaces<Value> {
   readonly locals: LocalNamespace<Value>;
@@ -66,7 +66,7 @@ export class ClassFrame<Value> {
       const cell = this.#free.get(key)!;
       return cell.content !== undefined ? cell.content.value : this.#missingFree(key);
     }
-    if (this.namespaces.globals.has(key)) return this.namespaces.globals.get(key)!;
+    const global=lookupNamespace(this.namespaces.globals,key);if(global!==undefined)return global.value;
     this.meter.checkpoint();
     const builtin = lookupNamespace(this.namespaces.builtins, key);
     if (builtin !== undefined) return builtin.value;
@@ -76,7 +76,7 @@ export class ClassFrame<Value> {
   store(name: string, value: Value): void {
     const key = this.#key(name), declaration = this.#declarations.get(key);
     if (declaration === "nonlocal") this.#free.get(key)!.content = { value };
-    else if (declaration === "global") this.namespaces.globals.set(key, value);
+    else if (declaration === "global") storeNamespace(this.namespaces.globals,key,value);
     else this.namespaces.locals.store(key, value);
   }
 

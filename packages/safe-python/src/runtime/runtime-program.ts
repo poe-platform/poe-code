@@ -40,6 +40,7 @@ import { hasRuntimeInstanceAttributes, type BuiltinInvocationContext, type Dicti
 import { ClassFrame } from "./class-frame.js";
 import { executeClassBody } from "./class-body.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
+import {lookupNamespace,storeNamespace} from "./namespace-lookup.js";
 import { RuntimeMappingNamespace } from "./runtime-mapping-namespace.js";
 import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
 import { createClassDefinitionContinuation, executeClassDefinition } from "./class-definition.js";
@@ -182,9 +183,9 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
             executeClassBody(code, {
               ...fn.value, calls,
               locals: {
-                lookup: name => globals.has(name) ? { value: globals.get(name)! } : undefined,
-                store: (name, value) => { globals.set(name, value); },
-                delete: name => globals.delete(name), isGuest: () => false
+                lookup: name => lookupNamespace(globals,name),
+                store: (name, value) => { storeNamespace(globals,name,value); },
+                delete: name => globals.delete(name), isGuest: error => builtinCalls.isException?.(error,"BaseException")??false
               },
               cell: cell => { result = values.cell(cell); return result; },
               body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions)
@@ -250,7 +251,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const stack = representationState.stack ??= new RepresentationStack<RuntimeValue>(100, meter);
         return values.stringPoints(runtimeSetRepresentation(value, values, getFormatting(), stack, meter));
       },
-      get moduleName() { return namespaces.globals.get("__name__"); },
+      get moduleName() { return lookupNamespace(namespaces.globals,"__name__")?.value; },
       executeClassBody(fn, namespace) {
         meter.checkpoint();
         if (fn.value.code.body.kind !== "class") {

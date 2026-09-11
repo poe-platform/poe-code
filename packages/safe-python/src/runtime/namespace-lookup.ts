@@ -6,6 +6,19 @@ export type NameNamespace<Value> = ReadonlyMap<string, Value> | {
   lookup(name: string): { readonly value: Value } | undefined;
 };
 
+/** Trusted mutable backing storage. Public exec/global argument validation must
+ * still require a Python dictionary, not accept arbitrary guest mappings. */
+export type MutableNameNamespace<Value> = Map<string,Value> | {
+  lookup(name:string):{readonly value:Value}|undefined;
+  store(name:string,value:Value):void;
+  delete(name:string):boolean;
+};
+
+export function storeNamespace<Value>(namespace:MutableNameNamespace<Value>,name:string,value:Value):void {
+  if("store" in namespace)namespace.store(name,value);
+  else namespace.set(name,value);
+}
+
 /** Internal dictionary fast path without forcing arbitrary builtin objects into
  * a dictionary. This discriminates trusted host adapters, not guest attributes.
  */

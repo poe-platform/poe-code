@@ -1,7 +1,7 @@
 import type { ResolvedScope } from "../symbol-resolution.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
-import { lookupNamespace, type NameNamespace } from "./namespace-lookup.js";
+import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameNamespace } from "./namespace-lookup.js";
 
 export interface LocalNamespace<Value> {
   /** Perform guest mapping lookup. Only a missing-key exception becomes undefined;
@@ -16,7 +16,7 @@ export interface LocalNamespace<Value> {
 }
 
 export interface ModuleNamespaces<Value> {
-  readonly globals: Map<string, Value>;
+  readonly globals: MutableNameNamespace<Value>;
   readonly builtins: NameNamespace<Value>;
   /** Omit for ordinary modules, whose locals are the global dictionary itself. */
   readonly locals?: LocalNamespace<Value>;
@@ -57,7 +57,7 @@ export class ModuleFrame<Value> {
       if (local !== undefined) return local.value;
       this.meter.checkpoint();
     }
-    if (this.namespaces.globals.has(name)) return this.namespaces.globals.get(name)!;
+    const global=lookupNamespace(this.namespaces.globals,name);if(global!==undefined)return global.value;
     this.meter.checkpoint();
     const builtin = lookupNamespace(this.namespaces.builtins, name);
     if (builtin !== undefined) return builtin.value;
@@ -67,7 +67,7 @@ export class ModuleFrame<Value> {
   store(name: string, value: Value): void {
     this.meter.checkpoint();
     if (!this.#explicitGlobals.has(name) && this.namespaces.locals) this.namespaces.locals.store(name, value);
-    else this.namespaces.globals.set(name, value);
+    else storeNamespace(this.namespaces.globals,name,value);
   }
 
   delete(name: string): void {

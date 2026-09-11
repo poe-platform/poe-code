@@ -2,7 +2,7 @@ import { manglePrivateName } from "../private-names.js";
 import type { SymbolScope } from "../symbol-collection.js";
 import type { ResolvedBinding, ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { lookupNamespace, type NameNamespace } from "./namespace-lookup.js";
+import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameNamespace } from "./namespace-lookup.js";
 import { PythonRuntimeError } from "./error.js";
 import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
 import {FrameLocals} from "./frame-locals.js";
@@ -21,7 +21,7 @@ export interface LexicalCell<Value> extends CellStorage<Value> {
 
 export interface LexicalNamespaces<Value> {
   /** Backing dictionary storage; not guest mapping protocol objects. */
-  readonly globals: Map<string, Value>;
+  readonly globals: MutableNameNamespace<Value>;
   /** The defining function's selected builtin namespace, not a fresh lookup of
    * globals.__builtins__ on each name access. Its contents/protocol remain live.
    */
@@ -89,7 +89,7 @@ export class LexicalFrame<Value> {
   load(name: string): Value {
     const [key, binding] = this.#resolve(name);
     if (binding.kind === "global") {
-      if (this.namespaces.globals.has(key)) return this.namespaces.globals.get(key)!;
+      const global=lookupNamespace(this.namespaces.globals,key);if(global!==undefined)return global.value;
       const builtin = lookupNamespace(this.namespaces.builtins, key);
       if (builtin !== undefined) return builtin.value;
     } else {
@@ -103,7 +103,7 @@ export class LexicalFrame<Value> {
 
   store(name: string, value: Value): void {
     const [key, binding] = this.#resolve(name);
-    if (binding.kind === "global") this.namespaces.globals.set(key, value);
+    if (binding.kind === "global") storeNamespace(this.namespaces.globals,key,value);
     else {
       const cell = this.#cells.get(key);
       if (cell) cell.content = { value };

@@ -41,6 +41,8 @@ import { createExceptionSetstateDescriptor } from "./builtin-exception-setstate.
 import { createAttributeLookupBuiltin } from "./builtin-attribute-lookup.js";
 import { RuntimeGeneratorDelegation } from "./runtime-generator-delegation.js";
 import {LexicalFrame} from "./lexical-frame.js";
+import type {LexicalNamespaces} from "./lexical-frame.js";
+import {RuntimeDictionaryNamespace} from "./runtime-dictionary-namespace.js";
 
 // Deliberately colliding hash policies make native namespace lookup unusually
 // expensive as catalogs grow; these integration tests are not step-limit tests.
@@ -80,8 +82,8 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       native.set(value.kind, type); return type;
     } })
   };
-  function run(source: string) {
-    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals, builtins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
+  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals) {
+    executeRuntimeProgram(compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter), { values: v, globals:executionGlobals, builtins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
@@ -190,6 +192,15 @@ it("uses intrinsic qualified type names in native frame constructor diagnostics"
   state.globals.set("Proxy",state.registry.frameLocalsProxy(frame).type);
   state.run("class C:pass\nC.__module__='module'\nC.__qualname__='Outer.C'\ntry:Proxy(C())\nexcept TypeError as error:qualified=error.args==('expect frame, not module.Outer.C',)\nC.__module__='__main__'\ntry:Proxy(C())\nexcept TypeError as error:main=error.args==('expect frame, not Outer.C',)\nC.__module__=''\ntry:Proxy(C())\nexcept TypeError as error:empty=error.args==('expect frame, not .Outer.C',)\n");
   for(const name of ["qualified","main","empty"])expect(state.globals.get(name)).toBe(v.true);
+});
+
+it("shares exact Python dictionary globals across module, function and class execution",()=>{
+  const state=exceptionFixture(),{v}=state,dictionary=v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(state.keys,state.meter));
+  for(const [name,value] of state.globals)dictionary.items.set(v.string(name),value);
+  dictionary.items.set(v.string("backing"),dictionary);
+  const globals=new RuntimeDictionaryNamespace(dictionary,v,state.meter);
+  state.run("g=1\ndef f():\n global g\n g+=2\n return g\nclass C:\n global g\n g=4\nfirst=f()\nbacking['g']=9\nsecond=f()\ndel backing['g']\ntry:f()\nexcept NameError:missing=True\ng=7\ndef remove():\n global g\n del g\nremove()\ncorrect=first==6 and second==11 and missing and 'g' not in backing and f.__module__=='example'\n",globals);
+  expect(dictionary.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
 it("reflects live locals through compiled calls, suspension and retained closures",()=>{

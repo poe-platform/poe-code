@@ -10828,6 +10828,25 @@ extension, integration, or validation requirement is missing or unverified.
   Existing RuntimeDictionaryNamespace/RuntimeMappingNamespace adapters should
   be extended for shared namespace identity rather than introducing copied
   reflection dictionaries.
+- Dictionary-backed global execution (2026-09-10): a failing native test showed
+  module stores required JavaScript Map.set even when supplied the existing
+  exact-dictionary namespace adapter. Added a trusted mutable-name storage
+  contract alongside Map compatibility and routed module, lexical and class
+  global reads/writes through namespace lookup/store. Function creation now
+  selects __builtins__ and captures __name__ through the same live storage;
+  explicit present undefined metadata remains distinct from absence. Function
+  class-body execution and module-name lookup also support adapters. No Python
+  dictionaries are copied and arbitrary non-string dictionary keys remain
+  untouched by source-name access. Public exec argument validation must still
+  require actual Python dictionaries, not arbitrary guest mappings.
+  Five new tests cover native cross-scope mutations, storage identity, literal
+  names, undefined values, builtin selection and adapter failures. The focused
+  seven-file route passes 889 tests. All 1,000 mixed module/function/class/direct
+  dictionary mutation sequences match CPython. Selected build, typecheck and
+  scoped lint pass. The final uncached one-worker package suite passes 7,726
+  tests in 520 files (148.83s; test bodies 9.75s). Frame namespace
+  descriptors/identity publication remain separate work, using this shared
+  storage contract rather than snapshot dictionaries.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

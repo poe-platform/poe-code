@@ -15,6 +15,9 @@ import {createRuntimeExpandtabsMethod} from "./runtime-expandtabs-method.js";
 import {createRuntimeStringReplaceMethod} from "./runtime-string-replace-method.js";
 import {createRuntimeStringTranslateMethod} from "./runtime-string-translate-method.js";
 import {createRuntimeStringMaketransMethod} from "./runtime-string-maketrans-method.js";
+import {createRuntimeBraceFormatMethod} from "./runtime-brace-format-method.js";
+import {createRuntimeFormatContext} from "./runtime-format.js";
+import {runtimeGetItem} from "./runtime-subscription.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -71,11 +74,16 @@ const padMethods=[
   ["rjust","Return a right-justified string of length width.\n\nPadding is done using the specified fill character (default is\na space)."],
   ["zfill","Pad a numeric string with zeros on the left, to fill a field of the given width.\n\nThe string is never truncated."]
 ] as const;
+const formatMethods=[
+  ["format","Return a formatted version of the string, using substitutions from args and kwargs.\nThe substitutions are identified by braces ('{' and '}')."],
+  ["format_map","Return a formatted version of the string, using substitutions from mapping.\nThe substitutions are identified by braces ('{' and '}')."]
+] as const;
 const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const})),...classificationMethods.map(([name,doc])=>({name,doc,kind:"classification" as const})),
   ...searchMethods.map(([name,doc])=>({name,doc,kind:"search" as const})),...affixMethods.map(([name,doc])=>({name,doc,kind:"affix" as const})),
   ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const})),
   ...splitMethods.map(([name,doc])=>({name,doc,kind:"split" as const})),
   ...padMethods.map(([name,doc])=>({name,doc,kind:"pad" as const})),
+  ...formatMethods.map(([name,doc])=>({name,doc,kind:"format" as const})),
   {name:"translate",kind:"translate" as const,doc:"Replace each character in the string using the given translation table.\n\n  table\n    Translation table, which must be a mapping of Unicode ordinals\n    to Unicode ordinals, strings, or None.\n\nThe table must implement lookup/indexing via __getitem__, for\ninstance a dictionary or list.  If this operation raises\nLookupError, the character is left untouched.  Characters mapped to\nNone are deleted."},
   {name:"replace",kind:"replace" as const,doc:"Return a copy with all occurrences of substring old replaced by new.\n\n  count\n    Maximum number of occurrences to replace.\n    -1 (the default value) means replace all occurrences.\n\nIf the optional argument count is given, only the first count occurrences are\nreplaced."},
   {name:"expandtabs",kind:"expandtabs" as const,doc:"Return a copy where all tab characters are expanded using spaces.\n\nIf tabsize is not given, a tab size of 8 characters is assumed."},
@@ -110,6 +118,11 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
             case "expandtabs":bound=createRuntimeExpandtabsMethod(receiver,values,meter,invocation?.integerIndex);break;
             case "replace":bound=createRuntimeStringReplaceMethod(receiver,values,meter,invocation?.integerIndex);break;
             case "translate":bound=createRuntimeStringTranslateMethod(payload,values,meter);break;
+            case "format":bound=createRuntimeBraceFormatMethod(receiver,method.name,values,meter,
+              invocation?.formatting??createRuntimeFormatContext(values,meter,{defaultRepr(){throw Error("brace formatting requires a representation policy");}}),{
+                attribute(value,name){if(invocation?.attribute===undefined)throw Error("brace formatting requires an attribute policy");return invocation.attribute(value,name);},
+                getItem:(value,key)=>runtimeGetItem(value,key,values,meter,invocation,invocation?.integerIndex)
+              });break;
           }
           return bound.value.invoke(positional,keywords,meter,invocation);
         } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}

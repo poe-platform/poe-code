@@ -6001,6 +6001,26 @@ it("publishes string join with native subtype members and guest iteration", () =
   for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
 });
 
+it.each(["format","format_map"])("publishes string %s with guest attribute and item lookup",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass Value:\n def __format__(self,spec):\n  visit(spec)\n  return 'formatted'\nclass Items:\n def __getitem__(self,key):\n  visit(key)\n  return Value()\nclass Box:pass\nb=Box()\nb.items=Items()\ns=S('{box.items[key]:custom}')\nresult=str.${name}(s,${name==="format"?"box=b":"{'box':b}"})\ncorrect=result=='formatted'\nowner=str.${name}.__objclass__ is str\n`);
+  for(const flag of ["correct","owner"])expect(state.globals.get(flag)).toBe(state.v.true);
+  expect(state.events).toEqual(["key","custom"]);
+});
+
+it.each(["format","format_map"])("retains unchanged %s subtype templates and exactifies empty results",name=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run(`class S(str):pass\ns=S('literal')\nempty=S('')\nretained=s.${name}(${name==="format_map"?"{}":""}) is s\nbase=type(empty.${name}(${name==="format_map"?"{}":""})) is str\nchanged=S('{{x}}').${name}(${name==="format_map"?"{}":""})\ncorrect=changed=='{x}' and type(changed) is str\n`);
+  for(const flag of ["retained","base","correct"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("routes format_map through guest mappings and preserves formatting overrides",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class Mapping:\n def __getitem__(self,key):\n  visit(key)\n  return 'value'\nclass S(str):\n def format_map(self,*args):return 'override'\ns=S('{key}')\nordinary=s.format_map()=='override'\nexplicit=str.format_map(s,Mapping())=='value'\ntry:str.format_map(S('{0}'),{})\nexcept ValueError as e:positional=str(e)=='Format string contains positional fields'\ntry:str.format_map(s,{},extra=1)\nexcept TypeError as e:keyword=str(e)=='str.format_map() takes no keyword arguments'\n");
+  for(const flag of ["ordinary","explicit","positional","keyword"])expect(state.globals.get(flag)).toBe(state.v.true);
+  expect(state.events).toEqual(["key"]);
+});
+
 it("publishes static string maketrans with subtype strings and native metadata",()=>{
   const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
   state.run("class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nx=S('ab')\na=str.maketrans(x,S('xy'),S('b'))\nb=x.maketrans('ab','xy','b')\ncorrect=a=={97:120,98:None} and b==a\nstatic=str.maketrans is S.maketrans and x.maketrans is str.maketrans\nmetadata=str.maketrans.__name__=='maketrans' and str.maketrans.__qualname__=='str.maketrans' and str.maketrans.__self__ is None\n");

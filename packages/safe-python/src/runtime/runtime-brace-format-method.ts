@@ -4,11 +4,14 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import type { FormatContext } from "./format-protocol.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Public native methods with explicit lookup and formatting capabilities. */
-export function createRuntimeBraceFormatMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, name: "format" | "format_map", values: RuntimeValues, meter: ExecutionMeter, formatting: FormatContext<RuntimeValue>, lookup: Pick<ExpressionContext<RuntimeValue>, "attribute" | "getItem">): BuiltinFunctionValue {
+export function createRuntimeBraceFormatMethod(original: RuntimeValue, name: "format" | "format_map", values: RuntimeValues, meter: ExecutionMeter, formatting: FormatContext<RuntimeValue>, lookup: Pick<ExpressionContext<RuntimeValue>, "attribute" | "getItem">): BuiltinFunctionValue {
   meter.checkpoint(1, 128);
+  const receiver = runtimeStringPayload(original);
+  if (receiver === undefined) throw Error("brace formatting requires native string storage");
   return values.builtinFunction({ name, invoke(positional, keywords, meter) {
     meter.checkpoint();
     if (name === "format_map") {
@@ -28,6 +31,6 @@ export function createRuntimeBraceFormatMethod(receiver: Extract<RuntimeValue, {
       item: (value, key) => lookup.getItem(value, typeof key === "bigint" ? values.integer(key) : values.stringPoints(key))
     }, formatting, meter);
     if (result.original !== undefined) return result.original;
-    return result.storage === receiver.value ? receiver : values.stringPoints(result.storage, "canonical");
+    return result.storage === receiver.value && receiver.value.length !== 0 ? original : values.stringPoints(result.storage, "canonical");
   } });
 }

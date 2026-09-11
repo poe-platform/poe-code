@@ -13600,6 +13600,22 @@ extension, integration, or validation requirement is missing or unverified.
   pass. Full uncached suite passes 9,387 tests in 616 files (145.45s; bodies
   16.83s). Remaining string methods, codecs, public assembly, imports, safe-fs and
   broad audits remain unfinished. No push or release.
+- String brace-format descriptors: published canonical `str.format` and
+  `str.format_map`, including native subtype templates. Guest formatting uses
+  the invocation's format policy; field attributes and subscriptions now use
+  guest-aware capabilities, including custom mapping and item slots. Unchanged
+  nonempty templates preserve original subtype identity, as CPython does;
+  empty and rewritten templates produce exact strings. Ordinary overrides
+  remain active while explicit descriptors bypass them. Five source integration
+  tests cover callbacks/order, formatting overrides, static field errors,
+  keywords, metadata and identity; initial descriptor tests failed before the
+  implementation. A 56-case CPython comparison matches values, result types,
+  identity, documentation and errors (rendering internal KeyError arguments,
+  rather than comparing their deliberately non-guest host diagnostic message).
+  Maintained build, typecheck, scoped lint and whitespace checks pass. The full
+  uncached suite passes 9,392 tests in 616 files (121.68s; bodies 15.71s).
+  Encoding, remaining native type surfaces, public interpreter assembly, imports,
+  safe-fs and broad audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

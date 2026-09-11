@@ -13570,6 +13570,20 @@ extension, integration, or validation requirement is missing or unverified.
   full uncached suite passes 9,381 tests in 616 files (147.97s; bodies 16.27s).
   Remaining string methods, codecs, public assembly, imports, safe-fs and broad
   audits remain unfinished. No push or release.
+- String translation descriptor: published canonical `str.translate` with native
+  string-subtype receivers and mapping results. Guest mapping lookup and
+  LookupError-subclass handling remain active, as do integer-subtype payloads;
+  string results now inspect native storage without conversion hooks. Explicit
+  base calls bypass receiver overrides while ordinary lookup preserves them.
+  CPython comparison exposed an existing one-character result identity mismatch;
+  canonical result construction now caches Latin-1 characters, with fresh longer
+  or wider strings and canonical empty results. Three new source regressions
+  failed before their respective fixes and now pass. An 800-case in-memory
+  CPython comparison has zero value, type, identity or documentation differences.
+  Maintained build, typecheck, scoped lint and whitespace checks pass. Full
+  uncached suite passes 9,384 tests in 616 files (83.02s; bodies 10.71s).
+  Maketrans, remaining string methods, codecs, interpreter assembly, imports,
+  safe-fs and broad audits remain unfinished. No push or release.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

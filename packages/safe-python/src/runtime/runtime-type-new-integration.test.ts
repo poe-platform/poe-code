@@ -6001,6 +6001,25 @@ it("publishes string join with native subtype members and guest iteration", () =
   for(const name of ["exact","fresh","retained","owner"])expect(state.globals.get(name)).toBe(state.v.true);
 });
 
+it("publishes string translate with native subtype mapping results",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());state.globals.set("int",state.registry.integerType());
+  state.run("class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass I(int):\n def __index__(self):raise TypeError('index forbidden')\ns=S('abc')\na=str.translate(s,{97:S('🐍x'),98:None,99:I(100)})\ncorrect=a=='🐍xd' and type(a) is str\nfirst=s.translate({})\nsecond=s.translate({})\nfresh=first is not s and first is not second\nempty=S('')\nempty_result=str.translate(empty,None)\nempty_base=type(empty_result) is str and empty_result==''\nowner=str.translate.__objclass__ is str\n");
+  for(const flag of ["correct","fresh","empty_base","owner"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("canonicalizes translated Latin-1 characters but keeps longer and wider results fresh",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
+  state.run("class S(str):pass\ns=S('a')\nlatin=s.translate({97:'é'}) is s.translate({97:'é'})\nastral=s.translate({97:'🐍'}) is not s.translate({97:'🐍'})\nlong=s.translate({97:'abc'}) is not s.translate({97:'abc'})\nunchanged=s.translate({}) is s.translate({})\ndeleted=s.translate({97:None}) is ''\n");
+  for(const flag of ["latin","astral","long","unchanged","deleted"])expect(state.globals.get(flag)).toBe(state.v.true);
+});
+
+it("uses guest string translation mappings and preserves lookup error policy",()=>{
+  const state=exceptionFixture();state.globals.set("str",state.registry.stringType());state.globals.set("LookupError",state.registry.exceptionType("LookupError"));
+  state.run("class Missing(LookupError):pass\nclass Mapping:\n def __getitem__(self,key):\n  visit('lookup')\n  raise Missing(key)\nclass S(str):\n def translate(self,*args):return 'override'\ns=S('aa')\nordinary=s.translate()=='override'\nexplicit=str.translate(s,Mapping())=='aa'\ntry:str.translate(s,{97:[]})\nexcept TypeError as e:bad=str(e)=='character mapping must return integer, None or str'\ntry:str.translate(s,{97:1114112})\nexcept ValueError as e:range_error=str(e)=='character mapping must be in range(0x110000)'\n");
+  for(const flag of ["ordinary","explicit","bad","range_error"])expect(state.globals.get(flag)).toBe(state.v.true);
+  expect(state.events).toEqual(["lookup"]);
+});
+
 it("publishes string replace with native subtype arguments and count callbacks",()=>{
   const state=exceptionFixture();state.globals.set("str",state.registry.stringType());
   state.run("class S(str):\n def __str__(self):raise TypeError('conversion forbidden')\nclass Count:\n def __index__(self):\n  visit('count')\n  return 1\ns=S('a🐍a')\na=str.replace(s,S('a'),S('b'),count=Count())\ncorrect=a=='b🐍a' and type(a) is str\nfirst=s.replace('x','y')\nsecond=s.replace('x','y')\nfresh=first is not s and first is not second\nsame=s.replace('a','a')\nexact=type(same) is str and same is not s\nbase='abc'\nretained=base.replace('x','y') is base\nowner=str.replace.__objclass__ is str\n");

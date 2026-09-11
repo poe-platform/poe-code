@@ -13,6 +13,7 @@ import {createRuntimeSplitlinesMethod} from "./runtime-splitlines-method.js";
 import {createRuntimePadMethod} from "./runtime-pad-method.js";
 import {createRuntimeExpandtabsMethod} from "./runtime-expandtabs-method.js";
 import {createRuntimeStringReplaceMethod} from "./runtime-string-replace-method.js";
+import {createRuntimeStringTranslateMethod} from "./runtime-string-translate-method.js";
 import type {BuiltinFunctionValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const caseMethods=[
@@ -74,6 +75,7 @@ const methods=[...caseMethods.map(([name,doc])=>({name,doc,kind:"case" as const}
   ...stripMethods.map(([name,doc])=>({name,doc,kind:"strip" as const})),...cutMethods.map(([name,doc])=>({name,doc,kind:"cut" as const})),
   ...splitMethods.map(([name,doc])=>({name,doc,kind:"split" as const})),
   ...padMethods.map(([name,doc])=>({name,doc,kind:"pad" as const})),
+  {name:"translate",kind:"translate" as const,doc:"Replace each character in the string using the given translation table.\n\n  table\n    Translation table, which must be a mapping of Unicode ordinals\n    to Unicode ordinals, strings, or None.\n\nThe table must implement lookup/indexing via __getitem__, for\ninstance a dictionary or list.  If this operation raises\nLookupError, the character is left untouched.  Characters mapped to\nNone are deleted."},
   {name:"replace",kind:"replace" as const,doc:"Return a copy with all occurrences of substring old replaced by new.\n\n  count\n    Maximum number of occurrences to replace.\n    -1 (the default value) means replace all occurrences.\n\nIf the optional argument count is given, only the first count occurrences are\nreplaced."},
   {name:"expandtabs",kind:"expandtabs" as const,doc:"Return a copy where all tab characters are expanded using spaces.\n\nIf tabsize is not given, a tab size of 8 characters is assumed."},
   {name:"splitlines",kind:"splitlines" as const,doc:"Return a list of the lines in the string, breaking at line boundaries.\n\nLine breaks are not included in the resulting list unless keepends\nis given and true."},
@@ -105,6 +107,7 @@ export function installRuntimeStringMethodDescriptors(owner:TypeValue,values:Run
             case "pad":bound=createRuntimePadMethod(receiver,method.name,values,meter,invocation?.integerIndex);break;
             case "expandtabs":bound=createRuntimeExpandtabsMethod(receiver,values,meter,invocation?.integerIndex);break;
             case "replace":bound=createRuntimeStringReplaceMethod(receiver,values,meter,invocation?.integerIndex);break;
+            case "translate":bound=createRuntimeStringTranslateMethod(payload,values,meter);break;
           }
           return bound.value.invoke(positional,keywords,meter,invocation);
         } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}

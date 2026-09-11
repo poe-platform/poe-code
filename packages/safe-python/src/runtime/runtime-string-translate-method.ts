@@ -4,6 +4,7 @@ import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js"
 import { runtimeGetItem } from "./runtime-subscription.js";
 import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import { translateString, type CharacterTranslation } from "./string-translation.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -48,12 +49,12 @@ export function createRuntimeStringTranslateMethod(receiver: Extract<RuntimeValu
           if (integer < 0n || integer > 0x10ffffn) throw new PythonRuntimeError("ValueError", "character mapping must be in range(0x110000)");
           return Number(integer);
         }
-        const string = result.kind === "str" ? result.value : context.string?.(result);
+        const string = result.kind === "str" ? result.value : context.string?.(result) ?? runtimeStringPayload(result)?.value;
         meter.checkpoint();
         if (string !== undefined) return string;
         throw new PythonRuntimeError("TypeError", "character mapping must return integer, None or str");
       };
-      return values.stringPoints(translateString(receiver.value, mapping, meter));
+      return values.stringPoints(translateString(receiver.value, mapping, meter), "canonical");
     }
   });
 }

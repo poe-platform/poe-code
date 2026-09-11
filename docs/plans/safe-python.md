@@ -12726,6 +12726,29 @@ extension, integration, or validation requirement is missing or unverified.
   validate codec names, or extend the guest compile backend. Build, typecheck and
   scoped lint and whitespace checks pass. The uncached full thread-pool suite
   passes 8,947 tests in 592 files (63.37s; bodies 7.55s).
+- Byte-source compiler integration (2026-09-11): compileSourceProgram now accepts
+  Uint8Array as well as text. A separate metered decoder snapshots input, rejects
+  NULs before codec lookup, consumes header declarations, and supports strict UTF-8,
+  Latin-1 and ASCII plus Python's aliases. Additional codecs use an explicit
+  SourceByteDecoder capability, exported as part of the public options contract;
+  callback work/output allocations remain the capability's responsibility. Text
+  coding comments stay inert. Ten failing compiler tests established missing byte
+  support (an initial it.each byte-row shape was corrected and rerun before the
+  fix). The guest compile fixture now uses the actual byte compiler after its own
+  failing integration check. A further failing test caught double BOM consumption:
+  the decoder now preserves the initial BOM for the source cursor to consume once.
+  Four failing alias tests established repeated/edge separator normalization before
+  correction. Snapshot isolation, unknown codec rejection, error translation,
+  allocation/step limits and cancellation have focused coverage. All 995 expanded
+  CPython byte-compilation comparisons agree on acceptance and resulting docstring
+  values, including aliases, invalid bytes, non-ASCII text and BOMs. Build,
+  typecheck, scoped lint and whitespace checks pass. The uncached full thread-pool
+  suite passes 8,969 tests in 593 files (65.65s; bodies 7.87s).
+  Exact decode diagnostic metadata (especially undeclared invalid UTF-8), the
+  complete codec catalogue, buffer/AST guest source inputs, default builtin
+  registration and eval/exec remain unfinished. The low-level text source cursor
+  accepts an initial BOM; Python compile(str) rejects it, requiring a separate
+  guest/text compiler boundary audit rather than changing lexical behavior blindly.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -6,10 +6,13 @@ import type {ExecutionMeter} from "./execution-budget.js";
 import type {LiteralExpression} from "./literal-pool.js";
 import {compileProgram,type CompiledProgram} from "./program-compilation.js";
 import {normalizeFutureFlags} from "../future-flags.js";
+import {decodeByteSource,type SourceByteDecoder} from "./byte-source-decoding.js";
 
 export interface SourceCompilationOptions<Value=unknown> extends CodeCompilationOptions<Value>,Pick<LexerOptions,"onWarning"|"onComment"|"futureFlags"> {
   /** Module suites by default; eval preserves and returns one expression. */
   readonly mode?:"exec"|"eval";
+  /** Additional byte-source codecs beyond UTF-8, Latin-1 and ASCII. */
+  readonly decodeSource?:SourceByteDecoder;
   /** Required host recursion policy, shared with the calling execution. */
   readonly enterRecursiveCall:()=>()=>void;
 }
@@ -22,7 +25,7 @@ export interface ProgramConstants<Value> extends ClassConstants<Value> {
  * filename. Constant adapters must charge their own guest allocations. These
  * cooperative controls do not preempt indivisible host operations.
  */
-export function compileSourceProgram<Value>(text:string,options:SourceCompilationOptions<Value>,constants:ProgramConstants<Value>,meter:ExecutionMeter):CompiledProgram<Value> {
+export function compileSourceProgram<Value>(source:string|Uint8Array,options:SourceCompilationOptions<Value>,constants:ProgramConstants<Value>,meter:ExecutionMeter):CompiledProgram<Value> {
   try {
     meter.checkpoint(1,120);
     const enterRecursiveCall=options.enterRecursiveCall;
@@ -34,6 +37,7 @@ export function compileSourceProgram<Value>(text:string,options:SourceCompilatio
     const settings={filename:typeof filename==="string"?filename:filename.displayName,stripDocstring:options.stripDocstring,onWarning:options.onWarning,onComment:options.onComment,enterRecursiveCall,meter,futureFlags};
     let compilation:CodeCompilationOptions<Value>=settings;
     if(typeof filename!=="string"){meter.checkpoint(1,48);compilation={filename,stripDocstring:settings.stripDocstring};}
+    const text=typeof source==="string"?source:decodeByteSource(source,settings.filename,meter,options.decodeSource);
     const analysis=mode==="eval"?analyzeExpression(text,settings):analyzeModule(text,settings);
     return compileProgram(analysis,compilation,constants,meter);
   } finally {meter.checkpoint();}

@@ -6,6 +6,37 @@ const constants={string:(value:string):unknown=>value,integer:(value:number):unk
 const options={stripDocstring:false,enterRecursiveCall:()=>()=>{}};
 const budget=()=>new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:2000000});
 
+it.each([
+  [[0x22,0xc3,0xa9,0x22],"é"],
+  [[0xef,0xbb,0xbf,0x22,0xf0,0x9f,0x90,0x8d,0x22],"🐍"],
+  [[...new TextEncoder().encode('# coding: latin-1\n"'),0xe9,0x22],"é"],
+  [[...new TextEncoder().encode('# coding: ascii\n"ascii"')],"ascii"]
+] as const)("compiles byte sources with their declared encoding: %j",(bytes,doc)=>{
+  expect(compileSourceProgram(new Uint8Array(bytes),options,constants,budget()).module.docstring).toEqual({value:doc});
+});
+it.each([[0xff],[...new TextEncoder().encode('# coding: unknown\npass')],[...new TextEncoder().encode('# coding: ascii\n"'),0xff,34]].map(bytes=>({bytes})))("reports byte decoding failures as syntax errors: %j",({bytes})=>{
+  expect(()=>compileSourceProgram(new Uint8Array(bytes),{...options,filename:"bytes.py"},constants,budget())).toThrow(PythonSyntaxError);
+});
+it("uses an explicit additional source codec and keeps text declarations inert",()=>{
+  const decodeSource=vi.fn((encoding:string)=>encoding==="custom"?'"decoded"':'"other"');
+  expect(compileSourceProgram(new TextEncoder().encode('# coding: custom\nignored'),{...options,decodeSource},constants,budget()).module.docstring).toEqual({value:"decoded"});
+  expect(decodeSource.mock.calls[0][0]).toBe("custom");
+  expect(compileSourceProgram('# coding: unknown\n"text"',{...options,decodeSource},constants,budget()).module.docstring).toEqual({value:"text"});
+  expect(decodeSource).toHaveBeenCalledTimes(1);
+});
+it("rejects byte NULs before encoding lookup or compilation callbacks",()=>{
+  const decodeSource=vi.fn();
+  expect(()=>compileSourceProgram(new TextEncoder().encode('# coding: custom\n\0'),{...options,decodeSource},constants,budget())).toThrow("null bytes");
+  expect(decodeSource).not.toHaveBeenCalled();
+});
+it("preserves cancellation from a failing source codec",()=>{
+  const controller=new AbortController(),meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000,signal:controller.signal});
+  expect(()=>compileSourceProgram(new TextEncoder().encode('# coding: custom\npass'),{...options,decodeSource(){controller.abort();throw Error("codec failure");}},constants,meter)).toThrow(ExecutionLimitError);
+});
+it("consumes at most one byte-source BOM",()=>{
+  expect(()=>compileSourceProgram(new TextEncoder().encode('\ufeff\ufeffpass'),options,constants,budget())).toThrow(PythonSyntaxError);
+});
+
 it.each(['""','"  value\\n  "','"\\ud800"'])("keeps eval strings as expressions, not docstrings: %s",source=>{
   const string=vi.fn(constants.string);
   const program=compileSourceProgram(source,{...options,mode:"eval",stripDocstring:true},{...constants,string},budget());

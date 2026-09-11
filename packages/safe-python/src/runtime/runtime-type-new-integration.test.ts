@@ -110,14 +110,17 @@ it("calls compile from guest code and publishes compiler metadata",()=>{
     },
     inheritedFlags:()=>0x1000000,
     compile(request){
-      if(request.source.kind!=="str"||(request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires string exec/eval with future flags only");
-      const source=Array.from(request.source.value,p=>String.fromCodePoint(p)).join("");
+      if((request.source.kind!=="str"&&request.source.kind!=="bytes")||(request.mode!=="exec"&&request.mode!=="eval")||(request.flags&~0x1fe0010)!==0)throw Error("fixture requires text/bytes exec/eval with future flags only");
+      const source=request.source.kind==="bytes"?request.source.value.toUint8Array(meter):Array.from(request.source.value,p=>String.fromCodePoint(p)).join("");
       const program=compileSourceProgram(source,{mode:request.mode,filename:request.filename,stripDocstring:request.optimize===2,futureFlags:request.flags,enterRecursiveCall:()=>state.calls.enter(state.globals)},v,meter);
       return state.registry.code(program.module);
     }
   }));
   state.run("class Path:\n def __fspath__(self):return b'child.py'\na=compile('1+2',Path(),'eval')\nb=compile(source='pass',filename=b'other.py',mode='exec',dont_inherit=True,optimize=2)\nc=compile('1',b'\\xff','eval')\nname='\\ud800\\udc00'\nd=compile('1',name,'eval')\ncorrect=a.co_filename=='child.py' and a.co_name=='<module>' and a.co_flags==16777216 and b.co_filename=='other.py' and b.co_flags==0 and c.co_filename=='\\udcff' and d.co_filename is name");
   expect(state.globals.get("correct")).toBe(v.true);
+  state.globals.set("encoded",v.bytes(new Uint8Array([...new TextEncoder().encode('# coding: latin-1\n"'),0xe9,34])));
+  state.run("encoded_code=compile(encoded,name,'exec')\ncorrect_bytes=encoded_code.co_filename is name");
+  expect(state.globals.get("correct_bytes")).toBe(v.true);
   for(const [source,kind] of [["x=","SyntaxError"],[" x=1","IndentationError"],["if 1:\n\tpass\n        pass\n","TabError"]] as const){
     state.globals.set("Expected",state.registry.exceptionType(kind));state.globals.set("bad_source",v.string(source));
     state.run("try:compile(bad_source,name,'exec')\nexcept Expected as failure:\n correct_error=type(failure) is Expected and failure.filename is name and failure.args[1][0] is name\n");

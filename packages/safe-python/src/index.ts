@@ -8,6 +8,7 @@ export { analyzeModule, analyzeExpression } from "./analysis.js";
 export type { ModuleAnalysis, ExpressionAnalysis } from "./analysis.js";
 export { compileSourceProgram } from "./runtime/source-program-compilation.js";
 export type { SourceCompilationOptions, ProgramConstants } from "./runtime/source-program-compilation.js";
+export type { SourceByteDecoder } from "./runtime/byte-source-decoding.js";
 export type { CompilationFilename } from "./runtime/compilation-source.js";
 export type { CompiledProgram, CompiledModule } from "./runtime/program-compilation.js";
 export type { FunctionExecutionKind, FunctionNode } from "./expression-context.js";

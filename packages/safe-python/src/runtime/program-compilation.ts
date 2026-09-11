@@ -1,4 +1,5 @@
-import type { ModuleAnalysis } from "../analysis.js";
+import type { ModuleAnalysis,ExpressionAnalysis } from "../analysis.js";
+import type {Expression} from "../ast.js";
 import type { FunctionNode } from "../expression-context.js";
 import type { Statement } from "../statement-ast.js";
 import type { ResolvedScope } from "../symbol-resolution.js";
@@ -13,6 +14,8 @@ import {compileCodeScopeFlags} from "./code-scope-flags.js";
 import {compileGeneratorExpression,type CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
 export interface CompiledModule<Value> {
+  /** Eval-mode root; never interpreted as a docstring or statement suite. */
+  readonly expression?:Expression;
   readonly flags?:number;
   readonly source?:CompilationSource<Value>;
   readonly scope: ResolvedScope;
@@ -39,7 +42,7 @@ export interface CompiledProgram<Value> {
  * accounting remain unfinished; this is not a standalone Python execution API.
  */
 export function compileProgram<Value>(
-  analysis: ModuleAnalysis, options: CodeCompilationOptions,
+  analysis: ModuleAnalysis|ExpressionAnalysis, options: CodeCompilationOptions,
   constants: ClassConstants<Value> & { literal?(node: LiteralExpression): Value }, meter: ExecutionMeter
 ): CompiledProgram<Value> {
   try {
@@ -48,11 +51,18 @@ export function compileProgram<Value>(
     throw new Error("program compilation requires a matching analyzed module scope");
   const source=createCompilationSource(options.filename??"<string>",constants,meter);
   const scopeFlags=compileCodeScopeFlags(analysis.scopes.scope,analysis.futureFeatures,meter);
-  const module: CompiledModule<Value> = { flags:scopeFlags.get(analysis.scopes.scope),source,scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
+  const expression="expression" in analysis?analysis.expression:undefined;
+  let module:CompiledModule<Value>;
+  if(expression!==undefined){
+    const statement=analysis.module.body[0];
+    if(analysis.module.body.length!==1||statement.kind!=="expression-statement"||statement.expression!==expression)throw new Error("expression compilation requires a matching analyzed expression");
+    meter.checkpoint(1,80);
+    module={flags:scopeFlags.get(analysis.scopes.scope),source,scope:analysis.scopes,expression,docstring:undefined,statements:[]};
+  }else module = { flags:scopeFlags.get(analysis.scopes.scope),source,scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
   let literals:LiteralPool<Value>|undefined;
   if(constants.literal){
     meter.checkpoint(0,128);
-    literals=compileLiteralPool(analysis.module.body,constants.literal.bind(constants),meter,constants.tuple.bind(constants));
+    literals=compileLiteralPool(analysis.module.body,constants.literal.bind(constants),meter,constants.tuple.bind(constants),expression===undefined);
   }
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
   const comprehensions = new Map<ComprehensionNode,ResolvedScope>();

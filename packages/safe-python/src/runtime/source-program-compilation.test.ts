@@ -6,6 +6,24 @@ const constants={string:(value:string):unknown=>value,integer:(value:number):unk
 const options={stripDocstring:false,enterRecursiveCall:()=>()=>{}};
 const budget=()=>new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:2000000});
 
+it.each(['""','"  value\\n  "','"\\ud800"'])("keeps eval strings as expressions, not docstrings: %s",source=>{
+  const string=vi.fn(constants.string);
+  const program=compileSourceProgram(source,{...options,mode:"eval",stripDocstring:true},{...constants,string},budget());
+  expect(program.module.expression).toMatchObject({kind:"literal",literalKind:"string"});
+  expect(program.module.docstring).toBeUndefined();expect(program.module.statements).toEqual([]);
+  expect(string.mock.calls).toEqual([["<string>"]]);
+});
+it("prepares nested eval code with one shared source and scope graph",()=>{
+  const program=compileSourceProgram("(lambda x:lambda:x, (x for x in xs))",{...options,mode:"eval",filename:"eval.py"},constants,budget());
+  expect(program.module.expression?.kind).toBe("tuple");
+  expect([...program.functions.values()].map(code=>code.qualifiedName)).toEqual(["<lambda>","<lambda>.<locals>.<lambda>"]);
+  expect(program.generatorExpressions?.size).toBe(1);
+  for(const code of program.functions.values())expect(code.source).toBe(program.module.source);
+});
+it.each(["x=1","await x","(yield 1)"])("uses eval grammar and context validation: %s",source=>{
+  expect(()=>compileSourceProgram(source,{...options,mode:"eval"},constants,budget())).toThrow(PythonSyntaxError);
+});
+
 it("compiles source into identity-linked nested code without executing it",()=>{
   const program=compileSourceProgram('"doc"\ndef outer(x):\n class C:\n  def method(self): return x\n return C\nmissing()', {...options,filename:"../🐍.py"},constants,budget());
   expect(program.module.docstring).toEqual({value:"doc"});

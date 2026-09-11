@@ -18,7 +18,7 @@ interface TuplePool<Value> { readonly children: Map<ConstantRecord<Value>, Tuple
  * code-point boundaries. Unary integer/float constants and immutable tuple
  * displays can share the same pool without guest equality or AST mutation.
  * General folding and metadata/docstring pooling remain separate compiler work. */
-export function compileLiteralPool<Value>(body: readonly Statement[], literal: (node: LiteralExpression) => Value, meter: ExecutionMeter, tuple?: (values: readonly Value[]) => Value): LiteralPool<Value> {
+export function compileLiteralPool<Value>(body: readonly Statement[], literal: (node: LiteralExpression) => Value, meter: ExecutionMeter, tuple?: (values: readonly Value[]) => Value,skipRootDocstring=true): LiteralPool<Value> {
   try {
   meter.checkpoint(1, 352 + body.length * 8);
   const folded = new Map<Expression, Value>(), records = new Map<Expression, ConstantRecord<Value>>();
@@ -40,7 +40,7 @@ export function compileLiteralPool<Value>(body: readonly Statement[], literal: (
   const statements = [...body], first = body[0];
   while (statements.length) {
     meter.checkpoint(); const statement = statements.pop()!;
-    if (statement === first && isDocstring(statement)) continue;
+    if (skipRootDocstring && statement === first && isDocstring(statement)) continue;
     meter.checkpoint(1, 160);
     const expressions: { node: Expression; after: boolean }[] = [];
     for (const node of statementExpressions(statement, false, meter)) { meter.checkpoint(1, 40); expressions.push({ node, after: false }); }

@@ -87,8 +87,8 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
       native.set(value.kind, type); return type;
     } })
   };
-  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins,filename?:string) {
-    executeRuntimeProgram(compileSourceProgram<RuntimeValue>(source, { stripDocstring: false,filename,enterRecursiveCall:()=>calls.enter(globals) }, v, meter), { objectType:registry.object,values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
+  function run(source: string,executionGlobals:LexicalNamespaces<RuntimeValue>["globals"]=globals,executionBuiltins:LexicalNamespaces<RuntimeValue>["builtins"]=builtins,filename?:string,mode:"exec"|"eval"="exec") {
+    return executeRuntimeProgram(compileSourceProgram<RuntimeValue>(source, { stripDocstring: false,filename,mode,enterRecursiveCall:()=>calls.enter(globals) }, v, meter), { objectType:registry.object,values: v, globals:executionGlobals, builtins:executionBuiltins, keys, hooks, calls, identity, exceptions,unraisable:(error,object)=>{unraisable.push([error,object]);} }, meter);
   }
   return { v, meter, hash, keys, registry, globals, builtins, events, calls, run, exceptions,unraisable,hooks };
 }
@@ -99,6 +99,18 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it.each(["1+2","(lambda x:x+1)(2)","(x:=3)"])("returns concrete eval values: %s",source=>{
+  const state=fixture();
+  expect(state.run(source,state.globals,state.builtins,undefined,"eval")).toEqual(state.v.integer(3));
+  expect(state.calls.depth).toBe(0);expect(state.globals.has("__doc__")).toBe(false);
+});
+it("preserves eval string whitespace and lone surrogates",()=>{
+  const state=fixture();
+  const result=state.run('"  x\\n\\ud800  "',state.globals,state.builtins,undefined,"eval");
+  if(result?.kind!=="str")throw Error("expected evaluated string");
+  expect(Array.from(result.value)).toEqual([32,32,120,10,0xd800,32,32]);
+  expect(state.globals.has("__doc__")).toBe(false);
+});
 it("charges source compilation to the running execution budget",()=>{
   const state=fixture();
   state.meter.checkpoint(999000-state.meter.usage.steps);

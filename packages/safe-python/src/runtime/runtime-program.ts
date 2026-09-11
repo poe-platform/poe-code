@@ -596,9 +596,9 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
 
 /** Execute the compiled module with the same frame assembly used for functions
  * and prepared class suites. Ordinary module locals retain their own routing. */
-export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, context: RuntimeProgramContext, meter: ExecutionMeter): void {
+export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, context: RuntimeProgramContext, meter: ExecutionMeter): RuntimeValue|void {
   const body = createRuntimeFrameBody(program, context, meter);
-  executeModule(program.module, {
+  return executeModule(program.module, {
     globals: context.globals, builtins: context.builtins, locals: context.locals, calls: context.calls,
     body: frame => body(frame, context)
   }, meter);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeModule } from "../analysis.js";
+import { analyzeModule,analyzeExpression } from "../analysis.js";
 import type { Expression } from "../ast.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeModule, type ModuleExecutionContext } from "./module-execution.js";
@@ -37,6 +37,26 @@ function fixture(source = '"documentation"\nx=value', stripDocstring = false) {
 }
 
 describe("compiled module execution", () => {
+  it("returns expression values without storing docstrings or executing statements",()=>{
+    const state=fixture("pass");
+    const code=compileProgram(analyzeExpression("value"),{stripDocstring:false},{string:value=>value,integer:value=>value,tuple:values=>values},state.meter).module;
+    expect(executeModule(code,state.context,state.meter)).toBe(42);
+    expect(state.events).toEqual([]);expect(state.globals.has("__doc__")).toBe(false);
+    expect(state.calls.depth).toBe(0);
+  });
+  it("restores the caller when expression evaluation fails",()=>{
+    const state=fixture("pass"),caller={},leave=state.calls.enter(caller);
+    const code=compileProgram(analyzeExpression("missing"),{stripDocstring:false},{string:value=>value,integer:value=>value,tuple:values=>values},state.meter).module;
+    expect(()=>executeModule(code,state.context,state.meter)).toThrow("name 'missing' is not defined");
+    expect(state.calls.current).toBe(caller);leave();
+  });
+  it("preserves fatal limits masked by expression callbacks",()=>{
+    const state=fixture("pass");
+    const code=compileProgram(analyzeExpression("value"),{stripDocstring:false},{string:value=>value,integer:value=>value,tuple:values=>values},state.meter).module;
+    const context={...state.context,body:(frame:Parameters<typeof state.context.body>[0])=>({...state.context.body(frame),evaluate(){try{state.meter.checkpoint(10000);}catch{/* host callback masks the original failure */}throw new Error("callback failure");}})};
+    expect(()=>executeModule(code,context,state.meter)).toThrow(ExecutionLimitError);
+    expect(state.calls.depth).toBe(0);
+  });
   it("stores the compiled docstring and executes ordinary statements", () => {
     const state = fixture(); state.run();
     expect(state.globals.get("__doc__")).toBe("documentation");

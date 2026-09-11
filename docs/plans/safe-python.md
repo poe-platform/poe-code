@@ -12604,6 +12604,26 @@ extension, integration, or validation requirement is missing or unverified.
   thread-pool suite passes 8,836 tests in 587 files (88.38s; bodies 9.48s).
   Expression-mode code preparation and value-returning runtime execution are
   next prerequisites for guest eval; this analysis API alone does not evaluate.
+- Expression compilation and value-returning execution (2026-09-11): failing
+  source-compiler, generic execution and native integration tests reproduced
+  discarded eval results and string/docstring confusion. Source compilation now
+  accepts explicit exec/eval modes (exec remains default), selects expression
+  analysis for eval, and preserves its identity in compiled module metadata.
+  Nested functions/generators and constants use the shared program compiler.
+  Literal pooling includes eval root strings rather than skipping them as docs.
+  Module-frame execution returns expression values without writing __doc__, and
+  the concrete runtime propagates the result. Cleanup restores callers and
+  preserves masked fatal limits while avoiding checkpoints after an already
+  propagating ExecutionLimitError. All 1,052 focused tests pass. Seventeen
+  concrete eval results match CPython, including closures, generator expressions,
+  lambda generators, comprehensions, large integers and lone-surrogate strings.
+  The initial differential fixture lacked generator exception support; rerunning
+  with the existing exception-enabled fixture passed all cases. An incorrect
+  Uint32Array assertion was corrected to inspect runtime CodePointString points.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  full thread-pool suite passes 8,850 tests in 587 files (79.31s; bodies 9.47s).
+  Guest compile/eval/exec builtins, interactive single mode, compiler flags,
+  namespace defaults and full interpreter/safe-fs publication remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

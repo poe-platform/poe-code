@@ -13146,6 +13146,24 @@ extension, integration, or validation requirement is missing or unverified.
   audit events and safe-fs integration. Build, typecheck, scoped lint and whitespace
   checks pass. The uncached full thread-pool suite passes 9,147 tests in 607 files
   (129.44s; bodies 12.48s).
+- Suspension name metadata (2026-09-11): three failing native regressions
+  established missing generator, coroutine and async-generator name descriptors.
+  Creation now snapshots the function's original guest name/qualified-name objects
+  into independent mutable metadata; natural generator expressions use their
+  compiler names instead. Both synchronous and asynchronous callable generator
+  expressions explicitly carry function names rather than their <genexpr> code
+  labels. Shared getset descriptors expose __name__/__qualname__, preserve assigned
+  string identity and reject invalid values or deletion with TypeError. Names
+  survive termination and do not change when the source function is renamed.
+  Native tests cover all three suspension kinds, post-close mutation retention,
+  natural versus assigned generator-expression names and assigned string identity.
+  CPython probes confirm snapshot behavior, post-close name retention and exact assignment/
+  deletion diagnostics for all three kinds. Focused integration passes 1,064 tests.
+  Host-created suspension objects without code or explicit names still require
+  creation metadata for these descriptors; public interpreter/backend integration,
+  audit events and safe-fs remain unfinished. Build, typecheck, scoped lint and
+  whitespace checks pass. The uncached full thread-pool suite passes 9,151 tests
+  in 607 files (112.41s; bodies 20.19s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

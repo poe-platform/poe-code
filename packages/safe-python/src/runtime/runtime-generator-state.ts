@@ -6,6 +6,11 @@ import type { AsyncGeneratorThrow } from "./async-generator-throw.js";
 import type { CompiledFunction } from "./function-compilation.js";
 import type {CompiledGeneratorExpression} from "./generator-expression-compilation.js";
 
+export interface RuntimeSuspensionNames {
+  name:RuntimeValue;
+  qualifiedName:RuntimeValue;
+}
+
 /** Native storage, never a guest attribute namespace. The lifecycle drops its
  * body/frame references on termination; exception services remain execution-owned. */
 export interface RuntimeGeneratorState {
@@ -14,6 +19,7 @@ export interface RuntimeGeneratorState {
   readonly exceptions:RuntimeExceptionExecution;
   /** Code survives termination; the execution alone retains a live frame. */
   readonly code?:CompiledFunction<RuntimeValue>|CompiledGeneratorExpression<RuntimeValue>;
+  readonly names?:RuntimeSuspensionNames;
 }
 
 export interface RuntimeCoroutineWrapperState {
@@ -21,7 +27,7 @@ export interface RuntimeCoroutineWrapperState {
   readonly coroutine:InstanceValue;
 }
 
-export interface RuntimeAsyncGeneratorState extends Pick<RuntimeGeneratorState,"execution"|"exceptions"|"code"> {
+export interface RuntimeAsyncGeneratorState extends Pick<RuntimeGeneratorState,"execution"|"exceptions"|"code"|"names"> {
   readonly kind:"async_generator";
   readonly activity:AsyncGeneratorActivity;
 }

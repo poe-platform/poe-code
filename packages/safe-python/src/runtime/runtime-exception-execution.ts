@@ -25,6 +25,7 @@ import { GeneratorExecution,type GeneratorInput,type GeneratorDelegation } from 
 import type { CallStack } from "./call-stack.js";
 import { LexicalFrame } from "./lexical-frame.js";
 import { normalizeThrownException } from "./throw-normalization.js";
+import type {RuntimeSuspensionNames} from "./runtime-generator-state.js";
 
 /** Propagation must never render guest values or expose a host stack to Python. */
 export class RuntimeRaisedException {
@@ -70,7 +71,7 @@ export class RuntimeExceptionExecution {
 
   /** Assemble an unstarted generator/coroutine around a trusted resumable body.
    * Only the running body owns a call-stack entry and saved exception activation. */
-  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>,kind:"generator"|"coroutine"|"async-generator"="generator"):InstanceValue {
+  generator(driver:(input:GeneratorInput<RuntimeValue>)=>IteratorResult<RuntimeValue,RuntimeValue>,frame:object,calls:Pick<CallStack<object>,"enter">,delegation?:GeneratorDelegation<RuntimeValue>,kind:"generator"|"coroutine"|"async-generator"="generator",functionNames?:Readonly<RuntimeSuspensionNames>):InstanceValue {
     const {values,meter}=this;
     const executionKind=kind==="async-generator"?"async generator":kind;
     meter.checkpoint(0,512);
@@ -110,11 +111,14 @@ export class RuntimeExceptionExecution {
     },meter);
     let result:InstanceValue;
     const code=frame instanceof LexicalFrame?frame.code:undefined;
+    const originalNames=functionNames??code;
+    let names:RuntimeSuspensionNames|undefined;
+    if(originalNames!==undefined){meter.checkpoint(1,48);names={name:originalNames.name,qualifiedName:originalNames.qualifiedName};}
     if(kind==="async-generator") {
       meter.checkpoint(0,64);
-      result=values.instance(this.registry.asyncGeneratorType(),undefined,Object.freeze({kind:"async_generator",execution,exceptions:this,code,activity:{running:false,closed:false}}));
+      result=values.instance(this.registry.asyncGeneratorType(),undefined,Object.freeze({kind:"async_generator",execution,exceptions:this,code,names,activity:{running:false,closed:false}}));
     }
-    else result=values.instance(kind==="generator"?this.registry.generatorType():this.registry.coroutineType(),undefined,Object.freeze({kind,execution,exceptions:this,code}));
+    else result=values.instance(kind==="generator"?this.registry.generatorType():this.registry.coroutineType(),undefined,Object.freeze({kind,execution,exceptions:this,code,names}));
     if(frame instanceof LexicalFrame)this.registry.registerFrameGenerator(frame,result);
     return result;
   }

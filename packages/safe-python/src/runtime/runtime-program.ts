@@ -219,7 +219,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           if(code.body.kind==="generator-expression"){
             const node=code.body.code.scope.scope.node;
             if(node.kind!=="comprehension"||node.collection!=="generator")throw Error("generator-expression adapter requires generator code");
-            return generatorComprehension(node,undefined,child,{code,namespaces:child.namespaces});
+            return generatorComprehension(node,undefined,child,{code,namespaces:child.namespaces,name:fn.value.name,qualifiedName:fn.value.qualifiedName});
           }
           meter.checkpoint(0, 288);
           const origin = fn.value;
@@ -234,7 +234,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
             return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : values.none;
           }
           const cursor = run();
-          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls,delegation,kind);
+          return context.exceptions!.generator(input => input.kind === "throw" ? cursor.throw(input.error) : cursor.next(input.value), child, calls,delegation,kind,fn.value);
         };
         return invokeRuntimeFunction(fn, positional, keywords, invocation, meter);
       }
@@ -406,7 +406,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     };
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
-    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,source:RuntimeValue|undefined,child:LexicalFrame<RuntimeValue>,execution?:{readonly code:CompiledFunction<RuntimeValue>;readonly namespaces:LexicalNamespaces<RuntimeValue>})=>{
+    const generatorComprehension=(node:Extract<Expression,{kind:"comprehension"}>,source:RuntimeValue|undefined,child:LexicalFrame<RuntimeValue>,execution?:{readonly code:CompiledFunction<RuntimeValue>;readonly namespaces:LexicalNamespaces<RuntimeValue>;readonly name:RuntimeValue;readonly qualifiedName:RuntimeValue})=>{
       if(context.exceptions===undefined)throw new UnsupportedExpressionError(node.kind);
       if(source!==undefined){
         const iterator=node.clauses[0].async?acquireRuntimeAsyncIterator(source,builtinCalls,meter,"async for"):acquireRuntimeIterator(source,values,meter,builtinCalls.iteration);
@@ -438,7 +438,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
           return values.none;
         }
         const cursor=run();
-        return context.exceptions.generator(input=>input.kind==="throw"?cursor.throw(input.error):cursor.next(input.value),child,calls,delegation,"async-generator");
+        return context.exceptions.generator(input=>input.kind==="throw"?cursor.throw(input.error):cursor.next(input.value),child,calls,delegation,"async-generator",execution);
       }
       let cursor:ComprehensionCursor<RuntimeValue,RuntimeValue>|undefined;
       return context.exceptions.generator(input=>{
@@ -450,7 +450,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         }
         const step=cursor.next();
         return step.done?{done:true,value:values.none}:step;
-      },child,calls);
+      },child,calls,undefined,"generator",execution);
     };
     const expressions = createRuntimeExpressionContext(values, {
       position(site){

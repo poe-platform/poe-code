@@ -111,6 +111,22 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it("distinguishes function names from assigned and natural generator-expression code names",()=>{
+  const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
+  const program=compileSourceProgram("g=(x for x in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);
+  programs.register(program);globals.items.set(v.string("GenCode"),state.registry.code([...program.generatorExpressions!.values()][0]));
+  state.run("def f(iterator):yield -1\nf.__code__=GenCode\nf.__name__='named'\nf.__qualname__='Q.named'\nnatural=(x for x in ())\na=f(natural)\nf.__name__='later'\ncorrect=a.__name__=='named' and a.__qualname__=='Q.named' and natural.__name__=='<genexpr>' and natural.__qualname__=='<genexpr>'\nname='changed'\na.__name__=name\nidentity=a.__name__ is name\na.close()\nnatural.close()\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);expect(globals.items.lookup(v.string("identity"))?.value).toBe(v.true);
+});
+
+it.each(["generator","coroutine","async-generator"] as const)("retains and mutates %s names independently of its function",kind=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  const definition=kind==="generator"?"def f():yield 1":kind==="coroutine"?"async def f():return 1":"async def f():yield 1";
+  const close=kind==="async-generator"?"try:a.aclose().send(None)\nexcept StopIteration:pass":"a.close()";
+  state.run(definition+"\nf.__name__='before'\nf.__qualname__='Outer.before'\na=f()\nf.__name__='after'\nf.__qualname__='Outer.after'\nretained=a.__name__=='before' and a.__qualname__=='Outer.before'\na.__name__='custom'\na.__qualname__='Q.custom'\ntry:a.__name__=None\nexcept TypeError:invalid=True\ntry:del a.__qualname__\nexcept TypeError:deletion=True\n"+close+"\ncorrect=retained and invalid and deletion and a.__name__=='custom' and a.__qualname__=='Q.custom' and f.__name__=='after'\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
+});
+
 it("retains closure cells and nested definitions in assigned generator-expression code",()=>{
   const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();
   const program=compileSourceProgram("def outer(x):return (lambda:x+y for y in ())",{stripDocstring:false,enterRecursiveCall:()=>()=>{}},v,meter);

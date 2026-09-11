@@ -76,6 +76,7 @@ function fixture(identity?: IdentityContext, maxSteps = 1000000, extensions: Par
     callable: () => false, name: () => "guest()", keywordName: key => { if (key.kind !== "str") throw Error("expected string keyword"); return String.fromCodePoint(...key.value); }, invoke: unused,
     specialMethods: () => ({ slots: () => undefined, typeOf(value) {
       if (value.kind === "none") return registry.noneType();
+      if (value.kind === "not-implemented" || value.kind === "ellipsis") return registry.sentinelType(value.kind);
       if (value.kind === "cell") return registry.cellType();
       if (value.kind === "list") return registry.listType();
       if (value.kind === "tuple") return registry.tupleType();
@@ -107,6 +108,33 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   for(const name of ["BaseException","Exception","ValueError","TypeError","ZeroDivisionError","KeyError","RuntimeError","NameError","AssertionError","StopIteration","StopAsyncIteration"] as const)state.globals.set(name,state.registry.exceptionType(name));
   return state;
 }
+
+it.each(["not-implemented","ellipsis"] as const)("constructs canonical singleton types without creating instances: %s",kind=>{
+  const state=exceptionFixture(),value=kind==="ellipsis"?state.v.ellipsis:state.v.notImplemented;
+  state.globals.set("singleton",value);
+  state.run("T=type(singleton)\ncorrect=T() is singleton and T.__new__(T) is singleton\ntry:T(1)\nexcept TypeError:argument=True\ntry:\n class Child(T):pass\nexcept TypeError:subclass=True\n");
+  for(const name of ["correct","argument","subclass"])expect(state.globals.get(name)).toBe(state.v.true);
+});
+
+it.each(["not-implemented","ellipsis"] as const)("validates singleton allocator diagnostics and immutable type metadata: %s",kind=>{
+  const state=exceptionFixture(),{v}=state,value=kind==="ellipsis"?v.ellipsis:v.notImplemented;
+  const name=kind==="ellipsis"?"ellipsis":"NotImplementedType",constructorName=kind==="ellipsis"?"EllipsisType":name;
+  state.globals.set("singleton",value);
+  for(const [expression,message] of [
+    ["T(flag=1)",`${constructorName} takes no arguments`],
+    ["T.__new__()",`${name}.__new__(): not enough arguments`],
+    ["T.__new__(None)",`${name}.__new__(X): X is not a type object (NoneType)`],
+    ["T.__new__(object)",`${name}.__new__(object): object is not a subtype of ${name}`],
+    ["T.__new__(T,1)",`${constructorName} takes no arguments`]
+  ]){
+    state.run(`T=type(singleton)\ntry:\n ${expression}\nexcept TypeError as error:\n result=error.args\n`);
+    expect(state.globals.get("result")).toEqual(v.tuple([v.string(message)]));
+  }
+  state.globals.set("expected_name",v.string(name));
+  state.run("try:T.extra=1\nexcept TypeError:immutable=True\ncorrect=T.__name__==expected_name and T.__base__ is object and type(T) is type\n");
+  expect(state.globals.get("immutable")).toBe(v.true);expect(state.globals.get("correct")).toBe(v.true);
+  expect(state.registry.sentinelType(kind)).toBe(state.globals.get("T"));
+});
 
 it("distinguishes function names from assigned and natural generator-expression code names",()=>{
   const {state,v,meter,globals,builtins,programs}=dynamicNamespaceFixture();

@@ -92,7 +92,7 @@ import { createBoundCallableHashWrapper } from "./builtin-bound-callable-hash.js
 import { installRuntimeGeneratorDescriptors } from "./runtime-generator-descriptors.js";
 import { installRuntimeAsyncGeneratorDescriptors } from "./runtime-async-generator-descriptors.js";
 import { installRuntimeAnextAwaitableDescriptors } from "./runtime-anext-awaitable.js";
-import { createNoneNewBuiltin } from "./builtin-none-new.js";
+import { createSingletonNewBuiltin } from "./builtin-singleton-new.js";
 import {createCellNewBuiltin} from "./builtin-cell-new.js";
 import {createCellReprWrapper} from "./builtin-cell-repr.js";
 import {readRuntimeCell,mutateRuntimeCell} from "./runtime-cell.js";
@@ -143,6 +143,7 @@ export class RuntimeTypeRegistry {
   #asyncGeneratorTypes=new Map<"async_generator"|"async_generator_asend"|"async_generator_athrow",TypeValue>();
   #anextAwaitableType:TypeValue|undefined;
   #noneType:TypeValue|undefined;
+  readonly #sentinelTypes=new Map<"not-implemented"|"ellipsis",TypeValue>();
   #cellType:TypeValue|undefined;
   #unionType:TypeValue|undefined;
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
@@ -668,10 +669,21 @@ export class RuntimeTypeRegistry {
     const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
     const layout=new RuntimeTypeLayout("NoneType",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
-    namespace.items.set(this.values.string("__new__"),createNoneNewBuiltin(type,this.values,this.meter));
+    namespace.items.set(this.values.string("__new__"),createSingletonNewBuiltin(type,this.values.none,this.values,this.meter));
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#noneType=type;
     return type;
+  }
+
+  sentinelType(kind:"not-implemented"|"ellipsis"):TypeValue {
+    this.meter.checkpoint();
+    const existing=this.#sentinelTypes.get(kind);if(existing!==undefined)return existing;
+    const name=kind==="ellipsis"?"ellipsis":"NotImplementedType",singleton=kind==="ellipsis"?this.values.ellipsis:this.values.notImplemented;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout(name,[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    namespace.items.set(this.values.string("__new__"),createSingletonNewBuiltin(type,singleton,this.values,this.meter));
+    this.meter.checkpoint(1,96);this.#entries.set(layout,{type});this.#sentinelTypes.set(kind,type);return type;
   }
 
   dictionaryViewType(kind: "dict_keys" | "dict_values" | "dict_items"): TypeValue {

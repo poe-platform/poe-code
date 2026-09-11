@@ -13233,6 +13233,21 @@ extension, integration, or validation requirement is missing or unverified.
   Public interpreter assembly, canonical builtin coverage, imports, safe-fs and
   broader compatibility/security/performance audits remain unfinished. No push
   or release was requested or performed.
+- Canonical sentinel constructors (2026-09-11): two failing native regressions
+  established that placeholder NotImplemented/Ellipsis types did not preserve
+  singleton identity on construction. The registry now caches immutable,
+  non-subclassable NotImplementedType and ellipsis types. Renamed the None-only
+  allocator to builtin-singleton-new and share it across all three sentinels;
+  existing NoneType call diagnostics remain covered. Native tests verify exact
+  allocator errors, repeated type identity, constructor identity, immutable type
+  metadata and subclass rejection. CPython probes confirm all three constructors
+  and diagnostics, including ellipsis versus EllipsisType diagnostic spellings.
+  Three host-boundary tests retain fatal cancellation when diagnostic type lookup
+  throws. Build, typecheck, scoped lint and whitespace checks pass; the full
+  uncached thread-pool suite passes 9,192 tests in 610 files (90.67s; bodies
+  11.12s). Complete sentinel descriptor publication, canonical runtime type
+  selection, public interpreter assembly, imports, safe-fs and broad audits
+  remain unfinished. No push or release was requested or performed.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

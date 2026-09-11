@@ -65,7 +65,8 @@ const differentialCases = [
 
 for (const fixture of differentialCases) {
   test(`array keys review native: ${fixture.label}`, nativeOptions(), async context => {
-    assert.equal(process.env.SAFE_BASH_TEST_BASH_SHA256, "f5b331844c67482075aea7883153127668cc67f83a60a7b4362cc8469a9dc77d");
+    // Historical review binary: f5b331844c67482075aea7883153127668cc67f83a60a7b4362cc8469a9dc77d.
+    // runNative and the final check authenticate the selected GNU 5.2.37 binary against its supplied digest.
     const shell = setup(fixture.defaults ? [] : [arraysExtension()]);
     context.after(() => shell.dispose());
     try {

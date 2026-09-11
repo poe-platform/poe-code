@@ -4,8 +4,9 @@ import type {ExecutionMeter} from "./execution-budget.js";
 import {stableSort} from "./stable-sort.js";
 
 /** Compiler-owned names, not runtime values. Captured parameters occur in both
- * variableNames and cellNames; other cells have no fast-local slot. */
-export interface FunctionLocalLayout {
+ * variableNames and cellNames; other cells have no fast-local slot. Module and
+ * class code has closure slots but no function arguments or fast locals. */
+export interface CodeLocalLayout {
   readonly variableNames:readonly string[];
   readonly cellNames:readonly string[];
   readonly freeNames:readonly string[];
@@ -16,15 +17,16 @@ export interface FunctionLocalLayout {
   readonly varKeyword:boolean;
 }
 
-export function compileFunctionLocalLayout(scope:ResolvedScope,meter:ExecutionMeter):FunctionLocalLayout {
+export function compileCodeLocalLayout(scope:ResolvedScope,meter:ExecutionMeter):CodeLocalLayout {
   meter.checkpoint();
   const node=scope.scope.node;
-  if(node.kind!=="function"&&node.kind!=="lambda")throw Error("local layout requires function or lambda code");
+  if(node.kind!=="function"&&node.kind!=="lambda"&&node.kind!=="module"&&node.kind!=="class")throw Error("local layout requires function, lambda, module or class code");
+  const optimized=node.kind==="function"||node.kind==="lambda";
   meter.checkpoint(0,320);
   const variables:string[]=[],capturedParameters:string[]=[],cells:string[]=[],free:string[]=[],seen=new Set<string>();
   let positionalCount=0,positionalOnlyCount=0,keywordOnlyCount=0,varPositional=false,varKeyword=false;
   // Keyword-only parameters precede variadic slots, regardless of source order.
-  for(const group of ["ordinary","var-positional","var-keyword"] as const)for(const parameter of node.parameters){
+  for(const group of ["ordinary","var-positional","var-keyword"] as const)for(const parameter of optimized?node.parameters:[]){
     meter.checkpoint();
     const kind=parameter.kind;
     if((kind==="var-positional"||kind==="var-keyword"?kind:"ordinary")!==group)continue;
@@ -37,7 +39,7 @@ export function compileFunctionLocalLayout(scope:ResolvedScope,meter:ExecutionMe
     else if(kind==="var-positional")varPositional=true;
     else varKeyword=true;
   }
-  for(const event of scope.scope.events){
+  for(const event of optimized?scope.scope.events:[]){
     meter.checkpoint();
     if(event.kind==="annotation"||event.kind==="global"||event.kind==="nonlocal"||seen.has(event.name)||scope.cells.has(event.name)||scope.bindings.get(event.name)?.kind!=="local")continue;
     meter.checkpoint(0,48);variables.push(event.name);seen.add(event.name);

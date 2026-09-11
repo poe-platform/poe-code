@@ -3,7 +3,7 @@ import type { ResolvedScope } from "../symbol-resolution.js";
 import { bindArguments, type CallParameter, type KeywordNames, type FunctionDefaultOverrides } from "./argument-binding.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { LexicalFrame, type LexicalNamespaces } from "./lexical-frame.js";
-import type {FunctionLocalLayout} from "./function-local-layout.js";
+import type {CodeLocalLayout} from "./code-local-layout.js";
 import type {CompiledFunction} from "./function-compilation.js";
 
 export interface FunctionCallArguments<Value, Key = string> {
@@ -37,7 +37,7 @@ export interface FunctionFrameContext<Value, Key = string> extends LexicalNamesp
  */
 export function createFunctionFrame<Value, Key = string>(
   scope: ResolvedScope, call: FunctionCallArguments<Value, Key>,
-  context: FunctionFrameContext<Value, Key>, meter: ExecutionMeter, localLayout?:FunctionLocalLayout,code?:CompiledFunction<Value>
+  context: FunctionFrameContext<Value, Key>, meter: ExecutionMeter, localLayout?:CodeLocalLayout,code?:CompiledFunction<Value>
 ): LexicalFrame<Value> {
   meter.checkpoint();
   const node = scope.scope.node;

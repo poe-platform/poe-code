@@ -11226,6 +11226,27 @@ extension, integration, or validation requirement is missing or unverified.
   uncached one-worker package suite passes 7,921 tests in 527 files (190.13s;
   test bodies 10.80s). Complete instruction metadata, module/class native frames,
   tracing and automatic traceback capture remain unfinished.
+- Native module/class code metadata (2026-09-10): two failing publication
+  regressions confirmed that native code objects incorrectly required a function
+  layout for module/class code. Renamed the shared compiler to code-local-layout
+  and generalized it to preserve closure names without assigning fast locals or
+  arguments to module/class scopes. Function/lexical-frame consumers use the same
+  compiler; comprehension activations still do not pretend to own native code.
+  Native code publication now accepts compiled modules and class suites, supplies
+  module headers and class names/closure metadata, and canonicalizes class-body
+  function wrappers to their underlying suite identity regardless of publication
+  order. Three new publication cases and the adjusted layout boundary test pass;
+  the focused five-file suite passes 72 tests. A 256-program CPython comparison
+  covers module/function/class headers, filenames, flags, Unicode closure ordering
+  and nested scopes: 128 cases match exactly, and 128 differ only by CPython's
+  annotation-related __classdict__ cell, intentionally absent under type erasure.
+  Those differences are recorded separately, not counted as exact matches.
+  CPython disassembly and compiler/symbol-table sources confirm the implicit cell;
+  no other metadata differences remain in this corpus. Selected workspace build,
+  typecheck, scoped lint and whitespace checks pass. The final uncached one-worker
+  package suite passes 7,924 tests in 527 files (129.74s; test bodies 9.23s).
+  This prepares code publication; native module/class frame objects, complete
+  instruction metadata, tracing and automatic traceback capture remain required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

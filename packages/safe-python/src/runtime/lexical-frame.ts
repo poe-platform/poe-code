@@ -4,7 +4,7 @@ import type { ResolvedBinding, ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameNamespace } from "./namespace-lookup.js";
 import { PythonRuntimeError } from "./error.js";
-import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
+import {compileCodeLocalLayout,type CodeLocalLayout} from "./code-local-layout.js";
 import {FrameLocals} from "./frame-locals.js";
 import type {CompiledFunction} from "./function-compilation.js";
 import type {SourceSpan} from "../ast.js";
@@ -51,7 +51,7 @@ export class LexicalFrame<Value> {
     /** Host-owned backing namespaces; never exposed as host objects to guests. */
     readonly namespaces: LexicalNamespaces<Value>,
     private readonly meter: ExecutionMeter,
-    private readonly localLayout?:FunctionLocalLayout,
+    private readonly localLayout?:CodeLocalLayout,
     readonly code?:CompiledFunction<Value>
   ) {
     meter.checkpoint();
@@ -73,7 +73,7 @@ export class LexicalFrame<Value> {
    * lazy and normal name access does not pay its indexing/allocation costs. */
   reflectLocals():FrameLocals<Value> {
     this.meter.checkpoint();
-    if(this.#reflectiveLocals===undefined)this.#reflectiveLocals=new FrameLocals(this.localLayout??compileFunctionLocalLayout(this.scope,this.meter),this.#locals,this.#cells,this.meter);
+    if(this.#reflectiveLocals===undefined)this.#reflectiveLocals=new FrameLocals(this.localLayout??compileCodeLocalLayout(this.scope,this.meter),this.#locals,this.#cells,this.meter);
     return this.#reflectiveLocals;
   }
 

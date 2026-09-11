@@ -9,7 +9,7 @@ import { compileSuite } from "./suite-compilation.js";
 import type { CompiledClassBody } from "./class-compilation.js";
 import type { LiteralPool } from "./literal-pool.js";
 import type { ComprehensionNode } from "./comprehension-execution.js";
-import {compileFunctionLocalLayout,type FunctionLocalLayout} from "./function-local-layout.js";
+import {compileCodeLocalLayout,type CodeLocalLayout} from "./code-local-layout.js";
 import {createCompilationSource,type CompilationSource,type CodeCompilationOptions} from "./compilation-source.js";
 import {compileCodeScopeFlags} from "./code-scope-flags.js";
 
@@ -17,7 +17,7 @@ export interface CompiledFunction<Value> {
   readonly flags?:number;
   readonly source?:CompilationSource<Value>;
   /** Real function/lambda code owns this layout; synthetic class code does not. */
-  readonly localLayout?:FunctionLocalLayout;
+  readonly localLayout?:CodeLocalLayout;
   readonly comprehensions?: ReadonlyMap<ComprehensionNode,ResolvedScope>;
   /** Literal objects belong to the originating compilation, not each call. */
   readonly literals?: LiteralPool<Value>;
@@ -61,7 +61,7 @@ export function compileFunction<Value>(
   meter.checkpoint();
   const firstSite = node.kind === "function" ? node.decorators[0] ?? node : node;
   const firstLine = constants.integer(("contentSpan" in firstSite ? firstSite.contentSpan : undefined)?.start.line ?? firstSite.start.line);
-  const localLayout=compileFunctionLocalLayout(scope,meter);
+  const localLayout=compileCodeLocalLayout(scope,meter);
   let flags=scopeFlags;
   if(flags!==undefined)flags|=(localLayout.varPositional?4:0)|(localLayout.varKeyword?8:0)|(kind==="generator"?0x20:kind==="coroutine"?0x80:kind==="async-generator"?0x200:0);
   if (node.kind === "lambda") return { flags,source,scope, kind, name, qualifiedName, firstLine, localLayout, docstring: undefined, body: { kind: "expression", expression: node.body } };

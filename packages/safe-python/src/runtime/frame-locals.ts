@@ -1,4 +1,4 @@
-import type {FunctionLocalLayout} from "./function-local-layout.js";
+import type {CodeLocalLayout} from "./code-local-layout.js";
 import type {CellStorage} from "./lexical-frame.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import {PythonRuntimeError} from "./error.js";
@@ -10,7 +10,7 @@ import {PythonRuntimeError} from "./error.js";
 export class FrameLocals<Value> {
   readonly #names=new Set<string>();
   readonly names:readonly string[];
-  constructor(layout:FunctionLocalLayout,private readonly locals:Map<string,Value>,private readonly cells:ReadonlyMap<string,CellStorage<Value>>,private readonly meter:ExecutionMeter){
+  constructor(layout:CodeLocalLayout,private readonly locals:Map<string,Value>,private readonly cells:ReadonlyMap<string,CellStorage<Value>>,private readonly meter:ExecutionMeter){
     meter.checkpoint(1,128);
     for(const names of [layout.variableNames,layout.cellNames,layout.freeNames])for(const name of names){
       meter.checkpoint();if(this.#names.has(name))continue;

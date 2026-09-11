@@ -9,8 +9,7 @@ import {installRuntimeFrameDescriptors} from "./runtime-frame.js";
 import {installRuntimeTracebackDescriptors,type RuntimeTracebackState} from "./runtime-traceback.js";
 import {Traceback} from "./traceback.js";
 import {createTracebackNewBuiltin} from "./builtin-traceback-new.js";
-import {createRuntimeCodeState,installRuntimeCodeDescriptors} from "./runtime-code.js";
-import type {CompiledFunction} from "./function-compilation.js";
+import {createRuntimeCodeState,installRuntimeCodeDescriptors,type RuntimeCompiledCode} from "./runtime-code.js";
 import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new.js";
 import {RuntimeHashError} from "./runtime-hash-error.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
@@ -118,7 +117,7 @@ export class RuntimeTypeRegistry {
   #frameType:TypeValue|undefined;
   #tracebackType:TypeValue|undefined;
   #codeType:TypeValue|undefined;
-  readonly #codes=new WeakMap<CompiledFunction<RuntimeValue>,Extract<RuntimeValue,{kind:"instance"}>>();
+  readonly #codes=new WeakMap<RuntimeCompiledCode,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #tracebacks=new WeakMap<Traceback<LexicalFrame<RuntimeValue>>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frames=new WeakMap<LexicalFrame<RuntimeValue>,Extract<RuntimeValue,{kind:"instance"}>>();
   readonly #frameLocalsMappings=new WeakMap<LexicalFrame<RuntimeValue>,FrameLocalsMapping<RuntimeValue,RuntimeValue>>();
@@ -531,7 +530,9 @@ export class RuntimeTypeRegistry {
     return this.#tracebackType;
   }
 
-  code(code:CompiledFunction<RuntimeValue>):Extract<RuntimeValue,{kind:"instance"}> {
+  code(code:RuntimeCompiledCode):Extract<RuntimeValue,{kind:"instance"}> {
+    // Class-body functions and their executed suite share one guest code identity.
+    if("body" in code&&code.body.kind==="class")code=code.body.code;
     this.meter.checkpoint();const existing=this.#codes.get(code);if(existing!==undefined)return existing;
     const state=createRuntimeCodeState(code,this.values,this.meter);
     if(this.#codeType===undefined){

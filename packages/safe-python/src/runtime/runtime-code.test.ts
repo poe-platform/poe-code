@@ -18,6 +18,35 @@ function fixture(){
   return {controller,meter,v,registry,code,fn,namespaces};
 }
 
+it("publishes module code headers without function fast locals",()=>{
+  const s=fixture(),program=compileProgram(analyzeModule("\n\nx=1\n"),{stripDocstring:false,filename:"module.py"},s.v,s.meter),native=s.registry.code(program.module);
+  if(native.native?.kind!=="code")throw Error("expected code storage");
+  const fields=native.native.fields;
+  expect(fields.get("co_name")).toEqual(s.v.string("<module>"));
+  expect(fields.get("co_qualname")).toEqual(s.v.string("<module>"));
+  expect(fields.get("co_filename")).toEqual(s.v.string("module.py"));
+  for(const name of ["co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals","co_flags"])expect(fields.get(name)).toEqual(s.v.integer(0));
+  expect(fields.get("co_firstlineno")).toEqual(s.v.integer(1));
+  for(const name of ["co_varnames","co_cellvars","co_freevars"])expect(fields.get(name)).toEqual(s.v.tuple([]));
+  expect(s.registry.code(program.module)).toBe(native);
+});
+
+it.each([false,true])("publishes class closure metadata with one identity for its compiler wrapper (wrapper first=%s)",wrapperFirst=>{
+  const s=fixture(),program=compileProgram(analyzeModule("def outer(z,a):\n class C:\n  x=z+a\n  def method(self):return __class__,z,a\n return C"),{stripDocstring:false},s.v,s.meter),body=program.classes.values().next().value!,wrapper=program.classFunctions.values().next().value!;
+  const native=s.registry.code(wrapperFirst?wrapper:body);
+  expect(s.registry.code(body)).toBe(native);
+  expect(s.registry.code(wrapper)).toBe(native);
+  if(native.native?.kind!=="code")throw Error("expected code storage");
+  const fields=native.native.fields;
+  expect(fields.get("co_name")).toEqual(s.v.string("C"));
+  expect(fields.get("co_qualname")).toEqual(s.v.string("outer.<locals>.C"));
+  expect(fields.get("co_firstlineno")).toEqual(s.v.integer(2));
+  expect(fields.get("co_varnames")).toEqual(s.v.tuple([]));
+  expect(fields.get("co_cellvars")).toEqual(s.v.tuple([s.v.string("__class__")]));
+  expect(fields.get("co_freevars")).toEqual(s.v.tuple([s.v.string("a"),s.v.string("z")]));
+  expect(fields.get("co_nlocals")).toEqual(s.v.integer(0));
+});
+
 it.each(["co_name","co_qualname","co_filename","co_flags","co_firstlineno","co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals","co_varnames","co_cellvars","co_freevars"])("publishes owned immutable %s metadata",name=>{
   const s=fixture(),native=s.registry.code(s.code),descriptor=native.type.value.namespace.items.lookup(s.v.string(name))!.value;
   if(descriptor.kind!=="member_descriptor"&&descriptor.kind!=="getset_descriptor")throw Error("expected code descriptor");

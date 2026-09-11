@@ -1,23 +1,31 @@
-import {compileFunctionLocalLayout} from "./function-local-layout.js";
+import {compileCodeLocalLayout} from "./code-local-layout.js";
 import type {CompiledFunction} from "./function-compilation.js";
+import type {CompiledModule} from "./program-compilation.js";
+import type {CompiledClassBody} from "./class-compilation.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
 const members=["co_name","co_qualname","co_filename","co_flags","co_firstlineno","co_argcount","co_posonlyargcount","co_kwonlyargcount","co_nlocals"] as const;
 const tuples=["co_varnames","co_cellvars","co_freevars"] as const;
 
+export type RuntimeCompiledCode=CompiledFunction<RuntimeValue>|CompiledModule<RuntimeValue>|CompiledClassBody<RuntimeValue>;
+
 /** Compiler identity and immutable reflected metadata, not a host function. */
 export interface RuntimeCodeState {
   readonly kind:"code";
-  readonly code:CompiledFunction<RuntimeValue>;
+  readonly code:RuntimeCompiledCode;
   readonly fields:ReadonlyMap<string,RuntimeValue>;
 }
 
-export function createRuntimeCodeState(code:CompiledFunction<RuntimeValue>,values:RuntimeValues,meter:ExecutionMeter):RuntimeCodeState {
-  const layout=code.localLayout??compileFunctionLocalLayout(code.scope,meter);
+export function createRuntimeCodeState(code:RuntimeCompiledCode,values:RuntimeValues,meter:ExecutionMeter):RuntimeCodeState {
+  const layout=("localLayout" in code?code.localLayout:undefined)??compileCodeLocalLayout(code.scope,meter);
+  const node=code.scope.scope.node;
+  const name="name" in code?code.name:values.string(node.kind==="class"?node.name.name:"<module>");
+  const qualifiedName="qualifiedName" in code?code.qualifiedName:name;
+  const firstLine="firstLine" in code?code.firstLine:values.integer(1);
   meter.checkpoint(0,448);
   const fields=new Map<string,RuntimeValue>([
-    ["co_name",code.name],["co_qualname",code.qualifiedName],["co_firstlineno",code.firstLine],
+    ["co_name",name],["co_qualname",qualifiedName],["co_firstlineno",firstLine],
     ["co_argcount",values.integer(layout.positionalCount)],["co_posonlyargcount",values.integer(layout.positionalOnlyCount)],
     ["co_kwonlyargcount",values.integer(layout.keywordOnlyCount)],["co_nlocals",values.integer(layout.variableNames.length)]
   ]);

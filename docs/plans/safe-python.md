@@ -11933,6 +11933,28 @@ extension, integration, or validation requirement is missing or unverified.
   545 files (125.64s; test bodies 9.77s). Control-flow/expression-context analysis,
   symbols, derived metadata and AST construction remain separate unfinished
   accounting work; these traversals do not establish a complete parser sandbox.
+- Metered expression-context and control-flow validation (2026-09-11): thirteen
+  failing tests reproduced ignored entry budgets/cancellation, host recursion
+  failures on 10,000-level expression/statement trees, uncharged defaultless
+  parameter and expressionless-body scans, diagnostic allocation and missing
+  analysis-meter forwarding. Both passes now drive suspended direct-child
+  generators with explicit active-path stacks. Resuming a parent after its child
+  completes preserves default-expression ownership, nested lambda/function
+  generator classification, async-generator return checks and diagnostic order.
+  Frames, traversal results, contexts, function-kind entries and diagnostics are
+  charged; statement/expression/annotation-target enumeration receives the meter.
+  Four additional tests verify postorder kind recording, scope isolation and
+  cyclic external graphs. The focused six-file suite passes 135 tests.
+  All 58 maintained valid/invalid language cases agree with CPython on acceptance
+  and, when valid, named function/lambda name, line and execution kind derived
+  from code flags. The comparison excludes class-body and implicit-comprehension
+  code objects because they are not entries in functionKinds; an initial harness
+  incorrectly counted class bodies as functions and was corrected without a
+  production change. Build, typecheck, scoped lint and whitespace checks pass.
+  The final uncached one-worker full suite passes 8,352 tests in 547 files
+  (155.80s; test bodies 12.46s).
+  Symbol analysis, derived metadata, annotation-target allocation and AST
+  construction remain unfinished accounting work before guest compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,5 +1,5 @@
 import type { Module, Statement } from "./statement-ast.js";
-import { PythonSyntaxError } from "./source.js";
+import { PythonSyntaxError, type SourceMeter } from "./source.js";
 import { statementExpressions } from "./statement-expressions.js";
 import { validateExpressionContext, type ExpressionScope, type FunctionNode, type FunctionExecutionKind } from "./expression-context.js";
 import { annotationTargetExpressions } from "./annotation-targets.js";
@@ -13,14 +13,18 @@ type Context = {
 };
 
 /** Statement and expression placement checks, separate from parsing and symbol analysis. */
-export function validateControlFlow(module: Module, filename = "<string>"): ReadonlyMap<FunctionNode, FunctionExecutionKind> {
+export function validateControlFlow(module: Module, filename = "<string>",meter?:SourceMeter): ReadonlyMap<FunctionNode, FunctionExecutionKind> {
+  meter?.checkpoint(1,64);
+  try {
   const functionKinds = new Map<FunctionNode, FunctionExecutionKind>();
-  function visit(statements: readonly Statement[], context: Context): void {
+  function* visit(statements: readonly Statement[], context: Context): Generator<{statements:readonly Statement[];context:Context}> {
     for (const statement of statements) {
+      meter?.checkpoint(1,128);
       const expressions = statement.kind === "annotated-assignment" && statement.value === null
-        ? annotationTargetExpressions(statement.target, filename) : statementExpressions(statement, false);
-      for (const expression of expressions) validateExpressionContext(expression, context.scope, filename, functionKinds);
-      const invalid = (message: string): PythonSyntaxError => new PythonSyntaxError(message, filename, statement.start);
+        ? annotationTargetExpressions(statement.target, filename,meter) : statementExpressions(statement, false,meter);
+      for (const expression of expressions) validateExpressionContext(expression, context.scope, filename, functionKinds,meter);
+      meter?.checkpoint(0,64);
+      const invalid = (message: string): PythonSyntaxError => {meter?.checkpoint(0,256+2*message.length);return new PythonSyntaxError(message, filename, statement.start);};
       switch (statement.kind) {
         case "return":
           if (context.scope.kind !== "function" && context.scope.kind !== "async-function") throw invalid("'return' outside function");
@@ -32,44 +36,46 @@ export function validateControlFlow(module: Module, filename = "<string>"): Read
           if (context.exceptStarLoop !== null && context.loops <= context.exceptStarLoop) throw invalid(`'${statement.kind}' cannot leave an except* block`);
           break;
         case "function": {
+          meter?.checkpoint(0,144);
           const scope: Scope = { kind: statement.async ? "async-function" : "function", generator: false };
-          visit(statement.body, { scope, loops: 0, exceptStarLoop: null });
-          if (statement.async && scope.generator && scope.valueReturn) throw new PythonSyntaxError("'return' with value in async generator", filename, scope.valueReturn.start);
+          yield {statements:statement.body,context:{ scope, loops: 0, exceptStarLoop: null }};
+          if (statement.async && scope.generator && scope.valueReturn) {meter?.checkpoint(0,352);throw new PythonSyntaxError("'return' with value in async generator", filename, scope.valueReturn.start);}
+          if(!functionKinds.has(statement))meter?.checkpoint(0,32);
           functionKinds.set(statement, statement.async
             ? scope.generator ? "async-generator" : "coroutine"
             : scope.generator ? "generator" : "function");
           break;
         }
         case "class":
-          visit(statement.body, { scope: { kind: "class", generator: false }, loops: 0, exceptStarLoop: null });
+          meter?.checkpoint(0,144);yield {statements:statement.body,context:{ scope: { kind: "class", generator: false }, loops: 0, exceptStarLoop: null }};
           break;
         case "for":
           if (statement.async && context.scope.kind !== "async-function") throw invalid("'async for' outside async function");
-          visit(statement.body, { ...context, loops: context.loops + 1 });
-          visit(statement.otherwise, context);
+          meter?.checkpoint(0,96);yield {statements:statement.body,context:{ ...context, loops: context.loops + 1 }};
+          meter?.checkpoint(0,48);yield {statements:statement.otherwise,context};
           break;
         case "while":
-          visit(statement.body, { ...context, loops: context.loops + 1 });
-          visit(statement.otherwise, context);
+          meter?.checkpoint(0,96);yield {statements:statement.body,context:{ ...context, loops: context.loops + 1 }};
+          meter?.checkpoint(0,48);yield {statements:statement.otherwise,context};
           break;
         case "with":
           if (statement.async && context.scope.kind !== "async-function") throw invalid("'async with' outside async function");
-          visit(statement.body, context);
+          meter?.checkpoint(0,48);yield {statements:statement.body,context};
           break;
         case "if":
-          for (const branch of statement.branches) visit(branch.body, context);
-          visit(statement.otherwise, context);
+          for (const branch of statement.branches) {meter?.checkpoint(1,48);yield {statements:branch.body,context};}
+          meter?.checkpoint(0,48);yield {statements:statement.otherwise,context};
           break;
         case "match":
-          for (const clause of statement.cases) visit(clause.body, context);
+          for (const clause of statement.cases) {meter?.checkpoint(1,48);yield {statements:clause.body,context};}
           break;
         case "try":
-          visit(statement.body, context);
+          meter?.checkpoint(0,48);yield {statements:statement.body,context};
           for (const handler of statement.handlers) {
-            visit(handler.body, statement.group ? { ...context, exceptStarLoop: context.loops } : context);
+            meter?.checkpoint(1,96);yield {statements:handler.body,context:statement.group ? { ...context, exceptStarLoop: context.loops } : context};
           }
-          visit(statement.otherwise, context);
-          visit(statement.finalizer, context);
+          meter?.checkpoint(0,48);yield {statements:statement.otherwise,context};
+          meter?.checkpoint(0,48);yield {statements:statement.finalizer,context};
           break;
         case "import-from":
           if (statement.imports === "*" && context.scope.kind !== "module") throw invalid("import * only allowed at module level");
@@ -81,6 +87,13 @@ export function validateControlFlow(module: Module, filename = "<string>"): Read
       }
     }
   }
-  visit(module.body, { scope: { kind: "module", generator: false }, loops: 0, exceptStarLoop: null });
+  meter?.checkpoint(0,224);
+  const pending=[visit(module.body, { scope: { kind: "module", generator: false }, loops: 0, exceptStarLoop: null })];
+  while(pending.length){
+    meter?.checkpoint(1,32);const next=pending[pending.length-1].next();
+    if(next.done){pending.pop();continue;}
+    meter?.checkpoint(0,128);pending.push(visit(next.value.statements,next.value.context));
+  }
   return functionKinds;
+  } finally {meter?.checkpoint();}
 }

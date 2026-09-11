@@ -12294,6 +12294,22 @@ extension, integration, or validation requirement is missing or unverified.
   suite passes 8,566 tests in 566 files (147.88s; test bodies 12.09s).
   Interpolation-field and statement grammar allocation still require auditing
   before guest eager compilation.
+- Interpolation-field AST allocation (2026-09-11): twelve failing tests isolated
+  lexing/source extraction, reproducing uncharged interpolation result/part/field
+  records, field tuple/unpack storage, unmetered expression-text trimming and
+  cancellation hidden by a throwing field reader. Parsing now charges these
+  nodes, arrays and entries before construction and charges trim work/output
+  before trimEnd. Final checkpoints preserve cancellation. The field-expression
+  delimiter test no longer creates a temporary array. The focused two-file suite
+  passes 40 tests. All 64 AST/diagnostic comparisons against b8225fa38 preserve
+  field text, debug/conversion/format metadata and spans; the same 64 cases match
+  CPython compile acceptance across f/t strings, nested format fields, yield,
+  tuple/unpack expressions and malformed conversions. The initial full run was
+  stopped before replacing a lint-rejected constant do/while condition with an
+  explicit delimiter condition. Build, typecheck, scoped lint and whitespace
+  checks pass. The fresh uncached one-worker full suite passes 8,578 tests in
+  567 files (172.24s; test bodies 12.70s). Statement grammar and remaining ingress
+  safety audits still precede guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

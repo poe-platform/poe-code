@@ -95,6 +95,14 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it.each([false,true])("restores native unpacking locations after RHS evaluation (suspended=%s)",suspended=>{
+  const state=exceptionFixture(),events:number[]=[];
+  state.builtins.set("begin",state.v.builtinFunction({name:"begin",invoke(_args,_keywords,_meter,invocation){const frame=state.calls.current as RuntimeFrame;if(frame.executionPosition===undefined)throw Error("missing position");events.push(frame.executionPosition.start.line);return invocation!.call(state.globals.get("values")!,[]);}}));
+  state.run("def values():\n yield 1\n yield 2\nclass I:\n __iter__=begin\ni=I()\ndef f():\n (a,\n  b)=(\n  "+(suspended?"(yield i)":"i")+"\n )\n"+(suspended?"g=f()\ng.__next__()":"f()"));
+  if(suspended){expect(events).toEqual([]);state.run("try:g.send(i)\nexcept StopIteration:pass");}
+  expect(events).toEqual([8]);
+});
+
 it.each([false,true])("restores native augmented operator locations after RHS evaluation (suspended=%s)",suspended=>{
   const state=exceptionFixture(),events:number[]=[];
   state.builtins.set("add",state.v.builtinFunction({name:"add",invoke(args){const frame=state.calls.current as RuntimeFrame;if(frame.executionPosition===undefined)throw Error("missing position");events.push(frame.executionPosition.start.line);return args[0];}}));

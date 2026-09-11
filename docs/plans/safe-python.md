@@ -11196,6 +11196,22 @@ extension, integration, or validation requirement is missing or unverified.
   acquisition for a multiline `a,b=(\n i\n)` reports RHS line 8 rather than
   target line 7. That target traversal, other remaining leaf operations,
   instruction maps, tracing and automatic traceback capture remain required.
+- Unpacking/target traversal locations (2026-09-10): five failing regressions
+  confirmed missing per-target sites, stale RHS locations during native unpacking
+  and absent cancellation boundaries before iterator acquisition. Shared
+  synchronous/resumable target traversal now publishes each target's content span
+  before unpacking or storing, preserving separate nested sites and forwarding
+  the native position capability. Position callback cancellation takes priority
+  before unpacking/stores. The focused four-file suite passes 941 tests. After
+  correcting the differential harness's native-builtin receiver binding assumption,
+  all 192 CPython comparisons match across tuple/list/nested/starred targets,
+  source padding, RHS grouping and suspension, including iterator acquisition,
+  advancement, starred reacquisition and length hints. Selected build, typecheck,
+  scoped lint and whitespace checks pass. The final uncached one-worker package
+  suite passes 7,916 tests in 527 files (150.82s; test bodies 10.09s).
+  Remaining leaf-operation and instruction metadata audits, tracing and automatic
+  traceback capture are still required; these location fixes do not establish
+  complete frame or traceback behavior.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

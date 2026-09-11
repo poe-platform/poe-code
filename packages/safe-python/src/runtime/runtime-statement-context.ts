@@ -47,6 +47,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
   meter.checkpoint(1, 832);
   const resolve = (target: Expression) => resolveRuntimeReference(target, expressions, bindings, values, meter);
   const assignment: AssignmentExecutionContext<RuntimeValue> = {
+    position:bindings.position?.bind(bindings),
     evaluate: expression => evaluateExpression(expression, expressions, meter),
     store: expressions.store.bind(expressions), list: expressions.list.bind(expressions), resolve,
     unpack(value, before, after) {

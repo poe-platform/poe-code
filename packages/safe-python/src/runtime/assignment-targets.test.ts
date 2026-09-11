@@ -31,6 +31,19 @@ function environment(meter = budget()) {
 }
 
 describe("assignment target traversal", () => {
+  it("publishes nested unpack and store sites in traversal order",()=>{
+    const state=environment();
+    state.context.position=site=>{state.events.push(`position:${site.start.line}`);};
+    assignTargets(targets("(\n a,\n (b,c)\n)"),[1,[2,3]],state.context,state.meter);
+    expect(state.events).toEqual(["position:1","unpack","position:2","store:a","position:3","unpack","position:3","store:b","position:3","store:c"]);
+  });
+  it.each([false,true])("checks location callback cancellation before unpacking (throws=%s)",throws=>{
+    const controller=new AbortController(),state=environment(new ExecutionBudget({maxSteps:1000,maxAllocatedBytes:10000,signal:controller.signal}));
+    state.context.position=()=>{controller.abort();if(throws)throw Error("position failure");};
+    expect(()=>assignTargets(targets("a,b"),[1,2],state.context,state.meter)).toThrow("execution cancelled");
+    expect(state.events).toEqual([]);
+    expect(state.names.size).toBe(0);
+  });
   it.each(["a = b", "a, b"])("charges queued target records before any child stores: %s", source => {
     // Reserve the continuation before testing queued-target allocations.
     const { context, names, meter } = environment(new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 224 + 72 }));

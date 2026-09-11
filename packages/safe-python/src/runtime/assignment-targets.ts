@@ -1,8 +1,10 @@
-import type { Expression } from "../ast.js";
+import type { Expression,SourceSpan } from "../ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { UnpackedAssignment } from "./assignment-unpacking.js";
 
 export interface AssignmentContext<Value> {
+  /** Each nested unpack/store belongs to its own target, not the RHS. */
+  position?(site:SourceSpan):void;
   store(name: string, value: Value): void;
   unpack(value: Value, before: number, after: number | null): UnpackedAssignment<Value>;
   list(values: readonly Value[]): Value;
@@ -51,6 +53,7 @@ function* assignmentTargetsContinuation<Value>(targets: readonly Expression[], v
   while (work.length) {
     meter.checkpoint();
     const current = work.pop()!, target = current.target;
+    if(context.position!==undefined){try{context.position(target.contentSpan??target);}finally{meter.checkpoint(0);}}
     if (target.kind === "name") {
       context.store(target.name, current.value);
       meter.checkpoint(0);

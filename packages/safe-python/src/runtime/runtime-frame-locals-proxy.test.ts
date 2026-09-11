@@ -2,6 +2,8 @@ import {expect,it,vi} from "vitest";
 import {analyzeModule} from "../analysis.js";
 import {ExecutionBudget,ExecutionLimitError} from "./execution-budget.js";
 import {LexicalFrame} from "./lexical-frame.js";
+import {ModuleFrame} from "./module-frame.js";
+import {RuntimeDictionaryNamespace} from "./runtime-dictionary-namespace.js";
 import {FrameLocalsMapping} from "./frame-locals-mapping.js";
 import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new.js";
 import {OrderedKeyMap} from "./ordered-key-map.js";
@@ -21,6 +23,33 @@ function fixture(){
   function method(name:string){const descriptor=proxy.type.value.namespace.items.lookup(values.string(name))!.value;if(descriptor.kind!=="method_descriptor"&&descriptor.kind!=="wrapper_descriptor")throw Error("expected descriptor");return (args:RuntimeValue[])=>descriptor.value.invoke(proxy,args,empty,meter,context);}
   return {controller,meter,values,frame,proxy,empty,context,method,registry};
 }
+
+it("returns fresh optimized locals snapshots including proxy extras",()=>{
+  const {registry,frame,values,proxy}=fixture();
+  frame.store("x",values.integer(1));
+  if(proxy.native?.kind!=="frame_locals_proxy")throw Error("expected locals proxy");
+  proxy.native.mapping.set(values.integer(7),values.true);
+  const first=registry.frameLocals(frame);
+  frame.store("x",values.integer(2));
+  const second=registry.frameLocals(frame);
+  if(first.kind!=="dict"||second.kind!=="dict")throw Error("expected dictionary snapshots");
+  expect(first).not.toBe(second);
+  expect(first.items.lookup(values.string("x"))?.value).toEqual(values.integer(1));
+  expect(second.items.lookup(values.string("x"))?.value).toEqual(values.integer(2));
+  expect(first.items.lookup(values.integer(7))?.value).toBe(values.true);
+  first.items.set(values.string("x"),values.false);expect(frame.load("x")).toEqual(values.integer(2));
+});
+it("retains ordinary module locals identity",()=>{
+  const {registry,values,meter,empty}=fixture(),names=new RuntimeDictionaryNamespace(empty,values,meter);
+  const frame=new ModuleFrame(analyzeModule("pass").scopes,{globals:names,builtins:new Map()},meter);
+  expect(registry.frameLocals(frame)).toBe(empty);
+});
+it.each([false,true])("checks cancellation after locals identity policy (throws=%s)",throws=>{
+  const {registry,values,meter,controller}=fixture();
+  const names={lookup:vi.fn(),store:vi.fn(),delete:()=>false,isGuest:()=>false,get object(){controller.abort();if(throws)throw Error("identity failed");return values.none;}};
+  const frame=new ModuleFrame(analyzeModule("pass").scopes,{globals:names,builtins:new Map()},meter);
+  expect(()=>registry.frameLocals(frame)).toThrow(ExecutionLimitError);
+});
 
 it.each(["f_globals","f_builtins"] as const)("requires original guest identity for %s reflection",name=>{
   const {registry,frame,values,meter}=fixture(),native=registry.frame(frame);

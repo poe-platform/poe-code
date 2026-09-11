@@ -15,6 +15,7 @@ import {createFrameLocalsProxyNewBuiltin} from "./builtin-frame-locals-proxy-new
 import {RuntimeHashError} from "./runtime-hash-error.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
+import {LexicalFrame} from "./lexical-frame.js";
 import { createObjectNewBuiltin } from "./builtin-object-new.js";
 import { createObjectInitWrapper } from "./builtin-object-init.js";
 import { createObjectFormatDescriptor } from "./builtin-object-format.js";
@@ -585,7 +586,7 @@ export class RuntimeTypeRegistry {
     this.#frames.set(frame,result);return result;
   }
 
-  frameLocalsProxy(frame:RuntimeFrame):Extract<RuntimeValue,{kind:"instance"}> {
+  #frameLocalsMapping(frame:RuntimeFrame):FrameLocalsMapping<RuntimeValue,RuntimeValue> {
     this.meter.checkpoint();
     let mapping=this.#frameLocalsMappings.get(frame);
     if(mapping===undefined){
@@ -593,6 +594,27 @@ export class RuntimeTypeRegistry {
       mapping=new FrameLocalsMapping(frame.reflectLocals(),{name:this.values.string.bind(this.values),hash:key=>{try{return this.keys.hash(key);}catch(error){throw error instanceof RuntimeHashError?error.original:error;}},equal:this.keys.equal.bind(this.keys)},this.meter);
       this.#frameLocalsMappings.set(frame,mapping);
     }
+    return mapping;
+  }
+
+  /** locals()/default eval locals use a fresh snapshot in optimized scopes,
+   * unlike f_locals' write-through proxy. Ordinary scopes retain their mapping. */
+  frameLocals(frame:RuntimeFrame):RuntimeValue {
+    this.meter.checkpoint();
+    try {
+      if(!(frame instanceof LexicalFrame)&&!frame.reflectLocals().hasHiddenLocals){
+        const object=(frame.namespaces.locals??frame.namespaces.globals).object;
+        if(object===undefined)throw Error("frame locals require an original guest mapping");
+        return object;
+      }
+      const items=new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage);
+      for(const [key,value] of this.#frameLocalsMapping(frame).entries())items.set(key,value);
+      return this.values.dictionary(items);
+    } finally {this.meter.checkpoint();}
+  }
+
+  frameLocalsProxy(frame:RuntimeFrame):Extract<RuntimeValue,{kind:"instance"}> {
+    const mapping=this.#frameLocalsMapping(frame);
     if(this.#frameLocalsProxyType===undefined){
       const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
       const layout=new RuntimeTypeLayout("FrameLocalsProxy",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false});

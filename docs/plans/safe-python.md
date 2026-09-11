@@ -12883,6 +12883,25 @@ extension, integration, or validation requirement is missing or unverified.
   construction). Build, typecheck, scoped lint and whitespace checks pass. The
   uncached full thread-pool suite passes 9,055 tests in 597 files (64.77s; bodies
   8.24s). Code-object execution remains a separate pending backend branch.
+- Caller locals snapshots and namespace builtins (2026-09-11): added a registry
+  locals policy after missing-method regressions, sharing the existing cached
+  frame mapping with f_locals proxies. Optimized activations and active hidden
+  comprehension locals yield fresh exact dictionaries, including proxy extras;
+  ordinary module/class scopes retain original mapping identity. Snapshot writes
+  do not update live variables. Added explicit locals/globals call adapters with
+  argument validation before namespace callbacks and fatal cancellation checks.
+  Native dynamic execution now selects caller globals and fresh/default locals;
+  tests cover function exec isolation, eval reads, class writes, module identity,
+  captured cells, generators and function/module comprehensions. Both new native
+  source scenarios also pass directly in CPython 3.14.7; PEP 667 was inspected.
+  Expanded integration scenarios use independent fixtures within the unchanged
+  allocation limit. A test filename collision was caught during review; all eight
+  original namespace protocol tests were restored byte-for-byte and the four new
+  call-adapter tests moved into their own file before final verification. Default
+  registration, no-frame host policy and code/closure execution remain separate
+  interpreter integration work. Build, typecheck, scoped lint and whitespace
+  checks pass. The final uncached full thread-pool suite passes 9,065 tests in
+  598 files (81.21s; bodies 9.73s), including all restored protocol tests.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

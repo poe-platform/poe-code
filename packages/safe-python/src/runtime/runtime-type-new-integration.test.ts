@@ -12,6 +12,7 @@ import { OrderedKeyMap } from "./ordered-key-map.js";
 import { compileSourceProgram } from "./source-program-compilation.js";
 import {createCompileBuiltin} from "./builtin-compile.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
+import {createNamespaceBuiltin} from "./builtin-namespace.js";
 import {prepareDynamicNamespaces} from "./dynamic-namespaces.js";
 import {RuntimeMappingNamespace} from "./runtime-mapping-namespace.js";
 import {runtimeCompilationSource} from "./runtime-compilation-source.js";
@@ -20,6 +21,7 @@ import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks, type RuntimeFrame } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
 import { ModuleFrame } from "./module-frame.js";
+import { ClassFrame } from "./class-frame.js";
 import { PythonRuntimeError } from "./error.js";
 import { PythonEncodeError } from "./encode-error.js";
 import { PythonDecodeError } from "./decode-error.js";
@@ -139,15 +141,18 @@ it("uses subclass global reads, intrinsic writes and deletes, and original frame
   state.run("class G(Dict):\n def __getitem__(self,key):\n  if key=='x':return 42\n  if key=='failure':raise ValueError('read failure')\n  return Dict.__getitem__(self,key)\n def __setitem__(self,key,value):raise RuntimeError('write override')\n def __delitem__(self,key):raise RuntimeError('delete override')\ng=G()\ncheck(g)\n");
 });
 
-it("selects dynamic execution globals, locals and builtins before compiling source",()=>{
+function dynamicNamespaceFixture(){
   const state=exceptionFixture(),{v,meter}=state;
   state.hooks.resolveBuiltins=value=>new RuntimeDictionaryNamespace(value,v,meter);
   const globals=v.dictionary(new OrderedKeyMap(state.keys,meter)),builtins=v.dictionary(new OrderedKeyMap(state.keys,meter));
   for(const [name,value] of state.globals)globals.items.set(v.string(name),value);
   globals.items.set(v.string("B"),builtins);globals.items.set(v.string("SyntaxError"),state.registry.exceptionType("SyntaxError"));
+  const currentFrame=()=>{const frame=state.calls.current;if(!(frame instanceof ModuleFrame||frame instanceof LexicalFrame||frame instanceof ClassFrame))throw Error("expected guest frame");return frame;};
+  state.builtins.set("locals",createNamespaceBuiltin("locals",v,meter,()=>state.registry.frameLocals(currentFrame())));
+  state.builtins.set("globals",createNamespaceBuiltin("globals",v,meter,()=>{const object=currentFrame().namespaces.globals.object;if(object===undefined)throw Error("expected original globals");return object;}));
   for(const name of ["eval","exec"] as const)state.builtins.set(name,createDynamicExecutionBuiltin(name,v,meter,{execute(request,invocation){
     if(invocation===undefined)throw Error("expected invocation");
-    const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>globals,locals:()=>globals,builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
+    const selected=prepareDynamicNamespaces(request,v,meter,{globals:()=>currentFrame().namespaces.globals.object,locals:()=>state.registry.frameLocals(currentFrame()),builtins:()=>builtins,isMapping:value=>invocation.hasSpecial!(value,"__getitem__"),typeName:value=>invocation.typeName!(value)});
     if(request.closure.kind!=="none")throw Error("fixture does not support closure");
     const source=runtimeCompilationSource(request.source,meter,invocation,request.mode);
     const globalNames=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);
@@ -156,6 +161,11 @@ it("selects dynamic execution globals, locals and builtins before compiling sour
     return executeRuntimeProgram(compileSourceProgram(source,{stripDocstring:false,mode:request.mode,enterRecursiveCall:()=>state.calls.enter(globals)},v,meter),{objectType:state.registry.object,values:v,globals:globalNames,locals:localNames,builtins:builtinNames,keys:state.keys,hooks:state.hooks,calls:state.calls,exceptions:state.exceptions},meter)??v.none;
   }}));
   for(const [name,value] of state.builtins)builtins.items.set(v.string(name),value);
+  return {state,v,meter,globals,builtins};
+}
+
+it("selects dynamic execution globals, locals and builtins before compiling source",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
   state.run("g={'y':7}\nl={}\nexec('x=5',g,l)\nvalue=eval('x+y',globals=g,locals=l)\nexec('z=9',g)\nbad={}\ntry:eval('x=',bad)\nexcept SyntaxError:inserted='__builtins__' in bad\ncorrect=value==12 and l['x']==5 and 'x' not in g and g['z']==9 and g['__builtins__'] is B and inserted\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
   state.run("class Locals:\n def __getitem__(self,key):\n  if key=='x':return 11\n  raise KeyError(key)\ncustom=eval('x+y',g,Locals())\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
@@ -165,6 +175,22 @@ it("selects dynamic execution globals, locals and builtins before compiling sour
   expect(globals.items.lookup(v.string("correct_subclass"))?.value).toBe(v.true);
   state.run("whitespace=eval(' \\t6*7')==42 and eval(b' \\t6*7')==42\ntry:exec(' \\t1')\nexcept SyntaxError:exec_indent=True\ntry:eval(1)\nexcept TypeError:invalid_source=True\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
   for(const name of ["whitespace","exec_indent","invalid_source"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+});
+
+it("uses fresh function locals and live module/class namespaces for dynamic execution",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("def snapshots():\n x=7\n first=locals()\n exec('x=99; created=1')\n seen=eval('x')\n second=locals()\n first['x']=42\n return x==7 and seen==7 and second['x']==7 and first is not second and 'created' not in second\ncorrect_snapshots=snapshots()\nmodule_identity=locals() is globals()\ncomprehension=[locals() for hidden in (1,)]\nclass C:\n x=8\n names=locals()\n exec('x=9')\n correct=names['x']==9 and eval('x')==9\ncorrect_class=C.correct\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  for(const name of ["correct_snapshots","module_identity","correct_class"])expect(globals.items.lookup(v.string(name))?.value).toBe(v.true);
+  const comprehension=globals.items.lookup(v.string("comprehension"))?.value;
+  if(comprehension?.kind!=="list")throw Error("expected comprehension");
+  const snapshot=comprehension.items.snapshot()[0];if(snapshot.kind!=="dict")throw Error("expected snapshot");
+  expect(snapshot.items.size).toBe(1);expect(snapshot.items.lookup(v.string("hidden"))?.value).toEqual(v.integer(1));
+});
+
+it("snapshots captured cells, generator activations and function comprehension locals",()=>{
+  const {state,v,meter,globals,builtins}=dynamicNamespaceFixture();
+  state.run("def outer(z):\n def inner():\n  names=locals()\n  return names['z']==z\n return inner()\ndef gen():\n x=1\n yield locals()\n x=2\n yield locals()\ng=gen()\na=g.__next__()\nb=g.__next__()\ndef comp():\n x=3\n result=[locals() for y in (1,2)]\n return result[0]['x']==3 and result[0]['y']==1 and result[1]['y']==2 and 'y' not in locals()\ncorrect=outer(7) and a is not b and a['x']==1 and b['x']==2 and comp()\n",new RuntimeDictionaryNamespace(globals,v,meter),new RuntimeDictionaryNamespace(builtins,v,meter));
+  expect(globals.items.lookup(v.string("correct"))?.value).toBe(v.true);
 });
 
 it("executes guest eval/exec through an explicitly supplied source execution backend",()=>{

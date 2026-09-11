@@ -4,6 +4,7 @@ import { FsError as CoreFsError, createDeviceFileSystem } from "@poe-platform/sa
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs/core";
 import "./safe-packages-response-body-mode.mjs";
 import "./safe-packages-atomic.mjs";
+import "./safe-packages-mkdir.mjs";
 
 const browserCore = await import("@poe-platform/safe-bash");
 for (const name of ["arraysExtension", "jobsExtension", "mapfileExtension", "readExtension", "trapExtension", "createYesCommand", "createCmpCommand", "createDdCommand", "createShufCommand", "createTruncateCommand", "createInstallCommand"]) {

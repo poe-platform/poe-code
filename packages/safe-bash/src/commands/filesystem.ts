@@ -233,13 +233,15 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const recursive = parsed.flags.has("p");
         const stat = await maybeStat(context, path, recursive);
         if (stat) {
-          if (recursive && stat.type === "directory") return;
-          throw new FsError("EEXIST", { syscall: "mkdir", path });
+          if (!recursive || stat.type !== "directory") throw new FsError("EEXIST", { syscall: "mkdir", path });
+          const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+          context.signal.throwIfAborted();
+          if (capabilities.implicitDirectories !== true) return;
         }
         await admitFilesystemModes(context, "mkdir", [recursive ? "parents" : "directory"], [path]);
         if (!preflight) {
-          await context.fs.mkdir(path, { recursive, ...(mode === undefined ? {} : { mode: parseInt(mode, 8) }), signal: context.signal });
-          if (parsed.flags.has("v")) await output(context, `mkdir: created directory '${escapeText(operand, "display")}'\n`);
+          await context.fs.mkdir(path, { recursive, ...(stat || mode === undefined ? {} : { mode: parseInt(mode, 8) }), signal: context.signal });
+          if (!stat && parsed.flags.has("v")) await output(context, `mkdir: created directory '${escapeText(operand, "display")}'\n`);
         }
       };
       await preflightOperands(context, parsed.operands, operand => createDirectory(operand, true));

@@ -6,6 +6,74 @@ import { run } from "./run.js";
 import { SnapshotValidationError } from "./snapshot/validation.js";
 
 describe("restore", () => {
+  it.each([
+    [{ clock: { next: -1 } }, "$.clock.next"],
+    [{ random: { seed: 1, state: -1 } }, "$.random.state"]
+  ])("rejects invalid scalar state before reading the heap: %j", (state, path) => {
+    let reads = 0;
+    const snapshot = Object.defineProperty({ version: 1, sourceHash: hashSource("1"), ...state }, "heap", {
+      enumerable: true, get() { reads++; throw new Error("heap read"); }
+    });
+    expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({
+      name: "SnapshotValidationError", path
+    }));
+    expect(reads).toBe(0);
+  });
+
+  it.each(["clock", "random", "next", "seed", "state", "initialState", "resumeState"])(
+    "preserves ordinary traversal for scalar accessor %s", field => {
+      let reads = 0;
+      const error = new Error("getter ran");
+      const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 } };
+      const target = field === "clock" || field === "random" ? snapshot : field === "next" ? snapshot.clock : snapshot.random;
+      Object.defineProperty(target, field, { enumerable: true, get() { reads++; throw error; } });
+      expect(() => restore(snapshot, { source: "1" })).toThrow(error);
+      expect(reads).toBe(1);
+    }
+  );
+
+  it("skips scalar preflight for a proxy prototype without invoking its has trap", () => {
+    let traps = 0;
+    const prototype = new Proxy({}, { has() { traps++; throw new Error("has trap ran"); } });
+    const snapshot = Object.assign(Object.create(prototype), { version: 1, sourceHash: hashSource("1") });
+    expect(restore(snapshot, { source: "1" })).toBe(snapshot);
+    expect(traps).toBe(0);
+  });
+
+  it.each(["clock", "random"])("rechecks %s scalar state after payload traversal", field => {
+    const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 } };
+    Object.defineProperty(snapshot, "extra", { enumerable: true, get() {
+      if (field === "clock") snapshot.clock.next = -1;
+      else snapshot.random.state = -1;
+      return 0;
+    } });
+    expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({
+      name: "SnapshotValidationError", path: field === "clock" ? "$.clock.next" : "$.random.state"
+    }));
+  });
+
+  it.each(["clock", "initialState"])("preserves late validation for inherited scalar %s", field => {
+    let reads = 0;
+    const snapshot = { version: 1, sourceHash: hashSource("1"), random: { seed: 1, state: 1 } };
+    const original = Object.getOwnPropertyDescriptor(Object.prototype, field);
+    try {
+      Object.defineProperty(Object.prototype, field, { configurable: true, get() { reads++; return -1; } });
+      expect(() => restore(snapshot, { source: "1" })).toThrow(SnapshotValidationError);
+      expect(reads).toBe(2);
+    } finally {
+      if (original) Object.defineProperty(Object.prototype, field, original);
+      else Reflect.deleteProperty(Object.prototype, field);
+    }
+  });
+
+  it.each([
+    [{ heap: { "1": { kind: "mystery" } } }, "unknownTag"],
+    [{ extra: "x".repeat(1_000_001) }, "budgetExceeded"]
+  ])("valid scalar state does not bypass payload validation: case %#", (payload, code) => {
+    const snapshot = { version: 1, sourceHash: hashSource("1"), clock: { next: 0 }, random: { seed: 1, state: 1 }, ...payload };
+    expect(() => restore(snapshot, { source: "1" })).toThrow(expect.objectContaining({ name: "SnapshotValidationError", code }));
+  });
+
   it("does not transfer runtime snapshot trust to a copied envelope", async () => {
     const source = "host.extra=7;return host()";
     const result = await run(source, { bindings: { host: () => 1 } });

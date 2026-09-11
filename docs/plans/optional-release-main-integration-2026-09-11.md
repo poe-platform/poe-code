@@ -1,7 +1,8 @@
 # Optional Safe Bash integration qualification
 
-The candidate is validated locally on main in
-`/private/tmp/poe-optional-integration-aHlAip`. The normal full build, maintained
+The candidate is validated locally on main in the original checkout,
+`/Users/kjopek/Workspace/poe-setup-scripts`. The initial integration was prepared
+in `/private/tmp/poe-optional-integration-aHlAip`. The normal full build, maintained
 full npm test including posttest, repository lint, package lint, strict Bash
 consumer checks, and installed four-package consumers passed. This candidate
 has **not been pushed or published**. Initial npm creation and trusted-publisher
@@ -22,11 +23,13 @@ root's latest registry check returned 404.
   replay generations. Its ten affected tests and exact-file ESLint pass.
   Product source and review artifacts are unchanged by this follow-up.
 
-The source checkout and root SafeJS delivery clone were not edited by this work.
-Original `ceacf3910` and delivered `7ede49079` remain ancestors, permitting an
-original-checkout fast-forward without dropping user commits. Independent SafeJS
-publication does not publish this optional stack. No local npm publication was
-attempted.
+Root fast-forwarded the original checkout to qualified `89fc9b589`, then assigned
+integration of remote `79999cba7` there. That remote merge preserves both
+`936a41f77` (snapshot scalar preflight) and concurrent `31fe11c1f` (implicit mkdir
+parents). Original `ceacf3910`, `89fc9b589`, and delivered `79999cba7` remain
+ancestors of the final local merge. The delivery clone was read-only. Independent
+SafeJS publication does not publish this optional stack. No local npm publication
+was attempted.
 
 ## Final behavior
 
@@ -107,18 +110,54 @@ required of a newly authenticated build. Source-authenticated tests ran with
 the tree frozen at 9b6446da1 and matched before/after hashes. Counts above are
 separate phases, not overlapping focused totals or claims that skipped cases pass.
 
+## Final original-checkout follow-up
+
+The two subsequent source changes were reconciled without dropping optional
+behavior. Snapshot validation preflights only safely inspectable plain/null
+own-data clock/random fields, retaining the original post-traversal validation
+and fallback behavior for accessors, proxies, and inherited shapes. Independent
+review rejected earlier mutation/inheritance acceptance regressions; the final
+implementation and regression controls preserve the prior acceptance policy.
+The 96-case adversarial corpus and 750 ms cap are unchanged.
+
+Existing-directory `mkdir -p` now delegates when the selected path capability
+advertises implicitDirectories, materializing adapter metadata without forwarding
+a new mode or emitting a creation message. Current preflight, falsey cancellation,
+and ordinary-directory behavior remain. This command change does not establish
+that every adapter, including the bundled S3 implementation, persists implicit
+directories; see `728-mkdir-implicit-directories.md` for its exact scope.
+
+Focused follow-up qualification passed on the original checkout:
+
+| Check | Result and evidence |
+| --- | --- |
+| Normal full build and root suffix | Passed; `/tmp/poe-original-final-integration-build.log` |
+| Filesystem/mkdir/capability/output selection | 241 passed, zero skipped; `/tmp/poe-original-mkdir-focused-final.log` |
+| Snapshot/restore/adversarial selection | 229 passed across 18 files; mutation corpus 500 ms; `/tmp/poe-original-snapshot-focused-final.log` |
+| Maintained Bash source/tests/consumer types | 26 consumer groups passed; `/tmp/poe-original-final-integration-bash-types.log` |
+| Stable guarded ESLint | 11,801 configured files linted, zero warnings/errors; `/tmp/poe-original-final-integration-eslint-stable.log` |
+| Refreshed complete installed workflow | Passed; `/tmp/poe-original-optional-installed.log` and `/tmp/poe-original-core-installed.log` |
+
+The earlier full unit and repository lint gates bind product revision 9b6446da1;
+these isolated subsequent changes received the focused checks above, not another
+full unit run. An initial follow-up lint attempt overlapped the full build and
+correctly rejected toolcraft directory identity changes. After all build/consumer
+work ended, the stable guarded rerun completed successfully without weakening
+admission. That rejected attempt remains `/tmp/poe-original-final-integration-eslint.log`.
+
 ## Installed review artifacts
 
 Four provisional review packages were generated from the successful full build
 before unit compilation could replace portable output. Version
 `0.0.0-integration.20260911` is local review metadata, not a registry release.
-Directory: `/private/tmp/poe-optional-release-stable-79PtcW`.
+The current artifacts include the final snapshot and mkdir source changes.
+Directory: `/private/tmp/poe-original-release-qualified-qzLR0d`.
 
 | Tarball in tarballs/ | SHA256 |
 | --- | --- |
 | poe-platform-safe-fs-0.0.0-integration.20260911.tgz | `350ddf04db0e7929fd2994c1a19866a8050b002ebd6fefb2f6bd672cb7bd02c0` |
-| poe-platform-safe-js-0.0.0-integration.20260911.tgz | `06791ec1c4e41f541fb683e8b9dbac3260d4821437913fc728d12094fdb9a8bd` |
-| poe-platform-safe-bash-0.0.0-integration.20260911.tgz | `137cabb074385ab7512abbff52267333675d35df404a5300f97844e8b45b3445` |
+| poe-platform-safe-js-0.0.0-integration.20260911.tgz | `d1e43a909e5d625928d5462c359819197d4004164e001c6cde57fd3f373d91ab` |
+| poe-platform-safe-bash-0.0.0-integration.20260911.tgz | `d110360373811da5eac882ffe41faf2ddc0490b5f89943157dc9d59e0bae8f7e` |
 | poe-platform-safe-bash-optional-0.0.0-integration.20260911.tgz | `159ccdfefef596b078544494f5377a44f3b7260950f8a1e26d9f8475c379fde5` |
 
 Complete installed workflow passed: optional Node/Bun without YAML using the
@@ -126,15 +165,19 @@ workflow's --omit=optional install, strict exact-optional TypeScript, then YAML
 2.9.0 runtime covering all commands/extensions and same/foreign runtime identity,
 followed by strict types. Core Node/Bun smoke, declarations, browser bundle and
 execution, legacy poe-code@14.0.4 adaptation, and standalone SafeFS Node/Bun passed.
-Logs: `/tmp/poe-optional-stable-installed.log` and
-`/tmp/poe-optional-stable-core-installed.log`. SHA256SUMS accompanies the tarballs.
+The core and browser fixtures include the new implicit-mkdir regression.
+Logs: `/tmp/poe-original-optional-installed.log` and
+`/tmp/poe-original-core-installed.log`. SHA256SUMS accompanies the tarballs.
+The earlier four review artifacts remain in
+`/private/tmp/poe-optional-release-stable-79PtcW`; SafeFS and optional tarball bytes
+are unchanged, while core and SafeJS were refreshed for the two source changes.
 Publication must regenerate the release-selected version through GitHub after
 bootstrap configuration.
 
 ## Remaining delivery prerequisite
 
 Local integration and qualification are complete. Root coordinates any
-original-checkout fast-forward, remote-main delivery, and release. Optional npm
+remote-main delivery and release. The original checkout is reconciled. Optional npm
 creation and trusted-publisher configuration are still required: npm trust
 requires an existing package. Omitting the optional artifact does not satisfy
 the four-package release. Report local commits, verified remote delivery, and

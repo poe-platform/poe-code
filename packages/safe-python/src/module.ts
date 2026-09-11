@@ -9,11 +9,13 @@ import { PythonSyntaxError } from "./source.js";
 /** Parse module syntax; use analyzeModule to also validate contexts and resolve scopes. */
 export function parseModule(text: string, options: LexerOptions = {}): Module {
   try {
+    options.meter?.checkpoint(1,64);
     const cursor = createTokenCursor(text, options);
     const start = cursor.peek().start;
     const body = readStatements(cursor);
     if (cursor.peek().kind !== "end") throw cursor.error("unexpected dedent");
     for (const statement of body) {
+      options.meter?.checkpoint(1,128);
       for (const expression of statementExpressions(statement,true,options.meter)) validateExpression(expression, options.filename,undefined,options.meter);
     }
     return { kind: "module", body, start, end: cursor.peek().end };

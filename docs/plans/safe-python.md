@@ -12310,6 +12310,24 @@ extension, integration, or validation requirement is missing or unverified.
   checks pass. The fresh uncached one-worker full suite passes 8,578 tests in
   567 files (172.24s; test bodies 12.70s). Statement grammar and remaining ingress
   safety audits still precede guest eager compilation.
+- Module/block and compound AST allocation (2026-09-11): eleven failing tests
+  isolated expression readers and cursor/block construction, reproducing
+  uncharged module nodes, empty/nonempty blocks, simple-line copies, conditionals
+  and loops, plus cancellation hidden by a throwing compound child reader.
+  Block parsing now reserves body slots before dispatch and remaining simple-line
+  copy slots before copying; simple-line and decorator arrays receive their own
+  charges. Conditional branch arrays/records, else arrays, span/result objects
+  and for-loop results are reserved before construction. The module node and
+  expression-validation iterator allocation are charged; readStatements preserves
+  cancellation in finally. The focused file passes 11 tests. All 50 complete
+  block AST/diagnostic comparisons against 05a8ba9a6 preserve behavior, and the
+  same 50 cases match CPython compilation acceptance across nested blocks,
+  semicolons, decorators, branches, loops and representative delegated statements.
+  Build, typecheck, scoped lint and whitespace checks pass. The final uncached
+  one-worker full suite passes 8,589 tests in 568 files (171.01s; test bodies
+  13.56s). Delegated simple,
+  assignment, definition, import, try/with/match and type-statement allocation
+  remains to be audited before guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

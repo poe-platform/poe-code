@@ -13,9 +13,12 @@ import { readMatch } from "./match-statements.js";
 
 /** A block owns its statements; its caller owns the terminating dedent. */
 export function readStatements(cursor: TokenCursor): Statement[] {
+  try {
+  cursor.meter?.checkpoint(1,32);
   const body: Statement[] = [];
   while (cursor.peek().kind !== "end" && cursor.peek().kind !== "dedent") {
     if (cursor.peek().kind === "newline") { cursor.take(); continue; }
+    cursor.meter?.checkpoint(0,8);
     if (cursor.peek().text === "match") {
       const match = readMatch(cursor, readSuite);
       if (match) { body.push(match); continue; }
@@ -33,9 +36,11 @@ export function readStatements(cursor: TokenCursor): Statement[] {
     else if (cursor.peek().text === "def") body.push(readFunction(cursor, readSuite));
     else if (cursor.peek().text === "class") body.push(readClass(cursor, readSuite));
     else if (cursor.peek().text === "@") {
+      cursor.meter?.checkpoint(0,32);
       const decorators = [];
       while (cursor.peek().text === "@") {
         cursor.take();
+        cursor.meter?.checkpoint(0,8);
         decorators.push(readNamedExpression(cursor, readExpression));
         if (cursor.peek().kind !== "newline") throw cursor.error("expected newline after decorator");
         cursor.take();
@@ -46,16 +51,23 @@ export function readStatements(cursor: TokenCursor): Statement[] {
         body.push(readFunction(cursor, readSuite, asyncStart, decorators));
       }
     }
-    else for (const statement of readSimpleLine(cursor)) body.push(statement);
+    else {
+      const line=readSimpleLine(cursor);
+      cursor.meter?.checkpoint(line.length,8*(line.length-1));
+      for (const statement of line) body.push(statement);
+    }
   }
   return body;
+  } finally {cursor.meter?.checkpoint();}
 }
 
 function readSimpleLine(cursor: TokenCursor): Statement[] {
+  cursor.meter?.checkpoint(1,40);
   const body = [readSimpleStatement(cursor)];
   while (cursor.peek().text === ";") {
     cursor.take();
     if (cursor.peek().kind === "newline" || cursor.peek().kind === "end") break;
+    cursor.meter?.checkpoint(0,8);
     body.push(readSimpleStatement(cursor));
   }
   if (cursor.peek().kind === "newline") cursor.take();
@@ -76,6 +88,7 @@ function readSuite(cursor: TokenCursor): Statement[] {
 }
 
 function readConditional(cursor: TokenCursor): Statement {
+  cursor.meter?.checkpoint(1,256);
   const opening = cursor.take();
   const condition = readNamedExpression(cursor, readExpression);
   const body = readSuite(cursor);
@@ -84,6 +97,7 @@ function readConditional(cursor: TokenCursor): Statement {
     while (cursor.peek().text === "elif") {
       cursor.take();
       const condition = readNamedExpression(cursor, readExpression);
+      cursor.meter?.checkpoint(0,56);
       branches.push({ condition, body: readSuite(cursor) });
     }
   }
@@ -97,6 +111,7 @@ function readConditional(cursor: TokenCursor): Statement {
 }
 
 function readFor(cursor: TokenCursor, asyncStart?: Statement["start"]): Statement {
+  cursor.meter?.checkpoint(1,128);
   const start = asyncStart ?? cursor.peek().start;
   const async = asyncStart !== undefined;
   cursor.expect("for");

@@ -30,7 +30,9 @@ import { createTypeInitWrapper } from "./builtin-type-init.js";
 import { createTypeNewBuiltin } from "./builtin-type-new.js";
 import { createTypePrepareDescriptor } from "./builtin-type-prepare.js";
 import {createTypeCheckDescriptor} from "./builtin-type-check.js";
+import {createTypeModuleDescriptor} from "./builtin-type-module.js";
 import {installRuntimeUnionOperators,installRuntimeUnionSlots} from "./runtime-union-slots.js";
+import {installRuntimeUnionMetadata} from "./runtime-union-metadata.js";
 import { createTypeReprWrapper } from "./builtin-type-repr.js";
 import { createTypeCallWrapper } from "./builtin-type-call.js";
 import { createTypeAttributeWrapper } from "./builtin-type-attribute.js";
@@ -204,6 +206,7 @@ export class RuntimeTypeRegistry {
       });
       typeLayout.namespace.items.set(values.string(entry.name), descriptor);
     }
+    typeLayout.namespace.items.set(values.string("__module__"),createTypeModuleDescriptor(this.type,values,meter));
     for (const name of ["__name__", "__qualname__"] as const) {
       meter.checkpoint(1, 128);
       typeLayout.namespace.items.set(values.string(name), values.getsetDescriptor({
@@ -605,10 +608,10 @@ export class RuntimeTypeRegistry {
   unionType():TypeValue {
     this.meter.checkpoint();if(this.#unionType)return this.#unionType;
     const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
-    const layout=new RuntimeTypeLayout("Union",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:true,subclassable:false,instantiable:false});
+    const layout=new RuntimeTypeLayout("Union",[this.object.value],namespace,this.meter,{nativeName:"typing.Union",sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:true,subclassable:false,instantiable:false});
     const type=this.values.type(layout,this.type,{immutable:true});
-    namespace.items.set(this.values.string("__module__"),this.values.string("typing"));
     installRuntimeUnionSlots(type,this.values,this.meter,this.keys,this.noneType.bind(this),this.unionType.bind(this));
+    installRuntimeUnionMetadata(type,this.values,this.meter);
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#unionType=type;return type;
   }
 

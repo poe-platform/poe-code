@@ -487,6 +487,45 @@ it("rejects native frame line mutation without invoking integer conversion",()=>
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("exposes readonly union metadata without inspecting class parameter shadows",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class Meta(type):\n def __getattribute__(cls,name):\n  if name=='__parameters__':raise AssertionError('class parameters')\n  return type.__getattribute__(cls,name)\nclass A(metaclass=Meta):pass\nclass B:pass\nu=A|B\ncorrect=u.__name__=='Union' and u.__qualname__=='Union' and u.__module__=='typing' and u.__origin__ is type(u) and u.__parameters__ is ()\ntry:u.__args__=()\nexcept Exception as e:correct=correct and type(e).__name__=='AttributeError'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("rejects nongeneric union subscription and union class bases using repr diagnostics",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:pass\nclass B:pass\nu=A|B\nerrors=[]\ntry:u[1]\nexcept TypeError as e:errors.append(e.args[0])\ntry:\n class C(u):pass\nexcept TypeError as e:errors.append(e.args[0])\ncorrect=errors==['example.A | example.B is not a generic class','Cannot subclass example.A | example.B']\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("preserves native qualified names in union allocation and operator errors",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:pass\nclass B:pass\nu=A|B\nerrors=[]\ntry:type(u)()\nexcept TypeError as e:errors.append(e.args[0])\ntry:u+1\nexcept TypeError as e:errors.append(e.args[0])\ncorrect=errors==[\"cannot create 'typing.Union' instances\",\"unsupported operand type(s) for +: 'typing.Union' and 'int'\"] and type(u).__name__=='Union'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it.each([
+  ["u.foo", "'typing.Union' object has no attribute 'foo'"],
+  ["u.__module__=7", "'typing.Union' object has no attribute '__module__' and no __dict__ for setting new attributes"],
+  ["u.__name__=7", "attribute '__name__' of 'typing.Union' objects is not writable"],
+  ["type(u).__or__()", "descriptor '__or__' of 'typing.Union' object needs an argument"],
+  ["type.__or__(u,A)", "descriptor '__or__' requires a 'type' object but received a 'typing.Union'"],
+  ["type(u).__args__.__get__(A,A)", "descriptor '__args__' for 'typing.Union' objects doesn't apply to a 'type' object"],
+  ["type(u).__mro_entries__()", "unbound method Union.__mro_entries__() needs an argument"]
+])("uses native diagnostic names for %s",(statement,message)=>{
+  const state=exceptionFixture(),{v}=state;
+  state.globals.set("message",v.string(message));
+  state.run(`class A:pass\nclass B:pass\nu=A|B\ncorrect=False\ntry:${statement}\nexcept Exception as e:correct=e.args==(message,)\n`);
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("renders native union members and descriptors with their distinct qualified names",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("u=type(7)|type([])|None\ncorrect=f'{u!r}'=='int | list | None' and f'{type(u)!r}'==\"<class 'typing.Union'>\" and f'{type(u).__or__!r}'==\"<slot wrapper '__or__' of 'typing.Union' objects>\" and type(u).__or__.__qualname__=='Union.__or__'\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+it("derives native modules without exposing them as union instance class entries",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.run("class A:pass\nclass B:pass\nu=A|B\ncorrect=type(7).__module__=='builtins' and type(u).__module__=='typing' and '__module__' not in type(u).__dict__\nA.__module__=7\ncorrect=correct and A.__module__==7\ntry:del A.__module__\nexcept TypeError as e:correct=correct and e.args==(\"cannot delete '__module__' attribute of immutable type 'A'\",)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
 it("constructs flattened runtime unions with stable args and None normalization",()=>{
   const state=exceptionFixture(),{v}=state;
   state.run("class A:pass\nclass B:pass\nu=A|B\ncorrect=u.__args__==(A,B) and (u|A).__args__==(A,B) and A|A is A and (None|A).__args__==(type(None),A)\n");

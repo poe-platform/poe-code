@@ -11710,6 +11710,34 @@ extension, integration, or validation requirement is missing or unverified.
   module publication and complete native-qualified diagnostics.
   References: https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/unionobject.c
   and https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/typevarobject.c
+- Union metadata and native type modules (2026-09-11): failing integration tests
+  reproduced missing readonly metadata, nongeneric subscription/base diagnostics,
+  native qualified operator errors and native type module lookup. Unions now
+  expose name, qualified name, origin and empty parameters for their current
+  real-type-only argument domain, without inspecting class parameter shadows.
+  Subscription and mro-entry descriptors preserve argument validation and repr
+  error ordering. Native type layouts carry an optional trusted diagnostic name
+  independently of public short names; numeric, allocation, attribute and
+  descriptor diagnostics use it. Heap names remain live and inherited layouts
+  do not inherit native diagnostic names. Native type modules derive from native
+  names through a type descriptor; heap modules remain arbitrary own-namespace
+  values and cannot be deleted. Union module reads forward to the owner without
+  creating a class namespace entry or making instance module writes legal.
+  Native type repr and descriptor repr retain module-qualified names, while
+  method qualified names and unbound method diagnostics retain short names.
+  The focused integration suite passes 1,013 tests; all 60 new metadata CPython
+  comparisons and the earlier 2,364 union, predicate and matching comparisons
+  pass, for 2,424 scoped comparisons total. Build, typecheck, scoped lint and
+  whitespace checks pass. The final uncached one-worker full suite passes
+  8,174 tests in 535 files (135.81s; test bodies 10.18s).
+  A direct Python 3.14.7 audit confirms a further required gap: union-object OR
+  accepts checked arbitrary arguments (including conversion of strings to
+  ForwardRef), whereas type-object OR remains restricted. The current builder
+  still implements only the restricted path. Checked construction, non-type
+  parameter collection/substitution, generic aliases and typing publication
+  remain unfinished; empty parameters are not a general typing implementation.
+  References: https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c
+  and https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/unionobject.c
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

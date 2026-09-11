@@ -98,7 +98,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     },
     get integerIndex() { return invocation.integerIndex; },
     typeName(value) {
-      if (usesRuntimeGuestNumericSlots(value)) { const type = runtimeActualType(value, special, meter); meter.checkpoint(); return type.value.name; }
+      if (usesRuntimeGuestNumericSlots(value)) { const type = runtimeActualType(value, special, meter); meter.checkpoint(); return type.value.diagnosticName; }
       return value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
     }
   };

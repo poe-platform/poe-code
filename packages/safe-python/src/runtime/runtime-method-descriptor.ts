@@ -10,18 +10,18 @@ function checkReceiver(descriptor: NativeMethodDescriptorValue | WrapperDescript
       const accepted = descriptor.value.accepts(instance, meter); meter.checkpoint();
       if (accepted) return;
     }
-    const name = diagnosticTypeName(instance.kind === "type" ? instance.value.name : hasRuntimeInstanceAttributes(instance) ? instance.type.value.name : instance.kind === "none" ? "NoneType" : instance.kind === "not-implemented" ? "NotImplementedType" : instance.kind, meter, 100);
-    meter.checkpoint(0, 128 + 2 * (name.length + descriptor.value.name.length + descriptor.value.owner.value.name.length));
-    if (instance.kind !== "type") throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' for type '${descriptor.value.owner.value.name}' needs a type, not a '${name}' as arg 2`);
-    throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' requires a subtype of '${descriptor.value.owner.value.name}' but received '${name}'`);
+    const name = diagnosticTypeName(instance.kind === "type" ? instance.value.diagnosticName : hasRuntimeInstanceAttributes(instance) ? instance.type.value.diagnosticName : instance.kind === "none" ? "NoneType" : instance.kind === "not-implemented" ? "NotImplementedType" : instance.kind, meter, 100);
+    meter.checkpoint(0, 128 + 2 * (name.length + descriptor.value.name.length + descriptor.value.owner.value.diagnosticName.length));
+    if (instance.kind !== "type") throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' for type '${descriptor.value.owner.value.diagnosticName}' needs a type, not a '${name}' as arg 2`);
+    throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' requires a subtype of '${descriptor.value.owner.value.diagnosticName}' but received '${name}'`);
   }
   const accepted = descriptor.value.accepts(instance, meter); meter.checkpoint();
   if (accepted) return;
-  const name = diagnosticTypeName(instance.kind === "instance" ? instance.type.value.name : instance.kind === "type" ? instance.metaclass.value.name
+  const name = diagnosticTypeName(instance.kind === "instance" ? instance.type.value.diagnosticName : instance.kind === "type" ? instance.metaclass.value.diagnosticName
     : instance.kind === "none" ? "NoneType" : instance.kind === "not-implemented" ? "NotImplementedType" : instance.kind, meter, 100);
-  meter.checkpoint(0, 128 + 4 * (name.length + descriptor.value.name.length + descriptor.value.owner.value.name.length));
-  if (direct && descriptor.kind === "wrapper_descriptor") throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' requires a '${descriptor.value.owner.value.name}' object but received a '${name}'`);
-  throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' for '${descriptor.value.owner.value.name}' objects doesn't apply to a '${name}' object`);
+  meter.checkpoint(0, 128 + 4 * (name.length + descriptor.value.name.length + descriptor.value.owner.value.diagnosticName.length));
+  if (direct && descriptor.kind === "wrapper_descriptor") throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' requires a '${descriptor.value.owner.value.diagnosticName}' object but received a '${name}'`);
+  throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' for '${descriptor.value.owner.value.diagnosticName}' objects doesn't apply to a '${name}' object`);
 }
 
 /** Unbound native descriptor call, after normal call-site argument expansion. */
@@ -32,7 +32,7 @@ export function callRuntimeMethodDescriptor(descriptor: NativeMethodDescriptorVa
     meter.checkpoint(); return result;
   }
   if (positional.length === 0) throw new PythonRuntimeError("TypeError", descriptor.kind === "wrapper_descriptor" || descriptor.kind === "classmethod_descriptor"
-    ? `descriptor '${descriptor.value.name}' of '${descriptor.value.owner.value.name}' object needs an argument`
+    ? `descriptor '${descriptor.value.name}' of '${descriptor.value.owner.value.diagnosticName}' object needs an argument`
     : `unbound method ${descriptor.value.owner.value.name}.${descriptor.value.name}() needs an argument`);
   checkReceiver(descriptor, positional[0], meter, true);
   if (descriptor.kind === "classmethod_descriptor") {

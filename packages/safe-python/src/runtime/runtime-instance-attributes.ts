@@ -8,7 +8,7 @@ import { lookupRuntimeSpecialMethod, type RuntimeSpecialMethodContext } from "./
 import type { AttributeInstanceValue, BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 function missingAttribute(instance: AttributeInstanceValue, name: string, meter: ExecutionMeter, mode: "missing" | "readonly" | "no-dictionary" = "missing"): PythonRuntimeError {
-  const type = diagnosticTypeName(instance.type.value.name, meter, 100);
+  const type = diagnosticTypeName(instance.type.value.diagnosticName, meter, 100);
   meter.checkpoint(0, 128 + name.length * 2 + type.length * 2);
   return new PythonRuntimeError("AttributeError", mode === "readonly"
     ? `'${type}' object attribute '${name}' is read-only`

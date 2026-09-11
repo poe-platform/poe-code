@@ -254,7 +254,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         return lookupRuntimeSpecialMethod(value, type, values.string(name), specialMethods, values, meter);
       },
       typeName: specialMethods === undefined ? undefined : value => {
-        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.name;
+        const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.diagnosticName;
       },
       actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
       nativeListRepr(value) {

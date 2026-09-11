@@ -18,6 +18,10 @@ export function createTypeReprWrapper(values: RuntimeValues, meter: ExecutionMet
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "wrapper __repr__() takes no keyword arguments");
       if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `expected 0 arguments, got ${positional.length}`);
       if (instance.kind !== "type") throw Error("type representation requires a type record");
+      if(instance.immutable && instance.value.nativeName!==undefined){
+        meter.checkpoint(0,32+2*instance.value.nativeName.length);
+        return values.string(`<class '${instance.value.nativeName}'>`);
+      }
       const module = instance.value.namespace.items.lookup(moduleKey)?.value;
       const qualified = module?.kind === "str" && module.value.compare(builtins.value, meter) !== 0;
       const name = instance.value.names.get(qualified ? "__qualname__" : "__name__", values, meter);

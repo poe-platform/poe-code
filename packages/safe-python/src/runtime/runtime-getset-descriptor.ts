@@ -7,9 +7,9 @@ function checkReceiver(descriptor: GetsetDescriptorValue | MemberDescriptorValue
   const accepted = descriptor.value.accepts(instance, meter);
   meter.checkpoint();
   if (accepted) return;
-  const name = hasRuntimeInstanceAttributes(instance) ? instance.type.value.name : instance.kind === "type" ? instance.metaclass.value.name
+  const name = hasRuntimeInstanceAttributes(instance) ? instance.type.value.diagnosticName : instance.kind === "type" ? instance.metaclass.value.diagnosticName
     : instance.kind === "none" ? "NoneType" : instance.kind === "not-implemented" ? "NotImplementedType" : instance.kind;
-  throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' for '${descriptor.value.owner.value.name}' objects doesn't apply to a '${name}' object`);
+  throw new PythonRuntimeError("TypeError", `descriptor '${descriptor.value.name}' for '${descriptor.value.owner.value.diagnosticName}' objects doesn't apply to a '${name}' object`);
 }
 
 /** Intrinsic getset/member __get__ after argument binding; class access returns
@@ -34,6 +34,6 @@ export function mutateRuntimeGetsetDescriptor(descriptor: GetsetDescriptorValue 
   const capability = descriptor.value;
   if (change.kind === "set" && capability.set !== undefined) capability.set(instance, change.value, meter, invocation);
   else if (change.kind === "delete" && capability.delete !== undefined) capability.delete(instance, meter, invocation);
-  else throw new PythonRuntimeError("AttributeError", descriptor.kind === "member_descriptor" ? "readonly attribute" : `attribute '${capability.name}' of '${capability.owner.value.name}' objects is not writable`);
+  else throw new PythonRuntimeError("AttributeError", descriptor.kind === "member_descriptor" ? "readonly attribute" : `attribute '${capability.name}' of '${capability.owner.value.diagnosticName}' objects is not writable`);
   meter.checkpoint();
 }

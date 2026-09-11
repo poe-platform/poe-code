@@ -8,6 +8,8 @@ import { RuntimeTypeNames } from "./runtime-type-names.js";
 import { PythonRuntimeError } from "./error.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Native tp_name may be module-qualified independently of __name__. */
+  readonly nativeName?:string;
   /** Native single positional class pattern matches the whole subject. */
   readonly matchSelf?:boolean;
   /** Trusted structural-pattern classification, independent of slot presence. */
@@ -48,6 +50,7 @@ export interface RuntimeTypeLayoutOptions {
  * to class construction and the object layer.
  */
 export class RuntimeTypeLayout {
+  readonly nativeName:string|undefined;
   readonly matchSelf:boolean;
   readonly patternKind:"sequence"|"mapping"|undefined;
   readonly names: RuntimeTypeNames;
@@ -71,13 +74,14 @@ export class RuntimeTypeLayout {
   readonly variableSized: boolean;
 
   constructor(name: string, bases: readonly RuntimeTypeLayout[], namespace: DictionaryValue, meter: ExecutionMeter, options: RuntimeTypeLayoutOptions = {}) {
-    meter.checkpoint(1, 232 + 8 * bases.length + 8 * (options.slots?.length ?? 0));
+    meter.checkpoint(1, 240 + 8 * bases.length + 8 * (options.slots?.length ?? 0));
     const layoutBase = selectRuntimeLayoutBase(bases, meter);
     this.names = new RuntimeTypeNames(name, options.qualifiedName ?? name, meter);
     this.bases = Object.freeze([...bases]);
     this.namespace = namespace;
     this.hasSequenceTable = options.sequenceTable ?? true;
     this.patternKind=options.patternKind;
+    this.nativeName=options.nativeName;
     this.matchSelf=options.matchSelf??layoutBase?.matchSelf??false;
     this.isSubclassable = options.subclassable ?? true;
     this.isInstantiable = options.instantiable ?? true;
@@ -100,6 +104,7 @@ export class RuntimeTypeLayout {
   }
 
   get name(): string { return this.names.name; }
+  get diagnosticName():string {return this.nativeName??this.name;}
   get mro(): readonly RuntimeTypeLayout[] { return this.#mro; }
 }
 

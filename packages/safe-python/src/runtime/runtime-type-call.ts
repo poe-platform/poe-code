@@ -65,6 +65,6 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
       return (args, named) => invoke(initialize, args, named);
     },
     isNone: value => value === values.none,
-    typeName(value) { if (value.kind !== "type") throw Error("type name requires an actual type"); return value.value.name; }
+    typeName(value) { if (value.kind !== "type") throw Error("type name requires an actual type"); return value.value.diagnosticName; }
   }, meter);
 }

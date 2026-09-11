@@ -22,7 +22,7 @@ export function createDescriptorReprWrapper(kind: IntrinsicDescriptorKind, owner
       }
       if (receiver.kind !== "method_descriptor" && receiver.kind !== "classmethod_descriptor" && receiver.kind !== "wrapper_descriptor" && receiver.kind !== "getset_descriptor" && receiver.kind !== "member_descriptor") throw Error("invalid descriptor representation receiver");
       const label = receiver.kind === "wrapper_descriptor" ? "slot wrapper" : receiver.kind === "getset_descriptor" ? "attribute" : receiver.kind === "member_descriptor" ? "member" : "method";
-      const name = receiver.value.name, typeName = receiver.value.owner.value.name;
+      const name = receiver.value.name, typeName = receiver.value.owner.value.diagnosticName;
       meter.checkpoint(0, 96 + 2 * (label.length + name.length + typeName.length));
       return values.string(`<${label} '${name}' of '${typeName}' objects>`);
     }

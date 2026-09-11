@@ -12207,6 +12207,23 @@ extension, integration, or validation requirement is missing or unverified.
   one-worker full suite passes 8,483 tests in 561 files (143.33s; test bodies
   11.61s). Delegated primary/display/string/lambda and statement grammar
   allocation still needs accounting; guest eager compilation remains gated.
+- Primary/named-expression AST allocation (2026-09-11): sixteen failing tests
+  isolated child-reader and normalization costs, reproducing uncharged attribute,
+  call, argument, subscript, slice/unpack and assignment-expression storage and
+  cancellation hidden by throwing child readers. Primary parsing now charges
+  attribute/name-span objects, call/subscript nodes and arrays, argument records,
+  keyword sets/entries and name scans, duplicate-name diagnostic text, bare
+  generator wrappers and slice/unpack objects before allocation. Two temporary
+  slice-delimiter arrays became direct comparisons. Exported trailer/argument
+  and named-expression readers preserve cancellation in finally; named-expression
+  nodes receive their own charge. The focused two-file suite passes 44 tests.
+  All 68 AST/diagnostic comparisons against b362dd7fc preserve existing behavior;
+  the same 68 cases match CPython compile acceptance across chained trailers,
+  Unicode names, keyword/unpack ordering, generator arguments, slices and walrus
+  restrictions. Build, typecheck, scoped lint and whitespace checks pass. The
+  final uncached one-worker full suite passes 8,499 tests in 562 files (185.20s;
+  test bodies 12.08s). Display/comprehension/string/lambda and statement
+  grammar allocation still needs accounting before guest eager compilation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

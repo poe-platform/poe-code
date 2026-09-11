@@ -11143,6 +11143,23 @@ extension, integration, or validation requirement is missing or unverified.
   (129.92s; test bodies 9.55s). This is host-only current AST metadata, not native
   f_lineno/f_lasti, complete instruction/leaf-operation locations, tracing or
   automatic traceback capture; those still require implementation and auditing.
+- Native frame line reflection (2026-09-10): five failing integration cases
+  confirmed the missing f_lineno descriptor. Native lexical frames now expose
+  their current stored execution line, or compiled firstLine before execution;
+  legacy frames without either capability fail explicitly rather than inventing
+  a line. Reads retain suspension/completion state. Ordinary writes reject exact
+  integers outside tracing, reject all other values (including bool/int subclasses)
+  without conversion hooks and reject deletion with CPython diagnostics. Guest
+  tracing/jump support is still absent and is not simulated by assigning metadata.
+  Tests cover active/returned functions, suspended/completed generators, grouped
+  initial lambda/decorator lines and mutation validation. All 872 integration
+  tests pass. All 96 getter and 144 mutation/diagnostic comparisons match CPython
+  3.14.7 across padding, grouping and function/generator/coroutine states.
+  Selected workspace build, typecheck, scoped lint and whitespace checks pass.
+  The final uncached one-worker package suite passes 7,898 tests in 527 files
+  (172.32s; test bodies 10.59s). Full instruction/leaf-operation location coverage,
+  native module/class frame publication, f_lasti, tracing and automatic traceback
+  capture remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

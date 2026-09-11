@@ -311,6 +311,38 @@ it("clears native locals repr guards after errors and renders the pre-callback c
   expect(state.globals.get("correct")).toBe(v.true);
 });
 
+it("reflects native frame line numbers during calls and after return",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));
+  state.run("def f():\n frame=current_frame()\n first=frame.f_lineno\n return frame,first,frame.f_lineno\nframe,first,last=f()\ncorrect=first==3 and last==4 and frame.f_lineno==4\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it("reflects native frame line numbers across yield and completion",()=>{
+  const state=exceptionFixture(),{v}=state;
+  state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));
+  state.run("def g():\n frame=current_frame()\n yield frame\n yield frame.f_lineno\n return 9\ngen=g()\nframe=gen.__next__()\nfirst=frame.f_lineno\nsecond=gen.__next__()\npaused=frame.f_lineno\ntry:gen.__next__()\nexcept StopIteration:pass\ncorrect=(first,second,paused,frame.f_lineno)==(3,4,4,5)\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
+it.each(["@(\n decorate\n)\ndef f():pass","f=(\n lambda:1\n)"])("uses compiled first-line metadata before a native frame starts: %s",source=>{
+  const state=exceptionFixture(),program=compileProgram(analyzeModule(source),{stripDocstring:false},state.v,state.meter),code=program.functions.values().next().value;
+  if(code===undefined)throw Error("missing function code");
+  const frame=new LexicalFrame(code.scope,{globals:new Map(),builtins:new Map()},state.meter,code.localLayout,code);
+  state.globals.set("frame",state.registry.frame(frame));
+  state.run("correct=frame.f_lineno==2");
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(frame.executionPosition).toBeUndefined();
+});
+
+it("rejects native frame line mutation without invoking integer conversion",()=>{
+  const state=exceptionFixture(),{v}=state,frame=new LexicalFrame(analyzeModule("def f():pass").scopes.children[0],{globals:new Map(),builtins:new Map()},state.meter);
+  state.globals.set("int",state.registry.integerType());
+  state.globals.set("frame",state.registry.frame(frame));state.globals.set("AttributeError",state.registry.exceptionType("AttributeError"));
+  state.run("class I(int):pass\nclass Index:\n def __index__(self):raise RuntimeError('must not run')\nerrors=[]\nfor value in (None,True,1.0,'x',I(1),Index(),1,2**100):\n try:frame.f_lineno=value\n except ValueError as e:errors.append(e.args[0])\ntry:del frame.f_lineno\nexcept AttributeError as e:deleted=e.args==('cannot delete attribute',)\ncorrect=errors==['lineno must be an integer']*6+['f_lineno can only be set in a trace function']*2 and deleted\n");
+  expect(state.globals.get("correct")).toBe(v.true);
+});
+
 it("publishes stable native frame identities with fresh write-through locals views",()=>{
   const state=exceptionFixture(),{v}=state;
   state.builtins.set("current_frame",v.builtinFunction({name:"current_frame",invoke(){const frame=state.calls.current;if(!(frame instanceof LexicalFrame))throw Error("expected lexical frame");return state.registry.frame(frame);}}));

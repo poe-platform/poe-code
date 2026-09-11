@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { setImmediate as yieldToHost } from "node:timers/promises";
-import { SandboxError } from "./budget.js";
+import { SandboxError, type Budget } from "./budget.js";
 
 export type ExecutionControl = {
   readonly executionState: "running" | "pausing" | "paused" | "finished";
@@ -17,7 +17,6 @@ type PauseRequest = {
   resume(): void;
   interrupt(reason: unknown): void;
 };
-import type { Budget } from "./budget.js";
 
 type ExecutionJob = {
   queue: SandboxJobQueue;

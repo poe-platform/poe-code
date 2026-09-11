@@ -1,5 +1,5 @@
-import { attachExecutionControl, SandboxJobQueue, type ExecutionControl } from "./interp/jobs.js";
 import { createHostCallbackContext } from "#safe-js-platform";
+import { attachExecutionControl, SandboxJobQueue, type ExecutionControl } from "./interp/jobs.js";
 import { runWithExtensions, type RealmOptions } from "./realm.js";
 
 import { hashParsedAst, hashSource } from "./parse/hash.js";

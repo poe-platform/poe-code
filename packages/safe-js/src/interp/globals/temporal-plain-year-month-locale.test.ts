@@ -2,12 +2,14 @@ import { expect, it } from "vitest";
 import { run } from "../../run.js";
 import { dump } from "../../dump.js";
 
-it.each(["UTC", "Pacific/Honolulu", "+05:30"])("formats year/month without shifting for %s", async zone => {
-  const expected = new Intl.DateTimeFormat("en-US", {calendar:"iso8601",month:"long",year:"numeric",timeZone:"UTC"}).format(Date.UTC(2000,1,1));
-  expect(expected).toContain("February");
-  expect(expected).toContain("2000");
+it.each(["UTC", "Pacific/Honolulu", "+05:30"])("formats numeric year/month without shifting for %s", async zone => {
+  const formatter = new Intl.DateTimeFormat("en-US", {calendar:"iso8601",month:"numeric",year:"numeric",timeZone:"UTC"});
+  const expected = formatter.format(Date.UTC(2000,1,1));
+  expect(Object.fromEntries(formatter.formatToParts(Date.UTC(2000,1,1))
+    .filter(part => part.type !== "literal").map(part => [part.type, Number(part.value)])))
+    .toEqual({ month: 2, year: 2000 });
   expect(await run(`return new Temporal.PlainYearMonth(2000,2).toLocaleString('en-US',{
-    calendar:'iso8601',month:'long',year:'numeric',timeZone:${JSON.stringify(zone)}})`))
+    calendar:'iso8601',month:'numeric',year:'numeric',timeZone:${JSON.stringify(zone)}})`))
     .toMatchObject({ok:true,returnValue:expected});
 });
 

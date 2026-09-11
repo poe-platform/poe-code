@@ -59,7 +59,8 @@ export function compileFunction<Value>(
   meter.checkpoint();
   const qualifiedName = constants.string(qualified);
   meter.checkpoint();
-  const firstLine = constants.integer(node.kind === "function" ? node.decorators[0]?.start.line ?? node.start.line : node.start.line);
+  const firstSite = node.kind === "function" ? node.decorators[0] ?? node : node;
+  const firstLine = constants.integer(("contentSpan" in firstSite ? firstSite.contentSpan : undefined)?.start.line ?? firstSite.start.line);
   const localLayout=compileFunctionLocalLayout(scope,meter);
   let flags=scopeFlags;
   if(flags!==undefined)flags|=(localLayout.varPositional?4:0)|(localLayout.varKeyword?8:0)|(kind==="generator"?0x20:kind==="coroutine"?0x80:kind==="async-generator"?0x200:0);

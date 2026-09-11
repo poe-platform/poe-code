@@ -11,6 +11,15 @@ function compile(source: string, stripDocstring = false) {
 }
 
 describe("function code metadata compilation", () => {
+  it.each([
+    ["f=(\n lambda:1\n)",2],
+    ["f=(\n (\n lambda:1\n )\n)",3],
+    ["@(\n decorate\n)\ndef f():pass",2],
+    ["@(\n (\n decorate\n )\n)\nasync def f():pass",3],
+    ["@(\n decorate\n)\n@other\ndef f():pass",2]
+  ])("uses executable content for the first code line: %s",(source,line)=>{
+    expect(compile(source).firstLine).toEqual({integer:line});
+  });
   it("orders positional/keyword-only/variadic locals and captured parameters",()=>{
     const code=compile("def f(z,a,/,b=1,*args,k=2,**kw):\n y=1\n x=2\n def g():return z,a,x,y\n return g");
     expect(code.localLayout).toEqual({variableNames:["z","a","b","k","args","kw","g"],cellNames:["z","a","x","y"],freeNames:[],positionalCount:3,positionalOnlyCount:2,keywordOnlyCount:1,varPositional:true,varKeyword:true});

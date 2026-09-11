@@ -43,7 +43,8 @@ export function compileClassBody<Value>(
   source??=createCompilationSource(options.filename??"<string>",constants,meter);
   const qualifiedName = constants.string(name);
   meter.checkpoint();
-  const firstLine = constants.integer(node.decorators[0]?.start.line ?? node.start.line);
+  const decorator = node.decorators[0];
+  const firstLine = constants.integer(decorator?.contentSpan?.start.line ?? decorator?.start.line ?? node.start.line);
   const names: Value[] = [];
   for (const attribute of attributes) { meter.checkpoint(); names.push(constants.string(attribute)); }
   meter.checkpoint();

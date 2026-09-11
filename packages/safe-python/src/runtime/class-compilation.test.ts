@@ -16,6 +16,12 @@ function fixture(source = 'class C:\n "document"\n def f(self): self.x=1') {
 }
 
 describe("class code metadata compilation", () => {
+  it.each([
+    ["@(\n decorate\n)\nclass C:pass",2],
+    ["@(\n (\n decorate\n )\n)\n@other\nclass C:pass",3]
+  ])("uses the first decorator content line: %s",(source,line)=>{
+    expect(fixture(source).run().firstLine).toEqual({integer:line});
+  });
   it("materializes analyzer metadata and removes the leading docstring from executable statements", () => {
     const state = fixture(), code = state.run();
     expect(code.scope).toBe(state.scope);

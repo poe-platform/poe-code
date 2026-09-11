@@ -11115,6 +11115,17 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,882 tests in 527 files (208.05s;
   test bodies 11.05s).
+- Grouped code first-line metadata (2026-09-10): seven failing regressions
+  confirmed that grouped lambdas and first decorators on functions, asynchronous
+  functions and classes used the opening parenthesis line rather than the
+  executable expression content. Function/class compilation now consumes retained
+  contentSpan metadata without changing full syntax spans. All 400 comparisons
+  against CPython 3.14.7 match across source padding, nested grouping, lambda
+  expressions, decorator names/calls/subscripts and multiple decorators. The
+  focused three-file suite passes 41 tests. Selected workspace build, typecheck,
+  scoped lint and whitespace checks pass. The final uncached one-worker package
+  suite passes 7,889 tests in 527 files (164.30s; test bodies 12.50s).
+  Native frame location storage and automatic traceback capture remain required.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -14,7 +14,7 @@ export function readDisplay(cursor: TokenCursor, read: ReadExpression): Expressi
   const kind = opening.text === "(" ? "tuple" : "list";
   if (opening.text === "(" && cursor.peek().text === "yield") {
     const value = readYield(cursor, read);
-    return { ...value, start: opening.start, end: cursor.expect(")").end };
+    return { ...value, contentSpan:value.contentSpan??{start:value.start,end:value.end}, start: opening.start, end: cursor.expect(")").end };
   }
   if (cursor.peek().text === close) {
     return { kind, items: [], start: opening.start, end: cursor.take().end };
@@ -27,7 +27,7 @@ export function readDisplay(cursor: TokenCursor, read: ReadExpression): Expressi
   }
   if (kind === "tuple" && cursor.peek().text !== ",") {
     if (first.kind === "unpack") throw cursor.error("cannot use starred expression here");
-    return { ...first, start: opening.start, end: cursor.expect(close).end };
+    return { ...first, contentSpan:first.contentSpan??{start:first.start,end:first.end}, start: opening.start, end: cursor.expect(close).end };
   }
   const items = [first];
   while (cursor.peek().text === ",") {

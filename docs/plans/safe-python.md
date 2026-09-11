@@ -11082,6 +11082,39 @@ extension, integration, or validation requirement is missing or unverified.
   Selected build, typecheck, scoped lint and whitespace checks pass. The final
   uncached one-worker package suite passes 7,869 tests in 527 files (182.24s;
   test bodies 13.29s).
+- Statement/control-flow locations (2026-09-10): failing generic and native
+  regressions demonstrated absent implicit-protocol locations and cleanup that
+  retained the last body expression's line. Added trusted source-span callbacks
+  to synchronous/resumable statement contexts and native per-frame hooks.
+  Statement entry, condition tests, iterator acquisition/advance, target binding,
+  handler selection/binding and assertion failure publish their operation sites.
+  Prepared manager exits retain each manager expression's site across nested
+  bodies, return/error unwinding and async suspension. Cancellation during cleanup
+  location bookkeeping restores handled exception state without running guest exit.
+  A failing grouped-iterable regression exposed parser span widening: parenthesized
+  expressions now retain optional contentSpan metadata independently of their
+  full syntax span, preserving delimiter-sensitive grammar checks. Nested grouping
+  retains the innermost content span; real tuple/display delimiters stay semantic.
+  Thirteen new tests cover generic/native loops and managers, grouped spans,
+  bare return/skipped suites, suspended cleanup and callback cancellation/failure.
+  The focused six-file suite passes 981 tests. All 96 manager-location comparisons
+  match CPython across sync/async entry/exit, multiline/grouped managers and normal,
+  return and error exits. All 128 loop-location comparisons now match across
+  sync/async loops, grouped iterables, repeated advances, break/continue and body
+  errors. These comparisons exposed 48 async-advance location mismatches: async
+  advances belong to the loop header, unlike synchronous iterable-site advances.
+  A corrected native regression failed before that distinction was implemented.
+  The initial full-suite run was deliberately stopped after this discovery; its
+  partial result is not counted as verification of the corrected code.
+  This is not complete frame tracing or instruction
+  metadata: deferred leaf-operation sites, native frame location storage and
+  f_lineno/f_lasti, code position tables and automatic tracebacks remain required.
+  A read-only follow-up check also reproduced grouped-lambda firstLine metadata
+  using the opening parenthesis (line 1) instead of the lambda (CPython line 2);
+  compilation must consume contentSpan for that case in the next compiler pass.
+  Selected build, typecheck, scoped lint and whitespace checks pass. The final
+  uncached one-worker package suite passes 7,882 tests in 527 files (208.05s;
+  test bodies 11.05s).
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -521,6 +521,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       inplace = (operator, left, right) => runtimeInPlaceSpecialMethod(operator, left, right, values, meter, builtinCalls);
     }
     return createRuntimeStatementContext(expressions, {
+      position:statementHooks.position?.bind(statementHooks),
       invocation: builtinCalls,
       subscription: statementHooks.subscription ?? (specialMethods === undefined ? undefined : builtinCalls),
       get integerIndex() { return getIntegerIndex(); },

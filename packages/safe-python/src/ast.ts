@@ -43,7 +43,11 @@ export type SubscriptItem = CollectionItem | (SourceSpan & (
   { readonly kind: "slice"; readonly lower: Expression | null; readonly upper: Expression | null; readonly step: Expression | null }
 ));
 
-export type Expression = SourceSpan & (
+export type Expression = SourceSpan & {
+  /** Executable content before outer grouping parentheses widen the syntax
+   * span. Syntax validation still uses start/end, including those delimiters. */
+  readonly contentSpan?:SourceSpan;
+} & (
   | { readonly kind: "await" | "yield-from"; readonly value: Expression }
   | { readonly kind: "yield"; readonly value: Expression | null }
   | { readonly kind: "interpolated-string"; readonly flavor: "formatted" | "template"; readonly parts: readonly InterpolatedPart[] }

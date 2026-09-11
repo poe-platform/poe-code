@@ -1,4 +1,4 @@
-import type { Expression } from "../ast.js";
+import type { Expression,SourceSpan } from "../ast.js";
 import type { Statement } from "../statement-ast.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 
@@ -33,6 +33,9 @@ export interface PreparedAsyncContextManager<Value> {
 }
 
 export interface StatementContext<Value> {
+  /** Trusted per-frame source bookkeeping, not guest tracing. Implicit
+   * protocols use their iterable/manager/target sites, including after resume. */
+  position?(site:SourceSpan):void;
   evaluate(expression: Expression): Value;
   /** Evaluate directly in branching context, including short-circuit truth rules.
    * Evaluating to a value and then converting it can add observable truth calls.
@@ -123,8 +126,8 @@ type Frame<Value> =
   | { kind: "async-for"; statement: Extract<Statement, { kind: "for" }>; iterator: ReturnType<NonNullable<ResumableStatementContext<Value>["asyncIterate"]>> }
   | { kind: "finally"; body: readonly Statement[] }
   | { kind: "with-items"; statement: Extract<Statement, { kind: "with" }>; index: number }
-  | { kind: "with-exit"; asynchronous:false; exit: PreparedContextManager<Value>["exit"]; policy:Pick<NonNullable<StatementContext<Value>["managers"]>,"truth"> }
-  | { kind: "with-exit"; asynchronous:true; exit: PreparedAsyncContextManager<Value>["exit"]; policy:Pick<NonNullable<StatementContext<Value>["managers"]>,"truth"> }
+  | { kind: "with-exit"; location:SourceSpan; asynchronous:false; exit: PreparedContextManager<Value>["exit"]; policy:Pick<NonNullable<StatementContext<Value>["managers"]>,"truth"> }
+  | { kind: "with-exit"; location:SourceSpan; asynchronous:true; exit: PreparedAsyncContextManager<Value>["exit"]; policy:Pick<NonNullable<StatementContext<Value>["managers"]>,"truth"> }
   | { kind: "catch"; statement: Extract<Statement, { kind: "try" }> }
   | {
       kind: "search";
@@ -180,6 +183,8 @@ function* statementContinuation<Value>(
 ): Generator<Value, StatementCompletion<Value>, Value> {
   meter.checkpoint(0);
   const context = execution.context;
+  const position=context.position?.bind(context);
+  const locate=(site:SourceSpan&{readonly contentSpan?:SourceSpan})=>{if(position!==undefined){try{position(site.contentSpan??site);}finally{meter.checkpoint(0);}}};
   const frames: Frame<Value>[] = [{ kind: "block", body, index: 0 }];
   let transfer: Transfer<Value> | undefined;
   const guestFailure = (error: unknown): Transfer<Value> => {
@@ -217,6 +222,7 @@ function* statementContinuation<Value>(
         let restore:(()=>void)|undefined;
         try {
           restore=pending?.kind==="throw"?context.exceptions!.enter(pending.error):undefined;
+          locate(top.location);
           meter.checkpoint();
           const error=pending?.kind==="throw"?{error:pending.error}:null;
           const result=top.asynchronous?yield* top.exit(error):top.exit(error);
@@ -268,22 +274,25 @@ function* statementContinuation<Value>(
             continue;
           }
           const item = frame.statement.items[frame.index++];
+          locate(item.context);
           const value = execution.kind === "synchronous" ? execution.context.evaluate(item.context) : yield* execution.context.evaluate(item.context);
           meter.checkpoint();
+          locate(item.context);
           let exit:Extract<Frame<Value>,{kind:"with-exit"}>,entered:Value;
           if(frame.statement.async&&execution.kind==="resumable") {
             const policy=execution.context.asyncManagers!,manager=policy.prepare(value);
-            exit={kind:"with-exit",asynchronous:true,exit:manager.exit,policy};
+            exit={kind:"with-exit",location:item.context,asynchronous:true,exit:manager.exit,policy};
             meter.checkpoint();entered=yield* manager.enter();
           } else {
             const policy=context.managers!,manager=policy.prepare(value);
-            exit={kind:"with-exit",asynchronous:false,exit:manager.exit,policy};
+            exit={kind:"with-exit",location:item.context,asynchronous:false,exit:manager.exit,policy};
             meter.checkpoint();entered=manager.enter();
           }
           frames.pop();
           frames.push(exit, frame);
           if (item.target !== null) {
             meter.checkpoint();
+            locate(item.target);
             if (execution.kind === "synchronous") execution.context.assign(item.target, entered);
             else yield* execution.context.assign(item.target, entered);
           }
@@ -302,13 +311,16 @@ function* statementContinuation<Value>(
             continue;
           }
           const handler = frame.statement.handlers[frame.index++];
+          locate(handler);
           if (handler.exception !== null) {
             const type = execution.kind === "synchronous" ? execution.context.evaluate(handler.exception) : yield* execution.context.evaluate(handler.exception);
             meter.checkpoint();
+            locate(handler.exception);
             if (!context.exceptions!.handlers!.match(frame.error, type)) continue;
           }
           if (handler.alias !== null) {
             meter.checkpoint();
+            locate(handler.alias);
             context.exceptions!.handlers!.bind(handler.alias.name, frame.error);
           }
           frames.pop();
@@ -335,6 +347,7 @@ function* statementContinuation<Value>(
           continue;
         }
         if (frame.kind === "while") {
+          locate(frame.statement.condition);
           const accepted = execution.kind === "synchronous" ? execution.context.test(frame.statement.condition) : yield* execution.context.test(frame.statement.condition);
           if (accepted) {
             frames.push({ kind: "block", body: frame.statement.body, index: 0 });
@@ -345,12 +358,14 @@ function* statementContinuation<Value>(
           continue;
         }
         if (frame.kind === "for"||frame.kind==="async-for") {
+          locate(frame.kind==="async-for"?frame.statement:frame.statement.iterable);
           const next = frame.kind==="async-for"?yield* frame.iterator.next():frame.iterator.next();
           if (next.done) {
             frames.pop();
             frames.push({ kind: "block", body: frame.statement.otherwise, index: 0 });
           } else {
             meter.checkpoint();
+            locate(frame.statement.target);
             if (execution.kind === "synchronous") execution.context.assign(frame.statement.target, next.value);
             else yield* execution.context.assign(frame.statement.target, next.value);
             frames.push({ kind: "block", body: frame.statement.body, index: 0 });
@@ -362,11 +377,13 @@ function* statementContinuation<Value>(
           continue;
         }
         const statement = frame.body[frame.index++];
+        locate(statement);
         switch (statement.kind) {
           case "if": {
             let selected = statement.otherwise;
             for (const branch of statement.branches) {
               meter.checkpoint();
+              locate(branch.condition);
               const accepted = execution.kind === "synchronous" ? execution.context.test(branch.condition) : yield* execution.context.test(branch.condition);
               if (accepted) {
                 selected = branch.body;
@@ -381,8 +398,10 @@ function* statementContinuation<Value>(
             break;
           case "for": {
             if (statement.async&&(execution.kind==="synchronous"||execution.context.asyncIterate===undefined)) throw new UnsupportedStatementError(statement.kind);
+            locate(statement.iterable);
             const iterable = execution.kind === "synchronous" ? execution.context.evaluate(statement.iterable) : yield* execution.context.evaluate(statement.iterable);
             meter.checkpoint();
+            locate(statement.iterable);
             if(statement.async&&execution.kind==="resumable")frames.push({kind:"async-for",statement,iterator:execution.context.asyncIterate!(iterable)});
             else frames.push({ kind: "for", statement, iterator:context.iterate(iterable) });
             break;
@@ -400,6 +419,7 @@ function* statementContinuation<Value>(
           case "assert": {
             if (!context.assertions) throw new UnsupportedStatementError(statement.kind);
             if (!context.assertions.enabled) break;
+            locate(statement.condition);
             const accepted = execution.kind === "synchronous" ? execution.context.test(statement.condition) : yield* execution.context.test(statement.condition);
             if (accepted) break;
             let message: { readonly value: Value } | null = null;
@@ -408,6 +428,7 @@ function* statementContinuation<Value>(
               message = { value: execution.kind === "synchronous" ? execution.context.evaluate(statement.message) : yield* execution.context.evaluate(statement.message) };
             }
             meter.checkpoint();
+            locate(statement);
             return context.assertions.fail(message);
           }
           case "pass":

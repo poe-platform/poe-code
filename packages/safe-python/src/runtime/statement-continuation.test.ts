@@ -60,6 +60,24 @@ function fixture(inputs: Record<string, unknown> = {}, maxAllocatedBytes = 10000
 }
 
 describe("resumable statement execution", () => {
+  it("retains manager-specific locations across suspended entry, body and cleanup",()=>{
+    const state=fixture({a:"a",b:"b",body:"body"});let line=0;
+    state.context.position=site=>{line=site.start.line;};
+    state.context.asyncManagers={prepare(value){return {*enter(){yield `enter:${value}`;return value;},*exit(){yield `exit:${value}`;return false;}};},truth:Boolean};
+    const cursor=state.run("async with (\n a,\n b\n):\n yield body");
+    for(const [value,expectedLine] of [["enter:a",2],["enter:b",3],["body",5],["exit:b",3],["exit:a",2]] as const){
+      expect(cursor.next(null)).toEqual({done:false,value});expect(line).toBe(expectedLine);
+    }
+    expect(cursor.next(null)).toEqual({done:true,value:{kind:"normal"}});
+  });
+
+  it("restores handled state when cleanup location bookkeeping cancels",()=>{
+    const controller=new AbortController(),state=fixture({a:"a"},1000000,controller.signal),failure=new Guest("body");let armed=false;
+    state.context.position=()=>{if(armed){expect(state.active()).toBe(failure);controller.abort();}};
+    state.context.asyncManagers={prepare(){return {*enter(){return null;},*exit(){state.events.push("exit");return false;}};},truth:Boolean};
+    const cursor=state.run("async with a:\n yield 1");expect(cursor.next(null)).toEqual({done:false,value:1});armed=true;
+    expect(()=>cursor.throw(failure)).toThrow(ExecutionLimitError);expect(state.active()).toBeUndefined();expect(state.events).not.toContain("exit");
+  });
   it("awaits prepared async entries and reverse-order exits while preserving a return",()=>{
     const state=fixture({a:"a",b:"b"});
     state.context.asyncManagers={prepare(value){

@@ -95,6 +95,31 @@ function exceptionFixture(extensions:Partial<ReturnType<RuntimeProgramHooks["exp
   return state;
 }
 
+it.each([false,true])("reports native multiline manager cleanup locations (async=%s)",asynchronous=>{
+  const state=exceptionFixture(),{v}=state,locations=new WeakMap<object,number>(),events:Array<[string,number]>=[],expressions=state.hooks.expressions,statements=state.hooks.statements;
+  state.hooks.expressions=frame=>({...expressions(frame),position:site=>{locations.set(frame,site.start.line);}});
+  state.hooks.statements=frame=>({...statements(frame),position:site=>{locations.set(frame,site.start.line);}});
+  for(const name of ["enter","exit","body"])state.builtins.set(name,v.builtinFunction({name,invoke(_args,_keywords,_meter,invocation){const line=locations.get(state.calls.current!);if(line===undefined)throw Error("missing location");events.push([name,line]);return asynchronous&&name!=="body"?invocation!.call(state.globals.get("done")!,[]):v.none;}}));
+  state.run("async def done():pass\nclass C:\n __"+(asynchronous?"aenter":"enter")+"__=enter\n __"+(asynchronous?"aexit":"exit")+"__=exit\n"+(asynchronous?"async ":"")+"def f():\n "+(asynchronous?"async ":"")+"with (\n  C(),\n  C()\n ):\n  body()\n"+(asynchronous?"c=f()\ntry:c.send(None)\nexcept StopIteration:pass\n":"f()\n"));
+  expect(events).toEqual([["enter",7],["enter",8],["body",10],["exit",8],["exit",7]]);
+});
+
+it.each([false,true])("restores native loop advance locations after the body (async=%s)",asynchronous=>{
+  const state=exceptionFixture(),{v}=state,locations=new WeakMap<object,number>(),events:Array<[string,number]>=[],expressions=state.hooks.expressions,statements=state.hooks.statements;let count=0;
+  state.hooks.expressions=frame=>({...expressions(frame),position:site=>{locations.set(frame,(site.contentSpan??site).start.line);}});
+  state.hooks.statements=frame=>({...statements(frame),position:site=>{locations.set(frame,site.start.line);}});
+  for(const name of ["iter","advance","body"])state.builtins.set(name,v.builtinFunction({name,invoke(_args,_keywords,_meter,invocation){
+    const line=locations.get(state.calls.current!);if(line===undefined)throw Error("missing location");events.push([name,line]);
+    if(name==="iter")return state.globals.get("i")!;
+    if(name==="body")return v.none;
+    if(count++===2)throw asynchronous?state.exceptions!.signal("StopAsyncIteration"):state.exceptions!.completion(v.none);
+    return asynchronous?invocation!.call(state.globals.get("value")!,[]):v.integer(1);
+  }}));
+  state.run("async def value():return 1\nclass I:\n __"+(asynchronous?"aiter":"iter")+"__=iter\n __"+(asynchronous?"anext":"next")+"__=advance\ni=I()\n"+(asynchronous?"async ":"")+"def f():\n "+(asynchronous?"async ":"")+"for x in (\n  i\n ):\n  body()\n"+(asynchronous?"c=f()\ntry:c.send(None)\nexcept StopIteration:pass\n":"f()\n"));
+  const advanceLine=asynchronous?7:8;
+  expect(events).toEqual([["iter",8],["advance",advanceLine],["body",10],["advance",advanceLine],["body",10],["advance",advanceLine]]);
+});
+
 it("reports native expression call sites independently for each active frame",()=>{
   const state=exceptionFixture(),{v}=state,locations=new WeakMap<object,number>(),original=state.hooks.expressions;
   state.hooks.expressions=frame=>({...original(frame),position:node=>{locations.set(frame,node.start.line);}});

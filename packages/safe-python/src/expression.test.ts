@@ -3,6 +3,14 @@ import { parseExpression } from "./expression.js";
 import * as safePython from "./index.js";
 
 describe("Python expression parsing", () => {
+  it("preserves inner expression spans independently of grouping delimiters",()=>{
+    for(const source of ["(\n value\n)","((\n value\n))","(\n yield value\n)"]){
+      const node=parseExpression(source);
+      expect(node.start.line).toBe(1);expect(node.end.offset).toBe(source.length);
+      expect(node.contentSpan?.start.line).toBe(2);expect(node.contentSpan?.end.line).toBe(2);
+    }
+    expect(parseExpression("(\n value,\n)").contentSpan).toBeUndefined();
+  });
   it("is exposed through the package entry point", () => {
     expect(safePython).toHaveProperty("parseExpression", parseExpression);
   });

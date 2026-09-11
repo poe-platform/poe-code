@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { parseModule } from "../module.js";
-import type { Expression } from "../ast.js";
+import type { Expression,SourceSpan } from "../ast.js";
 import type { Statement } from "../statement-ast.js";
-import { ExecutionBudget } from "./execution-budget.js";
+import { ExecutionBudget,ExecutionLimitError } from "./execution-budget.js";
 import { executeStatements, type StatementContext } from "./statement-execution.js";
 
 function fixture(inputs: Record<string, unknown> = {}) {
@@ -44,6 +44,38 @@ it("preserves null guest payloads returned by native fault preparation",()=>{
 });
 
 describe("statement control flow", () => {
+  it("records bare return and only executed suites",()=>{
+    const state=fixture(),lines:number[]=[];state.context.position=site=>{lines.push(site.start.line);};
+    expect(executeStatements(parseModule("if False:\n 1\nelse:\n pass\n return\n 2").body,state.context,budget())).toEqual({kind:"return"});
+    expect(lines).toEqual([1,1,4,5]);
+  });
+
+  it.each([false,true])("checks cancellation after position callbacks (throws=%s)",throws=>{
+    const state=fixture(),controller=new AbortController();state.context.position=()=>{controller.abort();if(throws)throw Error("position");};
+    expect(()=>executeStatements(parseModule("1").body,state.context,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:1000,signal:controller.signal}))).toThrow(ExecutionLimitError);
+    expect(state.events).toEqual([]);
+  });
+
+  it("preserves ordinary position failures before statement side effects",()=>{
+    const state=fixture(),failure=Error("position");state.context.position=()=>{throw failure;};
+    expect(()=>executeStatements(parseModule("1").body,state.context,budget())).toThrow(failure);expect(state.events).toEqual([]);
+  });
+  it("restores iterable and assignment sites on every loop advance",()=>{
+    const state=fixture({items:[1,2]}),sites:string[]=[];let current:SourceSpan|undefined;
+    state.context.position=node=>{current=node;};
+    state.context.iterate=()=>{sites.push(`iter:${current?.start.line}`);let index=0;return {next(){sites.push(`next:${current?.start.line}`);return index++<2?{done:false,value:index}:{done:true,value:undefined};}};};
+    const assign=state.context.assign;state.context.assign=(node,value)=>{sites.push(`assign:${current?.start.line}`);assign(node,value);};
+    executeStatements(parseModule("for x in (\n items\n):\n 1").body,state.context,budget());
+    expect(sites).toEqual(["iter:2","next:2","assign:1","next:2","assign:1","next:2"]);
+  });
+
+  it("retains each multiline manager site for reverse cleanup",()=>{
+    const state=fixture({a:"a",b:"b"}),sites:string[]=[];let current:SourceSpan|undefined;
+    state.context.position=node=>{current=node;};
+    state.context.managers={prepare(value){sites.push(`prepare:${value}:${current?.start.line}`);return {enter(){sites.push(`enter:${value}:${current?.start.line}`);return value;},exit(){sites.push(`exit:${value}:${current?.start.line}`);return false;}};},truth:Boolean};
+    executeStatements(parseModule("with (\n a,\n b\n):\n 1").body,state.context,budget());
+    expect(sites).toEqual(["prepare:a:2","enter:a:2","prepare:b:3","enter:b:3","exit:b:3","exit:a:2"]);
+  });
   it("executes only the first selected conditional suite", () => {
     const state = fixture({ a: false, b: true, never: () => { throw new Error("unreachable"); } });
     expect(executeStatements(parseModule("0\nif a:\n  1\nelif b:\n  2\nelif never:\n  3\nelse:\n  4\n5").body, state.context, budget())).toEqual({ kind: "normal" });

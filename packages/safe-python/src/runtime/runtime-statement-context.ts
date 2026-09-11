@@ -17,7 +17,7 @@ import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./ru
 export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expression-statement" | "assignment" | "annotated-assignment" | "augmented-assignment" | "delete" }>;
 
 export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
-  Pick<StatementContext<RuntimeValue>, "assertions" | "managers" | "exceptions"> {
+  Pick<StatementContext<RuntimeValue>, "position" | "assertions" | "managers" | "exceptions"> {
   readonly invocation?: BuiltinInvocationContext;
   readonly asyncIterate?:ResumableStatementContext<RuntimeValue>["asyncIterate"];
   readonly asyncManagers?:ResumableStatementContext<RuntimeValue>["asyncManagers"];
@@ -81,6 +81,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
   };
   const deletion = { removeName: bindings.deleteName.bind(bindings), resolve };
   const context: RuntimeStatementContext = {
+    position:bindings.position?.bind(bindings),
     evaluate: assignment.evaluate,
     test: expression => evaluateExpression(expression, expressions, meter, "branch"),
     iterate: expressions.iterate.bind(expressions),
@@ -118,6 +119,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
         }
       }
       return {
+        position:context.position,
         evaluate: suspended.evaluate,
         test: expression => createExpressionContinuation(expression, expressions, meter, values.none, "branch"),
         iterate: context.iterate, assertions: context.assertions, managers: context.managers, exceptions: context.exceptions,

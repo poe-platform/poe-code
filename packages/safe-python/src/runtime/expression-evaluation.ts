@@ -39,7 +39,8 @@ export interface SliceValues<Value> {
 export interface ExpressionContext<Value> {
   /** Trusted frame-location bookkeeping before an AST node or its deferred
    * operation executes. This is not a guest tracing callback or bytecode offset.
-   * Each frame must retain its own location across nested calls/suspension. */
+   * Each frame must retain its own location across nested calls/suspension;
+   * contentSpan excludes grouping delimiters when present. */
   position?(node:Expression):void;
   readonly constants?: ReadonlyMap<Expression, Value>;
   formattedString?: FormattedStringContext<Value>;

@@ -12547,6 +12547,21 @@ extension, integration, or validation requirement is missing or unverified.
   full thread-pool suite passes 8,794 tests in 583 files (103.93s; test bodies
   11.31s). Interpolation storage remains before
   checked guest compilation ingress.
+- Interpolation token resource accounting (2026-09-11): sixteen failing tests
+  reproduced uncharged mode/token/text storage, final buffers after warning
+  callbacks and cancellation masked by throwing warnings. Interpolation now
+  reserves mode records, token records, text/escape buffers, point slots and
+  final typed buffers, with final cancellation checkpoints. The lexer forwards
+  its meter to initial mode storage. Escape points use an indexed copy instead
+  of argument spreading. All sixteen regressions pass. All 176 full token,
+  warning and diagnostic baselines against 332798e87 and 176 CPython syntax
+  acceptance comparisons pass. Sixty-eight decoded text cases match CPython;
+  four raw named-escape cases were excluded from the value-only harness because
+  their braces are expression syntax, and remain covered by syntax comparisons.
+  Build, typecheck, scoped lint and whitespace checks pass. The uncached full
+  thread-pool suite passes 8,810 tests in 584 files (95.30s; bodies 11.44s).
+  Remaining analysis/compilation ingress accounting and end-to-end interpreter
+  integration are not established by these lexical checks.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

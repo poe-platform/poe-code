@@ -48,7 +48,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
   options.meter?.checkpoint(1,128);
   const source = new PythonSource(text, options.filename,options.meter);
   const indentation = new Indentation(options.meter);
-  const interpolation = new Interpolation();
+  const interpolation = new Interpolation(options.meter);
   const delimiters: Array<{ text: string; start: SourcePosition }> = [];
   let lineStart = true;
   let lineHasCode = false;

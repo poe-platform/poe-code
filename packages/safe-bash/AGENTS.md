@@ -5,8 +5,6 @@
 - Work in packages/safe-bash within the authorized poe-code worktree. The
   integration does not rename the package: it remains private virtual-bash.
   Root coordinates Git ownership; do not stage, commit, or push without assignment.
-- Preserve the workspace orchestrator policy: the root agent delegates substantive work, coordinates
-  workers and synthesizes results; leaf workers implement, investigate and verify.
 - User statements are authoritative. Preserve exact requirements without
   invention, reinterpretation or silent scope reduction.
 - Current root assignments override historical ownership snapshots. Confirm

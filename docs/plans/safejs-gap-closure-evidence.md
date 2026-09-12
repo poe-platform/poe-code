@@ -1125,3 +1125,112 @@ succeeded at that remote SHA. The preceding scoped
 succeeded at `6d167d01ae30e5510a82a38513f470438a2c9244`. Neither is publication
 of this report or a Temporal repair. No new package version or integrity receipt
 is claimed. No process from this qualification remains pending.
+
+## repair-temporal-extremes — delivered evidence and rejected range workarounds
+
+Fresh source: **`625e55213c83fb37adc46fa456c4d63c9e64974e`**, 2026-09-12.
+**No production repair is qualified.** The requested formatting repair remains
+open. All previously identified cases retain the explicit dispositions in the
+preceding table; this continuation does not convert any failure into a pass.
+The target remains **ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025)**,
+Temporal `e8cc03fc970a65a3359e8870e3b35e687ac94e55`, and Test262
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93`.
+
+### Fresh reproducible runtime evidence
+
+The first four JavaScript blocks in the committed
+[reproduction report](safejs-temporal-extremes-reproduction-2026-09-12.md) were
+executed unchanged on all seven runtime profiles after the maintained selected
+SafeJS build. The [matrix receipt](repair-temporal-extremes/delivery-qualification-20260912/matrix.json)
+records exact commands, stdin hashes, Node/ICU versions, exits and summaries.
+
+| Runtime / ICU | Block 1 pass/fail | Block 2 pass/fail | Block 3 pass/fail |
+| --- | --- | --- | --- |
+| Node 18.18.0 / 73.2 | 201/128 | 35/0 | 25/0 |
+| Node 18.20.8 / 74.2 | 201/128 | 35/0 | 25/0 |
+| Node 20.20.2 / 78.2 | 202/127 | 35/0 | 25/0 |
+| Node 22.23.2 / 78.2 | 206/123 | 35/0 | 25/0 |
+| Node 24.21.0 / 78.3 | 206/123 | 35/0 | 25/0 |
+| Node 26.8.2 / 78.3 | 206/123 | 51/0 | 25/0 |
+| Bun 1.3.11 / 74.2 | 206/123 | 35/0 | 25/0 |
+
+Each block-4 profile records **240 formatting passes / 480 failures**,
+**144/144 transport**, **144/144 receiving-realm error ownership**, and
+**24/24 invalid numeric-Date rejection** checks. Blocks 1 and 4 exit 1;
+blocks 2 and 3 exit 0. All stderr streams are empty. No executed assertion was
+skipped. Six profiles lack native Temporal and explicitly leave 16 native
+admission checks unexecuted; Node26 executes and passes them. All eight backend
+types execute admission checks. Fields, weekdays, Arabic numerals, five formatting
+paths, mismatch rejection, skipped civil days, DST disambiguation and all-eight-type
+arithmetic retain their preceding per-case dispositions.
+
+`npm run build:workspaces -- --workspace=@poe-code/safe-js` exits 0, including
+seven postbuild import checks. Focused command:
+
+```text
+node node_modules/vitest/vitest.mjs run packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts packages/safe-js/src/interp/temporal-instant-native.test.ts
+```
+
+Node22: **32 passed, four skipped** because native Temporal is unavailable,
+exit0. Replacing `node` with
+`/tmp/safejs-published-baseline.gM67xh/runtimes/node-26.8.2` yields **36 passed,
+zero skipped**, exit0. Custom prototypes, frozen objects, private fields,
+aliases and repeated heap/replay cycles are exercised, not inferred from method
+presence. The pre-existing untracked transport test was not edited or committed.
+No package-wide test/lint or fresh mapped Test262 run is claimed for this
+documentation-only change. No visual CLI change was made.
+
+### Workarounds and integration blockers
+
+The [new manual qualification](safejs-temporal-range-workaround-qualification.md)
+preserves both executed experiments. Moving a reversed time endpoint to the
+following day adds date fields in all five Node18 locale probes. Swapping fields
+from a forward range disagrees with Node22 in **26/2,700** comparisons, including
+shared day-period text. Both diagnostic commands exit0; the failures in their
+outputs remain failures. The shared-day-period native/specification relationship
+is explicitly unqualified, not a new asserted defect or accepted oracle.
+
+Neither workaround was integrated. Unbounded calendar-preserving formatting,
+Node18/20 fixed offsets and Node18 descending time ranges remain implementation
+blockers. No calendar/range/runtime/budget/timeout contract was weakened.
+The exact Workerd bundle command in the preceding report was rerun and exits1
+at unresolved `#safe-fs-native-seek`; guest execution, ICU and replay remain
+unexecuted. No host authority alias was introduced.
+
+An additional Node22 installed-artifact smoke used the existing
+`/tmp/safejs-iso-installed.YSS7Mk` installation independently for scoped SDK/core
+and umbrella SDK/core. All four still fail the legal PlainDate lower endpoint.
+All four pass invalid numeric-Date rejection, custom-prototype/private-method,
+self-alias and absent ambient process/fetch controls. Both SDK exports also pass
+three completed replay cycles. Core's absent public dump API remains a capability
+boundary. These are observations of existing safe-js **0.1.563** and poe-code
+**15.0.28**, not a fresh install or publication of this source.
+
+### Delivery status, separated from publication
+
+The existing local documentation commits `47c7f226a` and `625e55213` were pushed
+through normal Git hooks using `git push origin HEAD:main`, after fetch and
+ancestry verification. `git ls-remote origin refs/heads/main` independently
+returned **`625e55213c83fb37adc46fa456c4d63c9e64974e`**. No issue was closed:
+there is no explicitly associated issue with a verified production fix.
+
+[Release 34721924502](https://github.com/poe-platform/poe-code/actions/runs/34721924502)
+and [schema publication 34721924371](https://github.com/poe-platform/poe-code/actions/runs/34721924371)
+were created at that exact SHA and are still running at this commit's preparation.
+Their success is **not yet claimed**; monitoring continues. The scoped release
+workflow is not triggered by these documentation paths. A successful docs-only
+root workflow may produce no version, which must be recorded as no-release.
+
+Fresh registry metadata and decoded provenance independently identify existing
+safe-js **0.1.563** and poe-code **15.0.28** as publications of
+`6d167d01ae30e5510a82a38513f470438a2c9244`, not this delivery. The
+[registry receipt](repair-temporal-extremes/delivery-qualification-20260912/registry.json)
+retains each package's integrity and provenance separately. Decoding the
+attestation is not a new cryptographic signature verification or tarball audit.
+No new version, partial publication or local publication is claimed.
+
+If a required workflow fails, inspect its failed job and reproduce the failure
+before a separate repair commit. If superseded, verify the successor's ancestry
+contains the delivered SHA, then follow that run. Registry propagation requires
+retrying metadata/provenance, never unpublishing or force-pushing. Final run and
+remote-SHA observations will be recorded separately under `docs/plans`.

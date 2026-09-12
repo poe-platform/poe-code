@@ -79,3 +79,48 @@ it("requires exactly one started acknowledgement before accepting a result", asy
   children[0].emit("message", { type: "result", id: request.id, result: { mode: "strict", status: "passed" } });
   expect(await pending).toMatchObject({ status: "failed", reason: "host-error" }); await executor.dispose();
 });
+
+it.each([
+  { mode: "strict", status: "passed", reason: "timeout" },
+  { mode: "strict", status: "failed", reason: "invented" },
+  { mode: "strict", status: "unsupported", reason: "invented" },
+  { mode: "strict", status: "failed", reason: "host-error", detail: { code: 42 } },
+  { mode: "strict", status: "passed", detail: "unexecuted" },
+  { mode: "strict", status: "failed", reason: "host-error", detail: new Date(0) },
+  { mode: "strict", status: "failed", reason: "host-error", detail: new Map() },
+  { mode: "strict", status: "failed", reason: "host-error", detail: new Set() }
+])("rejects contradictory or malformed worker outcomes: %j", async result => {
+  const executor = createTest262Executor({ timeoutMs: 3000 });
+  const pending = executor.execute(input); await dispatch();
+  const request = children[0].send.mock.calls[0][0];
+  children[0].emit("message", { type: "started", id: request.id });
+  children[0].emit("message", { type: "result", id: request.id, result });
+  expect(await pending).toMatchObject({ status: "failed", reason: "host-error", detail: { code: "worker-error" } });
+  expect(children[0].kill).toHaveBeenCalledWith("SIGKILL");
+  await executor.dispose();
+});
+
+it.each([0, 1, null])("does not infer completion from worker exit code %s", async code => {
+  const executor = createTest262Executor({ timeoutMs: 3000 });
+  const pending = executor.execute(input); await dispatch();
+  const request = children[0].send.mock.calls[0][0];
+  children[0].emit("message", { type: "started", id: request.id });
+  children[0].emit("exit", code, code === null ? "SIGTERM" : null);
+  expect(await pending).toMatchObject({ status: "failed", reason: "host-error", detail: { code: "worker-exit" } });
+  await executor.dispose();
+});
+
+it.each([
+  { status: "passed" },
+  { status: "failed", reason: "unexpected-throw", detail: { phase: "runtime", type: "Error" } },
+  { status: "failed", reason: "harness-error", detail: "Missing harness include: assert.js" },
+  { status: "unsupported", reason: "module" }
+])("retains well-formed worker outcome %j", async result => {
+  const executor = createTest262Executor({ timeoutMs: 3000 });
+  const pending = executor.execute(input); await dispatch();
+  const request = children[0].send.mock.calls[0][0];
+  children[0].emit("message", { type: "started", id: request.id });
+  children[0].emit("message", { type: "result", id: request.id, result: { mode: "strict", ...result } });
+  expect(await pending).toEqual({ mode: "strict", ...result });
+  await executor.dispose();
+});

@@ -1,0 +1,14 @@
+{
+  "counts": {
+    "files": 53876,
+    "fixtures": 294,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 102926,
+    "passed": 93220,
+    "failed": 6388,
+    "unsupported": 3318
+  },
+  "success": false,
+  "unexecutedVariants": []
+}

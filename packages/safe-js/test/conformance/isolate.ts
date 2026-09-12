@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import type { BudgetOptions } from "../../src/interp/budget.js";
 import type { executeTest262 } from "./execute.js";
 import type { Test262Variant } from "./metadata.js";
+import { isTest262ExecutionResult } from "./execution-result.js";
 
 export const WORKER_STARTUP_TIMEOUT_MS = 10_000;
 type VariantResult = Extract<Awaited<ReturnType<typeof executeTest262>>, { kind: "test" }>["results"][number];
@@ -77,7 +78,7 @@ export function createTest262Executor(options: { timeoutMs: number; budget?: Bud
       if (response.type === "started" && !pending.started) { pending.started = true; return; }
       const result = response.result;
       if (response.type === "result" && pending.started && result?.mode === pending.mode &&
-          (result.status === "passed" || ((result.status === "failed" || result.status === "unsupported") && typeof result.reason === "string"))) {
+          isTest262ExecutionResult(result)) {
         finish(state, result); return;
       }
       retire(state, new Error(response.type === "error" ? response.message ?? "Test262 worker error" : "Invalid Test262 worker result"));

@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { vol } from "memfs";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { runTest262Corpus, enumerateTest262, TEST262_REVISION } from "./corpus.js";
+import { aggregateReports } from "./report.js";
 
 vi.mock("./isolate.js", async () => {
   const { executeTest262 } = await import("./execute.js");
@@ -101,4 +102,21 @@ it("resumes bounded selections from a current manifest and rejects tampered or s
   await expect(runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 2000 })).rejects.toThrow("Stale manifest");
   vol.fromJSON({ "/manifest.json": JSON.stringify({ ...manifest, id: "changed" }) });
   await expect(runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 1000 })).rejects.toThrow("Invalid manifest digest");
+});
+
+it("preserves the full source and asset manifest while cross-checking disjoint selected reports", async () => {
+  vol.fromJSON({ "/corpus/test/a.js": "1", "/corpus/test/b.js": "2",
+    "/corpus/test/dep_FIXTURE.js": "export {}", "/corpus/test/data.json": "{\"fixture\":true}" });
+  const manifest = await enumerateTest262({ corpus: "/corpus", timeoutMs: 1000 });
+  vol.fromJSON({ "/manifest.json": JSON.stringify(manifest) });
+  const options = { corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 1000 };
+  const first = await runTest262Corpus({ ...options, offset: 0, limit: 1 });
+  const rest = await runTest262Corpus({ ...options, offset: 1, limit: 2 });
+  expect(first.manifest).toEqual(manifest);
+  expect(rest.manifest).toEqual(manifest);
+  expect(Object.keys(manifest.fixtureAssets)).toEqual(["data.json"]);
+  expect(manifest.files.map(file => file.filename)).toEqual(["a.js", "b.js", "dep_FIXTURE.js"]);
+  expect(() => aggregateReports(manifest, [first])).toThrow("Incomplete corpus coverage");
+  expect(aggregateReports(manifest, [first, rest])).toMatchObject({ success: true, enumeratedVariants: 4,
+    unexecutedVariants: [], counts: { files: 3, fixtures: 1, variants: 4, passed: 4 } });
 });

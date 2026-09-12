@@ -4,7 +4,7 @@ import { aggregateReports, countEntries } from "./report.js";
 const files = [{ filename: "a.js", sourceHash: "a", kind: "test", variants: [{ mode: "sloppy" }, { mode: "strict" }] },
   { filename: "dep_FIXTURE.js", sourceHash: "b", kind: "fixture", variants: [] }];
 const manifest = { id: "manifest", files };
-const entries = [{ filename: "a.js", sourceHash: "a", kind: "test", results: [{ mode: "sloppy", status: "passed" }, { mode: "strict", status: "unsupported", reason: "strict" }] },
+const entries = [{ filename: "a.js", sourceHash: "a", kind: "test", results: [{ mode: "sloppy", status: "passed" }, { mode: "strict", status: "unsupported", reason: "module" }] },
   { filename: "dep_FIXTURE.js", sourceHash: "b", kind: "fixture" }];
 function report(selected = entries) {
   return { manifestId: "manifest", selected: selected.map(entry => entry.filename), entries: selected,
@@ -26,4 +26,35 @@ it.each(["missing", "duplicate", "revision", "hash", "mode", "counts", "incomple
   if (defect === "incomplete") reports[0].complete = false;
   if (defect === "selection") reports[0].selected = ["a.js"];
   expect(() => aggregateReports(manifest, reports)).toThrow();
+});
+
+it.each(["duplicate-modes", "empty-test"])("rejects an invalid manifest even when its report agrees: %s", defect => {
+  const invalid = structuredClone(manifest);
+  invalid.files[0].variants = defect === "duplicate-modes" ? [{ mode: "sloppy" }, { mode: "sloppy" }] : [];
+  const rows = structuredClone(entries);
+  rows[0].results = invalid.files[0].variants.map(({ mode }) => ({ mode, status: "passed" }));
+  if (defect === "empty-test") {
+    invalid.files.push({ filename: "control.js", sourceHash: "c", kind: "test", variants: [{ mode: "sloppy" }] });
+    rows.push({ filename: "control.js", sourceHash: "c", kind: "test", results: [{ mode: "sloppy", status: "passed" }] });
+  }
+  expect(() => aggregateReports(invalid, [report(rows)])).toThrow("Invalid manifest variants");
+});
+
+it.each(["failed", "unsupported"])("rejects a %s result without a case disposition", status => {
+  const rows = structuredClone(entries);
+  rows[0].results = [{ mode: "sloppy", status }, { mode: "strict", status: "passed" }];
+  expect(() => countEntries(rows)).toThrow("Invalid execution result");
+});
+
+it("rejects results hidden on a non-test entry", () => {
+  expect(() => countEntries([{ filename: "dep_FIXTURE.js", kind: "fixture", results: [{ mode: "sloppy", status: "passed" }] }])).toThrow("Non-test entry has results");
+});
+
+it("accounts for every unexecuted variant when file execution fails", () => {
+  const rows = [{ filename: "a.js", sourceHash: "a", kind: "execution-error", message: "Missing harness" }, entries[1]];
+  expect(aggregateReports(manifest, [report(rows)])).toMatchObject({ success: false, enumeratedVariants: 2,
+    unexecutedVariants: [
+      { filename: "a.js", mode: "sloppy", reason: "Missing harness" },
+      { filename: "a.js", mode: "strict", reason: "Missing harness" }
+    ] });
 });

@@ -45,3 +45,18 @@ it("records actionable error phase, constructor, and budget diagnostics without 
       .toMatchObject({ status: "failed", detail: { message: "step cap", code: "budgetExceeded", budget: "steps" } });
   } finally { await realm.dispose(); }
 });
+
+it.each([
+  ["0", { phase: "runtime", type: "TypeError" }, "missing-throw"],
+  ["throw 42", undefined, "unexpected-throw"],
+  ["throw new TypeError()", { phase: "parse", type: "TypeError" }, "wrong-phase"],
+  ["return 0", { phase: "runtime", type: "SyntaxError" }, "wrong-phase"],
+  ["throw new RangeError()", { phase: "runtime", type: "TypeError" }, "wrong-error-type"]
+] as const)("preserves the exact oracle failure reason for %s", async (source, negative, reason) => {
+  const realm = createTest262Realm();
+  try {
+    expect(classifyScriptOutcome(await realm.evaluate(source), negative)).toMatchObject({ status: "failed", reason });
+    expect(classifyScriptOutcome(await realm.evaluate("throw new TypeError()"), { phase: "runtime", type: "TypeError" }))
+      .toEqual({ status: "passed" });
+  } finally { await realm.dispose(); }
+});

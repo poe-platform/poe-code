@@ -1,0 +1,20 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/test/conformance/import-boundary.test.ts (2 tests) 30ms
+ ✓ packages/safe-js/test/conformance/realm.test.ts (15 tests) 777ms
+ ✓ packages/safe-js/test/conformance/execute.test.ts (40 tests) 1137ms
+ ✓ packages/safe-js/test/conformance/corpus.test.ts (11 tests) 480ms
+ ✓ packages/safe-js/test/conformance/command.test.ts (41 tests) 43ms
+ ✓ packages/safe-js/test/conformance/result.test.ts (19 tests) 514ms
+ ✓ packages/safe-js/test/conformance/isolate.test.ts (27 tests) 22ms
+ ✓ packages/safe-js/test/conformance/metadata.test.ts (19 tests) 15ms
+ ✓ packages/safe-js/test/conformance/report.test.ts (15 tests) 8ms
+ ✓ packages/safe-js/test/conformance/discover.test.ts (8 tests) 10ms
+ ✓ packages/safe-js/test/conformance/worker.test.ts (7 tests) 6ms
+
+ Test Files  11 passed (11)
+      Tests  204 passed (204)
+   Start at  12:34:52
+   Duration  5.74s (transform 4.60s, setup 217ms, import 7.00s, tests 3.04s, environment 1ms)
+

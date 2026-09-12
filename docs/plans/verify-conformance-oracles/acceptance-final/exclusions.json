@@ -1,0 +1,21 @@
+{
+  "cases": 7992,
+  "unique": true,
+  "exactCoverage": true,
+  "reasons": {
+    "IsHTMLDDA": 84,
+    "timeout": 4488,
+    "module": 1996,
+    "shared-memory": 974,
+    "agent": 224,
+    "blocking-mode": 18,
+    "harness-error": 141,
+    "host-error": 45,
+    "gc": 22
+  },
+  "ledgerSha256": "dbb514876443c87ea38a2c50c1c7bc322623436fe3b58c2fb6f92e2329858aa4",
+  "fixtureAssetsRehashed": 20,
+  "harnessFilesRehashed": 44,
+  "historicalSkipCases": 47,
+  "historicalSkipReceiptHashMatched": true
+}

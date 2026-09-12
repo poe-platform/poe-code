@@ -1,0 +1,21 @@
+{
+  "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+  "files": {
+    "INTERPRETING.md": {
+      "sha256": "d1aa6662ea899cc0594dc48e7424c586e557ec2dba55768834ef62d3c5660f41",
+      "url": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/INTERPRETING.md"
+    },
+    "harness/assert.js": {
+      "sha256": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+      "url": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/harness/assert.js"
+    },
+    "harness/sta.js": {
+      "sha256": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+      "url": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/harness/sta.js"
+    },
+    "harness/doneprintHandle.js": {
+      "sha256": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+      "url": "https://github.com/tc39/test262/blob/419d3e0a2273ba01a3bfcbec423f2801425b8e93/harness/doneprintHandle.js"
+    }
+  }
+}

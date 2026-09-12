@@ -1,0 +1,19 @@
+{
+  "at": "2026-09-12T17:49:04.790451+00:00",
+  "sourceSha": "8cec7a8d5fe81aaa6c6f97dc3a1476d7903744c4",
+  "originalManifestSha256": "c8b428444f7854afcba72fe3bfebcf9b9390dfe2a9714b1c2da36794a6e43617",
+  "originalExecutionSource": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "files": 53876,
+  "variants": 102926,
+  "statuses": {
+    "unsupported": 3318,
+    "passed": 93220,
+    "failed": 6388
+  },
+  "reports": 216,
+  "caseRows": 7992,
+  "missing": 0,
+  "duplicates": 0,
+  "unselected": 0,
+  "qualification": "Historical execution only; independently rehashed and recounted, not current semantic replay."
+}

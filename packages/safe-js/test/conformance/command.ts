@@ -1,8 +1,8 @@
 import { open, readFile } from "node:fs/promises";
-import { parseArgs } from "node:util";
+import { isDeepStrictEqual, parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import type { BudgetOptions } from "../../src/interp/budget.js";
-import { runTest262Corpus, enumerateTest262 } from "./corpus.js";
+import { runTest262Corpus, enumerateTest262, type CorpusEntry } from "./corpus.js";
 import { aggregateReports, type SelectionReport } from "./report.js";
 
 export async function runConformanceCommand(args: string[]): Promise<number> {
@@ -63,15 +63,29 @@ export async function runConformanceCommand(args: string[]): Promise<number> {
       await output.appendFile(JSON.stringify({ type: "summary", ...aggregate, manifest, reports: values.aggregate }) + "\n");
       return aggregate.success ? 0 : 1;
     }
+    let started: { manifest: Awaited<ReturnType<typeof enumerateTest262>>; selected: string[] } | undefined;
+    const streamed: CorpusEntry[] = [];
     const report = await runTest262Corpus({ ...options,
       onStart: async (manifest, selected) => {
+        if (started) throw new Error("Duplicate report header");
+        started = { manifest: structuredClone(manifest), selected: [...selected] };
         await output.appendFile(JSON.stringify({ type: "header", manifestId: manifest.id,
           revision: manifest.revision, sourceSha: manifest.sourceSha, sourceHash: manifest.sourceHash,
           runtime: manifest.runtime, execution: manifest.execution, selected, command: args,
           startedAt: new Date().toISOString() }) + "\n");
       },
-      onResult: async entry => { await output.appendFile(JSON.stringify({ type: "result", ...entry }) + "\n"); }
+      onResult: async entry => {
+        if (!started) throw new Error("Result precedes report header");
+        streamed.push(structuredClone(entry));
+        await output.appendFile(JSON.stringify({ type: "result", ...entry }) + "\n");
+      }
     });
+    if (report.complete !== true || !started || started.manifest.id !== report.manifestId ||
+        !isDeepStrictEqual(started.manifest, report.manifest) || !isDeepStrictEqual(started.selected, report.selected) ||
+        !isDeepStrictEqual(streamed, report.entries))
+      throw new Error("Report stream differs from completed execution");
+    const selected = new Set(started.selected);
+    aggregateReports({ ...started.manifest, files: started.manifest.files.filter(file => selected.has(file.filename)) }, [report]);
     await output.appendFile(JSON.stringify({ type: "summary", ...report, entries: undefined, manifest: undefined,
       completedAt: new Date().toISOString() }) + "\n");
     const counts = report.counts;

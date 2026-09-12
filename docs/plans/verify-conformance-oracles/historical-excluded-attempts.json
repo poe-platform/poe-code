@@ -1,0 +1,200 @@
+{
+  "qualification": "Historical excluded attempts retain original dispositions; fresh audit validates referenced archive members and ENOSPC raw hashes. They contribute no counts to the independently reconciled V4 aggregate.",
+  "owner": "complete-conformance-runner / verify-conformance-oracles",
+  "cases": [
+    {
+      "cohort": "first",
+      "selection": "00000-00499",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "00500-00999",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "01000-01499",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "01500-01999",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "02000-02499",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "02500-02999",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "03000-03499",
+      "complete": false,
+      "processExitCode": 143,
+      "termination": "supervisor:no-report-progress-for-180s",
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "03500-03999",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "04000-04499",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "04500-04999",
+      "complete": true,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "05000-05499",
+      "complete": false,
+      "processExitCode": 1,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "05500-05999",
+      "complete": false,
+      "processExitCode": 143,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "first",
+      "selection": "06000-06499",
+      "complete": false,
+      "processExitCode": 143,
+      "termination": null,
+      "reason": "Reproduced unpreemptible host-loop runner defect; source isolation repair requires all-new manifest/full rerun",
+      "category": "superseded-runner-product-defect",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "v2",
+      "selection": "14000-14499",
+      "reason": "Both incomplete coarse selections canceled solely for disjoint fifty-file scheduling; partial prefixes are historical attempts and never aggregate-selected. All completed other reports retained. No changes to source, per-variant timeout, or budget.",
+      "category": "incomplete-coarse-schedule-replaced-disjointly",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "v2",
+      "selection": "14500-14999",
+      "reason": "Both incomplete coarse selections canceled solely for disjoint fifty-file scheduling; partial prefixes are historical attempts and never aggregate-selected. All completed other reports retained. No changes to source, per-variant timeout, or budget.",
+      "category": "incomplete-coarse-schedule-replaced-disjointly",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "v3",
+      "selection": "39500-39999",
+      "resultRecords": 407,
+      "terminalType": "result",
+      "processExitCode": null,
+      "processExitCodeReason": "Supervisor failed to persist receipt due ENOSPC; no exit code fabricated",
+      "reason": "Host disk ENOSPC interrupted report/receipt; entire incomplete attempt excluded and full selection rerun. No partial pass reuse.",
+      "category": "host-storage-operational-failure",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "v3",
+      "selection": "40500-40999",
+      "resultRecords": 442,
+      "terminalType": "aborted",
+      "processExitCode": null,
+      "processExitCodeReason": "Supervisor failed to persist receipt due ENOSPC; no exit code fabricated",
+      "reason": "Host disk ENOSPC interrupted report/receipt; entire incomplete attempt excluded and full selection rerun. No partial pass reuse.",
+      "category": "host-storage-operational-failure",
+      "eligibleAsPass": false
+    },
+    {
+      "cohort": "v3",
+      "selection": "41500-41999",
+      "reportCreated": false,
+      "variantRecords": 0,
+      "processExitCode": null,
+      "reason": "tsx IPC listen ENOSPC; npm logged errorcode1, but no coordinator process exit receipt persisted",
+      "category": "bootstrap-host-storage-failure; no fixture execution",
+      "eligibleAsPass": false
+    }
+  ],
+  "v2CohortDisposition": {
+    "utc": "2026-09-12T06:28:58.470799+00:00",
+    "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+    "status": "superseded-unqualified-oracle",
+    "reason": "Validated missing dynamic-import fixture loader can falsely satisfy pinned rejection-only tests. Raw results immutable but not a qualified compatibility baseline. Runner module-feature capability gate repair requires fresh source manifest and full reexecution.",
+    "reuseInNextBaseline": false,
+    "scheduling": "Paused maxWorkers0; active owned selections draining; no new selections",
+    "relatedEvidence": "../dynamic-import-independent-reproduction.md"
+  },
+  "sourceReceipts": {
+    "first-cohort-summary.json": "21054d3f3a8a20e6999861760781b8f1e04eec5a23e7c906e234f8f0f95a04db",
+    "baseline-v2/excluded-attempts.json": "aaf41151676c730ab6f22c0c83c69e0332fd210fc4cd6fe315505e2325142d12",
+    "baseline-v2/superseded-disposition.json": "c9e7a7d9bf60f8d86257c0e40d2c91b23b4d53d9a3532222958dfbe8a092a51c",
+    "baseline-v2/excluded-refinement-archive-receipt.json": "a4703950188cbdec7a5204813a478dd9260a3e6e375df4c8f6a7b7a3a73d703e",
+    "baseline-v3/enospc-interruption.json": "87bee29eb3a1fe45da5774d49af0dff52f527b9e6503bc04c10c8761f0081b2f",
+    "baseline-v3/enospc-bootstrap-recovery.json": "44c91e1c4d9b0a24915079c30f56f21a12b4b4efc1465a9fc5679e5fe2ff2c60"
+  },
+  "archiveAndEnospcHashErrors": []
+}

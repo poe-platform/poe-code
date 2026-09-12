@@ -1,0 +1,6 @@
+{
+  "url": "https://262.ecma-international.org/16.0/",
+  "sha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
+  "exitCode": 0,
+  "target": "ECMA-262 edition 16; ECMA-402 edition 12; previously pinned extensions unchanged"
+}

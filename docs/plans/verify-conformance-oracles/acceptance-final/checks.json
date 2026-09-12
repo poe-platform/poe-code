@@ -1,0 +1,43 @@
+{
+  "sourceSha": "8cec7a8d5fe81aaa6c6f97dc3a1476d7903744c4",
+  "checks": [
+    {
+      "command": "npx vitest run packages/safe-js/test/conformance",
+      "exitCode": 0,
+      "passed": 212,
+      "files": 12,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 6.38,
+      "testSeconds": 3.24
+    },
+    {
+      "command": "npx eslint packages/safe-js/test/conformance",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check -- packages/safe-js/test/conformance",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/safe-js",
+      "exitCode": 0,
+      "postbuildSafeJsPassed": 7,
+      "log": "build.log"
+    }
+  ],
+  "fullPackageGate": "not rerun; previously recorded native Promise symbol-admission blocker remains unresolved",
+  "commits": [],
+  "push": false,
+  "release": false,
+  "postbuildConformance": {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "packages/safe-js/test/conformance"
+    ],
+    "exitCode": 0,
+    "log": "postbuild-tests.log"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "sourceSha": "8cec7a8d5fe81aaa6c6f97dc3a1476d7903744c4",
+  "sourceHash": "a0ce9310df28bcda57ee8323163d825771337af4d755df64f7e6706ce61a3969",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  },
+  "counts": {
+    "files": 5,
+    "fixtures": 0,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 9,
+    "passed": 6,
+    "failed": 0,
+    "unsupported": 3
+  },
+  "cases": [
+    {
+      "id": "built-ins/Array/of/length.js#sloppy",
+      "mode": "sloppy",
+      "status": "passed"
+    },
+    {
+      "id": "built-ins/Array/of/length.js#strict",
+      "mode": "strict",
+      "status": "passed"
+    },
+    {
+      "id": "built-ins/Atomics/wait/cannot-suspend-throws.js#sloppy",
+      "mode": "sloppy",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "id": "built-ins/Atomics/wait/cannot-suspend-throws.js#strict",
+      "mode": "strict",
+      "status": "unsupported",
+      "reason": "blocking-mode"
+    },
+    {
+      "id": "built-ins/Math/f16round/not-a-constructor.js#sloppy",
+      "mode": "sloppy",
+      "status": "passed"
+    },
+    {
+      "id": "built-ins/Math/f16round/not-a-constructor.js#strict",
+      "mode": "strict",
+      "status": "passed"
+    },
+    {
+      "id": "built-ins/Temporal/PlainDate/calendar-undefined.js#sloppy",
+      "mode": "sloppy",
+      "status": "passed"
+    },
+    {
+      "id": "built-ins/Temporal/PlainDate/calendar-undefined.js#strict",
+      "mode": "strict",
+      "status": "passed"
+    },
+    {
+      "id": "language/module-code/early-dup-export-dflt.js#module",
+      "mode": "module",
+      "status": "unsupported",
+      "reason": "module"
+    }
+  ],
+  "complete": true
+}

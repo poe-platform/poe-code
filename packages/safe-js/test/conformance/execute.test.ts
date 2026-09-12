@@ -134,3 +134,42 @@ it.each(["dynamic-import", "import-defer", "source-phase-imports", "source-phase
       .toMatchObject({ results: [{ status: "passed" }] });
   }
 );
+
+it.each([
+  ['if (1 + 1 !== 2) throw new Error("wrong value")', "passed", undefined],
+  ['if (1 + 1 !== 3) throw new Error("wrong value")', "failed", "unexpected-throw"],
+  ['$DONE()', "passed", undefined],
+  ['$DONE("wrong value")', "failed", "async-failure"],
+  ['Promise.reject(42);$DONE()', "failed", "unhandled-rejection"]
+])("detects deliberately wrong results with an exact disposition: %s", async (body, status, reason) => {
+  const flags = body.includes("$DONE") ? "async, onlyStrict" : "onlyStrict";
+  const result = await executeTest262("oracle.js", `/*---\nflags: [${flags}]\n---*/\n${body}`, { harness, timeoutMs: 1000 });
+  expect(result).toMatchObject({ results: [{ status, ...(reason ? { reason } : {}) }] });
+});
+
+it.each(["CanBlockIsFalse", "CanBlockIsTrue"])("accounts for %s as a host blocking-mode boundary", async flag => {
+  expect(await executeTest262("blocking.js", `/*---\nflags: [onlyStrict, ${flag}]\n---*/\nthrow 42`, { harness, timeoutMs: 1000 }))
+    .toMatchObject({ results: [{ status: "unsupported", reason: "blocking-mode" }] });
+});
+
+it("keeps resource-policy exhaustion distinct from a matching guest negative", async () => {
+  expect(await executeTest262("budget.js", '/*---\nflags: [raw]\nnegative: {phase: runtime, type: Error}\n---*/\nwhile(true){}',
+    { harness, timeoutMs: 1000, budget: { maxSteps: 10 } }))
+    .toMatchObject({ results: [{ status: "failed", reason: "host-error", detail: { code: "budgetExceeded", budget: "steps" } }] });
+  // Realm initialization itself consumes this intentionally tiny cap.
+  expect(await executeTest262("budget-control.js", '/*---\nflags: [raw]\n---*/\n0',
+    { harness, timeoutMs: 1000, budget: { maxSteps: 10 } }))
+    .toMatchObject({ results: [{ status: "failed", reason: "host-error", detail: { code: "budgetExceeded", budget: "steps" } }] });
+});
+
+it("reports an errored harness include separately from the fixture negative", async () => {
+  const erroredHarness = new Map(harness).set("extra.js", "throw new TypeError('harness failure')");
+  expect(await executeTest262("harness.js", '/*---\nflags: [onlyStrict]\nincludes: [extra.js]\nnegative: {phase: runtime, type: TypeError}\n---*/\nthrow new TypeError()',
+    { harness: erroredHarness, timeoutMs: 1000 }))
+    .toMatchObject({ results: [{ status: "failed", reason: "harness-error", detail: { include: "extra.js", phase: "runtime", type: "TypeError" } }] });
+});
+
+it("honors the pinned print completion protocol for trusted raw async fixtures", async () => {
+  expect(await executeTest262("raw-async.js", '/*---\nflags: [raw, async]\n---*/\nprint("Test262:AsyncTestComplete")', { harness, timeoutMs: 1000 }))
+    .toEqual({ kind: "test", results: [{ mode: "raw", status: "passed" }] });
+});

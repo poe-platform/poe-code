@@ -1,0 +1,129 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/test/conformance/accounting-mutations.test.ts (8 tests | 5 failed) 8ms
+   ✓ accepts the neighboring explicitly completed execution 1ms
+   × rejects a malformed completion receipt: "true" 3ms
+   × rejects a malformed completion receipt: "false" 1ms
+   × rejects a malformed completion receipt: 1 1ms
+   × rejects a malformed completion receipt: undefined 0ms
+   × rejects a malformed completion receipt: {} 0ms
+   ✓ cannot make a fixture-only corpus green 0ms
+   ✓ cannot make an empty corpus green 0ms
+FAIL packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: "true"
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/test/conformance/accounting-mutations.test.ts:18:55
+     16| it.each(["true", "false", 1, [], {}])("rejects a malformed completion …
+     17|   const mutated = { ...completed, complete } as unknown as SelectionRe…
+     18|   expect(() => aggregateReports(manifest, [mutated])).toThrow("Incompl…
+       |                                                       ^
+     19| });
+     20|
+
+FAIL packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: "false"
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/test/conformance/accounting-mutations.test.ts:18:55
+     16| it.each(["true", "false", 1, [], {}])("rejects a malformed completion …
+     17|   const mutated = { ...completed, complete } as unknown as SelectionRe…
+     18|   expect(() => aggregateReports(manifest, [mutated])).toThrow("Incompl…
+       |                                                       ^
+     19| });
+     20|
+
+FAIL packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: 1
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/test/conformance/accounting-mutations.test.ts:18:55
+     16| it.each(["true", "false", 1, [], {}])("rejects a malformed completion …
+     17|   const mutated = { ...completed, complete } as unknown as SelectionRe…
+     18|   expect(() => aggregateReports(manifest, [mutated])).toThrow("Incompl…
+       |                                                       ^
+     19| });
+     20|
+
+FAIL packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: undefined
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/test/conformance/accounting-mutations.test.ts:18:55
+     16| it.each(["true", "false", 1, [], {}])("rejects a malformed completion …
+     17|   const mutated = { ...completed, complete } as unknown as SelectionRe…
+     18|   expect(() => aggregateReports(manifest, [mutated])).toThrow("Incompl…
+       |                                                       ^
+     19| });
+     20|
+
+FAIL packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: {}
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/test/conformance/accounting-mutations.test.ts:18:55
+     16| it.each(["true", "false", 1, [], {}])("rejects a malformed completion …
+     17|   const mutated = { ...completed, complete } as unknown as SelectionRe…
+     18|   expect(() => aggregateReports(manifest, [mutated])).toThrow("Incompl…
+       |                                                       ^
+     19| });
+     20|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: "true"
+ FAIL  packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: "false"
+ FAIL  packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: 1
+ FAIL  packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: undefined
+ FAIL  packages/safe-js/test/conformance/accounting-mutations.test.ts > rejects a malformed completion receipt: {}
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ packages/safe-js/test/conformance/accounting-mutations.test.ts:18:55
+     16| it.each(["true", "false", 1, [], {}])("rejects a malformed completion …
+     17|   const mutated = { ...completed, complete } as unknown as SelectionRe…
+     18|   expect(() => aggregateReports(manifest, [mutated])).toThrow("Incompl…
+       |                                                       ^
+     19| });
+     20|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 3 passed (8)
+   Start at  12:48:04
+   Duration  259ms (transform 66ms, setup 62ms, import 24ms, tests 8ms, environment 0ms)
+

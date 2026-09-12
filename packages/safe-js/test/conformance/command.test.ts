@@ -1,6 +1,7 @@
 import { fs, vol } from "memfs";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { runTest262Corpus, enumerateTest262 } from "./corpus.js";
+import { runTest262Corpus, enumerateTest262, type CorpusEntry } from "./corpus.js";
+import { countEntries } from "./report.js";
 import { runConformanceCommand } from "./command.js";
 
 vi.mock("./corpus.js", () => ({ TEST262_REVISION: "pinned", runTest262Corpus: vi.fn(), enumerateTest262: vi.fn() }));
@@ -11,10 +12,11 @@ vi.mock("node:fs/promises", async () => {
 beforeEach(() => {
   vol.fromJSON({ "/reports/.keep": "" });
   vi.mocked(runTest262Corpus).mockImplementation(async options => {
-    const entry = { filename: "example.js", kind: "test" as const, results: [{ mode: "sloppy" as const, status: "passed" as const }] };
-    await options.onStart?.({ id: "manifest" } as never, ["example.js"]);
+    const entry = { filename: "example.js", sourceHash: "source", kind: "test" as const, results: [{ mode: "sloppy" as const, status: "passed" as const }] };
+    const manifest = { id: "manifest", files: [{ filename: entry.filename, sourceHash: entry.sourceHash, kind: "test", variants: [{ mode: "sloppy" }] }] };
+    await options.onStart?.(manifest as never, ["example.js"]);
     await options.onResult?.(entry);
-    return { complete: true, manifestId: "manifest", selected: ["example.js"], manifest: { id: "manifest" } as never, revision: "pinned", runtime: { node: "test", icu: "test", v8: "test", platform: process.platform, arch: process.arch },
+    return { complete: true, manifestId: "manifest", selected: ["example.js"], manifest: manifest as never, revision: "pinned", runtime: { node: "test", icu: "test", v8: "test", platform: process.platform, arch: process.arch },
       execution: { timeoutMs: options.timeoutMs, budget: {}, effectiveBudget: {}, deadline: "per-variant timeout",
         isolation: { kind: "persistent-child-process", startupTimeoutMs: 10000, wallTimeoutMs: options.timeoutMs, timerStarts: "before-dispatch", recovery: "kill-and-replace-without-retrying-variant" } },
       selections: options.selections ?? ["."], entries: [entry], harnessHashes: {},
@@ -46,10 +48,23 @@ it.each([[], ["--corpus", "/corpus"], ["--corpus", "/corpus", "--report", "/repo
 it.each(["failed", "unsupported", "metadataErrors", "executionErrors"] as const)("returns failure for %s results", async category => {
   const implementation = vi.mocked(runTest262Corpus).getMockImplementation()!;
   vi.mocked(runTest262Corpus).mockImplementation(async options => {
-    const report = await implementation(options);
-    report.counts[category] = 1;
-    if (category === "failed" || category === "unsupported") report.counts.passed = 0;
-    return report;
+    const entries: CorpusEntry[] = [];
+    const report = await implementation({ ...options, onStart: async (manifest, selected) => {
+      if (category === "metadataErrors") {
+        manifest.files[0].kind = "metadata-error";
+        manifest.files[0].variants = [];
+      }
+      await options.onStart?.(manifest, selected);
+    }, onResult: async entry => {
+      const outcome: CorpusEntry = category === "failed" || category === "unsupported"
+        ? { ...entry, kind: "test", results: [category === "failed"
+          ? { mode: "sloppy", status: "failed", reason: "unexpected-throw" }
+          : { mode: "sloppy", status: "unsupported", reason: "module" }] }
+        : { filename: entry.filename, sourceHash: entry.sourceHash, kind: category === "metadataErrors" ? "metadata-error" : "execution-error", message: category };
+      entries.push(outcome);
+      await options.onResult?.(outcome);
+    } });
+    return { ...report, entries, counts: countEntries(entries) };
   });
   expect(await runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl"])).toBe(1);
 });
@@ -100,4 +115,92 @@ it.each(["runtime", "execution", "sourceSha", "sourceHash", "revision"])("reject
   Object.assign(records[0], { [key]: "different" });
   vol.fromJSON({ "/reports/part.jsonl": records.map(record => JSON.stringify(record)).join("\n") });
   await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/aggregate.json", "--aggregate", "/reports/part.jsonl"])).rejects.toThrow("provenance mismatch");
+});
+
+it.each(["missing-summary", "truncated-json", "missing-result", "duplicate-result", "duplicate-variant", "unknown-status", "abort-after-summary", "empty-selection"])("rejects report mutation %s without a green aggregate", async mutation => {
+  vi.mocked(enumerateTest262).mockResolvedValue(aggregateManifest as never);
+  const records = aggregateInput();
+  if (mutation === "missing-summary") records.pop();
+  if (mutation === "missing-result") records.splice(1, 1);
+  if (mutation === "duplicate-result") records.splice(1, 0, structuredClone(records[1]));
+  if (mutation === "duplicate-variant") records[1].results!.push(structuredClone(records[1].results![0]));
+  if (mutation === "unknown-status") records[1].results![0].status = "skipped";
+  if (mutation === "abort-after-summary") records.push({ type: "aborted" } as never);
+  if (mutation === "empty-selection") {
+    records[0].selected = [];
+    records[2].selected = [];
+    records.splice(1, 1);
+    records[1].counts = { files: 0, fixtures: 0, metadataErrors: 0, executionErrors: 0, variants: 0, passed: 0, failed: 0, unsupported: 0 };
+  }
+  const source = records.map(record => JSON.stringify(record)).join("\n");
+  vol.fromJSON({ "/reports/part.jsonl": mutation === "truncated-json" ? source.slice(0, -3) : source });
+  await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/aggregate.json", "--aggregate", "/reports/part.jsonl"])).rejects.toThrow();
+  const output = fs.readFileSync("/reports/aggregate.json", "utf8").toString().trim().split("\n").map(line => JSON.parse(line));
+  expect(output).toEqual([expect.objectContaining({ type: "aborted", complete: false })]);
+});
+
+it.each(["missing-result", "duplicate-result", "missing-header"])("refuses a successful summary after runner stream mutation %s", async mutation => {
+  const implementation = vi.mocked(runTest262Corpus).getMockImplementation()!;
+  vi.mocked(runTest262Corpus).mockImplementation(options => implementation({ ...options,
+    onStart: mutation === "missing-header" ? undefined : options.onStart,
+    onResult: mutation === "missing-result" ? undefined : async entry => {
+      await options.onResult?.(entry);
+      if (mutation === "duplicate-result") await options.onResult?.(entry);
+    }
+  }));
+  await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl"])).rejects.toThrow();
+  const records = fs.readFileSync("/reports/result.jsonl", "utf8").toString().trim().split("\n").map(line => JSON.parse(line));
+  expect(records.some(record => record.type === "summary")).toBe(false);
+  expect(records.at(-1)).toMatchObject({ type: "aborted", complete: false });
+});
+
+it.each(["forged-counts", "incomplete"])("refuses a green producer summary for %s", async mutation => {
+  const implementation = vi.mocked(runTest262Corpus).getMockImplementation()!;
+  vi.mocked(runTest262Corpus).mockImplementation(async options => {
+    const report = await implementation({ ...options, onResult: async entry => {
+      if (mutation === "forged-counts" && entry.kind === "test")
+        entry.results[0] = { mode: "sloppy", status: "failed", reason: "unexpected-throw" };
+      await options.onResult?.(entry);
+    } });
+    if (mutation === "incomplete") report.complete = false;
+    return report;
+  });
+  await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl"])).rejects.toThrow();
+  const records = fs.readFileSync("/reports/result.jsonl", "utf8").toString().trim().split("\n").map(line => JSON.parse(line));
+  expect(records.some(record => record.type === "summary")).toBe(false);
+  expect(records.at(-1)).toMatchObject({ type: "aborted", complete: false });
+});
+
+it.each(["missing-file", "missing-mode", "duplicate-mode", "unknown-file", "stale-hash", "fixture-reclassified", "trimmed-manifest"])("rejects a consistently corrupted producer selection: %s", async mutation => {
+  const implementation = vi.mocked(runTest262Corpus).getMockImplementation()!;
+  vi.mocked(runTest262Corpus).mockImplementation(async options => {
+    const report = await implementation({ ...options,
+      onStart: async (manifest, selected) => {
+        if (mutation === "missing-file") {
+          manifest.files.push({ ...manifest.files[0], filename: "omitted.js" });
+          selected.push("omitted.js");
+        }
+        if (mutation === "missing-mode") manifest.files[0].variants.push({ ...manifest.files[0].variants[0], mode: "strict" });
+        await options.onStart?.(manifest, selected);
+      },
+      onResult: async entry => {
+        if (mutation === "duplicate-mode" && entry.kind === "test") entry.results.push({ ...entry.results[0] });
+        if (mutation === "unknown-file") entry.filename = "unknown.js";
+        if (mutation === "stale-hash") entry.sourceHash = "stale";
+        if (mutation === "fixture-reclassified") {
+          entry.kind = "fixture";
+          Reflect.deleteProperty(entry, "results");
+        }
+        await options.onResult?.(entry);
+      }
+    });
+    if (mutation === "missing-file") report.selected.push("omitted.js");
+    if (mutation === "trimmed-manifest") report.manifest.files = [];
+    report.counts = countEntries(report.entries);
+    return report;
+  });
+  await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl"])).rejects.toThrow();
+  const records = fs.readFileSync("/reports/result.jsonl", "utf8").toString().trim().split("\n").map(line => JSON.parse(line));
+  expect(records.some(record => record.type === "summary")).toBe(false);
+  expect(records.at(-1)).toMatchObject({ type: "aborted", complete: false });
 });

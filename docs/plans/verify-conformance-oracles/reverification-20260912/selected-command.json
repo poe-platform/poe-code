@@ -1,0 +1,24 @@
+{
+  "command": [
+    "npm",
+    "run",
+    "test:conformance",
+    "--workspace=@poe-code/safe-js",
+    "--",
+    "--corpus",
+    "/private/tmp/safejs-baseline-test262-419d3e0",
+    "--include",
+    "built-ins/Array/of/length.js",
+    "--include",
+    "built-ins/Math/f16round/not-a-constructor.js",
+    "--include",
+    "built-ins/Temporal/PlainDate/calendar-undefined.js",
+    "--include",
+    "language/module-code/early-dup-export-dflt.js",
+    "--include",
+    "built-ins/Atomics/wait/cannot-suspend-throws.js",
+    "--report",
+    "/Users/kjopek/Workspace/poe-code/docs/plans/verify-conformance-oracles/reverification-20260912/selected.jsonl"
+  ],
+  "exitCode": 1
+}

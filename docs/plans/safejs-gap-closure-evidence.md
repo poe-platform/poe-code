@@ -1,5 +1,11 @@
 # SafeJS gap-closure evidence
 
+## Verified delivery closure — 2026-09-12
+
+The baseline is **delivered**: fetched remote `main` is `1a251ae281a2d6acd8609473119b356c1e807f18`, containing original evidence commit `f314e261c96e444b8fc983117864462171db5bc4` and reconciliation `c9034625c70eaa0aeab8560cceb6b3df04aaa79d`. [Final delivery verification](safejs-baseline-final-delivery-receipt.md) separates exact ancestry, failed and successful workflow attempts, a successful **no-release** outcome, and independently verified predecessor publications. Earlier pending/local-only statements below remain historical observations.
+
+The complete initial map now has **1,475 IDs**, including owned case `C-FAST-ADVERSARIAL-DEADLINE` for the first delivery workflow's 750 ms corpus failure. The unchanged-source successful retry is counterevidence about repeatability, not a repair or removal of that failure. The published edition, extension pins, runtime matrix, explicit ISO/Promise boundary observations and six newer-Temporal failures are unchanged. This establishes the requested baseline; it does not claim compatibility closure or publication of fixes.
+
 ## Authorized delivery and changed-source revalidation — 2026-09-12
 
 This execution authorizes normal-hook delivery to remote `main`; earlier statements that no push was authorized are historical. Local baseline commit `f314e261c96e444b8fc983117864462171db5bc4` is preserved. A fresh `git fetch origin main` observed `16fd655592118dbac4cf6764b8a2f3c8f6138786`. An isolated **detached** worktree at `/Users/kjopek/Workspace/poe-code-baseline-delivery` reconciled those histories without creating a branch, modifying the original worktree/index, or reverting concurrent work. The initial merge/check source is `7654048d6eb593530e126ddc51df58f26cb384cd`.

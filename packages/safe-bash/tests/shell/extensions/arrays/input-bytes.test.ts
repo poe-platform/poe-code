@@ -5,7 +5,7 @@ import { shellValueBytes, shellValueFromBytes } from "../../../../src/contracts/
 import type { ByteSource } from "../../../../src/contracts/index.js";
 import { ShellInput } from "../../../../src/shell/input.js";
 import { Budget, defaultLimits } from "../../../../src/shell/runtime.js";
-import { authenticateOracle } from "../trap/oracle.js";
+import { authenticateOracle, nativeOptions } from "../trap/oracle.js";
 
 let oracle: string | undefined;
 
@@ -45,7 +45,7 @@ const cases = [
 ] as const;
 
 for (const locale of ["C", "en_US.UTF-8"]) for (const entry of cases) {
-  test(`byte read native ${locale}: ${entry.name}`, { timeout: 2000 }, async () => {
+  test(`byte read native ${locale}: ${entry.name}`, { ...nativeOptions(), timeout: 2000 }, async () => {
     const bytes = Buffer.from(entry.hex, "hex");
     const native = spawnSync(oracle ??= authenticateOracle(), ["--noprofile", "--norc", "-c", `IFS= read ${entry.flags} value; status=$?; printf '%s\\0%s\\0' "$status" "$value"; /bin/cat`], {
       input: bytes, env: { PATH: "/usr/bin:/bin", LC_ALL: locale }, timeout: 1000, maxBuffer: 4096,
@@ -187,7 +187,7 @@ const fieldCases = [
 ] as const;
 
 for (const locale of ["C", "en_US.UTF-8"]) for (const entry of fieldCases) {
-  test(`read field boundaries native ${locale}: ${entry.name}`, { timeout: 2000 }, async () => {
+  test(`read field boundaries native ${locale}: ${entry.name}`, { ...nativeOptions(), timeout: 2000 }, async () => {
     const maximum = "maximum" in entry ? entry.maximum : undefined;
     const assignment = maximum === undefined ? '-a values' : 'first second';
     const values = maximum === undefined ? '"${values[@]}"' : '"$first" "$second"';

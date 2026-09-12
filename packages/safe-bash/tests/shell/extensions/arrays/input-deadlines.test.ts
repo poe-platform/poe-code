@@ -7,7 +7,7 @@ import { shellValueBytes } from "../../../../src/contracts/value.js";
 import { ShellInput } from "../../../../src/shell/input.js";
 import type { InputClock, ShellInputOptions } from "../../../../src/shell/input.js";
 import { Budget, defaultLimits } from "../../../../src/shell/runtime.js";
-import { authenticateOracle } from "../trap/oracle.js";
+import { authenticateOracle, nativeOptions } from "../trap/oracle.js";
 
 class Clock implements InputClock {
   time = 0;
@@ -485,17 +485,17 @@ for (const [name, input, eof, expected] of [
   ["ready", "abc\n", false, "0:old\n0:abc\n"],
   ["blocked", "", false, "1:old\n142:\n"],
   ["EOF", "", true, "0:old\n1:\n"],
-] as const) test(`authenticated Bash stream zero-timeout is non-consuming: ${name}`, { timeout: 3000 }, async () => {
+] as const) test(`authenticated Bash stream zero-timeout is non-consuming: ${name}`, { ...nativeOptions(), timeout: 3000 }, async () => {
   const output = await native('value=old; read -t0 value; printf "%s:%s\\n" "$?" "$value"; IFS= read -rt .02 value; printf "%s:%s\\n" "$?" "$value"', input, eof);
   assert.equal(output.toString(), expected);
 });
 
-for (const eof of [false, true]) test(`authenticated Bash partial fields distinguish timeout from EOF: ${eof}`, { timeout: 3000 }, async () => {
+for (const eof of [false, true]) test(`authenticated Bash partial fields distinguish timeout from EOF: ${eof}`, { ...nativeOptions(), timeout: 3000 }, async () => {
   const output = await native('first=old; second=old; third=old; read -rt .02 first second third; printf "%s:<%s>:<%s>:<%s>\\n" "$?" "$first" "$second" "$third"', "one two", eof);
   assert.equal(output.toString(), `${eof ? 1 : 142}:<one>:<two>:<>\n`);
 });
 
-test("authenticated Bash regular descriptor ignores positive timeout and polls ready at EOF", { timeout: 3000 }, async () => {
+test("authenticated Bash regular descriptor ignores positive timeout and polls ready at EOF", { ...nativeOptions(), timeout: 3000 }, async () => {
   const output = await native('exec 3< "$1"; value=old; read -t0 -u3 value; printf "%s:%s\\n" "$?" "$value"; IFS= read -rt .000001 -u3 value; printf "%s:%s\\n" "$?" "$value"; while IFS= read -r -u3 value; do :; done; read -t0 -u3 value; printf "%s\\n" "$?"', "", true, [fileURLToPath(import.meta.url)]);
   assert.equal(output.toString(), '0:old\n0:import assert from "node:assert/strict";\n0\n');
 });
@@ -506,7 +506,7 @@ for (const [name, input, expected, raw] of [
   ["standalone escape", "5c", "313432000100", false],
   ["continuation", "615c0a62", "31343200616200", false],
   ["incomplete UTF8 unit", "f09f", "31343200f000", true],
-] as const) test(`native timeout assignment projection: ${name}`, { timeout: 3000 }, async () => {
+] as const) test(`native timeout assignment projection: ${name}`, { ...nativeOptions(), timeout: 3000 }, async () => {
   const bytes = Buffer.from(input, "hex");
   const output = await native(`IFS= read ${raw ? "-r" : ""} -t .02 value; printf '%s\\0%s\\0' "$?" "$value"`, bytes, false, [], "en_US.UTF-8");
   assert.equal(output.toString("hex"), expected);

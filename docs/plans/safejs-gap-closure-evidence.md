@@ -988,3 +988,140 @@ new release/publication receipt exists for this continuation.** The installed
 versions above are historical package observations, not publication of this
 report or a repair. Acceptance stays open until an ISO-preserving backend
 repair and all required runtime/entrypoint qualifications are evidenced.
+
+
+## repair-temporal-extremes — committed reproduction and unresolved disposition
+
+Source **`47c7f226ae1f4ce4f765846913f7d283529488e3`**, main, 2026-09-12.
+**No production repair was implemented; the formatting repair remains unresolved.**
+This evidence-only change commits the [complete reproducible manual QA](safejs-temporal-extremes-reproduction-2026-09-12.md)
+and this ledger section. The report preserves the executed probe bodies rather
+than depending on untracked runtime artifacts. Existing local/staged changes,
+including earlier ledger entries and untracked tests, remain untouched.
+
+The compatibility target is unchanged: **ECMA-262 edition 16 / ECMA-402 edition 12
+(June 2025)**, Temporal extension `e8cc03fc970a65a3359e8870e3b35e687ac94e55`,
+Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`. Newer runtime behavior is not
+an implicit target revision. Backend: temporal-polyfill **1.0.4**.
+
+### Fresh runtime results
+
+Each executable below received each of report blocks 1–4 on stdin. All 28
+processes completed, all stderr streams were empty, and every failed row was
+retained. Block 1 and block 4 exit **1** on every runtime; blocks 2 and 3 exit
+**0**. A successful arithmetic process does not excuse formatting failures.
+
+| Runtime | ICU | Block 1 formatting pass/fail | Block 2 arithmetic/admission pass/fail | Block 3 lower pass/fail |
+| --- | --- | --- | --- | --- |
+| Node 18.18.0 | 73.2 | 201/128 | 35/0 | 25/0 |
+| Node 18.20.8 | 74.2 | 201/128 | 35/0 | 25/0 |
+| Node 20.20.2 | 78.2 | 202/127 | 35/0 | 25/0 |
+| Node 22.23.2 | 78.2 | 206/123 | 35/0 | 25/0 |
+| Node 24.21.0 | 78.3 | 206/123 | 35/0 | 25/0 |
+| Node 26.8.2 | 78.3 | 206/123 | 51/0 | 25/0 |
+| Bun 1.3.11 | 74.2 | 206/123 | 35/0 | 25/0 |
+
+Every block-4 profile records **240 formatting passes / 480 formatting failures**,
+**144/144 transport controls**, **144/144 receiving-realm error controls**, and
+**24/24 invalid numeric-Date rejection controls**. Counts include original and
+three replay executions. All formatting failures are RangeErrors, not field
+comparison passes. Checkpoints run once; public field getters are not invoked.
+
+There are no skipped executed assertions. Block 2 explicitly leaves **16 native
+host-admission assertions unexecuted** on each runtime other than Node 26,
+where all 16 execute and pass. Native Temporal's absence is not a guest defect.
+Backend admission executes on every profile. Native/backend direct formatting
+controls reproduce the backend failure rather than supplying a successful oracle.
+
+Exact runtime commands (repository root; report block supplied on stdin):
+
+```text
+/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node --input-type=module
+/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node --input-type=module
+/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node --input-type=module
+/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node --input-type=module
+/tmp/safejs-published-baseline.gM67xh/runtimes/node-24.21.0 --input-type=module
+/tmp/safejs-published-baseline.gM67xh/runtimes/node-26.8.2 --input-type=module
+/Users/kjopek/.bun/bin/bun run -
+```
+
+Executed block SHA256 values, identical across runtimes:
+
+| Block | SHA256 |
+| --- | --- |
+| 1 | `e34c88f346013a30e4349a44b2cbbb4eb160e7868e1beb68e95404f45e1c0802` |
+| 2 | `07e9ae2e6dc863d3b3b24bd5a990bd877acb4bffc4ca74cd7a668667cfcee5e2` |
+| 3 | `05cd2c442ba6cff7024b2fe563fe2e1098266ad23a16111c21cd318356c82f34` |
+| 4 | `2eb9ee591e2217979970fbac7fe01eb7f2b620a7a3f2d2ce9e4d226cc81b94d6` |
+
+### Every identified case: outcome or explicit blocker
+
+| Required case | Disposition |
+| --- | --- |
+| PlainDate, PlainDateTime, PlainYearMonth beyond TimeClip | **Unresolved implementation gap.** Valid lower PlainDate, lower/upper PlainDateTime and lower PlainYearMonth fail all five paths. Upper PlainDate and PlainYearMonth controls pass. The source passes private Temporal values through a numeric-epoch backend. No calendar-preserving unbounded formatter has been qualified. |
+| Calendar fields, weekdays, non-Latin numerals; format/parts/ranges/locale | Blocks 1 and 4 execute ISO/Gregorian/Buddhist profiles with Latin/Arabic numerals, expected fields and independent weekday controls. Node22+ and Bun retain 120 endpoint failures plus three cross-extreme range failures. Other calendars/locales remain unqualified, not implicitly covered. |
+| Invalid numeric Date values | All four Intl methods reject NaN, infinities, both out-of-TimeClip signs and invalid Date; 24 separate receiving-realm controls pass per runtime. Ordinary numeric controls pass. |
+| Fixed-offset zones on older supported runtimes | **Unresolved Node18/20 implementation gap:** four extra failures per profile for positive/negative Instant parts and ZonedDateTime locale. UTC and Node22+/Bun controls pass. No runtime minimum was raised. |
+| Reversed PlainTime ranges | **Unresolved Node18 implementation gap:** one additional failure for 13:00 to 12:00. Forward and Node20+/Bun source-labelled controls pass. A field-swap approximation remains unqualified for interval patterns/shared dayPeriod. No descending-range rejection requirement was invented. |
+| Calendar/zone mismatch | Executed mismatch controls preserve required errors for incompatible calendars, ZonedDateTime's timeZone option and direct Intl admission. Calendars were not substituted. |
+| Skipped civil day; DST gap/overlap | Executed Apia skipped-day and New York disambiguation cases pass, including required reject behavior. This qualifies those cases rather than every historical timezone transition. |
+| Overflow/rounding, all eight Temporal types | Blocks 2 and 3 execute actual upper/lower construction, arithmetic, difference-rounding and overflow behavior: 19 upper arithmetic and 25 lower assertions pass per runtime. PlainMonthDay has no round API by design; its real overflow/reference-date behavior passes. Minimum YearMonth intermediate-date rejection remains required by the pin. |
+| Host admission and custom prototypes | All eight backend brands execute admission and foreign-subclass rejection controls; all eight native brands also execute on Node26. Separate 32-case transport run preserves custom prototypes, aliases, frozen objects and private slots. Pre-existing untracked test source was not committed. |
+| Realm ownership and repeated heap/replay | Separate all-eight-type transport suite passes three host/heap/replay cycles. Block 4 passes private-field/authority and error-ownership controls through checkpoints and three completed public replay cycles, while preserving formatting failures. Raw prototype-linked replay refusal is an explicit authority boundary. |
+| Workerd | **Unresolved integration blocker:** fresh build-to-bundle probe exits 1 resolving `#safe-fs-native-seek` from safe-fs. Guest execution, ICU and replay are unexecuted; no Node capability alias or import exclusion was introduced. |
+| Core, installed artifact and umbrella integration | No fresh core replay or installed/umbrella artifact qualification in this evidence-only change. Core's missing public dump export remains a capability boundary, not an ECMAScript defect. A future repair still needs these applicable integration checks and publication evidence. |
+| Mapped Test262 fixtures | No fresh Test262 execution claimed. Prior same-source results remain 58 fixtures / 116 variants: 98 pass, 18 fail, zero unsupported; nine no-TimeClip files fail in both modes. New manual results do not turn those failures into passes or qualify unselected fixtures. |
+
+These are explicit unresolved implementation/qualification gaps, not missing
+permission or external approval requests. No endpoint clamping, calendar change,
+host authority expansion, test-assertion weakening, timeout or budget change was
+made. The requested production repair is not complete.
+
+### Manual checks for the exact evidence-only commit
+
+- `npm run build:workspaces -- --workspace=@poe-code/safe-js`: exit 0, including
+  all seven postbuild import checks. Maintained dependency closure was used.
+- `npx vitest run packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts packages/safe-js/src/interp/globals/temporal-instant-native.test.ts`:
+  exit 0, **32 passed, zero skipped**. The second filter names a nonexistent file;
+  this command only qualified the transport file, not native Instant.
+- `/tmp/safejs-published-baseline.gM67xh/runtimes/node-26.8.2 node_modules/vitest/vitest.mjs run packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts packages/safe-js/src/interp/temporal-instant-native.test.ts`:
+  exit 0, **36 passed, zero skipped**, including all four actual native tests.
+- CLI endpoint probe: exit 1, `Invalid time value`, before field assertions.
+  Independent `--max-steps 1` control: exit 3, required budget rejection.
+  Exact commands and source are preserved in the report.
+- Workerd bundle probe: exit 1, unresolved import as above; exact stdin is in
+  the report. No Workerd execution success is claimed.
+- Documentation checks: Prettier with embedded-language formatting disabled,
+  byte-for-byte comparison of the first four committed QA blocks against executed
+  stdin, and staged whitespace/path review. Disabling embedded reformatting
+  preserves the recorded probe hashes; no runtime assertion is altered.
+- Before commit, all **1,671** SafeJS source files matched their starting hashes.
+  No production/tests changed, so no TDD repair or full-package/root test/lint
+  gate is claimed. There was no visual CLI change requiring screenshots.
+
+Relevant SHA256 fingerprints:
+
+| File | SHA256 |
+| --- | --- |
+| `packages/safe-js/src/interp/intl-datetimeformat.ts` | `b588e94daa9dd8b23fe80618fcaf6f8bff41ec751fd3016f21adaa5fe0c16b0f` |
+| `packages/safe-js/src/snapshot/temporal-extreme-transport.test.ts` | `70ed8fd959ea02aa0ac756deb38d191599fd07f23f539ed620746313374263be` |
+| `node_modules/temporal-polyfill/chunks/classApi.js` | `e1442e5883cc0d463812e1afcb3f4cc36e3aa25947572920d11bef7da3128204` |
+| `node_modules/temporal-polyfill/chunks/internal.js` | `cbe619842f9e0e9d976bc9dbcf7b65052c0d169e4b4897c0674a5fa8562fc3a3` |
+
+### Delivery and publication receipts
+
+This is a **local evidence-only commit**, whose SHA is reported separately by
+Git and the final response. It contains only this appended section and the
+reproduction report. Other staged files are excluded using a separate index;
+no hook is bypassed. The existing ledger prefix remains byte-for-byte intact.
+
+**No task push, verified remote delivery or task publication.** Fresh
+`git ls-remote origin refs/heads/main` records
+`945d3ffd8595e3b109f48e2e7825c4adcd5567bb`, separately from this candidate.
+`gh run list --limit 5 --json databaseId,headSha,workflowName,status,conclusion,url`
+confirms predecessor [Release 34716636948](https://github.com/poe-platform/poe-code/actions/runs/34716636948)
+succeeded at that remote SHA. The preceding scoped
+[release 34714789746](https://github.com/poe-platform/poe-code/actions/runs/34714789746)
+succeeded at `6d167d01ae30e5510a82a38513f470438a2c9244`. Neither is publication
+of this report or a Temporal repair. No new package version or integrity receipt
+is claimed. No process from this qualification remains pending.

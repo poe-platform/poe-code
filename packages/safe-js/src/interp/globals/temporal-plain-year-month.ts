@@ -1,3 +1,4 @@
+import { recoverMissingIsoMonth } from "../intl-iso-month.js";
 import { Temporal as Backend } from "temporal-polyfill/full/implementation";
 import type { Budget } from "../budget.js";
 import { accessorAdapter } from "../accessors.js";
@@ -81,7 +82,10 @@ export function createTemporalPlainYearMonthConstructor(budget: Budget, prototyp
         // calendar date without shifting its year/month by that zone.
         delete options.timeZone;
         const value = new Backend.PlainYearMonth(fields.isoYear, fields.isoMonth, fields.calendar, fields.isoDay);
-        return budget.allocateString(value.toLocaleString(locales, options as Intl.DateTimeFormatOptions));
+        const result = value.toLocaleString(locales, options as Intl.DateTimeFormatOptions);
+        return budget.allocateString(recoverMissingIsoMonth(result, locales, { ...options, timeZone: "UTC" }, "format", () => [
+          new Backend.PlainDate(fields.isoYear, fields.isoMonth, fields.isoDay).toZonedDateTime("UTC").epochMilliseconds
+        ]));
       } finally { release(); }
     }
   });

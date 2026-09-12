@@ -1,0 +1,22 @@
+[
+  {
+    "case": "length-only",
+    "source": "var x=[];print(\"before-length\");x.length=4294967295;print(\"after-length\");",
+    "timeoutMs": 3000,
+    "externalSeconds": 6,
+    "exitCode": 0,
+    "stdout": "before-length\nafter-length\n{\"status\":\"normal\"}\n",
+    "stderr": "",
+    "externalTimeout": false,
+    "elapsedSeconds": 0.9912962909947964
+  },
+  {
+    "case": "push-locations",
+    "source": "var x=[];print(\"before-length\");x.length=4294967295;print(\"after-length\");x.push();print(\"after-push\");",
+    "timeoutMs": 3000,
+    "externalSeconds": 6,
+    "externalTimeout": true,
+    "stdout": "before-length\nafter-length\n",
+    "elapsedSeconds": 6.017714415997034
+  }
+]

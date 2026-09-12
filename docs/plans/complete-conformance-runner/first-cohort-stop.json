@@ -1,0 +1,16 @@
+{
+  "at": "2026-09-12T04:33:03.552126+00:00",
+  "reason": "Complete cohort invalidated by reproduced unpreemptible host loop; runner isolation repair starts; no initial report enters replacement baseline",
+  "ownedGroupsSignaled": [
+    {
+      "pid": 42422,
+      "command": "npm run test:conformance --corpus /private/tmp/safejs-baseline-test262-419d3e0 --manifest /Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/manifest.json --offset 5500 --limit 500 --timeout-ms 3000 --report /Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/batches/05500-05999.jsonl",
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 43303,
+      "command": "npm run test:conformance --corpus /private/tmp/safejs-baseline-test262-419d3e0 --manifest /Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/manifest.json --offset 6000 --limit 500 --timeout-ms 3000 --report /Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/batches/06000-06499.jsonl",
+      "signal": "SIGTERM"
+    }
+  ]
+}

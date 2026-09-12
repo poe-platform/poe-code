@@ -1,0 +1,65 @@
+{
+  "utc": "2026-09-12T06:30:51.733954+00:00",
+  "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+  "disposition": "Historical superseded cohort, not qualified baseline; all results forbidden from next-cohort aggregation",
+  "completeSelections": 107,
+  "incompleteSelections": [
+    {
+      "label": "44500-44999",
+      "exitCode": 1,
+      "terminalType": "aborted",
+      "resultRecords": 500
+    },
+    {
+      "label": "45000-45499",
+      "exitCode": 1,
+      "terminalType": "aborted",
+      "resultRecords": 500
+    },
+    {
+      "label": "45500-45999",
+      "exitCode": 143,
+      "terminalType": "result",
+      "resultRecords": 449
+    },
+    {
+      "label": "46000-46499",
+      "exitCode": 143,
+      "terminalType": "result",
+      "resultRecords": 377
+    },
+    {
+      "label": "46500-46999",
+      "exitCode": 143,
+      "terminalType": "result",
+      "resultRecords": 395
+    }
+  ],
+  "unstartedSelections": [
+    "47000-47499",
+    "47500-47999",
+    "48000-48499",
+    "48500-48999",
+    "49000-49499",
+    "49500-49999",
+    "50000-50499",
+    "50500-50999",
+    "51000-51499",
+    "51500-51999",
+    "52000-52499",
+    "52500-52999",
+    "53000-53499",
+    "53500-53875"
+  ],
+  "countsOfCompleteSelectionsOnly": {
+    "files": 44500,
+    "fixtures": 285,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 84999,
+    "passed": 76025,
+    "failed": 6878,
+    "unsupported": 2096
+  },
+  "coordinatorExitCode": 130
+}

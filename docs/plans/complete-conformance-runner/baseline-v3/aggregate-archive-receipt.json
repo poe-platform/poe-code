@@ -1,0 +1,9 @@
+{
+  "archive": "aggregate.json.gz",
+  "archiveBytes": 6203276,
+  "archiveSha256": "4caf7bf949f81077a5775f400bd3ad725e71bd28ed19fffa15fdf57ffdea238a",
+  "original": "aggregate.json",
+  "originalBytes": 40226098,
+  "originalSha256": "bcc183ae743cb1c4ca21693c4717fc775daa0a805a6ffdb0bef03bd244823429",
+  "roundTripVerified": true
+}

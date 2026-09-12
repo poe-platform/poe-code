@@ -1,0 +1,11 @@
+{
+  "source": "manifest.json",
+  "sourceBytes": 37744957,
+  "sourceSha256": "7169fe4476220083d7c940ceba975d0df123a867755d1f1fd1f9d217f08a7d6c",
+  "archive": "manifest.json.gz",
+  "archiveBytes": 5913647,
+  "archiveSha256": "9bddfc1b14114beea469c3d326ba8e84ab5c0cc358fa59e972dae3d745f327fd",
+  "compression": "gzip mtime0",
+  "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+  "replay": "gzip -dc manifest.json.gz > manifest.json (in an empty evidence replay directory; original manifest retained)"
+}

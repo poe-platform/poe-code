@@ -53,3 +53,84 @@ it("reports unsupported modules and fixtures without counting passes", async () 
   expect(await executeTest262("example.js", '/*---\nflags: [module]\n---*/\nexport {}', { harness, timeoutMs: 1000 }))
     .toMatchObject({ kind: "test", results: [{ mode: "module", status: "unsupported" }] });
 });
+
+it.each([
+  ['Promise.reject(42);$DONE()', "failed"],
+  ['Promise.resolve().then(()=>{throw 42});$DONE()', "failed"],
+  ['Promise.reject(42).catch(()=>{});$DONE()', "passed"],
+  ['$DONE();$DONE()', "failed"]
+])("accounts for every async signal and unhandled rejection: %s", async (body, status) => {
+  expect(await executeTest262("async.js", `/*---\nflags: [async, onlyStrict]\n---*/\n${body}`, { harness, timeoutMs: 1000 }))
+    .toMatchObject({ kind: "test", results: [{ status }] });
+});
+
+it.each([
+  ["includes: [agent.js]", "agent"],
+  ["features: [SharedArrayBuffer]", "shared-memory"],
+  ["features: [IsHTMLDDA]", "IsHTMLDDA"]
+])("accounts for unqualified capability requirements: %s", async (metadata, reason) => {
+  expect(await executeTest262("capability.js", `/*---\nflags: [onlyStrict]\n${metadata}\n---*/\n0`, { harness, timeoutMs: 1000 }))
+    .toMatchObject({ kind: "test", results: [{ status: "unsupported", reason }] });
+});
+
+it("recognizes an early error before evaluation and keeps its passing control", async () => {
+  const negative = '/*---\nflags: [onlyStrict]\nnegative: {phase: parse, type: SyntaxError}\n---*/\nthrow 42;let duplicate;let duplicate;';
+  expect(await executeTest262("early.js", negative, { harness, timeoutMs: 1000 }))
+    .toMatchObject({ results: [{ status: "passed" }] });
+  expect(await executeTest262("control.js", '/*---\nflags: [onlyStrict]\n---*/\nlet first;let second;', { harness, timeoutMs: 1000 }))
+    .toMatchObject({ results: [{ status: "passed" }] });
+});
+
+it.each([
+  ['$DONE();Promise.resolve().then(()=>Promise.resolve().then(()=>{throw 42}))', "failed", "unhandled-rejection"],
+  ['$DONE();$262.createRealm().evalScript("Promise.reject(42)")', "failed", "unhandled-rejection"],
+  ['try{$262.gc()}catch(error){};$DONE()', "unsupported", "gc"],
+  ['$262.createRealm().evalScript("try{$262.gc()}catch(error){}");$DONE()', "unsupported", "gc"]
+])("accounts for late jobs and child realm capability requirements: %s", async (body, status, reason) => {
+  expect(await executeTest262("async.js", `/*---\nflags: [async, onlyStrict]\n---*/\n${body}`, { harness, timeoutMs: 1000 }))
+    .toMatchObject({ results: [{ status, reason }] });
+});
+
+it("requires DONE for runtime-negative async tests", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  try {
+    const pending = executeTest262("negative.js", '/*---\nflags: [async, onlyStrict]\nnegative: {phase: runtime, type: TypeError}\n---*/\nthrow new TypeError()', { harness, timeoutMs: 10 });
+    await vi.runAllTimersAsync();
+    expect(await pending).toMatchObject({ results: [{ status: "failed", reason: "timeout" }] });
+  } finally { vi.useRealTimers(); }
+});
+
+it("keeps raw module parsing unqualified even when script parsing would pass", async () => {
+  expect(await executeTest262("raw-module.js", '/*---\nflags: [raw, module]\n---*/\n0', { harness, timeoutMs: 1000 }))
+    .toMatchObject({ results: [{ mode: "raw", status: "unsupported", reason: "module" }] });
+});
+
+it("executes only an explicitly enumerated worker mode and rejects invented modes", async () => {
+  expect(await executeTest262("selected.js", '0', { harness, timeoutMs: 1000, mode: "strict" }))
+    .toMatchObject({ results: [{ mode: "strict", status: "passed" }] });
+  await expect(executeTest262("selected.js", '/*---\nflags: [noStrict]\n---*/\n0', { harness, timeoutMs: 1000, mode: "strict" }))
+    .rejects.toThrow("not enumerated");
+});
+
+it("does not qualify an errored fixture import through an absent loader's matching Error", async () => {
+  // Pinned Test262 import-errored-module.js checks Error twice; its fixture throws Error("boom").
+  const source = '/*---\nflags: [async]\nfeatures: [dynamic-import]\n---*/\n' +
+    'async function check(){try{await import("./import-errored-module_FIXTURE.js");throw 42}catch(error){if(!(error instanceof Error))throw error}}' +
+    'check().then(check).then(()=>$DONE(),$DONE);';
+  expect(await executeTest262("import-errored-module.js", source, { harness, timeoutMs: 1000 }))
+    .toMatchObject({ results: [
+      { mode: "sloppy", status: "unsupported", reason: "module" },
+      { mode: "strict", status: "unsupported", reason: "module" }
+    ] });
+});
+
+it.each(["dynamic-import", "import-defer", "source-phase-imports", "source-phase-imports-module-source"])(
+  "keeps %s runtime requirements unqualified while preserving parse-negative evidence", async feature => {
+    expect(await executeTest262("import.js", `/*---\nfeatures: [${feature}]\nflags: [raw]\n---*/\n0`, { harness, timeoutMs: 1000 }))
+      .toMatchObject({ results: [{ mode: "raw", status: "unsupported", reason: "module" }] });
+    expect(await executeTest262("import.js", `/*---\nfeatures: [${feature}]\nflags: [onlyStrict]\nnegative: {phase: runtime, type: TypeError}\n---*/\nthrow new TypeError()`, { harness, timeoutMs: 1000 }))
+      .toMatchObject({ results: [{ status: "unsupported", reason: "module" }] });
+    expect(await executeTest262("import.js", `/*---\nfeatures: [${feature}]\nflags: [onlyStrict]\nnegative: {phase: parse, type: SyntaxError}\n---*/\nimport();`, { harness, timeoutMs: 1000 }))
+      .toMatchObject({ results: [{ status: "passed" }] });
+  }
+);

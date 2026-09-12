@@ -1,0 +1,9 @@
+{
+  "source": "independent-mismatch-inventory.json",
+  "sourceBytes": 10136050,
+  "sourceSha256": "388411a87b13dc6b9f97fc541439730bb44dde211cc64f4810ef5421a0c61759",
+  "archive": "independent-mismatch-inventory.json.gz",
+  "archiveBytes": 581926,
+  "archiveSha256": "1b38927368aff467af2286ee75b5a12b9caab8a9ce47deb06f0c0f0ed085156c",
+  "disposition": "Incomplete historical v2 inventory; no entries reused in final v3 baseline"
+}

@@ -1,0 +1,25 @@
+{
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "schedule": "resume-batch-schedule.json",
+  "scheduleSha256": "5d26401c4cdc20a73d61006b5546ad912fcb9f39d338e03bf5ca133a7fc21649",
+  "selections": 216,
+  "uniqueFiles": 53876,
+  "uniqueVariants": 102926,
+  "completePreserved": 189,
+  "unchangedSelections": 214,
+  "retriedWholeSelections": [
+    {
+      "offset": 39500,
+      "old": "39500-39999",
+      "new": "39500-39999-enospc-retry-1"
+    },
+    {
+      "offset": 40500,
+      "old": "40500-40999",
+      "new": "40500-40999-enospc-retry-1"
+    }
+  ],
+  "duplicateFiles": 0,
+  "omittedFiles": 0,
+  "timeoutMs": 3000
+}

@@ -1,0 +1,8 @@
+{
+  "startedUtc": "2026-09-12T08:23:58.796020+00:00",
+  "coordinatorPid": 73202,
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "schedule": "resume-batch-schedule.json",
+  "workerCap": 2,
+  "newSelectionMinimumFreeBytes": 134217728
+}

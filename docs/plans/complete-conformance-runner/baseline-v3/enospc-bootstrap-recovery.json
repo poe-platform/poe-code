@@ -1,0 +1,15 @@
+{
+  "utc": "2026-09-12T08:23:30.403809+00:00",
+  "selection": "41500-41999",
+  "originalLog": "docs/plans/complete-conformance-runner/baseline-v3/batches/41500-41999.log",
+  "preservedLog": "enospc-bootstrap-41500.log",
+  "bytes": 1932,
+  "sha256": "d54bbcf2034199abc45c6444a1ca72c25fae4e2674be4c9c44e49d2afb13a552",
+  "reportCreated": false,
+  "variantRecords": 0,
+  "processExitCode": null,
+  "loggedChildError": "tsx IPC listen ENOSPC; npm logged errorcode1, but no coordinator process exit receipt persisted",
+  "secondCoordinatorExitCode": 1,
+  "secondCoordinatorError": "FileExistsError opening original log exclusively; historical log preserved, no overwrite",
+  "disposition": "No prior result exists for this range; resume same original report path after moving only the task-owned bootstrap log into immutable evidence."
+}

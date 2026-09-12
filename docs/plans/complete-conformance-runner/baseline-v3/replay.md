@@ -1,0 +1,17 @@
+# Reproduce or audit the complete baseline
+
+## Fresh execution
+
+A fresh run starts by enumerating the full pinned Test262 revision `419d3e0a2273ba01a3bfcbec423f2801425b8e93` against the current workspace and runtime. Use `npm run test:conformance --workspace=@poe-code/safe-js -- --corpus CORPUS --timeout-ms 3000 --enumerate --report NEW-MANIFEST.json`, then run disjoint selections with that manifest and new report paths. `resume-batch-schedule.json` contains the 216 exact command arrays used here, including every offset, limit and expected variant count. Preserve the same timeout and configurable/static budget contract; adapt only filesystem locations. Reports are created exclusively, so use fresh paths.
+
+The measured source is local Git revision `f314e261c96e444b8fc983117864462171db5bc4` plus the recorded task runner working-tree contents and preserved unrelated workspace changes. The manifest conservatively hashes all workspace source/dist files and runner inputs. A clean checkout at the Git SHA alone does not reproduce that dirty-tree fingerprint. No unrelated user's changes are archived or committed as task source. Fresh execution from a later commit creates its own new manifest and source identity; it must not reuse these historical passes.
+
+`aggregate-command.json` records the maintained CLI aggregation command over exactly the 216 schedule-selected reports. It freshly enumerates source/corpus/runtime identity and rejects stale revisions, mixed manifests, missing/duplicate variants, incomplete summaries and wrong counts. This task's aggregate must execute before HEAD changes. A complete report can correctly return exit 1: success requires every enumerated selected variant to pass.
+
+## Historical evidence audit
+
+The immutable manifest and reports can be audited independently of a fresh execution. In an empty evidence directory, decompress `manifest.json.gz` and restore the selected report archive. Verify compressed and decompressed lengths/SHA256 values, each archived member hash, the canonical manifest digest, every report header/source/runtime/execution identity and terminal summary. Recompute every expected file/mode/variant identity and status count against `resume-batch-schedule.json`. The pure `aggregateReports` reducer in `packages/safe-js/test/conformance/report.ts` validates coverage and result accounting, but the historical auditor must additionally perform the full header/manifest checks described here. This is an audit of archived evidence, not a claim that the current checkout passed those variants.
+
+The retained uncompressed files remain local, and originals must not be overwritten during inspection. All root first-cohort, v2, smoke-probe and diagnostic-replay records are historical or diagnostic and are excluded entirely from the v3 aggregate. The inventory retains raw statuses and distinguishes unqualified rejection policy, explicit host capabilities, load/deadline limits and semantic candidates. A deadline nonpass under the recorded shared-machine load is not proof of an ECMAScript semantic defect.
+
+Restore the selected reports with `mkdir -p batches && tar -xzf selected-batch-reports.tar.gz -C batches` and the manifest with `gzip -dc manifest.json.gz > manifest.json`. The exact read-only accounting procedure is in [historical-report-replay.md](../historical-report-replay.md). Its completed receipt is [historical-replay-receipt.json](historical-replay-receipt.json).

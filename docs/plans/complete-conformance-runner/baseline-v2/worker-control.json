@@ -1,0 +1,6 @@
+{
+  "maxWorkers": 0,
+  "changedUtc": "2026-09-12T06:28:28.614139+00:00",
+  "reason": "Pause v2 for validated dynamic-import false-pass qualification repair; all v2 results historical, no reuse in new source cohort",
+  "perVariantTimeoutMs": 3000
+}

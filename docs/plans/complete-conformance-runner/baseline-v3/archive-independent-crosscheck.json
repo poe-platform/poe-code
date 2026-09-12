@@ -1,0 +1,12 @@
+{
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "schedule": "resume-batch-schedule.json",
+  "archive": "selected-batch-reports.tar.gz",
+  "archiveSha256": "af0688aaed05f4e952ceff0cf1e611f22526d7212814e8996789ac02a01ca8e2",
+  "selectedReports": 216,
+  "uniqueMembers": 648,
+  "allMemberHashesMatch": true,
+  "allMemberBytesEqualOriginals": true,
+  "excludedPartialMembers": 0,
+  "manifestAggregateInventoryGzipRoundtrips": true
+}

@@ -1,0 +1,54 @@
+{
+  "startedUtc": "2026-09-12T08:58:02.191547+00:00",
+  "completedUtc": "2026-09-12T08:58:41.273103+00:00",
+  "elapsedSeconds": 39.080898209002044,
+  "commandFile": "aggregate-command.json",
+  "inputSchedule": "resume-batch-schedule.json",
+  "inputReports": 216,
+  "exitCode": 1,
+  "complete": true,
+  "success": false,
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "sourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "sourceHash": "b51f268c45c0643879c5c46eb088618a8db0415020c65e2e32ae47d8b928c9cc",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  },
+  "freshManifestExactlyMatchesFrozen": true,
+  "counts": {
+    "files": 53876,
+    "fixtures": 294,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 102926,
+    "passed": 93157,
+    "failed": 6451,
+    "unsupported": 3318
+  },
+  "enumeratedVariants": 102926,
+  "outputBytes": 40226098,
+  "outputSha256": "bcc183ae743cb1c4ca21693c4717fc775daa0a805a6ffdb0bef03bd244823429"
+}

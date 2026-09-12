@@ -1,0 +1,13 @@
+{
+  "filename": "language/comments/hashbang/use-strict.js",
+  "source": "#!\"use strict\"\n\n// Copyright (C) 2019 Leo Balter. All rights reserved.\n// This code is governed by the BSD license found in the LICENSE file.\n\n/*---\nesid: pending\ndescription: >\n    Hashbang comments should not be interpreted and should not generate DirectivePrologues.\ninfo: |\n    HashbangComment::\n      #! SingleLineCommentChars[opt]\nflags: [raw]\nfeatures: [hashbang]\n---*/\n\nwith ({}) {}\n",
+  "result": {
+    "kind": "test",
+    "results": [
+      {
+        "mode": "raw",
+        "status": "passed"
+      }
+    ]
+  }
+}

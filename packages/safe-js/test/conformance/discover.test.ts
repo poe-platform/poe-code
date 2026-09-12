@@ -41,3 +41,8 @@ it("rejects an empty or missing selection instead of reporting a vacuous success
   await expect(discoverTest262("/corpus", [])).rejects.toThrow();
   await expect(discoverTest262("/corpus", ["missing"])).rejects.toThrow();
 });
+
+it("can inventory non-JavaScript module fixture assets explicitly", async () => {
+  vol.fromJSON({ "/corpus/test/a.js": "0", "/corpus/test/fixture.json": "{}" });
+  expect(await discoverTest262("/corpus", ["."], true)).toEqual(["a.js", "fixture.json"]);
+});

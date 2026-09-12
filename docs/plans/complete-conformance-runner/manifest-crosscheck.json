@@ -1,0 +1,38 @@
+{
+  "manifestId": "996bd64baf24588e1639366b76eb272f43328f06701b80a4e144a5730824ee29",
+  "sourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "sourceHash": "ba06ca11717eb19dd2fd49ede1386e4e16ddee5d09d161c8b721f5438bb3bd71",
+  "files": 53876,
+  "fixtures": 294,
+  "metadataErrors": 0,
+  "variants": 102926,
+  "modes": {
+    "sloppy": 52031,
+    "strict": 50022,
+    "raw": 32,
+    "module": 841
+  },
+  "fixtureAssets": 20,
+  "harnessFiles": 44,
+  "sourceFiles": 10085,
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout"
+  },
+  "independentCrosscheck": true
+}

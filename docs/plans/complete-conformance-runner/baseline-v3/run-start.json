@@ -1,0 +1,7 @@
+{
+  "startedUtc": "2026-09-12T06:31:35.026398+00:00",
+  "coordinatorPid": 18783,
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "sourceHash": "b51f268c45c0643879c5c46eb088618a8db0415020c65e2e32ae47d8b928c9cc",
+  "schedule": "batch-schedule.json"
+}

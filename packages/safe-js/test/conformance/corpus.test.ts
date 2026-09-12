@@ -1,8 +1,20 @@
 import { execFileSync } from "node:child_process";
 import { vol } from "memfs";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
-import { runTest262Corpus, TEST262_REVISION } from "./corpus.js";
+import { runTest262Corpus, enumerateTest262, TEST262_REVISION } from "./corpus.js";
 
+vi.mock("./isolate.js", async () => {
+  const { executeTest262 } = await import("./execute.js");
+  return { WORKER_STARTUP_TIMEOUT_MS: 10000, createTest262Executor: (options: { timeoutMs: number }) => ({
+    execute: async (input: { filename: string; source: string; mode: "strict"; harness: Map<string, string> }) => {
+      const result = await executeTest262(input.filename, input.source, { ...options, harness: input.harness, mode: input.mode });
+      if (result.kind !== "test") throw new Error("Expected test variant");
+      return result.results[0];
+    },
+    dispose: async () => undefined
+  }) };
+});
+vi.mock("./provenance.js", async importOriginal => ({ ...await importOriginal<typeof import("./provenance.js")>(), sourceProvenance: vi.fn(async () => ({ sourceSha: "source", sourceHash: "hash", sourceHashes: {} })) }));
 vi.mock("node:child_process", () => ({ execFileSync: vi.fn() }));
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -68,4 +80,25 @@ it("rejects a corpus that changes during execution", async () => {
     return ++statusChecks === 1 ? "" : " M test/example.js";
   });
   await expect(runTest262Corpus({ corpus: "/corpus", timeoutMs: 1000 })).rejects.toThrow("clean checkout");
+});
+
+it("enumerates all variants before bounded selection and records effective budgets", async () => {
+  vol.fromJSON({ "/corpus/test/a.js": "1", "/corpus/test/b.js": "1" });
+  const report = await runTest262Corpus({ corpus: "/corpus", timeoutMs: 1000, offset: 1, limit: 1 });
+  expect(report.manifest.files).toHaveLength(2);
+  expect(report.selected).toEqual(["b.js"]);
+  expect(report.manifest.files[0].variants.map(variant => variant.mode)).toEqual(["sloppy", "strict"]);
+  expect(report.execution.effectiveBudget.maxSteps).toBe("unlimited");
+  expect(report.complete).toBe(true);
+});
+
+it("resumes bounded selections from a current manifest and rejects tampered or stale configuration", async () => {
+  vol.fromJSON({ "/corpus/test/a.js": "1", "/corpus/test/b.js": "1" });
+  const manifest = await enumerateTest262({ corpus: "/corpus", timeoutMs: 1000 });
+  vol.fromJSON({ "/manifest.json": JSON.stringify(manifest) });
+  const report = await runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 1000, offset: 1, limit: 1 });
+  expect(report.selected).toEqual(["b.js"]);
+  await expect(runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 2000 })).rejects.toThrow("Stale manifest");
+  vol.fromJSON({ "/manifest.json": JSON.stringify({ ...manifest, id: "changed" }) });
+  await expect(runTest262Corpus({ corpus: "/corpus", manifest: "/manifest.json", timeoutMs: 1000 })).rejects.toThrow("Invalid manifest digest");
 });

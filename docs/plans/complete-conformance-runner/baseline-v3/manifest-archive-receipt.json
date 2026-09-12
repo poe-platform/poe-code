@@ -1,0 +1,10 @@
+{
+  "source": "manifest.json",
+  "sourceBytes": 37744957,
+  "sourceSha256": "d91872ffac56df10c7c1277e7328d0453d271fd15b99ea8043d8c165fa6c00f7",
+  "archive": "manifest.json.gz",
+  "archiveBytes": 5913639,
+  "archiveSha256": "ef2969d36942f67b6e662bd87a957e294a9d6afa63f50e430a270444c628e08a",
+  "compression": "gzip mtime0",
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd"
+}

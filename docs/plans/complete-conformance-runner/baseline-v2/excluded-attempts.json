@@ -1,0 +1,44 @@
+{
+  "utc": "2026-09-12T04:59:55.400725+00:00",
+  "manifestId": "9436612867dbba331f104f0d3cd8e7f6f649e972fcdc695b21f25d87b53c0c94",
+  "reason": "Both incomplete coarse selections canceled solely for disjoint fifty-file scheduling; partial prefixes are historical attempts and never aggregate-selected. All completed other reports retained. No changes to source, per-variant timeout, or budget.",
+  "aggregateSchedule": "refined-batch-schedule.json",
+  "files": [
+    {
+      "path": "docs/plans/complete-conformance-runner/baseline-v2/batches/14000-14499.jsonl",
+      "archivalCopy": "docs/plans/complete-conformance-runner/baseline-v2/excluded-refinement-attempts/14000-14499.jsonl",
+      "bytes": 104335,
+      "sha256": "28d989f7a0659daf7b2b8d0f2ae7f365ef12e8ba161d2f05ab9f838fe975b57c"
+    },
+    {
+      "path": "docs/plans/complete-conformance-runner/baseline-v2/batches/14000-14499.log",
+      "archivalCopy": "docs/plans/complete-conformance-runner/baseline-v2/excluded-refinement-attempts/14000-14499.log",
+      "bytes": 1076,
+      "sha256": "b906cbffe09c3d7cc490e4e73ba44531b120992fe3edfeb1d40fc9d4f75fe732"
+    },
+    {
+      "path": "docs/plans/complete-conformance-runner/baseline-v2/batches/14000-14499.receipt.json",
+      "archivalCopy": "docs/plans/complete-conformance-runner/baseline-v2/excluded-refinement-attempts/14000-14499.receipt.json",
+      "bytes": 977,
+      "sha256": "40e56db959c7b729feb865ce8af649eb6a905050fac146f2d002dcb67981fcf5"
+    },
+    {
+      "path": "docs/plans/complete-conformance-runner/baseline-v2/batches/14500-14999.jsonl",
+      "archivalCopy": "docs/plans/complete-conformance-runner/baseline-v2/excluded-refinement-attempts/14500-14999.jsonl",
+      "bytes": 68480,
+      "sha256": "09e4bf18d113a1c277fbd9ef247c630e905c5d1efefbd55974cc353764e647c4"
+    },
+    {
+      "path": "docs/plans/complete-conformance-runner/baseline-v2/batches/14500-14999.log",
+      "archivalCopy": "docs/plans/complete-conformance-runner/baseline-v2/excluded-refinement-attempts/14500-14999.log",
+      "bytes": 1076,
+      "sha256": "228ef5282f776923456e519f41d837f0964c54d804f16115534cfda77949b66a"
+    },
+    {
+      "path": "docs/plans/complete-conformance-runner/baseline-v2/batches/14500-14999.receipt.json",
+      "archivalCopy": "docs/plans/complete-conformance-runner/baseline-v2/excluded-refinement-attempts/14500-14999.receipt.json",
+      "bytes": 975,
+      "sha256": "810af2532c8c13de24714fc95a53f3338b67c15d379ae5414b62f23dc41af071"
+    }
+  ]
+}

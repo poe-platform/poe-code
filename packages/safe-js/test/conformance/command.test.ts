@@ -1,9 +1,9 @@
 import { fs, vol } from "memfs";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { runTest262Corpus } from "./corpus.js";
+import { runTest262Corpus, enumerateTest262 } from "./corpus.js";
 import { runConformanceCommand } from "./command.js";
 
-vi.mock("./corpus.js", () => ({ TEST262_REVISION: "pinned", runTest262Corpus: vi.fn() }));
+vi.mock("./corpus.js", () => ({ TEST262_REVISION: "pinned", runTest262Corpus: vi.fn(), enumerateTest262: vi.fn() }));
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return { ...fs.promises, default: fs.promises };
@@ -12,8 +12,11 @@ beforeEach(() => {
   vol.fromJSON({ "/reports/.keep": "" });
   vi.mocked(runTest262Corpus).mockImplementation(async options => {
     const entry = { filename: "example.js", kind: "test" as const, results: [{ mode: "sloppy" as const, status: "passed" as const }] };
+    await options.onStart?.({ id: "manifest" } as never, ["example.js"]);
     await options.onResult?.(entry);
-    return { revision: "pinned", runtime: { node: "test", icu: "test" }, execution: { timeoutMs: options.timeoutMs, budget: {} },
+    return { complete: true, manifestId: "manifest", selected: ["example.js"], manifest: { id: "manifest" } as never, revision: "pinned", runtime: { node: "test", icu: "test", v8: "test", platform: process.platform, arch: process.arch },
+      execution: { timeoutMs: options.timeoutMs, budget: {}, effectiveBudget: {}, deadline: "per-variant timeout",
+        isolation: { kind: "persistent-child-process", startupTimeoutMs: 10000, wallTimeoutMs: options.timeoutMs, timerStarts: "before-dispatch", recovery: "kill-and-replace-without-retrying-variant" } },
       selections: options.selections ?? ["."], entries: [entry], harnessHashes: {},
       counts: { files: 1, fixtures: 0, metadataErrors: 0, executionErrors: 0, variants: 1, passed: 1, failed: 0, unsupported: 0 } };
   });
@@ -22,7 +25,7 @@ afterEach(() => { vol.reset(); vi.clearAllMocks(); });
 
 it("writes a header, streamed entries and final summary", async () => {
   expect(await runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl", "--include", "built-ins/Array/of", "--timeout-ms", "1000"])).toBe(0);
-  const records = fs.readFileSync("/reports/result.jsonl", "utf8").trim().split("\n").map(line => JSON.parse(line));
+  const records = fs.readFileSync("/reports/result.jsonl", "utf8").toString().trim().split("\n").map(line => JSON.parse(line));
   expect(records.map(record => record.type)).toEqual(["header", "result", "summary"]);
   expect(records[2]).toMatchObject({ counts: { passed: 1 }, execution: { timeoutMs: 1000 } });
   expect(records[2]).not.toHaveProperty("entries");
@@ -35,7 +38,7 @@ it("refuses to overwrite an existing report", async () => {
   expect(runTest262Corpus).not.toHaveBeenCalled();
 });
 
-it.each([[], ["--corpus", "/corpus"], ["--corpus", "/corpus", "--report", "/reports/result.jsonl", "--timeout-ms", "0"]])("rejects invalid command arguments: %j", async args => {
+it.each([[], ["--corpus", "/corpus"], ["--corpus", "/corpus", "--report", "/reports/result.jsonl", "--timeout-ms", "0"]].map(args => ({ args })))("rejects invalid command arguments: $args", async ({ args }) => {
   await expect(runConformanceCommand(args)).rejects.toThrow();
   expect(runTest262Corpus).not.toHaveBeenCalled();
 });
@@ -54,8 +57,8 @@ it.each(["failed", "unsupported", "metadataErrors", "executionErrors"] as const)
 it("leaves no successful summary when corpus execution aborts", async () => {
   vi.mocked(runTest262Corpus).mockRejectedValue(new Error("corpus changed"));
   await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl"])).rejects.toThrow("corpus changed");
-  const records = fs.readFileSync("/reports/result.jsonl", "utf8").trim().split("\n").map(line => JSON.parse(line));
-  expect(records.map(record => record.type)).toEqual(["header"]);
+  const records = fs.readFileSync("/reports/result.jsonl", "utf8").toString().trim().split("\n").map(line => JSON.parse(line));
+  expect(records.map(record => record.type)).toEqual(["aborted"]);
 });
 
 it("passes explicit resource budgets through to corpus execution", async () => {
@@ -70,4 +73,31 @@ it("passes explicit resource budgets through to corpus execution", async () => {
 it.each(["0", "-1", "Infinity", "1.5"])("rejects invalid resource limits: %s", async value => {
   await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/result.jsonl", "--data-size", value])).rejects.toThrow();
   expect(runTest262Corpus).not.toHaveBeenCalled();
+});
+
+const aggregateManifest = {
+  id: "manifest", revision: "pinned", sourceSha: "sha", sourceHash: "hash",
+  runtime: { node: "node", icu: "icu" }, execution: { timeoutMs: 3000, budget: {} },
+  files: [{ filename: "a.js", sourceHash: "a", kind: "test", variants: [{ mode: "sloppy" }] }]
+};
+function aggregateInput() {
+  const { files: ignoredFiles, id, ...provenance } = aggregateManifest;
+  return [
+    { type: "header", manifestId: id, selected: ["a.js"], ...provenance },
+    { type: "result", filename: "a.js", sourceHash: "a", kind: "test", results: [{ mode: "sloppy", status: "passed" }] },
+    { type: "summary", manifestId: id, selected: ["a.js"], complete: true, ...provenance,
+      counts: { files: 1, fixtures: 0, metadataErrors: 0, executionErrors: 0, variants: 1, passed: 1, failed: 0, unsupported: 0 } }
+  ];
+}
+it("aggregates a complete report against a freshly enumerated current manifest", async () => {
+  vi.mocked(enumerateTest262).mockResolvedValue(aggregateManifest as never);
+  vol.fromJSON({ "/reports/part.jsonl": aggregateInput().map(record => JSON.stringify(record)).join("\n") });
+  expect(await runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/aggregate.json", "--aggregate", "/reports/part.jsonl"])).toBe(0);
+});
+it.each(["runtime", "execution", "sourceSha", "sourceHash", "revision"])("rejects a report with forged header %s", async key => {
+  vi.mocked(enumerateTest262).mockResolvedValue(aggregateManifest as never);
+  const records = aggregateInput();
+  Object.assign(records[0], { [key]: "different" });
+  vol.fromJSON({ "/reports/part.jsonl": records.map(record => JSON.stringify(record)).join("\n") });
+  await expect(runConformanceCommand(["--corpus", "/corpus", "--report", "/reports/aggregate.json", "--aggregate", "/reports/part.jsonl"])).rejects.toThrow("provenance mismatch");
 });

@@ -1,0 +1,42 @@
+{
+  "observedUtc": "2026-09-12T08:57:33.224676+00:00",
+  "coordinatorAlive": false,
+  "schedule": "resume-batch-schedule.json",
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "priorCohortResultsIncluded": false,
+  "excludedPartialAttempts": [
+    "39500-39999",
+    "40500-40999"
+  ],
+  "elapsedSeconds": 8758.198278,
+  "completeSelections": 216,
+  "incompleteSelections": 0,
+  "streamedFiles": 53876,
+  "streamedVariants": 102926,
+  "statuses": {
+    "unsupported": 3318,
+    "passed": 93157,
+    "failed": 6451
+  },
+  "reasons": {
+    "IsHTMLDDA": 84,
+    "passed": 93157,
+    "worker-wall-timeout": 4546,
+    "unexpected-throw": 1336,
+    "module": 1996,
+    "async-failure": 196,
+    "unhandled-rejection": 74,
+    "shared-memory": 974,
+    "agent": 224,
+    "blocking-mode": 18,
+    "budgetExceeded": 191,
+    "reentry": 6,
+    "wrong-phase": 100,
+    "wrong-error-type": 2,
+    "gc": 22
+  },
+  "active": [],
+  "freeDiskBytes": 2388774912,
+  "workerCap": 2,
+  "filesPerSecond": 6.151493525253117
+}

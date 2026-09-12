@@ -1,0 +1,18 @@
+{
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "sourceHash": "b51f268c45c0643879c5c46eb088618a8db0415020c65e2e32ae47d8b928c9cc",
+  "scheduleSha256": "ee921fa8dc0356658ef093944daa24431b7564a20b3bf2e8009aa781add00ffe",
+  "selections": 216,
+  "smallSelections": 120,
+  "uniqueFiles": 53876,
+  "uniqueVariants": 102926,
+  "duplicateFiles": 0,
+  "omittedFiles": 0,
+  "timeoutMs": 3000,
+  "moduleGate": {
+    "nonModuleFiles": 595,
+    "nonModuleVariants": 1153,
+    "parseNegativeVariants": 729
+  },
+  "checkedUtc": "2026-09-12T06:31:17.672Z"
+}

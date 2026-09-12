@@ -1,0 +1,4 @@
+{
+  "maxWorkers": 4,
+  "reason": "Fixed cap after observed per-worker RSS up to 1.59GiB; avoid blind expansion after package completes"
+}

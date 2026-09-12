@@ -1,0 +1,9 @@
+{
+  "method": "Exact byte prefix before the uniquely appended task heading; task only appended ledger content",
+  "originalBytes": 97605,
+  "originalSha256": "cedfc37dd75d513f2e3c26e4bc2da447745f1d570e9ff836707bb2b7b414445f",
+  "marker": "\n\n## Complete-conformance-runner execution \u2014 2026-09-12\n",
+  "originalSnapshot": "ledger-before-task.md",
+  "originalCanonicalPath": "docs/plans/safejs-gap-closure-evidence.md",
+  "relativeLinkContext": "Snapshot links retain their original docs/plans resolution context; the immutable relocated snapshot is not a second navigable canonical ledger."
+}

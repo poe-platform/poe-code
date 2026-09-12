@@ -1,0 +1,61 @@
+{
+  "observedAt": "2026-09-12T22:13:49.810Z",
+  "initialAttempt": "exit 1: verifier assumed SHA256 subject; inspected attestation, corrected to its declared SHA512 algorithm, fetched and hashed both tarballs again",
+  "rows": [
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.563",
+      "tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.563.tgz",
+      "bytes": 8501925,
+      "actualIntegrity": "sha512-R38QD/Y3HK+pd8WNFuA9ojknH2Ej4EoE3QdDT7yKfMFgp1ZjymG5LbrgVgf9RXpwz2uvUX+hD4AwWN/5a4c7hA==",
+      "registrySignatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "valid": true,
+          "expires": null
+        },
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "valid": true,
+          "expires": null
+        }
+      ],
+      "provenanceSubjectMatches": true,
+      "source": [
+        {
+          "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+          "digest": {
+            "gitCommit": "6d167d01ae30e5510a82a38513f470438a2c9244"
+          }
+        }
+      ],
+      "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34714789746/attempts/1",
+      "attestationSignatureVerification": "not performed; decoded subject and source only"
+    },
+    {
+      "name": "poe-code",
+      "version": "15.0.28",
+      "tarball": "https://registry.npmjs.org/poe-code/-/poe-code-15.0.28.tgz",
+      "bytes": 34299072,
+      "actualIntegrity": "sha512-Q2yX+hBSQSQD05G5STgRgQBV/YTI//q3gnKbGxGegdt2rSI9HLBK0wSrADJLJCTfEu9373WRr8x0zALbq0lcmA==",
+      "registrySignatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "valid": true,
+          "expires": null
+        }
+      ],
+      "provenanceSubjectMatches": true,
+      "source": [
+        {
+          "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+          "digest": {
+            "gitCommit": "6d167d01ae30e5510a82a38513f470438a2c9244"
+          }
+        }
+      ],
+      "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34714789948/attempts/1",
+      "attestationSignatureVerification": "not performed; decoded subject and source only"
+    }
+  ]
+}

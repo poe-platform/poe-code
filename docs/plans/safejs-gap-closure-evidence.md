@@ -1234,3 +1234,76 @@ before a separate repair commit. If superseded, verify the successor's ancestry
 contains the delivered SHA, then follow that run. Registry propagation requires
 retrying metadata/provenance, never unpublishing or force-pushing. Final run and
 remote-SHA observations will be recorded separately under `docs/plans`.
+
+## repair-temporal-extremes — display-year oracle correction
+
+Source **`09ffdf243ee391fd4ad19dbb547136692bb47b6e`**, Node22.23.2 /
+ICU78.2. The production source remains unchanged. The target is still
+ECMA-262 edition16 / ECMA-402 edition12 (June2025), Temporal
+`e8cc03fc970a65a3359e8870e3b35e687ac94e55`, Test262
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93`.
+
+The inherited manual QA had an incorrect display-year oracle: its ISO lower
+endpoint expected a signed negative year. The pinned `FormatDateTimePattern`
+requires `1 - year` for a nonpositive year field, irrespective of calendar ID.
+A concrete public in-range control, PlainDate year-1 with ISO year formatting,
+returns **"2"**, not **"-1"**. The control exits0 on Node22; its old expectation
+is falsified. This is an oracle repair, not a production formatter repair.
+
+[Exact reproduction and correction instructions](safejs-temporal-extremes-oracle-correction.md)
+preserve the source rule and both old/new calculations. Blocks 1 and 4 now apply
+the year transformation after choosing the calendar year, including the Buddhist
+profile. Historical blocks and hashes remain intact and explicitly marked as
+historical. No test is removed, no field assertion relaxed, and no exception
+becomes a successful formatting result. Native calendar-profile discrepancies
+remain unqualified rather than replacing the expected Temporal calendar fields.
+
+The [corrected matrix](repair-temporal-extremes/delivery-qualification-20260912/corrected-matrix.json)
+records all fourteen reruns with exact commands, source SHA, Node/ICU versions,
+new stdin hashes and exits. The failure counts are unchanged:
+
+| Runtime / ICU | Corrected block 1 pass/fail |
+| --- | --- |
+| Node18.18.0 / 73.2 | 201/128 |
+| Node18.20.8 / 74.2 | 201/128 |
+| Node20.20.2 / 78.2 | 202/127 |
+| Node22.23.2 / 78.2 | 206/123 |
+| Node24.21.0 / 78.3 | 206/123 |
+| Node26.8.2 / 78.3 | 206/123 |
+| Bun1.3.11 / 74.2 | 206/123 |
+
+Every corrected block4 profile retains **240 formatting passes / 480 failures**,
+**144/144 transport**, **144/144 error ownership**, **24/24 invalid numeric-Date
+rejection**. All fourteen processes exit1; stderr is empty, with no skipped
+executed assertions. Blocks 2 and 3 were not changed or repeated; their preceding
+all-eight-type arithmetic and admission evidence remains separate. Production
+files, budgets, timeouts, legal ranges and calendar identities were not changed.
+
+The new manual qualification also records why a general 400-year surrogate has
+not qualified: at an in-range historical ISO date, the Buddhist backend formatter
+returns different month/day fields from ISO/Gregorian. Chinese lower-endpoint
+year/month/day getters also throw on Node22, while weekday succeeds. Expected
+Chinese fields and all-runtime getter qualification remain an explicit blocker.
+These observations add no accepted calendar substitution or unsupported native
+oracle. All earlier implementation and integration blockers remain open.
+
+Existing-package verification was strengthened independently after the earlier
+commit: both downloaded tarballs match registry SHA-512 integrity, their registry
+signatures verify, and their decoded provenance subjects match those digests.
+The [verification receipt](repair-temporal-extremes/delivery-qualification-20260912/registry-integrity.json)
+records safe-js0.1.563 and poe-code15.0.28 separately, both from source
+`6d167d01ae30e5510a82a38513f470438a2c9244`. The first diagnostic assumed a
+SHA-256 provenance subject and exited1; inspection showed SHA-512, and both
+tarballs were fetched and checked again using that declared algorithm. No package
+integrity failure was reproduced. Attestation signatures were not independently
+verified. These are older publications, not a new task release.
+
+Delivery of `09ffdf243` was independently verified on remote main. Its schema
+workflow **34722067733 succeeded**; release **34722067970** still awaits its
+fresh unit/native gate at preparation of this correction. Build, audit,
+integration, cache-eligible unit checks and all four Bash shards passed. If the
+correction supersedes this run, the successor must contain `09ffdf243` and pass
+the full required workflow. Final SHA/workflow/no-release observations are kept
+separately in the local delivery receipt. No production fix or issue closure is
+claimed. Documentation formatting, unchanged-source fingerprints and exact
+staging preservation are checked before the correction is committed and pushed.

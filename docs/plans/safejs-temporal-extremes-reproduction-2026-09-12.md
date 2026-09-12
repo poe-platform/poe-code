@@ -1,5 +1,11 @@
 # Temporal extremes: reproducible qualification, repairs unresolved
 
+The blocks below preserve historical executed bytes. Their lower-endpoint ISO
+and Buddhist display-year expectations need the
+[normative oracle correction](safejs-temporal-extremes-oracle-correction.md)
+for new qualification. Historical RangeError results remain failures; the old
+expected signed years are not valid regression expectations for a future repair.
+
 This report preserves the exact manually executed probe bodies so the evidence
 does not depend on untracked JSON logs or local temporary files. Run each numbered
 JavaScript block on stdin from the repository root using the runtime commands in

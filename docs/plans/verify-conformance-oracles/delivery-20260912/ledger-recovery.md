@@ -1,0 +1,6 @@
+
+## Oracle delivery successor failure and recovery (2026-09-12)
+
+The docs receipt commit `1fd8137547c3e6963eb52f80147b418d1f126235` is verified on remote main. Its root Release [34712378521](https://github.com/poe-platform/poe-code/actions/runs/34712378521) failed: the unchanged adversarial corpus took 761.1 ms against 750 ms after completing semantic checks; 29,071 unit tests passed, one failed, 47 skipped. Schema run 34712378357 succeeded. This is a resource-policy failure, not an ECMAScript defect or successful no-release outcome. Prior verified publications 15.0.27 / 0.1.562 remain valid.
+
+The separate atomic recovery removes repeated immutable symbol-catalog enumeration and duplicate closure-brand queries during intrinsic registration. Two in-memory operation-count controls failed before repair; 333 focused tests in 27 files now pass with no failures/skips, plus the selected maintained workspace build and lint. No budget, assertion, timeout, case, or capability was weakened. Source base is `1fd8137547c3e6963eb52f80147b418d1f126235`, Node 22.23.2 / ICU 78.2. See [recovery plan](verify-conformance-oracles-ci-recovery.md) for exact commands, limits, timings and raw logs. Remote delivery and required successor publication will be recorded separately after verification; they remain pending at commit time.

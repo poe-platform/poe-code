@@ -1,0 +1,142 @@
+{
+  "runs": [
+    {
+      "ms": 349.71445800000004,
+      "passed": true
+    },
+    {
+      "ms": 264.3426249999999,
+      "passed": true
+    },
+    {
+      "ms": 272.69937500000015,
+      "passed": true
+    },
+    {
+      "ms": 236.11345899999992,
+      "passed": true
+    }
+  ],
+  "top": [
+    [
+      "registerBuiltinIdentities file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/intrinsics.ts:1",
+      123
+    ],
+    [
+      " file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      85
+    ],
+    [
+      "(garbage collector) :0",
+      82
+    ],
+    [
+      "trackIntrinsicState file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      30
+    ],
+    [
+      "materializeFunctionProperties file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      29
+    ],
+    [
+      " file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts:1",
+      26
+    ],
+    [
+      "registerFunctionRealm file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/function-realm.ts:1",
+      19
+    ],
+    [
+      "captureIntrinsicRecords file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      19
+    ],
+    [
+      "retainedValues file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/budget.ts:1",
+      16
+    ],
+    [
+      "createSandboxClosure file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts:1",
+      15
+    ],
+    [
+      "createBuiltinBindings file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals.ts:1",
+      13
+    ],
+    [
+      "set filename :0",
+      11
+    ],
+    [
+      "registerIntrinsicObject file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      9
+    ],
+    [
+      "trackPropertyTable file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      9
+    ],
+    [
+      " file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/run.ts:1",
+      8
+    ],
+    [
+      "evaluateNode file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/interpreter.ts:1",
+      8
+    ],
+    [
+      "registerGuestClosure file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      8
+    ],
+    [
+      "createTemporalGlobal file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/temporal.ts:1",
+      7
+    ],
+    [
+      "defineProperty file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      7
+    ],
+    [
+      "accessorAdapter file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/accessors.ts:1",
+      6
+    ],
+    [
+      "reconcileCompiledValues file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts:1",
+      6
+    ],
+    [
+      "__name file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts:1",
+      5
+    ],
+    [
+      "createNumericTypedArrayPrototypes file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/globals/numeric-typed-array.ts:1",
+      5
+    ],
+    [
+      "getGuestFunctionProperties file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      5
+    ],
+    [
+      "(program) :0",
+      5
+    ],
+    [
+      "registerIntrinsicPrototype file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      4
+    ],
+    [
+      "completeIntrinsicObjectInitialization file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      4
+    ],
+    [
+      "getSandboxPrototype file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/object-model.ts:1",
+      4
+    ],
+    [
+      " file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/intrinsics.ts:1",
+      3
+    ],
+    [
+      "copyToSandbox file:///Users/kjopek/Workspace/poe-code/packages/safe-js/src/interp/values.ts:1",
+      3
+    ]
+  ]
+}

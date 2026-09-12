@@ -6,6 +6,7 @@ import { internalSymbols } from "./internal-symbols.js";
 import { isSandboxClosure } from "./values.js";
 import type { SandboxObject } from "./values.js";
 
+const wellKnownSymbolNames = new Map(Object.entries(wellKnownSymbols).map(([name, symbol]) => [symbol, name]));
 const identities = new WeakMap<object, { id: string; realm: object }>();
 const realms = new WeakMap<Budget, { identity: object; values: Map<string, object> }>();
 const runtimeGlobals = new WeakMap<Budget, SandboxObject>();
@@ -27,7 +28,8 @@ export function registerBuiltinIdentities(
   for (let index = 0; index < pending.length; index++) {
     const [path, value] = pending[index];
     if (value === null || typeof value !== "object") continue;
-    if (isSandboxClosure(value)) registerFunctionRealm(value, budget);
+    const closure = isSandboxClosure(value);
+    if (closure) registerFunctionRealm(value, budget);
     if (path.length >= 2 && path.at(-1) === "prototype" && path.every(member => typeof member === "string"))
       registerRealmPrototype(budget, path.slice(0, -1).join("."), value);
     const id = JSON.stringify(path);
@@ -40,13 +42,13 @@ export function registerBuiltinIdentities(
     if (!identities.has(value)) identities.set(value, { id, realm: realm.identity });
     if (visited.has(value)) continue;
     visited.add(value);
-    const owner = isSandboxClosure(value) ? value.properties : value;
+    const owner = closure ? value.properties : value;
     if (owner === undefined) continue;
     for (const key of Reflect.ownKeys(owner)) {
       if (typeof key === "symbol" && internalSymbols.has(key)) continue;
       const descriptor = Object.getOwnPropertyDescriptor(owner, key)!;
       const symbolName = typeof key === "symbol"
-        ? Object.entries(wellKnownSymbols).find(([, symbol]) => symbol === key)?.[0]
+        ? wellKnownSymbolNames.get(key)
         : undefined;
       if (typeof key === "symbol" && symbolName === undefined)
         throw new TypeError("Intrinsic symbol keys must be well-known symbols.");

@@ -1,0 +1,37 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts (2 tests | 1 failed) 14ms
+   × does not repeat closure-brand inspection of an installed object 4ms
+   ✓ bounds frozen symbol-catalog enumeration independently of the installed graph size 9ms
+FAIL packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts > does not repeat closure-brand inspection of an installed object
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts:12:17
+     10|   try {
+     11|     registerBuiltinIdentities(budget, { root });
+     12|     expect(has).toHaveBeenCalledTimes(1);
+       |                 ^
+     13|     expect(resolveIntrinsicIdentity(budget, '["root"]')).toBe(root);
+     14|   } finally {
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts > does not repeat closure-brand inspection of an installed object
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts:12:17
+     10|   try {
+     11|     registerBuiltinIdentities(budget, { root });
+     12|     expect(has).toHaveBeenCalledTimes(1);
+       |                 ^
+     13|     expect(resolveIntrinsicIdentity(budget, '["root"]')).toBe(root);
+     14|   } finally {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  14:35:56
+   Duration  2.11s (transform 1.57s, setup 40ms, import 1.97s, tests 14ms, environment 0ms)
+

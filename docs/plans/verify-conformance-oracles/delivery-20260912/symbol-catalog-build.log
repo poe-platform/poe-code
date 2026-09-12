@@ -1,0 +1,161 @@
+
+> poe-code@0.0.0-dev build:workspaces
+> node scripts/build-workspaces.mjs --workspace=@poe-code/safe-js
+
+
+> @poe-code/frontmatter@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-defs@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/process-runner@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/poe-acp-client@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-fs@0.0.0-dev build
+> node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json && node scripts/native-assets.mjs
+
+
+> @poe-code/user-error@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> auth-store@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-oauth-test-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+{"nativeAssets":"/Users/kjopek/Workspace/poe-code/packages/safe-fs/dist/native/fs-seek","targets":[]}
+
+> toolcraft-schema@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/providers@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc
+
+
+> @poe-code/task-list@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> mcp-oauth@0.0.1 build
+> tsc
+
+
+> tiny-stdio-mcp-server@0.1.0 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> toolcraft-design@0.0.2 postbuild
+> node scripts/smoke-built-exports.mjs
+
+
+> @poe-code/config-mutations@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/config-extends@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> tiny-mcp-client@0.1.0 build
+> node scripts/build.mjs
+
+
+> @poe-code/agent-skill-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs
+
+
+> @poe-code/poe-code-config@0.0.1 build
+> rm -rf dist && tsc
+
+
+> @poe-code/agent-harness-tools@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-hook-config@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/agent-spawn@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && tsc
+
+
+> @poe-code/safe-js@0.0.1 build
+> node ../../scripts/guard-package-dist.mjs && node scripts/numberformat-data.mjs && rm -rf dist && tsc && node scripts/numberformat-data.mjs --copy && node ../../scripts/set-bin-executable.mjs
+
+{"numberFormatLocales":766,"sourceBytes":5153552,"pluralLocales":224}
+chmod 0755 dist/cli.js
+chmod 0755 dist/cli.js
+
+> @poe-code/safe-js@0.0.1 postbuild
+> node --test scripts/built-imports.test.mjs
+
+TAP version 13
+# Subtest: built platform resolution does not add a nested canonical filesystem package scope
+ok 1 - built platform resolution does not add a nested canonical filesystem package scope
+  ---
+  duration_ms: 0.483458
+  type: 'test'
+  ...
+# Subtest: built . export initializes in a fresh native ESM process
+ok 2 - built . export initializes in a fresh native ESM process
+  ---
+  duration_ms: 911.329667
+  type: 'test'
+  ...
+# Subtest: built ./core export initializes in a fresh native ESM process
+ok 3 - built ./core export initializes in a fresh native ESM process
+  ---
+  duration_ms: 671.201458
+  type: 'test'
+  ...
+# Subtest: built ./cli export initializes in a fresh native ESM process
+ok 4 - built ./cli export initializes in a fresh native ESM process
+  ---
+  duration_ms: 45.864625
+  type: 'test'
+  ...
+# Subtest: built ./workerd export initializes in a fresh native ESM process
+ok 5 - built ./workerd export initializes in a fresh native ESM process
+  ---
+  duration_ms: 690.811333
+  type: 'test'
+  ...
+# Subtest: built SDK and snapshot helpers initialize together without preloading value modules
+ok 6 - built SDK and snapshot helpers initialize together without preloading value modules
+  ---
+  duration_ms: 892.420209
+  type: 'test'
+  ...
+# Subtest: built replay-data helpers initialize without preloading the SDK
+ok 7 - built replay-data helpers initialize without preloading the SDK
+  ---
+  duration_ms: 637.028333
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3919.22575
+{"workspaces":71,"builds":23,"edges":211,"layers":11,"noBuild":[],"manifestless":["packages/safejs"]}

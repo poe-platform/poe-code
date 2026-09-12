@@ -1,0 +1,24 @@
+[
+  {
+    "name": "CLI version",
+    "command": [
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-oracle-recovery-cd_fjvzl/node_modules/.bin/poe-code",
+      "--version"
+    ],
+    "exitCode": 0,
+    "stdout": "\u250c   Poe - version \n\u2502\n\u25c7  poe-code\n\u2502     15.0.28\n",
+    "stderr": ""
+  },
+  {
+    "name": "SafeJS export",
+    "command": [
+      "node",
+      "--input-type=module",
+      "-e",
+      "import assert from 'node:assert/strict';import {run} from 'poe-code/safe-js';const a=await run('return 6 * 7;',{});assert.equal(a.ok,true);assert.equal(a.returnValue,42);const b=await run('return typeof process;',{});assert.equal(b.ok,true);assert.equal(b.returnValue,'undefined');console.log('poe-code SafeJS export: arithmetic and absent ambient process passed');"
+    ],
+    "exitCode": 0,
+    "stdout": "poe-code SafeJS export: arithmetic and absent ambient process passed\n",
+    "stderr": ""
+  }
+]

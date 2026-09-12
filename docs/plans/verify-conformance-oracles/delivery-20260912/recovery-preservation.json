@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-09-12T19:45:04.356348+00:00",
+  "unrelatedWorkingFilesMatched": true,
+  "stagedDiffSha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "stagedPaths": [
+    "packages/safe-bash/src/commands/text.ts",
+    "packages/safe-bash/tests/commands/helpers.ts",
+    "packages/safe-bash/tests/commands/text.test.ts"
+  ]
+}

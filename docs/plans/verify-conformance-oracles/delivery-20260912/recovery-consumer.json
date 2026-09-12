@@ -1,0 +1,13 @@
+{
+  "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-oracle-recovery-cd_fjvzl",
+  "command": [
+    "npm",
+    "install",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "@poe-platform/safe-fs@0.1.563",
+    "@poe-platform/safe-bash@0.1.563"
+  ],
+  "exitCode": 0
+}

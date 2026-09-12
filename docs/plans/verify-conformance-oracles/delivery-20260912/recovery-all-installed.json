@@ -1,0 +1,25 @@
+{
+  "name": "safejs-oracle-recovery-cd_fjvzl",
+  "dependencies": {
+    "@poe-platform/safe-bash": {
+      "version": "0.1.563",
+      "resolved": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.563.tgz",
+      "overridden": false
+    },
+    "@poe-platform/safe-fs": {
+      "version": "0.1.563",
+      "resolved": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.563.tgz",
+      "overridden": false
+    },
+    "@poe-platform/safe-js": {
+      "version": "0.1.563",
+      "resolved": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.563.tgz",
+      "overridden": false
+    },
+    "poe-code": {
+      "version": "15.0.28",
+      "resolved": "https://registry.npmjs.org/poe-code/-/poe-code-15.0.28.tgz",
+      "overridden": false
+    }
+  }
+}

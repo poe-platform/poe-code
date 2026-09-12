@@ -1,0 +1,158 @@
+{
+  "sourceSha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+  "test262": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+  "receipts": [
+    {
+      "command": [
+        "node",
+        "--experimental-vm-modules",
+        "-e",
+        "const fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto');const root='/private/tmp/safejs-baseline-test262-419d3e0';const modulePath='language/module-code/early-dup-export-dflt.js',atomicsPath='built-ins/Atomics/wait/cannot-suspend-throws.js';const source=p=>fs.readFileSync(root+'/test/'+p,'utf8');const hash=p=>crypto.createHash('sha256').update(source(p)).digest('hex');const rows=[];if(typeof vm.SourceTextModule!=='function'){rows.push({path:modulePath,status:'native-unavailable',reason:'SourceTextModule unavailable even with explicit VM module flag'});}else{let error;try{new vm.SourceTextModule(source(modulePath));}catch(e){error=e.constructor.name;}if(error!=='SyntaxError')throw new Error('Module parse-negative did not produce SyntaxError: '+error);new vm.SourceTextModule('export default 1;');rows.push({path:modulePath,sourceSha256:hash(modulePath),mode:'module',status:'passed-native-control',phase:'parse',type:error,neighbor:'export default 1; parses normally; no module evaluation'});}let canBlock,probe;if(typeof Atomics==='undefined'||typeof SharedArrayBuffer==='undefined'){probe='native API absent';}else{try{probe=Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,0);canBlock=true;}catch(e){if(e instanceof TypeError){canBlock=false;probe='TypeError';}else throw e;}}for(const mode of ['sloppy','strict']){if(canBlock!==false){rows.push({path:atomicsPath,sourceSha256:hash(atomicsPath),mode,status:'native-unavailable',reason:canBlock===true?'Node host permits blocking; cannot run CanBlockIsFalse fixture on this host':probe,probe,canBlock,SafeJSOutcomeInferred:false});continue;}const context=vm.createContext({});for(const include of ['assert.js','sta.js'])new vm.Script(fs.readFileSync(root+'/harness/'+include,'utf8')).runInContext(context);new vm.Script((mode==='strict'?'\"use strict\";\\n':'')+source(atomicsPath)).runInContext(context);rows.push({path:atomicsPath,sourceSha256:hash(atomicsPath),mode,status:'passed-native-control',canBlock});}console.log(JSON.stringify({runtime:{node:process.version,icu:process.versions.icu},explicitFlag:'--experimental-vm-modules',rows}));"
+      ],
+      "exitCode": 0,
+      "stderr": "(node:68502) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "result": {
+        "runtime": {
+          "node": "v22.23.2",
+          "icu": "78.2"
+        },
+        "explicitFlag": "--experimental-vm-modules",
+        "rows": [
+          {
+            "path": "language/module-code/early-dup-export-dflt.js",
+            "sourceSha256": "4e3b96290553bee9582fcbb7f341f50aef504f8787a31d184b0cb97a1fb3f4e2",
+            "mode": "module",
+            "status": "passed-native-control",
+            "phase": "parse",
+            "type": "SyntaxError",
+            "neighbor": "export default 1; parses normally; no module evaluation"
+          },
+          {
+            "path": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+            "sourceSha256": "d221d4db2404e7cd482c2e985a34e0a739c91cb9bd9ed5169fcc4fdfba5a1499",
+            "mode": "sloppy",
+            "status": "native-unavailable",
+            "reason": "Node host permits blocking; cannot run CanBlockIsFalse fixture on this host",
+            "probe": "timed-out",
+            "canBlock": true,
+            "SafeJSOutcomeInferred": false
+          },
+          {
+            "path": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+            "sourceSha256": "d221d4db2404e7cd482c2e985a34e0a739c91cb9bd9ed5169fcc4fdfba5a1499",
+            "mode": "strict",
+            "status": "native-unavailable",
+            "reason": "Node host permits blocking; cannot run CanBlockIsFalse fixture on this host",
+            "probe": "timed-out",
+            "canBlock": true,
+            "SafeJSOutcomeInferred": false
+          }
+        ]
+      }
+    },
+    {
+      "command": [
+        "/Users/kjopek/.npm/_npx/17533ff5f2b7389f/node_modules/node/bin/node",
+        "--experimental-vm-modules",
+        "-e",
+        "const fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto');const root='/private/tmp/safejs-baseline-test262-419d3e0';const modulePath='language/module-code/early-dup-export-dflt.js',atomicsPath='built-ins/Atomics/wait/cannot-suspend-throws.js';const source=p=>fs.readFileSync(root+'/test/'+p,'utf8');const hash=p=>crypto.createHash('sha256').update(source(p)).digest('hex');const rows=[];if(typeof vm.SourceTextModule!=='function'){rows.push({path:modulePath,status:'native-unavailable',reason:'SourceTextModule unavailable even with explicit VM module flag'});}else{let error;try{new vm.SourceTextModule(source(modulePath));}catch(e){error=e.constructor.name;}if(error!=='SyntaxError')throw new Error('Module parse-negative did not produce SyntaxError: '+error);new vm.SourceTextModule('export default 1;');rows.push({path:modulePath,sourceSha256:hash(modulePath),mode:'module',status:'passed-native-control',phase:'parse',type:error,neighbor:'export default 1; parses normally; no module evaluation'});}let canBlock,probe;if(typeof Atomics==='undefined'||typeof SharedArrayBuffer==='undefined'){probe='native API absent';}else{try{probe=Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,0);canBlock=true;}catch(e){if(e instanceof TypeError){canBlock=false;probe='TypeError';}else throw e;}}for(const mode of ['sloppy','strict']){if(canBlock!==false){rows.push({path:atomicsPath,sourceSha256:hash(atomicsPath),mode,status:'native-unavailable',reason:canBlock===true?'Node host permits blocking; cannot run CanBlockIsFalse fixture on this host':probe,probe,canBlock,SafeJSOutcomeInferred:false});continue;}const context=vm.createContext({});for(const include of ['assert.js','sta.js'])new vm.Script(fs.readFileSync(root+'/harness/'+include,'utf8')).runInContext(context);new vm.Script((mode==='strict'?'\"use strict\";\\n':'')+source(atomicsPath)).runInContext(context);rows.push({path:atomicsPath,sourceSha256:hash(atomicsPath),mode,status:'passed-native-control',canBlock});}console.log(JSON.stringify({runtime:{node:process.version,icu:process.versions.icu},explicitFlag:'--experimental-vm-modules',rows}));"
+      ],
+      "exitCode": 0,
+      "stderr": "(node:68503) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "result": {
+        "runtime": {
+          "node": "v24.18.0",
+          "icu": "78.3"
+        },
+        "explicitFlag": "--experimental-vm-modules",
+        "rows": [
+          {
+            "path": "language/module-code/early-dup-export-dflt.js",
+            "sourceSha256": "4e3b96290553bee9582fcbb7f341f50aef504f8787a31d184b0cb97a1fb3f4e2",
+            "mode": "module",
+            "status": "passed-native-control",
+            "phase": "parse",
+            "type": "SyntaxError",
+            "neighbor": "export default 1; parses normally; no module evaluation"
+          },
+          {
+            "path": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+            "sourceSha256": "d221d4db2404e7cd482c2e985a34e0a739c91cb9bd9ed5169fcc4fdfba5a1499",
+            "mode": "sloppy",
+            "status": "native-unavailable",
+            "reason": "Node host permits blocking; cannot run CanBlockIsFalse fixture on this host",
+            "probe": "timed-out",
+            "canBlock": true,
+            "SafeJSOutcomeInferred": false
+          },
+          {
+            "path": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+            "sourceSha256": "d221d4db2404e7cd482c2e985a34e0a739c91cb9bd9ed5169fcc4fdfba5a1499",
+            "mode": "strict",
+            "status": "native-unavailable",
+            "reason": "Node host permits blocking; cannot run CanBlockIsFalse fixture on this host",
+            "probe": "timed-out",
+            "canBlock": true,
+            "SafeJSOutcomeInferred": false
+          }
+        ]
+      }
+    },
+    {
+      "command": [
+        "/Users/kjopek/.npm/_npx/a5b58b28f5a1e3b2/node_modules/node/bin/node",
+        "--experimental-vm-modules",
+        "-e",
+        "const fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto');const root='/private/tmp/safejs-baseline-test262-419d3e0';const modulePath='language/module-code/early-dup-export-dflt.js',atomicsPath='built-ins/Atomics/wait/cannot-suspend-throws.js';const source=p=>fs.readFileSync(root+'/test/'+p,'utf8');const hash=p=>crypto.createHash('sha256').update(source(p)).digest('hex');const rows=[];if(typeof vm.SourceTextModule!=='function'){rows.push({path:modulePath,status:'native-unavailable',reason:'SourceTextModule unavailable even with explicit VM module flag'});}else{let error;try{new vm.SourceTextModule(source(modulePath));}catch(e){error=e.constructor.name;}if(error!=='SyntaxError')throw new Error('Module parse-negative did not produce SyntaxError: '+error);new vm.SourceTextModule('export default 1;');rows.push({path:modulePath,sourceSha256:hash(modulePath),mode:'module',status:'passed-native-control',phase:'parse',type:error,neighbor:'export default 1; parses normally; no module evaluation'});}let canBlock,probe;if(typeof Atomics==='undefined'||typeof SharedArrayBuffer==='undefined'){probe='native API absent';}else{try{probe=Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,0);canBlock=true;}catch(e){if(e instanceof TypeError){canBlock=false;probe='TypeError';}else throw e;}}for(const mode of ['sloppy','strict']){if(canBlock!==false){rows.push({path:atomicsPath,sourceSha256:hash(atomicsPath),mode,status:'native-unavailable',reason:canBlock===true?'Node host permits blocking; cannot run CanBlockIsFalse fixture on this host':probe,probe,canBlock,SafeJSOutcomeInferred:false});continue;}const context=vm.createContext({});for(const include of ['assert.js','sta.js'])new vm.Script(fs.readFileSync(root+'/harness/'+include,'utf8')).runInContext(context);new vm.Script((mode==='strict'?'\"use strict\";\\n':'')+source(atomicsPath)).runInContext(context);rows.push({path:atomicsPath,sourceSha256:hash(atomicsPath),mode,status:'passed-native-control',canBlock});}console.log(JSON.stringify({runtime:{node:process.version,icu:process.versions.icu},explicitFlag:'--experimental-vm-modules',rows}));"
+      ],
+      "exitCode": 0,
+      "stderr": "(node:68508) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "result": {
+        "runtime": {
+          "node": "v26.8.1",
+          "icu": "78.3"
+        },
+        "explicitFlag": "--experimental-vm-modules",
+        "rows": [
+          {
+            "path": "language/module-code/early-dup-export-dflt.js",
+            "sourceSha256": "4e3b96290553bee9582fcbb7f341f50aef504f8787a31d184b0cb97a1fb3f4e2",
+            "mode": "module",
+            "status": "passed-native-control",
+            "phase": "parse",
+            "type": "SyntaxError",
+            "neighbor": "export default 1; parses normally; no module evaluation"
+          },
+          {
+            "path": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+            "sourceSha256": "d221d4db2404e7cd482c2e985a34e0a739c91cb9bd9ed5169fcc4fdfba5a1499",
+            "mode": "sloppy",
+            "status": "native-unavailable",
+            "reason": "Node host permits blocking; cannot run CanBlockIsFalse fixture on this host",
+            "probe": "timed-out",
+            "canBlock": true,
+            "SafeJSOutcomeInferred": false
+          },
+          {
+            "path": "built-ins/Atomics/wait/cannot-suspend-throws.js",
+            "sourceSha256": "d221d4db2404e7cd482c2e985a34e0a739c91cb9bd9ed5169fcc4fdfba5a1499",
+            "mode": "strict",
+            "status": "native-unavailable",
+            "reason": "Node host permits blocking; cannot run CanBlockIsFalse fixture on this host",
+            "probe": "timed-out",
+            "canBlock": true,
+            "SafeJSOutcomeInferred": false
+          }
+        ]
+      }
+    }
+  ],
+  "specification": {
+    "edition": "ECMA-262 16 (June 2025)",
+    "url": "https://262.ecma-international.org/16.0/",
+    "sha256": "6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713",
+    "moduleClause": "16.2.1.7.1 ParseModule, #sec-parsemodule",
+    "hostClause": "9.6.2 AgentCanSuspend, #sec-agentcansuspend"
+  },
+  "qualification": "SourceTextModule requires the explicit --experimental-vm-modules adapter flag; only parsing is tested, never linking/evaluation. Atomics probe uses valid shared Int32Array arguments with timeout zero. These Node hosts permit blocking, so the CanBlockIsFalse fixture is not executed and no SafeJS outcome is inferred. The module fixture also contains invalid export-default grammar; this narrow observation does not isolate duplicate-export early-error semantics."
+}

@@ -1,0 +1,26 @@
+{
+  "sha": "6d167d01ae30e5510a82a38513f470438a2c9244",
+  "paths": [
+    "packages/safe-js/src/interp/intrinsics.ts",
+    "packages/safe-js/src/interp/intrinsic-symbol-registration-cost.test.ts",
+    "docs/plans/verify-conformance-oracles-ci-recovery.md",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/closure-brand-red.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/corpus-after.json",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/corpus-profile.json",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/docs-failed.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/docs-local-commit.json",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/docs-push.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/symbol-catalog-benchmark.json",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/symbol-catalog-build.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/symbol-catalog-green.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/symbol-catalog-postbuild.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/symbol-catalog-red.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/symbol-catalog-replay.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/recovery-green.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/recovery-build.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/recovery-lint.log",
+    "docs/plans/verify-conformance-oracles/delivery-20260912/ledger-recovery.md",
+    "docs/plans/safejs-gap-closure-evidence.md"
+  ],
+  "unrelatedStagedDiffMatched": true
+}

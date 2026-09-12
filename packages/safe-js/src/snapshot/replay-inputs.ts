@@ -34,7 +34,8 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
   saved?: unknown,
   preparePromise?: (promise: SandboxPromise | undefined, id: string) => SandboxPromise,
   onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void,
-  compilation?: CompileScope
+  compilation?: CompileScope,
+  onInputSymbols?: (symbols: ReadonlyMap<number, symbol>) => void
 ): {
   values: T;
   snapshot: ReplayData;
@@ -172,13 +173,24 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
     context.nodes = snapshot.nodes;
     memo.nodes = snapshot.nodes;
   }
+  const inputSymbols = new Map<number, symbol>();
+  for (let id = 0; id < snapshot.nodes.length; id++) {
+    if (snapshot.nodes[id]?.kind !== "symbol") continue;
+    const symbol = decodeReplayData({ root: { tag: "ref", id }, nodes: snapshot.nodes }, { memo }, compilation);
+    if (typeof symbol !== "symbol") throw new TypeError("Invalid input symbol.");
+    inputSymbols.set(id, symbol);
+  }
+  onInputSymbols?.(inputSymbols);
   const resolvePromise = (id: string) => {
     const value = saved === undefined ? inputPromises.get(id) : readCapability(id);
     if (!promises.has(id) && preparePromise !== undefined)
       promises.set(id, preparePromise(isSandboxPromise(value) ? value : undefined, id));
     return promises.get(id);
   };
-  if (inputPromises.size > 0) memo.values.clear();
+  if (inputPromises.size > 0) {
+    memo.values.clear();
+    for (const [id, symbol] of inputSymbols) memo.values.set(id, symbol);
+  }
   const values = saved === undefined && inputPromises.size === 0 ? current
     : decodeReplayData(snapshot, { memo, resolveCapability, resolvePromise, onCapabilityRestored }, compilation) as T;
   const captureNamespace = (namespace: Record<string, SandboxValue>, name: string) => {

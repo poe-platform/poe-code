@@ -342,7 +342,8 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
             restoredSnapshot?.initialInputs,
             prepareInputPromise,
             hostCalls.rebindHostCapability.bind(hostCalls),
-            compilation
+            compilation,
+            hostCalls.registerInputSymbols.bind(hostCalls)
           );
           leaveInputReplay = () => {
             budget.setRetainedDataUsage(initialInputs,0);

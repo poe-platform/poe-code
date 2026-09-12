@@ -1,0 +1,168 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts (10 tests | 10 failed) 15ms
+   × admits the exact caller symbol Symbol(kResourceStore) with its descriptor 3ms
+   × admits the exact caller symbol Symbol(async_id_symbol) with its descriptor 1ms
+   × admits the exact caller symbol Symbol(Symbol.toStringTag) with its descriptor 0ms
+   × keeps active and retired async contexts private independently of user admission 7ms
+   × validates admission atomically and never invokes accessors, including later replacements 1ms
+   × preserves admitted graphs through binding 0ms
+   × preserves admitted graphs through host 0ms
+   × preserves admitted graphs through realm 0ms
+   × keeps equal-description callable properties distinct through binding replay 0ms
+   × keeps equal-description callable properties distinct through host replay 0ms
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > admits the exact caller symbol Symbol(kResourceStore) with its descriptor
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:9:10
+      7|   const input = Promise.resolve(7);
+      8|   Object.defineProperty(input, key, { value: 42, enumerable: true });
+      9|   expect(admitNativePromiseProperties(input, [key])).toBe(input);
+       |          ^
+     10|   const properties = getPromiseProperties(deepCopyToSandbox(input) as …
+     11|   expect(Reflect.ownKeys(properties)).toEqual([key]);
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > admits the exact caller symbol Symbol(async_id_symbol) with its descriptor
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:9:10
+      7|   const input = Promise.resolve(7);
+      8|   Object.defineProperty(input, key, { value: 42, enumerable: true });
+      9|   expect(admitNativePromiseProperties(input, [key])).toBe(input);
+       |          ^
+     10|   const properties = getPromiseProperties(deepCopyToSandbox(input) as …
+     11|   expect(Reflect.ownKeys(properties)).toEqual([key]);
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > admits the exact caller symbol Symbol(Symbol.toStringTag) with its descriptor
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:9:10
+      7|   const input = Promise.resolve(7);
+      8|   Object.defineProperty(input, key, { value: 42, enumerable: true });
+      9|   expect(admitNativePromiseProperties(input, [key])).toBe(input);
+       |          ^
+     10|   const properties = getPromiseProperties(deepCopyToSandbox(input) as …
+     11|   expect(Reflect.ownKeys(properties)).toEqual([key]);
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > keeps active and retired async contexts private independently of user admission
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:29:7
+     27|       const plain = Promise.resolve(1);
+     28|       expect(Reflect.ownKeys(getPromiseProperties(deepCopyToSandbox(pl…
+     29|       admitNativePromiseProperties(input, [key]);
+       |       ^
+     30|       const properties = getPromiseProperties(deepCopyToSandbox(input)…
+     31|       expect(Reflect.ownKeys(properties)).toEqual([key]);
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > validates admission atomically and never invokes accessors, including later replacements
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:45:3
+     43|   expect(() => admitNativePromiseProperties(input, [data, accessor])).…
+     44|   expect(Reflect.ownKeys(getPromiseProperties(deepCopyToSandbox(input)…
+     45|   admitNativePromiseProperties(input, [data]);
+       |   ^
+     46|   Object.defineProperty(input, data, { get: getter });
+     47|   expect(() => deepCopyToSandbox(input)).toThrow(TypeError);
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted graphs through binding
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:57:3
+
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted graphs through host
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:57:3
+
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted graphs through realm
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:57:3
+
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > keeps equal-description callable properties distinct through binding replay
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:81:3
+     79|   Object.defineProperty(input, keys[0]!, { value: () => 1 });
+     80|   Object.defineProperty(input, keys[1]!, { value: () => 2 });
+     81|   admitNativePromiseProperties(input, keys);
+       |   ^
+     82|   const source = (surface === "host" ? "const input = load(); " : "") …
+     83|   const bindings = surface === "host" ? { load: () => input } : { inpu…
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > keeps equal-description callable properties distinct through host replay
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:81:3
+     79|   Object.defineProperty(input, keys[0]!, { value: () => 1 });
+     80|   Object.defineProperty(input, keys[1]!, { value: () => 2 });
+     81|   admitNativePromiseProperties(input, keys);
+       |   ^
+     82|   const source = (surface === "host" ? "const input = load(); " : "") …
+     83|   const bindings = surface === "host" ? { load: () => input } : { inpu…
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > admits the exact caller symbol Symbol(kResourceStore) with its descriptor
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > admits the exact caller symbol Symbol(async_id_symbol) with its descriptor
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > admits the exact caller symbol Symbol(Symbol.toStringTag) with its descriptor
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:9:10
+      7|   const input = Promise.resolve(7);
+      8|   Object.defineProperty(input, key, { value: 42, enumerable: true });
+      9|   expect(admitNativePromiseProperties(input, [key])).toBe(input);
+       |          ^
+     10|   const properties = getPromiseProperties(deepCopyToSandbox(input) as …
+     11|   expect(Reflect.ownKeys(properties)).toEqual([key]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > keeps active and retired async contexts private independently of user admission
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:29:7
+     27|       const plain = Promise.resolve(1);
+     28|       expect(Reflect.ownKeys(getPromiseProperties(deepCopyToSandbox(pl…
+     29|       admitNativePromiseProperties(input, [key]);
+       |       ^
+     30|       const properties = getPromiseProperties(deepCopyToSandbox(input)…
+     31|       expect(Reflect.ownKeys(properties)).toEqual([key]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > validates admission atomically and never invokes accessors, including later replacements
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:45:3
+     43|   expect(() => admitNativePromiseProperties(input, [data, accessor])).…
+     44|   expect(Reflect.ownKeys(getPromiseProperties(deepCopyToSandbox(input)…
+     45|   admitNativePromiseProperties(input, [data]);
+       |   ^
+     46|   Object.defineProperty(input, data, { get: getter });
+     47|   expect(() => deepCopyToSandbox(input)).toThrow(TypeError);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted graphs through binding
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted graphs through host
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted graphs through realm
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:57:3
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > keeps equal-description callable properties distinct through binding replay
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > keeps equal-description callable properties distinct through host replay
+TypeError: admitNativePromiseProperties is not a function
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:81:3
+     79|   Object.defineProperty(input, keys[0]!, { value: () => 1 });
+     80|   Object.defineProperty(input, keys[1]!, { value: () => 2 });
+     81|   admitNativePromiseProperties(input, keys);
+       |   ^
+     82|   const source = (surface === "host" ? "const input = load(); " : "") …
+     83|   const bindings = surface === "host" ? { load: () => input } : { inpu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed (10)
+   Start at  18:10:59
+   Duration  3.65s (transform 2.64s, setup 54ms, import 3.43s, tests 15ms, environment 0ms)
+

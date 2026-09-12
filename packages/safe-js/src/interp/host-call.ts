@@ -180,6 +180,10 @@ export class HostCallJournal {
   private retainedSize = 0;
   private readonly outcomeSizes = new Map<string, number>();
   private readonly capabilities = new Map<string, SandboxClosure>();
+  private readonly inputSymbols = new Map<number, symbol>();
+  private readonly inputSymbolIds = new Map<symbol, number>();
+  private readonly identifyInputSymbol = this.inputSymbolIds.get.bind(this.inputSymbolIds);
+  private readonly resolveInputSymbol = this.inputSymbols.get.bind(this.inputSymbols);
   private readonly inputPromises = new Map<string, SandboxPromise>();
   private readonly inputPromiseIds = new WeakMap<SandboxPromise, string>();
   private readonly importedPromiseMemo = new Map<string, Map<number, SandboxPromise>>();
@@ -570,6 +574,8 @@ export class HostCallJournal {
     this.budget?.setRetainedDataUsage(this.exposedSharedStorage, 0);
     this.exposedSharedStorage.clear();
     this.inputPromises.clear();
+    this.inputSymbols.clear();
+    this.inputSymbolIds.clear();
     this.importedPromiseMemo.clear();
     this.sharedAppliedOrder.clear();
     this.sharedArguments.clear();
@@ -607,6 +613,13 @@ export class HostCallJournal {
     if (!this.capabilityIds.has(closure)) this.capabilityIds.set(closure, identity);
     if (!this.nativeClosures.has(native)) this.nativeClosures.set(native, closure);
     this.hostSources.set(closure, native);
+  }
+
+  registerInputSymbols(symbols: ReadonlyMap<number, symbol>): void {
+    for (const [id, symbol] of symbols) {
+      this.inputSymbols.set(id, symbol);
+      this.inputSymbolIds.set(symbol, id);
+    }
   }
 
   registerInputPromise(promise: SandboxPromise): void {
@@ -769,7 +782,7 @@ export class HostCallJournal {
         const memo={nodes:encoded.data.nodes,values:new Map<number,SandboxValue>()};
         let value = decodeReplayData(
           encoded.data,
-          { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, memo,
+          { resolveCapability: this.resolveCapability, resolvePromise: this.resolvePromise, resolveInputSymbol: this.resolveInputSymbol, memo,
             graphId: record.id, importedPromiseMemo: this.importedPromiseMemo,
             resumePendingImportedPromise: (id, node) => this.reconcileImportedPromise(id, node),
             restoreScheduledPromise: this.promiseReplay === undefined ? undefined
@@ -868,7 +881,7 @@ export class HostCallJournal {
     context.nodes = [...encoded.data.nodes];
     const added = new Map<number, SandboxPromise>();
     const data = encodeReplayData(value, {
-      context, identifyCapability: this.identifyCapability, identifyPromise: this.identifyPromise,
+      context, identifyCapability: this.identifyCapability, identifyPromise: this.identifyPromise, identifyInputSymbol: this.identifyInputSymbol,
       captureSettledImportedPromises: true, capturePendingImportedPromises: true,
       identifyScheduledPromise: promise => this.promiseReplay?.identifyPromise(promise),
       onValueEncoded: (index, value) => { if (isSandboxPromise(value)) added.set(index, value); },
@@ -921,7 +934,7 @@ export class HostCallJournal {
         const outcomeValue=outcome?.status==="fulfilled"?outcome.value:outcome?.reason;
         const data=outcome===undefined?undefined:encoded?.data??encodeReplayData(
           effects.length===0?outcomeValue:[outcomeValue,...effects],
-          {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,captureSettledImportedPromises:true,
+          {identifyCapability:this.identifyCapability,identifyPromise:this.identifyPromise,identifyInputSymbol:this.identifyInputSymbol,captureSettledImportedPromises:true,
             capturePendingImportedPromises:true,
             identifyScheduledPromise: value => this.promiseReplay?.identifyPromise(value),
             identifyImportedPromise: value => importedIdentities.get(value),onValueEncoded:(id,value)=>{
@@ -1041,6 +1054,12 @@ function restoreReplayCalls(
   const capabilities = new Map<string, SandboxClosure>();
   const importedPromiseMemo = new Map<string, Map<number, SandboxPromise>>();
   const replayCalls = input.calls;
+  const inputSymbols = new Map<number, symbol>();
+  const resolveInputSymbol = (id: number): symbol => {
+    let symbol = inputSymbols.get(id);
+    if (symbol === undefined) inputSymbols.set(id, symbol = Symbol());
+    return symbol;
+  };
   const inputPromises = new Map<string, SandboxPromise>();
   for (const entry of input.calls) {
     if (entry?.moduleId === "<inputs>" && entry.asynchronous === true &&
@@ -1146,7 +1165,7 @@ function restoreReplayCalls(
         throw new TypeError("Invalid replay call outcome.");
       const memo={nodes:entry.outcome.data.nodes,values:new Map<number,SandboxValue>()};
       let value = decodeReplayData(entry.outcome.data, {
-        resolveCapability, resolvePromise: id => inputPromises.get(id), memo,
+        resolveCapability, resolvePromise: id => inputPromises.get(id), resolveInputSymbol, memo,
         graphId: entry.id, importedPromiseMemo,
         resolvePromiseGraph: id => replayCalls.find(call => call?.id === id)?.outcome?.data,
         resumePendingImportedPromise: () => new Promise(() => undefined),

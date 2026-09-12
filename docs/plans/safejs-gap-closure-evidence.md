@@ -1307,3 +1307,145 @@ the full required workflow. Final SHA/workflow/no-release observations are kept
 separately in the local delivery receipt. No production fix or issue closure is
 claimed. Documentation formatting, unchanged-source fingerprints and exact
 staging preservation are checked before the correction is committed and pushed.
+
+## repair-promise-symbol-admission — 2026-09-12
+
+Source baseline: local `main` and observed remote `main` both
+`40b5ac20e91570772786e5f9cb961881b11d6692`. Runtime: Node 22.23.2, V8
+12.4.254.21-node.56, ICU 78.2, Unicode 17.0. Existing staged and unstaged work
+was preserved. This section is appended to the existing evidence rather than
+replacing other task records. The published edition and extension pins above
+are unchanged.
+
+Owner/category: `repair-promise-symbol-admission` / `C-PROMISE-SYMBOL`.
+The native-to-sandbox symbol loss is a **product host-boundary contract gap**;
+private async-context exclusion is an **intentional capability boundary**.
+There is no safe automatic symbol-ownership discriminator established here.
+The repair therefore provides explicit per-Promise property admission; it does
+not claim transparent copying of native Promise symbols.
+
+Smallest reproduction at the baseline: `const key = Symbol('label'); const p =
+Promise.resolve(1); Object.defineProperty(p, key, {value: 42});` followed by
+`getPromiseProperties(deepCopyToSandbox(p))[key]`. Expected user value `42`,
+actual `undefined`. Command:
+`npx vitest run packages/safe-js/src/interp/promise-import-properties.test.ts`.
+Result: 1 failure / 1 pass, 5 ms test execution, 2.02 s total. The neighboring
+passing case copies an own string descriptor without changing its flags.
+The regression was present as an untracked user file; it was reproduced before
+runtime edits, then qualified to call the explicit admission API while retaining
+its descriptor/value and exact-key assertions.
+
+TDD receipts under `docs/plans/repair-promise-symbol-admission/`:
+
+- `promise-admission-red.log`: 10 new API regressions fail before implementation
+  because the API does not yet exist (3.65 s total). Exact keys include unique,
+  global and well-known symbols, including descriptions colliding with Node
+  metadata. The active/retired async-store control independently asserts that
+  only the admitted caller key crosses the boundary.
+- `promise-admission-budget-red.log`: replay and rebinding accept a 129-character
+  symbol description despite a 128-character limit (2 failures / 3 passes,
+  3.91 s). The at-limit control remains accepted. Replay decode and rebinding
+  now validate descriptions; this is budget enforcement, not a larger budget.
+- `symbol-value-red.log`: three caller symbol values are rejected at the host
+  bridge. After primitive support, the follow-up alias control additionally
+  found that input reconstruction split the property and settlement symbol
+  identities. Explicit input-graph references now preserve those aliases.
+- `order-red.log`: admission list order must not reorder native own symbol keys.
+- `native-nonextensible-control.log`: native Node Promise observation fails with
+  async hooks enabled after the Promise is made nonextensible (exit 1).
+  This is a **host/backend limitation**, independently reproduced without
+  SafeJS. The initialized-hook nonextensibility control remains required.
+
+The API and authority contract, accessor policy, callable replay requirements,
+and normative references are in
+[safejs-native-promise-symbol-boundary.md](safejs-native-promise-symbol-boundary.md).
+Primary source and fixture hashes are in `primary-sources.json`; pinned fixtures
+are neighboring ECMAScript controls, not a substitute for the host-boundary
+regressions. An initial web-tool fetch of the edition exceeded its response
+limit; a direct primary-source fetch succeeded. The initially guessed
+`Promise/extensible.js` fixture does not exist at the pin; actual pinned fixture
+paths were checked before use.
+
+Qualification and delivery receipts will be recorded below after the maintained
+checks finish. Unexecuted runtime cells remain missing evidence, not passes.
+
+### Terminal local qualification
+
+- `npx vitest run` over the exact 173-file selection in
+  `focused-selection.json`: **173 files / 2,096 tests passed**, no skips or
+  failures, 138.29 s (`integration.log`, `integration.exit`). Selection covers
+  existing Promise, host-call/bridge, replay-input, symbol and realm tests.
+- Final explicit acceptance command:
+  `npx vitest run packages/safe-js/src/interp/native-promise-admission.test.ts packages/safe-js/src/interp/native-promise-admission-budgets.test.ts packages/safe-js/src/interp/promise-import-properties.test.ts packages/safe-js/src/snapshot/input-symbol-references.test.ts`:
+  **4 files / 39 tests passed**, no skips or failures, 6.01 s
+  (`final-acceptance.log`, `final-acceptance.exit`). This includes the final
+  additional invalid-brand/key control after the broader selection began.
+- ESLint on every edited/new TypeScript file: exit 0, no diagnostics
+  (`lint-final.log`, `lint-final.exit`). `git diff --check` passed.
+- `npm run build:workspaces -- --workspace=@poe-code/safe-js`: exit 0; maintained
+  dependency closure and native postbuild import tests pass (7/7), recorded in
+  `build-final.log`. No build/task declarations or timeouts changed.
+- `npm test --workspace=@poe-code/safe-js` ran its maintained pretest/typecheck
+  stages, but its unit execution overlapped runtime edits. It was explicitly
+  interrupted with SIGINT (exit 130); `package-test.log` is **incomplete**, not
+  a whole-suite pass. Final qualification is the focused selection above.
+- `public-runtime-matrix.json` and `public-*.stdout/.stderr` qualify built
+  `index`, `core`, and `workerd` **exports** on Node 18.18.0, 18.20.8, 20,
+  22.23.2, 24.21.0, 26.8.2 and Bun. All seven processes exit 0; every process
+  tests original and completed replay, symbol key/value/settlement aliases,
+  descriptor admission, nonextensibility and retired-context exclusion on all
+  three exports. Exact executable paths and executable probe source are recorded
+  in the matrix and `public-smoke-command.json`; each stdout includes its actual
+  Node/Bun and ICU versions. This does **not** claim execution inside Workerd.
+- The extra built-artifact callable collision control passes original/completed
+  replay with a string key resembling a serialized symbol path and a distinct
+  symbol callable (`callable-collision.log`). Existing string-only capability
+  paths retain their old representation.
+
+`source-receipt.json` pins the baseline SHA plus SHA-256 of each repaired source
+and test file and the built entrypoints. The changes remain within SafeJS and
+its public entrypoints. No README addition, CLI visual change, screenshot test,
+budget increase, assertion relaxation, timeout change, skipped new regression,
+new ambient authority, or edition-target change was used.
+
+Two conformance enumeration attempts aborted when source changed; the next
+attempt enumerated successfully but rejected my `test/`-prefixed selection path
+with ENOENT (`test/test`). All three incomplete attempts are preserved and
+counted as neither fixture passes nor runtime defects. The corrected command
+uses `--include built-ins/...`; its terminal receipt follows below.
+
+### Disposition and delivery
+
+The explicit-admission acceptance controls pass independently: caller-owned
+symbol data survives, while unadmitted active and retired host-context metadata
+is absent. Tests cover unique/global/well-known keys, flags, native property
+order, nonextensibility, no accessor invocation, atomic list replacement,
+aliases/cycles, distinct callable capabilities, settlement/rejection, original,
+pending and completed replay, persistent realms, key/value string budgets,
+and retained-data rollback. The API is intentionally explicit rather than an
+automatic ownership classifier. Rejection wrapping and pending reconciliation
+retain the existing host contract.
+
+Remaining qualification limits: the full package suite did not complete; actual
+Workerd runtime execution remains unverified; this task does not claim full
+ECMAScript compatibility closure. Node's late-hook/nonextensible-Promise
+failure remains a separately evidenced backend limitation. These limits do not
+turn missing host capabilities into ECMAScript defects.
+
+Delivery is separate from those local results: no push was requested or
+performed, and no release was initiated. Remote-main observation remains the
+baseline SHA above; it is not delivery of this repair. There is therefore **no
+successful-release receipt for this change**. The local commit and final
+remote observation are recorded separately in the delivery receipt.
+
+The built pending-callable manual control also passes for bindings and nested
+host results: the pending continuation invokes the explicitly supplied new
+callable, while completed replay retains recorded results. Reproduction steps
+are in `repair-promise-symbol-admission/manual-checks.md`; outputs are in
+`pending-callable.log`. The primitive-alias intermediate red run expected
+`[true, true]` and observed `[true, false]` for unique/global symbols, with the
+well-known-symbol neighbor passing. That intermediate TDD state was baseline
+SHA plus the primitive-admission worktree change, not a separately committed
+revision; the final source hashes and terminal acceptance are pinned separately.
+
+The corrected maintained conformance command completed: **4 pinned files / 8 variants passed**, zero failed, unsupported, metadata-error or execution-error cases. Receipt: `repair-promise-symbol-admission/pinned-fixtures-qualified.jsonl`; exact command is in its header and `.log`. Test262 revision is unchanged. Runner source SHA is `40b5ac20e91570772786e5f9cb961881b11d6692`; working-source digest is `3a889f58a269ad4afca5b3e275dbb761bab2121596440bcbf3704aeab9ba0ef6`. The default 3,000 ms per-variant deadline and declared default budgets were unchanged.

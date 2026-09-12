@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/native-promise-admission.test.ts (19 tests) 1561ms
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  18:15:32
+   Duration  6.34s (transform 3.70s, setup 58ms, import 4.61s, tests 1.56s, environment 0ms)
+

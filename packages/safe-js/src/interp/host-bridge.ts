@@ -991,6 +991,11 @@ export function copyHostValueToSandbox(
     return options.budget.allocateString(value);
   }
 
+  if (typeof value === "symbol") {
+    if (value.description !== undefined) budget.allocateString(value.description);
+    return value;
+  }
+
   if (types.isNativeError(value) || value instanceof Error) {
     return createHostErrorValue(value, stackFrames, budget, undefined, state, true);
   }
@@ -1024,6 +1029,7 @@ export function copyHostValueToSandbox(
       for (const key of Reflect.ownKeys(properties)) {
         const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
         if (!("value" in descriptor)) throw new TypeError("Imported Promise accessors require an explicit capability.");
+        if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
         Object.defineProperty(getPromiseProperties(copied), typeof key === "string" ? budget.allocateString(key) : key, { ...descriptor,
           value: copyHostValueToSandbox(descriptor.value, stackFrames, options, state, joinPath(path, String(key))) });
       }
@@ -1273,10 +1279,14 @@ export function copyHostValueToSandbox(
     promiseIdentities.set(value, sandboxPromise);
     if (types.isPromise(value)) {
       const properties = getPromiseProperties(sandboxPromise);
-      for (const [key, descriptor] of descriptors) {
-        Object.defineProperty(properties, budget.allocateString(key), { ...descriptor,
+      const hasSymbols = descriptors.some(([key]) => typeof key === "symbol");
+      for (const [index, [key, descriptor]] of descriptors.entries()) {
+        if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
+        const segment = hasSymbols
+          ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
+        Object.defineProperty(properties, typeof key === "string" ? budget.allocateString(key) : key, { ...descriptor,
           value: copyHostValueToSandbox(descriptor.value, stackFrames,
-            { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
+            { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, String(key))) });
       }
       if (!Object.isExtensible(value)) Object.preventExtensions(properties);
     }

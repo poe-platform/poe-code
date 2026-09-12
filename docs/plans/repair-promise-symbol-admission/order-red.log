@@ -1,0 +1,61 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts (20 tests | 1 failed) 1609ms
+   ✓ admits the exact caller symbol Symbol(kResourceStore) with its descriptor 4ms
+   ✓ admits the exact caller symbol Symbol(async_id_symbol) with its descriptor 0ms
+   ✓ admits the exact caller symbol Symbol(Symbol.toStringTag) with its descriptor 0ms
+   ✓ keeps active and retired async contexts private independently of user admission 1ms
+   ✓ validates admission atomically and never invokes accessors, including later replacements 1ms
+   ✓ preserves admitted graphs through binding 244ms
+   ✓ preserves admitted graphs through host 169ms
+   ✓ preserves admitted graphs through realm 36ms
+   ✓ keeps equal-description callable properties distinct through binding replay 156ms
+   ✓ keeps equal-description callable properties distinct through host replay 110ms
+   ✓ preserves symbol properties through pending and completed replay (rejects: false) 175ms
+   ✓ preserves symbol properties through pending and completed replay (rejects: true) 187ms
+   ✓ omits unadmitted symbols and snapshots the explicit admission list 1ms
+   ✓ isolates retained host context in the public binding boundary 89ms
+   ✓ isolates retained host context in the public host boundary 110ms
+   ✓ isolates retained host context in the public realm boundary 27ms
+   ✓ preserves admitted key/value aliases and settlement through public replay: Symbol(unique) 88ms
+   ✓ preserves admitted key/value aliases and settlement through public replay: Symbol(global) 97ms
+   ✓ preserves admitted key/value aliases and settlement through public replay: Symbol(Symbol.iterator) 100ms
+   × preserves native symbol property order independently of admission list order 9ms
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > preserves native symbol property order independently of admission list order
+AssertionError: expected [ Symbol(same), Symbol(same) ] to deeply equal [ Symbol(same), Symbol(same) ]
+
+Compared values have no visual difference.
+
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:177:106
+    175|   Object.defineProperty(input, second, { value: 2 });
+    176|   admitNativePromiseProperties(input, [second, first]);
+    177|   expect(Object.getOwnPropertySymbols(getPromiseProperties(deepCopyToS…
+       |                                                                                                          ^
+    178| });
+    179|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > preserves native symbol property order independently of admission list order
+AssertionError: expected [ Symbol(same), Symbol(same) ] to deeply equal [ Symbol(same), Symbol(same) ]
+
+Compared values have no visual difference.
+
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts:177:106
+    175|   Object.defineProperty(input, second, { value: 2 });
+    176|   admitNativePromiseProperties(input, [second, first]);
+    177|   expect(Object.getOwnPropertySymbols(getPromiseProperties(deepCopyToS…
+       |                                                                                                          ^
+    178| });
+    179|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 19 passed (20)
+   Start at  18:18:00
+   Duration  5.92s (transform 3.18s, setup 53ms, import 4.14s, tests 1.61s, environment 0ms)
+

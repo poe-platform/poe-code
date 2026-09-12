@@ -1,3 +1,4 @@
+export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
 import { parseModule as parseModuleInternal, type Module } from "./parse/parser.js";
 import { restore as restoreInternal, type SafeJSSnapshot, type RestoreOptions } from "./restore.js";
 import {

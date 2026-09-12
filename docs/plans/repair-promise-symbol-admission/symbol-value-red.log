@@ -1,0 +1,134 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ❯ packages/safe-js/src/interp/native-promise-admission.test.ts (19 tests | 3 failed) 1150ms
+   ✓ admits the exact caller symbol Symbol(kResourceStore) with its descriptor 4ms
+   ✓ admits the exact caller symbol Symbol(async_id_symbol) with its descriptor 1ms
+   ✓ admits the exact caller symbol Symbol(Symbol.toStringTag) with its descriptor 1ms
+   ✓ keeps active and retired async contexts private independently of user admission 1ms
+   ✓ validates admission atomically and never invokes accessors, including later replacements 1ms
+   ✓ preserves admitted graphs through binding 234ms
+   ✓ preserves admitted graphs through host 140ms
+   ✓ preserves admitted graphs through realm 30ms
+   ✓ keeps equal-description callable properties distinct through binding replay 109ms
+   ✓ keeps equal-description callable properties distinct through host replay 95ms
+   ✓ preserves symbol properties through pending and completed replay (rejects: false) 167ms
+   ✓ preserves symbol properties through pending and completed replay (rejects: true) 165ms
+   ✓ omits unadmitted symbols and snapshots the explicit admission list 0ms
+   ✓ isolates retained host context in the public binding boundary 85ms
+   ✓ isolates retained host context in the public host boundary 83ms
+   ✓ isolates retained host context in the public realm boundary 22ms
+   × preserves admitted key/value aliases and settlement through public replay: Symbol(unique) 6ms
+   × preserves admitted key/value aliases and settlement through public replay: Symbol(global) 2ms
+   × preserves admitted key/value aliases and settlement through public replay: Symbol(Symbol.iterator) 2ms
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted key/value aliases and settlement through public replay: Symbol(unique)
+TypeError: Unsupported sandbox value at <root>["Symbol(unique)"]: symbol
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1426:9
+    1424|   }
+    1425|
+    1426|   throw new TypeError(`Unsupported sandbox value at ${path}: ${describ…
+       |         ^
+    1427| }
+    1428|
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1282:18
+ ❯ packages/safe-js/src/interp/host-bridge.ts:177:13
+ ❯ wrapCallerInjectedBindings packages/safe-js/src/interp/host-bridge.ts:173:32
+ ❯ packages/safe-js/src/run.ts:267:17
+ ❯ convertInitialInput packages/safe-js/src/run.ts:231:81
+ ❯ packages/safe-js/src/run.ts:264:34
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted key/value aliases and settlement through public replay: Symbol(global)
+TypeError: Unsupported sandbox value at <root>["Symbol(global)"]: symbol
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1426:9
+    1424|   }
+    1425|
+    1426|   throw new TypeError(`Unsupported sandbox value at ${path}: ${describ…
+       |         ^
+    1427| }
+    1428|
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1282:18
+ ❯ packages/safe-js/src/interp/host-bridge.ts:177:13
+ ❯ wrapCallerInjectedBindings packages/safe-js/src/interp/host-bridge.ts:173:32
+ ❯ packages/safe-js/src/run.ts:267:17
+ ❯ convertInitialInput packages/safe-js/src/run.ts:231:81
+ ❯ packages/safe-js/src/run.ts:264:34
+
+FAIL packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted key/value aliases and settlement through public replay: Symbol(Symbol.iterator)
+TypeError: Unsupported sandbox value at <root>["Symbol(Symbol.iterator)"]: symbol
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1426:9
+    1424|   }
+    1425|
+    1426|   throw new TypeError(`Unsupported sandbox value at ${path}: ${describ…
+       |         ^
+    1427| }
+    1428|
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1282:18
+ ❯ packages/safe-js/src/interp/host-bridge.ts:177:13
+ ❯ wrapCallerInjectedBindings packages/safe-js/src/interp/host-bridge.ts:173:32
+ ❯ packages/safe-js/src/run.ts:267:17
+ ❯ convertInitialInput packages/safe-js/src/run.ts:231:81
+ ❯ packages/safe-js/src/run.ts:264:34
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted key/value aliases and settlement through public replay: Symbol(unique)
+TypeError: Unsupported sandbox value at <root>["Symbol(unique)"]: symbol
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1426:9
+    1424|   }
+    1425|
+    1426|   throw new TypeError(`Unsupported sandbox value at ${path}: ${describ…
+       |         ^
+    1427| }
+    1428|
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1282:18
+ ❯ packages/safe-js/src/interp/host-bridge.ts:177:13
+ ❯ wrapCallerInjectedBindings packages/safe-js/src/interp/host-bridge.ts:173:32
+ ❯ packages/safe-js/src/run.ts:267:17
+ ❯ convertInitialInput packages/safe-js/src/run.ts:231:81
+ ❯ packages/safe-js/src/run.ts:264:34
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted key/value aliases and settlement through public replay: Symbol(global)
+TypeError: Unsupported sandbox value at <root>["Symbol(global)"]: symbol
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1426:9
+    1424|   }
+    1425|
+    1426|   throw new TypeError(`Unsupported sandbox value at ${path}: ${describ…
+       |         ^
+    1427| }
+    1428|
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1282:18
+ ❯ packages/safe-js/src/interp/host-bridge.ts:177:13
+ ❯ wrapCallerInjectedBindings packages/safe-js/src/interp/host-bridge.ts:173:32
+ ❯ packages/safe-js/src/run.ts:267:17
+ ❯ convertInitialInput packages/safe-js/src/run.ts:231:81
+ ❯ packages/safe-js/src/run.ts:264:34
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/safe-js/src/interp/native-promise-admission.test.ts > preserves admitted key/value aliases and settlement through public replay: Symbol(Symbol.iterator)
+TypeError: Unsupported sandbox value at <root>["Symbol(Symbol.iterator)"]: symbol
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1426:9
+    1424|   }
+    1425|
+    1426|   throw new TypeError(`Unsupported sandbox value at ${path}: ${describ…
+       |         ^
+    1427| }
+    1428|
+ ❯ copyHostValueToSandbox packages/safe-js/src/interp/host-bridge.ts:1282:18
+ ❯ packages/safe-js/src/interp/host-bridge.ts:177:13
+ ❯ wrapCallerInjectedBindings packages/safe-js/src/interp/host-bridge.ts:173:32
+ ❯ packages/safe-js/src/run.ts:267:17
+ ❯ convertInitialInput packages/safe-js/src/run.ts:231:81
+ ❯ packages/safe-js/src/run.ts:264:34
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 16 passed (19)
+   Start at  18:14:02
+   Duration  4.82s (transform 2.69s, setup 51ms, import 3.47s, tests 1.15s, environment 0ms)
+

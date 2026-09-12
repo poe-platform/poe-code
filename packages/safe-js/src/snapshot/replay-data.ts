@@ -72,6 +72,7 @@ type Atom =
   | { tag: "number"; value: "NaN" | "Infinity" | "-Infinity" | "-0" }
   | { tag: "capability"; id: string }
   | { tag: "promise-capability"; id: string }
+  | { tag: "input-symbol"; id: number }
   | { tag: "imported-promise-reference"; callId: string; node: number }
   | { tag: "ref"; id: number };
 type Properties = Record<
@@ -134,6 +135,7 @@ export function createReplayEncodingContext() {
 export function encodeReplayData(
   value: SandboxValue,
   options: {
+    identifyInputSymbol?: (value: symbol) => number | undefined;
     identifyCapability?: (value: SandboxClosure, path: readonly ReplayPathSegment[]) => string | undefined;
     captureCapabilityProperties?: boolean;
     captureSettledImportedPromises?: boolean;
@@ -156,6 +158,8 @@ export function encodeReplayData(
     if (entry === undefined) return { tag: "undefined" };
     if (typeof entry === "bigint") return { tag: "bigint", value: String(entry) };
     if (typeof entry === "symbol") {
+      const inputId = options.identifyInputSymbol?.(entry);
+      if (inputId !== undefined) return { tag: "input-symbol", id: inputId };
       let id = symbols.get(entry);
       if (id === undefined) {
         id = nodes.length;
@@ -430,6 +434,7 @@ type ReplayDecodingWork = {
 export function decodeReplayData(
   input: unknown,
   options: {
+    resolveInputSymbol?: (id: number) => symbol | undefined;
     resolveCapability?: (id: string) => SandboxClosure | undefined;
     resolvePromise?: (id: string) => SandboxPromise | undefined;
     onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void;
@@ -483,6 +488,15 @@ export function decodeReplayData(
         if (existing !== undefined) return existing;
         return decodeReplayData({ root: { tag: "ref", id: nodeId }, nodes: targetNodes },
           { ...options, graphId: callId, memo: undefined }, compilation, work, depth);
+      }
+      if (own(atom, "tag") === "input-symbol") {
+        const id = own(atom, "id");
+        if (typeof id !== "number" || !Number.isSafeInteger(id) || id < 0)
+          throw new TypeError("Invalid replay input symbol reference.");
+        const symbol = options.resolveInputSymbol?.(id);
+        if (typeof symbol !== "symbol") throw new TypeError("Missing replay input symbol.");
+        if (symbol.description !== undefined) compilation.owner?.budget.allocateString(symbol.description);
+        return symbol;
       }
       if (own(atom, "tag") === "promise-capability") {
         const id = own(atom, "id");
@@ -646,7 +660,10 @@ export function decodeReplayData(
           if (typeof node.wellKnown !== "string" || !Object.hasOwn(wellKnownSymbols, node.wellKnown) || Object.hasOwn(node, "description"))
             throw new TypeError("Invalid replay well-known symbol.");
           symbol = wellKnownSymbols[node.wellKnown]!;
-        } else symbol = Symbol(node.description);
+        } else {
+          if (typeof node.description === "string") compilation.owner?.budget.allocateString(node.description);
+          symbol = Symbol(node.description);
+        }
         restored.set(id, symbol);
         return symbol;
       }

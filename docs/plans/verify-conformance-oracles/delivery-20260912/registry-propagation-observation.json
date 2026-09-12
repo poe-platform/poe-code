@@ -1,0 +1,7 @@
+{
+  "attempt": 1,
+  "safeFs": "0.1.562 metadata, provenance and downloaded integrity matched",
+  "safeJs": "latest still returned 0.1.561 immediately after workflow publication",
+  "safeBash": "not reached in initial attempt; no result inferred",
+  "recovery": "Query each exact published version independently; retry latest separately. No old version is counted as success."
+}

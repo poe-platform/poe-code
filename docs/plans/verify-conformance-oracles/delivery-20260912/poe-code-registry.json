@@ -1,0 +1,34 @@
+{
+  "name": "poe-code",
+  "version": "15.0.27",
+  "gitHead": "d5baada123a54174cfa6a31f65427d160d1c4ccb",
+  "dist": {
+    "shasum": "325680d51fc808e64c66e07413b579fbe14819de",
+    "tarball": "https://registry.npmjs.org/poe-code/-/poe-code-15.0.27.tgz",
+    "fileCount": 5824,
+    "integrity": "sha512-m6kL+okTD69YzrJaGys1XY9tUt6E1sg/2weFAxZ+N3vBLLEDIhhVuld5vcszL/ZG5cOYBYFP3FlAjB170lRR+A==",
+    "signatures": [
+      {
+        "sig": "MEUCIBzpqJgcTpmRZDbQ+uy+rDtTXyZcwJDTGy5wOFsoYmGVAiEA6rmES6vTO7mgGiUvkXGtv79D6V5yOUd3EtiB7JnN7wg=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/poe-code@15.0.27",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 209339470
+  },
+  "sourceSha": "d5baada123a54174cfa6a31f65427d160d1c4ccb",
+  "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34710249835/attempts/1",
+  "workflow": {
+    "ref": "refs/heads/main",
+    "repository": "https://github.com/poe-platform/poe-code",
+    "path": ".github/workflows/release.yml"
+  },
+  "tarballBytes": 34299981,
+  "downloadedIntegrityMatched": true,
+  "attestationSubjectMatched": true
+}

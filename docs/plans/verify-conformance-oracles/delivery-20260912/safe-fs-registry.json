@@ -1,0 +1,35 @@
+{
+  "name": "@poe-platform/safe-fs",
+  "version": "0.1.562",
+  "metadataUrl": "https://registry.npmjs.org/%40poe-platform%2Fsafe-fs/0.1.562",
+  "gitHead": null,
+  "dist": {
+    "shasum": "b09eda0f6335843fec9d60c2b9d0763e271223a1",
+    "tarball": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.562.tgz",
+    "fileCount": 141,
+    "integrity": "sha512-y+OmNl17giu0J9y8IsyEacFj+IkBgQLEg2Up9KMxOnK5Cm1889039PTCiJFuPepWN1rnzsNWM1E0nX/4oHC7kQ==",
+    "signatures": [
+      {
+        "sig": "MEUCIEKtDb+AtiXY/MLWoZHk5in3oBix94lnfikpR5D49X+4AiEAnfII09n5qtNeMfmzjct0ElbFZI4H8oUr7rC3i3g9yOg=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.562",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 716920
+  },
+  "sourceSha": "d5baada123a54174cfa6a31f65427d160d1c4ccb",
+  "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34710249647/attempts/1",
+  "workflow": {
+    "ref": "refs/heads/main",
+    "repository": "https://github.com/poe-platform/poe-code",
+    "path": ".github/workflows/release-safe.yml"
+  },
+  "tarballBytes": 141456,
+  "downloadedIntegrityMatched": true,
+  "attestationSubjectMatched": true
+}

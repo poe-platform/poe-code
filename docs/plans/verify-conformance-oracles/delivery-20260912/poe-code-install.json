@@ -1,0 +1,11 @@
+{
+  "command": [
+    "npm",
+    "install",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "poe-code@15.0.27"
+  ],
+  "exitCode": 0
+}

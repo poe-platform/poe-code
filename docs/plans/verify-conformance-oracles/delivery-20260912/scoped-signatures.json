@@ -1,0 +1,9 @@
+{
+  "command": [
+    "npm",
+    "audit",
+    "signatures"
+  ],
+  "exitCode": 0,
+  "log": "scoped-signatures.log"
+}

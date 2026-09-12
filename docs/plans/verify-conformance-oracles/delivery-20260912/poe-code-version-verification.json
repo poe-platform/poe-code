@@ -1,0 +1,7 @@
+{
+  "expectedVersion": "15.0.27",
+  "installedVersion": "15.0.27",
+  "renderedVersionMatchedExactly": true,
+  "previousVersionCounterexampleRejected": true,
+  "initialAttemptDisposition": "CLI command exited 0 and rendered the correct version. The initial QA expected undecorated stdout; current version.ts uses logger.resolved and the design-system frame. Validate the exact rendered value and installed package metadata instead. No product code, runtime assertion, budget or timeout changed."
+}

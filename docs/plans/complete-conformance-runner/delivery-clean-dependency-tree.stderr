@@ -1,0 +1,9 @@
+npm error code ELSPROBLEMS
+npm error invalid: @types/node@25.9.4 /private/tmp/poe-code-conformance-delivery-5f6446c4/node_modules/@types/node
+npm error extraneous: cliui@8.0.1 /private/tmp/poe-code-conformance-delivery-5f6446c4/node_modules/cliui
+npm error extraneous: lightningcss-darwin-arm64@1.32.0 /private/tmp/poe-code-conformance-delivery-5f6446c4/node_modules/lightningcss-darwin-arm64
+npm error extraneous: lightningcss@1.32.0 /private/tmp/poe-code-conformance-delivery-5f6446c4/node_modules/lightningcss
+npm error extraneous: yargs-parser@21.1.1 /private/tmp/poe-code-conformance-delivery-5f6446c4/node_modules/yargs-parser
+npm error extraneous: yargs@17.7.3 /private/tmp/poe-code-conformance-delivery-5f6446c4/node_modules/yargs
+npm error invalid: tsx@4.22.4 /private/tmp/poe-code-conformance-delivery-5f6446c4/node_modules/tsx
+npm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-12T13_23_24_453Z-debug-0.log

@@ -1,0 +1,27 @@
+{
+  "sourceSha": "a4476e3fa",
+  "entrypoint": "/tmp/poe-code-conformance-delivery-5f6446c4/packages/safe-js/dist/index.js",
+  "node": "v22.23.2",
+  "icu": "78.2",
+  "exitCode": 0,
+  "runtimeResult": {
+    "ok": true,
+    "value": [
+      "luty",
+      [
+        {
+          "type": "month",
+          "value": "luty",
+          "source": "startRange"
+        },
+        {
+          "type": "month",
+          "value": "marzec",
+          "source": "endRange"
+        }
+      ],
+      "iso8601"
+    ]
+  },
+  "disposition": "Built clean local artifact, not a registry publication or installed npm artifact."
+}

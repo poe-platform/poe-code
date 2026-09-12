@@ -1,0 +1,46 @@
+{
+  "sourceSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "lockSha256": "0e47d4bb10a62c53b02c9d927078c0e668f82e7d84038fda15665de779e5807b",
+  "dependencySetup": "APFS copy-on-write root node_modules copy; not npm ci",
+  "installedRootPackagesCompared": 850,
+  "rootVersionMismatches": [],
+  "lockedNestedWorkspacePackages": [
+    {
+      "path": "packages/e2e-test-runner/node_modules/@types/node",
+      "lockedVersion": "20.19.43",
+      "present": false
+    },
+    {
+      "path": "packages/e2e-test-runner/node_modules/undici-types",
+      "lockedVersion": "6.21.0",
+      "present": false
+    },
+    {
+      "path": "packages/safe-bash/node_modules/@types/node",
+      "lockedVersion": "22.20.1",
+      "present": false
+    },
+    {
+      "path": "packages/safe-bash/node_modules/tsx",
+      "lockedVersion": "4.23.12",
+      "present": false
+    },
+    {
+      "path": "packages/safe-bash/node_modules/undici-types",
+      "lockedVersion": "6.21.0",
+      "present": false
+    },
+    {
+      "path": "packages/tiny-http-mcp-server/node_modules/eventsource",
+      "lockedVersion": "4.1.0",
+      "present": false
+    },
+    {
+      "path": "packages/tiny-http-mcp-server/node_modules/mcp-oauth",
+      "lockedVersion": "1.0.0",
+      "present": false
+    }
+  ],
+  "npmLsExitCode": 1,
+  "disposition": "Whole-repository npm ls is not a passing check: missing nested installs and locked extraneous packages are reported. The seven nested packages belong to e2e-test-runner, safe-bash and tiny-http-mcp-server, outside the maintained selected SafeJS build/runtime closure. No dependency mutation occurred during frozen scoped validation. Optional platform packages absent from this host are not test passes."
+}

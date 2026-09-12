@@ -1,0 +1,21 @@
+{
+  "command": "npm test --workspace=@poe-code/safe-js",
+  "startedSource": "5f6446c4415a9320f53c9db611cd641886447e41",
+  "terminatedAt": "2026-09-12T13:10:51.572411+00:00",
+  "complete": false,
+  "passed": false,
+  "reason": "Runtime ISO repair changed working-tree source during active run; stop invalid final-source gate and free resources for immutable revalidation.",
+  "knownFailures": {
+    "iso-month-name-completeness.test.ts": 6,
+    "promise-import-properties.test.ts": 1,
+    "input-error-projection.test.ts": 1
+  },
+  "timeoutRecheck": {
+    "command": "npx vitest run packages/safe-js/test/integration/input-error-projection.test.ts",
+    "passed": 19,
+    "failed": 0,
+    "durationSeconds": 18.49,
+    "sourceUnchangedForFile": true
+  },
+  "terminalTotals": null
+}

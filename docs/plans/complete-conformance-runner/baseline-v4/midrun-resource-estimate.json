@@ -1,0 +1,21 @@
+{
+  "observedUtc": "2026-09-12T15:00:55.830397+00:00",
+  "completedSelections": 92,
+  "remainingSelectionsIncludingActive": 124,
+  "v3EstimatedCompletedProcessSeconds": 16046.1,
+  "v4ActualCompletedProcessSeconds": 16661.7,
+  "v4vsV3ObservedCostRatio": 1.038,
+  "v3EstimatedRemainingProcessSeconds": 18794.0,
+  "estimatedRemainingHoursAt2Workers": [
+    2.61,
+    2.71
+  ],
+  "estimatedRemainingHoursAt4Workers": [
+    1.31,
+    1.36
+  ],
+  "method": "V3 per-file mean within bounded ranges; include whole currently active selections conservatively; actual completed V4/V3 process cost ratio informs upper estimate, not guarantee. Raw report integrity unchanged.",
+  "memoryPressureQuery": "The system has 25769803776 (1572864 pages with a page size of 16384).\nSystem-wide memory free percentage: 64%",
+  "vmStat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                               68012.\nPages active:                            453336.\nPages inactive:                          441426.\nPages speculative:                        11607.\nPages throttled:                              0.\nPages wired down:                        248248.\nPages purgeable:                          12564.\n\"Translation faults\":                8131859001.\nPages copy-on-write:                  314335516.\nPages zero filled:                   3627986382.\nPages reactivated:                   1785642570.\nPages purged:                          50006328.\nFile-backed pages:                       246589.\nAnonymous pages:                         659780.\nPages stored in compressor:             1815455.\nPages occupied by compressor:            287786.\nDecompressions:                      1695329325.\nCompressions:                        2129950406.\nPageins:                               93091513.\nPageouts:                               1284840.\nSwapins:                               21399415.\nSwapouts:                              24579777.",
+  "logicalCpus": 15
+}

@@ -1,0 +1,110 @@
+{
+  "observedUtc": "2026-09-12T13:51:46.548137+00:00",
+  "workflowId": 34697326857,
+  "workflowSha": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+  "packages": {
+    "@poe-platform/safe-fs": {
+      "exitCode": 0,
+      "metadata": {
+        "version": "0.1.561",
+        "dependencies": {
+          "@types/node": "^25.2.2"
+        },
+        "dist": {
+          "integrity": "sha512-IQXl9wgucb+B3/nDE0BdMmPFRa9F9ZziYcvc93PZ5HETs1THQ+E3SdZS8CBGa1kqA1cKasQiip32lspsTntS0A==",
+          "shasum": "0bcc525fc1cffad1576358b1d3804531b8b83b70",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.561.tgz",
+          "fileCount": 141,
+          "unpackedSize": 716920,
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.561",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "signatures": [
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEUCICrgZkyvcpZRvoGHneT3JJekoFwOK5ddCt3jx9b45cEOAiEA1eW9myKbLfK2hmj2OU54hi1o8KatKHhNLk2cpPFgJ1A="
+            }
+          ]
+        }
+      },
+      "stderr": ""
+    },
+    "@poe-platform/safe-js": {
+      "exitCode": 0,
+      "metadata": {
+        "version": "0.1.560",
+        "dependencies": {
+          "jose": "^6.1.3",
+          "yaml": "^2.8.2",
+          "@types/node": "^25.2.2",
+          "temporal-polyfill": "1.0.4",
+          "@formatjs/bigdecimal": "0.2.7",
+          "@petamoriken/float16": "^3.9.3",
+          "@poe-platform/safe-fs": "0.1.560",
+          "@formatjs/intl-numberformat": "9.4.0",
+          "@formatjs/intl-localematcher": "0.8.13",
+          "@formatjs/intl-durationformat": "0.10.18"
+        },
+        "dist": {
+          "shasum": "279bb7ca56911a3ba4e4ac733da48cab085bd76f",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.560.tgz",
+          "fileCount": 373,
+          "integrity": "sha512-Z+d7Gb6uNCMNqel2e/5irWYZwcTIkvH+kGw1f8CoTx/4nMXlKENWag05H3jBbwKApNSwACZelQdJmIL7hPQqRg==",
+          "signatures": [
+            {
+              "sig": "MEUCIQDYVslagLWFUwLgYO51PxY27U3pogqWog2Wb2HUCH3N4AIga70qqCwHXsfd3OSn7X7a/DpgaDsj8f1XB/1k8xLg+GM=",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            },
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEUCIQDVOEPvaxQ02KPjOkRFYGS/yFfS1iZ5nEUOow1mQl7Q8wIgMk5Q7M6ZF3CYrIuUQrj2NrZAk5JLsGJYjMMMf+3/g1c="
+            }
+          ],
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.560",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "unpackedSize": 42881045
+        }
+      },
+      "stderr": ""
+    },
+    "@poe-platform/safe-bash": {
+      "exitCode": 0,
+      "metadata": {
+        "version": "0.1.561",
+        "dependencies": {
+          "@poe-platform/safe-fs": "0.1.561",
+          "pako": "3.0.1",
+          "@noble/hashes": "2.4.0",
+          "@types/node": "^25.2.2"
+        },
+        "dist": {
+          "integrity": "sha512-ight0X0p5wvEggFJGGtwLk+mRjPT5fiMorWMsHqRg2xpDfb17Q8sjvAWZaa6w5rL5vV9WmgCH1qRaKRd+JcKww==",
+          "shasum": "691526d2c811881e774967035793e5b72284a4f1",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.561.tgz",
+          "fileCount": 1645,
+          "unpackedSize": 26143278,
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.561",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "signatures": [
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEUCIQClWHWyOJoL6I+0CEcLGs2mujnp1QldQxmMCk733zGUBwIgWtsvs5supWYjpTBXw0nnyYnLHr5R3P/ZFNpmUYtBSxs="
+            }
+          ]
+        }
+      },
+      "stderr": ""
+    }
+  }
+}

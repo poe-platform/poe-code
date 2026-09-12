@@ -1,0 +1,667 @@
+{
+  "bin": {
+    "poe": "dist/bin.cjs",
+    "poe-code": "dist/bin.cjs",
+    "poe-agent": "dist/bin/poe-agent.js",
+    "poe-safejs": "packages/safe-js/dist/cli.js",
+    "poe-safe-js": "packages/safe-js/dist/cli.js",
+    "poe-superintendent-mcp": "packages/superintendent/dist/mcp.js"
+  },
+  "bugs": {
+    "url": "https://github.com/poe-platform/poe-code/issues"
+  },
+  "dist": {
+    "shasum": "fcbbe7bffc5dfd1ac4422028b86e9d7a9f671e77",
+    "tarball": "https://registry.npmjs.org/poe-code/-/poe-code-15.0.26.tgz",
+    "fileCount": 5824,
+    "integrity": "sha512-FI1TBf6aG1f5Lt6e0E1z12KGFSOGnFrhOHLq33MQUz0i7SC9khBt7ufJGJ8Ycxucpl4GVScCNocTOY46ri0/Ig==",
+    "signatures": [
+      {
+        "sig": "MEUCIQCBlHtyg56iTkoApc4X1zTGUFjFiSIp0GHCFKrQdkm9DwIgIzFOzOvV1aIK4GfhyUItOQThPEaaeptdO1ZtL8w9VTs=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/poe-code@15.0.26",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 209339470
+  },
+  "main": "./dist/index.js",
+  "name": "poe-code",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./agent": {
+      "types": "./dist/agent.d.ts",
+      "import": "./dist/agent.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./memory": {
+      "types": "./packages/memory/dist/index.d.ts",
+      "import": "./packages/memory/dist/index.js"
+    },
+    "./safejs": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/index.d.ts"
+      },
+      "import": "./packages/safe-js/dist/index.js",
+      "browser": null
+    },
+    "./skills": {
+      "types": "./dist/skills.d.ts",
+      "import": "./dist/skills.js"
+    },
+    "./safe-fs": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/index.d.ts"
+      },
+      "import": "./packages/safe-js/dist/safe-fs.js",
+      "browser": "./packages/safe-js/dist/browser/safe-fs.js"
+    },
+    "./safe-js": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/index.d.ts"
+      },
+      "import": "./packages/safe-js/dist/index.js",
+      "browser": null
+    },
+    "./safe-bash": {
+      "types": {
+        "browser": "./packages/safe-bash/dist/core.d.ts",
+        "default": "./packages/safe-bash/dist/index.d.ts",
+        "workerd": "./packages/safe-bash/dist/core.d.ts"
+      },
+      "import": "./packages/safe-bash/dist/index.js",
+      "browser": "./packages/safe-bash/dist/core.browser.js",
+      "workerd": "./packages/safe-bash/dist/core.browser.js"
+    },
+    "./safejs/cli": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/cli.d.ts"
+      },
+      "import": "./packages/safe-js/dist/cli.js",
+      "browser": null
+    },
+    "./credentials": {
+      "types": "./dist/credentials.d.ts",
+      "import": "./dist/credentials.js"
+    },
+    "./safe-js/cli": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/cli.d.ts"
+      },
+      "import": "./packages/safe-js/dist/cli.js",
+      "browser": null
+    },
+    "./safejs/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/core.d.ts"
+      },
+      "import": "./packages/safe-js/dist/core.js",
+      "browser": null
+    },
+    "./safe-fs/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/core.d.ts"
+      },
+      "import": "./packages/safe-js/dist/safe-fs-core.js",
+      "browser": "./packages/safe-js/dist/browser/safe-fs-core.js"
+    },
+    "./safe-fs/node": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-fs/dist/node-host.d.ts"
+      },
+      "import": "./packages/safe-js/dist/safe-fs-node.js",
+      "browser": null
+    },
+    "./safe-js/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/core.d.ts"
+      },
+      "import": "./packages/safe-js/dist/core.js",
+      "browser": null
+    },
+    "./config/testing": {
+      "types": "./dist/config-testing.d.ts",
+      "import": "./dist/config-testing.js"
+    },
+    "./safe-bash/node": {
+      "types": "./packages/safe-bash/dist/node.d.ts",
+      "import": "./packages/safe-bash/dist/node.js",
+      "browser": null
+    },
+    "./safejs/workerd": {
+      "types": {
+        "browser": "./packages/safe-js/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/workerd.d.ts",
+        "workerd": "./packages/safe-js/dist/workerd.d.ts"
+      },
+      "import": "./packages/safe-js/dist/workerd.js",
+      "browser": null,
+      "workerd": "./packages/safe-js/dist/workerd.js"
+    },
+    "./safe-bash/fs/s3": {
+      "types": "./packages/safe-bash/dist/fs/s3/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/s3/index.js"
+    },
+    "./safe-js/workerd": {
+      "types": {
+        "browser": "./packages/safe-js/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/workerd.d.ts",
+        "workerd": "./packages/safe-js/dist/workerd.d.ts"
+      },
+      "import": "./packages/safe-js/dist/workerd.js",
+      "browser": null,
+      "workerd": "./packages/safe-js/dist/workerd.js"
+    },
+    "./safe-bash/fs/mount": {
+      "types": "./packages/safe-bash/dist/fs/mount/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/mount/index.js"
+    },
+    "./safe-bash/contracts": {
+      "types": {
+        "browser": "./packages/safe-bash/dist/contracts/index.d.ts",
+        "default": "./packages/safe-bash/dist/contracts/node.d.ts"
+      },
+      "import": "./packages/safe-bash/dist/contracts/node.js",
+      "browser": "./packages/safe-bash/dist/contracts/index.js"
+    },
+    "./safe-bash/fs/webdav": {
+      "types": "./packages/safe-bash/dist/fs/webdav/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/webdav/index.js"
+    },
+    "./safe-bash/fs/overlay": {
+      "types": "./packages/safe-bash/dist/fs/overlay/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/overlay/index.js"
+    },
+    "./safe-bash/fs/s3/http": {
+      "types": "./packages/safe-bash/dist/fs/s3/http/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/s3/http/index.js"
+    },
+    "./safe-bash/commands/du": {
+      "types": "./packages/safe-bash/dist/commands/du/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/du/index.js"
+    },
+    "./safe-bash/commands/pr": {
+      "types": "./packages/safe-bash/dist/commands/pr/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/pr/index.js",
+      "browser": "./packages/safe-bash/dist/commands/pr/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/pr/index.browser.js"
+    },
+    "./safe-bash/commands/yq": {
+      "types": "./packages/safe-bash/dist/commands/yq/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/yq/index.js",
+      "browser": "./packages/safe-bash/dist/commands/yq/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/yq/index.browser.js"
+    },
+    "./safe-bash/contracts/*": {
+      "types": "./packages/safe-bash/dist/contracts/*.d.ts",
+      "import": "./packages/safe-bash/dist/contracts/*.js"
+    },
+    "./safe-bash/fs/readonly": {
+      "types": "./packages/safe-bash/dist/fs/readonly/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/readonly/index.js"
+    },
+    "./safe-bash/commands/llm": {
+      "types": "./packages/safe-bash/dist/commands/llm/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/llm/index.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/llm/index.browser.js"
+    },
+    "./safe-bash/commands/xml": {
+      "types": "./packages/safe-bash/dist/commands/xml/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/xml/index.js",
+      "browser": "./packages/safe-bash/dist/commands/xml/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/xml/index.browser.js"
+    },
+    "./safe-bash/commands/expr": {
+      "types": "./packages/safe-bash/dist/commands/expr/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/expr/index.js"
+    },
+    "./safe-bash/commands/file": {
+      "types": "./packages/safe-bash/dist/commands/file/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/file/index.js"
+    },
+    "./safe-bash/commands/node": {
+      "types": "./packages/safe-bash/dist/commands/node/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/node/index.js"
+    },
+    "./safe-bash/commands/tree": {
+      "types": "./packages/safe-bash/dist/commands/tree/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/tree/index.js"
+    },
+    "./safe-bash/commands/iconv": {
+      "types": "./packages/safe-bash/dist/commands/iconv/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/iconv/index.js",
+      "browser": "./packages/safe-bash/dist/commands/iconv/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/iconv/index.browser.js"
+    },
+    "./safe-bash/commands/split": {
+      "types": "./packages/safe-bash/dist/commands/split/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/split/index.js"
+    },
+    "./safe-bash/commands/tsort": {
+      "types": "./packages/safe-bash/dist/commands/tsort/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/tsort/index.js",
+      "browser": "./packages/safe-bash/dist/commands/tsort/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/tsort/index.browser.js"
+    },
+    "./safe-bash/commands/which": {
+      "types": "./packages/safe-bash/dist/commands/which/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/which/index.js"
+    },
+    "./safe-bash/contracts/path": {
+      "types": {
+        "browser": "./packages/safe-bash/dist/contracts/path.d.ts",
+        "default": "./packages/safe-bash/dist/contracts/node-path.d.ts"
+      },
+      "import": "./packages/safe-bash/dist/contracts/node-path.js",
+      "browser": "./packages/safe-bash/dist/contracts/path.js"
+    },
+    "./safe-bash/commands/column": {
+      "types": "./packages/safe-bash/dist/commands/column/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/column/index.js"
+    },
+    "./safe-bash/commands/csplit": {
+      "types": "./packages/safe-bash/dist/commands/csplit/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/csplit/index.js",
+      "browser": "./packages/safe-bash/dist/commands/csplit/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/csplit/index.browser.js"
+    },
+    "./safe-bash/commands/factor": {
+      "types": "./packages/safe-bash/dist/commands/factor/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/factor/index.js",
+      "browser": "./packages/safe-bash/dist/commands/factor/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/factor/index.browser.js"
+    },
+    "./safe-bash/commands/getopt": {
+      "types": "./packages/safe-bash/dist/commands/getopt/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/getopt/index.js",
+      "browser": "./packages/safe-bash/dist/commands/getopt/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/getopt/index.browser.js"
+    },
+    "./safe-bash/contracts/index": {
+      "types": {
+        "browser": "./packages/safe-bash/dist/contracts/index.d.ts",
+        "default": "./packages/safe-bash/dist/contracts/node.d.ts"
+      },
+      "import": "./packages/safe-bash/dist/contracts/node.js",
+      "browser": "./packages/safe-bash/dist/contracts/index.js"
+    },
+    "./safe-bash/commands/archive": {
+      "types": "./packages/safe-bash/dist/commands/archive/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/archive/index.js"
+    },
+    "./safe-bash/commands/hexdump": {
+      "types": "./packages/safe-bash/dist/commands/hexdump/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/hexdump/index.js",
+      "browser": "./packages/safe-bash/dist/commands/hexdump/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/hexdump/index.browser.js"
+    },
+    "./safe-bash/commands/network": {
+      "types": {
+        "browser": "./packages/safe-bash/dist/commands/network/public.d.ts",
+        "default": "./packages/safe-bash/dist/commands/network/index.d.ts",
+        "workerd": "./packages/safe-bash/dist/commands/network/public.d.ts"
+      },
+      "import": "./packages/safe-bash/dist/commands/network/index.js",
+      "browser": "./packages/safe-bash/dist/commands/network/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/network/index.browser.js"
+    },
+    "./safe-bash/commands/timeout": {
+      "types": "./packages/safe-bash/dist/commands/timeout/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/timeout/index.js"
+    },
+    "./safe-bash/commands/metadata": {
+      "types": "./packages/safe-bash/dist/commands/metadata/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/metadata/index.js"
+    },
+    "./safe-bash/commands/time-env": {
+      "types": "./packages/safe-bash/dist/commands/time-env/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/time-env/index.js"
+    },
+    "./safe-bash/commands/node/host": {
+      "types": {
+        "worker": "./packages/safe-bash/dist/node-unavailable.d.ts",
+        "browser": "./packages/safe-bash/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-bash/dist/commands/node/worker-provider.d.ts",
+        "workerd": "./packages/safe-bash/dist/node-unavailable.d.ts"
+      },
+      "import": "./packages/safe-bash/dist/commands/node/worker-provider.js",
+      "worker": null,
+      "browser": null,
+      "workerd": null
+    },
+    "./safe-bash/commands/table-text": {
+      "types": "./packages/safe-bash/dist/commands/table-text/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/table-text/index.js"
+    },
+    "./safe-bash/commands/apply-patch": {
+      "types": "./packages/safe-bash/dist/commands/apply-patch/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/apply-patch/index.js"
+    },
+    "./safe-bash/commands/grep-aliases": {
+      "types": "./packages/safe-bash/dist/commands/grep-aliases/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/grep-aliases/index.js"
+    },
+    "./safe-bash/commands/line-endings": {
+      "types": "./packages/safe-bash/dist/commands/line-endings/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/line-endings/index.js",
+      "browser": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js"
+    },
+    "./safe-bash/commands/llm/providers": {
+      "types": "./packages/safe-bash/dist/commands/llm/providers/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/llm/providers/index.js",
+      "browser": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js",
+      "workerd": "./packages/safe-bash/dist/commands/llm/providers/index.browser.js"
+    },
+    "./safe-bash/commands/stream-format": {
+      "types": "./packages/safe-bash/dist/commands/stream-format/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/stream-format/index.js"
+    },
+    "./safe-bash/commands/html-to-markdown": {
+      "types": "./packages/safe-bash/dist/commands/html-to-markdown/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/html-to-markdown/index.js"
+    },
+    "./safe-bash/commands/stream-inspection": {
+      "types": "./packages/safe-bash/dist/commands/stream-inspection/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/stream-inspection/index.js"
+    }
+  },
+  "gitHead": "5fd3b4f08463ebd03cc09203162acf58f5a05b9c",
+  "imports": {
+    "#safe-fs-platform": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/platform/browser.d.ts",
+        "default": "./packages/safe-fs/dist/platform/node.d.ts"
+      },
+      "default": null
+    },
+    "#safe-fs-native-seek": {
+      "types": "./packages/safe-js/dist/native/fs-seek/loader.d.ts",
+      "browser": null,
+      "default": "./packages/safe-js/dist/native/fs-seek/loader.mjs",
+      "workerd": null
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsx --import ./scripts/register-template-loader.mjs src/index.ts",
+    "e2e": "vitest run --config e2e/vitest.config.ts",
+    "lint": "npm run lint:eslint && npm run lint:types && npm run lint:workflows",
+    "test": "node scripts/build-workspaces.mjs --test-unit",
+    "build": "node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
+    "smoke": "tsx scripts/smoke-test.ts",
+    "start": "node dist/bin.cjs",
+    "format": "prettier --check .",
+    "predev": "turbo run build --output-logs=errors-only --log-prefix=none --verbosity=0 && node scripts/bundle.mjs",
+    "replay": "tsx packages/agent-spawn/src/acp/replay-cli.ts",
+    "prepack": "npm run build",
+    "prepare": "husky",
+    "posttest": "npm run test:stress:lint",
+    "snapshots": "tsx scripts/snapshots.ts",
+    "test:unit": "vitest run --config vitest.root.config.ts",
+    "typecheck": "npm run lint:types",
+    "build:deps": "node scripts/list-workspace-deps.mjs",
+    "dev:bundle": "npm run build && node dist/bin.cjs",
+    "lint:types": "tsc -p tsconfig.build.json --noEmit && npm run typecheck:contracts --workspace=@poe-code/safe-js && npm run typecheck:contracts --workspace=tiny-mcp-client",
+    "screenshot": "tsx scripts/screenshot.ts",
+    "watch:diff": "tsx local_scripts/watch-diff.ts",
+    "e2e:cleanup": "tsx packages/e2e-test-runner/scripts/cleanup.ts",
+    "e2e:verbose": "E2E_VERBOSE=1 vitest run --config e2e/vitest.config.ts --reporter=verbose",
+    "lint:eslint": "node --max-old-space-size=1024 scripts/lint-eslint.mjs",
+    "postinstall": "node scripts/postinstall-sync-skills.mjs",
+    "sync-skills": "tsx scripts/sync-skills.ts",
+    "test:record": "POE_SNAPSHOT_MODE=record npm run test:integration",
+    "check:semver": "node -e \"const semver=require('semver'); const pkg=require('./package.json'); if(!semver.valid(pkg.version)){console.error('Invalid semver version in package.json:', pkg.version); process.exit(1);}\"",
+    "format:write": "prettier --write .",
+    "demo:explorer": "tsx packages/toolcraft-design/src/explorer/demo.ts",
+    "lint:packages": "tsx packages/package-lint/src/cli.ts",
+    "smoke:verbose": "tsx scripts/smoke-test.ts --verbose",
+    "test-generate": "tsx scripts/test-generate.ts",
+    "test:ci:fresh": "node scripts/build-workspaces.mjs --test-unit --ci-group=fresh",
+    "demo:dashboard": "tsx packages/toolcraft-design/src/dashboard/demo.ts",
+    "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
+    "snapshots:list": "npm run snapshots -- list",
+    "test:ci:cached": "node scripts/build-workspaces.mjs --test-unit --ci-group=cached",
+    "test:workflows": "bats .github/workflows/test/workflows.bats",
+    "e2e:cache:clear": "rm -rf ~/.cache/poe-e2e",
+    "labels:generate": "tsx scripts/generate-labels.ts",
+    "test:workspaces": "node scripts/build-workspaces.mjs --test-unit",
+    "build:workspaces": "node scripts/build-workspaces.mjs",
+    "snapshots:delete": "npm run snapshots -- delete",
+    "test:integration": "vitest run tests/integration/",
+    "test:stress:lint": "vitest run --config vitest.lint-stress.config.ts",
+    "test:unit:shared": "node scripts/test-vitest-workspaces.mjs",
+    "metric:test_count": "node scripts/metric-test-count.mjs",
+    "snapshots:refresh": "npm run snapshots -- refresh",
+    "test:workflows:ci": "ACT_FULL=1 bash scripts/test-workflows.sh",
+    "test:workflows:all": "bash scripts/test-workflows.sh",
+    "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",
+    "test:workflows:fast": "bats --filter 'dry-run' .github/workflows/test/workflows.bats",
+    "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts",
+    "codegen:python-types": "tsx scripts/generate-agent-spawn-py-types.ts",
+    "generate:design-docs": "turbo run generate:docs --filter=toolcraft-design",
+    "install:py-poe-spawn": "pip install -e packages/py-poe-spawn",
+    "metric:test_duration": "node scripts/metric-test-duration.mjs",
+    "snapshots:list:stale": "npm run snapshots -- list --stale",
+    "install-local-package": "npm pack --pack-destination /tmp && npm install -g /tmp/poe-code-*.tgz && rm /tmp/poe-code-*.tgz",
+    "record:fs-conformance": "tsx scripts/record-fs-conformance.ts",
+    "e2e:cleanup:aggressive": "tsx packages/e2e-test-runner/scripts/cleanup.ts --aggressive",
+    "smoke:toolcraft-bundle": "node scripts/verify-toolcraft-cli-bundle.mjs",
+    "snapshots:delete:stale": "npm run snapshots -- delete --stale",
+    "sync:uri-template-test": "node scripts/sync-uri-template-test.mjs",
+    "codegen:harness-schemas": "tsx scripts/generate-harness-schemas.ts",
+    "generate:design-docs:all": "npm run generate:design-docs:all -w toolcraft-design",
+    "smoke:toolcraft-sdk-types": "node scripts/verify-toolcraft-published-sdk-types.mjs",
+    "codegen:check:python-types": "tsx scripts/generate-agent-spawn-py-types.ts --check",
+    "smoke:toolcraft-standalone": "node scripts/verify-toolcraft-standalone.mjs",
+    "test:postinstall-lifecycle": "vitest run --config vitest.postinstall.config.ts",
+    "smoke:toolcraft-entrypoints": "node scripts/verify-toolcraft-entrypoint-bundles.mjs",
+    "sync:json-schema-test-suite": "node scripts/sync-json-schema-test-suite.mjs"
+  },
+  "_npmUser": {
+    "name": "GitHub Actions",
+    "email": "npm-oidc-no-reply@github.com",
+    "trustedPublisher": {
+      "id": "github",
+      "oidcConfigId": "oidc:864986b6-63e4-4554-86d4-3eed5e8c76c5"
+    }
+  },
+  "homepage": "https://github.com/poe-platform/poe-code#readme",
+  "overrides": {
+    "ini": "5.0.0",
+    "glob": "13.0.6",
+    "toml": "3.0.0",
+    "vite": "6.4.3",
+    "esbuild": "0.28.1",
+    "eslint-visitor-keys": "4.2.1"
+  },
+  "repository": {
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "type": "git"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "_npmVersion": "11.19.1",
+  "description": "CLI tool to configure Poe API for developer workflows.",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "kamilio",
+      "email": "kamil.jopek@gmail.com"
+    }
+  ],
+  "_nodeVersion": "22.23.2",
+  "dependencies": {
+    "diff": ">=8.0.3",
+    "jose": "^6.1.3",
+    "pako": "3.0.1",
+    "yaml": "^2.8.2",
+    "chalk": "^5.6.2",
+    "ignore": "^5.3.2",
+    "openai": "^6.34.0",
+    "semver": "^7.7.4",
+    "mustache": "^4.2.0",
+    "tiktoken": "^1.0.22",
+    "ts-morph": "^27.0.2",
+    "turndown": "^7.2.4",
+    "commander": "^13.1.0",
+    "fast-glob": "^3.3.3",
+    "lru-cache": "^10.4.3",
+    "smol-toml": "^1.6.0",
+    "toolcraft": ">=0.0.51 <0.1.0",
+    "simple-git": "^3.36.0",
+    "gray-matter": "^4.0.3",
+    "shell-quote": "^1.10.0",
+    "jsonc-parser": "^3.3.1",
+    "@noble/hashes": "2.4.0",
+    "fast-wrap-ansi": "^0.2.0",
+    "parse-duration": "^2.1.5",
+    "fast-string-width": "^3.0.2",
+    "temporal-polyfill": "1.0.4",
+    "@formatjs/bigdecimal": "0.2.7",
+    "@petamoriken/float16": "^3.9.3",
+    "console-table-printer": "^2.15.0",
+    "tiny-stdio-mcp-server": "^0.1.0",
+    "@formatjs/intl-pluralrules": "6.3.13",
+    "@formatjs/intl-numberformat": "9.4.0",
+    "@formatjs/intl-localematcher": "0.8.13",
+    "@formatjs/intl-durationformat": "0.10.18"
+  },
+  "_hasShrinkwrap": false,
+  "packageManager": "npm@10.9.2",
+  "devDependencies": {
+    "tsx": ">=4.21.0",
+    "bats": "^1.13.0",
+    "vite": "6.4.3",
+    "husky": "^9.1.7",
+    "memfs": "4.56.10",
+    "turbo": "^2.9.18",
+    "buffer": "6.0.3",
+    "eslint": "^9.0.0",
+    "rollup": "4.62.0",
+    "vitest": "4.1.11",
+    "globals": "^17.3.0",
+    "poe-code": "file:.",
+    "prettier": "^3.8.1",
+    "mcp-oauth": "*",
+    "poe-oauth": "*",
+    "tokenfill": "*",
+    "toolcraft": "*",
+    "@eslint/js": "^9.0.0",
+    "auth-store": "*",
+    "typescript": "^5.9.3",
+    "@types/node": "^25.2.2",
+    "agent-stash": "*",
+    "terminal-png": "*",
+    "virtual-bash": "*",
+    "@types/semver": "^7.7.1",
+    "github-review": "*",
+    "terminal-pilot": "^0.0.1",
+    "@poe-code/ralph": "*",
+    "@types/mustache": "^4.2.6",
+    "tiny-mcp-client": "*",
+    "@poe-code/memory": "*",
+    "mcp-oauth-server": "*",
+    "semantic-release": "25.0.9",
+    "terminal-png-mcp": "*",
+    "toolcraft-design": "*",
+    "toolcraft-schema": "*",
+    "@poe-code/maestro": "*",
+    "@poe-code/safe-fs": "*",
+    "@poe-code/safe-js": "*",
+    "agent-code-review": "*",
+    "opencode-poe-auth": "*",
+    "rollup-plugin-dts": "6.4.1",
+    "toolcraft-openapi": "*",
+    "typescript-eslint": "8.55.0",
+    "@poe-code/pipeline": "*",
+    "@poe-code/worktree": "*",
+    "terminal-pilot-mcp": "*",
+    "toolcraft-codemode": "*",
+    "@poe-code/poe-agent": "*",
+    "@poe-code/providers": "*",
+    "@poe-code/task-list": "*",
+    "@vitest/coverage-v8": "4.1.11",
+    "@poe-code/agent-defs": "*",
+    "@poe-code/agent-eval": "*",
+    "@poe-code/braintrust": "*",
+    "@poe-code/user-error": "*",
+    "safe-bash-playground": "*",
+    "tiny-http-mcp-server": "*",
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/frontmatter": "*",
+    "@poe-code/maestro-tui": "*",
+    "tiny-stdio-mcp-server": "*",
+    "@poe-code/agent-traces": "*",
+    "@poe-code/package-lint": "*",
+    "@poe-code/plan-browser": "*",
+    "@poe-code/py-poe-spawn": "*",
+    "eslint-config-prettier": "^10.1.8",
+    "tiny-oauth-test-server": "*",
+    "toolcraft-landing-page": "*",
+    "@poe-code/acp-telemetry": "*",
+    "@poe-code/agent-harness": "*",
+    "@poe-code/agent-gaslight": "*",
+    "@poe-code/config-extends": "*",
+    "@poe-code/poe-acp-client": "*",
+    "@poe-code/process-runner": "*",
+    "@poe-code/superintendent": "*",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@poe-code/cached-resource": "*",
+    "@poe-code/e2e-test-runner": "*",
+    "@poe-code/experiment-loop": "*",
+    "@poe-code/markdown-reader": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/agent-mcp-config": "*",
+    "@poe-code/config-mutations": "*",
+    "@poe-code/github-workflows": "*",
+    "@poe-code/process-launcher": "*",
+    "tiny-stdio-mcp-test-server": "*",
+    "@poe-code/agent-hook-config": "*",
+    "@poe-code/agent-skill-config": "*",
+    "@poe-code/agent-trace-viewer": "*",
+    "@poe-code/workspace-resolver": "*",
+    "@poe-code/agent-child-process": "*",
+    "@poe-code/agent-harness-tools": "*",
+    "@poe-code/agent-human-in-loop": "*",
+    "tiny-http-mcp-oauth-test-server": "*"
+  },
+  "bundleDependencies": [
+    "gray-matter"
+  ],
+  "optionalDependencies": {
+    "braintrust": "^3.17.0"
+  },
+  "_npmOperationalInternal": {
+    "tmp": "tmp/poe-code_15.0.26_1789222974096_0.8589085151681057",
+    "host": "s3://npm-registry-packages-npm-production"
+  },
+  "_id": "poe-code@15.0.26",
+  "version": "15.0.26"
+}

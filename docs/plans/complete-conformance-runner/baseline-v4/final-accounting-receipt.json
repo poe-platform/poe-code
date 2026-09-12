@@ -1,0 +1,31 @@
+{
+  "observedUtc": "2026-09-12T16:19:00.036332+00:00",
+  "maintainedAggregateExit": 1,
+  "mandatoryFinalSummary": true,
+  "manifestExactlyMatchesFrozenEnumeration": true,
+  "sourceSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "sourceHash": "aa87050d0107c7e5c7ab7beab09ff260c65c7b119fc25d76ac294e9c6565f5b3",
+  "manifestId": "547fad76257b2e6e3d5aae1626ead11434d557f8f3d12b2b613aea238dee41a9",
+  "counts": {
+    "files": 53876,
+    "fixtures": 294,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 102926,
+    "passed": 93220,
+    "failed": 6388,
+    "unsupported": 3318
+  },
+  "complete": true,
+  "success": false,
+  "selectedReports": 216,
+  "allProcessExitsAndTerminalRecordsPresent": true,
+  "selectionProcessExitCounts": {
+    "0": 55,
+    "1": 161
+  },
+  "executionStartUtc": "2026-09-12T13:43:37.745880+00:00",
+  "executionEndUtc": "2026-09-12T16:17:22.728804+00:00",
+  "executionWallSeconds": 9224.983,
+  "noRetriesOrIncompleteReports": true
+}

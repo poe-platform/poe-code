@@ -1,0 +1,115 @@
+{
+  "observedUtc": "2026-09-12T13:08:16.314Z",
+  "sourceSha": "5f6446c4415a9320f53c9db611cd641886447e41",
+  "sourceHash": "b76c7df50cdfc4b6738ccf43ce8338ab6dc1ccd68dd4db3da326d213040e1f08",
+  "baselineSourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "baselineSourceHash": "b51f268c45c0643879c5c46eb088618a8db0415020c65e2e32ae47d8b928c9cc",
+  "node": "v22.23.2",
+  "icu": "78.2",
+  "differences": [
+    {
+      "path": "packages/agent-harness/package.json",
+      "before": "c52c750ded69f87f989a0faf733c9e79e9aaa6d98d6d15fdc44da429902bd508",
+      "current": "081c101efa5954f25b6863a47a82e222e7661f4597a5bfecd1becd8e850030a7"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/unzip.ts",
+      "before": "dcbb54257350195db814ebc2ef0f8ae255ebd9a6219372b0a2afef4be9fe59b7",
+      "current": "8790baefcbf88c612d21e8f524c2262335f46d466a9fd0f3157f6ba753c5a766"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/unzip/arguments.ts",
+      "before": "4451e63c0e4d82ad6ec0e4b9ef42670d4fc54d48f835aae285996d479020864d",
+      "current": "eded239f35a72c5d0c6f46249151edc73637540b7fe1f011e7c96b526846da37"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/zip.ts",
+      "before": "5d2cf1ebea2500907e6657481aac6a25acc0c218d8a57c220797e1ad2a463f71",
+      "current": "62862a37b1fdbea987385f49248635df45b1802c8962075ec6a52c84643849c8"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/filesystem.ts",
+      "before": "e2bcf671734e3c081df8b402ee46fa964ebc609c9fd1d7a8b30c58395ba111ff",
+      "current": "dec946c884b50a572352065ed0689e6a4b771cca8588049367c11a8c9dd82081"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/llm/openai-http.ts",
+      "before": "9ef3f59dc0b807118c965f3a91c6cfe066925852555aef5a78f6a59694a1eb76",
+      "current": "8f037332af91bfe10fe78c8bb46d838be1393943a78fd3d090ecbbb95cea18c9"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/llm/openai.ts",
+      "before": "78af69571566a0c651394af72fdfd674efb213550bb9fa7bc2f2a2d13e6dcc31",
+      "current": "210755d349ab0ebd1037ce56f6fea2412427d067b86e27bbeede5ea3996fc185"
+    },
+    {
+      "path": "packages/safe-fs/package.json",
+      "before": "fc4f898af15dee903db9a788e62dfd5279f769de107e8823fccc0305d279d2a3",
+      "current": "a501c01e5b0258be888cd7c077f9045da91ed9e043daf0bfeb3157da38298b67"
+    },
+    {
+      "path": "packages/safe-fs/src/contracts/filesystem.md",
+      "before": "ff97fa34f4fb56bec6cfc809f1d3e45142b25aa524c3601fe15f6ff511591e30",
+      "current": "d0ed6f771290fa380a0a272c0d7c6b8986eeaa5e7d79d6f25c4f6bd9039a7561"
+    },
+    {
+      "path": "packages/safe-js/src/core.ts",
+      "before": "ba340ce49ded12fa26363fb2f808c00d891f51c40dd1194a13f577d2115cf8f9",
+      "current": "17143865cb6a5e7957c234657159ce785cbb403522a9eaee251808053b62a46e"
+    },
+    {
+      "path": "packages/safe-js/src/index.ts",
+      "before": "ac09dbd26d5f147866828d8f154df0ba250c383aac69ce5df2addcc14fb43d97",
+      "current": "908a47fea00b58058c262e06f1a3de08c43f4667a783a143fc989cd6fa95655c"
+    },
+    {
+      "path": "packages/safe-js/src/interp/interpreter.ts",
+      "before": "6aada4c18fd51bdd7a57e402757ccf44db06e4b7270dff71cbe3ffe10c82ef6c",
+      "current": "6d2775d6023af368ea38a8a92941f67b7e97d2ee1b4c6c783524b272e277d684"
+    },
+    {
+      "path": "packages/safe-js/src/interp/jobs.ts",
+      "before": "62255d5f77b01bd46aed005d353ec02962666f421d1e39c5a2c582235e819e10",
+      "current": "fcd08aa28e00872547dfbd709bac0bf4d3fe34416980add418031bfce54b6281"
+    },
+    {
+      "path": "packages/safe-js/src/realm.ts",
+      "before": "bf5f8de0b1f7666fc0ffb13e4601aaf93e5c0f70e28d28fbda85dc18dd5b4cdf",
+      "current": "a272665371636df42826d00184c5900f14cc3bfd4e169bb865e29caf14e424c3"
+    },
+    {
+      "path": "packages/safe-js/src/restore.test.ts",
+      "before": "f70bb7c976fce88ef56126045d5ff3340883f8db36007b22f5b664e47e2097a5",
+      "current": "767e776a73c83bfa311f1c157c87daeaa4fe8552fa13a89c76e3fd83dfd0a1c2"
+    },
+    {
+      "path": "packages/safe-js/src/run.completed-replay.test.ts",
+      "before": "2ba0100750ae7685ee2ce76d3bcaf0e9991111ecd73fc801ca0a830db4be9e76",
+      "current": "b0cf5b4b4ace67abe4f32dc75c7ae9bc0d756de443bab4c8b9aa3be92f2aab22"
+    },
+    {
+      "path": "packages/safe-js/src/run.ts",
+      "before": "8ff6542e9024c59e31dbe4a625abd0010ab2031a8f67db3358b5924877e90abe",
+      "current": "565d01cb7cb0375802591cedcc69982f7b9e6e49f16b64faff9c70524ebaf4a8"
+    },
+    {
+      "path": "packages/safe-js/src/snapshot/dump.ts",
+      "before": "d3b8e4f6307a4b4603759b49c2564adb47eef1e8912de155f73048da7c001cc1",
+      "current": "d6da159340a1cbc53b48f09bacf9165e2b5a920dddaac10a5a3ba5b04fd4348f"
+    },
+    {
+      "path": "packages/safe-js/src/snapshot/validation.ts",
+      "before": "c5ec7a3b88541668169168c64216a9ed447bb691026666ecccfadd553022ac41",
+      "current": "ff4c5cae634979518fdfbb9c6761cadee47f41dcca9501d784a4028b3a6374b0"
+    },
+    {
+      "path": "packages/safe-fs/src/testing/atomic-filesystem.ts",
+      "current": "658a55d5eabdc558d0cd7e7f926a74c196b561fec3aa453dadb9fddea2414847"
+    },
+    {
+      "path": "packages/safe-js/src/run.control.test.ts",
+      "current": "62aa8ceab0cab78fd27a35c7643d079716575e6a652d1feedfaf5ba1f4377d40"
+    }
+  ],
+  "interpretation": "Historical baseline is not current merged runtime conformance when source hashes differ"
+}

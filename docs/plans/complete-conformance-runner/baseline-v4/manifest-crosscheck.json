@@ -1,0 +1,52 @@
+{
+  "observedUtc": "2026-09-12T13:15:25.872449+00:00",
+  "enumerateExitCode": 0,
+  "manifestId": "547fad76257b2e6e3d5aae1626ead11434d557f8f3d12b2b613aea238dee41a9",
+  "sourceSha": "a4476e3fabf1bf5f3c492aa76f38ff0bf3d05e46",
+  "sourceHash": "aa87050d0107c7e5c7ab7beab09ff260c65c7b119fc25d76ac294e9c6565f5b3",
+  "runtime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "execution": {
+    "timeoutMs": 3000,
+    "budget": {},
+    "effectiveBudget": {
+      "maxSteps": "unlimited",
+      "maxCallDepth": "unlimited",
+      "stringLength": "unlimited",
+      "arrayLength": "unlimited",
+      "dataSize": "unlimited"
+    },
+    "deadline": "per-variant timeout",
+    "isolation": {
+      "kind": "persistent-child-process",
+      "startupTimeoutMs": 10000,
+      "wallTimeoutMs": 3000,
+      "timerStarts": "before-dispatch",
+      "recovery": "kill-and-replace-without-retrying-variant"
+    }
+  },
+  "gitStatusPorcelain": "",
+  "files": 53876,
+  "fixtures": 294,
+  "metadataErrors": 0,
+  "variantCount": 102926,
+  "modeCounts": {
+    "sloppy": 52031,
+    "strict": 50022,
+    "raw": 32,
+    "module": 841
+  },
+  "fixtureAssets": 20,
+  "harnessFiles": 44,
+  "sourceFiles": 6305,
+  "selections": 216,
+  "exactFilesMetadataVariantHashesMatchIndependentlyAuditedV3Pin": true,
+  "harnessAndFixtureAssetsMatchV3": true,
+  "reportDirectory": "/Users/kjopek/Workspace/poe-code/docs/plans/complete-conformance-runner/baseline-v4",
+  "historicalResultRowsReused": 0
+}

@@ -1,0 +1,11 @@
+{
+  "observedUtc": "2026-09-12T16:18:59.595788+00:00",
+  "source": "aggregate.json",
+  "archive": "aggregate.json.gz",
+  "sourceSha256": "d066be16ae8bafa10ba81222f0b7a53a09e42e8228f1c3d08e8ad9c14d01ba48",
+  "archiveSha256": "3d67c36f7612e9b4be3bc3bd554f7ec98b92c91e5397af32b2ac25ee375936ed",
+  "sourceBytes": 39754842,
+  "archiveBytes": 6040610,
+  "roundtripVerified": true,
+  "rawSourceRemoved": false
+}

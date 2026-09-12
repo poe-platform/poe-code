@@ -1,0 +1,26 @@
+{
+  "observedUtc": "2026-09-12T13:09:36.671667+00:00",
+  "selectedV3Reports": 216,
+  "v3ElapsedProcessSeconds": 34840.143,
+  "v3WallSecondsIncludingRecovery": 8729.025,
+  "idealizedFourWorkerSeconds": 8710.036,
+  "planningEstimateHours": [
+    2,
+    3
+  ],
+  "estimateCaveat": "Not a promise: interpreter/jobs/Intl changes, contention, archive steps and startup may change cost. Four-worker equivalent based only on recorded V3 process elapsed durations.",
+  "v3RawSelectedReportBytes": 24498616,
+  "v3OtherArtifactBytes": {
+    "manifest.json": 37744957,
+    "aggregate.json": 40226098,
+    "independent-mismatch-inventory.json": 11968618,
+    "manifest.json.gz": 5913639,
+    "aggregate.json.gz": 6203276,
+    "independent-mismatch-inventory.json.gz": 697552,
+    "selected-batch-reports.tar.gz": 3842992
+  },
+  "expectedV4ArtifactAllowanceBytes": 536870912,
+  "diskFreeBytes": 34717970432,
+  "newSelectionDiskFloorBytes": 2147483648,
+  "pagingCaveat": "Prior ENOSPC reflected host paging/other disk pressure; report artifacts alone are small. Admission floor and reduced concurrency preserve resumability."
+}

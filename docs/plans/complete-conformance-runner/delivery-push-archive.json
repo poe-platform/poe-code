@@ -1,0 +1,8 @@
+{
+  "file": "delivery-push.log.gz",
+  "rawBytes": 315,
+  "rawSha256": "a81e65f13d0133bec9b7df8567ab07f21314a2d7d0d5f073f243b2aa8da98305",
+  "gzipBytes": 220,
+  "gzipSha256": "fe986562b04e110a1cecc41ba13879e49ddbb17651fb01bfe66ded07bef34877",
+  "decompressionVerified": true
+}

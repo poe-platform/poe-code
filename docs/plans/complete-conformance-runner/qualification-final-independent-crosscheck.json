@@ -1,0 +1,60 @@
+{
+  "observedUtc": "2026-09-12T13:08:01.897779+00:00",
+  "headAtAudit": "5f6446c4415a9320f53c9db611cd641886447e41",
+  "interpretation": "independent historical archive/accounting verification, not fresh semantic execution",
+  "manifestId": "b974f63562bfa3431a18d4da5113a2a0f05ee919c08016df82d5eab78c99bacd",
+  "sourceSha": "f314e261c96e444b8fc983117864462171db5bc4",
+  "sourceHash": "b51f268c45c0643879c5c46eb088618a8db0415020c65e2e32ae47d8b928c9cc",
+  "recordedRuntime": {
+    "node": "v22.23.2",
+    "icu": "78.2",
+    "v8": "12.4.254.21-node.56",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "selectedReports": 216,
+  "files": 53876,
+  "fixtures": 294,
+  "variants": 102926,
+  "modeCounts": {
+    "sloppy": 52031,
+    "strict": 50022,
+    "raw": 32,
+    "module": 841
+  },
+  "statusCounts": {
+    "unsupported": 3318,
+    "passed": 93157,
+    "failed": 6451
+  },
+  "nonpasses": 9769,
+  "reasonOrCodeCounts": {
+    "IsHTMLDDA": 84,
+    "worker-wall-timeout": 4546,
+    "unexpected-throw": 1336,
+    "module": 1996,
+    "async-failure": 196,
+    "unhandled-rejection": 74,
+    "shared-memory": 974,
+    "agent": 224,
+    "blocking-mode": 18,
+    "budgetExceeded": 191,
+    "reentry": 6,
+    "wrong-phase": 100,
+    "wrong-error-type": 2,
+    "gc": 22
+  },
+  "inventoryExactlyCoversNonpasses": true,
+  "inventorySourceAndVariantHashesMatch": true,
+  "inventoryNeighborControlsPassed": true,
+  "mandatoryTerminalAndProvenanceCheck": "qualification-final-historical-replay.json",
+  "focusedTestCommand": "npx vitest run packages/safe-js/test/conformance",
+  "focusedTestResult": {
+    "exit": 0,
+    "files": 10,
+    "passed": 145,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 3.19
+  }
+}

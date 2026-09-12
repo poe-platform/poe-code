@@ -682,3 +682,309 @@ The clean uncached CI SafeJS suite reports **29,074 passed, 47 skipped, zero fai
 Actual verified publications: **poe-code 15.0.28**, **@poe-platform/safe-fs 0.1.563**, **@poe-platform/safe-js 0.1.563**, **@poe-platform/safe-bash 0.1.563**. Each downloaded tarball matches npm SHA-512 integrity and its SLSA subject. Each SLSA source is exactly the recovery SHA, with the matching successful publishing invocation. Root npm gitHead and release tag additionally match. Fresh installed-artifact checks pass independently for explicit memory filesystem access, explicitly registered Bash commands, SafeJS arithmetic with absent ambient process authority, root SafeJS export, and the exact framed CLI version. npm verified **213 registry signatures and 42 available attestations**, exit 0. No workspace links or local publication were used. [Combined receipt](verify-conformance-oracles/delivery-20260912/recovery-publication-receipt.json).
 
 This evidence-only follow-up delivers the recovery's native controls, partial-propagation observations, per-package provenance, installed checks, and successful release receipts. JSON receipts parse successfully and Markdown/JSON whitespace checks pass; raw terminal logs retain their original bytes. Its own remote SHA and subsequent workflow conclusion necessarily follow the commit and will be recorded as a final observation. No new package publication is claimed for the documentation-only follow-up. No associated issue number was supplied. Unrelated working files and the original staged Safe Bash diff still match their initial hashes. Focused oracle acceptance remains established; this is not a current full-Test262 semantic pass or a resolution of the separately owned host capability gaps.
+
+
+## repair-iso-month-formatting — current-source verification and open disposition, 2026-09-12
+
+**Acceptance is not met. This is an evidence-only change, not an ISO formatting repair.**
+Source SHA: `945d3ffd8595e3b109f48e2e7825c4adcd5567bb`, branch `main`.
+Compatibility remains ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025),
+Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, with tracked Temporal
+`e8cc03fc970a65a3359e8870e3b35e687ac94e55`. The additional exact CLDR 48 ISO
+locale profiles are qualification requirements, not a redefinition of ECMA-402.
+
+### Current defect and repair disposition
+
+The existing `packages/safe-js/src/interp/intl-iso-month.ts` only recovers empty
+standalone long-month results. It constructs a Gregorian formatter. Its SHA-256
+is `80c3c9c3dcaae8d0951c5269b7b999333bc46f5fd67c30560b4a5bfa2b7e82e7`.
+It is unchanged and does not satisfy the task's prohibition on substituting
+Gregorian output. Passing the original report through this fallback is not
+proof of a qualified repair. `intl-datetimeformat.ts` SHA-256 is
+`b588e94daa9dd8b23fe80618fcaf6f8bff41ec751fd3016f21adaa5fe0c16b0f`.
+The user-provided untracked report's SHA-256 remains
+`71bfb95fec05d6f26985504621bb04ec516caf021cbb3984606d1c8a63093ada`.
+
+A fresh read of [Node PR 64678](https://github.com/nodejs/node/pull/64678)
+confirms the ICU-23262 diagnosis: missing ISO era resources leave an error
+status that prevents subsequent month-symbol loading. The native C++ repair
+clears that error before continuing initialization. It is a host ICU repair,
+not a dependency repair delivered by this package. Updating temporal-polyfill
+alone does not establish that the host's Intl backend is repaired. No runtime
+upgrade, global Intl mutation, host process bridge, or Gregorian substitution
+was introduced in this verification.
+
+A portable owned ISO pattern/interval implementation or a qualified package
+backend remains unresolved engineering work. Earlier candidate comparison
+results are not promoted to qualification. In particular, reconstructing slots
+from narrow output is not justified when that scaffold can itself lose fields.
+The current continuation supplies no new qualified candidate. Budgets, option
+coercion, numbering, locale ordering, runtime support, assertions, timeouts,
+Temporal calendar checks and guest authority boundaries were not changed.
+
+### Public red phase and focused controls
+
+Runtime: Node **22.23.2 / ICU 78.2**. The following temporary test was executed
+alongside the original report. Result: **18 passed, eight failed, zero skipped**,
+exit **1**. All six year/month assertions returned a year and trailing space,
+with the month part absent; both en-US month/day assertions returned a leading
+space and day, again with the month part absent. Intl Temporal formatting and
+Temporal `toLocaleString` both reproduced these failures. Exact examples:
+`"2000 "` instead of `"2000 February"`, and `" 29"` instead of `"February 29"`.
+
+To reproduce, save this block as
+`packages/safe-js/src/interp/globals/iso-month-current-qualification.test.ts`
+in an isolated checkout, then execute the command below. The temporary file
+created in this continuation was removed after the observation; the original
+report and expectations were preserved. The failing regression is retained
+here without adding an unresolved red file to the maintained suite.
+
+```typescript
+import { expect, it } from "vitest";
+import { run } from "../../run.js";
+
+// CLDR 48 ISO yMMMM/yMMM patterns use year before the format-context month.
+it.each([
+  ["en-US", "long", "February"], ["en-US", "short", "Feb"],
+  ["pl-PL", "long", "lutego"], ["pl-PL", "short", "lut"],
+  ["ru-RU", "long", "февраля"], ["ru-RU", "short", "февр."]
+])("keeps ISO year/month fields and grammatical context in %s/%s", async (locale, month, name) => {
+  expect(await run(`
+    const options={calendar:'iso8601',year:'numeric',month:${JSON.stringify(month)},timeZone:'UTC'};
+    const f=new Intl.DateTimeFormat(${JSON.stringify(locale)},options);
+    const ym=new Temporal.PlainYearMonth(2000,2);
+    return [f.formatToParts(Date.UTC(2000,1,29)),f.format(ym),ym.toLocaleString(${JSON.stringify(locale)},options)];
+  `)).toMatchObject({ ok: true, returnValue: [
+    [{ type: "year", value: "2000" }, { type: "literal", value: " " }, { type: "month", value: name }],
+    `2000 ${name}`, `2000 ${name}`
+  ] });
+});
+
+it.each(["long", "short"])("keeps ISO month/day fields for %s months", async month => {
+  const name = month === "long" ? "February" : "Feb";
+  expect(await run(`
+    const options={calendar:'iso8601',month:${JSON.stringify(month)},day:'numeric',timeZone:'UTC'};
+    const f=new Intl.DateTimeFormat('en-US',options),md=new Temporal.PlainMonthDay(2,29);
+    return [f.formatToParts(Date.UTC(2000,1,29)),f.format(md),md.toLocaleString('en-US',options)];
+  `)).toMatchObject({ ok: true, returnValue: [
+    [{ type: "month", value: name }, { type: "literal", value: " " }, { type: "day", value: "29" }],
+    `${name} 29`, `${name} 29`
+  ] });
+});
+```
+
+```sh
+npx vitest run packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts packages/safe-js/src/interp/globals/iso-month-current-qualification.test.ts
+```
+
+After removing only the newly created temporary file, this unchanged-source
+focused control passed **111 tests in nine files**, zero failures/skips, exit 0:
+
+```sh
+npx vitest run packages/safe-js/src/interp/intl-iso-month.test.ts packages/safe-js/src/interp/globals/intl-iso-month-recovery.test.ts packages/safe-js/src/interp/globals/iso-month-name-completeness.test.ts packages/safe-js/src/interp/globals/intl-datetimeformat.test.ts packages/safe-js/src/interp/globals/intl-datetimeformat-plain-month-day.test.ts packages/safe-js/src/interp/globals/intl-datetimeformat-plain-year-month.test.ts packages/safe-js/src/interp/globals/intl-datetimeformat-plain-date.test.ts packages/safe-js/src/interp/globals/intl-datetimeformat-plain-date-time.test.ts packages/safe-js/src/interp/globals/intl-datetimeformat-temporal.test.ts
+```
+
+These passing controls do not supersede the red phase or matrix failures.
+
+### Reproducible public matrix
+
+The installed public probe below is unchanged (SHA-256
+`239a3d881a06526f5f530bc2e126cbadc302cc4bb2dc554c0024c8876f8623d8`).
+It makes **187 assertions per execution**. It checks all five widths and three
+requested locales, standalone Intl and both Temporal types, parts, range
+sources, cross-year and equal-endpoint ranges, string/parts agreement,
+original/pending/completed replay, non-ISO controls, coercion, Arabic numbering,
+locale priority, invalid ranges and absence of ambient guest process/fetch.
+Replay agreement checks repeat the original output, so they do not turn a
+wrong original output into semantic success. No guest capabilities are granted.
+
+This uses the existing local build and existing isolated installations of
+`@poe-platform/safe-js@0.1.563` and `poe-code@15.0.28`; it is a fresh execution,
+not a fresh build, install, integrity attestation or publication. Save the probe
+as `/tmp/safejs-iso-installed.YSS7Mk/probe.mjs` next to those installed packages.
+For a new checkout use an isolated installation of those exact versions and
+adjust the absolute paths. Every command has this form:
+
+```sh
+<runtime-executable> /tmp/safejs-iso-installed.YSS7Mk/probe.mjs <entrypoint>
+```
+
+The five entrypoint arguments, each run under every listed runtime, are:
+
+- `file:///Users/kjopek/Workspace/poe-code/packages/safe-js/dist/index.js`
+- `@poe-platform/safe-js`
+- `@poe-platform/safe-js/core`
+- `poe-code/safejs`
+- `poe-code/safejs/core`
+
+```javascript
+const entry = await import(process.argv[2]);
+const {run} = entry;
+const {dump,restore} = process.argv[2].endsWith('/core') ? await import(process.argv[2].slice(0,-5)) : entry;
+const checks=[];
+const record=(id,actual,expected)=>checks.push({id,pass:JSON.stringify(actual)===JSON.stringify(expected),actual,expected});
+const observe=(id,actual)=>checks.push({id,observation:actual});
+const start=Date.UTC(2000,1,29),end=Date.UTC(2000,2,2),next=Date.UTC(2001,1,2);
+const rows=[['en-US',['February','Feb','F','2','02'],['March','Mar','M','3','03'],'February'],['pl-PL',['luty','lut','L','2','02'],['marzec','mar','M','3','03'],'lutego'],['ru-RU',['февраль','февр.','Ф','2','02'],['март','март','М','3','03'],'февраля']];
+const widths=['long','short','narrow','numeric','2-digit'];
+for(const [locale,names,ends,contextLong] of rows) for(const [i,month] of widths.entries()) {
+ const options={calendar:'iso8601',month,timeZone:'UTC'};
+ const code=`const f=new Intl.DateTimeFormat(${JSON.stringify(locale)},${JSON.stringify(options)});
+ const md=new Temporal.PlainMonthDay(2,29),ym=new Temporal.PlainYearMonth(2000,2);
+ const p=f.formatToParts(${start}),r=f.formatRangeToParts(${start},${end}),cross=f.formatRangeToParts(${start},${next});
+ return {single:[f.format(${start}),p,md.toLocaleString(${JSON.stringify(locale)},${JSON.stringify(options)}),ym.toLocaleString(${JSON.stringify(locale)},${JSON.stringify(options)}),f.format(md),f.format(ym)],range:r,cross,same:f.formatRangeToParts(${start},${start}),join:f.formatRange(${start},${end})===r.map(p=>p.value).join(''),calendar:f.resolvedOptions().calendar};`;
+ const pending=run(code);const result=await pending;
+ record(`${locale}/${month}/ok`,result.ok,true);
+ if(!result.ok){observe('error',String(result.error));continue;}
+ const v=result.returnValue;
+ record(`${locale}/${month}/single`,v.single,[names[i],[{type:'month',value:names[i]}],names[i],names[i],names[i],names[i]]);
+ record(`${locale}/${month}/range`,v.range.filter(p=>p.type==='month'),[{type:'month',value:names[i],source:'startRange'},{type:'month',value:ends[i],source:'endRange'}]);
+ record(`${locale}/${month}/join`,v.join,true);
+ record(`${locale}/${month}/calendar`,v.calendar,'iso8601');
+ record(`${locale}/${month}/same`,v.same,[{type:'month',value:names[i],source:'shared'}]);
+ record(`${locale}/${month}/cross-year-fields`,v.cross.filter(p=>p.type!=='literal'),[{type:'month',value:names[i],source:'startRange'},{type:'month',value:names[i],source:'endRange'}]);
+ for(const mode of ['pending','completed']) {
+ const original=run(code);if(mode==='completed')await original;
+ const saved=restore(JSON.parse(await dump(original)),{source:code});
+ record(`${locale}/${month}/${mode}-original`,(await original).returnValue,v);
+ record(`${locale}/${month}/${mode}-replay`,(await run(code,{snapshot:saved})).returnValue,v);
+ }
+ const native=new Intl.DateTimeFormat(locale,options);
+ observe(`${locale}/${month}/native`,{single:native.formatToParts(start),range:native.formatRangeToParts(start,end),cross:native.formatRangeToParts(start,next)});
+ if(['long','short'].includes(month)) {
+ const mix={...options,year:'numeric'};
+ const mixed=await run(`const o=${JSON.stringify(mix)},locale=${JSON.stringify(locale)},f=new Intl.DateTimeFormat(locale,o);return [f.formatToParts(${start}),new Temporal.PlainYearMonth(2000,2).toLocaleString(locale,o)];`);
+ record(`${locale}/${month}/mixed-ok`,mixed.ok,true);
+ if(mixed.ok){record(`${locale}/${month}/mixed-month-present`,mixed.returnValue[0].some(p=>p.type==='month'&&p.value.length>0),true);record(`${locale}/${month}/mixed`,mixed.returnValue,[[{type:'year',value:'2000'},{type:'literal',value:' '},{type:'month',value:month==='long'?contextLong:names[i]}],`2000 ${month==='long'?contextLong:names[i]}`]);}
+ }
+}
+for(const calendar of ['gregory','buddhist','hebrew']) {
+ const opts={calendar,year:'numeric',month:'long',day:'numeric',timeZone:'UTC'};
+ const native=new Intl.DateTimeFormat('pl-PL',opts);
+ const result=await run(`const f=new Intl.DateTimeFormat('pl-PL',${JSON.stringify(opts)});return [f.formatToParts(${start}),f.formatRangeToParts(${start},${end}),f.resolvedOptions().calendar];`);
+ record(`control/${calendar}`,[result.ok,result.returnValue],[true,[native.formatToParts(start),native.formatRangeToParts(start,end),calendar]]);
+}
+const coercion=await run(`const log=[];const f=new Intl.DateTimeFormat(['pl-PL','en-US'],{calendar:{toString(){log.push('calendar');return 'iso8601'}},month:{toString(){log.push('month');return 'numeric'}},numberingSystem:'arab',timeZone:'UTC'});const errors=[];for(const args of [[NaN,0],[undefined,0],[0,Infinity]])try{f.formatRange(...args)}catch(e){errors.push(e.name)}return [log,f.format(${start}),f.resolvedOptions().locale,f.resolvedOptions().numberingSystem,errors,typeof process,typeof fetch];`);
+record('coercion/numbering/locale-order/authority',[coercion.ok,coercion.returnValue],[true,[['calendar','month'],'٢','pl-PL','arab',['RangeError','TypeError','RangeError'],'undefined','undefined']]);
+console.log(JSON.stringify({versions:process.versions,entrypoint:process.argv[2],checks,passed:checks.filter(c=>c.pass===true).length,failed:checks.filter(c=>c.pass===false).length,observations:checks.filter(c=>c.observation!==undefined).length}));
+process.exitCode=checks.some(c=>c.pass===false)?1:0;
+```
+
+Results are identical across the five listed surfaces for each runtime:
+
+| Runtime | ICU | Passed | Failed | Exit |
+| --- | --- | ---: | ---: | ---: |
+| Node 18.18.0 | 73.2 | 181 | 6 | 1 |
+| Node 18.20.8 | 74.2 | 181 | 6 | 1 |
+| Node 20.20.2 | 78.2 | 175 | 12 | 1 |
+| Node 22.23.2 | 78.2 | 175 | 12 | 1 |
+| Node 24.21.0 | 78.3 | 187 | 0 | 0 |
+| Node 26.8.2 | 78.3 | 187 | 0 | 0 |
+| Bun 1.3.11 | 74.2 | 183 | 4 | 1 |
+
+Exact runtime executables used:
+
+- `MIN`: `/Users/kjopek/.nvm/versions/node/v18.18.0/bin/node`
+- `N18`: `/Users/kjopek/.nvm/versions/node/v18.20.8/bin/node`
+- `N20`: `/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node`
+- `CI22`: `/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node`
+- `N24`: `/tmp/safejs-published-baseline.gM67xh/runtimes/node-24.21.0`
+- `N26`: `/tmp/safejs-published-baseline.gM67xh/runtimes/node-26.8.2`
+- `BUN`: `/Users/kjopek/.bun/bin/bun`
+
+All 35 executions completed; no matrix assertions were skipped. Node20/22 fail
+six `/mixed-month-present` and six matching `/mixed` assertions (long/short,
+en-US/pl-PL/ru-RU). Node18 fails the six `/mixed` CLDR48 profile assertions,
+with months present: e.g. `February 2000` instead of `2000 February`. Bun fails
+four `pl-PL/narrow` assertions (`single`, `range`, `same`, `cross-year-fields`):
+its month symbols are lowercase `l`/`m` instead of the pinned `L`/`M`.
+These older-locale-data profile differences remain failures of this task's
+qualification, without being misclassified as missing-month ECMAScript defects.
+Root legacy aliases, CLI executions and additional exported surfaces are not
+independently qualified by these five surfaces.
+
+### Native ICU and direct Temporal backend controls
+
+Save this native-only diagnostic as `native.mjs` and execute
+`<runtime-executable> <absolute-path>/native.mjs` with each executable above.
+All seven diagnostic commands exit 0 to emit observations, not to certify them.
+There are 45 option combinations per runtime; every combination produces
+single and range parts. Node20/22 have **15 missing-month single outputs and
+15 missing-month range outputs each**. The other five runtimes have zero
+missing-month outputs in this diagnostic. This does not certify their pinned
+locale profiles or all possible options.
+
+```javascript
+const rows=[];for(const locale of ['en-US','pl-PL','ru-RU'])for(const month of ['long','short','narrow','numeric','2-digit'])for(const fields of [{},{year:'numeric'},{day:'numeric'}]){const options={calendar:'iso8601',timeZone:'UTC',month,...fields};const f=new Intl.DateTimeFormat(locale,options);rows.push({locale,options,parts:f.formatToParts(Date.UTC(2000,1,29)),range:f.formatRangeToParts(Date.UTC(2000,1,29),Date.UTC(2000,2,2))})}console.log(JSON.stringify({versions:process.versions,rows}));
+```
+
+The following direct temporal-polyfill 1.0.4 control was also freshly run as
+`<runtime-executable> /tmp/safejs-iso-installed.YSS7Mk/native-controls.mjs`
+for every runtime, exit 0 in all seven cells. It records observations rather
+than asserting passes. Node20/22 return empty results for the three standalone
+long-month locale rows; all other runtimes have zero empty rows. Native
+Temporal is available in Node26 (all 15 rows executed), and unavailable in
+all other tested runtimes (15 native-Temporal rows per runtime unexecuted).
+Native API absence is not counted as a failing or passing guest assertion.
+
+```javascript
+import {Temporal as Backend, Intl as BackendIntl} from 'temporal-polyfill/full/implementation';
+const rows=[];
+for(const locale of ['en-US','pl-PL','ru-RU'])for(const month of ['long','short','narrow','numeric','2-digit']){
+ const options={calendar:'iso8601',month,timeZone:'UTC'};
+ const md=new Backend.PlainMonthDay(2,29),ym=new Backend.PlainYearMonth(2000,2);
+ const f=new BackendIntl.DateTimeFormat(locale,options);
+ const row={locale,month,backend:[md.toLocaleString(locale,options),ym.toLocaleString(locale,options),f.formatToParts(ym)],nativeTemporal:'unavailable'};
+ if(typeof globalThis.Temporal!=='undefined')row.nativeTemporal=[new Temporal.PlainMonthDay(2,29).toLocaleString(locale,options),new Temporal.PlainYearMonth(2000,2).toLocaleString(locale,options)];
+ rows.push(row);
+}
+console.log(JSON.stringify({versions:process.versions,rows}));
+```
+
+### Workerd and remaining acceptance boundaries
+
+A fresh installed Workerd bundle attempt on Node22.23.2 exits 1 with
+`Could not resolve "#safe-fs-native-seek"`, reached from the installed
+`@poe-platform/safe-fs/dist/safe-fs/node/native-seek.js` conditional import.
+No import exclusion, Node authority alias or capability grant bypassed it.
+The executed command was:
+
+```sh
+node --input-type=module -e 'import {build} from "esbuild"; await build({entryPoints:["/tmp/safejs-iso-installed.YSS7Mk/worker.mjs"],bundle:true,format:"esm",platform:"neutral",conditions:["workerd"],external:["node:*"],write:false});'
+```
+
+The handler's static import is `import {run} from '@poe-platform/safe-js/workerd'`;
+that import is sufficient to reproduce the resolution failure with these
+installed versions. Guest execution remains unexecuted. Workerd's missing
+public snapshot helpers are also an explicit capability/integration boundary,
+not an ECMAScript defect. No fresh Workerd runtime/ICU observation is claimed.
+The earlier runtime receipts cannot substitute for this missing guest test.
+
+### Checks, preservation and delivery
+
+The only committed path for this continuation is
+`docs/plans/safejs-gap-closure-evidence.md`, containing this appendix only.
+The exact proposed documentation delta passed `git diff --cached --check`
+under an isolated index and was manually reviewed against the executed commands
+and counts. The 111-test focused check passed as reported; the expanded red
+phase and matrix failures remain explicit. No Markdown-specific maintained
+lint route applies to this report. No production lint/build/package-wide gate,
+Test262 rerun, candidate budget measurement or CLI screenshot is claimed:
+there is no production or visual CLI change. This is not a passing repair gate.
+
+The pre-existing ledger bytes remain an unchanged prefix of the working file.
+Other tracked working-file SHA-256 hashes and the pre-existing staged Safe Bash
+diff were checked against the initial snapshot. The original untracked month
+report is unchanged. An isolated Git index stages only this new appendix;
+unrelated staged work and earlier unstaged ledger additions are excluded.
+No dependency, runtime source, README, assertion, timeout or budget was changed.
+
+Local delivery: this appendix is prepared for the evidence-only Conventional
+Commit `docs(safe-js): record unresolved ISO month backend failures`; the
+resulting local SHA is reported separately after commit. Remote main was
+observed at `945d3ffd8595e3b109f48e2e7825c4adcd5567bb` before commit.
+**No push was attempted, no task repair is verified on remote main, and no
+new release/publication receipt exists for this continuation.** The installed
+versions above are historical package observations, not publication of this
+report or a repair. Acceptance stays open until an ISO-preserving backend
+repair and all required runtime/entrypoint qualifications are evidenced.

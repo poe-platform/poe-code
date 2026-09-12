@@ -25,6 +25,10 @@ vi.mock("node:fs/promises", async () => {
   };
 });
 
+vi.mock("@poe-code/agent-harness/templates", () => ({
+  listBuiltinTemplates: harnessMocks.listBuiltinTemplatesMock
+}));
+
 vi.mock("@poe-code/agent-harness", async () => {
   const actual =
     await vi.importActual<typeof import("@poe-code/agent-harness")>("@poe-code/agent-harness");

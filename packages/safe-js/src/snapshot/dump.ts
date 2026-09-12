@@ -43,7 +43,10 @@ export function attachDumpController(
   return result;
 }
 
-export function createDumpController(lifecycle?: RunLifecycle): DumpController {
+export function createDumpController(lifecycle?: RunLifecycle, pause?: {
+  isPaused(): boolean;
+  snapshot(): RunSnapshot | undefined;
+}): DumpController {
   let finished = false;
   let failed:
     | {
@@ -100,6 +103,8 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
       if (failed !== undefined) {
         return Promise.reject(failed.error);
       }
+      const paused = pausedSnapshot();
+      if (paused !== undefined) return paused;
 
       if (latestSnapshot !== undefined || latestSnapshotFactory !== undefined) {
         try {
@@ -113,6 +118,8 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
     },
     requestSnapshot(options = {}) {
       assertDumpAllowed(options);
+      const paused = pausedSnapshot();
+      if (paused !== undefined) return paused;
       if (failed !== undefined) {
         if (
           (options.onFailure === "checkpoint" ||
@@ -169,10 +176,21 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
     }
   };
 
+  function pausedSnapshot(): Promise<string> | undefined {
+    if (pause?.isPaused() !== true) return;
+    try {
+      const snapshot = pause.snapshot();
+      if (snapshot === undefined) throw new Error("Execution paused before snapshot initialization.");
+      return Promise.resolve(serializeRunSnapshot(snapshot));
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
   function assertDumpAllowed(options: DumpOptions): void {
     if (
       (lifecycle?.hostCallbackDepth ?? 0) > 0 &&
-      (options.mode !== "replay" || lifecycle?.hostCallbackContext.getStore() === true)
+      ((options.mode !== "replay" && pause?.isPaused() !== true) || lifecycle?.hostCallbackContext.getStore() === true)
     ) {
       throw new SandboxError("reentry");
     }

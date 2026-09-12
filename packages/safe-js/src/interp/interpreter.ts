@@ -587,6 +587,8 @@ export async function evaluateNode(
   context: EvaluationContext,
   onReference?: (reference: BindingReference) => void
 ): Promise<EvaluationResult> {
+  const checkpoint = SandboxJobQueue.checkpoint();
+  if (checkpoint !== undefined) await checkpoint;
   context.assertActive?.();
   if (context.generatorResume?.completed === true) context.generatorResume = undefined;
   if (context.inferredName !== undefined && node.type !== "ClassExpression" &&

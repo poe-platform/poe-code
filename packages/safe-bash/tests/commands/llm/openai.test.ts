@@ -150,6 +150,109 @@ for (const status of [301, 302, 307, 308, 400, 401, 429, 500]) {
   });
 }
 
+for (const model of models) for (const maxResponseBytes of [1, 16]) {
+  test(`OpenAI ${model.endpoint} HTTP errors stop reading at configured response budget ${maxResponseBytes}`, async () => {
+    const payload = encoder.encode(JSON.stringify({ error: { message: "denied" }, padding: "1234567890" }));
+    const reply = response("", 401);
+    let consumed = 0, returned = 0;
+    reply.body = (async function* () {
+      try { for (const byte of payload) { consumed++; yield Uint8Array.of(byte); } }
+      finally { returned++; }
+    })();
+    const transport = fake(reply);
+    const configured = createOpenAiProvider({ transport: transport.transport, apiKey: "test-secret", models, limits: { maxResponseBytes } });
+    const input = request({ model: model.id });
+    await assert.rejects(collect(configured.complete(input)), /OpenAI HTTP 401/);
+    assert.equal(consumed, maxResponseBytes + 1, "only one overflow-detection byte may be consumed");
+    assert.equal(returned, 1);
+    assert.equal(reply.disposed, 1);
+    assert.equal(transport.calls.length, 1);
+    assert.equal(getEventListeners(input.signal, "abort").length, 0);
+  });
+}
+
+for (const margin of [-1, 0, 1]) {
+  test(`OpenAI HTTP error detail respects the exact UTF-8 byte budget with margin ${margin}`, async () => {
+    const message = "denied 🦊";
+    const payload = encoder.encode(JSON.stringify({ error: { message } }));
+    const maxResponseBytes = payload.length + margin;
+    const reply = response("", 429);
+    let consumed = 0, closed = false;
+    reply.body = (async function* () {
+      try { for (const byte of payload) { consumed++; yield Uint8Array.of(byte); } }
+      finally { closed = true; }
+    })();
+    const configured = createOpenAiProvider({ transport: fake(reply).transport, apiKey: "test-secret", models, limits: { maxResponseBytes } });
+    await assert.rejects(collect(configured.complete(request())), { message: margin < 0 ? "OpenAI HTTP 429" : `OpenAI HTTP 429: ${message}` });
+    assert.equal(consumed, Math.min(payload.length, maxResponseBytes + 1));
+    assert.equal(closed, true);
+    assert.equal(reply.disposed, 1);
+  });
+}
+
+for (const maxResponseBytes of [undefined, 64 * 1024, 128 * 1024]) {
+  test(`OpenAI HTTP errors retain the 64 KiB diagnostic ceiling with response budget ${maxResponseBytes ?? "default"}`, async () => {
+    const reply = response("", 500);
+    let consumed = 0, closed = false;
+    reply.body = (async function* () {
+      try {
+        for (let chunk = 0; chunk < 128; chunk++) {
+          consumed += 1024;
+          yield new Uint8Array(1024).fill(32);
+        }
+      } finally { closed = true; }
+    })();
+    const configured = createOpenAiProvider({ transport: fake(reply).transport, apiKey: "test-secret", models,
+      limits: maxResponseBytes === undefined ? {} : { maxResponseBytes } });
+    await assert.rejects(collect(configured.complete(request())), { message: "OpenAI HTTP 500" });
+    assert.equal(consumed, 65 * 1024, "stop at the first chunk exceeding the smaller diagnostic ceiling");
+    assert.equal(closed, true);
+    assert.equal(reply.disposed, 1);
+  });
+}
+
+test("OpenAI bounded HTTP errors survive iterator and response cleanup failures", async () => {
+  const reply = response("", 503);
+  let consumed = 0, returned = 0;
+  reply.body = { [Symbol.asyncIterator]() { return {
+    async next() { consumed++; return { done: false as const, value: Uint8Array.of(32) }; },
+    async return() { returned++; throw new Error("secondary iterator cleanup"); },
+  }; } };
+  reply.dispose = async () => { reply.disposed++; throw new Error("secondary response cleanup"); };
+  const configured = createOpenAiProvider({ transport: fake(reply).transport, apiKey: "test-secret", models, limits: { maxResponseBytes: 1 } });
+  await assert.rejects(collect(configured.complete(request())), { message: "OpenAI HTTP 503" });
+  assert.equal(consumed, 2);
+  assert.equal(returned, 1);
+  assert.equal(reply.disposed, 1);
+});
+
+for (const reason of [null, false, 0, ""]) {
+  test(`OpenAI configured HTTP error parsing preserves cancellation ${JSON.stringify(reason)}`, async () => {
+    const controller = new AbortController();
+    let started!: () => void;
+    const reading = new Promise<void>(resolve => { started = resolve; });
+    let reads = 0, returned = 0;
+    const reply = response("", 401);
+    reply.body = { [Symbol.asyncIterator]() { return {
+      next() {
+        if (++reads === 1) return Promise.resolve({ done: false as const, value: Uint8Array.of(123) });
+        started();
+        return new Promise<IteratorResult<Uint8Array>>(() => undefined);
+      },
+      async return() { returned++; return { done: true as const, value: undefined }; },
+    }; } };
+    const configured = createOpenAiProvider({ transport: fake(reply).transport, apiKey: "test-secret", models, limits: { maxResponseBytes: 8 } });
+    const output = collect(configured.complete(request({ signal: controller.signal })));
+    await reading;
+    controller.abort(reason);
+    await assert.rejects(output, error => error === reason);
+    assert.equal(reads, 2);
+    assert.equal(returned, 1);
+    assert.equal(reply.disposed, 1);
+    assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+  });
+}
+
 for (const payload of ["not JSON", "data: nope\n\n", 'data: {"choices":[{"delta":{"content":42}}]}\n\n', 'data: {"error":{"message":"stream failed"}}\n\n', 'data: {"choices":[{"delta":{"content":"partial"}}]}\n\n']) {
   test(`OpenAI malformed or incomplete SSE fails: ${payload}`, async () => {
     const reply = response(payload);

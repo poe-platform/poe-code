@@ -18,6 +18,12 @@ import { posixPath as indexedPath, type CommandInput as IndexedCommandInput } fr
 import { posixPath as directPath } from "@poe-platform/safe-bash/contracts/path";
 import { Budget, run, makeFsModule, type RunClock, type HostObjectIndexedDefinition, type HostObjectNamedDefinition, type CallbackInvocation } from "@poe-platform/safe-js";
 import { createMemoryFileSystem, OverlayFileSystem, type CapabilityQueryOptions, type FileReadHandle, type FileResizeHandle, type FileSystem, type OpenReadFileOptions, type OpenResizeFileOptions } from "@poe-platform/safe-fs/core";
+import { createAtomicFileSystemConformance } from "@poe-platform/safe-fs/testing/atomic";
+
+for (const entry of createAtomicFileSystemConformance({ createFixture: () => ({ fs: createMemoryFileSystem(), root: "/", dispose() {} }), includeSymlinks: true })) {
+  const pending: Promise<void> = entry.run();
+  void pending;
+}
 import type { FileSystem as CompatibilityFileSystem } from "@poe-platform/safe-js/fs";
 import { Shell, evaluateCommandSupport, type CommandSupport, type CommandFileSystemRequirement, type FileReadHandle as ShellFileReadHandle, type OpenReadFileOptions as ShellOpenReadFileOptions, type FileResizeHandle as ShellFileResizeHandle, type OpenResizeFileOptions as ShellOpenResizeFileOptions } from "@poe-platform/safe-bash";
 import { createRealm, defineExtension, type HostObject, type GuestReference, type HostObjectIndexedDefinition as CoreIndexed, type HostObjectNamedDefinition as CoreNamed, type CallbackInvocation as CoreInvocation } from "@poe-platform/safe-js/core";

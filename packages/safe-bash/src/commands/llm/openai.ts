@@ -128,7 +128,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       const send = (path: string, method: string, body?: Pick<HttpRequest, "body" | "headers">) => openAiResponse(transport, {
         url: `${baseUrl}${path}`, method, signal: request.signal,
         ...body, headers: [["authorization", `Bearer ${apiKey}`], ...(body?.headers ?? [])],
-      });
+      }, limits.maxResponseBytes);
       if (model.endpoint === "chat") {
         const messages: unknown[] = [];
         if (request.system !== undefined) messages.push({ role: "system", content: request.system });

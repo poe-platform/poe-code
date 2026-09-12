@@ -94,7 +94,7 @@ test("zip missing operands have native warnings, output channel, and status", as
 test("zip rejects unsupported switches and -- before archive rather than using them as names", async () => {
   const fs = await fixture();
   assert.deepEqual(await run(fs, ["--", "bundle", "file"]), { exitCode: 16, stdout: "\nzip error: Invalid command arguments (can't use -- before archive name)\n", stderr: "" });
-  for (const flag of ["-y", "-u", "-q", "-0", "-@", "--encrypt"]) {
+  for (const flag of ["-y", "-u", "-0", "-@", "--encrypt"]) {
     const result = await run(fs, [flag, "bundle", "file"]);
     assert.equal(result.exitCode, 16);
     assert.match(result.stdout, /unsupported option/u);

@@ -1,5 +1,6 @@
 import { dirname, collectBytes, readBytes, resolvePath, writeBytes, type CommandContext, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
+import { createOutputOperation, type OutputOperation } from "../../contracts/output.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { Budget, bounded, checkPath, display, fail, settings, text, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { decodeZipEntry, readZipArchive, type ZipEntry } from "./zip-format.js";
@@ -49,22 +50,25 @@ async function comment(bytes: Uint8Array, budget: Budget): Promise<void> {
 
 export function createUnzipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return { name: "unzip", description: "List and safely extract ZIP archives in the virtual filesystem", async execute(original) {
+  return { name: "unzip", description: "List, stream or safely extract ZIP archives in the virtual filesystem", async execute(original) {
     original.signal.throwIfAborted();
     const controller = new AbortController();
     const context: CommandContext = { ...original, signal: AbortSignal.any([original.signal, controller.signal]) };
     const extraction = new Extraction(context, limits);
+    let output: OutputOperation | undefined;
     let answers: Answers | undefined;
     let closing: Promise<void> | undefined;
     const close = () => closing ??= (async () => {
       controller.abort(new Error("unzip command closed"));
-      await extraction.close();
+      await Promise.all([extraction.close(), output?.close()]);
       await answers?.close().catch(() => {});
     })();
     original.registerCleanup?.(close);
     const budget = new Budget(context, limits);
     try {
       const parsed = parseArguments(context, limits);
+      if (parsed.pipe) output = createOutputOperation(context, context.stdout);
+      if (parsed.pipe && parsed.destination !== undefined) await budget.output("caution:  not extracting; -d ignored\n", true);
       const selection = new Selection(parsed.patterns, limits, context.signal);
       let archive = parsed.archive;
       let archiveStat: FileStat | undefined;
@@ -74,36 +78,49 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         if (candidateStat) { archive = candidate; archiveStat = candidateStat; break; }
       }
       if (!archiveStat) {
-        await budget.output(`unzip:  cannot find or open ${archive}, ${archive}.zip or ${archive}.ZIP.\n`, true);
+        if (!parsed.pipe) await budget.output(`unzip:  cannot find or open ${archive}, ${archive}.zip or ${archive}.ZIP.\n`, true);
         return { exitCode: 9 };
       }
       const archivePath = await extraction.operation(() => context.fs.realpath(vfsPath(context.cwd, archive), { signal: context.signal }));
       archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
       const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, maxBytes: limits.maxArchiveBytes });
-      await budget.output(`Archive:  ${filtered(archive)}\n`);
+      if (!parsed.pipe) await budget.output(`Archive:  ${filtered(archive)}\n`);
       const zip = await readZipArchive(bytes, limits, context.signal);
-      await comment(zip.comment, budget);
+      if (!parsed.pipe) await comment(zip.comment, budget);
       if (!zip.entries.length) {
         await budget.output(`warning [${filtered(archive)}]:  zipfile is empty\n`, true);
         return { exitCode: 1 };
       }
       if (parsed.list) await budget.output("  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
       const rootRaw = parsed.destination === undefined ? context.cwd : vfsPath(context.cwd, parsed.destination);
-      const root = parsed.list ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
-      answers = new Answers(extraction.source(context.stdin), limits, context.signal);
+      const root = parsed.list || parsed.pipe ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
+      if (!parsed.list && !parsed.pipe) answers = new Answers(extraction.source(context.stdin), limits, context.signal);
       let overwrite: "ask" | "all" | "none" = parsed.overwrite ? "all" : "ask";
       let exitCode = 0;
       let selected = 0;
       let total = 0;
       let actualTotal = 0;
+      const payload = async function* (entry: ZipEntry) {
+        let actual = 0;
+        const signal = output?.signal ?? context.signal;
+        for await (const chunk of readBytes(decodeZipEntry(entry, limits, signal), signal)) {
+          if (chunk.length > limits.maxEntryBytes - actual || chunk.length > limits.maxTotalBytes - actualTotal) fail("actual decompressed byte limit exceeded");
+          actual += chunk.length; actualTotal += chunk.length;
+          yield chunk;
+        }
+      };
       const links: { path: string; shown: string; target: string; existing: FileStat | undefined; parent: FileStat; entry: ZipEntry }[] = [];
       const directories: { path: string; entry: ZipEntry; identity: FileStat; parent: FileStat }[] = [];
       for (const entry of zip.entries) {
         await budget.member(entry.size);
         checkPath(entry.name, limits);
-        if (!await selection.matches(entry.name)) continue;
+        if (!await selection.matches(entry.name, parsed.pipe)) continue;
         selected++; total += entry.size;
+        if (parsed.pipe) {
+          for await (const chunk of payload(entry)) await output!.output.write(chunk);
+          continue;
+        }
         if (parsed.list) {
           await budget.output(`${String(entry.size).padStart(9)}  ${date(entry)}   ${filtered(entry.name)}\n`);
           if (entry.comment) await comment(entry.comment, budget);
@@ -117,7 +134,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         await extraction.parents(root, path, true);
         if (entry.directory) {
           if (entry.size) fail("directory has nonempty payload");
-          for await (const chunk of readBytes(decodeZipEntry(entry, limits, context.signal), context.signal)) {
+          for await (const chunk of payload(entry)) {
             await writeFileOutput(context, chunk, async () => { if (chunk.length) fail("directory has nonempty payload"); });
           }
           const parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
@@ -140,7 +157,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           if (overwrite === "none") { skip = true; break; }
           if (++prompting > limits.maxMembers) fail("overwrite prompt work limit exceeded");
           await budget.output(`replace ${filtered(shown)}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `, true);
-          const answer = await answers.read();
+          const answer = await answers!.read();
           if (answer === undefined) {
             await budget.output(' NULL\n(EOF or read error, treating as "[N]one" ...)\n', true);
             overwrite = "none"; exitCode = 1; skip = true; break;
@@ -153,7 +170,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             let renamed = "";
             while (!renamed) {
               await budget.output("new name: ", true);
-              const value = await answers.read(limits.maxPathBytes);
+              const value = await answers!.read(limits.maxPathBytes);
               if (value === undefined) fail("EOF while reading replacement name");
               renamed = value.endsWith("\n") ? value.slice(0, -1) : value;
             }
@@ -170,9 +187,8 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         if (skip) continue;
         const chunks: Uint8Array[] = [];
         let actual = 0;
-        for await (const chunk of readBytes(decodeZipEntry(entry, limits, context.signal), context.signal)) {
-          if (chunk.length > limits.maxEntryBytes - actual || chunk.length > limits.maxTotalBytes - actualTotal) fail("actual decompressed byte limit exceeded");
-          actual += chunk.length; actualTotal += chunk.length;
+        for await (const chunk of payload(entry)) {
+          actual += chunk.length;
           await writeFileOutput(context, chunk, async bytes => { chunks.push(Uint8Array.from(bytes)); });
         }
         if (entry.symlink) {

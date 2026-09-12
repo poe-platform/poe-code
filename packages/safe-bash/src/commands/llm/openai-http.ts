@@ -70,7 +70,7 @@ export function openAiError(value: unknown): string | undefined {
   return undefined;
 }
 
-export async function* openAiResponse(transport: HttpTransport, input: HttpRequest): AsyncIterable<HttpResponse> {
+export async function* openAiResponse(transport: HttpTransport, input: HttpRequest, maxResponseBytes: number): AsyncIterable<HttpResponse> {
   input.signal.throwIfAborted();
   const cleanups = new Map<InvocationCleanup, { run: InvocationCleanup; pending?: Promise<void> }>();
   let closed = false, failed = false;
@@ -103,7 +103,7 @@ export async function* openAiResponse(transport: HttpTransport, input: HttpReque
     const response = await openAiAbortable(pending, input.signal);
     if (!Number.isInteger(response.status) || response.status < 200 || response.status >= 300) {
       let detail: string | undefined;
-      try { detail = openAiError((await openAiJson(response, input.signal, 64 * 1024)).error); }
+      try { detail = openAiError((await openAiJson(response, input.signal, Math.min(64 * 1024, maxResponseBytes))).error); }
       catch { input.signal.throwIfAborted(); }
       throw new Error(`OpenAI HTTP ${response.status}${detail ? `: ${detail}` : ""}`);
     }

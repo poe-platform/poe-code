@@ -676,6 +676,8 @@ the red historical cohort, exact bytes, exclusivity, invalid-mode, chmod,
 authorization, cancellation and read-only assertions when revising backend tests.
 # Conditional file mutations
 
+For RPC-backed hosts, see the [atomic integration guide and reusable conformance suite](../../docs/RPC_ATOMIC_FILESYSTEM.md).
+
 `atomicFileMutation` requires `writeFileConditional(path, data, options)` and
 `removeFileConditional(path, options)`. Each operation atomically checks the
 parent's scoped identity and directory type, and the file's scoped identity,

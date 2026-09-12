@@ -354,6 +354,9 @@ it("executes the maintained browser fixture with all top-level workflows in a No
         builder.onResolve({ filter: /^@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)$/ }, () => ({
           path: path.join(root, "packages/safe-fs/src/core.ts"),
         }));
+        builder.onResolve({ filter: /^@poe-platform\/safe-fs\/testing\/atomic$/ }, () => ({
+          path: path.join(root, "packages/safe-fs/src/testing/atomic-filesystem.ts"),
+        }));
         builder.onResolve({ filter: /^\./, namespace: "built-shell" }, args => ({
           path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
         }));

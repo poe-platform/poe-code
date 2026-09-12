@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-09-12T23:25:27.548248+00:00",
+  "localImplementationCommit": "ba051e363f12a87712e467a02011e7cb0c36f43e",
+  "verifiedRemoteMain": "40b5ac20e91570772786e5f9cb961881b11d6692",
+  "repairDeliveredToRemoteMain": false,
+  "pushPerformed": false,
+  "releaseInitiated": false,
+  "successfulReleaseReceipt": null,
+  "reason": "No push or release requested; local checks do not establish remote delivery or publication.",
+  "sourceHashesMatchTestedFiles": true,
+  "unrelatedStagedChangesPreserved": true,
+  "acceptanceTests": {
+    "files": 4,
+    "passed": 39,
+    "failed": 0,
+    "skipped": 0
+  },
+  "integrationTests": {
+    "files": 173,
+    "passed": 2096,
+    "failed": 0,
+    "skipped": 0
+  },
+  "pinnedTest262Variants": {
+    "passed": 8,
+    "failed": 0,
+    "unsupported": 0
+  },
+  "fullPackageSuite": "interrupted; no whole-suite pass claimed",
+  "actualWorkerdRuntime": "unverified"
+}

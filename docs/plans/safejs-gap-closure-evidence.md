@@ -547,3 +547,47 @@ The complete run took **13:43:37–16:17:22 UTC** on 2026-09-12 (approximately 2
 Disposition remains honest: **3,318 capability nonpasses** include module loading, agent/shared-memory, blocking, IsHTMLDDA and GC requirements; withheld host authority is not automatically an ECMAScript defect. **4,527 resource cases**, **141 harness-budget cases**, **74 conservative rejection-policy cases** (50 sync / 24 async, six actual secondary assertion diagnostics), **six generator state guards**, and **1,640 semantic candidates** remain separated by actual evidence and owner. The generated RegExp range's 500 nonpasses are 493 wall-timeouts and seven step-budget failures, not 500 proven language defects. Dedicated module/agent/realm/runtime-matrix and fixture-to-edition repairs remain visible. This closes the runner's complete-baseline/reporting acceptance; semantic all-pass compatibility remains false.
 
 Delivery is separate: local runner **`0b8daebe0`**, reconciliation **`5f6446c44`**, ISO repair **`a4476e3fa`**, and gate receipt **`5fd3b4f08463ebd03cc09203162acf58f5a05b9c`** were verified on remote main through normal hooks; [remote ancestry receipt](complete-conformance-runner/delivery-remote-receipt.json) retains the evidence. Initial [scoped release 34697326857](https://github.com/poe-platform/poe-code/actions/runs/34697326857) succeeded and published **@poe-platform/safe-js, @poe-platform/safe-fs and @poe-platform/safe-bash 0.1.561**. Initial [root Release 34697326933](https://github.com/poe-platform/poe-code/actions/runs/34697326933) succeeded and published **poe-code 15.0.26**. Per-package registry integrity/signature/SLSA and installed-artifact checks are in [scoped](complete-conformance-runner/scoped-publication-verification.md) and [root](complete-conformance-runner/root-publication-verification.md) receipts. These implementation publication receipts do not claim publication of the later V4 docs. Their final docs commit, verified remote SHA and required successor workflow/no-release outcome are to be recorded separately by delivery; no new version or completed final push is inferred here.
+
+
+## verify-conformance-oracles — independent evidence-only delivery, 2026-09-12 13:00 CDT
+
+This run found the oracle repairs and mutation controls already present as local drafts. It preserved them and independently verified the current candidate; no new code defect was reproduced and no new code repair or test was authored. This commit contains only this appendix, not the pre-existing ledger additions, runner drafts, reports, manifests, or unrelated staged Safe Bash changes.
+
+Source HEAD/main: `8cec7a8d5fe81aaa6c6f97dc3a1476d7903744c4`; maintained complete candidate source hash: `656b9c91f130d20e173376ed68f605908cb92d2bfcc5b78b2dd6ef1fc1e134cb`. Node v22.23.2, ICU 78.2, V8 12.4.254.21-node.56, darwin/arm64. These results qualify the dirty candidate, not HEAD alone or a published package.
+
+### Fresh manual checks
+
+- `npx vitest run packages/safe-js/test/conformance`: exit 0; **212 tests / 12 files passed**, no failures/skips, 6.01 seconds elapsed, 3.14 seconds test time. Existing memory fixtures and mocked workers exercise wrong values, missing async completion, wrong error phase/type, early process exits, malformed worker results, absent callbacks, truncated reports, duplicate files/variants, false counts, unexecuted variants and empty/fixture-only corpora. Passing neighbors and each failed/unsupported result vocabulary are covered. Existing red/green repair receipts remain in the local execution/reporting audit documents; this run does not relabel them as newly performed TDD.
+- `npx eslint packages/safe-js/test/conformance`: exit 0. `git diff --check -- packages/safe-js/test/conformance`: exit 0. Before commit, the exact staged appendix was reviewed and `git diff --cached --check` passed using an isolated index containing only this appendix. No code or rendered CLI changed, so no new screenshot, broad build or full-package test is claimed.
+- Maintained selected execution: **9 variants = 6 passed + 0 failed + 3 unsupported**, complete, exit **1**. Independent Python JSON/Counter checks matched every selected filename, source hash and mode to the original full manifest, exactly once. Both modes of `built-ins/Atomics/wait/cannot-suspend-throws.js` are unsupported/blocking-mode (owner qualify-shared-memory); `language/module-code/early-dup-export-dflt.js#module` is unsupported/module (owner qualify-source-modules). These are adapter limitations, not ECMAScript defects. The original 3000 ms wall deadline and 10000 ms startup deadline were unchanged.
+
+Reproduce the selected run from the repository root, choosing a fresh report filename:
+
+```sh
+npm run test:conformance --workspace=@poe-code/safe-js -- \
+  --corpus /private/tmp/safejs-baseline-test262-419d3e0 \
+  --include built-ins/Array/of/length.js \
+  --include built-ins/Math/f16round/not-a-constructor.js \
+  --include built-ins/Temporal/PlainDate/calendar-undefined.js \
+  --include language/module-code/early-dup-export-dflt.js \
+  --include built-ins/Atomics/wait/cannot-suspend-throws.js \
+  --report /tmp/safejs-oracle-fresh.jsonl
+```
+
+Fresh local report: `/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safejs-oracle-verify-lg043grf/selected.jsonl`, SHA-256 `7111dec1cb1f95e4542259f43a6e7d52e0afece95f074a1bb97b7ee814dfecd2`; retained as an uncommitted operational artifact.
+
+### Independent accounting and specification controls
+
+Re-enumerated all original `test/**/*.js`, checked exact filename sets and SHA-256 of every source, parsed all 216 original V4 JSONL reports with Python standard-library JSON/Counter, matched selection and row multisets, source hashes, classifications and every mode, and compared independent counts to the original aggregate. **53,876 files; 102,926 variants exactly once = 93,220 historical passes + 6,388 failures + 3,318 unsupported.** Original manifest SHA-256 is unchanged: `c8b428444f7854afcba72fe3bfebcf9b9390dfe2a9714b1c2da36794a6e43617`. The maintained `aggregateReports` independently returned those counts, 294 fixtures, zero metadata/execution errors, zero unexecuted variants, and `success:false`. The original full manifest and reports remain intact. This is historical accounting, not current full-corpus execution.
+
+Matched every one of the 7,992 case-ledger IDs against original unsupported/timeout/host-error/harness-error outcomes: exact unique coverage, matching status/reason, nonempty individual audited reason, classification and owner. Verified all 47 historical package skips have distinct path/name identities and individual reasons, and rehashed their original receipt. Fixture exclusions, non-JavaScript assets and excluded operational attempts retain their preceding local audit dispositions; they were not re-executed or converted to passes. Resource failures remain failures.
+
+Compatibility target remains ECMA-262 edition 16 / ECMA-402 edition 12 (June 2025), Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`, and explicitly tracked extensions including Temporal `e8cc03fc970a65a3359e8870e3b35e687ac94e55`. Refetched the [published edition](https://262.ecma-international.org/16.0/), SHA-256 `6a28f9423133ed7b7c59a40baf620c2740f12f0bc9c251042f2a85b9cc5ed713`, and reread the [pinned Test262 interpretation contract](https://raw.githubusercontent.com/tc39/test262/419d3e0a2273ba01a3bfcbec423f2801425b8e93/INTERPRETING.md). SameValue §7.2.9, ParseScript §16.1.5 and ScriptEvaluation §16.1.6 qualify value and phase controls; AgentCanSuspend §9.6.2 and host-defined rejection tracking §27.2.1.9 keep host policy separate from language defects.
+
+Replayed each exact `command` vector from the local `verify-conformance-oracles/acceptance-final/native.json` via `subprocess.run(command, capture_output=True, text=True)`. All three processes exited 0; supported fixture outcomes and deliberate value/phase/type/async observations matched. Node22.23.2/ICU78.2 supports the Array.of pair; Node24.18.0/ICU78.3 additionally supports f16round; Node26.8.1/ICU78.3 additionally supports Temporal. Missing APIs remain `native-unavailable`, outside SafeJS verdicts. No polyfill, new host authority, weakened assertion, budget, runtime support or timeout was introduced.
+
+### Disposition and delivery boundary
+
+Focused oracle/accounting acceptance is evidenced for the existing local candidate under its explicit trusted fixture/worker contract. Structurally valid malicious fabrication is not execution authentication. The previously documented native-Promise symbol-admission full-package gate blocker, historical semantic/resource failures and unsupported adapters remain unresolved; no broad compatibility or full-package success is asserted.
+
+This is an evidence-only local commit on main. Its SHA is reported in the task completion message (a commit cannot contain its own SHA). **Verified remote-main delivery: none. Release/publication: none.** No push was requested or performed; prior release receipts do not publish the current drafts. Pre-existing detailed local audit documents and artifacts remain uncommitted and are not made reproducible from this evidence-only commit alone.

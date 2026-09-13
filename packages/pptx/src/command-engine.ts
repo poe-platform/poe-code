@@ -27,6 +27,7 @@ import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-pat
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
 import { readImages } from "./images.js";
+import { extractImages, type ExtractedImage } from "./image-extraction.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
 import { setImage, type SetImageOptions } from "./image-formatting.js";
 import { imageSchemas } from "./images-schema.js";
@@ -271,6 +272,7 @@ const help =
   "       pptx text INPUT | pptx text get INPUT --select TOKEN [--json]\n" +
   "       pptx tables list|get|add|set INPUT [--slide N --table N --cell row,column] [properties] [output]\n" +
   "       pptx images add INPUT --slide N --file PATH [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
+  "       pptx images extract INPUT --output-dir DIR [--unique] [--allow-partial-output]\n" +
   "       pptx images list INPUT [--slide N --image N] [--scope SCOPE] [--unique] [--json]\n" +
   "       pptx schema tables list|get|add|set [--json]\n" +
   "       pptx schema text get [--json]\n" +
@@ -437,6 +439,7 @@ interface Arguments {
     | "text.runs.get"
     | "text.runs.list"
     | "inspect"
+    | "images.extract"
     | "images.list"
     | "images.add"
     | "images.set"
@@ -479,6 +482,7 @@ interface Arguments {
   sources?: readonly string[];
   splitSlides?: readonly number[];
   outputDir?: string;
+  imageSha256?: string;
   allowPartialOutput?: boolean;
   allowEmpty?: boolean;
   referencePolicy?: "remove";
@@ -695,6 +699,7 @@ const scalarOptions = [
   "--sources",
   "--slides",
   "--output-dir",
+  "--sha256",
   "--source",
   "--source-slides",
   "--theme-policy",
@@ -808,7 +813,8 @@ function parse(
         "move",
         "align",
         "distribute",
-        "duplicate"
+        "duplicate",
+        "extract"
       ].includes(argument)
     ) {
       output.operation = `${args[0]}.${argument}`;
@@ -1154,7 +1160,8 @@ function parse(
       continue;
     }
     if (argument === "--unique") {
-      if (operation !== "images.list") usage("Unique requires images list.");
+      if (!["images.list", "images.extract"].includes(operation))
+        usage("Unique requires images list or extract.");
       result.unique = true;
       continue;
     }
@@ -1170,7 +1177,8 @@ function parse(
       continue;
     }
     if (argument === "--allow-partial-output") {
-      if (operation !== "slides.split") usage("Partial output requires slides split.");
+      if (!["slides.split", "images.extract"].includes(operation))
+        usage("Partial output requires a multi-file operation.");
       result.allowPartialOutput = true;
       continue;
     }
@@ -1242,7 +1250,8 @@ function parse(
       continue;
     }
     if (argument === "--image") {
-      if (operation !== "images.list" && operation !== "images.set") usage("Image selection requires images list or set.");
+      if (operation !== "images.list" && operation !== "images.extract" && operation !== "images.set")
+        usage("Image selection requires images list, extract or set.");
       if (
         !value.length ||
         [...value].some((c) => c < "0" || c > "9") ||
@@ -1804,8 +1813,22 @@ function parse(
       result.sources = paths;
       continue;
     }
+    if (argument === "--sha256") {
+      if (
+        operation !== "images.extract" ||
+        value.length !== 64 ||
+        !Array.from(value).every((character) => "0123456789abcdef".includes(character))
+      )
+        usage("Image extraction requires a lowercase SHA256 hash.");
+      result.imageSha256 = value;
+      continue;
+    }
     if (argument === "--output-dir" || argument === "--slides") {
-      if (operation !== "slides.split") usage("Option requires slides split.");
+      if (
+        operation !== "slides.split" &&
+        !(operation === "images.extract" && argument === "--output-dir")
+      )
+        usage("Option requires a multi-file operation.");
       if (argument === "--output-dir") result.outputDir = value;
       else {
         const positions = commandJson(value);
@@ -2092,7 +2115,15 @@ function parse(
         usage("Limits require NAME=POSITIVE_INTEGER.");
       result.limits ??= {};
       if (Object.hasOwn(result.limits, name)) usage("Repeated limit name.");
-      if (!["maxBytes", "maxNodes", "maxDepth", "maxOutputBytes"].includes(name))
+      if (
+        ![
+          "maxBytes",
+          "maxNodes",
+          "maxDepth",
+          "maxOutputBytes",
+          ...(operation === "images.extract" ? ["maxOutputs"] : [])
+        ].includes(name)
+      )
         usage("Unknown limit name.");
       result.limits[name] = Number(digits);
     } else if (argument === "--slide") {
@@ -2226,8 +2257,25 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
-  if (operation === "images.list") {
-    const allowed = ["--json", "--limit", "--scope", "--slide", "--image", "--select", "--unique"];
+  if (operation === "images.list" || operation === "images.extract") {
+    const extracting = operation === "images.extract";
+    const allowed = [
+      "--json",
+      "--limit",
+      "--scope",
+      "--slide",
+      "--image",
+      "--select",
+      "--unique",
+      ...(extracting
+        ? ["--sha256", "--output-dir", "--allow-partial-output", "--force", "--dry-run"]
+        : [])
+    ];
+    if (extracting) {
+      if (!result.outputDir && !result.dryRun) usage("Image extraction requires --output-dir.");
+      if (result.outputDir === "-") usage("Output directories cannot be stdout.");
+      if (result.force && !result.outputDir) usage("Force requires an output directory.");
+    }
     if ([...seen].some((option) => !allowed.includes(option)))
       usage("Option does not apply to images list.");
     if (positionals.length !== 1 || !positionals[0])
@@ -3193,6 +3241,9 @@ async function execute(
     sourceSlide: number;
     sourceLocation: SelectionRecord["location"];
   }[] = [];
+  let imageManifest:
+    | readonly (Omit<ExtractedImage, "bytes"> & { path: string; bytes: number })[]
+    | undefined;
   let allowPartialOutput = false;
   try {
     request.signal.throwIfAborted();
@@ -3209,14 +3260,17 @@ async function execute(
         ),
         maxNodes: Math.min(options.context.xmlLimits.maxNodes, validation?.maxNodes ?? Infinity),
         maxDepth: Math.min(options.context.xmlLimits.maxDepth, validation?.maxDepth ?? Infinity),
-        maxOutputBytes: options.maxOutputBytes
+        maxOutputBytes: options.maxOutputBytes,
+        maxOutputs: options.context.archiveLimits.maxMembers
       };
       for (const [name, value] of Object.entries(args.limits)) {
         if (value > ceilings[name]! || (name === "maxOutputBytes" && value < 512))
           usage("Limits must lower trusted ceilings; output requires at least 512 bytes.");
       }
       const loweredXml = Object.fromEntries(
-        Object.entries(args.limits).filter(([key]) => key !== "maxOutputBytes")
+        Object.entries(args.limits).filter(
+          ([key]) => key !== "maxOutputBytes" && key !== "maxOutputs"
+        )
       );
       options = {
         ...options,
@@ -3381,6 +3435,14 @@ async function execute(
           "  [--left LENGTH --top LENGTH] [--width LENGTH --height LENGTH --fit contain|cover|stretch]\n" +
           "  [--alt-text TEXT] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
           "Lengths require emu, in, cm, mm or pt. Both dimensions default to stretch; one dimension preserves aspect.\n";
+      if (args.schemaPath === "images.extract")
+        resolvedUsage =
+          "Usage: pptx images extract INPUT --output-dir DIR [--allow-partial-output]\n" +
+          "Selection: --slide N --image N | --select TOKEN; --scope SCOPE; --sha256 HASH; --unique\n" +
+          "Scopes: slides, layouts, masters, notes, notes-master, handout-master, shared.\n" +
+          "Original bytes with generated safe names and a SHA256 manifest; no rendering or fetching.\n" +
+          "--force --dry-run --json --limit NAME=VALUE (including maxOutputs and maxOutputBytes).\n" +
+          "Publication requires an atomic adapter transaction or explicit partial output.\n";
       if (args.schemaPath === "images.list")
         resolvedUsage =
           "Usage: pptx images list INPUT [--slide N --image N | --select TOKEN]\n" +
@@ -3441,7 +3503,7 @@ async function execute(
             level: "edit",
             operations: Object.keys(imageSchemas),
             subset:
-              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F31/F33: insert explicit PNG/JPEG/GIF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. F33 also edits crop, rotation, flips, opacity, solid picture borders and alt text. Crop edits require positive visible area after quantization. Other edits preserve extended crop. Links are never fetched; decoding and other formats are not provided."
+              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F35: original image extraction by occurrence or hash with safe names, bounded bytes/counts and explicit transaction or partial publication. F31/F33: insert explicit PNG/JPEG/GIF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. F33 also edits crop, rotation, flips, opacity, solid picture borders and alt text. Crop edits require positive visible area after quantization. Other edits preserve extended crop. Links are never fetched; decoding and other formats are not provided."
           },
           drawing: {
             level: "edit",
@@ -3840,6 +3902,54 @@ async function execute(
           dryRun
         };
       }
+    } else if (args.operation === "images.extract") {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const files = await extractImages(
+        bytes,
+        {
+          ...(args.scope === undefined ? {} : { scope: args.scope }),
+          ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.image === undefined ? {} : { image: args.image }),
+          ...(args.token === undefined ? {} : { select: args.token }),
+          ...(args.unique === undefined ? {} : { unique: args.unique }),
+          ...(args.imageSha256 === undefined ? {} : { sha256: args.imageSha256 }),
+          maxOutputBytes: options.maxOutputBytes,
+          maxOutputs: args.limits?.maxOutputs ?? context.archiveLimits.maxMembers
+        },
+        context
+      );
+      const dryRun = args.dryRun ?? false;
+      imageManifest = files.map(({ bytes: content, ...file }) => ({
+        ...file,
+        path: `${args.outputDir ?? ""}${args.outputDir?.endsWith("/") || !args.outputDir ? "" : "/"}${file.name}`,
+        bytes: content.length
+      }));
+      allowPartialOutput = args.allowPartialOutput ?? false;
+      if (!dryRun && !request.publishOutputs && (!allowPartialOutput || !request.publishOutput))
+        throw Object.assign(
+          new Error("Image extraction requires atomic publication or explicit partial output."),
+          { code: "publication-unsupported" }
+        );
+      if (args.outputDir)
+        publications = files.map((file, index) => ({
+          inputPath: args.input!,
+          outputPath: imageManifest![index]!.path,
+          bytes: file.bytes,
+          originalBytes: bytes,
+          inPlace: false,
+          force: args.force ?? false,
+          dryRun
+        }));
+      result = {
+        ...success(operation, { outputs: dryRun ? [] : imageManifest, dryRun }),
+        affected: files.length,
+        locations: imageManifest.flatMap((file) => file.occurrences.map((item) => item.location))
+      };
+      human = `${dryRun ? "Validated" : "Extracted"} ${files.length} image resource(s)\n${JSON.stringify(result.data, null, 2)}\n`;
     } else if (args.operation === "images.list") {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(
@@ -5165,7 +5275,9 @@ async function execute(
     exitCode = limit
       ? 4
       : unsupported
-        ? 1
+        ? output.operation === "images.extract"
+          ? 3
+          : 1
         : office?.code === "cancelled"
           ? 130
           : office?.code === "unsupported-profile"
@@ -5217,18 +5329,24 @@ async function execute(
       ok: false,
       affected: allowPartialOutput ? published : 0,
       locations: allowPartialOutput
-        ? splitManifest.slice(0, published).map((item) => item.sourceLocation)
+        ? imageManifest
+          ? imageManifest
+              .slice(0, published)
+              .flatMap((item) => item.occurrences.map((occurrence) => occurrence.location))
+          : splitManifest.slice(0, published).map((item) => item.sourceLocation)
         : [],
       data:
         allowPartialOutput && published > 0
-          ? {
-              outputs: splitManifest
-                .slice(0, published)
-                .map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
-              sources: splitManifest
-                .slice(0, published)
-                .map(({ sourceSlide, sourceLocation }) => ({ sourceSlide, sourceLocation }))
-            }
+          ? imageManifest
+            ? { outputs: imageManifest.slice(0, published), dryRun: false }
+            : {
+                outputs: splitManifest
+                  .slice(0, published)
+                  .map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
+                sources: splitManifest
+                  .slice(0, published)
+                  .map(({ sourceSlide, sourceLocation }) => ({ sourceSlide, sourceLocation }))
+              }
           : null,
       errors: [{ code, message: "Output could not be published.", context: { phase } }]
     });
@@ -5236,14 +5354,20 @@ async function execute(
       new TextEncoder().encode(
         JSON.stringify({
           ...partialFailure("publication-unsupported", "publish"),
-          locations: splitManifest.map((item) => item.sourceLocation),
-          data: {
-            outputs: splitManifest.map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
-            sources: splitManifest.map(({ sourceSlide, sourceLocation }) => ({
-              sourceSlide,
-              sourceLocation
-            }))
-          }
+          locations: imageManifest
+            ? imageManifest.flatMap((item) =>
+                item.occurrences.map((occurrence) => occurrence.location)
+              )
+            : splitManifest.map((item) => item.sourceLocation),
+          data: imageManifest
+            ? { outputs: imageManifest, dryRun: false }
+            : {
+                outputs: splitManifest.map(({ path, sha256, bytes }) => ({ path, sha256, bytes })),
+                sources: splitManifest.map(({ sourceSlide, sourceLocation }) => ({
+                  sourceSlide,
+                  sourceLocation
+                }))
+              }
         })
       ).length + 1;
     if (reserve > options.maxOutputBytes) return outputLimitFailure(operation, json);
@@ -5253,7 +5377,7 @@ async function execute(
         if (request.preflightOutput) await request.preflightOutput(item);
         else if (request.publishOutput) await request.publishOutput({ ...item, dryRun: true });
       }
-      if (!publications[0]?.dryRun) {
+      if (publications.length && !publications[0]!.dryRun) {
         if (request.publishOutputs) await request.publishOutputs(publications);
         else
           for (const item of publications) {
@@ -5283,7 +5407,8 @@ async function execute(
             ? 130
             : code === "resource-limit"
               ? 4
-              : code === "publication-unsupported" || code === "stale-input"
+              : (code === "publication-unsupported" && operation !== "images.extract") ||
+                  code === "stale-input"
                 ? 1
                 : 3,
         stdout: json ? message : new Uint8Array(),

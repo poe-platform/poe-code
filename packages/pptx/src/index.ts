@@ -367,3 +367,5 @@ export {
   type SetImageOptions,
   type SetImageResult
 } from "./image-formatting.js";
+export { extractImages } from "./image-extraction.js";
+export type { ExtractImagesOptions, ExtractedImage } from "./image-extraction.js";

@@ -87,11 +87,7 @@ const scopes: readonly Scope[] = [
 function descendants(node: XmlElement): XmlElement[] {
   return node.children.flatMap((x) => [x, ...descendants(x)]);
 }
-export async function readImages(
-  input: BinaryInput,
-  options: ReadImagesOptions,
-  context: SelectionContext
-): Promise<ImageInventory> {
+export function validateImageSelectionOptions(options: ReadImagesOptions): void {
   if (
     !options ||
     typeof options !== "object" ||
@@ -116,6 +112,13 @@ export async function readImages(
     (options.scope !== undefined || options.slide !== undefined || options.image !== undefined)
   )
     throw new SelectionError("invalid-selection");
+}
+export async function readImages(
+  input: BinaryInput,
+  options: ReadImagesOptions,
+  context: SelectionContext
+): Promise<ImageInventory> {
+  validateImageSelectionOptions(options);
   const source = await readBinary(input, context);
   const reader = await readPackage(source, context);
   const index = await readSelectionIndex(source, context);

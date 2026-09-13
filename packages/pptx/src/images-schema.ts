@@ -87,7 +87,98 @@ const imageLength = {
     unit: { enum: ["emu", "in", "cm", "mm", "pt"] }
   }
 };
+const extractedProperties = {
+  name: { type: "string" },
+  path: { type: "string" },
+  bytes: { type: "integer", minimum: 0 },
+  sha256: { type: "string", minLength: 64, maxLength: 64 },
+  contentType: nullableString,
+  sourceParts: { type: "array", items: { type: "string" } },
+  occurrences: {
+    type: "array",
+    items: {
+      type: "object",
+      additionalProperties: false,
+      required: Object.keys(occurrenceProperties),
+      properties: occurrenceProperties
+    }
+  }
+};
 export const imageSchemas = {
+  "images.extract": {
+    description:
+      "Extract selected original image bytes with deterministic safe names and SHA256 manifests. Default output is per occurrence; explicit unique groups identical bytes while retaining provenance. External links reject. Active formats are copied as bytes without decoding or rendering. Multi-file publication requires a transaction or explicit allowPartialOutput. maxOutputs lowers the trusted archive-member ceiling; maxOutputBytes bounds total extracted bytes and the report independently.",
+    input: textGetSchema.input,
+    options: {
+      type: "object",
+      additionalProperties: false,
+      $defs: textGetSchema.result.$defs,
+      properties: {
+        json: { type: "boolean" },
+        limit: {
+          ...textGetSchema.options.properties.limit,
+          properties: {
+            ...textGetSchema.options.properties.limit.properties,
+            maxOutputs: { type: "integer", minimum: 1 }
+          }
+        },
+        select: textGetSchema.options.properties.select,
+        slide: textGetSchema.options.properties.slide,
+        image: { type: "integer", minimum: 1, maximum: Number.MAX_SAFE_INTEGER },
+        scope: { enum: scopes },
+        unique: { type: "boolean" },
+        sha256: { type: "string", pattern: "^[0-9a-f]{64}$" },
+        outputDir: { type: "string", minLength: 1, not: { const: "-" } },
+        force: { type: "boolean" },
+        dryRun: { type: "boolean" },
+        allowPartialOutput: { type: "boolean" }
+      },
+      allOf: [
+        {
+          if: { required: ["select"] },
+          then: { not: { anyOf: ["scope", "slide", "image"].map((key) => ({ required: [key] })) } }
+        },
+        {
+          if: { not: { required: ["dryRun"], properties: { dryRun: { const: true } } } },
+          then: { required: ["outputDir"] }
+        },
+        {
+          if: { required: ["force"], properties: { force: { const: true } } },
+          then: { required: ["outputDir"] }
+        }
+      ]
+    },
+    result: {
+      ...textGetSchema.result,
+      properties: {
+        ...textGetSchema.result.properties,
+        operation: { const: "images.extract" },
+        affected: { type: "integer", minimum: 0 },
+        data: {
+          oneOf: [
+            { type: "null" },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: ["outputs", "dryRun"],
+              properties: {
+                dryRun: { type: "boolean" },
+                outputs: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: Object.keys(extractedProperties),
+                    properties: extractedProperties
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
   "images.set": {
     description:
       "Edit selected picture occurrences. Signed crop fractions quantize to 1/100000; crop edits require positive visible area on both axes. Other edits preserve existing extended crop. Opacity leaves original media bytes intact. Border width uses explicit lengths.",

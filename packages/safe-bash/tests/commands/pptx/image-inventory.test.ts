@@ -145,7 +145,7 @@ test("pptx image inventory publishes its schema and rejects invalid selector com
   assert.ok(help.stdout.includes("--image"));
   const capabilities = await shell.exec("pptx capabilities --json");
   assert.equal(capabilities.exitCode, 0, capabilities.stderr);
-  assert.deepEqual(JSON.parse(capabilities.stdout).data.features.images.operations, ["images.add", "images.list"]);
+  assert.deepEqual(JSON.parse(capabilities.stdout).data.features.images.operations, ["images.extract", "images.set", "images.add", "images.list"]);
   for (const flags of ["--image 0", "--image 1.5", "--unique --unique", "--scope nowhere", "--scope presentation", "--select token --image 1", "--output changed.pptx", "--all"]) {
     const result = await shell.exec(`pptx images list 'coastal deck.pptx' ${flags} --json`);
     assert.equal(result.exitCode, 2, flags + result.stdout + result.stderr);

@@ -88,6 +88,115 @@ const imageLength = {
   }
 };
 export const imageSchemas = {
+  "images.set": {
+    description:
+      "Edit selected picture occurrences. Signed crop fractions quantize to 1/100000; crop edits require positive visible area on both axes. Other edits preserve existing extended crop. Opacity leaves original media bytes intact. Border width uses explicit lengths.",
+    input: textGetSchema.input,
+    options: {
+      type: "object",
+      additionalProperties: false,
+      $defs: textGetSchema.result.$defs,
+      properties: {
+        ...Object.fromEntries(
+          ["cropLeft", "cropRight", "cropTop", "cropBottom"].map((key) => [
+            key,
+            { type: "number", minimum: -21474.83648, maximum: 21474.83647 }
+          ])
+        ),
+        rotation: { type: "number", minimum: -360000, maximum: 360000 },
+        flipHorizontal: { type: "boolean" },
+        flipVertical: { type: "boolean" },
+        opacity: { type: "number", minimum: 0, maximum: 1 },
+        borderColor: { type: "string", minLength: 6, maxLength: 6 },
+        borderWidth: { ...imageLength, description: "Nonnegative length, at most 20116800 EMUs after conversion.", properties: {...imageLength.properties, value: {...imageLength.properties.value, minimum: 0}} },
+        altText: { type: "string" },
+        select: textGetSchema.options.properties.select,
+        scope: { enum: scopes.filter((scope) => scope !== "shared") },
+        slide: textGetSchema.options.properties.slide,
+        image: { type: "integer", minimum: 1, maximum: Number.MAX_SAFE_INTEGER },
+        all: { type: "boolean" },
+        allowEmpty: { type: "boolean" },
+        json: { type: "boolean" },
+        limit: textGetSchema.options.properties.limit,
+        output: { type: "string", minLength: 1 },
+        inPlace: { type: "boolean" },
+        force: { type: "boolean" },
+        dryRun: { type: "boolean" }
+      },
+      allOf: [
+        {
+          anyOf: [
+            "cropLeft",
+            "cropRight",
+            "cropTop",
+            "cropBottom",
+            "rotation",
+            "flipHorizontal",
+            "flipVertical",
+            "opacity",
+            "borderColor",
+            "borderWidth",
+            "altText"
+          ].map((key) => ({ required: [key] }))
+        },
+        {
+          if: { required: ["image"], properties: { scope: { const: "slides" } } },
+          then: { required: ["slide"] }
+        },
+        {
+          if: { required: ["select"] },
+          then: {
+            not: { anyOf: ["scope", "slide", "image", "all"].map((key) => ({ required: [key] })) }
+          }
+        },
+        { not: { required: ["output", "inPlace"] } },
+        {
+          if: { required: ["force"], properties: { force: { const: true } } },
+          then: { required: ["output"] }
+        },
+        {
+          if: { not: { required: ["dryRun"], properties: { dryRun: { const: true } } } },
+          then: {
+            oneOf: [
+              { required: ["output"] },
+              { required: ["inPlace"], properties: { inPlace: { const: true } } }
+            ]
+          }
+        }
+      ]
+    },
+    result: {
+      ...textGetSchema.result,
+      properties: {
+        ...textGetSchema.result.properties,
+        operation: { const: "images.set" },
+        affected: { type: "integer", minimum: 0 },
+        data: {
+          oneOf: [
+            { type: "null" },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: ["dryRun", "occurrences", "affectedSlides"],
+              properties: {
+                dryRun: { type: "boolean" },
+                affectedSlides: { type: "array", items: { type: "integer", minimum: 1 } },
+                occurrences: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: Object.keys(occurrenceProperties),
+                    properties: occurrenceProperties
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
   "images.add": {
     description:
       "Insert explicit PNG/JPEG/GIF bytes on one slide. A supported extension supplies the content type unless explicit; bytes must match. Intrinsic sizing uses admitted dimensions and DPI. One dimension preserves aspect; two dimensions default to stretch. No image decoding or network access.",

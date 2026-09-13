@@ -1,0 +1,4450 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "F33 crop, fit, shared percentage lexical, inherited rotation and outline obligations. Includes all parameter variants and BDD examples in selected behavioral families; shared nonpicture and full line formatting rows retain explicit gaps.",
+  "policy": "Research only. No original inventory records are altered. Source identities and selected parameters are provenance, never canonical product fixtures or test names.",
+  "counts": {
+    "rows": 109,
+    "unit": 64,
+    "bdd": 45,
+    "statuses": {
+      "existing-original-evidence": 62,
+      "original-operation-tests-present": 44,
+      "partial-picture-outline-operation": 2,
+      "explicit-positive-area-policy-divergence": 1
+    }
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-8006b798b569",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1118",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_knows_its_dash_style[dash_style_get_fixture0]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 20,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "dash_style_get_fixture": "('p:spPr', None)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "line.dash_style == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-929483edddc8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1119",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_knows_its_dash_style[dash_style_get_fixture1]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 20,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "dash_style_get_fixture": "('p:spPr/a:ln', None)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "line.dash_style == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-3f30082fd6f2",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1120",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_knows_its_dash_style[dash_style_get_fixture2]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 20,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "dash_style_get_fixture": "('p:spPr/a:ln/a:prstDash', None)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "line.dash_style == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-6b7d8f5330e0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1121",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_knows_its_dash_style[dash_style_get_fixture3]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 20,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "dash_style_get_fixture": "('p:spPr/a:ln/a:prstDash{val=dash}', MSO_LINE.DASH)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "line.dash_style == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-b8e630c880fa",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1122",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_knows_its_dash_style[dash_style_get_fixture4]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 20,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "dash_style_get_fixture": "('p:spPr/a:ln/a:prstDash{val=solid}', MSO_LINE.SOLID)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "line.dash_style == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-5b4210eac3c1",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1123",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_dash_style[p:spPr{a:b=c}-DASH (4)-p:spPr{a:b=c}/a:ln/a:prstDash{val=dash}]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 24,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "spPr_cxml": "'p:spPr{a:b=c}'",
+            "dash_style": "MSO_LINE.DASH",
+            "expected_cxml": "'p:spPr{a:b=c}/a:ln/a:prstDash{val=dash}'"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 56,
+          "expression": "spPr.xml == xml(expected_cxml)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-6484e3335def",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1124",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_dash_style[p:spPr/a:ln-ROUND_DOT (3)-p:spPr/a:ln/a:prstDash{val=sysDot}]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 24,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "spPr_cxml": "'p:spPr/a:ln'",
+            "dash_style": "MSO_LINE.ROUND_DOT",
+            "expected_cxml": "'p:spPr/a:ln/a:prstDash{val=sysDot}'"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 56,
+          "expression": "spPr.xml == xml(expected_cxml)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-8da0c1e45934",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1125",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_dash_style[p:spPr/a:ln/a:prstDash-SOLID (1)-p:spPr/a:ln/a:prstDash{val=solid}]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 24,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "spPr_cxml": "'p:spPr/a:ln/a:prstDash'",
+            "dash_style": "MSO_LINE.SOLID",
+            "expected_cxml": "'p:spPr/a:ln/a:prstDash{val=solid}'"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 56,
+          "expression": "spPr.xml == xml(expected_cxml)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-c474110cefb0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1126",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_dash_style[p:spPr/a:ln/a:custDash-DASH_DOT (5)-p:spPr/a:ln/a:prstDash{val=dashDot}]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 24,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "spPr_cxml": "'p:spPr/a:ln/a:custDash'",
+            "dash_style": "MSO_LINE.DASH_DOT",
+            "expected_cxml": "'p:spPr/a:ln/a:prstDash{val=dashDot}'"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 56,
+          "expression": "spPr.xml == xml(expected_cxml)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-95763844ef92",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1127",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_dash_style[p:spPr/a:ln/a:prstDash{val=dash}-LONG_DASH (7)-p:spPr/a:ln/a:prstDash{val=lgDash}]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 24,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "spPr_cxml": "'p:spPr/a:ln/a:prstDash{val=dash}'",
+            "dash_style": "MSO_LINE.LONG_DASH",
+            "expected_cxml": "'p:spPr/a:ln/a:prstDash{val=lgDash}'"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 56,
+          "expression": "spPr.xml == xml(expected_cxml)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-a2bf27168b39",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1128",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_dash_style[p:spPr/a:ln/a:prstDash{val=dash}-None-p:spPr/a:ln]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 24,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "spPr_cxml": "'p:spPr/a:ln/a:prstDash{val=dash}'",
+            "dash_style": "None",
+            "expected_cxml": "'p:spPr/a:ln'"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 56,
+          "expression": "spPr.xml == xml(expected_cxml)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-2f670ca93026",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1129",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_dash_style[p:spPr/a:ln/a:custDash-None-p:spPr/a:ln]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 24,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 6,
+          "bindings": {
+            "spPr_cxml": "'p:spPr/a:ln/a:custDash'",
+            "dash_style": "None",
+            "expected_cxml": "'p:spPr/a:ln'"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 56,
+          "expression": "spPr.xml == xml(expected_cxml)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-ed60d2ca35e2",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1130",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_knows_its_width[width_get_fixture0]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 58,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "width_get_fixture": "(None, 0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 60,
+          "expression": "line.width == expected_line_width"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-f2b00e083db4",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1131",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_knows_its_width[width_get_fixture1]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 58,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "width_get_fixture": "(12700, 12700)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 60,
+          "expression": "line.width == expected_line_width"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-b1a0b150a21a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1132",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_width[width_set_fixture0]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 62,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "width_set_fixture": "(None, None)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 65,
+          "expression": "line._ln.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-bfdcd4170dab",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1133",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_width[width_set_fixture1]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 62,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "width_set_fixture": "(None, 12700)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 65,
+          "expression": "line._ln.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-b1fe45f96401",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1134",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_width[width_set_fixture2]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 62,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "width_set_fixture": "(12700, 12700)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 65,
+          "expression": "line._ln.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-4278707b13ad",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1135",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_width[width_set_fixture3]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 62,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "width_set_fixture": "(12700, 25400)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 65,
+          "expression": "line._ln.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-0fe5b80d29b0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1136",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_can_change_its_width[width_set_fixture4]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 62,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "width_set_fixture": "(25400, None)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 65,
+          "expression": "line._ln.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-aa70dedecadb",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1137",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_has_a_fill",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 67,
+      "group": "outline",
+      "selectedParameters": {},
+      "example": null,
+      "assertions": [
+        {
+          "line": 71,
+          "expression": "fill is fill_"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-b2587eec2197",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1138",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_has_a_color[color_fixture0]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 73,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "color_fixture": "(MSO_FILL.SOLID, False)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 76,
+          "expression": "fill_.solid.mock_calls == expected_solid_calls"
+        },
+        {
+          "line": 77,
+          "expression": "color is color_"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-5a0c5aae6f1f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1139",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_has_a_color[color_fixture1]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 73,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "color_fixture": "(MSO_FILL.BACKGROUND, True)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 76,
+          "expression": "fill_.solid.mock_calls == expected_solid_calls"
+        },
+        {
+          "line": 77,
+          "expression": "color is color_"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-ae37b0cfd451",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1140",
+      "identity": "tests/dml/test_line.py::DescribeLineFormat::it_has_a_color[color_fixture2]",
+      "sourceFile": "tests/dml/test_line.py",
+      "sourceLine": 73,
+      "group": "outline",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "color_fixture": "(None, True)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 76,
+          "expression": "fill_.solid.mock_calls == expected_solid_calls"
+        },
+        {
+          "line": 77,
+          "expression": "color is color_"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-39c2dcd85f0a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1450",
+      "identity": "tests/oxml/test_simpletypes.py::DescribeST_Percentage::it_can_convert_from_xml_percent_literals[percent_fixture0]",
+      "sourceFile": "tests/oxml/test_simpletypes.py",
+      "sourceLine": 245,
+      "group": "percentage-lexical",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "percent_fixture": "('12.34%', 0.1234)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 248,
+          "expression": "abs(value - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        },
+        {
+          "file": "packages/pptx/src/images.test.ts",
+          "title": "reads percentage crop %s=%s"
+        }
+      ],
+      "disposition": "The shared XML type converts percentage lexical strings to fractional numbers. Authored decimal, integer, leading-zero and signed strings exercise these branches through picture inventory. Original source values remain in selectedParameters for provenance; no generic public simpletype wrapper is claimed."
+    },
+    {
+      "id": "presentation-unit-2de20e60f379",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1451",
+      "identity": "tests/oxml/test_simpletypes.py::DescribeST_Percentage::it_can_convert_from_xml_percent_literals[percent_fixture1]",
+      "sourceFile": "tests/oxml/test_simpletypes.py",
+      "sourceLine": 245,
+      "group": "percentage-lexical",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "percent_fixture": "('42%', 0.42)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 248,
+          "expression": "abs(value - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        },
+        {
+          "file": "packages/pptx/src/images.test.ts",
+          "title": "reads percentage crop %s=%s"
+        }
+      ],
+      "disposition": "The shared XML type converts percentage lexical strings to fractional numbers. Authored decimal, integer, leading-zero and signed strings exercise these branches through picture inventory. Original source values remain in selectedParameters for provenance; no generic public simpletype wrapper is claimed."
+    },
+    {
+      "id": "presentation-unit-9f4e7f45549e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1452",
+      "identity": "tests/oxml/test_simpletypes.py::DescribeST_Percentage::it_can_convert_from_xml_percent_literals[percent_fixture2]",
+      "sourceFile": "tests/oxml/test_simpletypes.py",
+      "sourceLine": 245,
+      "group": "percentage-lexical",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "percent_fixture": "('024%', 0.24)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 248,
+          "expression": "abs(value - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        },
+        {
+          "file": "packages/pptx/src/images.test.ts",
+          "title": "reads percentage crop %s=%s"
+        }
+      ],
+      "disposition": "The shared XML type converts percentage lexical strings to fractional numbers. Authored decimal, integer, leading-zero and signed strings exercise these branches through picture inventory. Original source values remain in selectedParameters for provenance; no generic public simpletype wrapper is claimed."
+    },
+    {
+      "id": "presentation-unit-c2ed58e997ec",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1453",
+      "identity": "tests/oxml/test_simpletypes.py::DescribeST_Percentage::it_can_convert_from_xml_percent_literals[percent_fixture3]",
+      "sourceFile": "tests/oxml/test_simpletypes.py",
+      "sourceLine": 245,
+      "group": "percentage-lexical",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "percent_fixture": "('-42%', -0.42)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 248,
+          "expression": "abs(value - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        },
+        {
+          "file": "packages/pptx/src/images.test.ts",
+          "title": "reads percentage crop %s=%s"
+        }
+      ],
+      "disposition": "The shared XML type converts percentage lexical strings to fractional numbers. Authored decimal, integer, leading-zero and signed strings exercise these branches through picture inventory. Original source values remain in selectedParameters for provenance; no generic public simpletype wrapper is claimed."
+    },
+    {
+      "id": "presentation-unit-e2ac5dbfd250",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1454",
+      "identity": "tests/oxml/test_simpletypes.py::DescribeST_Percentage::it_can_convert_from_xml_percent_literals[percent_fixture4]",
+      "sourceFile": "tests/oxml/test_simpletypes.py",
+      "sourceLine": 245,
+      "group": "percentage-lexical",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "percent_fixture": "('-036.214%', -0.36214)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 248,
+          "expression": "abs(value - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        },
+        {
+          "file": "packages/pptx/src/images.test.ts",
+          "title": "reads percentage crop %s=%s"
+        }
+      ],
+      "disposition": "The shared XML type converts percentage lexical strings to fractional numbers. Authored decimal, integer, leading-zero and signed strings exercise these branches through picture inventory. Original source values remain in selectedParameters for provenance; no generic public simpletype wrapper is claimed."
+    },
+    {
+      "id": "presentation-unit-bc4a5ef9282c",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1455",
+      "identity": "tests/oxml/test_simpletypes.py::DescribeST_Percentage::it_can_convert_from_xml_percent_literals[percent_fixture5]",
+      "sourceFile": "tests/oxml/test_simpletypes.py",
+      "sourceLine": 245,
+      "group": "percentage-lexical",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "percent_fixture": "('0%', 0.0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 248,
+          "expression": "abs(value - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        },
+        {
+          "file": "packages/pptx/src/images.test.ts",
+          "title": "reads percentage crop %s=%s"
+        }
+      ],
+      "disposition": "The shared XML type converts percentage lexical strings to fractional numbers. Authored decimal, integer, leading-zero and signed strings exercise these branches through picture inventory. Original source values remain in selectedParameters for provenance; no generic public simpletype wrapper is claimed."
+    },
+    {
+      "id": "presentation-unit-b5504d5046c9",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1587",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[None-None-2590800-2590800]",
+      "sourceFile": "tests/parts/test_image.py",
+      "sourceLine": 61,
+      "group": "sizing",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "width": "None",
+            "height": "None",
+            "expected_width": "Emu(2590800)",
+            "expected_height": "Emu(2590800)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 75,
+          "expression": "image_part.scale(width, height) == (expected_width, expected_height)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "inserts byte-preserving media with explicit geometry %j"
+        }
+      ],
+      "disposition": "Four source options (neither size, width only, height only, both dimensions) map to original raster physical sizing and explicit-box stretch assertions. The operation is asynchronous admitted bytes; no ImagePart scale wrapper or implicit path access is claimed."
+    },
+    {
+      "id": "presentation-unit-ad7fd90ba643",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1588",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[1000-None-1000-1000]",
+      "sourceFile": "tests/parts/test_image.py",
+      "sourceLine": 61,
+      "group": "sizing",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "width": "1000",
+            "height": "None",
+            "expected_width": "1000",
+            "expected_height": "1000"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 75,
+          "expression": "image_part.scale(width, height) == (expected_width, expected_height)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "inserts byte-preserving media with explicit geometry %j"
+        }
+      ],
+      "disposition": "Four source options (neither size, width only, height only, both dimensions) map to original raster physical sizing and explicit-box stretch assertions. The operation is asynchronous admitted bytes; no ImagePart scale wrapper or implicit path access is claimed."
+    },
+    {
+      "id": "presentation-unit-9bda14f4e567",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1589",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[None-3000-3000-3000]",
+      "sourceFile": "tests/parts/test_image.py",
+      "sourceLine": 61,
+      "group": "sizing",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "width": "None",
+            "height": "3000",
+            "expected_width": "3000",
+            "expected_height": "3000"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 75,
+          "expression": "image_part.scale(width, height) == (expected_width, expected_height)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "inserts byte-preserving media with explicit geometry %j"
+        }
+      ],
+      "disposition": "Four source options (neither size, width only, height only, both dimensions) map to original raster physical sizing and explicit-box stretch assertions. The operation is asynchronous admitted bytes; no ImagePart scale wrapper or implicit path access is claimed."
+    },
+    {
+      "id": "presentation-unit-b86a88b628a1",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1590",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[3337-9999-3337-9999]",
+      "sourceFile": "tests/parts/test_image.py",
+      "sourceLine": 61,
+      "group": "sizing",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "width": "3337",
+            "height": "9999",
+            "expected_width": "3337",
+            "expected_height": "9999"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 75,
+          "expression": "image_part.scale(width, height) == (expected_width, expected_height)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "inserts byte-preserving media with explicit geometry %j"
+        }
+      ],
+      "disposition": "Four source options (neither size, width only, height only, both dimensions) map to original raster physical sizing and explicit-box stretch assertions. The operation is asynchronous admitted bytes; no ImagePart scale wrapper or implicit path access is claimed."
+    },
+    {
+      "id": "presentation-unit-d70a62f394de",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1761",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture0]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 128,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "rotation_get_fixture": "('p:sp/p:spPr', 0.0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 130,
+          "expression": "shape.rotation == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-f98bdd685a54",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1762",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture1]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 128,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "rotation_get_fixture": "('p:sp/p:spPr/a:xfrm{rot=60000}', 1.0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 130,
+          "expression": "shape.rotation == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-0fd52fff5d01",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1763",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture2]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 128,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "rotation_get_fixture": "('p:sp/p:spPr/a:xfrm{rot=2545200}', 42.42)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 130,
+          "expression": "shape.rotation == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-0bb19c10dd7a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1764",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture3]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 128,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "rotation_get_fixture": "('p:sp/p:spPr/a:xfrm{rot=-60000}', 359.0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 130,
+          "expression": "shape.rotation == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-f01cfc94ac03",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1765",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_knows_its_rotation_angle[rotation_get_fixture4]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 128,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "rotation_get_fixture": "('p:grpSp/p:grpSpPr/a:xfrm{rot=2545200}', 42.42)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 130,
+          "expression": "shape.rotation == expected_value"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "reads precise angle $raw on $kind"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-a085489c6747",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1766",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture0]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 132,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "rotation_set_fixture": "('p:sp/p:spPr/a:xfrm', 1.0, 'p:sp/p:spPr/a:xfrm{rot=60000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 135,
+          "expression": "shape._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-a8cb919f6853",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1767",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture1]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 132,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "rotation_set_fixture": "('p:sp/p:spPr/a:xfrm{rot=60000}', 0.0, 'p:sp/p:spPr/a:xfrm')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 135,
+          "expression": "shape._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-7eaf052dafdd",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1768",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture2]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 132,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "rotation_set_fixture": "('p:sp/p:spPr/a:xfrm{rot=60000}', -420.0, 'p:sp/p:spPr/a:xfrm{rot=18000000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 135,
+          "expression": "shape._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-c6be790cf4bd",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1769",
+      "identity": "tests/shapes/test_base.py::DescribeBaseShape::it_can_change_its_rotation_angle[rotation_set_fixture3]",
+      "sourceFile": "tests/shapes/test_base.py",
+      "sourceLine": 132,
+      "group": "rotation",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "rotation_set_fixture": "('p:grpSp/p:grpSpPr/a:xfrm', 1.0, 'p:grpSp/p:grpSpPr/a:xfrm{rot=60000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 135,
+          "expression": "shape._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "writes angle $value on $kind from $initial"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-unit-f4382377e979",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1900",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture0]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 19,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill', 'left', 0.0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "abs(crop - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-unit-b78ba82ddac8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1901",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture1]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 19,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect', 'top', 0.0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "abs(crop - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-unit-5637df81e4c5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1902",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture2]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 19,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{l=99999}', 'bottom', 0.0)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "abs(crop - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-unit-34ba8092668b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1903",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture3]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 19,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{l=42424}', 'left', 0.42424)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "abs(crop - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-unit-eae707fb55fa",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1904",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture4]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 19,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{t=-10000}', 'top', -0.1)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "abs(crop - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-unit-ea14a8d403b4",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1905",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture5]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 19,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{r=250000}', 'right', 2.5)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "abs(crop - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-unit-d27c8d5a5a57",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1906",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture6]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 19,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 6,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{b=33333}', 'bottom', 0.33333)"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 22,
+          "expression": "abs(crop - expected_value) < 1e-06"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-unit-83dac690f32a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1907",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture0]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'left', 0.11, 'p:pic{a:b=c}/p:blipFill/a:srcRect{l=11000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-6376b0f15679",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1908",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture1]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'top', 0.21, 'p:pic{a:b=c}/p:blipFill/a:srcRect{t=21000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-6a65aacb6191",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1909",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture2]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'right', 0.31, 'p:pic{a:b=c}/p:blipFill/a:srcRect{r=31000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-0d71658602d5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1910",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture3]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'bottom', 0.41, 'p:pic{a:b=c}/p:blipFill/a:srcRect{b=41000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-556a3ac44074",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1911",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture4]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{l=80000}', 'left', 0.21, 'p:pic{a:b=c}/p:blipFill/a:srcRect{l=21000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-ebcffaf400c8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1912",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture5]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{t=70000}', 'top', 0.22, 'p:pic{a:b=c}/p:blipFill/a:srcRect{t=22000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-12450cf9ee92",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1913",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture6]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 6,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{r=60000}', 'right', 0.23, 'p:pic{a:b=c}/p:blipFill/a:srcRect{r=23000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-853acd97deef",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1914",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture7]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 7,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{b=50000}', 'bottom', 0.24, 'p:pic{a:b=c}/p:blipFill/a:srcRect{b=24000}')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-840c6be64e4e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1915",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture8]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 8,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{l=90000}', 'left', 0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-a83f1bc84b50",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1916",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture9]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 9,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{t=91000}', 'top', 0.0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-4ed44d0f3035",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1917",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture10]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 10,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{r=92000}', 'right', 0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-efc54aabbc6e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1918",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture11]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 24,
+      "group": "crop",
+      "selectedParameters": [
+        {
+          "table_index": 11,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{b=93000}', 'bottom', 0.0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 27,
+          "expression": "picture._element.xml == expected_xml"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-unit-eeed295d75f6",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1919",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_provides_access_to_its_outline",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 29,
+      "group": "outline",
+      "selectedParameters": {},
+      "example": null,
+      "assertions": [
+        {
+          "line": 32,
+          "expression": "isinstance(line, LineFormat)"
+        },
+        {
+          "line": 35,
+          "expression": "picture.line.width == Pt(1)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "partial-picture-outline-operation",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "allows compensated extended crop and preserves unedited metadata and media"
+        }
+      ],
+      "disposition": "A direct picture border edit independently asserts serialized EMU width/color and preservation. Shared LineFormat objects have separate original tests, but the Picture.line live accessor/construction remains planned and receives no model parity credit.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-unit-fef8f64925fc",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1972",
+      "identity": "tests/shapes/test_placeholder.py::DescribePicturePlaceholder::it_creates_a_pic_element_to_help[image_size0-crop_attr_names0]",
+      "sourceFile": "tests/shapes/test_placeholder.py",
+      "sourceLine": 465,
+      "group": "cover",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "image_size": "(444, 333)",
+            "crop_attr_names": "('l', 'r')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 484,
+          "expression": "pic.xml == xml('p:pic/(p:nvPicPr/(p:cNvPr{id=2,name=foo,descr=bar},p:cNvPicPr/a:picLocks{noGrp=1,noChangeAspect=1},p:nvPr),p:blipFill/(a:blip{r:embed=42},a:srcRect{%s=12500,%s=12500},a:stretch/a:fillRect),p:spPr)' % crop_attr_names)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "inserts byte-preserving media with explicit geometry %j"
+        },
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "covers a square with portrait pixels %i by %i"
+        }
+      ],
+      "disposition": "Original landscape 4x2 media into a square produces horizontal paired crop .25. Original portrait 2x4 and 4x6 media into a 120x120 square produce vertical paired crop .25 and .16667 respectively. Independent XML attributes and byte preservation assertions cover both source aspect branches using original assets and values. Exact-aspect and near-zero-visible rounding are separately asserted. This adapts cover arithmetic only; placeholder insertion, identity replacement and return-object invalidation remain explicit model obligations."
+    },
+    {
+      "id": "presentation-unit-390af2f4f150",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1973",
+      "identity": "tests/shapes/test_placeholder.py::DescribePicturePlaceholder::it_creates_a_pic_element_to_help[image_size1-crop_attr_names1]",
+      "sourceFile": "tests/shapes/test_placeholder.py",
+      "sourceLine": 465,
+      "group": "cover",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "image_size": "(333, 444)",
+            "crop_attr_names": "('t', 'b')"
+          }
+        }
+      ],
+      "example": null,
+      "assertions": [
+        {
+          "line": 484,
+          "expression": "pic.xml == xml('p:pic/(p:nvPicPr/(p:cNvPr{id=2,name=foo,descr=bar},p:cNvPicPr/a:picLocks{noGrp=1,noChangeAspect=1},p:nvPr),p:blipFill/(a:blip{r:embed=42},a:srcRect{%s=12500,%s=12500},a:stretch/a:fillRect),p:spPr)' % crop_attr_names)"
+        }
+      ],
+      "expandedSteps": [],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "inserts byte-preserving media with explicit geometry %j"
+        },
+        {
+          "file": "packages/pptx/src/image-insertion.test.ts",
+          "title": "covers a square with portrait pixels %i by %i"
+        }
+      ],
+      "disposition": "Original landscape 4x2 media into a square produces horizontal paired crop .25. Original portrait 2x4 and 4x6 media into a 120x120 square produce vertical paired crop .25 and .16667 respectively. Independent XML attributes and byte preservation assertions cover both source aspect branches using original assets and values. Exact-aspect and near-zero-visible rounding are separately asserted. This adapts cover arithmetic only; placeholder insertion, identity replacement and return-object invalidation remain explicit model obligations."
+    },
+    {
+      "id": "presentation-bdd-e091d2e0ea47",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/473",
+      "identity": "LineFormat.color",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 7,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": null,
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 8,
+          "text": "Given a LineFormat object as line"
+        },
+        {
+          "line": 9,
+          "text": "Then line.color is a ColorFormat object"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-1fe4d753ae4f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/474",
+      "identity": "LineFormat.dash_style getter -- @1.1 Line dash styles",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 18,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "current": "no explicit",
+        "dash-style": "None"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 13,
+          "text": "Given a LineFormat object as line having no explicit dash style"
+        },
+        {
+          "line": 14,
+          "text": "Then line.dash_style is None"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-fc01444e4159",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/475",
+      "identity": "LineFormat.dash_style getter -- @1.2 Line dash styles",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 19,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "current": "solid",
+        "dash-style": "MSO_LINE.SOLID"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 13,
+          "text": "Given a LineFormat object as line having solid dash style"
+        },
+        {
+          "line": 14,
+          "text": "Then line.dash_style is MSO_LINE.SOLID"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-6c8c2d3eddfe",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/476",
+      "identity": "LineFormat.dash_style getter -- @1.3 Line dash styles",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 20,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "current": "dashed",
+        "dash-style": "MSO_LINE.DASH"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 13,
+          "text": "Given a LineFormat object as line having dashed dash style"
+        },
+        {
+          "line": 14,
+          "text": "Then line.dash_style is MSO_LINE.DASH"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-6bd683db2327",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/477",
+      "identity": "LineFormat.dash_style getter -- @1.4 Line dash styles",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 21,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "current": "dash-dot",
+        "dash-style": "MSO_LINE.DASH_DOT"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 13,
+          "text": "Given a LineFormat object as line having dash-dot dash style"
+        },
+        {
+          "line": 14,
+          "text": "Then line.dash_style is MSO_LINE.DASH_DOT"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-82d4f13571ff",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/478",
+      "identity": "LineFormat.width setter -- @1.1 Line dash style assignment scenarios",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 31,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "current": "no explicit",
+        "dash-style": "MSO_LINE.DASH"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 25,
+          "text": "Given a LineFormat object as line having no explicit dash style"
+        },
+        {
+          "line": 26,
+          "text": "When I assign MSO_LINE.DASH to line.dash_style"
+        },
+        {
+          "line": 27,
+          "text": "Then line.dash_style is MSO_LINE.DASH"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-03ed4efe214f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/479",
+      "identity": "LineFormat.width setter -- @1.2 Line dash style assignment scenarios",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 32,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "current": "dashed",
+        "dash-style": "MSO_LINE.SOLID"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 25,
+          "text": "Given a LineFormat object as line having dashed dash style"
+        },
+        {
+          "line": 26,
+          "text": "When I assign MSO_LINE.SOLID to line.dash_style"
+        },
+        {
+          "line": 27,
+          "text": "Then line.dash_style is MSO_LINE.SOLID"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-0b38c162fdba",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/480",
+      "identity": "LineFormat.width setter -- @1.3 Line dash style assignment scenarios",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 33,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "current": "solid",
+        "dash-style": "None"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 25,
+          "text": "Given a LineFormat object as line having solid dash style"
+        },
+        {
+          "line": 26,
+          "text": "When I assign None to line.dash_style"
+        },
+        {
+          "line": 27,
+          "text": "Then line.dash_style is None"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads line dash without creating defaults %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-9158c533608c",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/481",
+      "identity": "LineFormat.fill",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 36,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": null,
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 37,
+          "text": "Given a LineFormat object as line"
+        },
+        {
+          "line": 38,
+          "text": "Then line.fill is a FillFormat object"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-349193e86d9c",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/482",
+      "identity": "LineFormat.width getter -- @1.1 Line widths",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 47,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "line width": "no explicit",
+        "reported line width": "0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a LineFormat object as line having no explicit width"
+        },
+        {
+          "line": 43,
+          "text": "Then line.width is 0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-5f42a204eaac",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/483",
+      "identity": "LineFormat.width getter -- @1.2 Line widths",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 48,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "line width": "1 pt",
+        "reported line width": "1 pt"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a LineFormat object as line having 1 pt width"
+        },
+        {
+          "line": 43,
+          "text": "Then line.width is 1 pt"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-3b9ec7c8f90b",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/484",
+      "identity": "LineFormat.width setter -- @1.1 Line widths",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 58,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "line width": "no explicit",
+        "new line width": "None",
+        "reported line width": "0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 52,
+          "text": "Given a LineFormat object as line having no explicit width"
+        },
+        {
+          "line": 53,
+          "text": "When I assign None to line.width"
+        },
+        {
+          "line": 54,
+          "text": "Then line.width is 0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-91aac9a45000",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/485",
+      "identity": "LineFormat.width setter -- @1.2 Line widths",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 59,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "line width": "no explicit",
+        "new line width": "1 pt",
+        "reported line width": "1 pt"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 52,
+          "text": "Given a LineFormat object as line having no explicit width"
+        },
+        {
+          "line": 53,
+          "text": "When I assign 1 pt to line.width"
+        },
+        {
+          "line": 54,
+          "text": "Then line.width is 1 pt"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-c7213a0548b5",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/486",
+      "identity": "LineFormat.width setter -- @1.3 Line widths",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 60,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "line width": "1 pt",
+        "new line width": "None",
+        "reported line width": "0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 52,
+          "text": "Given a LineFormat object as line having 1 pt width"
+        },
+        {
+          "line": 53,
+          "text": "When I assign None to line.width"
+        },
+        {
+          "line": 54,
+          "text": "Then line.width is 0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-c64c2a53e1d0",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/487",
+      "identity": "LineFormat.width setter -- @1.4 Line widths",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 61,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "line width": "1 pt",
+        "new line width": "1 pt",
+        "reported line width": "1 pt"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 52,
+          "text": "Given a LineFormat object as line having 1 pt width"
+        },
+        {
+          "line": 53,
+          "text": "When I assign 1 pt to line.width"
+        },
+        {
+          "line": 54,
+          "text": "Then line.width is 1 pt"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-ca3e435a1954",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/488",
+      "identity": "LineFormat.width setter -- @1.5 Line widths",
+      "sourceFile": "features/dml-line.feature",
+      "sourceLine": 62,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": {
+        "line width": "1 pt",
+        "new line width": "2.34 pt",
+        "reported line width": "2.34 pt"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 52,
+          "text": "Given a LineFormat object as line having 1 pt width"
+        },
+        {
+          "line": 53,
+          "text": "When I assign 2.34 pt to line.width"
+        },
+        {
+          "line": 54,
+          "text": "Then line.width is 2.34 pt"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        }
+      ],
+      "disposition": "Original authored shape/color XML exercises the indicated semantic parameter dimension. Source wrapper construction/mock-call identity maps to observable XML and live getter/setter behavior; this does not certify source-specific owner constructors. Distinct source parameter rows remain recorded.",
+      "previousReceipt": "drawing-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-47dc6bf879ef",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/595",
+      "identity": "Picture.crop_x() getters -- @1.1 Cropping getter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 37,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "l-crop": "0.0",
+        "t-crop": "0.0",
+        "r-crop": "0.0",
+        "b-crop": "0.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 29,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 30,
+          "text": "Then picture.crop_left == 0.0"
+        },
+        {
+          "line": 31,
+          "text": "And picture.crop_top == 0.0"
+        },
+        {
+          "line": 32,
+          "text": "And picture.crop_right == 0.0"
+        },
+        {
+          "line": 33,
+          "text": "And picture.crop_bottom == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-bdd-a18292bfe492",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/596",
+      "identity": "Picture.crop_x() getters -- @1.2 Cropping getter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 38,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "l-crop": ".15479",
+        "t-crop": ".25571",
+        "r-crop": ".10463",
+        "b-crop": ".25572"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 29,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 30,
+          "text": "Then picture.crop_left == .15479"
+        },
+        {
+          "line": 31,
+          "text": "And picture.crop_top == .25571"
+        },
+        {
+          "line": 32,
+          "text": "And picture.crop_right == .10463"
+        },
+        {
+          "line": 33,
+          "text": "And picture.crop_bottom == .25572"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "inspects stored crop without imposing editing policy %s"
+        }
+      ],
+      "disposition": "Original authored missing/empty rectangles, all sides, signed negative and greater-than-one crop inputs assert the same read branches, with exact independently supplied expectations. Existing invalid visible-area geometry remains inspectable and is preserved by unrelated opacity edits."
+    },
+    {
+      "id": "presentation-bdd-f97fa248a247",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/597",
+      "identity": "Picture.crop_x() setters -- @1.1 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 48,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": ".1",
+        "side": "left"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .1 to picture.crop_left"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_left == .1"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-9ff264b21d88",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/598",
+      "identity": "Picture.crop_x() setters -- @1.2 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 49,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": ".2",
+        "side": "top"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .2 to picture.crop_top"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_top == .2"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-4c26ce757f70",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/599",
+      "identity": "Picture.crop_x() setters -- @1.3 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 50,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": ".3",
+        "side": "right"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .3 to picture.crop_right"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_right == .3"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-df781268e734",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/600",
+      "identity": "Picture.crop_x() setters -- @1.4 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 51,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": ".4",
+        "side": "bottom"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .4 to picture.crop_bottom"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_bottom == .4"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-c68356dbaf0f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/601",
+      "identity": "Picture.crop_x() setters -- @1.5 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 52,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": ".5",
+        "side": "left"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .5 to picture.crop_left"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_left == .5"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-254b5eff72c9",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/602",
+      "identity": "Picture.crop_x() setters -- @1.6 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 53,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": ".6",
+        "side": "top"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .6 to picture.crop_top"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_top == .6"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-d5eb46286927",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/603",
+      "identity": "Picture.crop_x() setters -- @1.7 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 54,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": ".7",
+        "side": "right"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .7 to picture.crop_right"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_right == .7"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-be18506184f1",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/604",
+      "identity": "Picture.crop_x() setters -- @1.8 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 55,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": ".8",
+        "side": "bottom"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign .8 to picture.crop_bottom"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_bottom == .8"
+        }
+      ],
+      "status": "explicit-positive-area-policy-divergence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "repairs invalid existing crops only with a positive final rectangle"
+        }
+      ],
+      "disposition": "The source setter accepts bottom=.8 with top=.25571. The authoritative edit contract rejects this nonpositive visible axis. The original regression asserts rejection and successful repair; read/unrelated-edit preservation remains supported."
+    },
+    {
+      "id": "presentation-bdd-c79f2d505c9d",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/605",
+      "identity": "Picture.crop_x() setters -- @1.9 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 56,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "left"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_left"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_left == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-68e07a3c8494",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/606",
+      "identity": "Picture.crop_x() setters -- @1.10 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 57,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "top"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_top"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_top == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-b0ea90fa73e5",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/607",
+      "identity": "Picture.crop_x() setters -- @1.11 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 58,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "right"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_right"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_right == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-9649ae7ccf82",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/608",
+      "identity": "Picture.crop_x() setters -- @1.12 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 59,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "bottom"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with no cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_bottom"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_bottom == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-c9060ab30649",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/609",
+      "identity": "Picture.crop_x() setters -- @1.13 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 60,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "left"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_left"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_left == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-450cafe9e13f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/610",
+      "identity": "Picture.crop_x() setters -- @1.14 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 61,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "top"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_top"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_top == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-def2e613cf20",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/611",
+      "identity": "Picture.crop_x() setters -- @1.15 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 62,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "right"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_right"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_right == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-f910559e664f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/612",
+      "identity": "Picture.crop_x() setters -- @1.16 Cropping setter cases",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 63,
+      "group": "crop",
+      "selectedParameters": [],
+      "example": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "bottom"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 42,
+          "text": "Given a Picture object with cropping as picture"
+        },
+        {
+          "line": 43,
+          "text": "When I assign 0.0 to picture.crop_bottom"
+        },
+        {
+          "line": 44,
+          "text": "Then picture.crop_bottom == 0.0"
+        }
+      ],
+      "status": "original-operation-tests-present",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "quantizes and resets the %s crop independently"
+        }
+      ],
+      "disposition": "Each side is independently inserted, replaced and reset in original serialized XML assertions; source side/preexisting-attribute distinctions map to the four-side transition matrix. Values use original rounding boundaries rather than copied fixture values. The public Picture setter remains planned."
+    },
+    {
+      "id": "presentation-bdd-1a54af20915e",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/614",
+      "identity": "Picture.line",
+      "sourceFile": "features/shp-picture.feature",
+      "sourceLine": 71,
+      "group": "outline",
+      "selectedParameters": [],
+      "example": null,
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 72,
+          "text": "Given a Picture object as shape"
+        },
+        {
+          "line": 73,
+          "text": "Then shape.line is a LineFormat object"
+        }
+      ],
+      "status": "partial-picture-outline-operation",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/image-formatting.test.ts",
+          "title": "allows compensated extended crop and preserves unedited metadata and media"
+        }
+      ],
+      "disposition": "A direct picture border edit independently asserts serialized EMU width/color and preservation. Shared LineFormat objects have separate original tests, but the Picture.line live accessor/construction remains planned and receives no model parity credit."
+    },
+    {
+      "id": "presentation-bdd-5f6988110799",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/750",
+      "identity": "Get shape.rotation -- @1.1 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 133,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "Shape",
+        "value": "10.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 128,
+          "text": "Given a rotated Shape object as shape"
+        },
+        {
+          "line": 129,
+          "text": "Then shape.rotation == 10.0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "observes sp authored rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-cc81690913ca",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/751",
+      "identity": "Get shape.rotation -- @1.2 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 134,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "Picture",
+        "value": "20.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 128,
+          "text": "Given a rotated Picture object as shape"
+        },
+        {
+          "line": 129,
+          "text": "Then shape.rotation == 20.0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "observes pic authored rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-932bb180678a",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/752",
+      "identity": "Get shape.rotation -- @1.3 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 135,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "GraphicFrame",
+        "value": "0.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 128,
+          "text": "Given a rotated GraphicFrame object as shape"
+        },
+        {
+          "line": 129,
+          "text": "Then shape.rotation == 0.0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "observes graphicFrame authored rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-80f715bf0564",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/753",
+      "identity": "Get shape.rotation -- @1.4 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 136,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "GroupShape",
+        "value": "40.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 128,
+          "text": "Given a rotated GroupShape object as shape"
+        },
+        {
+          "line": 129,
+          "text": "Then shape.rotation == 40.0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "observes grpSp authored rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-fc58773e53b3",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/754",
+      "identity": "Get shape.rotation -- @1.5 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 137,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "Connector",
+        "value": "50.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 128,
+          "text": "Given a rotated Connector object as shape"
+        },
+        {
+          "line": 129,
+          "text": "Then shape.rotation == 50.0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "observes cxnSp authored rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-c46e31f5f6a7",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/755",
+      "identity": "Set shape.rotation -- @1.1 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 147,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "Shape",
+        "value": "12.3",
+        "expected-value": "12.3"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 141,
+          "text": "Given a Shape object as shape"
+        },
+        {
+          "line": 142,
+          "text": "When I assign 12.3 to shape.rotation"
+        },
+        {
+          "line": 143,
+          "text": "Then shape.rotation == 12.3"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "updates sp normalized rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-c04bca83ad07",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/756",
+      "identity": "Set shape.rotation -- @1.2 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 148,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "Picture",
+        "value": "520.4",
+        "expected-value": "160.4"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 141,
+          "text": "Given a Picture object as shape"
+        },
+        {
+          "line": 142,
+          "text": "When I assign 520.4 to shape.rotation"
+        },
+        {
+          "line": 143,
+          "text": "Then shape.rotation == 160.4"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "updates pic normalized rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-c24795812e92",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/757",
+      "identity": "Set shape.rotation -- @1.3 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 149,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "GraphicFrame",
+        "value": "10.0",
+        "expected-value": "10.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 141,
+          "text": "Given a GraphicFrame object as shape"
+        },
+        {
+          "line": 142,
+          "text": "When I assign 10.0 to shape.rotation"
+        },
+        {
+          "line": 143,
+          "text": "Then shape.rotation == 10.0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "updates graphicFrame normalized rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-0067489a1739",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/758",
+      "identity": "Set shape.rotation -- @1.4 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 150,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "GroupShape",
+        "value": "-5.2",
+        "expected-value": "354.8"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 141,
+          "text": "Given a GroupShape object as shape"
+        },
+        {
+          "line": 142,
+          "text": "When I assign -5.2 to shape.rotation"
+        },
+        {
+          "line": 143,
+          "text": "Then shape.rotation == 354.8"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "updates grpSp normalized rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    },
+    {
+      "id": "presentation-bdd-ed2e5cd1b441",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/759",
+      "identity": "Set shape.rotation -- @1.5 Shape types",
+      "sourceFile": "features/shp-shared.feature",
+      "sourceLine": 151,
+      "group": "rotation",
+      "selectedParameters": [],
+      "example": {
+        "shape-type": "Connector",
+        "value": "50.0",
+        "expected-value": "50.0"
+      },
+      "assertions": [],
+      "expandedSteps": [
+        {
+          "line": 141,
+          "text": "Given a Connector object as shape"
+        },
+        {
+          "line": 142,
+          "text": "When I assign 50.0 to shape.rotation"
+        },
+        {
+          "line": 143,
+          "text": "Then shape.rotation == 50.0"
+        }
+      ],
+      "status": "existing-original-evidence",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/transform-behavior-cases.test.ts",
+          "title": "updates cxnSp normalized rotation"
+        }
+      ],
+      "disposition": "Shared drawing transformation behavior already has original parameter and BDD coverage; no complete Picture model inference.",
+      "previousReceipt": "transform-case-map.json"
+    }
+  ],
+  "apiObligations": [
+    {
+      "source": "upstream-api-inventory.json#/objects/622",
+      "sourceId": "pptx.dml.line.LineFormat",
+      "targetMember": "LineFormat",
+      "status": "implemented",
+      "operationEquivalent": null,
+      "reason": "implemented-bounded-model",
+      "targetSignature": "returned live LineFormat from Shape.line",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/623",
+      "sourceId": "pptx.dml.line.LineFormat.__init__",
+      "targetMember": "__init__",
+      "status": "language-mapped",
+      "operationEquivalent": null,
+      "reason": "language-mapped-construction",
+      "targetSignature": "returned live LineFormat from Shape.line",
+      "targetTests": [],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/624",
+      "sourceId": "pptx.dml.line.LineFormat.color",
+      "targetMember": "color",
+      "status": "implemented",
+      "operationEquivalent": null,
+      "reason": "implemented-bounded-model",
+      "targetSignature": "readonly color: ShapeColorFormat",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/625",
+      "sourceId": "pptx.dml.line.LineFormat.dash_style",
+      "targetMember": "dash_style",
+      "status": "implemented",
+      "operationEquivalent": null,
+      "reason": "implemented-bounded-model",
+      "targetSignature": "dash_style: number | null",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/626",
+      "sourceId": "pptx.dml.line.LineFormat.fill",
+      "targetMember": "fill",
+      "status": "implemented",
+      "operationEquivalent": null,
+      "reason": "implemented-bounded-model",
+      "targetSignature": "readonly fill: FillFormat",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/627",
+      "sourceId": "pptx.dml.line.LineFormat.width",
+      "targetMember": "width",
+      "status": "implemented",
+      "operationEquivalent": null,
+      "reason": "implemented-bounded-model",
+      "targetSignature": "width: Length (setter: Length | null)",
+      "targetTests": [
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "sets and clears preset dash from %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "reads and sets line width %s to %s"
+        },
+        {
+          "file": "packages/pptx/src/drawing-accounting.test.ts",
+          "title": "line color accessor creates a solid choice only when required %s"
+        }
+      ],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1729",
+      "sourceId": "pptx.shapes.picture.Movie.crop_bottom",
+      "targetMember": "crop_bottom",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_bottom: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1730",
+      "sourceId": "pptx.shapes.picture.Movie.crop_left",
+      "targetMember": "crop_left",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_left: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1731",
+      "sourceId": "pptx.shapes.picture.Movie.crop_right",
+      "targetMember": "crop_right",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_right: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1732",
+      "sourceId": "pptx.shapes.picture.Movie.crop_top",
+      "targetMember": "crop_top",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_top: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1738",
+      "sourceId": "pptx.shapes.picture.Movie.height",
+      "targetMember": "height",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "height: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1740",
+      "sourceId": "pptx.shapes.picture.Movie.left",
+      "targetMember": "left",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "left: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1741",
+      "sourceId": "pptx.shapes.picture.Movie.line",
+      "targetMember": "line",
+      "status": "unsupported",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "deferred-public-api",
+      "targetSignature": "Returned owner/XML/equality member remains required; no equivalent exposure claimed by this bounded shape change.",
+      "targetTests": [],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1749",
+      "sourceId": "pptx.shapes.picture.Movie.rotation",
+      "targetMember": "rotation",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "rotation: number (synchronous normalized degree getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1753",
+      "sourceId": "pptx.shapes.picture.Movie.top",
+      "targetMember": "top",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "top: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1754",
+      "sourceId": "pptx.shapes.picture.Movie.width",
+      "targetMember": "width",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "width: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1760",
+      "sourceId": "pptx.shapes.picture.Picture.crop_bottom",
+      "targetMember": "crop_bottom",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_bottom: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1761",
+      "sourceId": "pptx.shapes.picture.Picture.crop_left",
+      "targetMember": "crop_left",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_left: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1762",
+      "sourceId": "pptx.shapes.picture.Picture.crop_right",
+      "targetMember": "crop_right",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_right: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1763",
+      "sourceId": "pptx.shapes.picture.Picture.crop_top",
+      "targetMember": "crop_top",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_top: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1768",
+      "sourceId": "pptx.shapes.picture.Picture.height",
+      "targetMember": "height",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "height: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1771",
+      "sourceId": "pptx.shapes.picture.Picture.left",
+      "targetMember": "left",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "left: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1772",
+      "sourceId": "pptx.shapes.picture.Picture.line",
+      "targetMember": "line",
+      "status": "unsupported",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "deferred-public-api",
+      "targetSignature": "Returned owner/XML/equality member remains required; no equivalent exposure claimed by this bounded shape change.",
+      "targetTests": [],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1776",
+      "sourceId": "pptx.shapes.picture.Picture.rotation",
+      "targetMember": "rotation",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "rotation: number (synchronous normalized degree getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1780",
+      "sourceId": "pptx.shapes.picture.Picture.top",
+      "targetMember": "top",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "top: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1781",
+      "sourceId": "pptx.shapes.picture.Picture.width",
+      "targetMember": "width",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "width: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1911",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.height",
+      "targetMember": "height",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "height: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1914",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.left",
+      "targetMember": "left",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "left: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1915",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.line",
+      "targetMember": "line",
+      "status": "unsupported",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "deferred-public-api",
+      "targetSignature": "Returned owner/XML/equality member remains required; no equivalent exposure claimed by this bounded shape change.",
+      "targetTests": [],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1920",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.rotation",
+      "targetMember": "rotation",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "rotation: number (synchronous normalized degree getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1926",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.top",
+      "targetMember": "top",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "top: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1927",
+      "sourceId": "pptx.shapes.placeholder.PicturePlaceholder.width",
+      "targetMember": "width",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "width: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1957",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_bottom",
+      "targetMember": "crop_bottom",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_bottom: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1958",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_left",
+      "targetMember": "crop_left",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_left: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1959",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_right",
+      "targetMember": "crop_right",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_right: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1960",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.crop_top",
+      "targetMember": "crop_top",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "crop_top: number (synchronous getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1965",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.height",
+      "targetMember": "height",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "height: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1968",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.left",
+      "targetMember": "left",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "left: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1969",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.line",
+      "targetMember": "line",
+      "status": "unsupported",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "deferred-public-api",
+      "targetSignature": "Returned owner/XML/equality member remains required; no equivalent exposure claimed by this bounded shape change.",
+      "targetTests": [],
+      "previousReceipt": "drawing-api-map.json"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1973",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.rotation",
+      "targetMember": "rotation",
+      "status": "planned-model-api",
+      "operationEquivalent": "images.set / setImage",
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "rotation: number (synchronous normalized degree getter/setter on future live Picture)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1977",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.top",
+      "targetMember": "top",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "top: Length (future live picture geometry property)"
+    },
+    {
+      "source": "upstream-api-inventory.json#/objects/1978",
+      "sourceId": "pptx.shapes.placeholder.PlaceholderPicture.width",
+      "targetMember": "width",
+      "status": "planned-model-api",
+      "operationEquivalent": null,
+      "reason": "No live model parity is inferred from detached byte-oriented operation behavior; inherited/underscore-prefixed and untested public members remain visible.",
+      "targetSignature": "width: Length (future live picture geometry property)"
+    }
+  ],
+  "validation": {
+    "status": "target-tests-present-coordinator-records-maintained-results",
+    "corpus": "image-formatting-evidence.md#validation-receipt",
+    "focused": {
+      "formatting": "28 original formatting cases passed (coordinator reported)",
+      "fit": "42/42 original image insertion cases passed in 622ms (fit delegate reported), including direct portrait 2x4 and 4x6 square-cover cases",
+      "corpus": "SDK and CLI engine passed; only selected slide part changed, independent raw XML unit assertions"
+    }
+  }
+}

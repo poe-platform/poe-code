@@ -360,3 +360,10 @@ export {
 } from "./images.js";
 
 export { addImage, type AddImageOptions } from "./image-insertion.js";
+
+export {
+  setImage,
+  applyPictureUpdate,
+  type SetImageOptions,
+  type SetImageResult
+} from "./image-formatting.js";

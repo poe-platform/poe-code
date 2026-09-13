@@ -28,6 +28,7 @@ import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from
 import { fieldSchemas } from "./fields-schema.js";
 import { readImages } from "./images.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
+import { setImage, type SetImageOptions } from "./image-formatting.js";
 import { imageSchemas } from "./images-schema.js";
 import { addShape, mutateShapes, readShapes, type ShapeSelection } from "./shape-operations.js";
 import { groupShapes, ungroupShape, validateGroupOptions } from "./shape-groups.js";
@@ -438,6 +439,7 @@ interface Arguments {
     | "inspect"
     | "images.list"
     | "images.add"
+    | "images.set"
     | "xml.get"
     | "xml.set"
     | "schema"
@@ -504,6 +506,7 @@ interface Arguments {
   slide?: number;
   image?: number;
   imageAdd?: Partial<AddImageOptions>;
+  imageSet?: Partial<SetImageOptions>;
   unique?: boolean;
   shape?: string;
   part?: string;
@@ -603,7 +606,21 @@ const frameFlags = [
   "--autofit"
 ];
 
+const imageSetFlags = [
+  "--crop-left",
+  "--crop-right",
+  "--crop-top",
+  "--crop-bottom",
+  "--rotation",
+  "--flip-horizontal",
+  "--flip-vertical",
+  "--opacity",
+  "--border-color",
+  "--border-width",
+  "--alt-text"
+];
 const scalarOptions = [
+  ...imageSetFlags,
   "--content-type",
   "--fit",
   "--image",
@@ -1171,7 +1188,7 @@ function parse(
     if (
       value === undefined ||
       (value.length === 0 &&
-        !(operation === "images.add" && argument === "--alt-text") &&
+        !((operation === "images.add" || operation === "images.set") && argument === "--alt-text") &&
         ![
           "--author",
           "--name",
@@ -1183,6 +1200,25 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (operation === "images.set" && imageSetFlags.includes(argument)) {
+      const key = argument
+        .slice(2)
+        .split("-")
+        .map((part, i) => (i ? part[0]!.toUpperCase() + part.slice(1) : part))
+        .join("");
+      let parsed: string | number | boolean = value;
+      if (key === "flipHorizontal" || key === "flipVertical") {
+        if (value !== "true" && value !== "false") usage("Picture flips require true or false.");
+        parsed = value === "true";
+      } else if (key === "borderWidth") parsed = commandLength(value, 0);
+      else if (key !== "borderColor" && key !== "altText") {
+        parsed = Number(value);
+        if (!value.trim() || !Number.isFinite(parsed))
+          usage("Picture values must be finite numbers.");
+      }
+      result.imageSet = { ...result.imageSet, [key]: parsed };
+      continue;
+    }
     if (
       operation === "images.add" &&
       ["--content-type", "--fit", "--left", "--top", "--width", "--height", "--alt-text"].includes(
@@ -1206,7 +1242,7 @@ function parse(
       continue;
     }
     if (argument === "--image") {
-      if (operation !== "images.list") usage("Image selection requires images list.");
+      if (operation !== "images.list" && operation !== "images.set") usage("Image selection requires images list or set.");
       if (
         !value.length ||
         [...value].some((c) => c < "0" || c > "9") ||
@@ -2089,6 +2125,56 @@ function parse(
     operation === "slides.set" ||
     operation === "slides.remove";
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
+  if (operation === "images.set") {
+    const allowed = [
+      ...imageSetFlags,
+      "--json",
+      "--limit",
+      "--slide",
+      "--image",
+      "--scope",
+      "--select",
+      "--all",
+      "--allow-empty",
+      "--output",
+      "--in-place",
+      "--force",
+      "--dry-run"
+    ];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to images set.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Image formatting requires one input.");
+    if (!result.imageSet) usage("Image formatting requires an update.");
+    if (result.scope === "presentation" || result.scope === "shared")
+      usage("Image formatting requires an occurrence scope.");
+    if (
+      result.token &&
+      ["--slide", "--image", "--scope", "--all"].some((option) => seen.has(option))
+    )
+      usage("Opaque and simple selectors cannot be combined.");
+    if (
+      result.image !== undefined &&
+      (!result.scope || result.scope === "slides") &&
+      result.slide === undefined
+    )
+      usage("Slide image selection requires a slide.");
+    result.input = positionals[0];
+    result.imageSet = {
+      ...result.imageSet,
+      ...(result.all ? { all: true } : {}),
+      ...(result.allowEmpty ? { allowEmpty: true } : {})
+    };
+    if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+    if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+    if (!result.dryRun && !result.inPlace && !result.output)
+      usage("Mutation requires a destination.");
+    if (result.force && !result.output) usage("Force requires an explicit output destination.");
+    if (result.output === result.input && result.output !== "-")
+      usage("Replacing input requires --in-place.");
+    if (result.output === "-" && result.json && !result.dryRun)
+      usage("Binary stdout cannot be combined with JSON.");
+    return result;
+  }
   if (operation === "images.add") {
     const allowed = [
       "--json",
@@ -3281,6 +3367,14 @@ async function execute(
                             "No field evaluation, automatic numbering or inherited-content flattening.\n" +
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
+      if (args.schemaPath === "images.set")
+        resolvedUsage =
+          "Usage: pptx images set INPUT [--slide N --image N | --select TOKEN] [options]\n" +
+          "  --crop-left FRACTION --crop-right FRACTION --crop-top FRACTION --crop-bottom FRACTION\n" +
+          "  --rotation DEGREES --flip-horizontal true|false --flip-vertical true|false\n" +
+          "  --opacity RATIO --border-color HEX --border-width LENGTH --alt-text TEXT\n" +
+          "  --all --allow-empty --output PATH | --in-place --dry-run --json\n" +
+          "Signed crop fractions retain positive visible area; stored extended crop is preserved.\n";
       if (args.schemaPath === "images.add")
         resolvedUsage =
           "Usage: pptx images add INPUT --slide N --file PATH [--content-type image/png|image/jpeg|image/gif]\n" +
@@ -3347,7 +3441,7 @@ async function execute(
             level: "edit",
             operations: Object.keys(imageSchemas),
             subset:
-              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F31/F33: insert explicit PNG/JPEG/GIF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. Links are never fetched; decoding, other formats and other image edits are not provided."
+              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F31/F33: insert explicit PNG/JPEG/GIF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. F33 also edits crop, rotation, flips, opacity, solid picture borders and alt text. Crop edits require positive visible area after quantization. Other edits preserve extended crop. Links are never fetched; decoding and other formats are not provided."
           },
           drawing: {
             level: "edit",
@@ -3688,6 +3782,58 @@ async function execute(
           protectedInputPaths: [args.file!],
           outputPath: destination,
           bytes: changed,
+          originalBytes: bytes,
+          inPlace: args.inPlace ?? false,
+          force: args.force ?? false,
+          dryRun
+        };
+      }
+    } else if (args.operation === "images.set") {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const changed = await setImage(
+        bytes,
+        {
+          ...(args.scope === undefined ? {} : { scope: args.scope }),
+          ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.image === undefined ? {} : { image: args.image }),
+          ...(args.token === undefined ? {} : { select: args.token })
+        },
+        args.imageSet as SetImageOptions,
+        context
+      );
+      const dryRun = args.dryRun ?? false;
+      result = {
+        ...success(operation, {
+          dryRun,
+          occurrences: changed.occurrences,
+          affectedSlides: changed.affectedSlides
+        }),
+        affected: changed.affected,
+        locations: changed.occurrences.map((item) => item.location)
+      };
+      human =
+        `${dryRun ? "Validated" : "Updated"} ${changed.affected} image occurrence(s)\n` +
+        changed.occurrences
+          .map(
+            (item) =>
+              `  ${item.sourcePart} #${item.position} ${JSON.stringify(item.shapeName ?? item.kind)}\n`
+          )
+          .join("");
+      const destination = args.inPlace ? args.input! : args.output;
+      if (destination === "-" && !dryRun) binary = changed.bytes;
+      else if (destination && destination !== "-") {
+        if (!request.publishOutput)
+          throw Object.assign(new Error("Output publication capability is unavailable."), {
+            code: "publication-unsupported"
+          });
+        publication = {
+          inputPath: args.input!,
+          outputPath: destination,
+          bytes: changed.bytes,
           originalBytes: bytes,
           inPlace: args.inPlace ?? false,
           force: args.force ?? false,

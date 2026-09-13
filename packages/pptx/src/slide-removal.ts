@@ -334,7 +334,6 @@ export async function removeSlides(
           mainEdges.has(relation ?? "")) ||
           (ns === sectionNamespace && local === "sldId" && ids.has(attr(node, "id") ?? "")));
       if (membership) {
-        if (options.referencePolicy !== "remove") dangling();
         removed.add(node);
         return;
       }

@@ -212,14 +212,20 @@ describe("slide removal", () => {
       ).toEqual([]);
     }
   );
-  it.each(["shows", "sections", "link"])("requires explicit repair of %s", async (kind) => {
+  it.each(["shows", "sections", "link"])("repairs %s with its required policy", async (kind) => {
     const source = await fixture(kind);
-    await expect(removeSlides(source, { selection: selection(1) }, context)).rejects.toMatchObject({
-      code: "dangling-reference"
-    });
+    if (kind === "link")
+      await expect(
+        removeSlides(source, { selection: selection(1) }, context)
+      ).rejects.toMatchObject({
+        code: "dangling-reference"
+      });
     const output = await removeSlides(
       source,
-      { selection: selection(1), referencePolicy: "remove" },
+      {
+        selection: selection(1),
+        ...(kind === "link" ? { referencePolicy: "remove" as const } : {})
+      },
       context
     );
     const map = parts(output);
@@ -251,6 +257,31 @@ describe("slide removal", () => {
       ).toBe(false);
     }
   });
+  it("removes every deleted show occurrence while retaining surviving repeats and IDs", async () => {
+    const map = parts(await fixture("shows"));
+    let xml = parseXmlPart(map.get("ppt/presentation.xml")!, context.xmlLimits);
+    const list = xml.root.children.find((n) => n.name.localName === "custShowLst")!.children[1]!
+      .children[0]!;
+    xml = xml.spliceChildren(list, list.children.length, 0, [
+      `<p:sld xmlns:p="${p}" xmlns:r="${r}" r:id="rId2"/>`,
+      `<p:sld xmlns:p="${p}" xmlns:r="${r}" r:id="rId4"/>`
+    ]);
+    map.set("ppt/presentation.xml", xml.bytes());
+    const source = await writePackageArchive(
+      [...map].map(([name, bytes]) => ({ name, bytes })),
+      context,
+      { compression: "store" }
+    );
+    const output = parts(await removeSlides(source, { selection: selection(1) }, context));
+    expect(attrs(output.get("ppt/presentation.xml")!, "custShow")).toEqual([
+      { name: "Evening", id: "1" }
+    ]);
+    expect(attrs(output.get("ppt/presentation.xml")!, "sld").map((x) => x["r:id"])).toEqual([
+      "rId4",
+      "rId4"
+    ]);
+    expect(output.get("ppt/slides/slide3.xml")).toEqual(map.get("ppt/slides/slide3.xml"));
+  });
   it.each([
     "opaque",
     "opaque-link",
@@ -270,11 +301,7 @@ describe("slide removal", () => {
   });
   it.each(["shows", "sections"])("removes empty %s containers for all slides", async (kind) => {
     const map = parts(
-      await removeSlides(
-        await fixture(kind),
-        { selection: { kind: "slide", all: true }, referencePolicy: "remove" },
-        context
-      )
+      await removeSlides(await fixture(kind), { selection: { kind: "slide", all: true } }, context)
     );
     for (const tag of ["custShowLst", "sectionLst", "extLst"])
       expect(attrs(map.get("ppt/presentation.xml")!, tag)).toEqual([]);

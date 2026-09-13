@@ -5,10 +5,14 @@ The workspace byte SDK exports `removeSlides(input, options, context)` returning
 limits and any stream/VFS capability. No host I/O or network is inferred.
 
 ```typescript
-const output = await removeSlides(inputBytes, {
-  selection: { kind: "slide", position: { coordinateSystem: "one-based", value: 1 } },
-  referencePolicy: "remove"
-}, context);
+const output = await removeSlides(
+  inputBytes,
+  {
+    selection: { kind: "slide", position: { coordinateSystem: "one-based", value: 1 } },
+    referencePolicy: "remove"
+  },
+  context
+);
 ```
 
 The registered safe-bash command uses the same operation:
@@ -25,10 +29,10 @@ explicit ordered query arrays. Duplicate selections and stale tokens fail.
 `--allow-empty` permits an explicit selection that matches nothing; a missing
 selector still fails. First, last and all slides may be removed.
 
-Affected custom-show/section memberships, named slide links and resolved
-first/last/next/previous navigation require `--reference-policy remove`.
-It removes affected link elements and memberships, including empty containers.
-Without this policy they fail `dangling-reference`. Opaque extensions, ignored
+Affected custom-show/section memberships are removed automatically, including
+every repeated show occurrence and empty containers. Named slide links and
+resolved first/last/next/previous navigation require `--reference-policy remove`.
+Without that policy these other references fail `dangling-reference`. Opaque extensions, ignored
 foreign markup/attributes, unknown navigation, history-dependent targets,
 custom-show actions and unresolved/backlink targets fail even with the policy.
 This conservative subset can reject ordinary presentations containing extensions.
@@ -40,7 +44,7 @@ this is not a package-wide garbage collector. Owned notes do not require a
 separate reference policy, but a surviving shared note backlink prevents deletion.
 
 JSON uses `slides.remove`, source locations for removed slides, logical slide
-`affected` count and output fingerprint. Auxiliary reference repairs are covered
+`affected` count and output fingerprint. Membership cleanup is automatic; other reference repairs are covered
 by the explicit policy; effects currently list the directly selected slides.
 Dry-run validates without publication. Errors publish no bytes. Output/force,
 binary stdout, in-place and cancellation follow the shared command contract.

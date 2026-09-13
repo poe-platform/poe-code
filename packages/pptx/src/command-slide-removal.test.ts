@@ -73,7 +73,7 @@ describe("slide removal command", () => {
     expect(JSON.parse(decode(stale.stdout)).errors[0].code).toBe("stale-selection");
     expect(request.publishOutput).not.toHaveBeenCalled();
   });
-  it("requires explicit removal of affected show membership before publication", async () => {
+  it("automatically removes affected show membership before publication", async () => {
     const request = await invocation([
       "slides",
       "remove",
@@ -101,22 +101,7 @@ describe("slide removal command", () => {
         }))
       )
     );
-    const rejected = await engine.execute(request);
-    expect(rejected.exitCode, decode(rejected.stdout)).toBe(1);
-    expect(JSON.parse(decode(rejected.stdout))).toMatchObject({
-      operation: "slides.remove",
-      affected: 0,
-      errors: [{ code: "dangling-reference" }]
-    });
-    expect(request.publishOutput).not.toHaveBeenCalled();
-    const accepted = await engine.execute({
-      ...request,
-      args: [
-        ...request.args,
-        new TextEncoder().encode("--reference-policy"),
-        new TextEncoder().encode("remove")
-      ]
-    });
+    const accepted = await engine.execute(request);
     expect(accepted.exitCode, decode(accepted.stdout)).toBe(0);
     const presentation = inspectZip(
       new Uint8Array(request.volume.readFileSync("/result.pptx") as Buffer)

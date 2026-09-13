@@ -15,7 +15,11 @@ export type OfficeErrorCode =
   | "unsupported-profile"
   | "unsupported-edit"
   | "unsafe-path"
-  | "missing-binding";
+  | "missing-binding"
+  | "invalid-selection"
+  | "missing-selection"
+  | "ambiguous-selection"
+  | "stale-selection";
 
 export class OfficeError extends Error {
   override readonly name = "OfficeError";

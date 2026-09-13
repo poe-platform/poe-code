@@ -247,6 +247,10 @@
       "workerd": "./dist/commands/line-endings/index.browser.js",
       "browser": "./dist/commands/line-endings/index.browser.js",
       "import": "./dist/commands/line-endings/index.js"
+    },
+    "./commands/pptx": {
+      "types": "./dist/commands/pptx/index.d.ts",
+      "import": "./dist/commands/pptx/index.js"
     }
   },
   "files": [
@@ -325,7 +329,8 @@
     "poe-code": "file:../..",
     "tsx": "^4.23.12",
     "typescript": "5.9",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "pptx": "*"
   },
   "poeCode": {
     "packageLint": {

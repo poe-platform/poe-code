@@ -184,6 +184,7 @@ describe("standalone package publish metadata", () => {
       "./config/testing",
       "./credentials",
       "./memory",
+      "./pptx",
       "./safe-bash",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
@@ -205,6 +206,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/network",
       "./safe-bash/commands/node",
       "./safe-bash/commands/node/host",
+      "./safe-bash/commands/pptx",
       "./safe-bash/commands/pr",
       "./safe-bash/commands/split",
       "./safe-bash/commands/stream-format",
@@ -281,6 +283,17 @@ describe("standalone package publish metadata", () => {
     expect(rootPackage.dependencies?.["@poe-code/office-package"]).toBeUndefined();
     expect(rootPackage.files).toContain("packages/office-package/dist");
     expect(rootPackage.files).toContain("packages/office-package/LICENSE");
+    expect(rootPackage.dependencies?.saxes).toBe("6.0.0");
+    expect(rootPackage.dependencies?.pptx).toBeUndefined();
+    expect(rootPackage.files).toContain("packages/pptx/dist");
+    expect(rootPackage.files).toContain("packages/pptx/LICENSE");
+    expect(rootPackage.exports?.["./pptx"]).toEqual({
+      types: "./packages/pptx/dist/index.d.ts", import: "./packages/pptx/dist/index.js"
+    });
+    expect(rootPackage.exports?.["./safe-bash/commands/pptx"]).toEqual({
+      types: "./packages/safe-bash/dist/commands/pptx/index.d.ts",
+      import: "./packages/safe-bash/dist/commands/pptx/index.js"
+    });
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

@@ -33,6 +33,10 @@
   },
   "dependencies": {
     "@poe-code/office-package": "*",
-    "saxes": "6.0.0"
+    "saxes": "6.0.0",
+    "@noble/hashes": "2.4.0"
+  },
+  "devDependencies": {
+    "toolcraft-schema": "*"
   }
 }

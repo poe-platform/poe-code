@@ -106,6 +106,11 @@ it.each([
     }));
     volume.writeFileSync(path.join(root, "packages/office-package/dist/zip.js"), "export const crc = 1;");
     volume.writeFileSync(path.join(root, "packages/safe-bash/dist/codec.js"), 'export { crc } from "@poe-code/office-package/zip";');
+    volume.mkdirSync(path.join(root, "packages/pptx/dist"), { recursive: true });
+    volume.writeFileSync(path.join(root, "packages/pptx/package.json"), JSON.stringify({
+      name: "pptx", exports: { ".": { import: "./dist/index.js" } }
+    }));
+    volume.writeFileSync(path.join(root, "packages/pptx/dist/index.js"), 'export { crc } from "@poe-code/office-package/zip";');
     addNativeFixture(root, volume);
     const files = createFsFromVolume(volume).promises;
     const build = vi.fn(async (options: BuildOptions) => {
@@ -176,6 +181,8 @@ it.each([
     } else {
       await import("./bundle.mjs");
       expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/codec.js"), "utf8"))
+        .toBe('export { crc } from "../../office-package/dist/zip.js";');
+      expect(volume.readFileSync(path.join(root, "packages/pptx/dist/index.js"), "utf8"))
         .toBe('export { crc } from "../../office-package/dist/zip.js";');
       for (const suffix of [".js", ".js.map", ".d.ts", ".d.ts.map"]) {
         expect(volume.existsSync(path.join(root, `dist/providers/retired${suffix}`))).toBe(false);

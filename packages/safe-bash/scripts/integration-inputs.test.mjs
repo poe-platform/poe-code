@@ -2253,6 +2253,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/cut-portable.test.ts"));
   assert.ok(files.includes("tests/commands/capability-requirements.test.ts"));
   assert.ok(files.includes("tests/commands/filesystem-output.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/selectors.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output-task-reactions.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output-descriptor-stream.test.ts"));
@@ -2454,6 +2455,12 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   assert.equal(root.dependencies.pako, "3.0.1");
   assert.ok(root.files.includes("packages/office-package/dist"));
   assert.ok(root.files.includes("packages/office-package/LICENSE"));
+  assert.deepEqual(source.exports["./commands/pptx"], { types: "./dist/commands/pptx/index.d.ts", import: "./dist/commands/pptx/index.js" });
+  assert.deepEqual(root.exports["./pptx"], { types: "./packages/pptx/dist/index.d.ts", import: "./packages/pptx/dist/index.js" });
+  assert.equal(root.devDependencies.pptx, "*");
+  assert.equal(root.dependencies.saxes, "6.0.0");
+  assert.ok(root.files.includes("packages/pptx/dist"));
+  assert.ok(root.files.includes("packages/pptx/LICENSE"));
   assert.equal(root.dependencies["virtual-bash"], undefined);
   assert.equal(root.devDependencies["virtual-bash"], "*");
   assert.ok(root.files.includes("packages/safe-bash/dist"));

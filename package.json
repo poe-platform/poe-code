@@ -363,6 +363,14 @@
       "workerd": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
       "browser": "./packages/safe-bash/dist/commands/line-endings/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/line-endings/index.js"
+    },
+    "./pptx": {
+      "types": "./packages/pptx/dist/index.d.ts",
+      "import": "./packages/pptx/dist/index.js"
+    },
+    "./safe-bash/commands/pptx": {
+      "types": "./packages/safe-bash/dist/commands/pptx/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/pptx/index.js"
     }
   },
   "workspaces": [
@@ -541,6 +549,8 @@
     "packages/mcp-oauth/dist",
     "packages/office-package/dist",
     "packages/office-package/LICENSE",
+    "packages/pptx/dist",
+    "packages/pptx/LICENSE",
     "packages/opencode-poe-auth/dist",
     "packages/package-lint/dist",
     "packages/pipeline/dist",
@@ -615,7 +625,8 @@
     "ts-morph": "^27.0.2",
     "turndown": "^7.2.4",
     "yaml": "^2.8.2",
-    "temporal-polyfill": "1.0.4"
+    "temporal-polyfill": "1.0.4",
+    "saxes": "6.0.0"
   },
   "optionalDependencies": {
     "braintrust": "^3.17.0"

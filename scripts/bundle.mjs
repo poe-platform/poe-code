@@ -261,7 +261,9 @@ const officeRoutes = Object.fromEntries(
     path.resolve(packagesDir, officePackage.dir, value.import)
   ])
 );
-await rewriteWorkspaceRuntime(path.join(packagesDir, "safe-bash/dist"), officeRoutes);
+for (const directory of ["safe-bash", "pptx"]) {
+  await rewriteWorkspaceRuntime(path.join(packagesDir, directory, "dist"), officeRoutes);
+}
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

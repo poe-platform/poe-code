@@ -6,6 +6,12 @@ import { inventorySchema, inventoryPartSchema } from "./inventory-schema.js";
 import { MSO_AUTO_SHAPE_TYPE, shapePresets } from "./shape-presets.js";
 
 const shapeValues = {
+  adjustments: {
+    type: "array",
+    maxItems: 4096,
+    items: { type: "number" },
+    description: "Complete normalized preset adjustment values in guide order."
+  },
   kind: {
     enum: [
       "text-box",

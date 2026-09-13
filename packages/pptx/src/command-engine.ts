@@ -734,7 +734,7 @@ const imageSetFlags = [
   "--alt-text"
 ];
 const scalarOptions = [
-  "--data-json", "--data-file",
+  "--adjustments",  "--data-json", "--data-file",
   "--decorative",
   "--trigger", "--delay", "--target", "--ops-json", "--ops-file",
   "--duration",
@@ -1987,7 +1987,7 @@ function parse(
     if (
       operation.startsWith("shapes.") &&
       [
-        "--kind",
+        "--adjustments",        "--kind",
         "--name",
         "--text",
         "--title",
@@ -2012,8 +2012,8 @@ function parse(
         .map((part, index) => (index ? part[0]!.toUpperCase() + part.slice(1) : part))
         .join("");
       let parsed: unknown = value;
-      if (key === "lineWidth" && value === "null") parsed = null;
-      else if (["left", "top", "width", "height", "lineWidth"].includes(key)) {
+      if (key === "adjustments") parsed = commandJson(value);
+      else if (key === "lineWidth" && value === "null") parsed = null;      else if (["left", "top", "width", "height", "lineWidth"].includes(key)) {
         const length = commandLength(
           value,
           ["left", "top"].includes(key) ? -27273042316900 : key === "lineWidth" ? 0 : 1
@@ -3987,7 +3987,7 @@ async function execute(
                           "Properties: --name TEXT --text TEXT --title TEXT --description TEXT --alt-text TEXT\n" +
                           "  --locked true|false|null --rotation DEGREES --fill RGB --line-color RGB --line-width LENGTH\n" +
                           "  --flip-horizontal true|false --flip-vertical true|false\n" +
-                          "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
+                          "  --adjustments JSON_ARRAY (normalized preset values in guide order)\n" +                          "  Geometry uses parent coordinates; inspection corners use slide EMUs.\n" +
                           "Lengths require emu/in/cm/mm/pt. Presets use enum names or numeric values from schema.\n" +
                           "Null clears direct title/description/lock; null fill/line color disables fill/line.\n" +
                           "Omitted values stay unchanged.\n" +

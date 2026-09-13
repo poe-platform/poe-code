@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "E404",
+    "summary": "No match found for version 0.1.569",
+    "detail": "'@poe-platform/safe-js@0.1.569' is not in this registry.\n\nNote that you can also install from a\ntarball, folder, http url, or git url."
+  }
+}

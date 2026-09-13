@@ -1,0 +1,37 @@
+{
+  "observedAt": "2026-09-13T10:27:28.634712+00:00",
+  "originalHead": "2d36d34699ea800144d3176f919d41dac697a5e4",
+  "remoteBase": "8e890a5324a52a76a0a67da6ff0503efda76cb6b",
+  "reconciledGeneratorCommit": "8c84edac0e47b48542c0c6a438d7e60713ce74fb",
+  "files": [
+    {
+      "file": "packages/safe-js/src/interp/async-generator-driver.ts",
+      "equal": true
+    },
+    {
+      "file": "packages/safe-js/src/interp/generator-expression-state.ts",
+      "equal": true
+    },
+    {
+      "file": "packages/safe-js/src/interp/interpreter.ts",
+      "equal": false
+    },
+    {
+      "file": "packages/safe-js/src/snapshot/guest-ast-validation.ts",
+      "equal": true
+    },
+    {
+      "file": "packages/safe-js/src/snapshot/guest-heap-validation.ts",
+      "equal": true
+    },
+    {
+      "file": "packages/safe-js/test/async-delegated-return-restore.test.ts",
+      "equal": true
+    },
+    {
+      "file": "packages/safe-js/test/async-generator-return-order.test.ts",
+      "equal": true
+    }
+  ],
+  "originalStagedHash": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8"
+}

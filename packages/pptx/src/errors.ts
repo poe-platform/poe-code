@@ -12,6 +12,8 @@ export type OfficeErrorCode =
   | "invalid-archive"
   | "invalid-opc"
   | "invalid-xml"
+  | "unsupported-profile"
+  | "unsupported-edit"
   | "unsafe-path"
   | "missing-binding";
 

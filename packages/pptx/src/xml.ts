@@ -30,6 +30,8 @@ export interface XmlMerge {
 export interface XmlPart {
   readonly root: XmlElement;
   bytes(): Uint8Array;
+  markup(element: XmlElement): string;
+  resolveNamespace(element: XmlElement, prefix: string): string | undefined;
   merge(element: XmlElement, update: XmlMerge): XmlPart;
 }
 interface AttributeSpan {
@@ -296,6 +298,16 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
   return Object.freeze({
     root,
     bytes: () => Uint8Array.from(original),
+    markup(element: XmlElement): string {
+      const span = spans.get(element);
+      if (!span) fail("invalid-value");
+      return source.slice(span.start, span.end);
+    },
+    resolveNamespace(element: XmlElement, prefix: string): string | undefined {
+      const span = spans.get(element);
+      if (!span) fail("invalid-value");
+      return span.bindings.get(prefix);
+    },
     merge(element: XmlElement, update: XmlMerge): XmlPart {
       const selected = spans.get(element);
       if (!selected) fail("invalid-value");

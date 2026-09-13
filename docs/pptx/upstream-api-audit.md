@@ -2,6 +2,11 @@
 
 Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
 
+Current utility reconciliation: [package, XML and image-codec evidence](utility-reconciliation.md)
+links exact parameter ledgers, neutral public mappings and deliberate validation
+differences. It supersedes historical utility absence labels only for the tested
+behaviors; whole-public-API coverage remains a separate obligation.
+
 Current presentation element/part boundary: [live package-view evidence](live-package-view-evidence.md)
 and [exact owner/returned-view mapping](live-owner-surface-map.md) cover bounded
 XML traversal/mutation, current package reads, isolated bytes and shared `xml set`

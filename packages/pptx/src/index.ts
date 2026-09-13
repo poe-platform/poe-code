@@ -49,3 +49,5 @@ export {
   type PresentationSlideInput,
   type PresentationTextShape
 } from "./creation.js";
+
+export { addSlide, type AddSlideOptions, type PlaceholderText } from "./slides.js";

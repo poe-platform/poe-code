@@ -1,6 +1,7 @@
 import { createZipCodec, type ZipLimits } from "@poe-code/office-package/zip";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput, ByteContext } from "./contracts.js";
+import { partName, asciiKey } from "./package-uri.js";
 import { OfficeError } from "./errors.js";
 
 export interface PackageContext extends ByteContext {
@@ -19,104 +20,6 @@ const zip = createZipCodec(undefined, {
   rejectDuplicateNames: true,
   utcDates: true
 });
-
-function unsafeName(): never {
-  throw new OfficeError("unsafe-path", "Invalid package part name.", "index");
-}
-
-function unreserved(code: number): boolean {
-  return (
-    (code >= 65 && code <= 90) ||
-    (code >= 97 && code <= 122) ||
-    (code >= 48 && code <= 57) ||
-    "-._~".includes(String.fromCharCode(code))
-  );
-}
-
-function international(code: number): boolean {
-  return (
-    (code >= 0xa0 && code <= 0xd7ff) ||
-    (code >= 0xf900 && code <= 0xfdcf) ||
-    (code >= 0xfdf0 && code <= 0xffef) ||
-    (code >= 0x10000 &&
-      code <= 0xefffd &&
-      (code & 0xffff) <= 0xfffd &&
-      (code < 0xe0000 || code >= 0xe1000))
-  );
-}
-
-function partName(value: string, zipName: boolean): string {
-  if (typeof value !== "string" || !value || (!zipName && !value.startsWith("/"))) unsafeName();
-  const source = zipName ? value : value.slice(1);
-  if (source === "[Content_Types].xml") return `/${source}`;
-  const segments = source.split("/");
-  const mapped = segments.map((segment) => {
-    if (!segment || segment.endsWith(".")) unsafeName();
-    let result = "";
-    for (let index = 0; index < segment.length; index++) {
-      const code = segment.codePointAt(index)!;
-      if (code === 37) {
-        let encoded = "";
-        do {
-          const hex = segment.slice(index + 1, index + 3);
-          if (
-            hex.length !== 2 ||
-            [...hex].some((digit) => !"0123456789abcdefABCDEF".includes(digit))
-          )
-            unsafeName();
-          const byte = Number.parseInt(hex, 16);
-          if (byte < 128) {
-            if (encoded) {
-              index--;
-              break;
-            }
-            if (byte < 32 || byte === 127 || byte === 47 || byte === 92 || unreserved(byte))
-              unsafeName();
-            result += `%${hex.toUpperCase()}`;
-            index += 2;
-            break;
-          }
-          encoded += `%${hex}`;
-          index += 3;
-          if (segment[index] !== "%") {
-            index--;
-            break;
-          }
-        } while (index < segment.length);
-        if (encoded) {
-          if (!zipName) unsafeName();
-          try {
-            const decoded = decodeURIComponent(encoded);
-            if ([...decoded].some((character) => !international(character.codePointAt(0)!)))
-              unsafeName();
-            result += decoded;
-          } catch {
-            unsafeName();
-          }
-        }
-      } else {
-        if (code < 128) {
-          if (!unreserved(code) && !"!$&'()*+,;=:@".includes(segment[index]!)) unsafeName();
-        } else if (zipName || !international(code)) {
-          unsafeName();
-        }
-        result += String.fromCodePoint(code);
-        if (code > 0xffff) index++;
-      }
-    }
-    return result;
-  });
-  return `/${mapped.join("/")}`;
-}
-
-function identity(name: string): string {
-  let result = "";
-  for (const character of name) {
-    const code = character.charCodeAt(0);
-    result += code >= 65 && code <= 90 ? String.fromCharCode(code + 32) : character;
-  }
-  return result;
-}
 
 export async function readPackage(
   input: BinaryInput,
@@ -156,10 +59,11 @@ export async function readPackage(
     const identities = new Set<string>();
     const parents = new Set<string>();
     const entries = archive.entries.map((entry) => {
-      if (entry.symlink) unsafeName();
+      if (entry.symlink)
+        throw new OfficeError("unsafe-path", "Invalid package part name.", "index");
       if (entry.directory) return { entry, name: null, key: null };
       const name = partName(entry.name, true);
-      const key = identity(name);
+      const key = asciiKey(name);
       if (identities.has(key) || parents.has(key)) {
         throw new OfficeError("invalid-opc", "Colliding package part names.", "index");
       }
@@ -201,10 +105,10 @@ export async function readPackage(
   return Object.freeze({
     names: Object.freeze(names),
     has(partname: string) {
-      return parts.has(identity(partName(partname, false)));
+      return parts.has(asciiKey(partName(partname, false)));
     },
     get(partname: string) {
-      const data = parts.get(identity(partName(partname, false)));
+      const data = parts.get(asciiKey(partName(partname, false)));
       if (!data) throw new OfficeError("missing-binding", "Package member is absent.", "index");
       return new Uint8Array(data);
     },
@@ -212,7 +116,7 @@ export async function readPackage(
       const owner = partname === "/" ? "/" : partName(partname, false);
       const slash = owner.lastIndexOf("/");
       const name = `${owner.slice(0, slash + 1)}_rels/${owner.slice(slash + 1)}.rels`;
-      const data = parts.get(identity(name));
+      const data = parts.get(asciiKey(name));
       return data ? new Uint8Array(data) : null;
     }
   });

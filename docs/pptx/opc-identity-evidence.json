@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "scope": "opc-identity",
+  "source_commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "uri_cases": [
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_construct_from_relative_ref",
+      "source_line": 13,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_should_raise_on_construct_with_bad_pack_uri_str",
+      "source_line": 17,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "rejects unsafe part name %s",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/-/]",
+      "source_line": 21,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/ppt/presentation.xml-/ppt]",
+      "source_line": 21,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_base_URI[/ppt/slides/slide1.xml-/ppt/slides]",
+      "source_line": 21,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/-]",
+      "source_line": 32,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/presentation.xml-xml]",
+      "source_line": 32,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/media/image.PnG-PnG]",
+      "source_line": 32,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/-]",
+      "source_line": 43,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/presentation.xml-presentation.xml]",
+      "source_line": 43,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/media/image.png-image.png]",
+      "source_line": 43,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/-None]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/presentation.xml-None]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/,foo,grob!.xml-None]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/media/image42.png-42]",
+      "source_line": 54,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/presentation.xml-/-ppt/presentation.xml]",
+      "source_line": 66,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/slideMasters/slideMaster1.xml-/ppt-slideMasters/slideMaster1.xml]",
+      "source_line": 66,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_can_compute_its_relative_reference[/ppt/slideLayouts/slideLayout1.xml-/ppt/slides-../slideLayouts/slideLayout1.xml]",
+      "source_line": 66,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "resolves and emits relative references from %s; resolves internal dot segments and absolute targets",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/-/_rels/.rels]",
+      "source_line": 85,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/ppt/presentation.xml-/ppt/_rels/presentation.xml.rels]",
+      "source_line": 85,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    },
+    {
+      "source": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_uri_of_its_rels_part[/ppt/slides/slide42.xml-/ppt/slides/_rels/slide42.xml.rels]",
+      "source_line": 85,
+      "test_file": "packages/pptx/src/package-uri.test.ts",
+      "status": "implemented",
+      "mapping": "describes %s without host path rules",
+      "language_mapping": "Immutable plain record and validated string parameters replace string subclass; null replaces None. No host paths. Metadata tested with original asset names."
+    }
+  ],
+  "content_type_cases": [],
+  "bdd_note": "No dedicated URI BDD scenarios. Full open/save and image workflows remain outstanding; package primitives alone do not establish their completion."
+}

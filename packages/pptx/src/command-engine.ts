@@ -1,3 +1,5 @@
+import { fitTextFrames, validateTextFitOptions, type TextFitOptions } from "./text-fitting.js";
+import { admitFontMetrics } from "./font-metrics.js";
 import {
   readTextFrames,
   mutateTextFrames,
@@ -47,6 +49,7 @@ import {
   textGetSchema,
   textReplaceSchema,
   textFramesSetSchema,
+  textFitSchema,
   textFramesGetSchema,
   textFramesListSchema,
   textParagraphsSetSchema,
@@ -211,6 +214,7 @@ const help =
   "       pptx slides set INPUT [--name TEXT] [--hidden true|false] [--position N]\n" +
   "                       [--slide N | --select TOKEN | --all] [--allow-empty]\n" +
   "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
+  "       pptx text fit INPUT --metrics JSON [--min-size N --max-size N] [selection] [output]\n" +
   "       pptx text frames list|get|set INPUT [--vertical-anchor top|middle|bottom] [--autofit none|shape|text]\n" +
   "       pptx text paragraphs list|get|set INPUT [--paragraph N] [--alignment left|center|right] [--json]\n" +
   "       pptx text get INPUT [--slide N] [--shape NAME] [--scope SCOPE] [--json]\n" +
@@ -323,6 +327,7 @@ interface Arguments {
     | "slides.split"
     | "text.get"
     | "text.replace"
+    | "text.fit"
     | "text.frames.set"
     | "text.frames.get"
     | "text.frames.list"
@@ -379,6 +384,7 @@ interface Arguments {
   template?: string;
   runEdit?: MutateTextRunsOptions;
   frameEdit?: MutateTextFramesOptions;
+  fitEdit?: TextFitOptions;
   paragraphEdit?: MutateTextParagraphsOptions;
   style?: { bold?: boolean; italic?: boolean };
   first?: boolean;
@@ -458,6 +464,20 @@ const paragraphFlags = [
   "--tabs"
 ];
 
+const fitFlags = [
+  "--metrics",
+  "--font-family",
+  "--min-size",
+  "--max-size",
+  "--bold",
+  "--italic",
+  "--wrap",
+  "--line-spacing",
+  "--margin-left",
+  "--margin-right",
+  "--margin-top",
+  "--margin-bottom"
+];
 const frameFlags = [
   "--text",
   "--margin-left",
@@ -473,6 +493,7 @@ const frameFlags = [
 ];
 
 const scalarOptions = [
+  ...fitFlags,
   ...frameFlags,
   ...paragraphFlags,
   ...runFlags,
@@ -579,7 +600,7 @@ function parse(
       if (command === "text") output.operation = "text.get";
       if (["create", "inspect", "schema", "capabilities", "help", "version"].includes(command))
         output.operation = command;
-    } else if (index === 1 && args[0] === "text" && ["get", "replace"].includes(argument)) {
+    } else if (index === 1 && args[0] === "text" && ["get", "replace", "fit"].includes(argument)) {
       output.operation = `text.${argument}`;
     } else if (index === 1 && args[0] === "xml" && ["get", "set"].includes(argument)) {
       output.operation = `xml.${argument}`;
@@ -616,7 +637,7 @@ function parse(
     args.splice(0, 3, path);
     output.operation = path;
   }
-  if (args[0] === "text" && !["get", "replace"].includes(args[1]!)) args.splice(1, 0, "get");
+  if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
     "text",
     "xml",
@@ -655,6 +676,7 @@ function parse(
       "inspect",
       "text.get",
       "text.replace",
+      "text.fit",
       "text.frames.set",
       "text.frames.get",
       "text.frames.list",
@@ -690,7 +712,8 @@ function parse(
     if (
       (operation.startsWith("text.runs.") ||
         operation.startsWith("text.paragraphs.") ||
-        operation.startsWith("text.frames.")) &&
+        operation.startsWith("text.frames.") ||
+        operation === "text.fit") &&
       ["--help", "-h"].includes(argument)
     )
       return { operation: "help", json: output.json, schemaPath: operation };
@@ -741,6 +764,33 @@ function parse(
         ].includes(argument))
     )
       usage("Missing option value.");
+    if (operation === "text.fit" && fitFlags.includes(argument)) {
+      const key = argument
+        .slice(2)
+        .split("-")
+        .map((part, i) => (i ? part[0]!.toUpperCase() + part.slice(1) : part))
+        .join("");
+      let parsed: unknown = value;
+      if (key === "metrics") {
+        try {
+          parsed = admitFontMetrics(JSON.parse(value));
+        } catch (error) {
+          if (error instanceof OfficeError) throw error;
+          usage("Metrics require a valid JSON metric object.");
+        }
+      } else if (["bold", "italic", "wrap"].includes(key)) {
+        if (!["true", "false"].includes(value)) usage("Text fit switches require true or false.");
+        parsed = value === "true";
+      } else if (key.startsWith("margin")) parsed = commandLength(value) / 12700;
+      else if (key !== "fontFamily") {
+        const pieces = value.split(".");
+        if (pieces.length > 2 || pieces.some((p) => !p || [...p].some((c) => c < "0" || c > "9")))
+          usage("Text fit sizes and spacing require decimal numbers.");
+        parsed = Number(value);
+      }
+      result.fitEdit = { ...result.fitEdit, [key]: parsed } as TextFitOptions;
+      continue;
+    }
     if (operation.startsWith("text.frames.") && frameFlags.includes(argument)) {
       const key = argument
         .slice(2)
@@ -1452,6 +1502,7 @@ function parse(
   const membershipOperation = Object.hasOwn(membershipSchemas, operation);
   if (
     operation === "text.get" ||
+    operation === "text.fit" ||
     operation === "text.replace" ||
     operation.startsWith("text.runs.") ||
     operation.startsWith("text.paragraphs.") ||
@@ -1460,8 +1511,9 @@ function parse(
     const paragraphs = operation.startsWith("text.paragraphs.");
     const runs = operation.startsWith("text.runs.");
     const frames = operation.startsWith("text.frames.");
-    const formatting = runs || paragraphs || frames;
-    const mutation = operation.endsWith(".set") || operation === "text.replace";
+    const fitting = operation === "text.fit";
+    const formatting = runs || paragraphs || frames || fitting;
+    const mutation = operation.endsWith(".set") || operation === "text.replace" || fitting;
     const allowed = [
       "--json",
       "--limit",
@@ -1470,6 +1522,7 @@ function parse(
       "--slide",
       "--shape",
       ...(frames && mutation ? frameFlags : []),
+      ...(fitting ? fitFlags : []),
       ...(runs ? (mutation ? runFlags : ["--paragraph", "--run"]) : []),
       ...(paragraphs ? (mutation ? paragraphFlags : ["--paragraph"]) : []),
       ...(mutation
@@ -1514,6 +1567,10 @@ function parse(
       usage("Shape selection requires an owning slide.");
     result.input = positionals[0];
     if (mutation) {
+      if (fitting) {
+        if (!result.fitEdit?.metrics) usage("Text fit requires --metrics JSON.");
+        validateTextFitOptions(result.fitEdit);
+      }
       if (frames)
         validateTextFrameOptions({ ...result.frameEdit, ...(result.all ? { all: true } : {}) });
       if (paragraphs)
@@ -1950,6 +2007,7 @@ function parse(
         "slides.split",
         "text.get",
         "text.replace",
+        "text.fit",
         "text.frames.set",
         "text.frames.get",
         "text.frames.list",
@@ -2204,13 +2262,26 @@ async function execute(
     output.operation = args.operation;
     const operation = args.operation;
     if (args.operation === "help") {
-      const usage = args.schemaPath?.startsWith("text.frames.")
-        ? frameHelp
-        : args.schemaPath?.startsWith("text.paragraphs.")
-          ? paragraphHelp
-          : args.schemaPath?.startsWith("text.runs.")
-            ? runHelp
-            : help;
+      const usage =
+        args.schemaPath === "text.fit"
+          ? "Usage: pptx text fit INPUT --metrics JSON [selection] [output]\n" +
+            "Selection: --slide N --shape NAME | --select TOKEN | --all\n" +
+            "Output: --output PATH | --in-place | --dry-run\n" +
+            "--font-family NAME --min-size N --max-size N\n" +
+            "--bold true|false --italic true|false --wrap true|false\n" +
+            "--margin-left LENGTH --margin-right LENGTH\n" +
+            "--margin-top LENGTH --margin-bottom LENGTH --line-spacing MULTIPLIER\n" +
+            "--json --allow-empty --force --scope SCOPE --limit NAME=VALUE\n" +
+            "Defaults: Calibri, 1..18pt, regular, wrap, line spacing 1.\n" +
+            "Supplied scalar metrics; horizontal single-column shapes with local extents.\n" +
+            "No host font discovery. Platform rendering may differ.\n"
+          : args.schemaPath?.startsWith("text.frames.")
+            ? frameHelp
+            : args.schemaPath?.startsWith("text.paragraphs.")
+              ? paragraphHelp
+              : args.schemaPath?.startsWith("text.runs.")
+                ? runHelp
+                : help;
       result = success(operation, { usage });
       human = usage;
     } else if (args.operation === "version") {
@@ -2228,6 +2299,7 @@ async function execute(
             inspect: inspectSchema,
             "text.get": textGetSchema,
             "text.replace": textReplaceSchema,
+            "text.fit": textFitSchema,
             "text.frames.set": textFramesSetSchema,
             "text.frames.get": textFramesGetSchema,
             "text.frames.list": textFramesListSchema,
@@ -2253,6 +2325,13 @@ async function execute(
     else if (args.operation === "capabilities")
       result = success(operation, {
         features: {
+          textFit: {
+            supported: true,
+            operation: "text.fit",
+            level: "edit",
+            subset:
+              "Supplied scalar metrics; horizontal single-column shapes with local extents; inclusive integer point bounds, margins, wrap, explicit line spacing. No host font discovery, bullets, indentation or advanced shaping."
+          },
           textFrames: {
             level: "edit",
             operation: "text.frames.set",
@@ -2359,7 +2438,8 @@ async function execute(
       args.operation === "text.replace" ||
       args.operation === "text.runs.set" ||
       args.operation === "text.paragraphs.set" ||
-      args.operation === "text.frames.set"
+      args.operation === "text.frames.set" ||
+      args.operation === "text.fit"
     ) {
       const context = { ...options.context, signal: request.signal };
       const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
@@ -2383,53 +2463,61 @@ async function execute(
         ...(args.shape === undefined ? {} : { shape: args.shape })
       };
       const changed =
-        args.operation === "text.frames.set"
-          ? await mutateTextFrames(
+        args.operation === "text.fit"
+          ? await fitTextFrames(
               bytes,
-              { ...args.frameEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+              { ...args.fitEdit!, ...selectedText, ...(args.all ? { all: true } : {}) },
               context
             )
-          : args.operation === "text.paragraphs.set"
-            ? await mutateTextParagraphs(
+          : args.operation === "text.frames.set"
+            ? await mutateTextFrames(
                 bytes,
-                { ...args.paragraphEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+                { ...args.frameEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
                 context
               )
-            : args.operation === "text.runs.set"
-              ? await mutateTextRuns(
+            : args.operation === "text.paragraphs.set"
+              ? await mutateTextParagraphs(
                   bytes,
-                  { ...args.runEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+                  { ...args.paragraphEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
                   context
                 )
-              : await replacePresentationText(
-                  bytes,
-                  {
-                    ...selectedText,
-                    ...(args.style === undefined ? {} : { style: args.style }),
-                    find: args.find!,
-                    with: args.with!,
-                    ...(args.first ? { first: true } : {}),
-                    ...(args.all ? { all: true } : {}),
-                    ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence })
-                  },
-                  context
-                );
+              : args.operation === "text.runs.set"
+                ? await mutateTextRuns(
+                    bytes,
+                    { ...args.runEdit, ...selectedText, ...(args.all ? { all: true } : {}) },
+                    context
+                  )
+                : await replacePresentationText(
+                    bytes,
+                    {
+                      ...selectedText,
+                      ...(args.style === undefined ? {} : { style: args.style }),
+                      find: args.find!,
+                      with: args.with!,
+                      ...(args.first ? { first: true } : {}),
+                      ...(args.all ? { all: true } : {}),
+                      ...(args.occurrence === undefined ? {} : { occurrence: args.occurrence })
+                    },
+                    context
+                  );
       const dryRun = args.dryRun ?? false;
       result = {
         ...success(
           operation,
-          args.operation === "text.frames.set"
-            ? { frames: changed.affected, dryRun }
-            : args.operation === "text.paragraphs.set"
-              ? { paragraphs: changed.affected, dryRun }
-              : args.operation === "text.runs.set"
-                ? { runs: changed.affected, dryRun }
-                : { replacements: changed.affected, dryRun }
+          args.operation === "text.fit"
+            ? { frames: changed.affected, sizes: "sizes" in changed ? changed.sizes : [], dryRun }
+            : args.operation === "text.frames.set"
+              ? { frames: changed.affected, dryRun }
+              : args.operation === "text.paragraphs.set"
+                ? { paragraphs: changed.affected, dryRun }
+                : args.operation === "text.runs.set"
+                  ? { runs: changed.affected, dryRun }
+                  : { replacements: changed.affected, dryRun }
         ),
         affected: changed.affected,
         locations: changed.locations
       };
-      human = `${dryRun ? "Validated" : args.operation.endsWith(".set") ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.frames.set" ? "text frame(s)" : args.operation === "text.paragraphs.set" ? "paragraph(s)" : args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
+      human = `${dryRun ? "Validated" : args.operation === "text.fit" ? "Fitted" : args.operation.endsWith(".set") ? "Updated" : "Replaced"} ${changed.affected} ${args.operation === "text.fit" || args.operation === "text.frames.set" ? "text frame(s)" : args.operation === "text.paragraphs.set" ? "paragraph(s)" : args.operation === "text.runs.set" ? "text run(s)" : "text match(es)"}\n`;
       const destination = args.inPlace ? args.input! : args.output;
       if (destination === "-" && !dryRun) binary = changed.bytes;
       else if (destination && destination !== "-") {

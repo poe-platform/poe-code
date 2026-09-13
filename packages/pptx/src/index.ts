@@ -197,3 +197,11 @@ export {
   type TextFrameFormatting,
   type MutateTextFramesOptions
 } from "./text-frames.js";
+
+export { admitFontMetrics, type FontMetrics, type FontMetricsHandle } from "./font-metrics.js";
+export {
+  fitTextFrames,
+  type TextFitOptions,
+  type ModelTextFitOptions,
+  type FitTextFramesOptions
+} from "./text-fitting.js";

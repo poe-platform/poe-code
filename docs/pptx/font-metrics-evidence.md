@@ -1,5 +1,9 @@
 # Portable font measurement evidence
 
+Historical prerequisite receipt. [Document fitting integration](text-fitting-evidence.md)
+now supersedes the pending-integration and no-public-export statements below;
+its case map retains all original source identities.
+
 This receipt implements the metric prerequisite for F19, not document fitting,
 full international shaping, or whole public API coverage. The internal module
 is `packages/pptx/src/font-metrics.ts`; it has no package-root export or new CLI

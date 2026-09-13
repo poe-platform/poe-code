@@ -1,6 +1,11 @@
 # PPTX Public API Documentation Audit
 
-Status: Pinned documentation/source reconciliation recorded; SDK implementation not started.
+Status: Pinned documentation/source reconciliation recorded. Historical baseline below; subsequent bounded implementation receipts are linked separately.
+
+Current text fitting: [implementation and exact JS mappings](text-fitting-evidence.md),
+[complete fitting case ledger](text-fitting-case-map.json). The historical
+"not implemented" statements below describe the audit checkpoint, not current
+package-wide implementation status. Whole-public-API coverage remains partial.
 
 ## Sources and baseline
 

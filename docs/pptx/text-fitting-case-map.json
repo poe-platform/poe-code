@@ -1,0 +1,1492 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Supplied metric text fitting integration; supersedes the eight deferred document-integration rows of font-metrics-case-map.json. Historical metric and security mappings retained.",
+  "counts": {
+    "security-mapped": 50,
+    "original-metric-behavior-passed": 11,
+    "architecture-mapped": 4,
+    "original-document-behavior-passed": 8
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-23908108c329",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2451",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 39,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_can_find_a_system_font_file[find_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_can_find_a_system_font_file[find_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-7fc8bca432c8",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2452",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 39,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_can_find_a_system_font_file[find_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_can_find_a_system_font_file[find_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-680db0873db7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2453",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 39,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_can_find_a_system_font_file[find_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_can_find_a_system_font_file[find_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-d45e96bc247a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2454",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 44,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_catalogs_the_system_fonts_to_help_find",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_catalogs_the_system_fonts_to_help_find"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "OS-specific font folders, environment lookup, directory iteration and discovery are forbidden. Only explicitly admitted matching handles resolve; missing identity fails unsupported-edit."
+    },
+    {
+      "id": "presentation-unit-455d8195f911",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2455",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 50,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_generates_font_dirs_to_help_find[font_dirs_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_generates_font_dirs_to_help_find[font_dirs_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "OS-specific font folders, environment lookup, directory iteration and discovery are forbidden. Only explicitly admitted matching handles resolve; missing identity fails unsupported-edit."
+    },
+    {
+      "id": "presentation-unit-8f4cb57dd19c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2456",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 50,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_generates_font_dirs_to_help_find[font_dirs_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_generates_font_dirs_to_help_find[font_dirs_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "OS-specific font folders, environment lookup, directory iteration and discovery are forbidden. Only explicitly admitted matching handles resolve; missing identity fails unsupported-edit."
+    },
+    {
+      "id": "presentation-unit-e1fa6cd48260",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2457",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 55,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_knows_os_x_font_dirs_to_help_find",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_knows_os_x_font_dirs_to_help_find"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "OS-specific font folders, environment lookup, directory iteration and discovery are forbidden. Only explicitly admitted matching handles resolve; missing identity fails unsupported-edit."
+    },
+    {
+      "id": "presentation-unit-3f8174894847",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2458",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 60,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_knows_windows_font_dirs_to_help_find",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_knows_windows_font_dirs_to_help_find"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "OS-specific font folders, environment lookup, directory iteration and discovery are forbidden. Only explicitly admitted matching handles resolve; missing identity fails unsupported-edit."
+    },
+    {
+      "id": "presentation-unit-ace56c5c7f26",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2459",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 65,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::DescribeFontFiles::it_iterates_over_fonts_in_dir_to_help_find",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::DescribeFontFiles::it_iterates_over_fonts_in_dir_to_help_find"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "OS-specific font folders, environment lookup, directory iteration and discovery are forbidden. Only explicitly admitted matching handles resolve; missing identity fails unsupported-edit."
+    },
+    {
+      "id": "presentation-unit-6d19f68ca91b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2460",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 178,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_can_construct_from_a_font_file_path",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_can_construct_from_a_font_file_path"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-f7173b86afe6",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2461",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 185,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_its_family_name",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_its_family_name"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-f34a1906fdc3",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2462",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 190,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_whether_it_is_bold[bold_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_whether_it_is_bold[bold_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-80dfe3686b49",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2463",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 190,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_whether_it_is_bold[bold_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_whether_it_is_bold[bold_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-c9a002e56b9c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2464",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 190,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_whether_it_is_bold[bold_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_whether_it_is_bold[bold_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-650a83e9ff16",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2465",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 194,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_whether_it_is_italic[italic_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_whether_it_is_italic[italic_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-3e0ea093376c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2466",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 194,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_whether_it_is_italic[italic_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_whether_it_is_italic[italic_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-29a2e68030fe",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2467",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 194,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_whether_it_is_italic[italic_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_whether_it_is_italic[italic_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-d56c4986fafe",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2468",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 198,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_provides_access_to_its_tables",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_provides_access_to_its_tables"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-d67896142925",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2469",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 204,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_generates_table_records_to_help_read_tables",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_generates_table_records_to_help_read_tables"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-57d415a0b350",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2470",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 209,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_knows_the_table_count_to_help_read",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_knows_the_table_count_to_help_read"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-e3f14e19b80e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2471",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 213,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Font::it_reads_the_header_to_help_read_font",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Font::it_reads_the_header_to_help_read_font"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-7ede75dfac8f",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2472",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 338,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Stream::it_can_construct_from_a_path",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Stream::it_can_construct_from_a_path"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-19b8e068180b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2473",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 349,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Stream::it_can_be_closed",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Stream::it_can_be_closed"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-b6b3ef706d0e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2474",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 354,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Stream::it_can_read_fields_from_a_template",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Stream::it_can_read_fields_from_a_template"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-9a911a77941e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2475",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 361,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_Stream::it_can_read_bytes",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_Stream::it_can_read_bytes"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-482222a86de9",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2476",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 401,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_TableFactory::it_constructs_the_appropriate_table_object[name]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_TableFactory::it_constructs_the_appropriate_table_object[name]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-9a3f9752e827",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2477",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 401,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_TableFactory::it_constructs_the_appropriate_table_object[head]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_TableFactory::it_constructs_the_appropriate_table_object[head]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-7986897e5e2c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2478",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 401,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_TableFactory::it_constructs_the_appropriate_table_object[foob]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_TableFactory::it_constructs_the_appropriate_table_object[foob]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-5b0debdf4d62",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2479",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 431,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_bold[bold_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_bold[bold_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-49000b5d3aac",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2480",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 431,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_bold[bold_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_bold[bold_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-9e6ef3e8bdeb",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2481",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 435,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_italic[italic_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_italic[italic_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-100550a08f7e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2482",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 435,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_italic[italic_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_HeadTable::it_knows_whether_the_font_is_italic[italic_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "resolves explicit style %s %s without synthesis",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Each family/style variant maps to explicit exact identity and caller-supplied advances; no host directories, bitfield interpretation or style synthesis."
+    },
+    {
+      "id": "presentation-unit-8a2c0c3d4e71",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2483",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 439,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_HeadTable::it_reads_its_macStyle_field_to_help",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_HeadTable::it_reads_its_macStyle_field_to_help"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Font files, binary tables and stream/path mechanics are replaced by supplied bounded scalar tables. This is not a font-file parser parity claim; no host file is opened."
+    },
+    {
+      "id": "presentation-unit-cee71b3391a2",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2484",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 478,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-ef5f22404734",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2485",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 478,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-3a51ab5b8750",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2486",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 478,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-99a92eabb65a",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2487",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 478,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture3]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_knows_the_font_family_name[family_fixture3]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-f865934195c8",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2488",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 483,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_provides_access_to_its_names_to_help_props",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_provides_access_to_its_names_to_help_props"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-58d9eafdf769",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2489",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 497,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_iterates_over_its_names_to_help_read_names",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_iterates_over_its_names_to_help_read_names"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-0c63dd9f2af5",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2490",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 517,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_reads_the_table_header_to_help_read_names",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_reads_the_table_header_to_help_read_names"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-33aaf4aadec4",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2491",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 522,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_buffers_the_table_bytes_to_help_read_names",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_buffers_the_table_bytes_to_help_read_names"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-7ed97cff5a31",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2492",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 528,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_reads_a_name_to_help_read_names",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_reads_a_name_to_help_read_names"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-5a1e7444cdaa",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2493",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 562,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_reads_a_name_header_to_help_read_names",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_reads_a_name_header_to_help_read_names"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-aaf13bad50cf",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2494",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 567,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_reads_name_text_to_help_read_names",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_reads_name_text_to_help_read_names"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-87ae2b3a50d5",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2495",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 582,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_reads_name_bytes_to_help_read_names",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_reads_name_bytes_to_help_read_names"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-c8f0108df5c1",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2496",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 588,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-c48a14190b3b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2497",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 588,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-1cc77e6df30c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2498",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 588,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-7c60d763fdeb",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2499",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 588,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture3]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture3]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-b2c190977e6f",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2500",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_fonts.py",
+        "line": 588,
+        "file_sha256": "27e64e03de41dec89c10e746a563b52103005df61f3feba52d4ece629a159148",
+        "identity": "tests/text/test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture4]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_fonts.py::Describe_NameTable::it_decodes_a_raw_name_to_help_read_names[decode_fixture4]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "security-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "admits an original metric document from memory with independent ownership",
+        "requires exact font identity and a genuinely admitted handle"
+      ],
+      "rationale": "Unicode JS family strings are admitted as exact metadata. UTF-16/binary name-table offsets and platform encoding lookup are intentionally replaced, not claimed identical."
+    },
+    {
+      "id": "presentation-unit-fc2458c37547",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2501",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 26,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_can_determine_the_best_fit_font_size",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_can_determine_the_best_fit_font_size"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "finds the largest size, maximum endpoint and no-fit result"
+      ],
+      "rationale": "Largest integer size 36 with cap 42, all-fit endpoint and null no-fit are verified with independent advances. Mock call identities and arbitrary generic predicates do not become metric APIs."
+    },
+    {
+      "id": "presentation-unit-f6b3eb33cf59",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2502",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 43,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_finds_best_fit_font_size_to_help_best_fit",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_finds_best_fit_font_size_to_help_best_fit"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "finds the largest size, maximum endpoint and no-fit result"
+      ],
+      "rationale": "Largest integer size 36 with cap 42, all-fit endpoint and null no-fit are verified with independent advances. Mock call identities and arbitrary generic predicates do not become metric APIs."
+    },
+    {
+      "id": "presentation-unit-c24bc850bc3c",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2503",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 53,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_provides_a_fits_inside_predicate_fn[extents0-6-text_lines0-False]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_provides_a_fits_inside_predicate_fn[extents0-6-text_lines0-False]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "fits both lines within height %s"
+      ],
+      "rationale": "Original scalar metrics yield two 50-point lines at size 6 and width 66. Heights 99/100/101 preserve false/true/true boundary decisions; largest fitting sizes are 5/6/6."
+    },
+    {
+      "id": "presentation-unit-e96f264f34d2",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2504",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 53,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_provides_a_fits_inside_predicate_fn[extents1-6-text_lines1-True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_provides_a_fits_inside_predicate_fn[extents1-6-text_lines1-True]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "fits both lines within height %s"
+      ],
+      "rationale": "Original scalar metrics yield two 50-point lines at size 6 and width 66. Heights 99/100/101 preserve false/true/true boundary decisions; largest fitting sizes are 5/6/6."
+    },
+    {
+      "id": "presentation-unit-eaf4d06a51a7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2505",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 53,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_provides_a_fits_inside_predicate_fn[extents2-6-text_lines2-True]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_provides_a_fits_inside_predicate_fn[extents2-6-text_lines2-True]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "fits both lines within height %s"
+      ],
+      "rationale": "Original scalar metrics yield two 50-point lines at size 6 and width 66. Heights 99/100/101 preserve false/true/true boundary decisions; largest fitting sizes are 5/6/6."
+    },
+    {
+      "id": "presentation-unit-f5066741d10b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2506",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 82,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_provides_a_fits_in_width_predicate_fn[fits_cx_pred_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_provides_a_fits_in_width_predicate_fn[fits_cx_pred_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "compares width inclusively at %s"
+      ],
+      "rationale": "Original B advances yield widths 49/50/51 versus available width 50, preserving true/true/false fit decisions."
+    },
+    {
+      "id": "presentation-unit-6f39e62f5e46",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2507",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 82,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_provides_a_fits_in_width_predicate_fn[fits_cx_pred_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_provides_a_fits_in_width_predicate_fn[fits_cx_pred_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "compares width inclusively at %s"
+      ],
+      "rationale": "Original B advances yield widths 49/50/51 versus available width 50, preserving true/true/false fit decisions."
+    },
+    {
+      "id": "presentation-unit-b76b98c878fc",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2508",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 82,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_provides_a_fits_in_width_predicate_fn[fits_cx_pred_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_provides_a_fits_in_width_predicate_fn[fits_cx_pred_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "compares width inclusively at %s"
+      ],
+      "rationale": "Original B advances yield widths 49/50/51 versus available width 50, preserving true/true/false fit decisions."
+    },
+    {
+      "id": "presentation-unit-a530d0d40d9f",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2509",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 92,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_wraps_lines_to_help_best_fit",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_wraps_lines_to_help_best_fit"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "collapses whitespace and greedily selects whole word prefixes"
+      ],
+      "rationale": "Original A/C/B words verify maximal prefix, whole-word remainder and repeated wrapping. No wrapper/mocked-call identity is reproduced."
+    },
+    {
+      "id": "presentation-unit-f4dcea2ed416",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2510",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 109,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::DescribeTextFitter::it_breaks_off_a_line_to_help_wrap",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::DescribeTextFitter::it_breaks_off_a_line_to_help_wrap"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "collapses whitespace and greedily selects whole word prefixes"
+      ],
+      "rationale": "Original A/C/B words verify maximal prefix, whole-word remainder and repeated wrapping. No wrapper/mocked-call identity is reproduced."
+    },
+    {
+      "id": "presentation-unit-b72031e5a6f7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2511",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 172,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::Describe_BinarySearchTree::it_can_construct_from_an_ordered_sequence",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::Describe_BinarySearchTree::it_can_construct_from_an_ordered_sequence"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "architecture-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "finds the largest size, maximum endpoint and no-fit result"
+      ],
+      "rationale": "Private tree structure and arbitrary predicate/mock identities are not exposed. Original tests establish largest valid integer size, all-fit endpoint and no-fit outcomes for the bounded monotone scalar profile; no generic predicate or tree API parity is claimed."
+    },
+    {
+      "id": "presentation-unit-1b773af6c131",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2512",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 193,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::Describe_BinarySearchTree::it_can_find_the_max_value_satisfying_a_predicate[max_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::Describe_BinarySearchTree::it_can_find_the_max_value_satisfying_a_predicate[max_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "architecture-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "finds the largest size, maximum endpoint and no-fit result"
+      ],
+      "rationale": "Private tree structure and arbitrary predicate/mock identities are not exposed. Original tests establish largest valid integer size, all-fit endpoint and no-fit outcomes for the bounded monotone scalar profile; no generic predicate or tree API parity is claimed."
+    },
+    {
+      "id": "presentation-unit-9bf574dbd2dd",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2513",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 193,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::Describe_BinarySearchTree::it_can_find_the_max_value_satisfying_a_predicate[max_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::Describe_BinarySearchTree::it_can_find_the_max_value_satisfying_a_predicate[max_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "architecture-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "finds the largest size, maximum endpoint and no-fit result"
+      ],
+      "rationale": "Private tree structure and arbitrary predicate/mock identities are not exposed. Original tests establish largest valid integer size, all-fit endpoint and no-fit outcomes for the bounded monotone scalar profile; no generic predicate or tree API parity is claimed."
+    },
+    {
+      "id": "presentation-unit-da6eba91d6ec",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2514",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 193,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::Describe_BinarySearchTree::it_can_find_the_max_value_satisfying_a_predicate[max_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::Describe_BinarySearchTree::it_can_find_the_max_value_satisfying_a_predicate[max_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "architecture-mapped",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "finds the largest size, maximum endpoint and no-fit result"
+      ],
+      "rationale": "Private tree structure and arbitrary predicate/mock identities are not exposed. Original tests establish largest valid integer size, all-fit endpoint and no-fit outcomes for the bounded monotone scalar profile; no generic predicate or tree API parity is claimed."
+    },
+    {
+      "id": "presentation-unit-1b1fe4a27ef7",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2515",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_layout.py",
+        "line": 215,
+        "file_sha256": "2e96ffe651dc89fa7bd768d11fa6730a2375b4583a8943853c291c124025a35f",
+        "identity": "tests/text/test_layout.py::Describe_LineSource::it_generates_text_remainder_pairs",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_layout.py::Describe_LineSource::it_generates_text_remainder_pairs"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-metric-behavior-passed",
+      "testFile": "packages/pptx/src/font-metrics.test.ts",
+      "testNames": [
+        "collapses whitespace and greedily selects whole word prefixes"
+      ],
+      "rationale": "Original A/C/B words verify maximal prefix, whole-word remainder and repeated wrapping. No wrapper/mocked-call identity is reproduced."
+    },
+    {
+      "id": "presentation-unit-6d596723758b",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2572",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 177,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_can_resize_its_text_to_best_fit",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_can_resize_its_text_to_best_fit"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/text-fitting.test.ts",
+      "testNames": [
+        "fits to independent extents and sets every run and paragraph end while retaining other formatting"
+      ],
+      "rationale": "Original supplied advances produce an independently computed 20pt layout including the final explicit break. Verifies text retention, run/field/break/end-paragraph fonts, wrap=true and autofit=NONE; source font-dependent 10/11pt expectation is replaced with deterministic original geometry, not copied."
+    },
+    {
+      "id": "presentation-unit-853097d27cf4",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2573",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 200,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_calculates_its_best_fit_font_size_to_help_fit_text",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_calculates_its_best_fit_font_size_to_help_fit_text"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/text-fitting.test.ts",
+      "testNames": [
+        "rejects absent fonts, missing metrics and impossible minimum size without mutation"
+      ],
+      "rationale": "Security mapping: admitted exact-family/style metrics replace host file discovery. Missing metrics/font/glyphs fail explicitly; no host paths, platform file search or ambient fallback."
+    },
+    {
+      "id": "presentation-unit-f65dfe8f6533",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2574",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 211,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_calculates_its_effective_size_to_help_fit_text",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_calculates_its_effective_size_to_help_fit_text"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/command-text-fit.test.ts",
+      "testNames": [
+        "fits through the public SDK and command with equal bytes and independent expected size"
+      ],
+      "rationale": "Original 38.4pt by 47.2pt shape minus 7.2pt horizontal and 3.6pt vertical insets yields 24pt by 40pt. Independent AA AA metrics yield two lines at 20pt; 21pt exceeds height."
+    },
+    {
+      "id": "presentation-unit-8fecd7967403",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2575",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 219,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_applies_fit_to_help_fit_text",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_applies_fit_to_help_fit_text"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/text-fitting.test.ts",
+      "testNames": [
+        "fits to independent extents and sets every run and paragraph end while retaining other formatting"
+      ],
+      "rationale": "Original supplied advances produce an independently computed 20pt layout including the final explicit break. Verifies text retention, run/field/break/end-paragraph fonts, wrap=true and autofit=NONE; source font-dependent 10/11pt expectation is replaced with deterministic original geometry, not copied."
+    },
+    {
+      "id": "presentation-unit-71796be70df5",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2576",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 230,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture0]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture0]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/text-fitting.test.ts",
+      "testNames": [
+        "formats %s and its paragraph end with supplied bold metrics even without body properties"
+      ],
+      "rationale": "Three original r/br/fld variants retain bold=true and italic=false, 6pt font, paragraph-end formatting and absent-body-property admission. No source XML, assets or wrapper mocks were copied."
+    },
+    {
+      "id": "presentation-unit-491707911aff",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2577",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 230,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture1]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture1]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/text-fitting.test.ts",
+      "testNames": [
+        "formats %s and its paragraph end with supplied bold metrics even without body properties"
+      ],
+      "rationale": "Three original r/br/fld variants retain bold=true and italic=false, 6pt font, paragraph-end formatting and absent-body-property admission. No source XML, assets or wrapper mocks were copied."
+    },
+    {
+      "id": "presentation-unit-49b6b5cb119e",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/unit_cases/2578",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "tests/text/test_text.py",
+        "line": 230,
+        "file_sha256": "33ee544506d5ef056b7588c02982e58943325353a8f0be723cda4e550a2927ea",
+        "identity": "tests/text/test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture2]",
+        "behavior": "test-behavior-evidence.json#/unit_cases/tests~1text~1test_text.py::DescribeTextFrame::it_sets_its_font_to_help_fit_text[set_font_fixture2]"
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/text-fitting.test.ts",
+      "testNames": [
+        "formats %s and its paragraph end with supplied bold metrics even without body properties"
+      ],
+      "rationale": "Three original r/br/fld variants retain bold=true and italic=false, 6pt font, paragraph-end formatting and absent-body-property admission. No source XML, assets or wrapper mocks were copied."
+    },
+    {
+      "id": "presentation-bdd-5623aa6d9379",
+      "source": {
+        "inventory": "upstream-test-inventory.json#/bdd_cases/858",
+        "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+        "file": "features/txt-fit-text.feature",
+        "line": 6,
+        "file_sha256": "72edc9db0bac1e68b35f60acc8a40b877c8efc6ce9db69435cbeaf6cdc4ac21c",
+        "identity": "Set text size to best-fit point size",
+        "scenario_line": 6,
+        "example_line": null,
+        "example": null,
+        "expanded_steps": [
+          {
+            "line": 7,
+            "text": "Given a text frame with more text than will fit"
+          },
+          {
+            "line": 8,
+            "text": "When I call TextFrame.fit_text()"
+          },
+          {
+            "line": 9,
+            "text": "Then text_frame.auto_size is MSO_AUTO_SIZE.NONE"
+          },
+          {
+            "line": 10,
+            "text": "And text_frame.word_wrap is True"
+          },
+          {
+            "line": 11,
+            "text": "And the size of the text is 10pt or 11pt"
+          }
+        ]
+      },
+      "priorLedger": "text-frame-case-map.json",
+      "status": "original-document-behavior-passed",
+      "testFile": "packages/pptx/src/text-fitting.test.ts",
+      "testNames": [
+        "fits to independent extents and sets every run and paragraph end while retaining other formatting"
+      ],
+      "rationale": "Original supplied advances produce an independently computed 20pt layout including the final explicit break. Verifies text retention, run/field/break/end-paragraph fonts, wrap=true and autofit=NONE; source font-dependent 10/11pt expectation is replaced with deterministic original geometry, not copied."
+    }
+  ],
+  "api": [
+    {
+      "sourceId": "pptx.text.text.TextFrame.fit_text",
+      "sourceSignature": "(self, font_family: str='Calibri', max_size: int=18, bold: bool=False, italic: bool=False, font_file: str | None=None)",
+      "status": "implemented-bounded-profile",
+      "targetMember": "fit_text",
+      "mappingRules": [
+        "J01",
+        "J07"
+      ],
+      "mapping": "Retains positional font_family=Calibri, max_size=18, bold=false, italic=false, font_file?:FontMetricsHandle|null and void return. Optional sixth ModelTextFitOptions supplies minSize, margins, wrap and lineSpacing. Detached TextFrame constructor accepts explicit point extents; package fitting derives local shape extents. No host font discovery; whole owner-graph API remains pending. CLI text.fit admits metric JSON and calls fitTextFrames; SDK admission is admitFontMetrics(data).",
+      "targetSignature": "fit_text(font_family?: string, max_size?: number, bold?: boolean, italic?: boolean, font_file?: FontMetricsHandle | null, options?: ModelTextFitOptions): void",
+      "tests": [
+        "packages/pptx/src/text-fitting.test.ts",
+        "packages/pptx/src/command-text-fit.test.ts"
+      ]
+    }
+  ]
+}

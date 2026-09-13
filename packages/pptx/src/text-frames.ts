@@ -1,3 +1,5 @@
+import type { FontMetricsHandle } from "./font-metrics.js";
+import { fitFrameXml, type ModelTextFitOptions } from "./text-fitting.js";
 import { SaxesParser } from "saxes";
 import { Length, Pt } from "./length.js";
 import type { BinaryInput, Location } from "./contracts.js";
@@ -411,9 +413,27 @@ export async function mutateTextFrames(
 }
 export class TextFrame {
   #xml: XmlPart;
-  constructor(xml: XmlPart) {
+  #extents: { readonly width: number; readonly height: number } | undefined;
+  constructor(xml: XmlPart, extents?: { readonly width: number; readonly height: number }) {
     readFrameFormatting(xml.root);
     this.#xml = xml;
+    this.#extents = extents === undefined ? undefined : { ...extents };
+  }
+  fit_text(
+    font_family = "Calibri",
+    max_size = 18,
+    bold = false,
+    italic = false,
+    font_file?: FontMetricsHandle | null,
+    options: ModelTextFitOptions = {}
+  ): void {
+    const result = fitFrameXml(
+      this.#xml,
+      { ...options, fontFamily: font_family, maxSize: max_size, bold, italic, metrics: font_file! },
+      this.#extents?.width ?? NaN,
+      this.#extents?.height ?? NaN
+    );
+    this.#xml = result.xml;
   }
   get xml(): XmlPart {
     return this.#xml;

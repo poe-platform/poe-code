@@ -164,3 +164,61 @@ it("charges only the normalized interword replacement spaces", () => {
     measureText(metrics, " A  A\tA ", { ...options, width: 100, missingGlyph: "?" }).replacements
   ).toBe(2);
 });
+
+it("honors minimum size, explicit wrapping and line spacing", () => {
+  const metrics = admitFontMetrics(data());
+  const fit = { ...font, width: 24, height: 40, maxSize: 40, minSize: 5 };
+  // The twenty-unit token limits width: at 12pt it uses exactly 24pt.
+  expect(bestFitText(metrics, "AA BB", fit)).toBe(12);
+  expect(bestFitText(metrics, "AA AA", { ...fit, wrap: false })).toBe(10);
+  expect(bestFitText(metrics, "AA AA", { ...fit, lineSpacing: 2 })).toBe(10);
+  expect(bestFitText(metrics, "BB", { ...fit, width: 9 })).toBeNull();
+  expect(() => bestFitText(metrics, "A", { ...fit, minSize: 41 })).toThrow();
+  expect(() => bestFitText(metrics, "A", { ...fit, lineSpacing: 0 })).toThrow();
+});
+it("retains explicit breaks and blank lines when requested", () => {
+  expect(
+    measureText(admitFontMetrics(data()), "A\n\nB\v", {
+      ...options,
+      width: 100,
+      preserveBreaks: true,
+      lineSpacing: 1.5
+    })
+  ).toEqual({
+    lines: [
+      { text: "A", width: 5 },
+      { text: "", width: 0 },
+      { text: "B", width: 10 },
+      { text: "", width: 0 }
+    ],
+    height: 60,
+    overflow: false,
+    replacements: 0
+  });
+});
+it("measures retained spaces independently and never requires spaces at hard breaks", () => {
+  const metrics = admitFontMetrics(data());
+  expect(
+    measureText(metrics, " A  B ", { ...options, width: 100, preserveSpaces: true })
+  ).toMatchObject({ lines: [{ text: " A  B ", width: 23 }] });
+  expect(
+    measureText(metrics, " A  B ", { ...options, width: 15, preserveSpaces: true })
+  ).toMatchObject({
+    lines: [
+      { text: " A", width: 7 },
+      { text: "B ", width: 12 }
+    ]
+  });
+  expect(
+    measureText(admitFontMetrics({ ...data(), advances: { A: 5 } }), "A\nA", {
+      ...options,
+      preserveBreaks: true
+    }).lines
+  ).toHaveLength(2);
+});
+it("keeps nonbreaking spaces inside a token in the preserved spacing profile", () => {
+  const metrics = admitFontMetrics({ ...data(), advances: { A: 5, B: 10, "\u00a0": 2 } });
+  expect(
+    measureText(metrics, "A\u00a0B", { ...options, width: 12, preserveSpaces: true })
+  ).toMatchObject({ lines: [{ text: "A\u00a0B", width: 17 }], overflow: true });
+});

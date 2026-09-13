@@ -2413,3 +2413,76 @@ export const textFramesSetSchema = {
     }
   }
 };
+
+export const textFitSchema = {
+  description:
+    "Fit horizontal single-column shape text using explicitly supplied scalar font metrics. Largest integer point size within inclusive bounds; no host fonts. Margins use points in SDK and explicit units in CLI. Wrap defaults true; lineSpacing is a positive line-height multiplier. Existing paragraph spacing is replaced. Bullets, indentation and advanced shaping are unsupported.",
+  input: inspectSchema.input,
+  options: {
+    ...textFramesSetSchema.options,
+    required: ["metrics"],
+    properties: {
+      ...textGetSchema.options.properties,
+      metrics: {
+        type: "object",
+        additionalProperties: false,
+        required: ["family", "bold", "italic", "unitsPerEm", "lineHeight", "advances"],
+        properties: {
+          family: { type: "string", minLength: 1, maxLength: 256 },
+          bold: { type: "boolean" },
+          italic: { type: "boolean" },
+          unitsPerEm: { type: "integer", minimum: 1, maximum: 1000000 },
+          lineHeight: { type: "integer", minimum: 1, maximum: 1000000 },
+          advances: {
+            type: "object",
+            minProperties: 1,
+            maxProperties: 65536,
+            additionalProperties: { type: "integer", minimum: 0, maximum: 1000000 }
+          }
+        }
+      },
+      fontFamily: { type: "string", minLength: 1, maxLength: 256, default: "Calibri" },
+      minSize: { type: "integer", minimum: 1, maximum: 4000, default: 1 },
+      maxSize: { type: "integer", minimum: 1, maximum: 4000, default: 18 },
+      bold: { type: "boolean", default: false },
+      italic: { type: "boolean", default: false },
+      wrap: { type: "boolean", default: true },
+      lineSpacing: { type: "number", minimum: 0.01, maximum: 100, default: 1 },
+      ...Object.fromEntries(
+        ["marginLeft", "marginRight", "marginTop", "marginBottom"].map((key) => [
+          key,
+          { type: "number", minimum: 0, maximum: 2147483647 / 12700 }
+        ])
+      ),
+      all: { type: "boolean" },
+      allowEmpty: { type: "boolean" },
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean" },
+      force: { type: "boolean" },
+      dryRun: { type: "boolean" }
+    },
+    allOf: textFramesSetSchema.options.allOf.slice(0, -1)
+  },
+  result: {
+    ...textFramesSetSchema.result,
+    properties: {
+      ...textFramesSetSchema.result.properties,
+      operation: { const: "text.fit" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            type: "object",
+            additionalProperties: false,
+            required: ["frames", "sizes", "dryRun"],
+            properties: {
+              frames: { type: "integer", minimum: 0 },
+              sizes: { type: "array", items: { type: "integer", minimum: 1, maximum: 4000 } },
+              dryRun: { type: "boolean" }
+            }
+          }
+        ]
+      }
+    }
+  }
+};

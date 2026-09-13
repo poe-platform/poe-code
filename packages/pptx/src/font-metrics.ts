@@ -15,12 +15,19 @@ export interface MetricLimits {
   readonly maxTextLength: number;
   readonly maxWork: number;
 }
-export interface MeasureTextOptions extends FontIdentity {
+interface LayoutOptions {
+  readonly wrap?: boolean;
+  readonly lineSpacing?: number;
+  readonly preserveBreaks?: boolean;
+  readonly preserveSpaces?: boolean;
+}
+export interface MeasureTextOptions extends FontIdentity, LayoutOptions {
   readonly fontSize: number;
   readonly width: number;
   readonly missingGlyph?: string;
 }
-export interface FitTextOptions extends FontIdentity {
+export interface FitTextOptions extends FontIdentity, LayoutOptions {
+  readonly minSize?: number;
   readonly maxSize: number;
   readonly width: number;
   readonly height: number;
@@ -157,7 +164,13 @@ export function admitFontMetrics(
 
 interface PreparedText {
   table: MetricTable;
-  words: { text: string; advance: number }[];
+  words: {
+    text: string;
+    advance: number;
+    hardBreak?: boolean;
+    separator?: string;
+    separatorAdvance?: number;
+  }[];
   space: number;
   replacements: number;
   spend(): void;
@@ -165,7 +178,7 @@ interface PreparedText {
 function prepare(
   handle: FontMetricsHandle,
   text: string,
-  options: FontIdentity & { missingGlyph?: string },
+  options: FontIdentity & LayoutOptions & { missingGlyph?: string },
   budget: MetricLimits
 ): PreparedText {
   const table = tables.get(handle);
@@ -200,28 +213,59 @@ function prepare(
   const words: PreparedText["words"] = [];
   let chars: string[] = [];
   let width = 0;
+  let separators: string[] = [];
+  let separatorAdvance = 0;
+  const flush = () => {
+    if (chars.length)
+      words.push({
+        text: chars.join(""),
+        advance: width,
+        ...(options.preserveSpaces ? { separator: separators.join(""), separatorAdvance } : {})
+      });
+    chars = [];
+    width = 0;
+    separators = [];
+    separatorAdvance = 0;
+  };
   for (const glyph of text) {
     spend();
     if (!scalar(glyph)) invalid();
-    if (whitespace(glyph)) {
-      if (chars.length) words.push({ text: chars.join(""), advance: width });
-      chars = [];
-      width = 0;
+    if (options.preserveBreaks && ["\n", "\v"].includes(glyph)) {
+      if (!chars.length && separators.length) chars = separators.splice(0);
+      flush();
+      words.push({ text: "", advance: 0, hardBreak: true });
+    } else if (options.preserveSpaces ? glyph === " " : whitespace(glyph)) {
+      if (chars.length) flush();
+      if (options.preserveSpaces) {
+        separators.push(glyph);
+        separatorAdvance += advance(glyph);
+      }
     } else {
       width += advance(glyph);
       chars.push(glyph);
     }
   }
-  if (chars.length) words.push({ text: chars.join(""), advance: width });
+  if (chars.length) flush();
+  else if (separators.length) {
+    words.push({ text: "", advance: 0, separator: separators.join(""), separatorAdvance });
+  }
   let space = 0;
-  if (words.length > 1) {
+  const separatorCount = words.filter(
+    (w, i) => i > 0 && !w.hardBreak && !words[i - 1]!.hardBreak
+  ).length;
+  if (!options.preserveSpaces && separatorCount > 0) {
     const before = replacements;
     space = advance(" ");
-    if (replacements !== before) replacements = before + words.length - 1;
+    if (replacements !== before) replacements = before + separatorCount;
   }
   return { table, words, space, replacements, spend };
 }
-function layout(prepared: PreparedText, fontSize: number, width: number): TextMeasurement {
+function layout(
+  prepared: PreparedText,
+  fontSize: number,
+  width: number,
+  options: LayoutOptions
+): TextMeasurement {
   const { table, words, space, spend } = prepared;
   const lines: { text: string; width: number }[] = [];
   let current: string[] = [];
@@ -230,20 +274,36 @@ function layout(prepared: PreparedText, fontSize: number, width: number): TextMe
   const points = (value: number) => (value * fontSize) / table.unitsPerEm;
   for (const word of words) {
     spend();
-    if (current.length && points(units + space + word.advance) > width) {
-      lines.push({ text: current.join(" "), width: points(units) });
+    if (word.hardBreak) {
+      lines.push({ text: current.join(""), width: points(units) });
       current = [];
       units = 0;
+      continue;
     }
-    if (current.length) units += space;
+    let separator = word.separator ?? (current.length ? " " : "");
+    let separatorWidth = word.separatorAdvance ?? (current.length ? space : 0);
+    if (
+      word.text.length > 0 &&
+      options.wrap !== false &&
+      current.length &&
+      points(units + separatorWidth + word.advance) > width
+    ) {
+      lines.push({ text: current.join(""), width: points(units) });
+      current = [];
+      units = 0;
+      separator = "";
+      separatorWidth = 0;
+    }
+    units += separatorWidth;
     units += word.advance;
-    current.push(word.text);
+    current.push(separator + word.text);
     if (points(units) > width) overflow = true;
   }
-  if (current.length) lines.push({ text: current.join(" "), width: points(units) });
+  if (current.length || words.at(-1)?.hardBreak)
+    lines.push({ text: current.join(""), width: points(units) });
   return {
     lines,
-    height: points(table.lineHeight) * lines.length,
+    height: points(table.lineHeight) * lines.length * (options.lineSpacing ?? 1),
     overflow,
     replacements: prepared.replacements
   };
@@ -255,10 +315,27 @@ export function measureText(
   options: MeasureTextOptions,
   budget: Partial<MetricLimits> = {}
 ): TextMeasurement {
-  fields(options, ["family", "bold", "italic", "fontSize", "width", "missingGlyph"]);
+  fields(options, [
+    "family",
+    "bold",
+    "italic",
+    "fontSize",
+    "width",
+    "missingGlyph",
+    "wrap",
+    "lineSpacing",
+    "preserveBreaks",
+    "preserveSpaces"
+  ]);
+  validateLayout(options);
   bounded(options.fontSize, 1, 4096, true);
   bounded(options.width, 0, 1000000000);
-  return layout(prepare(handle, text, options, limits(budget)), options.fontSize, options.width);
+  return layout(
+    prepare(handle, text, options, limits(budget)),
+    options.fontSize,
+    options.width,
+    options
+  );
 }
 
 export function bestFitText(
@@ -267,22 +344,43 @@ export function bestFitText(
   options: FitTextOptions,
   budget: Partial<MetricLimits> = {}
 ): number | null {
-  fields(options, ["family", "bold", "italic", "maxSize", "width", "height", "missingGlyph"]);
+  fields(options, [
+    "family",
+    "bold",
+    "italic",
+    "maxSize",
+    "width",
+    "height",
+    "missingGlyph",
+    "minSize",
+    "wrap",
+    "lineSpacing",
+    "preserveBreaks",
+    "preserveSpaces"
+  ]);
+  validateLayout(options);
   bounded(options.maxSize, 1, 4096, true);
   bounded(options.width, 0, 1000000000);
   bounded(options.height, 0, 1000000000);
   const prepared = prepare(handle, text, options, limits(budget));
-  let lower = 1;
+  bounded(options.minSize ?? 1, 1, options.maxSize, true);
+  let lower = options.minSize ?? 1;
   let upper = options.maxSize;
   let best: number | null = null;
   while (lower <= upper) {
     prepared.spend();
     const size = Math.floor((lower + upper) / 2);
-    const result = layout(prepared, size, options.width);
+    const result = layout(prepared, size, options.width, options);
     if (!result.overflow && result.height <= options.height) {
       best = size;
       lower = size + 1;
     } else upper = size - 1;
   }
   return best;
+}
+
+function validateLayout(options: LayoutOptions): void {
+  for (const key of ["wrap", "preserveBreaks", "preserveSpaces"] as const)
+    if (options[key] !== undefined && typeof options[key] !== "boolean") invalid();
+  bounded(options.lineSpacing ?? 1, 0.01, 100);
 }

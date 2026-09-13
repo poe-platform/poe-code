@@ -1,8 +1,29 @@
+const styleSourceSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["part", "layer", "path"],
+  properties: { part: { type: "string" }, layer: { type: "string" }, path: { type: "string" } }
+} as const;
+const styleValueSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["value", "token", "status", "source", "references", "reason"],
+  properties: {
+    value: { type: ["string", "number", "boolean", "null"] },
+    token: { type: ["string", "null"] },
+    status: { enum: ["resolved", "unresolved", "absent"] },
+    source: { anyOf: [styleSourceSchema, { type: "null" }] },
+    references: { type: "array", items: styleSourceSchema },
+    reason: { type: ["string", "null"] }
+  }
+} as const;
+
 export const inventorySchema = {
   type: "object",
   additionalProperties: false,
   required: [
     "slides",
+    "textStyles",
     "masters",
     "layouts",
     "themes",
@@ -14,6 +35,31 @@ export const inventorySchema = {
     "counts"
   ],
   properties: {
+    textStyles: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["part", "shapeId", "paragraph", "run", "properties"],
+        properties: {
+          part: { type: "string" },
+          shapeId: { type: "string" },
+          paragraph: { type: "integer", minimum: 0 },
+          run: { type: ["integer", "null"], minimum: 0 },
+          properties: {
+            type: "object",
+            additionalProperties: false,
+            required: ["bold", "italic", "size", "latin", "eastAsia", "complex", "color"],
+            properties: Object.fromEntries(
+              ["bold", "italic", "size", "latin", "eastAsia", "complex", "color"].map((key) => [
+                key,
+                styleValueSchema
+              ])
+            )
+          }
+        }
+      }
+    },
     slides: {
       type: "array",
       items: {

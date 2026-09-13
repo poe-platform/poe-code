@@ -1,3 +1,4 @@
+import { resolveTextStyles, type TextStyleRecord } from "./text-style-resolution.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { parseContentTypes } from "./content-types.js";
 import { OfficeError } from "./errors.js";
@@ -23,6 +24,7 @@ export interface SlideInventory {
   readonly show: { readonly explicit: boolean | null; readonly effective: boolean };
 }
 export interface PresentationInventory {
+  readonly textStyles: readonly TextStyleRecord[];
   readonly slides: readonly SlideInventory[];
   readonly masters: readonly string[];
   readonly layouts: readonly string[];
@@ -127,6 +129,20 @@ export function inspectInventory(
       });
     })
   );
+  const stylePart = (part: string | null) => (part ? { part, root: root(part) } : undefined);
+  const presentation = stylePart(target("/", "officeDocument"));
+  const textStyles = slides.flatMap((slide) =>
+    resolveTextStyles({
+      slide: { part: slide.part, root: root(slide.part) },
+      layout: stylePart(slide.layout),
+      master: stylePart(slide.master),
+      theme: stylePart(slide.theme),
+      themeOverrides: [slide.part, slide.layout, slide.master]
+        .map((part) => stylePart(target(part, "themeOverride")))
+        .filter((part) => part !== undefined),
+      presentation
+    })
+  );
   const contentTypes = reader.has("/[Content_Types].xml")
     ? parseContentTypes(reader.get("/[Content_Types].xml"), {
         maxBytes: context.xmlLimits.maxBytes,
@@ -183,6 +199,7 @@ export function inspectInventory(
   }
   return Object.freeze({
     slides,
+    textStyles: Object.freeze(textStyles),
     masters,
     layouts,
     themes,

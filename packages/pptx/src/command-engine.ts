@@ -1628,7 +1628,7 @@ async function execute(
           inventory: {
             level: "read",
             subset:
-              "ordered slides, owner graph, part hashes, media parts and slide visibility; semantic content remains uninspected"
+              "ordered slides, owner graph, part hashes, media parts, slide visibility and read-only textStyles with explicit/inherited/absent/unresolved values and source provenance; text styles cover bold, italic, point size, theme font variants and untransformed RGB/scheme colors; other semantic content remains uninspected"
           },
           slides: {
             level: "edit",

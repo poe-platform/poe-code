@@ -117,3 +117,5 @@ export {
   type RemoveLayoutOptions,
   type ApplyLayoutOptions
 } from "./layouts.js";
+
+export type { EffectiveStyleValue, StyleSource, TextStyleRecord } from "./text-style-resolution.js";

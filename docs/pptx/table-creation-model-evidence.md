@@ -65,3 +65,8 @@ behavior. Renderer QA remains unrun and no visual fidelity claim is made.
 Maintained checks and paired CLI evidence are recorded in the
 [insertion plan](../plans/pptx-slide-creation-workflows.md) and
 [CLI receipt](../plans/pptx-table-creation-cli.md).
+
+The later [positive-dimension correction](../plans/pptx-table-dimension-boundaries.md)
+resolves the zero-cell admission gap above without rejecting unrelated edits to
+imported zero-size grids. Its explicit stricter language mapping and regressions
+are recorded separately from the insertion checkpoint.

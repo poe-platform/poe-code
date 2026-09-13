@@ -156,13 +156,15 @@ export function validateTableUpdate(update: TableUpdate, creating = false): void
     if (v !== undefined && v !== null) {
       const n = emu(v);
       if (!["left", "top"].includes(k) && n < 0) invalid("Table sizes must be nonnegative.");
+      if (["width", "height", "rowHeight", "columnWidth"].includes(k) && n === 0)
+        invalid("Table dimensions must be positive.");
       if (Object.hasOwn(margins, k) && n > 2147483647) invalid("Cell margin is out of range.");
     }
     if (creating && ["left", "top", "width", "height"].includes(k) && v === undefined)
       invalid("Table creation requires a complete box.");
   }
-  if (creating && (emu(update.width!) <= 0 || emu(update.height!) <= 0))
-    invalid("Table box must be positive.");
+  if (creating && (emu(update.width!) < update.columns! || emu(update.height!) < update.rows!))
+    invalid("Table box must provide positive row and column sizes.");
   if (update.cell !== undefined) {
     dataObject(update.cell, ["row", "column"]);
     if (![update.cell.row, update.cell.column].every((n) => Number.isSafeInteger(n) && n >= 0))
@@ -412,6 +414,11 @@ export function applyTableUpdate(
   validateTableUpdate(update);
   validateTableLocks(document.root, node, update);
   const before = readTable(node, document);
+  if (
+    (update.width !== undefined && emu(update.width) < before.columns) ||
+    (update.height !== undefined && emu(update.height) < before.rows)
+  )
+    invalid("Table box must provide positive row and column sizes.");
   if (
     (update.rows !== undefined && update.rows !== before.rows) ||
     (update.columns !== undefined && update.columns !== before.columns)

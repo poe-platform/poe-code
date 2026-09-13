@@ -22,8 +22,8 @@
     "guide_topics": 15,
     "guide_heading_rows": 83,
     "guide_snippet_rows": 74,
-    "newly_verified_sdk_workflow_rows": 34,
-    "newly_verified_paired_workflow_rows": 7,
+    "newly_verified_sdk_workflow_rows": 35,
+    "newly_verified_paired_workflow_rows": 8,
     "new_sdk_only_workflow_rows": 27,
     "new_operation_cli_rows_live_model_outstanding": 15
   },
@@ -15968,9 +15968,35 @@
         "tables-case-map.json#/rows/172/source",
         "text-drawing-reconciliation.json#/rows/1613"
       ],
-      "review_status": "exact-workflow-sdk-and-cli-evidence-not-reviewed",
-      "execution": null,
-      "renderer_qa": "not-required-for-structural-assertions"
+      "review_status": "original-sdk-model-and-cli-workflow-asserted",
+      "execution": {
+        "sdk": {
+          "command": "npm run test --workspace=pptx",
+          "tests": 6776,
+          "passed": 6776,
+          "files": 256
+        },
+        "cli": {
+          "command": "node --import tsx --test packages/safe-bash/tests/commands/pptx/table-creation-workflow.test.ts",
+          "tests": 2,
+          "passed": 2,
+          "durationMs": 740
+        },
+        "local_commit": "9040152fd"
+      },
+      "renderer_qa": "not-required-for-structural-assertions",
+      "reviewed_sdk_evidence": {
+        "file": "packages/pptx/src/slide-creation-workflows.test.ts",
+        "title": "saves a newly inserted table through its presentation owner",
+        "receipt": "table-creation-model-evidence.md",
+        "equivalence": "Synchronous add_table returns a live GraphicFrame for 2x2 cells at left 1in, top 2in, width 3in, height 1in. Saved package text, grid sizes and reopened table state are independently asserted. Initial slide creation uses the byte API; this does not cover Slides.add_slide."
+      },
+      "reviewed_cli_evidence": {
+        "file": "packages/safe-bash/tests/commands/pptx/table-creation-workflow.test.ts",
+        "title": "live table creation and CLI insertion preserve ${scenario.label}",
+        "receipt": "../plans/pptx-table-creation-cli.md",
+        "equivalence": "Direct tables add uses the same 2x2 and 1/2/3/1in boundaries plus an original 9x7 EMU remainder case; independent XML namespaces, box, grid, cell text and shape IDs are asserted for SDK and CLI saved bytes."
+      }
     },
     {
       "id": "presentation-bdd-3c4ea2630225",
@@ -24792,7 +24818,7 @@
       "file": "packages/pptx/src/table-workflows.test.ts",
       "title": "persists live table edits inside a presentation created through byte operations",
       "status": "passed-original-alternative-workflow",
-      "limitation": "Creation uses createPresentation/addTable byte operations. Slides.add_slide and SlideShapes.add_table are absent, so this does not complete their documented guide workflows."
+      "limitation": "This original assertion used createPresentation/addTable byte operations. SlideShapes.add_table was implemented later in 9040152fd with separate passing evidence; Slides.add_slide remains absent."
     },
     {
       "file": "packages/safe-bash/tests/commands/pptx/workflow-examples.test.ts",
@@ -24804,7 +24830,8 @@
   "local_commits": {
     "sdk_assertions": "58b17ee45",
     "cli_assertions": "67d5ce691",
-    "delivery": "local-only; no push or release"
+    "delivery": "local-only; no push or release",
+    "table_creation": "9040152fd"
   },
-  "evidence_checkpoint": "Initial assertion commits. Later live table creation implementation must supply a separate passing receipt; missing-method statements describe this checkpoint."
+  "evidence_checkpoint": "Original assertions plus verified live table creation in 9040152fd. Historical source statuses remain provenance; unreviewed workflows remain outstanding."
 }

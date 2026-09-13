@@ -150,3 +150,13 @@ Local assertion commits reported separately: SDK `58b17ee45`, safe-bash
 `67d5ce691`. Neither is a push or release. A subsequent live table creation
 implementation is separate work and needs its own passing receipt; the missing
 creation-method finding above describes the assertion checkpoint.
+
+## Subsequent live table creation
+
+Local commit `9040152fd` implements synchronous `SlideShapes.add_table` with
+13 original SDK tests and two paired safe-bash cases. The exact expanded
+creation row at `upstream-test-inventory.json#/bdd_cases/688` now has reviewed
+model/CLI evidence; totals are 35 SDK model rows and eight paired model/CLI rows.
+The 27 SDK-only rows and 15 operation/CLI rows retain their narrower status.
+See the [method receipt](../pptx/table-creation-model-evidence.md).
+`Slides.add_slide`, broader workflow coverage and renderer QA remain outstanding.

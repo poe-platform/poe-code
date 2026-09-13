@@ -140,7 +140,7 @@ export function validateTextRunOptions(options: MutateTextRunsOptions): void {
     for (const c of value) {
       const p = c.codePointAt(0)!;
       if (
-        (p < 32 && ![9, 10, 13].includes(p)) ||
+        (key !== "text" && p < 32 && ![9, 10, 13].includes(p)) ||
         (p >= 0xd800 && p <= 0xdfff) ||
         p === 0xfffe ||
         p === 0xffff
@@ -343,7 +343,13 @@ export async function mutateTextRuns(
             "Expected one run text element.",
             "validate-intent"
           );
-        document = document.setText(texts[0]!, options.text);
+        const text = Array.from(options.text, (character) => {
+          const point = character.codePointAt(0)!;
+          return point < 32 && ![9, 10, 13].includes(point)
+            ? `_x${point.toString(16).toUpperCase().padStart(4, "0")}_`
+            : character;
+        }).join("");
+        document = document.setText(texts[0]!, text);
         node = find();
       }
       if (formatKeys.some((k) => options[k as keyof MutateTextRunsOptions] !== undefined)) {

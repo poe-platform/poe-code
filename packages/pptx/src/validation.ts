@@ -123,20 +123,16 @@ export function validatePresentation(
     bytes += data.length;
     if (bytes > limits.maxBytes)
       throw new OfficeError("resource-limit", "Validation XML byte limit exceeded.", "index");
-    const part = parseXmlPart(data, limits);
+    if (nodes >= limits.maxNodes)
+      throw new OfficeError("resource-limit", "Validation XML node limit exceeded.", "index");
+    const part = parseXmlPart(data, { ...limits, maxNodes: limits.maxNodes - nodes });
+    nodes += part.nodeCount;
     const dialect = dialects.find((d) => d.p === part.root.name.namespace);
     if (!dialect || part.root.name.localName !== expected) {
       fail("required-structure", name);
       continue;
     }
     const view = interpretCompatibility(part, [dialect.p, dialect.a, dialect.r]);
-    const stack = [part.root];
-    while (stack.length) {
-      const element = stack.pop()!;
-      if (++nodes > limits.maxNodes)
-        throw new OfficeError("resource-limit", "Validation XML node limit exceeded.", "index");
-      stack.push(...element.children);
-    }
     documents.set(name, { root: part.root, view, dialect });
   }
   for (const [name, { root, view, dialect: d }] of documents) {

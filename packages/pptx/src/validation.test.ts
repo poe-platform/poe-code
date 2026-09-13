@@ -373,6 +373,35 @@ describe("presentation semantic validation", () => {
       expect.objectContaining({ code: "resource-limit" })
     );
   });
+  it.each([
+    ["text", "<p:ext>words</p:ext>", 40],
+    ["comments", "<!--retained-->", 80],
+    ["CDATA", "<![CDATA[retained]]>", 80],
+    ["processing instructions", "<?view retained?>", 80]
+  ])("charges %s nodes across recognized parts", (_kind, markup, repeats) => {
+    const reader = read(
+      fixture({
+        "slide.xml": xml("sld", tree() + markup.repeat(repeats)),
+        "layout.xml": xml("sldLayout", tree() + markup.repeat(repeats))
+      })
+    );
+    expect(() => validatePresentation(reader, { ...limits, maxNodes: 170 })).toThrowError(
+      expect.objectContaining({ code: "resource-limit" })
+    );
+  });
+
+  it("charges parsed nodes even when a recognized part has the wrong root", () => {
+    const reader = read(
+      fixture({
+        "slide.xml": "<wrong>" + "<item/>".repeat(90) + "</wrong>",
+        "layout.xml": "<wrong>" + "<item/>".repeat(90) + "</wrong>"
+      })
+    );
+    expect(() => validatePresentation(reader, { ...limits, maxNodes: 170 })).toThrowError(
+      expect.objectContaining({ code: "resource-limit" })
+    );
+  });
+
   it("accepts local references and repeated shape IDs in different parts", async () => {
     const result = validatePresentation(
       await read(

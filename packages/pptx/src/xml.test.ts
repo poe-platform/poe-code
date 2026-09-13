@@ -28,6 +28,16 @@ describe("preserving XML parts", () => {
     expect(Object.isFrozen(part.root.children)).toBe(true);
   });
 
+  it("reports all parsed node kinds with an exact admission boundary", () => {
+    const bytes = encode("<deck>text<!--note--><![CDATA[data]]><?view x?><item/></deck>");
+    const part = parseXmlPart(bytes, { ...limits, maxNodes: 6 });
+    expect(part.nodeCount).toBe(6);
+    expect(Object.isFrozen(part)).toBe(true);
+    expect(() => parseXmlPart(bytes, { ...limits, maxNodes: 5 })).toThrowError(
+      expect.objectContaining({ code: "resource-limit" })
+    );
+  });
+
   it("merges a qualified attribute under namespace shadowing without touching other markup", () => {
     const source =
       '<p:deck xmlns:p="urn:deck" xmlns:q="urn:outer"><s:item xmlns:s="urn:deck" xmlns:q="urn:inner" q:flag=\'old\' plain = "keep">😀<!--note--><?view x?><q:unknown a="&amp;" /></s:item></p:deck>';

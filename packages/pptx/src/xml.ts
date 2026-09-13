@@ -28,6 +28,7 @@ export interface XmlMerge {
   };
 }
 export interface XmlPart {
+  readonly nodeCount: number;
   readonly root: XmlElement;
   bytes(): Uint8Array;
   markup(element: XmlElement): string;
@@ -296,6 +297,7 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
     return output;
   }
   return Object.freeze({
+    nodeCount: nodes,
     root,
     bytes: () => Uint8Array.from(original),
     markup(element: XmlElement): string {

@@ -10,6 +10,7 @@ import {
   KeyError,
   OfficeError,
   PropertyAccessError,
+  TypeError as ModelTypeError,
   ValueError
 } from "./errors.js";
 import { attr, required } from "./masters.js";
@@ -24,9 +25,9 @@ import { chartTypes, type ChartData, type CreatableChartType } from "./chart-edi
 import { XL_CHART_TYPE } from "./chart-enums.js";
 import {
   toChartData,
-  type CategoryChartData,
-  type XyChartData,
-  type BubbleChartData
+  CategoryChartData,
+  XyChartData,
+  BubbleChartData
 } from "./chart-data-model.js";
 import { GroupShape } from "./group-model.js";
 import { Connector } from "./connectors-model.js";
@@ -46,6 +47,14 @@ export interface SlideShapeOwner {
   write(xml: XmlPart): void;
   inherited?(idx: number): readonly XmlPart[];
   chart?(shapeId: number): Chart;
+  addChart?(options: {
+    type: CreatableChartType;
+    data: ChartData;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }): number;
   insertRich?(shapeId: number, kind: "picture", options: unknown): Promise<void>;
   insertChart?(
     shapeId: number,
@@ -647,6 +656,47 @@ export class SlideShapes implements Iterable<Shape | Connector> {
     if (this.#groupId !== undefined) updated = recalculateGroups(updated, this.#groupId);
     this.#owner.write(updated);
     return this.get(this.length - 1);
+  }
+  add_chart(
+    chart_type: XL_CHART_TYPE | CreatableChartType,
+    x: Length,
+    y: Length,
+    cx: Length,
+    cy: Length,
+    chart_data: CategoryChartData | XyChartData | BubbleChartData
+  ): GraphicFrame {
+    if (this.#groupId !== undefined)
+      throw new OfficeError(
+        "unsupported-edit",
+        "Chart insertion into groups is unsupported.",
+        "validate-intent"
+      );
+    if (![x, y, cx, cy].every((value) => value instanceof Length))
+      throw new ModelTypeError("Chart geometry requires Length values.");
+    if (typeof chart_type !== "number" && typeof chart_type !== "string")
+      throw new ModelTypeError("Chart type requires an enum value or registered name.");
+    if (
+      !(chart_data instanceof CategoryChartData) &&
+      !(chart_data instanceof XyChartData) &&
+      !(chart_data instanceof BubbleChartData)
+    )
+      throw new ModelTypeError("Chart data requires a chart data builder.");
+    const type =
+      typeof chart_type === "number"
+        ? chartTypes.find((name) => XL_CHART_TYPE[name] === chart_type)
+        : chartTypes.find((name) => name === chart_type);
+    if (!type) throw new ValueError("Unsupported chart creation type.");
+    if (!this.#owner.addChart)
+      throw new PropertyAccessError("Chart insertion requires a package owner.");
+    const id = this.#owner.addChart({
+      type,
+      data: toChartData(chart_data),
+      left: x.emu,
+      top: y.emu,
+      width: cx.emu,
+      height: cy.emu
+    });
+    return new GraphicFrame(this.#owner, id);
   }
   async add_picture(
     input: BinaryInput,

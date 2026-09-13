@@ -496,6 +496,19 @@ class LivePresentation implements PresentationModel {
               }
             );
           },
+          addChart: (options) => {
+            cancelled(context);
+            const workbooks = new Map<string, readonly ArchiveMember[]>();
+            const id = insertChartIntoState(
+              state,
+              { ...options, slide: record.position },
+              context,
+              (part, members) => workbooks.set(part, members)
+            );
+            for (const [part, members] of workbooks) this.#pendingWorkbooks.set(part, members);
+            this.#revision++;
+            return id;
+          },
           insertChart: (shapeId, options) => {
             cancelled(context);
             const old = owner.read(),

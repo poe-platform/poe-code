@@ -10,6 +10,17 @@ import { Length } from "./length.js";
 import { attr, child, loadShared } from "./masters.js";
 import { applyPresentationCanvasSettings } from "./presentation-settings.js";
 import { CoreProperties, createPropertyPart } from "./properties.js";
+import { Slide, Slides, preservePlaceholder, type SlideShapeOwner } from "./slide-model.js";
+import { addImage, type AddImageOptions } from "./image-insertion.js";
+import { insertChartIntoState } from "./chart-editing.js";
+import { validatePictureInput } from "./picture-input.js";
+import { readShape } from "./shapes.js";
+import { writePackageArchive, type ArchiveMember } from "./package-writer.js";
+import { Chart } from "./chart-model.js";
+import { parseRelationships } from "./relationships.js";
+import { resolvePartReference, packageUri } from "./package-uri.js";
+import { relPart } from "./masters.js";
+import { required } from "./masters.js";
 import type { SelectionContext } from "./selectors.js";
 
 export interface PresentationContext extends Partial<SelectionContext> {
@@ -81,6 +92,7 @@ export interface PresentationModel {
   readonly element: XmlElementView;
   readonly part: PartView;
   readonly core_properties: CoreProperties;
+  readonly slides: Slides;
   get slide_width(): Length | null;
   set slide_width(value: Length);
   get slide_height(): Length | null;
@@ -91,12 +103,18 @@ export interface PresentationModel {
 
 class LivePresentation implements PresentationModel {
   #part: PartView;
+  readonly #slides: Slides;
+  get slides(): Slides {
+    return this.#slides;
+  }
   #state: State;
   #context: SelectionContext;
   #inputPath: string | undefined;
   #properties: CoreProperties | undefined;
   #propertyPart: string | undefined;
   #revision = 0;
+  readonly #pendingWorkbooks = new Map<string, readonly ArchiveMember[]>();
+  #workbookFlush: Promise<void> | undefined;
   #publishedSource: Uint8Array;
   constructor(state: State, context: SelectionContext, inputPath?: string) {
     this.#state = state;
@@ -113,6 +131,231 @@ class LivePresentation implements PresentationModel {
     if (parts.length > 1)
       throw new OfficeError("ambiguous-selection", "Multiple core property parts.", "select");
     this.#propertyPart = parts[0]?.targetPart ?? undefined;
+    this.#slides = new Slides(
+      state.index.inventory.slides.map((record) => {
+        let latestBytes: Uint8Array | undefined;
+        let latestXml: ReturnType<State["doc"]> | undefined;
+        const owner: SlideShapeOwner = {
+          read: () => {
+            const bytes = state.changes.get(record.part);
+            if (latestXml && bytes === latestBytes) return latestXml;
+            latestBytes = bytes;
+            latestXml = state.doc(record.part);
+            return latestXml;
+          },
+          write: (xml) => {
+            state.save(record.part, xml);
+            latestBytes = state.changes.get(record.part);
+            latestXml = xml;
+            this.#revision++;
+          },
+          inherited: (idx) => {
+            const result: ReturnType<State["doc"]>[] = [];
+            const layout = record.layout ? state.doc(record.layout) : undefined;
+            if (layout) result.push(layout);
+            if (record.master) {
+              const master = state.doc(record.master);
+              const layoutShapes =
+                layout && required(required(layout.root, "cSld"), "spTree").children;
+              const ph = layoutShapes
+                ?.map(readShape)
+                .find((shape) => shape.placeholder?.idx === idx)?.placeholder;
+              const category =
+                ph?.type === "ctrTitle"
+                  ? "title"
+                  : ["tbl", "obj", "subTitle", "chart", "pic"].includes(ph?.type ?? "")
+                    ? "body"
+                    : ph?.type;
+              const candidates = required(required(master.root, "cSld"), "spTree").children.filter(
+                (node) => readShape(node).placeholder?.type === category
+              );
+              if (candidates.length > 1)
+                throw new OfficeError(
+                  "ambiguous-selection",
+                  "Duplicate inherited master placeholder type.",
+                  "select"
+                );
+              if (candidates[0]) {
+                const original = master.subtree(candidates[0]);
+                const nv = original.root.children.find((node) =>
+                  node.name.localName.startsWith("nv")
+                )!;
+                const placeholder = required(required(nv, "nvPr"), "ph");
+                const remapped = original.merge(placeholder, {
+                  attributes: [{ namespace: "", localName: "idx", value: String(idx) }]
+                });
+                const tree = required(required(master.root, "cSld"), "spTree");
+                result.push(
+                  master.spliceChildren(tree, 0, tree.children.length, [
+                    remapped.markup(remapped.root, true)
+                  ])
+                );
+              }
+            }
+            return result;
+          },
+          chart: (shapeId) => {
+            let cachedBytes: Uint8Array | undefined,
+              cachedXml: ReturnType<State["doc"]> | undefined;
+            const chartPart = () => {
+              const shape = required(required(owner.read().root, "cSld"), "spTree").children.find(
+                (node) => readShape(node).shapeId === shapeId
+              );
+              if (!shape || shape.name.localName !== "graphicFrame")
+                throw new OfficeError("invalid-handle", "Chart frame was replaced.", "select");
+              const pending = [shape];
+              let relationId: string | undefined;
+              while (pending.length) {
+                const node = pending.pop()!;
+                if (node.name.localName === "chart")
+                  relationId = node.attributes.find(
+                    (a) => a.name.localName === "id" && a.name.namespace === state.r
+                  )?.value;
+                pending.push(...node.children);
+              }
+              const relations = parseRelationships(
+                state.doc(relPart(record.part)).bytes(),
+                context.relationshipLimits
+              );
+              const relation = relations.find(
+                (edge) => edge.id === relationId && edge.type.endsWith("/chart") && !edge.external
+              );
+              if (!relation)
+                throw new OfficeError(
+                  "invalid-handle",
+                  "Chart relationship is unavailable.",
+                  "select"
+                );
+              return resolvePartReference(packageUri(record.part).baseURI, relation.target);
+            };
+            return new Chart(
+              () => {
+                const part = chartPart(),
+                  bytes = state.changes.get(part);
+                if (cachedXml && cachedBytes === bytes) return cachedXml;
+                cachedBytes = bytes;
+                cachedXml = state.doc(part);
+                return cachedXml;
+              },
+              (xml) => {
+                state.save(chartPart(), xml);
+                cachedXml = xml;
+                cachedBytes = state.changes.get(chartPart());
+                this.#revision++;
+              }
+            );
+          },
+          insertChart: (shapeId, options) => {
+            cancelled(context);
+            const old = owner.read(),
+              tree = required(required(old.root, "cSld"), "spTree"),
+              previous = tree.children.find((node) => readShape(node).shapeId === shapeId);
+            if (!previous || previous.name.localName !== "sp")
+              throw new OfficeError("invalid-handle", "Placeholder was replaced.", "select");
+            const changes = new Map(state.changes),
+              workbooks = new Map<string, readonly ArchiveMember[]>();
+            try {
+              insertChartIntoState(
+                state,
+                { ...options, slide: record.position },
+                context,
+                (part, members) =>
+                  workbooks.set(
+                    part,
+                    members.map((member) => ({
+                      name: member.name,
+                      bytes: new Uint8Array(member.bytes)
+                    }))
+                  )
+              );
+              const doc = state.doc(record.part),
+                newTree = required(required(doc.root, "cSld"), "spTree"),
+                originalIds = new Set(tree.children.map((node) => readShape(node).shapeId));
+              const added = newTree.children.find(
+                (node) => !originalIds.has(readShape(node).shapeId)
+              );
+              if (!added)
+                throw new OfficeError(
+                  "invalid-opc",
+                  "Chart insertion produced no frame.",
+                  "validate-result"
+                );
+              const replacement = preservePlaceholder(old.subtree(previous), doc.subtree(added));
+              let final = doc.spliceChildren(newTree, newTree.children.indexOf(added), 1, []);
+              const finalTree = required(required(final.root, "cSld"), "spTree");
+              final = final.spliceChildren(finalTree, tree.children.indexOf(previous), 1, [
+                replacement.markup(replacement.root, true)
+              ]);
+              owner.write(final);
+              for (const [part, members] of workbooks) this.#pendingWorkbooks.set(part, members);
+            } catch (error) {
+              state.changes.clear();
+              for (const [part, bytes] of changes) state.changes.set(part, bytes);
+              throw error;
+            }
+          },
+          insertRich: async (shapeId, kind, options) => {
+            const revision = this.#revision;
+            const old = owner.read();
+            const tree = required(required(old.root, "cSld"), "spTree");
+            const previous = tree.children.find((node) => readShape(node).shapeId === shapeId);
+            if (!previous || previous.name.localName !== "sp")
+              throw new OfficeError("invalid-handle", "Placeholder was replaced.", "select");
+            if (kind === "picture") {
+              const picture = options as { input: BinaryInput };
+              const bytes = await readBinary(picture.input, context);
+              const contentType =
+                validatePictureInput(bytes) === "png" ? "image/png" : "image/jpeg";
+              const { input: ignored, ...geometry } = picture;
+              void ignored;
+              options = { ...geometry, bytes, contentType };
+            }
+            await this.#flushWorkbooks();
+            if (revision !== this.#revision)
+              throw new OfficeError(
+                "stale-selection",
+                "Presentation changed during insertion.",
+                "publish"
+              );
+            const snapshot = await this.#state.finish(this.#state.main, []);
+            const inserted = await addImage(
+              snapshot.bytes,
+              { ...(options as Omit<AddImageOptions, "slide">), slide: record.position },
+              context
+            );
+            const updated = await loadShared(inserted, context);
+            if (revision !== this.#revision)
+              throw new OfficeError(
+                "stale-selection",
+                "Presentation changed during insertion.",
+                "publish"
+              );
+            const doc = updated.doc(record.part);
+            const newTree = required(required(doc.root, "cSld"), "spTree");
+            const originalIds = new Set(tree.children.map((node) => readShape(node).shapeId));
+            const added = newTree.children.find(
+              (node) => !originalIds.has(readShape(node).shapeId)
+            );
+            if (!added)
+              throw new OfficeError(
+                "invalid-opc",
+                "Rich insertion produced no shape.",
+                "validate-result"
+              );
+            const replacement = preservePlaceholder(old.subtree(previous), doc.subtree(added));
+            let final = doc.spliceChildren(newTree, newTree.children.indexOf(added), 1, []);
+            const finalTree = required(required(final.root, "cSld"), "spTree");
+            final = final.spliceChildren(finalTree, tree.children.indexOf(previous), 1, [
+              replacement.markup(replacement.root, true)
+            ]);
+            for (const name of updated.reader.names)
+              state.changes.set(name, updated.reader.get(name));
+            owner.write(final);
+          }
+        };
+        return new Slide(Number(record.id), owner);
+      })
+    );
   }
   get part(): PartView {
     return this.#part;
@@ -179,6 +422,30 @@ class LivePresentation implements PresentationModel {
   set slide_height(value: Length) {
     this.#setDimension("cy", value);
   }
+  async #flushWorkbooks(): Promise<void> {
+    if (this.#workbookFlush) return this.#workbookFlush;
+    if (!this.#pendingWorkbooks.size) return;
+    const pending = [...this.#pendingWorkbooks];
+    this.#workbookFlush = (async () => {
+      const encoded = await Promise.all(
+        pending.map(async ([part, members]) => ({
+          part,
+          members,
+          bytes: await writePackageArchive(members, this.#context, { compression: "store" })
+        }))
+      );
+      for (const { part, members, bytes } of encoded)
+        if (this.#pendingWorkbooks.get(part) === members) {
+          this.#state.changes.set(part, bytes);
+          this.#pendingWorkbooks.delete(part);
+        }
+    })();
+    try {
+      await this.#workbookFlush;
+    } finally {
+      this.#workbookFlush = undefined;
+    }
+  }
   async save(destination?: undefined): Promise<Uint8Array>;
   async save(destination: ByteSink | PresentationPublication): Promise<void>;
   async save(destination?: ByteSink | PresentationPublication): Promise<Uint8Array | void> {
@@ -210,6 +477,13 @@ class LivePresentation implements PresentationModel {
     }
     cancelled(this.#context);
     const revision = this.#revision;
+    await this.#flushWorkbooks();
+    if (revision !== this.#revision)
+      throw new OfficeError(
+        "stale-selection",
+        "Presentation changed during serialization.",
+        "publish"
+      );
     const { bytes } = await this.#state.finish(this.#state.main, []);
     cancelled(this.#context);
     if (revision !== this.#revision)

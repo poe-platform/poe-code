@@ -46,15 +46,28 @@ function indexed<T extends { get(index: number): unknown }>(collection: T): T {
   });
 }
 export class Table {
-  #xml: XmlPart;
+  #storedXml: XmlPart;
+  readonly #owner: { read(): XmlPart; write(xml: XmlPart): void } | undefined;
+  get #xml(): XmlPart {
+    return this.#owner?.read() ?? this.#storedXml;
+  }
+  set #xml(value: XmlPart) {
+    if (this.#owner) this.#owner.write(value);
+    else this.#storedXml = value;
+  }
   readonly #id: number;
   readonly #cells = new Map<string, TableCell>();
   #generation = 0;
   get generation(): number {
     return this.#generation;
   }
-  constructor(xml: XmlPart, shapeId?: number) {
-    this.#xml = xml;
+  constructor(
+    xml: XmlPart,
+    shapeId?: number,
+    owner?: { read(): XmlPart; write(xml: XmlPart): void }
+  ) {
+    this.#storedXml = xml;
+    this.#owner = owner;
     this.#id = shapeId ?? readTable(xml.root, xml).shapeId;
     readTable(this.element, xml);
   }

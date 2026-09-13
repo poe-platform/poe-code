@@ -865,6 +865,34 @@ export class ShapeColorFormat {
     });
   }
 }
+function fillPosition(owner: XmlElement, fill: XmlElement | undefined, namespace: string) {
+  if (fill) return owner.children.indexOf(fill);
+  const after = owner.children.findIndex(
+    (node) =>
+      node.name.namespace === namespace &&
+      [
+        "ln",
+        "prstDash",
+        "custDash",
+        "round",
+        "bevel",
+        "miter",
+        "headEnd",
+        "tailEnd",
+        "effectLst",
+        "effectDag",
+        "scene3d",
+        "sp3d",
+        "extLst"
+      ].includes(node.name.localName)
+  );
+  return after < 0 ? owner.children.length : after;
+}
+function gradientNodes(owner: XmlElement) {
+  return owner.children.filter(
+    (node) => node.name.namespace === owner.name.namespace && node.name.localName === "gs"
+  );
+}
 export class FillFormat {
   constructor(
     private readonly read: () => XmlPart,
@@ -912,7 +940,7 @@ export class FillFormat {
       const owner = this.owner(node)!,
         fill = this.fill(node),
         a = drawing(node);
-      return doc.spliceChildren(owner, fill ? owner.children.indexOf(fill) : 0, fill ? 1 : 0, [
+      return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
         `<a:gradFill xmlns:a="${a}" rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="100000"/><a:shade val="100000"/><a:satMod val="130000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="accent1"><a:tint val="50000"/><a:shade val="100000"/><a:satMod val="350000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="16200000" scaled="1"/></a:gradFill>`
       ]);
     });
@@ -923,7 +951,7 @@ export class FillFormat {
     this.change((doc, node) => {
       const owner = this.owner(node)!,
         fill = this.fill(node);
-      return doc.spliceChildren(owner, fill ? owner.children.indexOf(fill) : 0, fill ? 1 : 0, [
+      return doc.spliceChildren(owner, fillPosition(owner, fill, drawing(node)), fill ? 1 : 0, [
         `<a:pattFill xmlns:a="${drawing(node)}"/>`
       ]);
     });
@@ -1043,7 +1071,7 @@ export class GradientStop {
     readonly index: number
   ) {}
   private node(shape: XmlElement) {
-    const n = this.owner(shape).children[this.index];
+    const n = gradientNodes(this.owner(shape))[this.index];
     if (!n) invalid("Gradient stop is unavailable.");
     return n;
   }
@@ -1070,7 +1098,7 @@ export class GradientStops implements Iterable<GradientStop> {
     private readonly owner: ColorOwner
   ) {}
   get length() {
-    return this.owner(this.read().root).children.length;
+    return gradientNodes(this.owner(this.read().root)).length;
   }
   at(index: number) {
     if (!Number.isInteger(index) || index < -this.length || index >= this.length)

@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "status": "documentation-only; inspected and accounted, no target execution",
+  "inspectedCommit": "20c8ed08c42a43742dc0298a721ca10469797890",
+  "method": "Static local source inspection and exact JSON inventory joins; no reference runtime, product execution, corpus acquisition or full pipeline. Input files may be pre-existing untracked work; hashes bind this working-tree review, not remote delivery.",
+  "inputs": [
+    {
+      "path": "package.json",
+      "sha256": "6c3667b8ea4e99befb5eea6400a34d60bbf0ced06ec0b3ea7d8f5c314702e827",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/package.json",
+      "sha256": "edd7533413ac2658595cdbd7e3a8f35896f542861bfa4a51d25a88a01f8e3924",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/zip-format.ts",
+      "sha256": "448cab6d21012354e1e9a45e5a9e68074fb3b235ab85d2df557fc5bda646c066",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/internal.ts",
+      "sha256": "fe28187157bb9092362ce4ebe1550fb5a121b9a7a3ede605bc9573eaeac1ca36",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/index.ts",
+      "sha256": "be94bdcc68fe7f7c2964ef5a99c095aa6a994473fdaa0482b7dc5aaebc2854eb",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/src/commands/bytes/compression/codec.ts",
+      "sha256": "fc42a42aa7182ed2549763fd9c3b9978cda1248a2019a66b29596598a3b9e3c8",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/src/contracts/yield.ts",
+      "sha256": "f4a79819df239a78d0e71d03680f6a1d78bb840990e9dbfcc5adeec5eefef9ad",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/src/contracts/command.ts",
+      "sha256": "ff6a76a69605e1cc32a102af1e7620fa12e5a4f9eaf0edb3f88a2713b8e7b96a",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-bash/src/contracts/plugin.ts",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-fs/src/xml.ts",
+      "sha256": "af8c41a39b4af8128c0086958bb5d0c7151121d370266508b9978021268b45ca",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-fs/src/core.ts",
+      "sha256": "724c6b6319c7b36561bf71171cb4b6774bc637c4c972dc01b529fdfd417e33ab",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-fs/src/contracts/filesystem.ts",
+      "sha256": "1cff690d1d898bce868780094df45863c873069ea61abc209814d5f835d702d2",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/safe-fs/src/contracts/io.ts",
+      "sha256": "0b74152072523e3a918b7612d834c9fbfac3aabb21972300b2d56bd904a21e50",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/agent-stash/src/operations/archive.ts",
+      "sha256": "ee629f88f703b016437ea7b597aa7770712a498d6555bbd20b7bc26f7e75f9d1",
+      "trackedAtReview": true
+    },
+    {
+      "path": "packages/agent-stash/src/fixtures/in-memory-archive-codec.ts",
+      "sha256": "1486f57dad067d28960aa4d1cd6ee454c58469cbfd5e78b4a501e18d82fbcd05",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/specs/pptx.md",
+      "sha256": "d907f73d3fcf8b608d8ddd404654b3f87ac1fc236c40f0ed5cd429f61cd82e8f",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+      "trackedAtReview": false
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+      "trackedAtReview": false
+    },
+    {
+      "path": "docs/pptx/upstream-test-audit.md",
+      "sha256": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b",
+      "trackedAtReview": false
+    },
+    {
+      "path": "docs/pptx/upstream-test-inventory.json",
+      "sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d",
+      "trackedAtReview": false
+    },
+    {
+      "path": "docs/pptx/upstream-api-audit.md",
+      "sha256": "8e755f16aff69fe329f78d640de6a0254af14b27396f1abce5c56740e7d3c5ec",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/upstream-api-inventory.json",
+      "sha256": "cd6467079c8f93d5be57758646f3fcd3667a6a13a1782fb371320c378803b934",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/test-case-map.json",
+      "sha256": "e9f113b5aee839dfe34353f2db726885eb0226bedb90798bb5718e133bd37706",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/test-behavior-evidence.json",
+      "sha256": "9a30c612931cb72af2341f240470833462ccacc80d029cd88f7c02bc3b48e0bf",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/public-api-map.json",
+      "sha256": "705907588d468a7711a8451a74a578ca24dc247e3bcbe88ea894bc099d2e0340",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/command-coverage.json",
+      "sha256": "c16d39386ff3d0b1a67141b8930e276c5bd688df2cadac3f9fe5a0ce0a268218",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/api-language-mappings.md",
+      "sha256": "e5a68d5bfcea65bff45cc876cde12081e8fd86b689e69acc47cb5dcffde5bf2d",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/api-reconciliation.md",
+      "sha256": "3e24fc0f978fdc5e700c9b85cd8edbcfc5bdff2a998d5bedda54249e1f2a1697",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/corpus-manifest.json",
+      "sha256": "f4c740aa929eb714b4b83ec63cb7d3641f278d5dffbc4c81303e02aee237169f",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/upstream-license-notice.txt",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "trackedAtReview": false
+    },
+    {
+      "path": "docs/pptx/test-case-map-notice.txt",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "trackedAtReview": true
+    },
+    {
+      "path": "docs/pptx/public-api-map-notice.txt",
+      "sha256": "7652f271e46d0d533e9dc463f3b5fcbdcacf4d6a9c8d6b554d15efd0f37f6132",
+      "trackedAtReview": true
+    }
+  ],
+  "accounting": {
+    "unitCases": 2700,
+    "parameterizedCases": 2057,
+    "unparameterizedCases": 643,
+    "parameterResolution": {
+      "literal_table_id_match": 2057,
+      "not_parameterized": 643
+    },
+    "expandedBddCases": 973,
+    "caseStatuses": {
+      "semantic_review_required": 2611,
+      "specified_not_implemented": 167,
+      "proposed_design_not_implemented": 894,
+      "deferred_public_behavior": 1
+    },
+    "sourceApiRecords": 2407,
+    "targetApiObligations": 2424,
+    "additionalBoundedViews": 17,
+    "sharedCounterpartCases": 391,
+    "corpusManifestEntries": 14,
+    "targetCasesExecuted": 0
+  },
+  "checks": {
+    "exactUnitAndBddIdentityLocationAndOrder": true,
+    "allParameterizedBindingsRetained": true,
+    "sourceApiIdentitySubsetOfTarget": true,
+    "targetCommandAndLedgerApiIdentityEquality": true,
+    "allApiRowsHaveOriginalAcceptanceIds": true,
+    "allSdkBindingsResolveToDeclaredOperations": true,
+    "noTargetImplementationOrExecutionClaims": true,
+    "standaloneMitNoticesPresent": true
+  },
+  "architecture": "architecture.md",
+  "originalBoundaryCases": "../plans/pptx-package-boundaries.md#original-typescript-acceptance-designs",
+  "limitations": [
+    "No whole-API parity or completed source-test adaptation claim.",
+    "No browser/workerd, package export or publication runtime qualification.",
+    "Source/API inventories are pinned historical research; published documentation was not fetched again.",
+    "No binary corpus validation or product QA performed."
+  ]
+}

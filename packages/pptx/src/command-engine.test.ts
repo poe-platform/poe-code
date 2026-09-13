@@ -60,6 +60,78 @@ function request(
 const options = { context, maxArgumentBytes: 65536, maxOutputBytes: 65536 };
 
 describe("presentation command engine", () => {
+  it("rejects empty input paths before invoking the input capability", async () => {
+    const invocation = request(["inspect", "", "--json"]);
+    const output = await createPptxCommandEngine(options).execute(invocation);
+    expect(output.exitCode).toBe(2);
+    expect(output.stderr).toEqual(new Uint8Array());
+    expect(JSON.parse(decode(output.stdout))).toMatchObject({
+      version: 1,
+      operation: "inspect",
+      ok: false,
+      data: null,
+      affected: 0,
+      errors: [{ code: "invalid-value", context: { phase: "usage" } }]
+    });
+    expect(invocation.readInput).not.toHaveBeenCalled();
+  });
+  it.each([
+    ["schema", "schema"],
+    ["capabilities", "capabilities"],
+    ["help", "help"],
+    ["version", "version"],
+    ["-h", "help"],
+    ["--help", "help"],
+    ["--version", "version"]
+  ])("retains the %s operation in usage-error envelopes", async (command, operation) => {
+    const invocation = request([command, "--unknown", "--json"]);
+    const output = await createPptxCommandEngine(options).execute(invocation);
+    expect(output.exitCode).toBe(2);
+    expect(output.stderr).toEqual(new Uint8Array());
+    expect(JSON.parse(decode(output.stdout))).toMatchObject({
+      version: 1,
+      operation,
+      ok: false,
+      data: null,
+      warnings: [],
+      affected: 0,
+      locations: []
+    });
+    expect(invocation.readInput).not.toHaveBeenCalled();
+  });
+  it("does not treat a literal JSON-looking filename as an output option on errors", async () => {
+    const invocation = request(["inspect", "--unknown", "--", "--json"]);
+    const output = await createPptxCommandEngine(options).execute(invocation);
+    expect(output.exitCode).toBe(2);
+    expect(output.stdout).toEqual(new Uint8Array());
+    expect(decode(output.stderr)).toBe("pptx: invalid-value: Unsupported option.\n");
+    expect(invocation.readInput).not.toHaveBeenCalled();
+  });
+  it.each(["--slide", "--shape", "--part", "--select", "--scope"])(
+    "distinguishes a literal %s value from a later JSON flag on errors",
+    async (option) => {
+      for (const json of [false, true]) {
+        const invocation = request([
+          "inspect",
+          "absent",
+          option,
+          "--json",
+          "--unknown",
+          ...(json ? ["--json"] : [])
+        ]);
+        const output = await createPptxCommandEngine(options).execute(invocation);
+        expect(output.exitCode).toBe(2);
+        if (json) {
+          expect(output.stderr).toEqual(new Uint8Array());
+          expect(JSON.parse(decode(output.stdout)).ok).toBe(false);
+        } else {
+          expect(output.stdout).toEqual(new Uint8Array());
+          expect(decode(output.stderr)).toContain("pptx:");
+        }
+        expect(invocation.readInput).not.toHaveBeenCalled();
+      }
+    }
+  );
   it("runs byte arguments through a supplied memfs capability with SDK selector parity", async () => {
     const volume = Volume.fromJSON({ "/river.pptx": Buffer.from(bytes) });
     const readInput = vi.fn(async (path: string, maximum: number) => {
@@ -111,6 +183,34 @@ describe("presentation command engine", () => {
     expect(JSON.parse(decode(output.stdout)).errors[0].code).toBe("invalid-selection");
     expect(invocation.readInput).not.toHaveBeenCalled();
   });
+  it.each([false, true])(
+    "retains output mode with invalid UTF-8 and option termination %s",
+    async (terminated) => {
+      const invocation = request(["schema"]);
+      const output = await createPptxCommandEngine(options).execute({
+        ...invocation,
+        args: [
+          encode("schema"),
+          Uint8Array.of(255),
+          ...(terminated ? [encode("--")] : []),
+          encode("--json")
+        ]
+      });
+      expect(output.exitCode).toBe(2);
+      if (terminated) {
+        expect(output.stdout).toEqual(new Uint8Array());
+        expect(decode(output.stderr)).toBe("pptx: invalid-value: Arguments must be UTF-8.\n");
+      } else {
+        expect(output.stderr).toEqual(new Uint8Array());
+        expect(JSON.parse(decode(output.stdout))).toMatchObject({
+          operation: "schema",
+          ok: false,
+          errors: [{ code: "invalid-value", message: "Arguments must be UTF-8." }]
+        });
+      }
+      expect(invocation.readInput).not.toHaveBeenCalled();
+    }
+  );
   it("preserves leading byte-order-mark characters in literal argument values", async () => {
     const engine = createPptxCommandEngine(options);
     const invocation = request(["inspect", "\ufeffriver.pptx", "--json"]);

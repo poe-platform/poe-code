@@ -66,6 +66,58 @@ function fixture(register = true) {
   return { shell, volume, fs };
 }
 
+test("pptx validates empty input and preserves output mode and operation on grammar failures", async () => {
+  const { shell, fs } = fixture();
+  fs.readFile = async () => { assert.fail("invalid grammar must not read input"); };
+  fs.readStream = () => { assert.fail("invalid grammar must not stream input"); };
+  for (const [command, operation] of [["schema", "schema"], ["capabilities", "capabilities"], ["help", "help"], ["version", "version"], ["-h", "help"], ["--help", "help"], ["--version", "version"]]) {
+    const result = await shell.exec(`pptx ${command} --unknown --json`);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), {
+      version: 1, operation, ok: false, data: null, warnings: [],
+      errors: [{ code: "invalid-value", message: "Unsupported option.", context: { phase: "usage" } }],
+      affected: 0, locations: []
+    });
+  }
+  const empty = await shell.exec("pptx inspect '' --json");
+  assert.equal(empty.exitCode, 2);
+  assert.equal(empty.stderr, "");
+  assert.equal(JSON.parse(empty.stdout).errors[0].code, "invalid-value");
+  const literal = await shell.exec("pptx inspect --unknown -- --json");
+  assert.equal(literal.exitCode, 2);
+  assert.equal(literal.stdout, "");
+  assert.equal(literal.stderr, "pptx: invalid-value: Unsupported option.\n");
+  for (const json of [false, true]) {
+    const value = await shell.exec(`pptx inspect deck.pptx --slide 1 --shape --json --unknown${json ? " --json" : ""}`);
+    assert.equal(value.exitCode, 2);
+    if (json) {
+      assert.equal(value.stderr, "");
+      assert.equal(JSON.parse(value.stdout).ok, false);
+    } else {
+      assert.equal(value.stdout, "");
+      assert.equal(value.stderr, "pptx: invalid-value: Unsupported option.\n");
+    }
+  }
+});
+
+test("pptx preserves explicit output mode when shell arguments contain invalid UTF-8", async () => {
+  const { shell } = fixture();
+  for (const terminated of [false, true]) {
+    const result = await shell.exec(`pptx schema $'\\xff' ${terminated ? "-- " : ""}--json`);
+    assert.equal(result.exitCode, 2);
+    if (terminated) {
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "pptx: invalid-value: Arguments must be UTF-8.\n");
+    } else {
+      assert.equal(result.stderr, "");
+      const envelope = JSON.parse(result.stdout);
+      assert.equal(envelope.operation, "schema");
+      assert.equal(envelope.errors[0].message, "Arguments must be UTF-8.");
+    }
+  }
+});
+
 test("pptx reads a streaming-only file using path-specific capabilities", async () => {
   const { shell, fs } = fixture();
   const queried: string[] = [];

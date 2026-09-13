@@ -58,21 +58,51 @@ function usage(message: string): never {
   throw new OfficeError("invalid-value", message, "usage");
 }
 
-function parse(raw: readonly Uint8Array[], maximum: number): Arguments {
+const scalarOptions = ["--slide", "--shape", "--part", "--select", "--scope"];
+
+function parse(
+  raw: readonly Uint8Array[],
+  maximum: number,
+  output: { operation: string; json: boolean }
+): Arguments {
   const args: string[] = [];
   let size = 0;
+  let hintOptions = true;
+  let hintValue = false;
+  let invalidUtf8 = false;
   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   for (let index = 0; index < raw.length; index++) {
     const bytes = raw[index]!;
+    if (!(bytes instanceof Uint8Array)) usage("Arguments must be byte arrays.");
     size += bytes.length + 1;
-    if (size > maximum)
+    if (size > maximum) {
+      if (invalidUtf8) usage("Arguments must be UTF-8.");
       throw new OfficeError("resource-limit", "Argument limit exceeded.", "usage");
+    }
     try {
       args.push(decoder.decode(bytes));
     } catch {
-      usage("Arguments must be UTF-8.");
+      invalidUtf8 = true;
+      args.push("");
+    }
+    const argument = args[index]!;
+    if (index === 0) {
+      const command =
+        argument === "--help" || argument === "-h"
+          ? "help"
+          : argument === "--version"
+            ? "version"
+            : argument;
+      if (["inspect", "schema", "capabilities", "help", "version"].includes(command))
+        output.operation = command;
+    } else if (hintValue) hintValue = false;
+    else if (hintOptions) {
+      if (argument === "--") hintOptions = false;
+      else if (argument === "--json") output.json = true;
+      else if (scalarOptions.includes(argument)) hintValue = true;
     }
   }
+  if (invalidUtf8) usage("Arguments must be UTF-8.");
   const command = args[0] ?? "help";
   const operation =
     command === "--help" || command === "-h"
@@ -106,8 +136,7 @@ function parse(raw: readonly Uint8Array[], maximum: number): Arguments {
       result.all = true;
       continue;
     }
-    if (!["--slide", "--shape", "--part", "--select", "--scope"].includes(argument))
-      usage("Unsupported option.");
+    if (!scalarOptions.includes(argument)) usage("Unsupported option.");
     const value = args[++index];
     if (value === undefined || value.length === 0) usage("Missing option value.");
     if (argument === "--slide") {
@@ -141,6 +170,7 @@ function parse(raw: readonly Uint8Array[], maximum: number): Arguments {
   }
   if (positionals.length !== 1) usage("Inspection requires exactly one input.");
   result.input = positionals[0]!;
+  if (result.input.length === 0) usage("Input path must not be empty.");
   if (result.token && seen.size > (result.json ? 2 : 1))
     usage("Opaque and simple selectors cannot be combined.");
   if (result.part && result.slide !== undefined)
@@ -198,28 +228,17 @@ async function execute(
   request: PptxCommandRequest,
   options: PptxCommandEngineOptions
 ): Promise<PptxCommandOutput> {
-  let json = false;
-  let operation = "inspect";
+  const output = { json: false, operation: "inspect" };
   let result: OfficeResult<unknown>;
   let exitCode = 0;
   let human: string | undefined;
   try {
     request.signal.throwIfAborted();
     if (!Array.isArray(request.args)) usage("Arguments must be byte arrays.");
-    let hintBytes = 0;
-    for (const bytes of request.args) {
-      if (!(bytes instanceof Uint8Array)) usage("Arguments must be byte arrays.");
-      hintBytes += bytes.length + 1;
-      if (hintBytes > options.maxArgumentBytes) break;
-      if (
-        bytes.length === 6 &&
-        bytes.every((byte, index) => byte === [45, 45, 106, 115, 111, 110][index])
-      )
-        json = true;
-    }
-    const args = parse(request.args, options.maxArgumentBytes);
-    json = args.json;
-    operation = args.operation;
+    const args = parse(request.args, options.maxArgumentBytes, output);
+    output.json = args.json;
+    output.operation = args.operation;
+    const operation = args.operation;
     if (args.operation === "help") {
       result = success(operation, { usage: help });
       human = help;
@@ -290,7 +309,7 @@ async function execute(
     };
     result = {
       version: 1,
-      operation,
+      operation: output.operation,
       ok: false,
       data: null,
       warnings: [],
@@ -300,6 +319,7 @@ async function execute(
     };
     human = `pptx: ${diagnostic.code}: ${diagnostic.message}\n`;
   }
+  const { json, operation } = output;
   const encoded = new TextEncoder().encode(
     json ? `${JSON.stringify(result)}\n` : (human ?? `${JSON.stringify(result.data, null, 2)}\n`)
   );

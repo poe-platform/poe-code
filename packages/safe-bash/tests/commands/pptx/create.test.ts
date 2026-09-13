@@ -537,3 +537,22 @@ test("pptx slide mutations preserve identity through ordered JSON selection and 
   assert.equal(show.exitCode, 0, show.stdout + show.stderr);
   assert.equal(JSON.parse(show.stdout).data.inventory.slides[0].show.effective, true);
 });
+
+test("pptx sections and shows preserve quoted empty names and shell pipeline bytes", async () => {
+  const { shell, volume } = fixture();
+  volume.writeFileSync("/work/deck.pptx", await createPresentation({ slides: [{name: "One"}, {name: "Two"}] }, context));
+  const section = await shell.exec("pptx sections add deck.pptx --name '' --slides '[1,2]' --in-place --json");
+  assert.equal(section.exitCode, 0, section.stdout + section.stderr);
+  const list = await shell.exec("pptx sections list deck.pptx --json");
+  assert.equal(list.exitCode, 0, list.stdout + list.stderr);
+  const record = JSON.parse(list.stdout).data.records[0];
+  assert.equal(record.name, "");
+  assert.deepEqual(record.slides, [1,2]);
+  const renamed = await shell.exec(`pptx sections set deck.pptx --select '${record.token}' --name 'Field notes' --in-place --json`);
+  assert.equal(renamed.exitCode, 0, renamed.stdout + renamed.stderr);
+  const shown = await shell.exec("pptx shows add deck.pptx --name 'Route' --slides '[2,1]' --output - | pptx shows get - --json");
+  assert.equal(shown.exitCode, 0, shown.stdout + shown.stderr);
+  assert.deepEqual(JSON.parse(shown.stdout).data.records.map((item: {name:string; slides:number[]}) => ({name:item.name,slides:item.slides})), [{name:"Route",slides:[2,1]}]);
+  const unchanged = await shell.exec("pptx shows list deck.pptx --json");
+  assert.deepEqual(JSON.parse(unchanged.stdout).data.records, []);
+});

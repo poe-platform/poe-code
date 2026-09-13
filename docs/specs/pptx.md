@@ -359,9 +359,16 @@ Selection order is preserved, duplicates rejected. `themePolicy` is required:
 `source` imports the original master/theme closure; `destination` matches
 placeholders by type/index and rejects unresolved mappings, never flattens styles.
 Split emits one deck per selected slide in requested order. Section members must
-be contiguous and nonoverlapping; show members are ordered unique slide positions.
+be contiguous and nonoverlapping; newly supplied show members are ordered unique
+slide positions. Unrelated edits preserve repeated entries in existing shows.
+Section/show list reordering retains container IDs and does not reorder slides.
+Copies inserted strictly inside a section span join that section to retain
+contiguity; boundary/outside insertion infers no membership. Existing show
+memberships retain their original slide references after duplication.
 Deleting slides removes their section/show memberships and empty containers;
-other live inbound links/timing targets cause `dangling-reference`.
+other live inbound links/timing targets cause `dangling-reference`. Removing a
+custom show referenced by active show settings or navigation also fails with
+`dangling-reference`.
 
 Slide insertion binds a required existing layout by exact name or canonical part
 URI and follows its uniquely registered master. Omitted `position` appends.
@@ -991,8 +998,8 @@ schemas, not extra undocumented direct flags.
 | ------------------------------- | ------ | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `shows list` / `shows.list`     | 1      | none                                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | presentation; collection; omitted filter means all in scope; none        |
 | `shows get` / `shows.get`       | 1      | none                                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | presentation; one; ambiguity fails; none                                 |
-| `shows set` / `shows.set`       | 1      | `--name?: string`; `--slides?: Position[]` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; one unless explicit all; zero requires allowEmpty; package |
-| `shows add` / `shows.add`       | 1      | `--name: string`; `--slides: Position[]`   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; operation-specific in format contract; package             |
+| `shows set` / `shows.set`       | 1      | `--name?: string`; `--slides?: Position[]`; `--position?: Position` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; one unless explicit all; zero requires allowEmpty; package |
+| `shows add` / `shows.add`       | 1      | `--name: string`; `--slides: Position[]`; `--position?: Position`   | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; operation-specific in format contract; package             |
 | `shows remove` / `shows.remove` | 1      | none                                       | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | presentation; one unless explicit all; zero requires allowEmpty; package |
 
 ### A. settings

@@ -800,3 +800,182 @@ export const slidesSplitSchema = {
     ]
   }
 };
+
+const membershipRecord = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "name", "position", "slides", "location", "token"],
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+    position: { type: "integer", minimum: 1 },
+    slides: { type: "array", items: { type: "integer", minimum: 1 } },
+    location: { $ref: "#/$defs/location" },
+    token: { type: "string" }
+  }
+};
+export const membershipSchemas = Object.fromEntries(
+  ["sections", "shows"].flatMap((kind) =>
+    ["list", "get", "add", "set", "remove"].map((action) => {
+      const mutation = !["list", "get"].includes(action);
+      const data = mutation
+        ? {
+            oneOf: [
+              { type: "null" },
+              {
+                type: "object",
+                additionalProperties: false,
+                required: ["effects", "outputs", "fingerprint"],
+                properties: {
+                  effects: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["location", "action", "feature"],
+                      properties: {
+                        location: { $ref: "#/$defs/location" },
+                        action: { enum: ["add", "update", "remove"] },
+                        feature: { const: "F09" }
+                      }
+                    }
+                  },
+                  outputs: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["path", "sha256", "bytes"],
+                      properties: {
+                        path: { type: "string" },
+                        sha256: { type: "string" },
+                        bytes: { type: "integer", minimum: 0 }
+                      }
+                    }
+                  },
+                  fingerprint: { type: ["string", "null"] }
+                }
+              }
+            ]
+          }
+        : {
+            oneOf: [
+              { type: "null" },
+              {
+                type: "object",
+                additionalProperties: false,
+                required: ["records", "fingerprint"],
+                properties: {
+                  records: { type: "array", items: membershipRecord },
+                  fingerprint: { type: "string" }
+                }
+              }
+            ]
+          };
+      return [
+        `${kind}.${action}`,
+        {
+          input: inspectSchema.input,
+          options: {
+            $schema: "https://json-schema.org/draft/2020-12/schema",
+            type: "object",
+            additionalProperties: false,
+            ...(action === "add" ? { required: ["name", "slides"] } : {}),
+            properties: {
+              json: { type: "boolean" },
+              limit: xmlSelection.limit,
+              select: { type: "string", minLength: 1 },
+              scope: { const: "presentation" },
+              slide: { type: "integer", minimum: 1 },
+              ...(mutation
+                ? {
+                    output: { type: "string", minLength: 1 },
+                    inPlace: { type: "boolean" },
+                    force: { type: "boolean" },
+                    dryRun: { type: "boolean" },
+                    all: { type: "boolean" },
+                    allowEmpty: { type: "boolean" }
+                  }
+                : {}),
+              ...(["add", "set"].includes(action)
+                ? {
+                    name: { type: "string" },
+                    slides: {
+                      type: "array",
+                      minItems: 1,
+                      uniqueItems: true,
+                      items: { type: "integer", minimum: 1 }
+                    },
+                    position: { type: "integer", minimum: 1 }
+                  }
+                : {})
+            },
+            allOf: [
+              {
+                if: { required: ["select"] },
+                then: {
+                  not: { anyOf: ["slide", "scope", "all"].map((key) => ({ required: [key] })) }
+                }
+              },
+              ...(action === "set"
+                ? [
+                    {
+                      anyOf: ["name", "slides", "position"].map((key) => ({ required: [key] }))
+                    }
+                  ]
+                : []),
+              ...(mutation
+                ? [
+                    {
+                      anyOf: [
+                        { required: ["output"] },
+                        { required: ["inPlace"], properties: { inPlace: { const: true } } },
+                        { required: ["dryRun"], properties: { dryRun: { const: true } } }
+                      ]
+                    },
+                    {
+                      if: { required: ["inPlace"], properties: { inPlace: { const: true } } },
+                      then: { not: { required: ["output"] } }
+                    },
+                    {
+                      if: {
+                        required: ["output", "json"],
+                        properties: { output: { const: "-" }, json: { const: true } }
+                      },
+                      then: { required: ["dryRun"], properties: { dryRun: { const: true } } }
+                    },
+                    {
+                      if: { required: ["force"], properties: { force: { const: true } } },
+                      then: { required: ["output"] }
+                    }
+                  ]
+                : [])
+            ]
+          },
+          result: {
+            ...inspectSchema.result,
+            properties: {
+              ...inspectSchema.result.properties,
+              operation: { const: `${kind}.${action}` },
+              affected: { type: "integer", minimum: 0 },
+              data
+            },
+            allOf: [
+              {
+                if: { properties: { ok: { const: true } } },
+                then: { properties: { data: { type: "object" }, errors: { maxItems: 0 } } },
+                else: {
+                  properties: {
+                    data: { type: "null" },
+                    errors: { minItems: 1 },
+                    locations: { maxItems: 0 }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ];
+    })
+  )
+);

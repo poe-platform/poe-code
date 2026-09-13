@@ -11,6 +11,7 @@ import {
 } from "./selectors.js";
 import type { Diagnostic, OfficeResult, Scope } from "./contracts.js";
 import {
+  membershipSchemas,
   createSchema,
   inspectSchema,
   slidesAddSchema,
@@ -36,6 +37,7 @@ import { duplicateSlides } from "./slide-copy.js";
 import { importSlides, type ImportSlidesOptions } from "./slide-import.js";
 import { mergeSelectedDecks, splitSelectedDecks } from "./slide-merge-split.js";
 import { SlideTransferBudget } from "./slide-transfer-budget.js";
+import { readMemberships, mutateMemberships, type MembershipRecord } from "./memberships.js";
 import { removeSlides } from "./slide-removal.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
@@ -121,6 +123,12 @@ const help =
   "       pptx schema [create | inspect | slides add | slides move | slides set |\n" +
   "                    slides remove | slides duplicate | slides import |\n" +
   "                    slides merge | slides split | xml get | xml set] [--json]\n" +
+  "       pptx schema sections|shows list|get|add|set|remove [--json]\n" +
+  "       pptx sections|shows list|get INPUT [--select TOKEN | --slide N] [--json]\n" +
+  "       pptx sections|shows add INPUT --name TEXT --slides JSON [--position N]\n" +
+  "       pptx sections|shows set INPUT [--name TEXT] [--slides JSON] [--position N]\n" +
+  "       pptx sections|shows remove INPUT [--select TOKEN | --slide N | --all]\n" +
+  "                       [--output PATH | --in-place] [--dry-run] [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
@@ -139,7 +147,8 @@ const help =
   "Lengths require emu, in, cm, mm or pt. Dates/authors are never synthesized.\n" +
   "Create supports Transitional only; supplied templates are unavailable.\n" +
   "Slides move/set/remove/duplicate also accept --selection-json QUERY_OR_ARRAY instead of simple selectors.\n" +
-  "Slide removal requires --reference-policy remove for affected known references; opaque targets are rejected.\n" +
+  "Section/show memberships are pruned automatically on slide removal.\n" +
+  "Other affected known references require --reference-policy remove; opaque targets are rejected.\n" +
   "Import source-slides is an ordered JSON array of unique one-based positions.\n" +
   'Merge sources use --sources \'[{"vfsPath":"source.pptx"}]\'.\n' +
   "Merge applies source-slides to each source, or imports all when omitted.\n" +
@@ -153,6 +162,8 @@ const help =
 
 interface Arguments {
   operation:
+    | `sections.${"list" | "get" | "add" | "set" | "remove"}`
+    | `shows.${"list" | "get" | "add" | "set" | "remove"}`
     | "create"
     | "slides.add"
     | "slides.move"
@@ -169,6 +180,7 @@ interface Arguments {
     | "capabilities"
     | "help"
     | "version";
+  membership?: { name?: string; slides?: readonly number[]; position?: number };
   creation?: CreatePresentationOptions;
   addition?: Partial<AddSlideOptions>;
   mutation?: Omit<MutateSlidesOptions, "selection">;
@@ -285,6 +297,12 @@ function parse(
       ["add", "move", "set", "remove", "duplicate", "import", "merge", "split"].includes(argument)
     ) {
       output.operation = `slides.${argument}`;
+    } else if (
+      index === 1 &&
+      ["sections", "shows"].includes(args[0]!) &&
+      ["list", "get", "add", "set", "remove"].includes(argument)
+    ) {
+      output.operation = `${args[0]}.${argument}`;
     } else if (hintValue) hintValue = false;
     else if (hintOptions) {
       if (argument === "--") hintOptions = false;
@@ -293,10 +311,9 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
-  const command =
-    args[0] === "xml" || args[0] === "slides"
-      ? `${args[0]}.${args.splice(1, 1)[0]}`
-      : (args[0] ?? "help");
+  const command = ["xml", "slides", "sections", "shows"].includes(args[0]!)
+    ? `${args[0]}.${args.splice(1, 1)[0]}`
+    : (args[0] ?? "help");
   const operation =
     command === "--help" || command === "-h"
       ? "help"
@@ -305,6 +322,7 @@ function parse(
         : command;
   if (
     ![
+      ...Object.keys(membershipSchemas),
       "create",
       "slides.add",
       "slides.move",
@@ -371,6 +389,32 @@ function parse(
       (value.length === 0 && !["--author", "--name", "--title", "--body"].includes(argument))
     )
       usage("Missing option value.");
+    if (
+      Object.hasOwn(membershipSchemas, operation) &&
+      ["--name", "--slides", "--position"].includes(argument)
+    ) {
+      if (argument === "--name") result.membership = { ...result.membership, name: value };
+      else if (argument === "--slides") {
+        const slides = commandJson(value);
+        if (
+          !Array.isArray(slides) ||
+          !slides.length ||
+          slides.some((item) => !Number.isSafeInteger(item) || item < 1) ||
+          new Set(slides).size !== slides.length
+        )
+          usage("Members require a nonempty array of unique one-based slide positions.");
+        result.membership = { ...result.membership, slides };
+      } else {
+        if (
+          ![...value].every((c) => c >= "0" && c <= "9") ||
+          !Number.isSafeInteger(Number(value)) ||
+          Number(value) < 1
+        )
+          usage("Section positions must be positive integers.");
+        result.membership = { ...result.membership, position: Number(value) };
+      }
+      continue;
+    }
     if (argument === "--sources") {
       if (operation !== "slides.merge") usage("Sources require slides merge.");
       const sources = commandJson(value);
@@ -713,6 +757,46 @@ function parse(
     operation === "slides.move" ||
     operation === "slides.set" ||
     operation === "slides.remove";
+  const membershipOperation = Object.hasOwn(membershipSchemas, operation);
+  if (membershipOperation) {
+    const action = operation.split(".")[1];
+    const mutation = !["list", "get"].includes(action!);
+    const allowed = [
+      "--json",
+      "--limit",
+      "--select",
+      "--scope",
+      "--slide",
+      ...(mutation
+        ? ["--output", "--in-place", "--force", "--dry-run", "--all", "--allow-empty"]
+        : []),
+      ...(["add", "set"].includes(action!) ? ["--name", "--slides", "--position"] : [])
+    ];
+    if ([...seen].some((flag) => !allowed.includes(flag)))
+      usage("Option does not apply to this membership operation.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Membership operations require one input.");
+    result.input = positionals[0];
+    if (result.scope !== undefined && result.scope !== "presentation")
+      usage("Membership operations require presentation scope.");
+    if (result.token && ["--slide", "--scope", "--all"].some((flag) => seen.has(flag)))
+      usage("Opaque and simple selectors cannot be combined.");
+    if (action === "add" && (result.membership?.name === undefined || !result.membership.slides))
+      usage("Membership creation requires name and slides.");
+    if (action === "set" && !result.membership) usage("Membership set requires update fields.");
+    if (mutation) {
+      if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
+      if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
+      if (!result.dryRun && !result.inPlace && !result.output)
+        usage("Mutation requires a destination.");
+      if (result.force && !result.output) usage("Force requires an explicit output destination.");
+      if (result.output === result.input && result.output !== "-")
+        usage("Replacing input requires --in-place.");
+      if (result.output === "-" && result.json && !result.dryRun)
+        usage("Binary stdout cannot be combined with JSON.");
+    }
+    return result;
+  }
   if (result.allowEmpty && !slideMutation)
     usage("Allow-empty requires a supported slide mutation.");
   if (operation === "slides.merge" || operation === "slides.split") {
@@ -877,6 +961,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        ...Object.keys(membershipSchemas),
         "create",
         "inspect",
         "slides.add",
@@ -1142,6 +1227,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            ...membershipSchemas,
             create: createSchema,
             inspect: inspectSchema,
             "slides.add": slidesAddSchema,
@@ -1176,6 +1262,16 @@ async function execute(
             subset:
               "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Move ordered slides while retaining IDs; set names and visibility. Remove slides with explicit known-reference removal policy; reject unresolved opaque references and retain shared resources. Duplicate slide-local shapes and notes with fresh identities; clone mutable dependent resources and reject unsupported references. Layout reassignment and background changes are unavailable."
           },
+          sections: {
+            level: "edit",
+            subset:
+              "Create, rename, reorder and remove sections with contiguous nonoverlapping membership; stable IDs and supported extension preservation."
+          },
+          shows: {
+            level: "edit",
+            subset:
+              "Create, rename, replace ordered membership and remove custom shows; stable IDs, hidden slides and existing repeated entries are preserved."
+          },
           slideImport: {
             level: "edit",
             subset:
@@ -1198,7 +1294,126 @@ async function execute(
         },
         io: { input: "explicit-vfs-or-stdin", network: false, nativeRuntime: false }
       });
-    else if (args.operation === "slides.merge" || args.operation === "slides.split") {
+    else if (Object.hasOwn(membershipSchemas, args.operation)) {
+      const [kind, action] = args.operation.split(".") as [
+        "sections" | "shows",
+        "list" | "get" | "add" | "set" | "remove"
+      ];
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const index = await readSelectionIndex(bytes, context);
+      const owner = index.parts.find((part) => part.scope === "presentation")!.part;
+      const before = await readMemberships(bytes, kind, context);
+      const located = (record: MembershipRecord, fingerprint: string) => {
+        const location = {
+          fingerprint,
+          scope: "presentation" as const,
+          owner,
+          objectId: `${kind}:${record.id}`,
+          coordinateSystem: "identity" as const
+        };
+        return { ...record, location, token: JSON.stringify(location) };
+      };
+      let targets =
+        args.slide === undefined
+          ? [...before]
+          : before.filter((record) => record.slides.includes(args.slide!));
+      if (args.token) {
+        const location = decodeSelectionToken(args.token);
+        if (location.fingerprint !== index.fingerprint) throw new SelectionError("stale-selection");
+        if (
+          location.scope !== "presentation" ||
+          location.owner !== owner ||
+          !location.objectId.startsWith(`${kind}:`)
+        )
+          throw new SelectionError("invalid-selection");
+        targets = before.filter((record) => `${kind}:${record.id}` === location.objectId);
+      }
+      if (action !== "add" && action !== "list") {
+        if (!targets.length && !(args.allowEmpty && action !== "get"))
+          throw new SelectionError("missing-selection");
+        if (targets.length > 1 && !args.all) throw new SelectionError("ambiguous-selection");
+      }
+      if (action === "list" || action === "get") {
+        const records = targets.map((record) => located(record, index.fingerprint));
+        result = {
+          ...success(operation, { fingerprint: index.fingerprint, records }),
+          locations: records.map((record) => record.location)
+        };
+        human =
+          records
+            .map(
+              (record) =>
+                `${record.position} ${JSON.stringify(record.name)} [${record.slides.join(", ")}]`
+            )
+            .join("\n") + "\n";
+      } else {
+        const changed = await mutateMemberships(
+          bytes,
+          kind,
+          {
+            action,
+            ...args.membership,
+            ...(action === "add"
+              ? {}
+              : { selection: { ids: targets.map((target) => target.id), all: args.all ?? false } }),
+            allowEmpty: args.allowEmpty ?? false
+          },
+          context
+        );
+        const after = await readMemberships(changed, kind, context);
+        const afterIndex = await readSelectionIndex(changed, context);
+        const affected =
+          action === "add"
+            ? after.filter((record) => !before.some((previous) => previous.id === record.id))
+            : action === "remove"
+              ? targets
+              : targets.map((target) => after.find((record) => record.id === target.id)!);
+        const records = affected.map((record) =>
+          located(record, action === "remove" ? index.fingerprint : afterIndex.fingerprint)
+        );
+        const dryRun = args.dryRun ?? false;
+        const destination = args.inPlace ? args.input! : args.output;
+        result = {
+          ...success(operation, {
+            effects:
+              afterIndex.fingerprint === index.fingerprint
+                ? []
+                : records.map((record) => ({
+                    location: record.location,
+                    action: action === "set" ? "update" : action,
+                    feature: "F09"
+                  })),
+            outputs: dryRun
+              ? []
+              : [{ path: destination!, sha256: afterIndex.fingerprint, bytes: changed.length }],
+            fingerprint: dryRun ? null : afterIndex.fingerprint
+          }),
+          affected: records.length,
+          locations: records.map((record) => record.location)
+        };
+        human = `${dryRun ? "Validated" : "Updated"} ${records.length} ${records.length === 1 ? kind.slice(0, -1) : kind}\n`;
+        if (destination === "-" && !dryRun) binary = changed;
+        else if (destination && destination !== "-") {
+          if (!request.publishOutput)
+            throw Object.assign(new Error("Output publication capability is unavailable."), {
+              code: "publication-unsupported"
+            });
+          publication = {
+            inputPath: args.input!,
+            outputPath: destination,
+            bytes: changed,
+            originalBytes: bytes,
+            inPlace: args.inPlace ?? false,
+            force: args.force ?? false,
+            dryRun
+          };
+        }
+      }
+    } else if (args.operation === "slides.merge" || args.operation === "slides.split") {
       const context = { ...options.context, signal: request.signal };
       const budget = new SlideTransferBudget(context);
       let remaining = context.limits.maxBytes;

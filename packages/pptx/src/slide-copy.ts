@@ -1,3 +1,4 @@
+import { readMemberships } from "./memberships.js";
 import { remapCopiedXml } from "./slide-copy-xml.js";
 import { readBinary } from "./bytes.js";
 import type { BinaryInput } from "./contracts.js";
@@ -191,6 +192,10 @@ export async function duplicateSlides(
     )
       unsupported();
   if (!selected.length) return source;
+  const sections = await readMemberships(source, "sections", context);
+  const containingSection = sections.find(
+    (section) => section.slides[0]! < options.position && section.slides.at(-1)! >= options.position
+  );
   const list = presentation.root.children.find(
     (node) => node.name.namespace === d.p && node.name.localName === "sldIdLst"
   )!;
@@ -218,6 +223,7 @@ export async function duplicateSlides(
   let nextSlideId = Math.max(255, ...usedSlideIds) + 1;
   let nextRelId = 1;
   const inserted: string[] = [];
+  const insertedIds: number[] = [];
   let copiedBytes = 0,
     copiedParts = 0,
     copiedRelationships = 0;
@@ -345,6 +351,7 @@ export async function duplicateSlides(
     while (usedRelIds.has(`rId${nextRelId}`)) nextRelId++;
     const id = `rId${nextRelId++}`;
     usedRelIds.add(id);
+    insertedIds.push(nextSlideId);
     inserted.push(
       `<p:sldId xmlns="" xmlns:p="${d.p}" xmlns:r="${d.r}" id="${nextSlideId++}" r:id="${id}"/>`
     );
@@ -353,6 +360,24 @@ export async function duplicateSlides(
     ]);
   }
   presentation = presentation.spliceChildren(list, options.position - 1, 0, inserted);
+  if (containingSection) {
+    const sectionNamespace = "http://schemas.microsoft.com/office/powerpoint/2010/main";
+    const section = elements(presentation).find(
+      ({ node }) =>
+        node.name.namespace === sectionNamespace &&
+        node.name.localName === "section" &&
+        attr(node, "id") === containingSection.id
+    )!.node;
+    const members = section.children.find(
+      (node) => node.name.namespace === sectionNamespace && node.name.localName === "sldIdLst"
+    )!;
+    presentation = presentation.spliceChildren(
+      members,
+      options.position - containingSection.slides[0]!,
+      0,
+      insertedIds.map((id) => `<s:sldId xmlns:s="${sectionNamespace}" id="${id}"/>`)
+    );
+  }
   changes.set(main, presentation.bytes());
   changes.set(relPart(main), mainRels.bytes());
   changes.set("/[Content_Types].xml", manifest.bytes());

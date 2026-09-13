@@ -71,3 +71,12 @@ export {
   type SplitSlidesOptions,
   type SplitSlideOutput
 } from "./slide-merge-split.js";
+
+export {
+  readMemberships,
+  mutateMemberships,
+  type MembershipKind,
+  type MembershipRecord,
+  type MembershipSelection,
+  type MutateMembershipsOptions
+} from "./memberships.js";

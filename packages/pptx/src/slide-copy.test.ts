@@ -164,6 +164,56 @@ describe("slide dependency copying", () => {
       )
         expect(map.get(name), name).toEqual(bytes);
   });
+  it.each([
+    { position: 1, all: false, members: ["256", "257"] },
+    { position: 2, all: false, members: ["256", "258", "257"] },
+    { position: 3, all: false, members: ["256", "257"] },
+    { position: 2, all: true, members: ["256", "258", "259", "257"] }
+  ])(
+    "keeps section membership contiguous at $position with all=$all",
+    async ({ position, all, members }) => {
+      const sectionNs = "http://schemas.microsoft.com/office/powerpoint/2010/main";
+      const map = parts(
+        await createPresentation({ slides: [{ name: "Birch" }, { name: "Pine" }] }, context)
+      );
+      const hidden = parseXmlPart(map.get("ppt/slides/slide1.xml")!, context.xmlLimits);
+      map.set(
+        "ppt/slides/slide1.xml",
+        hidden
+          .merge(hidden.root, { attributes: [{ namespace: "", localName: "show", value: "0" }] })
+          .bytes()
+      );
+      append(
+        map,
+        "ppt/presentation.xml",
+        `<p:custShowLst xmlns:p="${p}" xmlns:r="${r}"><p:custShow name="Trail" id="7"><p:sldLst><p:sld r:id="rId2"/><p:sld r:id="rId3"/><p:sld r:id="rId2"/></p:sldLst></p:custShow></p:custShowLst>`
+      );
+      append(
+        map,
+        "ppt/presentation.xml",
+        `<p:extLst xmlns:p="${p}"><p:ext uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}"><s:sectionLst xmlns:s="${sectionNs}"><s:section name="Trees" id="{00000000-0000-0000-0000-000000000001}"><s:sldIdLst><s:sldId id="256"/><s:sldId id="257"/></s:sldIdLst></s:section></s:sectionLst></p:ext></p:extLst>`
+      );
+      const output = parts(
+        await duplicateSlides(
+          archive(map),
+          { selection: all ? { kind: "slide", all: true } : selection, position },
+          context
+        )
+      );
+      const xml = output.get("ppt/presentation.xml")!;
+      expect(
+        attrs(xml, "sldId")
+          .slice(all ? 4 : 3)
+          .map((x) => x.id)
+      ).toEqual(members);
+      expect(attrs(xml, "section")).toEqual([
+        { name: "Trees", id: "{00000000-0000-0000-0000-000000000001}" }
+      ]);
+      expect(attrs(xml, "custShow")).toEqual([{ name: "Trail", id: "7" }]);
+      expect(attrs(xml, "sld").map((x) => x["r:id"])).toEqual(["rId2", "rId3", "rId2"]);
+      expect(attrs(output.get("ppt/slides/slide1-copy1.xml")!, "sld")[0]!.show).toBe("0");
+    }
+  );
   it("isolates notes, charts and embedded data while sharing image and layout resources", async () => {
     const input = archive(await fixture());
     const map = parts(await duplicateSlides(input, { selection, position: 3 }, context));

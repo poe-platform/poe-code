@@ -391,3 +391,79 @@ export const createSchema = {
     }
   }
 };
+
+export const slidesAddSchema = {
+  description:
+    "Insert a slide at a one-based position (default append), explicitly bound to an exact layout name or part URI. Preserve inherited layout defaults; ambiguous placeholder matches fail.",
+  input: inspectSchema.input,
+  options: {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    type: "object",
+    additionalProperties: false,
+    required: ["layout"],
+    properties: {
+      layout: { type: "string", minLength: 1 },
+      position: {
+        type: "integer",
+        minimum: 1,
+        maximum: 9007199254740991,
+        description: "One-based final insertion position; omitted means append."
+      },
+      name: { type: "string" },
+      hidden: { type: "boolean" },
+      followMasterBackground: { type: "boolean" },
+      title: { type: "string" },
+      body: { type: "string" },
+      placeholders: {
+        type: "array",
+        description: "CLI --placeholders-json; exact placeholder type and optional index.",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["type", "text"],
+          properties: {
+            type: { type: "string", minLength: 1 },
+            index: { type: "integer", minimum: 0, maximum: 4294967295 },
+            text: { type: "string" }
+          }
+        }
+      },
+      json: { type: "boolean", default: false },
+      limit: xmlSelection.limit,
+      output: { type: "string", minLength: 1 },
+      inPlace: { type: "boolean", default: false },
+      force: { type: "boolean", default: false },
+      dryRun: { type: "boolean", default: false }
+    },
+    allOf: xmlSetSchema.options.allOf.slice(xmlSelectionRules.length)
+  },
+  result: {
+    ...createSchema.result,
+    properties: {
+      ...createSchema.result.properties,
+      operation: { const: "slides.add" },
+      data: {
+        oneOf: [
+          { type: "null" },
+          {
+            ...createSchema.result.properties.data.oneOf[1],
+            properties: {
+              ...createSchema.result.properties.data.oneOf[1]!.properties,
+              effects: {
+                ...createSchema.result.properties.data.oneOf[1]!.properties!.effects,
+                items: {
+                  ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items,
+                  properties: {
+                    ...createSchema.result.properties.data.oneOf[1]!.properties!.effects.items
+                      .properties,
+                    feature: { const: "F07" }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+};

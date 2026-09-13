@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "status": "proposed-documentation-only",
   "implementedThrough": null,
-  "scope": "All F01–F60 format features, all 2,407 reconciled upstream API records, and all 17 additive bounded-view members in the existing public API map. Full command design remains proposed; current direct XML operation evidence is recorded separately from unimplemented batch/model contracts.",
+  "scope": "All F01–F60 format features, all 2,407 reconciled upstream API records, and all 17 additive bounded-view members in the existing public API map. Full command design remains proposed; current direct XML and slide-insertion operation evidence is recorded separately from unimplemented batch/model contracts.",
   "authority": ["docs/specs/office-cli.md", "docs/specs/office-sdk.md", "docs/specs/pptx.md"],
   "inputEvidence": {
     "docs/specs/pptx.md": {
@@ -4811,31 +4811,34 @@
           },
           "followMasterBackground": {
             "type": "boolean"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 1048576
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 1048576
+          },
+          "placeholders": {
+            "type": "array",
+            "maxItems": 250000,
+            "items": {
+              "$ref": "#/$defs/PlaceholderText"
+            }
           }
         },
         "required": ["layout"],
         "additionalProperties": false
       },
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "slide",
-        "output",
-        "inPlace",
-        "force",
-        "dryRun",
-        "all",
-        "allowEmpty"
-      ],
+      "commonOptions": ["json", "limit", "output", "inPlace", "force", "dryRun"],
       "commonProfile": "edit",
       "inputArity": 1,
       "help": ["pptx", "help", "slides", "add"],
       "schema": ["pptx", "schema", "slides", "add"],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "description": "Owner-scoped slides operation; changes only the declared supported subset.",
+      "description": "Insert one slide into the presentation using a uniquely resolved explicit layout and its registered master. Text assignments resolve by type/index; preserve inherited defaults and reject ambiguity.",
       "tests": ["command.slides.add"],
       "cli": ["pptx", "slides", "add", "INPUT"],
       "flags": {
@@ -4843,38 +4846,18 @@
         "name": "--name",
         "position": "--position",
         "hidden": "--hidden",
-        "followMasterBackground": "--follow-master-background"
+        "followMasterBackground": "--follow-master-background",
+        "title": "--title",
+        "body": "--body",
+        "placeholders": "--placeholders-json"
       },
-      "constraints": [],
+      "constraints": [
+        "title matches title/ctrTitle; body matches body/obj/subTitle; each assignment selects exactly one text-capable placeholder.",
+        "No slide/object selectors apply to inserting a new slide. Missing layout or placeholder and ambiguous matching fail before publication."
+      ],
       "batchOptions": {
         "type": "object",
-        "properties": {
-          "select": {
-            "$ref": "#/$defs/Location"
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "slides",
-              "notes",
-              "layouts",
-              "masters",
-              "notes-master",
-              "handout-master",
-              "presentation",
-              "shared"
-            ]
-          },
-          "slide": {
-            "$ref": "#/$defs/Position"
-          },
-          "all": {
-            "type": "boolean"
-          },
-          "allowEmpty": {
-            "type": "boolean"
-          }
-        },
+        "properties": {},
         "required": [],
         "additionalProperties": false
       },
@@ -4902,15 +4885,6 @@
           "limit": {
             "$ref": "#/commonOptions/limit/schema"
           },
-          "select": {
-            "$ref": "#/commonOptions/select/schema"
-          },
-          "scope": {
-            "$ref": "#/commonOptions/scope/schema"
-          },
-          "slide": {
-            "$ref": "#/commonOptions/slide/schema"
-          },
           "output": {
             "$ref": "#/commonOptions/output/schema"
           },
@@ -4922,18 +4896,25 @@
           },
           "dryRun": {
             "$ref": "#/commonOptions/dryRun/schema"
-          },
-          "all": {
-            "$ref": "#/commonOptions/all/schema"
-          },
-          "allowEmpty": {
-            "$ref": "#/commonOptions/allowEmpty/schema"
           }
         },
         "required": [],
         "additionalProperties": false
       },
-      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1."
+      "flagEncoding": "Control flags are presence-only; property booleans require true/false (or explicit null if nullable). Structured arguments use one JSON argument. See spec 6.1.",
+      "implementationEvidence": {
+        "status": "direct-byte-operation-implemented",
+        "sdk": "addSlide(input, options, context)",
+        "tests": [
+          "packages/pptx/src/slides.test.ts",
+          "packages/pptx/src/command-slides.test.ts",
+          "packages/safe-bash/tests/commands/pptx/create.test.ts"
+        ],
+        "limitations": [
+          "Batch transport and live slides.add_slide model API remain pending.",
+          "Conditional presentation structures and unsupported edit profiles fail explicitly."
+        ]
+      }
     },
     "slides.remove": {
       "path": ["slides", "remove"],
@@ -227209,6 +227190,27 @@
       },
       "maxItems": 250000,
       "minItems": 2
+    },
+    "PlaceholderText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "text"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1048576
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 1048576
+        }
+      }
     }
   },
   "tests": {

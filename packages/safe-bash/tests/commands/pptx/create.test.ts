@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, createPresentation } from "pptx";
+import { addSlide, createPptxCommandEngine, createPresentation, readSelectionIndex } from "pptx";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -74,6 +74,13 @@ function fixture() {
   fs.readStream = async function* (path, options) {
     options?.signal?.throwIfAborted();
     yield new Uint8Array(volume.readFileSync(path) as Buffer);
+  };
+  fs.readFile = async (path, options) => {
+    options?.signal?.throwIfAborted();
+    const bytes = new Uint8Array(volume.readFileSync(path) as Buffer);
+    if (options?.maxBytes !== undefined && bytes.length > options.maxBytes)
+      throw new FsError("EFBIG");
+    return bytes;
   };
   const shell = new Shell({ fs, cwd: "/work" }).use(
     pptxCommands({
@@ -161,4 +168,77 @@ test("pptx creation force replaces only the explicit destination and streams cle
     media: 0
   });
   assert.equal(volume.readFileSync("/work/keep.txt", "utf8"), "keep");
+});
+
+for (const position of [1, 2, 3]) {
+  test(`pptx slides add publishes at boundary ${position} through the same SDK behavior`, async () => {
+    const { shell, volume } = fixture();
+    const original = await createPresentation(
+      { slides: [{ name: "Start" }, { name: "End" }] },
+      context
+    );
+    volume.writeFileSync("/work/source deck.pptx", original);
+    const result = await shell.exec(
+      `pptx slides add 'source deck.pptx' --layout Blank --position ${position} --name 'River survey' --output 'new deck.pptx' --json`
+    );
+    assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(JSON.parse(result.stdout).operation, "slides.add");
+    const output = new Uint8Array(volume.readFileSync("/work/new deck.pptx") as Buffer);
+    assert.deepEqual(
+      output,
+      await addSlide(original, { layout: "Blank", position, name: "River survey" }, context)
+    );
+    const names = (await readSelectionIndex(output, context)).slides.map((slide) => slide.name);
+    const expected = ["Start", "End"];
+    expected.splice(position - 1, 0, "River survey");
+    assert.deepEqual(names, expected);
+    assert.deepEqual(
+      new Uint8Array(volume.readFileSync("/work/source deck.pptx") as Buffer),
+      original
+    );
+  });
+}
+
+test("pptx slides add supports in-place editing, dry runs and binary pipelines", async () => {
+  const { shell, volume } = fixture();
+  const original = await createPresentation({}, context);
+  volume.writeFileSync("/work/deck.pptx", original);
+  const dry = await shell.exec(
+    "pptx slides add deck.pptx --layout Blank --in-place --dry-run --json"
+  );
+  assert.equal(dry.exitCode, 0, dry.stdout + dry.stderr);
+  assert.deepEqual(JSON.parse(dry.stdout).data.outputs, []);
+  assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
+  const changed = await shell.exec(
+    "pptx slides add deck.pptx --layout Blank --name 'First slide' --in-place --json"
+  );
+  assert.equal(changed.exitCode, 0, changed.stdout + changed.stderr);
+  const piped = await shell.exec(
+    "pptx slides add deck.pptx --layout Blank --name Second --output - | pptx inspect - --json"
+  );
+  assert.equal(piped.exitCode, 0, piped.stdout + piped.stderr);
+  assert.equal(piped.stderr, "");
+  assert.deepEqual(
+    JSON.parse(piped.stdout).data.records.map((record: { name: string }) => record.name),
+    ["First slide", "Second"]
+  );
+});
+
+test("pptx slides add rejects missing placeholders and out-of-range positions without publication", async () => {
+  for (const options of ["--position 2", "--title 'No matching heading'", "--layout Missing"]) {
+    const { shell, volume } = fixture();
+    const original = await createPresentation({}, context);
+    volume.writeFileSync("/work/deck.pptx", original);
+    const result = await shell.exec(
+      `pptx slides add deck.pptx ${options.startsWith("--layout") ? "" : "--layout Blank"} ${options} --output out.pptx --json`
+    );
+    assert.equal(
+      result.exitCode,
+      options.startsWith("--position") ? 2 : 1,
+      result.stdout + result.stderr
+    );
+    assert.equal(volume.existsSync("/work/out.pptx"), false);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
+  }
 });

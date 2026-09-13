@@ -22,8 +22,8 @@ cases. Capture the command's human output for visual review. Do not commit binar
 fixtures or screenshots. Run maintained pptx test/lint/build closure and the focused
 safe-bash suite; record exact outcomes before local atomic commits.
 
-Status: implementation in progress; baseline creation has no insertion SDK or
-command. Full public model/API coverage remains a separate visible obligation.
+Status: insertion SDK and command implemented and verified. Full public model/API
+coverage remains a separate visible obligation.
 
 ## Verified implementation
 
@@ -51,7 +51,11 @@ Maintained validation checkpoint:
 - `node --import tsx --test packages/safe-bash/tests/commands/pptx/create.test.ts packages/safe-bash/tests/commands/pptx/selectors.test.ts packages/safe-bash/tests/commands/pptx/inventory.test.ts`:
   54 cases passed, including SDK/CLI parity at all insertion boundaries, in-place,
   dry-run, pipeline and failed-publication cases.
-- Guarded root ESLint is being monitored separately for the safe-bash test edit.
+- `npm run lint:eslint`: passed with 0 errors and 0 warnings; all 11,863
+  configured files linted, with 25 authenticated receipts.
+- The write-spec checker passed for `docs/specs/pptx.md` with 0 warnings.
+  Proposed whole-format metadata remains unchanged; this task does not claim
+  conformance of all proposed families.
 
 ## Disposable QA receipt
 
@@ -67,10 +71,21 @@ independent PowerPoint rendering or whole-format fidelity certification.
 The generic maintained `npm run screenshot` runner captured actual pptx engine
 help because this utility has no root poe-code command entry. The root reviewed
 `.cache/pptx-corpus/qa-slide-insertion-help.png`: flags and syntax are readable,
-complete and consistently aligned. The QA outputs have the owned prefix
+complete and consistently aligned. The matching dry-run result screenshot
+`qa-slide-insertion-result.png` shows the validated position/name without clipping.
+The QA outputs have the owned prefix
 `.cache/pptx-corpus/qa-slide-insertion-`; they are disposable and excluded from Git.
 No downloaded bytes are used by unit tests or shipped by either package.
 
 The byte operation is complete for this scope; broader live object-model methods,
 inherited members, enums and unexposed operations remain explicit obligations in
 research accounting. No whole pipeline, README edit, push or release was run.
+
+## Local delivery
+
+- `d8667bad4`: parsed XML child insertion.
+- `ba547b718`: byte SDK, original regressions and research accounting.
+- CLI wiring, schemas, usage and reconciled contracts form the final atomic commit.
+
+All commits are local on main. No remote-main delivery or release was requested
+or performed. Unrelated working-tree files remain untouched.

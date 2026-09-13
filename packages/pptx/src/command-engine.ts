@@ -8,8 +8,15 @@ import {
   type SelectionRecord
 } from "./selectors.js";
 import type { Diagnostic, OfficeResult, Scope } from "./contracts.js";
-import { createSchema, inspectSchema, xmlGetSchema, xmlSetSchema } from "./command-schema.js";
+import {
+  createSchema,
+  inspectSchema,
+  slidesAddSchema,
+  xmlGetSchema,
+  xmlSetSchema
+} from "./command-schema.js";
 import { createPresentation, type CreatePresentationOptions } from "./creation.js";
+import { addSlide, type AddSlideOptions } from "./slides.js";
 import { commandJson, commandLength, commandTimestamp } from "./command-engine-values.js";
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import type { ValidationLimits } from "./validation.js";
@@ -63,10 +70,14 @@ const help =
   "       pptx inspect INPUT [--slide N] [--shape NAME] [--all] [--json]\n" +
   "       pptx inspect INPUT --part URI [--scope SCOPE] [--json]\n" +
   "       pptx inspect INPUT --select TOKEN [--json]\n" +
+  "       pptx slides add INPUT --layout LAYOUT [--position N] [--name TEXT]\n" +
+  "                       [--title TEXT] [--body TEXT] [--placeholders-json JSON]\n" +
+  "                       [--hidden true|false] [--follow-master-background true|false]\n" +
+  "                       [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
   "       pptx xml get INPUT --part URI [--scope SCOPE] [--pretty] [--json]\n" +
   "       pptx xml set INPUT --part URI --file XML [--scope SCOPE]\n" +
   "                    [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
-  "       pptx schema [create | inspect | xml get | xml set] [--json]\n" +
+  "       pptx schema [create | inspect | slides add | xml get | xml set] [--json]\n" +
   "       pptx capabilities [--json]\n" +
   "Slide positions are one-based. Shape names are exact; numeric strings are names.\n" +
   "Duplicate names require --all. Default scope: slides.\n" +
@@ -83,11 +94,14 @@ const help =
   "must remain unchanged. Semantic checks are partial, not full schema validation.\n" +
   "Create defaults: empty deck, 12192000 x 6858000 EMUs, blank layout and master.\n" +
   "Lengths require emu, in, cm, mm or pt. Dates/authors are never synthesized.\n" +
-  "Create supports Transitional only; supplied templates are unavailable.\n";
+  "Create supports Transitional only; supplied templates are unavailable.\n" +
+  "Slides add requires an exact layout name or part URI; position defaults to append.\n" +
+  "Title/body match placeholder types; indexed bindings use --placeholders-json.\n";
 
 interface Arguments {
   operation:
     | "create"
+    | "slides.add"
     | "inspect"
     | "xml.get"
     | "xml.set"
@@ -96,6 +110,7 @@ interface Arguments {
     | "help"
     | "version";
   creation?: CreatePresentationOptions;
+  addition?: Partial<AddSlideOptions>;
   template?: string;
   pretty?: boolean;
   file?: string;
@@ -137,7 +152,15 @@ const scalarOptions = [
   "--timestamp",
   "--author",
   "--slides-json",
-  "--properties-json"
+  "--properties-json",
+  "--layout",
+  "--position",
+  "--name",
+  "--hidden",
+  "--follow-master-background",
+  "--title",
+  "--body",
+  "--placeholders-json"
 ];
 
 function parse(
@@ -177,6 +200,8 @@ function parse(
         output.operation = command;
     } else if (index === 1 && args[0] === "xml" && ["get", "set"].includes(argument)) {
       output.operation = `xml.${argument}`;
+    } else if (index === 1 && args[0] === "slides" && argument === "add") {
+      output.operation = "slides.add";
     } else if (hintValue) hintValue = false;
     else if (hintOptions) {
       if (argument === "--") hintOptions = false;
@@ -185,7 +210,10 @@ function parse(
     }
   }
   if (invalidUtf8) usage("Arguments must be UTF-8.");
-  const command = args[0] === "xml" ? `xml.${args.splice(1, 1)[0]}` : (args[0] ?? "help");
+  const command =
+    args[0] === "xml" || args[0] === "slides"
+      ? `${args[0]}.${args.splice(1, 1)[0]}`
+      : (args[0] ?? "help");
   const operation =
     command === "--help" || command === "-h"
       ? "help"
@@ -195,6 +223,7 @@ function parse(
   if (
     ![
       "create",
+      "slides.add",
       "inspect",
       "xml.get",
       "xml.set",
@@ -238,8 +267,63 @@ function parse(
     }
     if (!scalarOptions.includes(argument)) usage("Unsupported option.");
     const value = args[++index];
-    if (value === undefined || (value.length === 0 && argument !== "--author"))
+    if (
+      value === undefined ||
+      (value.length === 0 && !["--author", "--name", "--title", "--body"].includes(argument))
+    )
       usage("Missing option value.");
+    if (
+      [
+        "--layout",
+        "--position",
+        "--name",
+        "--hidden",
+        "--follow-master-background",
+        "--title",
+        "--body",
+        "--placeholders-json"
+      ].includes(argument)
+    ) {
+      if (operation !== "slides.add") usage("Slide addition options require slides add.");
+      result.addition ??= {};
+      if (argument === "--position") {
+        if (
+          ![...value].every((character) => character >= "0" && character <= "9") ||
+          !Number.isSafeInteger(Number(value)) ||
+          Number(value) < 1
+        )
+          usage("Insertion positions must be positive one-based integers.");
+        result.addition = { ...result.addition, position: Number(value) };
+      } else if (argument === "--hidden" || argument === "--follow-master-background") {
+        if (value !== "true" && value !== "false")
+          usage("Slide boolean options require true or false.");
+        result.addition = {
+          ...result.addition,
+          [argument === "--hidden" ? "hidden" : "followMasterBackground"]: value === "true"
+        };
+      } else if (argument === "--placeholders-json") {
+        const placeholders = commandJson(value);
+        if (!Array.isArray(placeholders)) usage("Placeholders require an array.");
+        for (const binding of placeholders) {
+          if (
+            !binding ||
+            typeof binding !== "object" ||
+            Array.isArray(binding) ||
+            Object.keys(binding).some((key) => !["type", "index", "text"].includes(key)) ||
+            typeof binding.type !== "string" ||
+            !binding.type.length ||
+            typeof binding.text !== "string" ||
+            (Object.hasOwn(binding, "index") &&
+              (!Number.isSafeInteger(binding.index) ||
+                binding.index < 0 ||
+                binding.index > 4294967295))
+          )
+            usage("Placeholder bindings require type, optional nonnegative index, and text.");
+        }
+        result.addition = { ...result.addition, placeholders };
+      } else result.addition = { ...result.addition, [argument.slice(2)]: value };
+      continue;
+    }
     if (
       [
         "--width",
@@ -383,12 +467,35 @@ function parse(
       usage("Binary stdout cannot be combined with JSON.");
     return result;
   }
-  if (operation !== "inspect" && !xml) {
+  if (operation === "slides.add") {
+    const allowed = [
+      "--layout",
+      "--position",
+      "--name",
+      "--hidden",
+      "--follow-master-background",
+      "--title",
+      "--body",
+      "--placeholders-json",
+      "--json",
+      "--limit",
+      "--output",
+      "--in-place",
+      "--force",
+      "--dry-run"
+    ];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to slide addition.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Slide addition requires exactly one input.");
+    result.input = positionals[0];
+    if (!result.addition?.layout) usage("Slide addition requires --layout.");
+  } else if (operation !== "inspect" && !xml) {
     if ([...seen].some((option) => option !== "--json"))
       usage("Selection options require inspect.");
     if (
       (operation === "schema" || operation === "help") &&
-      ["create", "inspect", "xml.get", "xml.set"].includes(positionals.join("."))
+      ["create", "inspect", "slides.add", "xml.get", "xml.set"].includes(positionals.join("."))
     ) {
       result.schemaPath = positionals.join(".");
       return result;
@@ -411,22 +518,27 @@ function parse(
   if (result.slide !== undefined && result.scope !== undefined && result.scope !== "slides")
     usage("Slide positions require slides scope.");
   const mutationOptions = ["--file", "--output", "--in-place", "--force", "--dry-run"];
-  if (operation !== "xml.set" && mutationOptions.some((option) => seen.has(option)))
+  if (
+    operation !== "xml.set" &&
+    operation !== "slides.add" &&
+    mutationOptions.some((option) => seen.has(option))
+  )
     usage("Publication options require xml set.");
-  if (!xml && result.limits) usage("Limit overrides require XML operations.");
+  if (!xml && operation !== "slides.add" && result.limits)
+    usage("Limit overrides require XML operations or slides add.");
   if (operation !== "xml.get" && result.pretty) usage("Pretty output requires xml get.");
   if (xml) {
     if (result.slide !== undefined || result.shape || result.all)
       usage("XML operations require one part selector.");
     if (!result.part && !result.token) usage("XML operations require a part or opaque selector.");
   }
-  if (operation === "xml.set") {
-    if (!result.file) usage("XML replacement requires --file.");
+  if (operation === "xml.set" || operation === "slides.add") {
+    if (operation === "xml.set" && !result.file) usage("XML replacement requires --file.");
     if (result.input === "-" && result.file === "-") usage("Only one input may consume stdin.");
     if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
     if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
     if (!result.dryRun && !result.inPlace && !result.output)
-      usage("XML replacement requires a destination.");
+      usage("Mutation requires a destination.");
     if (result.force && !result.output) usage("Force requires an explicit output destination.");
     if (result.output === result.input && result.output !== "-")
       usage("Replacing input requires --in-place.");
@@ -565,6 +677,7 @@ async function execute(
           Object.entries({
             create: createSchema,
             inspect: inspectSchema,
+            "slides.add": slidesAddSchema,
             "xml.get": xmlGetSchema,
             "xml.set": xmlSetSchema
           }).filter(([path]) => !args.schemaPath || path === args.schemaPath)
@@ -584,7 +697,12 @@ async function execute(
             subset:
               "ordered slides, owner graph, part hashes, media parts and slide visibility; semantic content remains uninspected"
           },
-          editing: { level: "reject", reason: "Semantic model editing is not exposed." },
+          slides: {
+            level: "edit",
+            subset:
+              "Insert at a validated position using an explicit layout/master; populate unambiguous type/index placeholders. Other slide lifecycle edits are unavailable."
+          },
+          editing: { level: "reject", reason: "Other semantic model editing is not exposed." },
           xml: {
             level: options.context.validationLimits ? "edit" : "reject",
             subset:
@@ -670,7 +788,45 @@ async function execute(
           ? args.part
           : undefined;
       const records = metadata ? [] : selected(index, args);
-      if (args.operation === "xml.get" || args.operation === "xml.set") {
+      if (args.operation === "slides.add") {
+        const context = { ...options.context, signal: request.signal };
+        const changed = await addSlide(bytes, args.addition as AddSlideOptions, context);
+        const after = await readSelectionIndex(changed, context);
+        const slide = after.slides[(args.addition?.position ?? after.slides.length) - 1]!;
+        const dryRun = args.dryRun ?? false;
+        const destination = args.inPlace ? args.input! : args.output;
+        result = {
+          ...success(
+            operation,
+            {
+              effects: [{ location: slide.location, action: "add", feature: "F07" }],
+              outputs: dryRun
+                ? []
+                : [{ path: destination!, sha256: after.fingerprint, bytes: changed.length }],
+              fingerprint: dryRun ? null : after.fingerprint
+            },
+            [slide]
+          ),
+          affected: 1
+        };
+        human = `${dryRun ? "Validated" : "Added"} slide ${slide.position} ${JSON.stringify(slide.name)}\n`;
+        if (destination === "-" && !dryRun) binary = changed;
+        else if (destination && destination !== "-") {
+          if (!request.publishOutput)
+            throw Object.assign(new Error("Output publication capability is unavailable."), {
+              code: "publication-unsupported"
+            });
+          publication = {
+            inputPath: args.input!,
+            outputPath: destination,
+            bytes: changed,
+            originalBytes: bytes,
+            inPlace: args.inPlace ?? false,
+            force: args.force ?? false,
+            dryRun
+          };
+        }
+      } else if (args.operation === "xml.get" || args.operation === "xml.set") {
         if (!metadata && (records.length !== 1 || records[0]!.kind === "object"))
           throw new SelectionError("invalid-selection");
         const part = metadata ?? records[0]!.part;

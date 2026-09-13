@@ -363,6 +363,17 @@ be contiguous and nonoverlapping; show members are ordered unique slide position
 Deleting slides removes their section/show memberships and empty containers;
 other live inbound links/timing targets cause `dangling-reference`.
 
+Slide insertion binds a required existing layout by exact name or canonical part
+URI and follows its uniquely registered master. Omitted `position` appends.
+`title` matches `title`/`ctrTitle`; `body` matches `body`/`obj`/`subTitle`.
+`placeholders` is an array of closed `{type: string, index?: uint32, text: string}`
+objects, supplied as `--placeholders-json` on the CLI. Each assignment must match
+exactly one placeholder, and repeated assignments or ambiguous layout indices
+fail. Text assignment supports those five text-capable types; rich-content
+placeholders retain their types and reject text coercion. New slides retain
+layout defaults through inheritance and omit latent date/footer/slide-number
+placeholders. Shape IDs belong to the new slide and do not consult other slides.
+
 Master/layout/theme removal fails while referenced. Layout names and master
 names are exact scoped lookups. `layouts apply` requires `placeholderPolicy`:
 `type-index` matches each placeholder key and keeps unmatched local content;
@@ -956,7 +967,7 @@ schemas, not extra undocumented direct flags.
 | `slides list` / `slides.list`           | 1      | none                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; collection; omitted filter means all in scope; none        |
 | `slides get` / `slides.get`             | 1      | none                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`                                                                             | slides; one; ambiguity fails; none                                 |
 | `slides set` / `slides.set`             | 1      | `--layout?: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean` | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
-| `slides add` / `slides.add`             | 1      | `--layout: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean`  | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
+| `slides add` / `slides.add`             | 1      | `--layout: string`; `--name?: string`; `--position?: Position`; `--hidden?: boolean`; `--follow-master-background?: boolean`; `--title?: string`; `--body?: string`; `--placeholders-json?: PlaceholderText[]`  | `--json`, `--limit`, `--output`, `--in-place`, `--force`, `--dry-run` | slides; operation-specific in format contract; package             |
 | `slides remove` / `slides.remove`       | 1      | none                                                                                                                          | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; one unless explicit all; zero requires allowEmpty; package |
 | `slides duplicate` / `slides.duplicate` | 1      | `--position: Position`                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
 | `slides move` / `slides.move`           | 1      | `--position: Position`                                                                                                        | `--json`, `--limit`, `--select`, `--scope`, `--slide`, `--output`, `--in-place`, `--force`, `--dry-run`, `--all`, `--allow-empty` | slides; operation-specific in format contract; package             |
@@ -2523,5 +2534,34 @@ method/property evaluation.
   },
   "maxItems": 250000,
   "minItems": 2
+}
+```
+
+### C. PlaceholderText
+
+```json
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "text"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1048576
+    },
+    "index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "text": {
+      "type": "string",
+      "maxLength": 1048576
+    }
+  }
 }
 ```

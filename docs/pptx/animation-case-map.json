@@ -1,0 +1,2769 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Timing inventory research with exact source variants and adjacent media obligations; not whole-API or animation-editing parity.",
+  "selection": "All timing/animation-named unit and expanded BDD records, plus every retained media-case-map row. Generic sequence words in chart, OPC, adjustment and shape-collection tests denote unrelated collections and are excluded from this focused timing ledger.",
+  "counts": {
+    "directTimingUnit": 3,
+    "directTimingBdd": 0,
+    "totalUnit": 48,
+    "adjacentBdd": 6,
+    "uniqueSourceCases": 54,
+    "adjacentApiRows": 48,
+    "priorImplementedEnums": 4,
+    "pendingAdjacentPublicModelRows": 44
+  },
+  "rows": [
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture0]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1273,
+      "kind": "unit",
+      "scope": "direct-timing",
+      "sourceVariant": {
+        "before": "absent timing",
+        "after": "one video timing"
+      },
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/animations.test.ts",
+          "name": "inventories media structure without repairing it: %s",
+          "verified": true,
+          "verification": "Passed in maintained package run and final 14-case SDK suite; source creation behavior remains pending."
+        },
+        {
+          "file": "packages/pptx/src/animations.test.ts",
+          "name": "returns empty timelines and rejects invalid selectors and exhausted XML budgets",
+          "verified": true,
+          "obligation": "Absent timing yields an empty graph; no creating getter runs."
+        }
+      ],
+      "originalAcceptanceObligation": "Inspect each original before/after structure without mutation; creation or replacement remains an independent unimplemented obligation.",
+      "reason": "Source case mutates timing. A read-only graph inventory cannot satisfy its mutation assertion; neither variant is counted as full adaptation."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture1]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1273,
+      "kind": "unit",
+      "scope": "direct-timing",
+      "sourceVariant": {
+        "before": "one video timing",
+        "after": "two video timings"
+      },
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/animations.test.ts",
+          "name": "inventories media structure without repairing it: %s",
+          "verified": true,
+          "verification": "Passed in maintained package run and final 14-case SDK suite; source creation behavior remains pending."
+        }
+      ],
+      "originalAcceptanceObligation": "Inspect each original before/after structure without mutation; creation or replacement remains an independent unimplemented obligation.",
+      "reason": "Source case mutates timing. A read-only graph inventory cannot satisfy its mutation assertion; neither variant is counted as full adaptation."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_adds_a_video_timing_to_help[add_timing_fixture2]",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1273,
+      "kind": "unit",
+      "scope": "direct-timing",
+      "sourceVariant": {
+        "before": "timing without child time-node list",
+        "after": "replacement timing with one video"
+      },
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/animations.test.ts",
+          "name": "inventories media structure without repairing it: %s",
+          "verified": true,
+          "verification": "Passed in maintained package run and final 14-case SDK suite; source creation behavior remains pending."
+        }
+      ],
+      "originalAcceptanceObligation": "Inspect each original before/after structure without mutation; creation or replacement remains an independent unimplemented obligation.",
+      "reason": "Source case mutates timing. A read-only graph inventory cannot satisfy its mutation assertion; neither variant is counted as full adaptation."
+    },
+    {
+      "sourceCase": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_extension[/ppt/media/image.PnG-PnG]",
+      "sourceFile": "tests/opc/test_packuri.py",
+      "sourceLine": 32,
+      "kind": "unit",
+      "scope": "adjacent-related-package-path-infrastructure",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Generic package URI filename/extension/index semantics are related infrastructure, not media inventory behavior; retained as a separate obligation.",
+      "originalAcceptanceObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/opc/test_packuri.py::DescribePackURI::it_knows_its_filename[/ppt/media/image.png-image.png]",
+      "sourceFile": "tests/opc/test_packuri.py",
+      "sourceLine": 43,
+      "kind": "unit",
+      "scope": "adjacent-related-package-path-infrastructure",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Generic package URI filename/extension/index semantics are related infrastructure, not media inventory behavior; retained as a separate obligation.",
+      "originalAcceptanceObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index[/ppt/media/image42.png-42]",
+      "sourceFile": "tests/opc/test_packuri.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "adjacent-related-package-path-infrastructure",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Generic package URI filename/extension/index semantics are related infrastructure, not media inventory behavior; retained as a separate obligation.",
+      "originalAcceptanceObligation": "Preserve case-sensitive extension, basename and trailing numeric filename index from canonical package URI.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/oxml/shapes/test_picture.py::DescribeCT_Picture::it_can_create_a_new_video_pic_element",
+      "sourceFile": "tests/oxml/shapes/test_picture.py",
+      "sourceLine": 59,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/parts/test_media.py::DescribeMediaPart::it_can_construct_from_a_media_object",
+      "sourceFile": "tests/parts/test_media.py",
+      "sourceLine": 15,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Create an owned media value/part from supplied bytes and declared type; no host access.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/parts/test_media.py::DescribeMediaPart::it_knows_the_sha1_hash_of_the_media",
+      "sourceFile": "tests/parts/test_media.py",
+      "sourceLine": 30,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Inventory independently asserts SHA-1 metadata as well as SHA-256; live Video/MediaPart SHA-1 properties remain unimplemented.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/parts/test_slide.py::DescribeSlidePart::it_can_get_or_add_a_video_part",
+      "sourceFile": "tests/parts/test_slide.py",
+      "sourceLine": 348,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_shape_type",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 146,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Returned Movie shape reports symbolic MEDIA value 16 through the live API.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_media_type",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 150,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "uses declared content type for an extension-only media reference"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Movie type reports the documented PP_MEDIA_TYPE.MOVIE value through live API; inventory uses video classification.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_media_format",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 154,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return owned live _MediaFormat public interface; no exclusion due to leading underscore.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture0]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 160,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "reports present and absent poster references (%s)"
+        }
+      ],
+      "reason": "Poster relationship/hash/type and absent poster are observed; live Image-returning poster_frame getter remains pending.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture1]",
+      "sourceFile": "tests/shapes/test_picture.py",
+      "sourceLine": 160,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "reports present and absent poster references (%s)"
+        }
+      ],
+      "reason": "Poster relationship/hash/type and absent poster are observed; live Image-returning poster_frame getter remains pending.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::DescribeSlideShapes::it_can_add_a_movie",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1242,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_creates_a_new_movie_pic_element",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1763,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_creates_a_pic_element",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1788,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_shape_name_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1800,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Derive a neutral shape label from admitted explicit media metadata.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_constructs_the_video_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1805,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Build a media value from explicit input/type, retaining admitted bytes and metadata.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_media_rId_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1812,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Readback retains separate video/media relationship IDs sharing one part. Creating/deduplicating/rebinding these relationships remains pending.",
+      "originalAcceptanceObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_knows_the_video_rId_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1816,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Readback retains separate video/media relationship IDs sharing one part. Creating/deduplicating/rebinding these relationships remains pending.",
+      "originalAcceptanceObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_adds_the_poster_frame_image_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1820,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_poster_frame_image_from_the_specified_path_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1829,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Resolve supplied/absent poster through explicit admitted bytes and image relationship; preserve absence on reads.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::but_it_gets_the_poster_frame_image_from_the_default_bytes_when_None_specified",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1842,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Use an original inert poster only where the model mapping permits a default; never copy source asset or extract frames.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_video_part_rIds_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1856,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_creation_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Readback retains separate video/media relationship IDs sharing one part. Creating/deduplicating/rebinding these relationships remains pending.",
+      "originalAcceptanceObligation": "Keep separate video/media relationship IDs that address the same part; creation is a separate operation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/shapes/test_shapetree.py::Describe_MoviePicElementCreator::it_gets_the_slide_part_to_help",
+      "sourceFile": "tests/shapes/test_shapetree.py",
+      "sourceLine": 1865,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return an owner-bound bounded slide part view, not unrestricted host/XML access.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_can_construct_from_a_path",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 20,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "admits bounded streams and explicit in-memory paths without modifying source bytes"
+        }
+      ],
+      "reason": "Inventory exercises explicit memfs path and bounded stream admission with no host I/O; Video constructor/filename semantics remain pending.",
+      "originalAcceptanceObligation": "Admit explicit VFS path asynchronously; preserve admitted basename; reject missing capability without host lookup.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_can_construct_from_a_stream",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 30,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "admits bounded streams and explicit in-memory paths without modifying source bytes"
+        }
+      ],
+      "reason": "Inventory exercises explicit memfs path and bounded stream admission with no host I/O; Video constructor/filename semantics remain pending.",
+      "originalAcceptanceObligation": "Admit explicit bounded byte source asynchronously; no fabricated source filename.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_can_construct_from_a_blob",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 36,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Create an owned media value/part from supplied bytes and declared type; no host access.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_provides_access_to_the_video_bytestream",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 42,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return owned original bytes without decoder/native runtime or hidden mutation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_its_content_type",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 46,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Retain declared MIME type without treating it as codec validation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_a_filename_for_the_video[filename_fixture0]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 50,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Retain an explicitly supplied filename.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_a_filename_for_the_video[filename_fixture1]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 50,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Use original neutral default movie.vid when filename absent and fallback extension vid.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_an_extension_for_the_video[ext_fixture0]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Explicit filename extension takes precedence over MIME inference.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_an_extension_for_the_video[ext_fixture1]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Infer mp4 for declared video/mp4 when filename absent.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_an_extension_for_the_video[ext_fixture2]",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 54,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Unknown video MIME uses vid fallback extension when filename absent.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_media.py::DescribeVideo::it_knows_its_sha1_hash",
+      "sourceFile": "tests/test_media.py",
+      "sourceLine": 58,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Inventory independently asserts SHA-1 metadata as well as SHA-256; live Video/MediaPart SHA-1 properties remain unimplemented.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_can_get_or_add_a_media_part",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 40,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_knows_the_next_available_media_partname[nmp_fixture0]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 51,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_knows_the_next_available_media_partname[nmp_fixture1]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 51,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_knows_the_next_available_media_partname[nmp_fixture2]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 51,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Choose the first free media part index without collision; retain each occupied/gapped variant.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::DescribePackage::it_provides_access_to_its_MediaParts_object",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 56,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Provide package-owned collection with deterministic iteration and byte identity; detached inventory arrays are only an observational equivalent.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_iterate_the_media_parts_in_the_package",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 275,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "retains distinct bindings and occurrences when a clip part is shared"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Provide package-owned collection with deterministic iteration and byte identity; detached inventory arrays are only an observational equivalent.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_get_or_add_a_media_part[True]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 279,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_get_or_add_a_media_part[False]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 279,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Distinguish existing byte-identical media reuse from adding new media; retain duplicate relationships and deterministic allocation.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_find_a_media_part_by_sha1[True]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 289,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "tests/test_package.py::Describe_MediaParts::it_can_find_a_media_part_by_sha1[False]",
+      "sourceFile": "tests/test_package.py",
+      "sourceLine": 289,
+      "kind": "unit",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Expose SHA-1 compatibility metadata independently from SHA-256 integrity identity; dedup hit/miss keeps distinct outcomes.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:7:Movie shape",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 7,
+      "kind": "bdd",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Obtain the live Movie interface from its owning shape collection without reproducing wrapper-class mock identity.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:12:Movie.shape_type",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 12,
+      "kind": "bdd",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Returned Movie shape reports symbolic MEDIA value 16 through the live API.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:17:Movie.media_type",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 17,
+      "kind": "bdd",
+      "scope": "adjacent-media",
+      "status": "inventory_observation_covered_model_pending",
+      "originalTests": [
+        {
+          "file": "packages/pptx/src/media.test.ts",
+          "name": "uses declared content type for an extension-only media reference"
+        }
+      ],
+      "reason": "Detached inventory observes type/resource membership; original model object and property semantics remain pending.",
+      "originalAcceptanceObligation": "Movie type reports the documented PP_MEDIA_TYPE.MOVIE value through live API; inventory uses video classification.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "features/shp-movie-props.feature:22:Movie.media_format",
+      "sourceFile": "features/shp-movie-props.feature",
+      "sourceLine": 22,
+      "kind": "bdd",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Return owned live _MediaFormat public interface; no exclusion due to leading underscore.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "features/shp-shapes.feature:229:SlideShapes.add_movie() -- @1.1 add_movie() preconditions",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 229,
+      "kind": "bdd",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    },
+    {
+      "sourceCase": "features/shp-shapes.feature:230:SlideShapes.add_movie() -- @1.2 add_movie() preconditions",
+      "sourceFile": "features/shp-shapes.feature",
+      "sourceLine": 230,
+      "kind": "bdd",
+      "scope": "adjacent-media",
+      "status": "pending_behavior",
+      "originalTests": [],
+      "reason": "Inventory does not implement media construction, model identity, insertion or editing.",
+      "originalAcceptanceObligation": "Insert owned movie, geometry, poster and both media/video relationships atomically; save and re-read for empty/nonempty collections.",
+      "priorEvidence": "media-case-map.json",
+      "animationDisposition": "No additional media-model completion claimed by timing inventory."
+    }
+  ],
+  "publicApiRows": [
+    {
+      "sourceId": "pptx.enum.shapes.MSO_AUTO_SHAPE_TYPE.ACTION_BUTTON_MOVIE",
+      "status": "implemented_enum_value",
+      "target": {
+        "owner": "MSO_AUTO_SHAPE_TYPE",
+        "member": "ACTION_BUTTON_MOVIE",
+        "form": "enum-member",
+        "ts_signature": "readonly ACTION_BUTTON_MOVIE: MSO_AUTO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_AUTO_SHAPE_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.MEDIA",
+      "status": "implemented_enum_value",
+      "target": {
+        "owner": "MSO_SHAPE_TYPE",
+        "member": "MEDIA",
+        "form": "enum-member",
+        "ts_signature": "readonly MEDIA: MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.MSO_SHAPE_TYPE.WEB_VIDEO",
+      "status": "implemented_enum_value",
+      "target": {
+        "owner": "MSO_SHAPE_TYPE",
+        "member": "WEB_VIDEO",
+        "form": "enum-member",
+        "ts_signature": "readonly WEB_VIDEO: MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "PP_MEDIA_TYPE",
+        "form": "EnumType",
+        "ts_signature": "interface PP_MEDIA_TYPE extends EnumValue",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.MIXED",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "MIXED",
+        "form": "enum-member",
+        "ts_signature": "readonly MIXED: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.MOVIE",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "MOVIE",
+        "form": "enum-member",
+        "ts_signature": "readonly MOVIE: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.OTHER",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "OTHER",
+        "form": "enum-member",
+        "ts_signature": "readonly OTHER: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.SOUND",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "SOUND",
+        "form": "enum-member",
+        "ts_signature": "readonly SOUND: PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": {
+        "decision": "D09",
+        "resolution": "Use the reconciled return/signature and api-reconciliation.md."
+      },
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.name",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string",
+        "arguments": [],
+        "getter": "get name(): string",
+        "setter": null,
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_MEDIA_TYPE.value",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "PP_MEDIA_TYPE",
+        "member": "value",
+        "form": "property",
+        "ts_signature": "get value(): number",
+        "arguments": [],
+        "getter": "get value(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.enum.shapes.PP_PLACEHOLDER_TYPE.MEDIA_CLIP",
+      "status": "implemented_enum_value",
+      "target": {
+        "owner": "PP_PLACEHOLDER_TYPE",
+        "member": "MEDIA_CLIP",
+        "form": "enum-member",
+        "ts_signature": "readonly MEDIA_CLIP: PP_PLACEHOLDER_TYPE",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "PP_PLACEHOLDER_TYPE",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J04",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Existing exported enum symbol and independent value assertions verified; this does not implement Movie or add_movie.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "Movie",
+        "form": "returned-interface",
+        "ts_signature": "interface Movie",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "Movie",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.__eq__",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.__init__",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = Movie",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "Movie",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.click_action",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "click_action",
+        "form": "lazyproperty",
+        "ts_signature": "get click_action(): ActionSetting",
+        "arguments": [],
+        "getter": "get click_action(): ActionSetting",
+        "setter": null,
+        "return_type": "ActionSetting",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_bottom",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_bottom",
+        "form": "property",
+        "ts_signature": "get crop_bottom(): number; set crop_bottom(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_bottom(): number",
+        "setter": "set crop_bottom(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_left",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_left",
+        "form": "property",
+        "ts_signature": "get crop_left(): number; set crop_left(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_left(): number",
+        "setter": "set crop_left(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_right",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_right",
+        "form": "property",
+        "ts_signature": "get crop_right(): number; set crop_right(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_right(): number",
+        "setter": "set crop_right(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.crop_top",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "crop_top",
+        "form": "property",
+        "ts_signature": "get crop_top(): number; set crop_top(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get crop_top(): number",
+        "setter": "set crop_top(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.element",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.get_or_add_ln",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "get_or_add_ln",
+        "form": "function",
+        "ts_signature": "get_or_add_ln(): LineView",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "LineView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.has_chart",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "has_chart",
+        "form": "property",
+        "ts_signature": "get has_chart(): boolean",
+        "arguments": [],
+        "getter": "get has_chart(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.has_table",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "has_table",
+        "form": "property",
+        "ts_signature": "get has_table(): boolean",
+        "arguments": [],
+        "getter": "get has_table(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.has_text_frame",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "has_text_frame",
+        "form": "property",
+        "ts_signature": "get has_text_frame(): boolean",
+        "arguments": [],
+        "getter": "get has_text_frame(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.height",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "height",
+        "form": "property",
+        "ts_signature": "get height(): Length; set height(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get height(): Length",
+        "setter": "set height(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.is_placeholder",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "is_placeholder",
+        "form": "property",
+        "ts_signature": "get is_placeholder(): boolean",
+        "arguments": [],
+        "getter": "get is_placeholder(): boolean",
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.left",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "left",
+        "form": "property",
+        "ts_signature": "get left(): Length; set left(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get left(): Length",
+        "setter": "set left(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.line",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "line",
+        "form": "lazyproperty",
+        "ts_signature": "get line(): LineFormat",
+        "arguments": [],
+        "getter": "get line(): LineFormat",
+        "setter": null,
+        "return_type": "LineFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.ln",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "ln",
+        "form": "property",
+        "ts_signature": "get ln(): LineView | null",
+        "arguments": [],
+        "getter": "get ln(): LineView | null",
+        "setter": null,
+        "return_type": "LineView | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.media_format",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "media_format",
+        "form": "lazyproperty",
+        "ts_signature": "get media_format(): _MediaFormat",
+        "arguments": [],
+        "getter": "get media_format(): _MediaFormat",
+        "setter": null,
+        "return_type": "_MediaFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.media_type",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "media_type",
+        "form": "property",
+        "ts_signature": "get media_type(): PP_MEDIA_TYPE",
+        "arguments": [],
+        "getter": "get media_type(): PP_MEDIA_TYPE",
+        "setter": null,
+        "return_type": "PP_MEDIA_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.name",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "name",
+        "form": "property",
+        "ts_signature": "get name(): string; set name(value: string)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "string",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get name(): string",
+        "setter": "set name(value: string)",
+        "return_type": "string",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.part",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.placeholder_format",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "placeholder_format",
+        "form": "property",
+        "ts_signature": "get placeholder_format(): _PlaceholderFormat",
+        "arguments": [],
+        "getter": "get placeholder_format(): _PlaceholderFormat",
+        "setter": null,
+        "return_type": "_PlaceholderFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "source": "ValueError",
+            "class": "ValueError",
+            "code": "invalid-value",
+            "exit": 1,
+            "when": "Declared source failure; see pinned evidence span."
+          },
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.poster_frame",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "poster_frame",
+        "form": "property",
+        "ts_signature": "get poster_frame(): Image | null",
+        "arguments": [],
+        "getter": "get poster_frame(): Image | null",
+        "setter": null,
+        "return_type": "Image | null",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.rotation",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "rotation",
+        "form": "property",
+        "ts_signature": "get rotation(): number; set rotation(value: number)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "number",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get rotation(): number",
+        "setter": "set rotation(value: number)",
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.shadow",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "shadow",
+        "form": "lazyproperty",
+        "ts_signature": "get shadow(): ShadowFormat",
+        "arguments": [],
+        "getter": "get shadow(): ShadowFormat",
+        "setter": null,
+        "return_type": "ShadowFormat",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.shape_id",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "shape_id",
+        "form": "property",
+        "ts_signature": "get shape_id(): number",
+        "arguments": [],
+        "getter": "get shape_id(): number",
+        "setter": null,
+        "return_type": "number",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.shape_type",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "shape_type",
+        "form": "property",
+        "ts_signature": "get shape_type(): MSO_SHAPE_TYPE",
+        "arguments": [],
+        "getter": "get shape_type(): MSO_SHAPE_TYPE",
+        "setter": null,
+        "return_type": "MSO_SHAPE_TYPE",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.top",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "top",
+        "form": "property",
+        "ts_signature": "get top(): Length; set top(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get top(): Length",
+        "setter": "set top(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture.Movie.width",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "Movie",
+        "member": "width",
+        "form": "property",
+        "ts_signature": "get width(): Length; set width(value: Length)",
+        "arguments": [
+          {
+            "name": "value",
+            "ts_type": "Length",
+            "position": "assignment",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": "get width(): Length",
+        "setter": "set width(value: Length)",
+        "return_type": "Length",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Assignment updates this member on the live owner; validate before mutation and serialize through the shared engine."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "_MediaFormat",
+        "form": "returned-interface",
+        "ts_signature": "interface _MediaFormat",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "_MediaFormat",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.__eq__",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "equals",
+        "form": "language-protocol",
+        "ts_signature": "equals(other: ModelComparable): boolean",
+        "arguments": [
+          {
+            "name": "other",
+            "ts_type": "ModelComparable",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "boolean",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J03",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.__init__",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "constructor",
+        "form": "owner-acquisition",
+        "ts_signature": "type Acquired = _MediaFormat",
+        "arguments": [],
+        "getter": null,
+        "setter": null,
+        "return_type": "_MediaFormat",
+        "ownership": "immutable value/type metadata"
+      },
+      "mappings": [
+        "J01",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Pure value/protocol access unless the pinned declaration evidence specifies owned model mutation."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.element",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "element",
+        "form": "property",
+        "ts_signature": "get element(): XmlElementView",
+        "arguments": [],
+        "getter": "get element(): XmlElementView",
+        "setter": null,
+        "return_type": "XmlElementView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.parent",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "parent",
+        "form": "property",
+        "ts_signature": "get parent(): OwnedModel",
+        "arguments": [],
+        "getter": "get parent(): OwnedModel",
+        "setter": null,
+        "return_type": "OwnedModel",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.picture._MediaFormat.part",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "_MediaFormat",
+        "member": "part",
+        "form": "property",
+        "ts_signature": "get part(): PartView",
+        "arguments": [],
+        "getter": "get part(): PartView",
+        "setter": null,
+        "return_type": "PartView",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J02",
+        "J09",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "PropertyAccessError",
+            "code": "read-only-property",
+            "exit": 1,
+            "when": "Assignment to a read-only public property."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Read the documented value/live view; cached wrapper allocation alone is not a package edit."
+      ],
+      "documentationDrift": null,
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    },
+    {
+      "sourceId": "pptx.shapes.shapetree.SlideShapes.add_movie",
+      "status": "pending_public_model",
+      "target": {
+        "owner": "SlideShapes",
+        "member": "add_movie",
+        "form": "function",
+        "ts_signature": "add_movie(movie_file: BinaryInput, left: Length, top: Length, width: Length, height: Length, poster_frame_image?: BinaryInput | null, mime_type?: string): Promise<Movie>",
+        "arguments": [
+          {
+            "name": "movie_file",
+            "target_binding": "movie_file",
+            "ts_type": "BinaryInput",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "left",
+            "target_binding": "left",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "top",
+            "target_binding": "top",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "width",
+            "target_binding": "width",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "height",
+            "target_binding": "height",
+            "ts_type": "Length",
+            "position": "positional",
+            "optional": false,
+            "source_default": null,
+            "target_default": null,
+            "undefined_behavior": "required",
+            "null_behavior": "TypeError"
+          },
+          {
+            "name": "poster_frame_image",
+            "target_binding": "poster_frame_image",
+            "ts_type": "BinaryInput | null",
+            "position": "positional",
+            "optional": true,
+            "source_default": "None",
+            "target_default": "null",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "explicit absence/inheritance, never default coercion"
+          },
+          {
+            "name": "mime_type",
+            "target_binding": "mime_type",
+            "ts_type": "string",
+            "position": "positional",
+            "optional": true,
+            "source_default": "CT.VIDEO",
+            "target_default": "\"video/unknown\"",
+            "undefined_behavior": "use target_default",
+            "null_behavior": "TypeError"
+          }
+        ],
+        "getter": null,
+        "setter": null,
+        "return_type": "Promise<Movie>",
+        "ownership": "live owner-bound model/view or immutable nullable value, according to declared return type"
+      },
+      "mappings": [
+        "J01",
+        "J06",
+        "J08",
+        "J10"
+      ],
+      "errors": {
+        "declared": [
+          {
+            "class": "IndexError",
+            "code": "index-out-of-range",
+            "exit": 1,
+            "when": "Invalid key/index according to collection contract."
+          }
+        ],
+        "shared_profile": "owner-validation",
+        "transitive_policy": "Shared validation, format/security, admission and publication failures remain possible; absence of direct raises is not a no-error guarantee."
+      },
+      "sideEffects": [
+        "Always async explicit byte/capability admission or publication; admit every supplied input before exposing mutation. No native runtime, ambient host I/O or network.",
+        "Append the documented child/content to its owner in source order."
+      ],
+      "documentationDrift": {
+        "decision": "D03",
+        "resolution": "Use the reconciled return/signature and api-reconciliation.md."
+      },
+      "reason": "Detached media inventory records do not implement this live model member, returned interface, enum or helper. Retained regardless of leading underscore, inheritance or absence of source tests.",
+      "evidence": "media-api-map.json",
+      "animationDisposition": "Detached inventory adds no completion of this source public model member."
+    }
+  ],
+  "validation": {
+    "inventoryRowsResolved": true,
+    "sourceImplementationCopied": false,
+    "sourceFixtureBytesCopied": false,
+    "standaloneNotice": "upstream-license-notice.txt",
+    "productChecks": "Maintained pptx package: 146 files, 3906 tests passed; package lint and selected workspace build closure passed. Final added ordering/selector tests passed in focused suites (14 SDK, 4 command); safe-bash nonempty inventory test and registration discovery assertion passed. Final receipts: docs/plans/pptx-animation-qa.md. Source creation parity remains pending."
+  }
+}

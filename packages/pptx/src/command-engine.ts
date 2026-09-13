@@ -27,6 +27,8 @@ import { validateShapePath, pathFromVertices, type ShapePath } from "./shape-pat
 import { readFields, mutateFields, validateFieldOptions, type FieldUpdate } from "./fields.js";
 import { fieldSchemas } from "./fields-schema.js";
 import { transitionSchemas, transitionsUsage } from "./transitions-schema.js";
+import { animationSchemas, animationsUsage, animationItems } from "./animations-schema.js";
+import { readAnimations } from "./animations.js";
 import { readTransitions, mutateTransitions, validateTransitionOptions, type MutateTransitionsOptions } from "./transitions.js";
 import { equationSchemas, equationsUsage } from "./equations-schema.js";
 import { validateEquationCommand, executeEquationCommand } from "./command-equations.js";
@@ -338,6 +340,7 @@ const help =
   "       pptx themes set INPUT --scope shared [--slide N | --part URI | --select TOKEN]\n" +
   "                       [--name TEXT] [--color-slot SLOT --color RRGGBB] [--font-slot SLOT --font TEXT]\n" +
   "       pptx transitions list|get|add|set|remove INPUT [--slide N] [options]\n" +
+  "       pptx animations list|get INPUT [--slide N --shape NAME] [--json]\n" +
   "       pptx backgrounds list|get INPUT [--slide N | --part URI] [--scope SCOPE] [--json]\n" +
   "       pptx backgrounds set INPUT [--slide N | --part URI | --select TOKEN] [--scope SCOPE]\n" +
   "                       --kind solid --color RRGGBB | --kind gradient --stops JSON [--angle N]\n" +
@@ -416,6 +419,7 @@ interface Arguments {
     | `connectors.${"list" | "get" | "add" | "set" | "remove"}`
     | `fields.${"list" | "get" | "set" | "add" | "remove"}`
     | `transitions.${"list" | "get" | "set" | "add" | "remove"}`
+    | `animations.${"list" | "get"}`
     | `masters.${"list" | "get" | "add" | "set"}`
     | `layouts.${"list" | "get" | "add" | "set" | "remove" | "apply"}`
     | "shapes.paths.list"
@@ -834,6 +838,7 @@ function parse(
     } else if (
       index === 1 &&
       [
+        "animations",
         "transitions",
         "equations",
         "charts",
@@ -905,6 +910,7 @@ function parse(
   }
   if (args[0] === "text" && !["get", "replace", "fit"].includes(args[1]!)) args.splice(1, 0, "get");
   const command = [
+    "animations",
     "transitions",
     "media",
     "equations",
@@ -935,6 +941,7 @@ function parse(
         : command;
   if (
     ![
+      ...Object.keys(animationSchemas),
       ...Object.keys(transitionSchemas),
       ...Object.keys(mediaSchemas),
       ...Object.keys(imageSchemas),
@@ -994,6 +1001,7 @@ function parse(
     }
     if (
       (operation.startsWith("media.") ||
+        operation.startsWith("animations.") ||
         operation.startsWith("transitions.") ||
         operation.startsWith("images.") ||
         operation.startsWith("equations.") ||
@@ -2521,6 +2529,16 @@ function parse(
     result.input = positionals[0];
     return result;
   }
+  if (Object.hasOwn(animationSchemas, operation)) {
+    const allowed = ["--json", "--limit", "--select", "--scope", "--slide", "--shape"];
+    if ([...seen].some(flag => !allowed.includes(flag))) usage("Option does not apply to animations.");
+    if (positionals.length !== 1 || !positionals[0]) usage("Animations require one input.");
+    result.input = positionals[0];
+    if (result.scope !== undefined && result.scope !== "slides") usage("Animations require slides scope.");
+    if (result.token && ["--scope", "--slide", "--shape"].some(flag => seen.has(flag))) usage("Opaque and simple selectors cannot be combined.");
+    if (result.shape !== undefined && result.slide === undefined) usage("Shape selection requires a slide.");
+    return result;
+  }
   if (operation.startsWith("transitions.")) {
     const mutation = !["transitions.list", "transitions.get"].includes(operation);
     const editing = ["transitions.add", "transitions.set"].includes(operation);
@@ -3267,6 +3285,7 @@ function parse(
     if (
       (operation === "schema" || operation === "help") &&
       [
+        ...Object.keys(animationSchemas),
         ...Object.keys(transitionSchemas),
         ...Object.keys(mediaSchemas),
         ...Object.keys(imageSchemas),
@@ -3687,6 +3706,7 @@ async function execute(
                             "List/get are read-only; get requires one field. Remove accepts no policy.\n"
                           : usage;
       if (args.schemaPath?.startsWith("transitions.")) resolvedUsage = transitionsUsage;
+      if (args.schemaPath?.startsWith("animations.")) resolvedUsage = animationsUsage;
       if (args.schemaPath?.startsWith("media.")) resolvedUsage = mediaUsage;
       if (args.schemaPath === "images.set")
         resolvedUsage =
@@ -3773,6 +3793,7 @@ async function execute(
         version: 1,
         operations: Object.fromEntries(
           Object.entries({
+            ...animationSchemas,
             ...transitionSchemas,
             ...imageSchemas,
             ...chartSchemas,
@@ -3866,6 +3887,12 @@ async function execute(
             operations: ["shapes.group", "shapes.ungroup"],
             subset:
               "Contiguous sibling grouping and single-group ungrouping with explicit EMU tolerance; retain original shape IDs, world geometry and z-order. Identity groups preserve child XML; transformed ungrouping requires rectangles without text, styles or strokes, nested groups and quarter-turn rotation chains. Unsupported geometry and affected references are rejected."
+          },
+          animations: {
+            supported: true,
+            level: "read",
+            operations: Object.keys(animationSchemas),
+            subset: "Bounded timing graphs, targets, triggers and media interactions. Complex timelines and motion paths remain inert. Get selects one slide graph."
           },
           transitions: {
             supported: true,
@@ -4071,6 +4098,21 @@ async function execute(
           )
           .join("") +
         "External targets remain inert. Metadata parsing does not prove playback.\n";
+    } else if (Object.hasOwn(animationSchemas, args.operation)) {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
+      let selection: SelectionQuery | undefined = args.token ? { token: args.token } : args.slide === undefined ? undefined : {
+        kind: "slide", scope: "slides", position: { coordinateSystem: "one-based", value: args.slide }
+      };
+      if (args.shape !== undefined) {
+        const index = await readSelectionIndex(bytes, context);
+        const slide = index.select(selection!)[0]!;
+        selection = { kind: "object", scope: "slides", owner: slide.part, name: args.shape };
+      }
+      const records = await readAnimations(bytes, selection ? { selection } : {}, context);
+      if (args.operation === "animations.get" && records.length !== 1) throw new SelectionError(records.length ? "ambiguous-selection" : "missing-selection");
+      result = { ...success(operation, { items: animationItems(records) }), locations: records.map(record => record.location) };
+      human = records.map(record => `Slide ${record.slide}: ${record.nodes.length} timing nodes, ${record.targetShapeIds.length} targets\n`).join("") + "Timing metadata only; no animation or media execution.\n";
     } else if (Object.hasOwn(transitionSchemas, args.operation)) {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));

@@ -137,6 +137,13 @@ and freeform coordinate rounding's ties-to-even. Integer EMU inputs stay exact.
 The `centipoints` accessor uses floor division by 127, including negative values.
 Do not substitute JS bitwise coercion or silently lose integer precision.
 
+The case ledger records concrete source-test differences: `Centipoints(12.5)`
+stores 1,588 EMU, `Cm(2.53)` stores 910,800 EMU, and `Emu(9144.9)` stores 9,145 EMU
+under the target rounding rule. The source tests expect 1,587, 910,799 and 9,144
+respectively. Each parameter row remains separate and records the deliberate
+mapping. Tests compare a Length object's `.emu` value; a source numeric-subclass
+comparison is not a requirement to make a JS object equal a primitive number.
+
 RGB channels must be integers in [0,255]; `from_string` accepts exactly six hex
 digits. The source slices the first six characters without enforcing total length;
 rejecting trailing characters is an explicit target validation difference, not
@@ -222,6 +229,16 @@ handle with an unavailable property is distinct from an invalidated handle.
 The source-branded base exception is not exported. Public errors must not leak
 internal class names or host paths. These are proposed error contracts, not a
 claim that target exception classes have been implemented.
+
+Source paragraph tests also attempt `.pt` on null or a numeric line multiple.
+Those operations target language primitives, not model getters. The TypeScript
+contract requires narrowing `Length | number | null` before accessing `.pt`;
+only Length exposes it. Ordinary JS access on null throws a native TypeError,
+while property lookup on a number returns undefined. Neither is an SDK
+`PropertyAccessError` with a stable error code. Original cases retain null versus
+line-multiple versus absolute-length distinctions and check invalid member access
+with type assertions; they do not introduce a primitive wrapper to reproduce
+source AttributeError. Model-property failures still use the table above.
 
 The CLI maps validation/unsupported/stale/selection failures to 1, usage/schema
 errors to 2, I/O/publication failures to 3, limits to 4 and cancellation to 130.

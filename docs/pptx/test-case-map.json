@@ -309119,6 +309119,8 @@
   ],
   "current_evidence_sha256": {
     "docs/pptx/test-behavior-evidence.json": "9a30c612931cb72af2341f240470833462ccacc80d029cd88f7c02bc3b48e0bf",
-    "docs/pptx/api-language-mappings.md": "077d1634d46cac551921bae4fcd09ec0a8f3cb4723a638de74511dd06c0c775b"
-  }
+    "docs/pptx/api-language-mappings.md": "0de836ba2f12f8902c40fedea20978be88defd987c0d5a51a9064f2dcb9154b4",
+    "docs/pptx/upstream-api-audit.md": "8e755f16aff69fe329f78d640de6a0254af14b27396f1abce5c56740e7d3c5ec"
+  },
+  "current_evidence_baseline": "dfb4530bb0fcd3f8dc2d187ac16d8e283beaef5a"
 }
